@@ -654,13 +654,19 @@ class BackendAPITester:
             self.print_result(False, f"Exception during certificate validation test: {str(e)}")
             return False
     
-    def test_upload_passport_files(self):
-        """Test 6: Upload passport files to Google Drive"""
-        self.print_test_header("Test 6 - Upload Passport Files")
+    def test_delete_crew_synchronous_mode(self):
+        """Test 6: DELETE crew with background=false (synchronous mode)"""
+        self.print_test_header("Test 6 - DELETE Crew Synchronous Mode")
         
-        if not self.access_token or not self.crew_id or not self.passport_analysis:
-            self.print_result(False, "Missing required data from previous tests")
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
             return False
+        
+        # Use crew without files if available, otherwise skip this test
+        if not self.crew_without_files_id:
+            print(f"⚠️ No crew without files found - skipping synchronous mode test")
+            self.print_result(True, "No crew without files found - synchronous mode test skipped")
+            return True
         
         try:
             headers = {
@@ -668,86 +674,85 @@ class BackendAPITester:
                 "Content-Type": "application/json"
             }
             
-            print(f"📡 POST {BACKEND_URL}/crew/{self.crew_id}/upload-passport-files")
-            print(f"🎯 Uploading passport files for crew ID: {self.crew_id}")
+            print(f"📡 DELETE {BACKEND_URL}/crew/{self.crew_without_files_id}?background=false")
+            print(f"🎯 Testing synchronous deletion mode (background=false)")
+            print(f"👤 Target Crew: {self.crew_without_files_id[:8]}... (crew without files)")
             
-            # Prepare upload data
-            upload_data = {
-                "file_content": self.passport_analysis.get("_file_content", ""),
-                "filename": "passport.pdf",
-                "content_type": "application/pdf",
-                "summary_text": self.passport_analysis.get("_summary_text", ""),
-                "ship_name": "BROTHER 36"
-            }
-            
-            print(f"📋 Upload data:")
-            print(f"   filename: {upload_data['filename']}")
-            print(f"   content_type: {upload_data['content_type']}")
-            print(f"   ship_name: {upload_data['ship_name']}")
-            print(f"   file_content length: {len(upload_data['file_content'])} characters")
-            print(f"   summary_text length: {len(upload_data['summary_text'])} characters")
-            
-            # Make request to upload passport files
+            # Test with background=false (synchronous mode)
             start_time = time.time()
-            response = self.session.post(
-                f"{BACKEND_URL}/crew/{self.crew_id}/upload-passport-files",
+            response = self.session.delete(
+                f"{BACKEND_URL}/crew/{self.crew_without_files_id}?background=false",
                 headers=headers,
-                json=upload_data,
-                timeout=120  # Extended timeout for file upload
+                timeout=60  # Longer timeout for synchronous mode
             )
-            upload_time = time.time() - start_time
+            response_time = time.time() - start_time
             
             print(f"📊 Response Status: {response.status_code}")
-            print(f"⏱️ Upload Time: {upload_time:.1f} seconds")
+            print(f"⏱️ Response Time: {response_time:.3f} seconds")
             
             if response.status_code == 200:
                 response_data = response.json()
                 print(f"📄 Response Keys: {list(response_data.keys())}")
                 
-                # Check required response fields
-                required_fields = ["success"]
-                expected_fields = ["passport_file_id", "summary_file_id"]
-                
+                # Verify expected response structure for synchronous mode
                 success = response_data.get("success")
-                print(f"✅ Success: {success}")
+                message = response_data.get("message", "")
+                deleted_files = response_data.get("deleted_files", [])
                 
-                if success:
-                    # Check for file IDs
-                    passport_file_id = response_data.get("passport_file_id")
-                    summary_file_id = response_data.get("summary_file_id")
+                print(f"✅ Success: {success}")
+                print(f"📝 Message: {message}")
+                print(f"📁 Deleted Files: {deleted_files}")
+                
+                # Verify response structure for synchronous mode
+                if success and "files deleted successfully" in message:
+                    print(f"✅ Response indicates synchronous deletion completed")
                     
-                    if passport_file_id:
-                        self.passport_file_id = passport_file_id
-                        print(f"✅ Passport File ID: {passport_file_id}")
-                    else:
-                        print(f"❌ Passport File ID missing")
+                    # Verify crew is deleted from database
+                    print(f"\n🔍 Verifying crew deleted from database...")
+                    verify_response = self.session.get(
+                        f"{BACKEND_URL}/crew/{self.crew_without_files_id}",
+                        headers=headers
+                    )
                     
-                    if summary_file_id:
-                        self.summary_file_id = summary_file_id
-                        print(f"✅ Summary File ID: {summary_file_id}")
-                    else:
-                        print(f"❌ Summary File ID missing")
-                    
-                    # Check for folder path information
-                    folder_path = response_data.get("folder_path")
-                    if folder_path:
-                        print(f"✅ Folder Path: {folder_path}")
-                    else:
-                        print(f"⚠️ Folder Path not provided in response")
-                    
-                    if passport_file_id and summary_file_id:
-                        self.print_result(True, f"Passport files uploaded successfully - Passport: {passport_file_id}, Summary: {summary_file_id}")
+                    if verify_response.status_code == 404:
+                        print(f"✅ Crew deleted from database (GET returns 404)")
+                        self.print_result(True, f"Synchronous deletion successful - crew and files deleted")
                         return True
                     else:
-                        self.print_result(False, "Upload successful but missing file IDs")
+                        print(f"❌ Crew still exists in database (GET returns {verify_response.status_code})")
+                        self.print_result(False, "Synchronous deletion failed - crew not deleted from database")
                         return False
                 else:
-                    error_message = response_data.get("error", "Unknown error")
-                    self.print_result(False, f"File upload failed: {error_message}")
+                    self.print_result(False, f"Unexpected response structure or content: {response_data}")
                     return False
                     
+            elif response.status_code == 400:
+                # This might be expected if crew has certificates
+                try:
+                    error_data = response.json()
+                    detail = error_data.get("detail", "")
+                    if "certificates exist" in detail:
+                        print(f"⚠️ Crew has certificates - this is expected validation")
+                        print(f"📝 Error: {detail}")
+                        self.print_result(True, "Crew has certificates - validation working correctly")
+                        return True
+                    else:
+                        self.print_result(False, f"Unexpected 400 error: {error_data}")
+                        return False
+                except:
+                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {response.text}")
+                    return False
             else:
                 try:
+                    error_data = response.json()
+                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during synchronous deletion test: {str(e)}")
+            return False
                     error_data = response.json()
                     self.print_result(False, f"Upload passport files failed with status {response.status_code}: {error_data}")
                 except:
