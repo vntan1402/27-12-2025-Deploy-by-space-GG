@@ -427,6 +427,7 @@ const CrewRecords = () => {
           <div>
             <CrewListTable 
               selectedShip={selectedShip}
+              ships={ships}
               onAddCrew={() => toast.info('Add Crew modal - Coming soon')}
               onRefresh={() => toast.success(language === 'vi' ? 'Đã làm mới' : 'Refreshed')}
             />
