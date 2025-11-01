@@ -498,7 +498,7 @@ export const CrewListTable = ({
   };
   
   // Bulk update multiple fields helper
-  const bulkUpdateMultipleFields = async (updates, crewIds) => {
+  const bulkUpdateMultipleFields = async (updates, crewIds, updateType = null) => {
     try {
       let successCount = 0;
       let failCount = 0;
@@ -514,16 +514,30 @@ export const CrewListTable = ({
       }
       
       if (successCount > 0) {
-        // Check if this is a ship sign on update (has status and date_sign_off)
-        const isShipSignOnUpdate = updates.ship_sign_on && updates.status && updates.hasOwnProperty('date_sign_off');
-        
-        if (isShipSignOnUpdate) {
+        // Custom toast message based on update type
+        if (updateType === 'date_sign_off') {
+          // Date Sign Off was filled (auto-update status and ship)
+          toast.success(
+            language === 'vi' 
+              ? `✅ Đã cập nhật ${successCount} thuyền viên: Ngày rời tàu, Trạng thái "Standby", Tàu "-"${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
+              : `✅ Updated ${successCount} crew member(s): Date sign off, Status "Standby", Ship "-"${failCount > 0 ? ` (${failCount} failed)` : ''}`
+          );
+        } else if (updateType === 'clear_date_sign_off') {
+          // Date Sign Off was cleared (no other changes)
+          toast.success(
+            language === 'vi' 
+              ? `✅ Đã xóa ngày rời tàu cho ${successCount} thuyền viên${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
+              : `✅ Cleared date sign off for ${successCount} crew member(s)${failCount > 0 ? ` (${failCount} failed)` : ''}`
+          );
+        } else if (updates.ship_sign_on && updates.status && updates.hasOwnProperty('date_sign_off')) {
+          // Ship Sign On update (has status and date_sign_off)
           toast.success(
             language === 'vi' 
               ? `✅ Đã cập nhật ${successCount} thuyền viên: Tàu "${updates.ship_sign_on}", Trạng thái "Sign on", Đã xóa ngày rời tàu${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
               : `✅ Updated ${successCount} crew member(s): Ship "${updates.ship_sign_on}", Status "Sign on", Cleared date sign off${failCount > 0 ? ` (${failCount} failed)` : ''}`
           );
         } else {
+          // Generic update
           toast.success(
             language === 'vi' 
               ? `Đã cập nhật ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}`
