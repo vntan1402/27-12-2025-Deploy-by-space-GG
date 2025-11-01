@@ -283,8 +283,8 @@ const CrewRecords = () => {
         )}
       </div>
 
-      {/* Ship Detail Panel */}
-      {selectedShip && (
+      {/* Ship Detail Panel or Company Info Panel */}
+      {selectedShip ? (
         <ShipDetailPanel
           ship={selectedShip}
           onClose={() => updateSelectedShip(null)}
@@ -292,6 +292,11 @@ const CrewRecords = () => {
           showShipParticular={true}
           onShipSelect={() => setShowShipModal(true)}
           onShipUpdate={handleShipUpdate}
+        />
+      ) : (
+        <CompanyInfoPanel
+          companyName={user?.company_name}
+          onClose={null}
         />
       )}
 
