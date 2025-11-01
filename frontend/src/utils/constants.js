@@ -54,8 +54,7 @@ export const SUB_MENU_ITEMS = {
   ],
   crew: [
     { key: 'crew_list', name_vi: 'Crew List', name_en: 'Crew List' },
-    { key: 'certificates', name_vi: 'Certificates', name_en: 'Certificates' },
-    { key: 'passport', name_vi: 'Passport', name_en: 'Passport' }
+    { key: 'crew_certificates', name_vi: 'Crew Certificates', name_en: 'Crew Certificates' }
   ],
   ism: [
     { key: 'ism_list', name_vi: 'ISM Documents', name_en: 'ISM Documents' }
