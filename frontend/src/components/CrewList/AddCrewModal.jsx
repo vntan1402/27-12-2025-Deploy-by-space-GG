@@ -398,7 +398,7 @@ export const AddCrewModal = ({
               <div className="space-y-3">
                 {/* Drag & Drop Area */}
                 <div 
-                  className={`border-2 border-dashed border-blue-300 rounded-lg p-6 hover:border-blue-400 transition-colors relative ${
+                  className={`border-2 border-dashed border-blue-300 rounded-lg p-8 hover:border-blue-400 transition-all relative ${
                     isAnalyzing ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
                   }`}
                   onClick={() => !isAnalyzing && document.getElementById('passport-upload').click()}
@@ -406,31 +406,41 @@ export const AddCrewModal = ({
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-blue-700 font-medium text-left">
-                        {language === 'vi' ? 'Kéo thả file hoặc click để chọn' : 'Drag & drop file or click to select'}
-                      </p>
-                      <p className="text-blue-600 text-sm text-left mt-1">
-                        {language === 'vi' ? 'Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)' : 'Supports: PDF, JPG, PNG (max 10MB)'}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0 ml-4">
-                      <div className="text-blue-500 text-4xl">📁</div>
-                    </div>
-                  </div>
-                  
-                  {/* Analyzing Overlay */}
-                  {isAnalyzing && (
-                    <div className="absolute inset-0 bg-white bg-opacity-95 rounded-lg flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mb-3"></div>
-                        <p className="text-blue-700 font-semibold text-lg">
-                          {language === 'vi' ? 'Đang phân tích hộ chiếu...' : 'Analyzing passport...'}
+                  {!isAnalyzing ? (
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-blue-700 font-medium text-left">
+                          {language === 'vi' ? 'Kéo thả file hoặc click để chọn' : 'Drag & drop file or click to select'}
                         </p>
-                        <p className="text-blue-600 text-sm mt-1">
-                          {language === 'vi' ? 'Vui lòng đợi trong giây lát' : 'Please wait a moment'}
+                        <p className="text-blue-600 text-sm text-left mt-1">
+                          {language === 'vi' ? 'Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)' : 'Supports: PDF, JPG, PNG (max 10MB)'}
                         </p>
+                      </div>
+                      <div className="flex-shrink-0 ml-4">
+                        <div className="text-blue-500 text-4xl">📁</div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Analyzing Overlay with Enhanced Spinner */
+                    <div className="flex flex-col items-center justify-center py-4">
+                      <div className="relative">
+                        {/* Outer spinning ring */}
+                        <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600"></div>
+                        {/* Inner pulsing circle */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="animate-pulse h-8 w-8 bg-blue-500 rounded-full opacity-75"></div>
+                        </div>
+                      </div>
+                      <p className="text-blue-800 font-bold text-lg mt-4">
+                        {language === 'vi' ? '🤖 Đang phân tích hộ chiếu với AI...' : '🤖 Analyzing passport with AI...'}
+                      </p>
+                      <p className="text-blue-600 text-sm mt-2">
+                        {language === 'vi' ? 'Vui lòng đợi, quá trình này có thể mất 20-30 giây' : 'Please wait, this may take 20-30 seconds'}
+                      </p>
+                      <div className="flex items-center space-x-1 mt-3">
+                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                       </div>
                     </div>
                   )}
