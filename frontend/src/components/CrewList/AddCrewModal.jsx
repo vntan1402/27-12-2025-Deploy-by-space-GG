@@ -611,8 +611,8 @@ export const AddCrewModal = ({
               </h4>
               <p className="text-sm text-blue-700 ml-4">
                 {language === 'vi' 
-                  ? 'Tải lên file hộ chiếu để tự động phân tích và điền thông tin thuyền viên'
-                  : 'Upload passport file to automatically analyze and fill crew information'
+                  ? 'Tải lên file hộ chiếu để tự động phân tích và điền thông tin thuyền viên. Hỗ trợ upload nhiều file cùng lúc.'
+                  : 'Upload passport file to automatically analyze and fill crew information. Supports multiple file upload.'
                 }
               </p>
             </div>
