@@ -326,37 +326,92 @@ class BackendAPITester:
             self.print_result(False, f"Exception during find target crew test: {str(e)}")
             return False
     
-    def test_download_passport_file(self):
-        """Test 3: Download passport file from provided URL"""
-        self.print_test_header("Test 3 - Download Passport File")
+    def test_find_crew_with_certificates(self):
+        """Test 3: Find a crew member who has certificates for validation testing"""
+        self.print_test_header("Test 3 - Find Crew Member with Certificates")
+        
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False
         
         try:
-            passport_url = "https://customer-assets.emergentagent.com/job_drive-doc-manager/artifacts/dzg8a1ia_1.%20Capt.%20CHUONG%20-%20PP.pdf"
-            print(f"📥 Downloading passport file from: {passport_url}")
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
             
-            # Download the passport file
-            download_response = requests.get(passport_url, timeout=30)
+            print(f"📡 GET {BACKEND_URL}/crew-certificates")
+            print(f"🎯 Finding crew member with certificates for validation testing")
             
-            print(f"📊 Download Status: {download_response.status_code}")
+            # Make request to get crew certificates
+            response = self.session.get(
+                f"{BACKEND_URL}/crew-certificates",
+                headers=headers
+            )
             
-            if download_response.status_code == 200:
-                self.passport_content = download_response.content
-                print(f"📄 File downloaded successfully: {len(self.passport_content)} bytes")
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                certificates = response.json()
+                print(f"📄 Found {len(certificates)} crew certificates")
                 
-                # Verify it's a PDF file
-                if self.passport_content.startswith(b'%PDF'):
-                    print(f"✅ File verified as PDF format")
-                    self.print_result(True, f"Passport file downloaded successfully ({len(self.passport_content)} bytes)")
+                if not certificates:
+                    print(f"⚠️ No crew certificates found - will skip certificate validation test")
+                    self.print_result(True, "No crew certificates found - certificate validation test will be skipped")
+                    return True
+                
+                # Group certificates by crew_id to find crew with certificates
+                crew_cert_counts = {}
+                for cert in certificates:
+                    crew_id = cert.get('crew_id')
+                    crew_name = cert.get('crew_name', 'Unknown')
+                    if crew_id:
+                        if crew_id not in crew_cert_counts:
+                            crew_cert_counts[crew_id] = {
+                                'count': 0,
+                                'crew_name': crew_name
+                            }
+                        crew_cert_counts[crew_id]['count'] += 1
+                
+                # Find crew with most certificates (but not our target crew)
+                best_crew = None
+                max_certs = 0
+                
+                for crew_id, info in crew_cert_counts.items():
+                    cert_count = info['count']
+                    crew_name = info['crew_name']
+                    
+                    print(f"👤 Crew {crew_name} ({crew_id[:8]}...): {cert_count} certificates")
+                    
+                    # Don't use our target crew for this test
+                    if crew_id != self.test_crew_id and cert_count > max_certs:
+                        max_certs = cert_count
+                        best_crew = {
+                            'crew_id': crew_id,
+                            'crew_name': crew_name,
+                            'cert_count': cert_count
+                        }
+                
+                if best_crew:
+                    self.crew_with_certificates_id = best_crew['crew_id']
+                    print(f"✅ Selected crew with certificates: {best_crew['crew_name']} ({best_crew['cert_count']} certificates)")
+                    self.print_result(True, f"Found crew with {best_crew['cert_count']} certificates for validation testing")
                     return True
                 else:
-                    self.print_result(False, "Downloaded file is not a valid PDF")
-                    return False
+                    print(f"⚠️ No suitable crew with certificates found (excluding target crew)")
+                    self.print_result(True, "No suitable crew with certificates found - validation test will be skipped")
+                    return True
+                
             else:
-                self.print_result(False, f"Failed to download passport file: HTTP {download_response.status_code}")
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"GET crew-certificates failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"GET crew-certificates failed with status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during passport file download: {str(e)}")
+            self.print_result(False, f"Exception during find crew with certificates test: {str(e)}")
             return False
     
     def test_analyze_passport(self):
