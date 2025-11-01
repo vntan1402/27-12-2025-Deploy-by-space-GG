@@ -232,9 +232,7 @@ export const AddCrewModal = ({
         ) : prev.passport_expiry_date
     }));
     
-    toast.success(language === 'vi' 
-      ? '✅ Hộ chiếu đã được phân tích thành công!'
-      : '✅ Passport analyzed successfully!');
+    // Note: Success message is now shown in the AI Analysis section, not as toast
   };
   
   // Handle form submit
