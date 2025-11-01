@@ -996,9 +996,6 @@ if __name__ == "__main__":
     else:
         print(f"\n❌ SOME TESTS FAILED - REVIEW RESULTS ABOVE")
         sys.exit(1)
-                    # Verify it looks like a UUID (company ID)
-                    uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-                    if re.match(uuid_pattern, str(company_id).lower()):
                         print(f"✅ company field is a valid UUID (company ID): '{company_id}'")
                         company_name_verification.append(True)
                         
