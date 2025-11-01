@@ -754,13 +754,15 @@ class BackendAPITester:
             self.print_result(False, f"Exception during synchronous deletion test: {str(e)}")
             return False
     
-    def test_verify_crew_record_updated(self):
-        """Test 7: Verify crew record is updated with file IDs"""
-        self.print_test_header("Test 7 - Verify Crew Record Updated")
+    def test_edge_cases(self):
+        """Test 7: Edge cases - non-existent crew, no authentication"""
+        self.print_test_header("Test 7 - Edge Cases")
         
-        if not self.access_token or not self.crew_id:
-            self.print_result(False, "Missing required data from previous tests")
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
             return False
+        
+        edge_case_results = []
         
         try:
             headers = {
@@ -768,63 +770,62 @@ class BackendAPITester:
                 "Content-Type": "application/json"
             }
             
-            print(f"📡 GET {BACKEND_URL}/crew/{self.crew_id}")
-            print(f"🎯 Verifying crew record updated with file IDs")
+            # Edge Case 1: DELETE non-existent crew_id
+            print(f"\n🔍 Edge Case 1: DELETE non-existent crew_id")
+            fake_crew_id = "non-existent-crew-id-12345"
+            print(f"📡 DELETE {BACKEND_URL}/crew/{fake_crew_id}")
             
-            # Make request to get crew member details
-            response = self.session.get(
-                f"{BACKEND_URL}/crew/{self.crew_id}",
+            response = self.session.delete(
+                f"{BACKEND_URL}/crew/{fake_crew_id}",
                 headers=headers,
                 timeout=30
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
-            if response.status_code == 200:
-                crew_record = response.json()
-                print(f"📄 Crew Record Keys: {list(crew_record.keys())}")
-                
-                # Check for file ID fields
-                passport_file_id = crew_record.get("passport_file_id")
-                summary_file_id = crew_record.get("summary_file_id")
-                
-                print(f"📋 File ID Verification:")
-                print(f"   passport_file_id: {passport_file_id}")
-                print(f"   summary_file_id: {summary_file_id}")
-                
-                # Verify file IDs match what was returned from upload
-                file_ids_match = True
-                if self.passport_file_id and passport_file_id != self.passport_file_id:
-                    print(f"❌ Passport file ID mismatch: expected {self.passport_file_id}, got {passport_file_id}")
-                    file_ids_match = False
-                
-                if self.summary_file_id and summary_file_id != self.summary_file_id:
-                    print(f"❌ Summary file ID mismatch: expected {self.summary_file_id}, got {summary_file_id}")
-                    file_ids_match = False
-                
-                if passport_file_id and summary_file_id and file_ids_match:
-                    print(f"✅ Crew record successfully updated with both file IDs")
-                    self.print_result(True, f"Crew record updated with passport_file_id and summary_file_id")
-                    return True
-                elif passport_file_id or summary_file_id:
-                    print(f"⚠️ Crew record partially updated (only one file ID present)")
-                    self.print_result(False, "Crew record only partially updated with file IDs")
-                    return False
-                else:
-                    print(f"❌ Crew record not updated with file IDs")
-                    self.print_result(False, "Crew record not updated with file IDs")
-                    return False
-                    
+            if response.status_code == 404:
+                print(f"✅ Correctly returns 404 for non-existent crew")
+                edge_case_results.append(True)
             else:
-                try:
-                    error_data = response.json()
-                    self.print_result(False, f"Get crew record failed with status {response.status_code}: {error_data}")
-                except:
-                    self.print_result(False, f"Get crew record failed with status {response.status_code}: {response.text}")
+                print(f"❌ Expected 404, got {response.status_code}")
+                edge_case_results.append(False)
+            
+            # Edge Case 2: DELETE without authentication
+            print(f"\n🔍 Edge Case 2: DELETE without authentication")
+            print(f"📡 DELETE {BACKEND_URL}/crew/{fake_crew_id} (no auth header)")
+            
+            response = self.session.delete(
+                f"{BACKEND_URL}/crew/{fake_crew_id}",
+                timeout=30
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 403:
+                print(f"✅ Correctly returns 403 for unauthenticated request")
+                edge_case_results.append(True)
+            elif response.status_code == 401:
+                print(f"✅ Correctly returns 401 for unauthenticated request")
+                edge_case_results.append(True)
+            else:
+                print(f"❌ Expected 403/401, got {response.status_code}")
+                edge_case_results.append(False)
+            
+            # Summary of edge case results
+            passed_edge_cases = sum(edge_case_results)
+            total_edge_cases = len(edge_case_results)
+            
+            print(f"\n📊 Edge Cases Summary: {passed_edge_cases}/{total_edge_cases} passed")
+            
+            if passed_edge_cases == total_edge_cases:
+                self.print_result(True, f"All edge cases passed ({passed_edge_cases}/{total_edge_cases})")
+                return True
+            else:
+                self.print_result(False, f"Some edge cases failed ({passed_edge_cases}/{total_edge_cases})")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during crew record verification test: {str(e)}")
+            self.print_result(False, f"Exception during edge cases test: {str(e)}")
             return False
     
     def test_verify_crew_list(self):
