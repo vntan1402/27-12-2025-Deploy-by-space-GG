@@ -753,15 +753,6 @@ class BackendAPITester:
         except Exception as e:
             self.print_result(False, f"Exception during synchronous deletion test: {str(e)}")
             return False
-                    error_data = response.json()
-                    self.print_result(False, f"Upload passport files failed with status {response.status_code}: {error_data}")
-                except:
-                    self.print_result(False, f"Upload passport files failed with status {response.status_code}: {response.text}")
-                return False
-                
-        except Exception as e:
-            self.print_result(False, f"Exception during passport files upload test: {str(e)}")
-            return False
     
     def test_verify_crew_record_updated(self):
         """Test 7: Verify crew record is updated with file IDs"""
