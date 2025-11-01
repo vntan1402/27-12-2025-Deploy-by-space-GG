@@ -247,11 +247,20 @@ export const CrewListTable = ({
     
     try {
       setIsDeleting(true);
-      await crewService.deleteCrew(crewToDelete.id);
+      
+      // Delete crew with background flag for Drive deletion
+      await crewService.delete(crewToDelete.id);
       
       toast.success(language === 'vi' 
         ? `Đã xóa thuyền viên ${crewToDelete.full_name}`
         : `Deleted crew member ${crewToDelete.full_name}`);
+      
+      // Show info about background Drive deletion
+      if (crewToDelete.passport_file_id || crewToDelete.summary_file_id) {
+        toast.info(language === 'vi' 
+          ? '🗂️ Đang xóa files trên Drive...'
+          : '🗂️ Deleting files on Drive...');
+      }
       
       // Refresh list
       fetchCrewList();
