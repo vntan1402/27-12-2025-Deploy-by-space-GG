@@ -415,7 +415,7 @@ export const AddCrewModal = ({
               </p>
             </div>
             
-            {!uploadedFile ? (
+            {!uploadedFile || !analyzedData ? (
               <div className="space-y-3">
                 {/* Drag & Drop Area */}
                 <div 
