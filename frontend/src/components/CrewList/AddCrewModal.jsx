@@ -809,28 +809,6 @@ export const AddCrewModal = ({
           </div>
         </div>
       </div>
-      
-      {/* Batch Processing Modal */}
-      {showBatchProcessingModal && (
-        <BatchProcessingModal
-          progress={batchProgress}
-          currentFile={currentProcessingFile}
-          onClose={() => {
-            // Don't allow closing during processing
-          }}
-        />
-      )}
-      
-      {/* Batch Results Modal */}
-      {showBatchResultsModal && (
-        <BatchResultsModal
-          results={batchResults}
-          onClose={() => {
-            setShowBatchResultsModal(false);
-            setBatchResults([]);
-          }}
-        />
-      )}
     </div>
   );
 };
