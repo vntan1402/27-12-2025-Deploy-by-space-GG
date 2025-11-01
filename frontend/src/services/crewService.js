@@ -156,4 +156,13 @@ export const crewService = {
       crew_id: crewId,
     });
   },
+
+  /**
+   * Auto-rename passport files
+   * @param {string} crewId - Crew ID
+   * @returns {Promise} Rename result
+   */
+  renameFiles: async (crewId) => {
+    return api.post(`/api/crew/${crewId}/rename-files`);
+  }
 };
