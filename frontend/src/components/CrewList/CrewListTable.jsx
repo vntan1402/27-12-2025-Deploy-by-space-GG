@@ -522,60 +522,72 @@ export const CrewListTable = ({
     // Close Add Crew modal
     setShowAddCrewModal(false);
     
-    // Process files with 1-second stagger
+    const STAGGER_DELAY = 5000; // 5 seconds between file starts (matching Test Report)
     const results = [];
     
-    for (let i = 0; i < validFiles.length; i++) {
-      const file = validFiles[i];
-      setCurrentProcessingFile(file.name);
-      
-      // Update status to processing
-      setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
-      setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? 'Đang phân tích AI...' : 'AI analysis...' }));
-      setFileProgressMap(prev => ({ ...prev, [file.name]: 25 }));
-      
-      try {
-        const result = await processSingleFileInBatch(file, (progress, subStatus) => {
-          setFileProgressMap(prev => ({ ...prev, [file.name]: progress }));
-          setFileSubStatusMap(prev => ({ ...prev, [file.name]: subStatus }));
-        });
-        
-        results.push(result);
-        
-        // Update status to completed or error
-        setFileStatusMap(prev => ({ ...prev, [file.name]: result.success ? 'completed' : 'error' }));
-        setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
-        
-        setBatchProgress(prev => ({
-          ...prev,
-          current: i + 1,
-          success: prev.success + (result.success ? 1 : 0),
-          failed: prev.failed + (result.success ? 0 : 1)
-        }));
-        
-      } catch (error) {
-        console.error(`Error processing file ${file.name}:`, error);
-        results.push({
-          success: false,
-          filename: file.name,
-          error: error.message || 'Unknown error'
-        });
-        
-        setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
-        setFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
-        
-        setBatchProgress(prev => ({
-          ...prev,
-          current: i + 1,
-          failed: prev.failed + 1
-        }));
-      }
-      
-      // Delay before next file (except last one)
-      if (i < validFiles.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    }
+    // Process files with staggered start (PARALLEL PROCESSING)
+    const promises = validFiles.map((file, index) => {
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          // Update status to processing
+          setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+          
+          // Start smooth progress animation
+          const estimatedTime = estimateFileProcessingTime(file);
+          const progressController = startSmoothProgressForFile(
+            file.name,
+            setFileProgressMap,
+            setFileSubStatusMap,
+            estimatedTime,
+            90 // Max 90%, then jump to 100% on complete
+          );
+          
+          try {
+            const result = await processSingleFileInBatch(file, progressController);
+            results.push(result);
+            
+            // Complete progress
+            progressController.complete();
+            
+            // Update status to completed or error
+            setFileStatusMap(prev => ({ ...prev, [file.name]: result.success ? 'completed' : 'error' }));
+            
+            setBatchProgress(prev => ({
+              ...prev,
+              current: results.length,
+              success: prev.success + (result.success ? 1 : 0),
+              failed: prev.failed + (result.success ? 0 : 1)
+            }));
+            
+            resolve(result);
+          } catch (error) {
+            console.error(`Error processing file ${file.name}:`, error);
+            progressController.stop();
+            
+            const errorResult = {
+              success: false,
+              filename: file.name,
+              error: error.message || 'Unknown error'
+            };
+            results.push(errorResult);
+            
+            setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+            setFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
+            
+            setBatchProgress(prev => ({
+              ...prev,
+              current: results.length,
+              failed: prev.failed + 1
+            }));
+            
+            resolve(errorResult);
+          }
+        }, index * STAGGER_DELAY);
+      });
+    });
+    
+    // Wait for all files to complete
+    await Promise.all(promises);
     
     // Show results
     setBatchResults(results);
