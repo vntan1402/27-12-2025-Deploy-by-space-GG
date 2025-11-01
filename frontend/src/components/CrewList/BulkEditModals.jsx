@@ -156,24 +156,41 @@ export const BulkEditShipSignOnModal = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
             </label>
-            <select
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && value) {
-                  e.preventDefault();
-                  onSubmit();
-                }
-              }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-              autoFocus
-            >
-              <option value="">{language === 'vi' ? '-- Chọn tàu --' : '-- Select Ship --'}</option>
-              {ships.map(ship => (
-                <option key={ship.id} value={ship.name}>{ship.name}</option>
-              ))}
-              <option value="-">-</option>
-            </select>
+            {ships && ships.length > 0 ? (
+              <select
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && value) {
+                    e.preventDefault();
+                    onSubmit();
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                autoFocus
+              >
+                <option value="">{language === 'vi' ? '-- Chọn tàu --' : '-- Select Ship --'}</option>
+                {ships.map(ship => (
+                  <option key={ship.id} value={ship.name}>{ship.name}</option>
+                ))}
+                <option value="-">-</option>
+              </select>
+            ) : (
+              <input
+                type="text"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && value) {
+                    e.preventDefault();
+                    onSubmit();
+                  }
+                }}
+                placeholder={language === 'vi' ? 'Nhập tên tàu hoặc "-" cho Standby' : 'Enter ship name or "-" for Standby'}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                autoFocus
+              />
+            )}
             <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-xs text-blue-800 font-medium">
                 {language === 'vi' ? '📋 Cập nhật tự động:' : '📋 Auto-updates:'}
