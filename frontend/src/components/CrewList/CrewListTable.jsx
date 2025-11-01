@@ -191,7 +191,7 @@ export const CrewListTable = ({
           {/* Add Crew Button - role check */}
           {user && ['manager', 'admin', 'super_admin'].includes(user.role) && (
             <button 
-              onClick={onAddCrew}
+              onClick={() => setShowAddCrewModal(true)}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center"
             >
               <span className="mr-2">👤</span>
