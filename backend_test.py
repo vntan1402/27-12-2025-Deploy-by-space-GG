@@ -983,8 +983,19 @@ class BackendAPITester:
             print(f"🔧 Major fixes required")
         
         return success_rate >= 80
+
+
+if __name__ == "__main__":
+    """Main execution - run DELETE crew endpoint tests"""
+    tester = BackendAPITester()
+    success = tester.run_all_tests()
     
-    def test_upcoming_surveys_endpoint(self):
+    if success:
+        print(f"\n🎉 ALL TESTS PASSED - DELETE CREW ENDPOINT IS WORKING CORRECTLY")
+        sys.exit(0)
+    else:
+        print(f"\n❌ SOME TESTS FAILED - REVIEW RESULTS ABOVE")
+        sys.exit(1)
         """Test 7: Upcoming Surveys Endpoint - Company Name Verification"""
         self.print_test_header("Test 7 - Upcoming Surveys Endpoint - Company Name Verification")
         
