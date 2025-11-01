@@ -86,8 +86,17 @@ export const AddCrewModal = ({
   
   // Handle file selection
   const handleFileSelect = async (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = Array.from(e.target.files || []);
+    
+    if (files.length === 0) return;
+    
+    // Check if multiple files selected
+    if (files.length > 1) {
+      // Batch processing mode
+      await handleBatchProcessing(files);
+    } else {
+      // Single file mode
+      const file = files[0];
       await handleFileUpload(file);
     }
   };
