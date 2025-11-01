@@ -69,3 +69,31 @@ export const SUB_MENU_ITEMS = {
     { key: 'supplies_list', name_vi: 'Supplies List', name_en: 'Supplies List' }
   ]
 };
+
+// Crew rank options (maritime positions)
+export const RANK_OPTIONS = [
+  { value: 'Master', label: 'Master', label_vi: 'Thuyền trưởng' },
+  { value: 'C/O', label: 'Chief Officer', label_vi: 'Đại phó' },
+  { value: '2/O', label: 'Second Officer', label_vi: 'Nhị phó' },
+  { value: '3/O', label: 'Third Officer', label_vi: 'Tam phó' },
+  { value: '4/O', label: 'Fourth Officer', label_vi: 'Tứ phó' },
+  { value: 'C/M', label: 'Chief Mate', label_vi: 'Trưởng boong' },
+  { value: 'Bosun', label: 'Bosun', label_vi: 'Thủy thủ trưởng' },
+  { value: 'AB', label: 'Able Seaman', label_vi: 'Thủy thủ có bằng' },
+  { value: 'OS', label: 'Ordinary Seaman', label_vi: 'Thủy thủ thường' },
+  { value: 'CE', label: 'Chief Engineer', label_vi: 'Máy trưởng' },
+  { value: '2/E', label: 'Second Engineer', label_vi: 'Máy hai' },
+  { value: '3/E', label: 'Third Engineer', label_vi: 'Máy ba' },
+  { value: '4/E', label: 'Fourth Engineer', label_vi: 'Máy tư' },
+  { value: '5/E', label: 'Fifth Engineer', label_vi: 'Máy năm' },
+  { value: 'ETO', label: 'Electro-Technical Officer', label_vi: 'Sĩ quan điện' },
+  { value: 'Electrician', label: 'Electrician', label_vi: 'Thợ điện' },
+  { value: 'Fitter', label: 'Fitter', label_vi: 'Thợ khớp' },
+  { value: 'Oiler', label: 'Oiler', label_vi: 'Thợ dầu' },
+  { value: 'Wiper', label: 'Wiper', label_vi: 'Thợ lau' },
+  { value: 'Pumpman', label: 'Pumpman', label_vi: 'Thợ bơm' },
+  { value: 'Cook', label: 'Cook', label_vi: 'Đầu bếp' },
+  { value: 'Messman', label: 'Messman', label_vi: 'Phục vụ' },
+  { value: 'Steward', label: 'Steward', label_vi: 'Phục vụ trưởng' },
+  { value: 'Cadet', label: 'Cadet', label_vi: 'Sinh viên thực tập' }
+];
