@@ -47,17 +47,17 @@ export const CrewListTable = ({
   const fetchCrewList = async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await crewService.getCrewList(filters);
-      // setCrewList(response.data);
+      const response = await crewService.getCrewList({
+        ship_name: filters.ship_sign_on !== 'All' ? filters.ship_sign_on : undefined,
+        status: filters.status !== 'All' ? filters.status : undefined
+      });
       
-      // Mock data for now
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setCrewList([]);
+      setCrewList(response.data || []);
       
     } catch (error) {
       console.error('Error fetching crew list:', error);
       toast.error(language === 'vi' ? 'Không thể tải danh sách thuyền viên' : 'Failed to load crew list');
+      setCrewList([]);
     } finally {
       setLoading(false);
     }
