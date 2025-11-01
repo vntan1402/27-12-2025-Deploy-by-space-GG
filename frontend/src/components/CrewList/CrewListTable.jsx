@@ -118,6 +118,21 @@ export const CrewListTable = ({
         (crew.full_name && crew.full_name.toLowerCase().includes(searchLower)) ||
         (crew.full_name_en && crew.full_name_en.toLowerCase().includes(searchLower)) ||
         (crew.passport && crew.passport.toLowerCase().includes(searchLower))
+  
+  // Sync filter with selectedShip
+  useEffect(() => {
+    if (selectedShip) {
+      // When ship is selected, update filter to match
+      if (filters.ship_sign_on !== selectedShip.name) {
+        setFilters(prev => ({ ...prev, ship_sign_on: selectedShip.name }));
+      }
+    } else {
+      // When no ship selected, set filter to All
+      if (filters.ship_sign_on !== 'All') {
+        setFilters(prev => ({ ...prev, ship_sign_on: 'All' }));
+      }
+    }
+  }, [selectedShip]);
       );
     }
     
