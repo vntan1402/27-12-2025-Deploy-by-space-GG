@@ -340,12 +340,12 @@ class BackendAPITester:
                 "Content-Type": "application/json"
             }
             
-            print(f"📡 GET {BACKEND_URL}/crew-certificates")
+            print(f"📡 GET {BACKEND_URL}/crew-certificates/all")
             print(f"🎯 Finding crew member with certificates for validation testing")
             
             # Make request to get crew certificates
             response = self.session.get(
-                f"{BACKEND_URL}/crew-certificates",
+                f"{BACKEND_URL}/crew-certificates/all",
                 headers=headers
             )
             
