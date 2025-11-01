@@ -88,6 +88,14 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path="/crew"
+          element={
+            <ProtectedRoute>
+              <CrewRecords />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/settings"
           element={
             <ProtectedRoute>
