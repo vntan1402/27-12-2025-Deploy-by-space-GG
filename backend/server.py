@@ -17908,6 +17908,168 @@ async def update_crew_member(
         logger.error(f"Error updating crew member {crew_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to update crew member: {str(e)}")
 
+# Bulk Delete Model for Crew
+class BulkDeleteCrewRequest(BaseModel):
+    crew_ids: List[str]
+
+@api_router.delete("/crew/bulk-delete")
+async def bulk_delete_crew_members(
+    request: BulkDeleteCrewRequest,
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Bulk delete crew members including associated Google Drive files (passport + summary)
+    Validates that crew members have no certificates before deletion
+    """
+    try:
+        company_uuid = await resolve_company_id(current_user)
+        crew_ids = request.crew_ids
+        
+        logger.info(f"🗑️ Bulk delete crew members request received: {len(crew_ids)} crew(s)")
+        logger.info(f"📋 Crew IDs: {crew_ids}")
+        
+        deleted_count = 0
+        files_deleted = 0
+        errors = []
+        
+        for crew_id in crew_ids:
+            try:
+                logger.info(f"🔍 Checking crew member: {crew_id}")
+                
+                # Check if crew exists
+                crew = await mongo_db.find_one("crew_members", {
+                    "id": crew_id,
+                    "company_id": company_uuid
+                })
+                
+                if not crew:
+                    logger.warning(f"⚠️ Crew member not found: {crew_id}")
+                    errors.append(f"Crew member {crew_id} not found")
+                    continue
+                
+                crew_name = crew.get("full_name", "Unknown")
+                logger.info(f"✅ Found crew member: {crew_name}")
+                
+                # ⚠️ VALIDATION: Check if crew has any certificates
+                crew_certificates = await mongo_db.find_all("crew_certificates", {
+                    "crew_id": crew_id,
+                    "company_id": company_uuid
+                })
+                
+                if crew_certificates and len(crew_certificates) > 0:
+                    certificate_count = len(crew_certificates)
+                    error_msg = f"Cannot delete crew \"{crew_name}\": {certificate_count} certificates exist"
+                    logger.warning(f"❌ {error_msg}")
+                    errors.append(error_msg)
+                    continue
+                
+                # Get file IDs for deletion
+                passport_file_id = crew.get("passport_file_id")
+                summary_file_id = crew.get("summary_file_id")
+                
+                # Get company Apps Script URL
+                gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+                if gdrive_config and (gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")):
+                    company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
+                    
+                    import aiohttp
+                    
+                    # Delete passport file
+                    if passport_file_id:
+                        logger.info(f"🗑️ Deleting passport file: {passport_file_id}")
+                        try:
+                            async with aiohttp.ClientSession() as session:
+                                payload = {
+                                    "action": "delete_file",
+                                    "file_id": passport_file_id
+                                }
+                                async with session.post(
+                                    company_apps_script_url,
+                                    json=payload,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=aiohttp.ClientTimeout(total=30)
+                                ) as response:
+                                    if response.status == 200:
+                                        result = await response.json()
+                                        if result.get("success"):
+                                            logger.info(f"✅ Passport file deleted: {passport_file_id}")
+                                            files_deleted += 1
+                        except Exception as e:
+                            logger.error(f"❌ Error deleting passport file {passport_file_id}: {e}")
+                    
+                    # Delete summary file
+                    if summary_file_id:
+                        logger.info(f"🗑️ Deleting summary file: {summary_file_id}")
+                        try:
+                            async with aiohttp.ClientSession() as session:
+                                payload = {
+                                    "action": "delete_file",
+                                    "file_id": summary_file_id
+                                }
+                                async with session.post(
+                                    company_apps_script_url,
+                                    json=payload,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=aiohttp.ClientTimeout(total=30)
+                                ) as response:
+                                    if response.status == 200:
+                                        result = await response.json()
+                                        if result.get("success"):
+                                            logger.info(f"✅ Summary file deleted: {summary_file_id}")
+                                            files_deleted += 1
+                        except Exception as e:
+                            logger.error(f"❌ Error deleting summary file {summary_file_id}: {e}")
+                
+                # Delete from database
+                await mongo_db.delete("crew_members", {"id": crew_id})
+                deleted_count += 1
+                logger.info(f"✅ Crew member deleted from database: {crew_name} ({crew_id})")
+                
+            except Exception as e:
+                error_msg = f"Error deleting crew member {crew_id}: {str(e)}"
+                errors.append(error_msg)
+                logger.error(f"❌ {error_msg}")
+        
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="BULK_DELETE_CREW",
+            resource_type="crew_member",
+            resource_id="bulk",
+            details={
+                "deleted_count": deleted_count,
+                "files_deleted": files_deleted,
+                "errors": errors
+            },
+            company_id=company_uuid
+        )
+        
+        # If no crew were deleted at all, return error
+        if deleted_count == 0 and len(errors) > 0:
+            error_details = "; ".join(errors)
+            raise HTTPException(status_code=400, detail=f"No crew members deleted. {error_details}")
+        
+        message = f"Deleted {deleted_count} crew member(s)"
+        if files_deleted > 0:
+            message += f", {files_deleted} file(s) deleted from Google Drive"
+        if errors:
+            message += f", {len(errors)} error(s)"
+        
+        return {
+            "success": True,
+            "message": message,
+            "deleted_count": deleted_count,
+            "files_deleted": files_deleted,
+            "errors": errors if errors else None,
+            "partial_success": len(errors) > 0 and deleted_count > 0
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error in bulk delete crew members: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to bulk delete crew members: {str(e)}")
+
 @api_router.delete("/crew/{crew_id}")
 async def delete_crew_member(
     crew_id: str,
