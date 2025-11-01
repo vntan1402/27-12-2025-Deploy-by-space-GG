@@ -15907,7 +15907,7 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
         logger.info("   New approach: Structured extraction with clear field definitions and example output")
         
         # Use the configured AI system (same as certificate analysis, ship analysis, etc.)
-        if use_emergent_key and ai_provider == "google":
+        if use_emergent_key and ai_provider in ["google", "emergent"]:
             try:
                 # Import and use the existing AI analysis system from the codebase
                 from ai_analysis import analyze_with_ai  # Use existing AI system
