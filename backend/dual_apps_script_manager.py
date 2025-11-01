@@ -1544,17 +1544,17 @@ class DualAppsScriptManager:
             })
             upload_results['passport'] = passport_upload
             
-            # Upload 2: Summary file to SUMMARY folder (if provided)
+            # Upload 2: Summary file to SAME folder as passport (if provided)
             if summary_text:
                 base_name = passport_filename.rsplit('.', 1)[0]
                 summary_filename = f"{base_name}_Summary.txt"
                 
-                logger.info(f"📋 Uploading passport summary file: SUMMARY/Crew Records/{summary_filename}")
+                logger.info(f"📋 Uploading passport summary file: {target_ship}/{target_category}/{summary_filename}")
                 summary_upload = await self._call_company_apps_script({
                     'action': 'upload_file_with_folder_creation',
                     'parent_folder_id': self.parent_folder_id,
-                    'ship_name': 'SUMMARY',
-                    'category': 'Crew Records',
+                    'ship_name': target_ship,  # Same folder as passport
+                    'category': target_category,  # Same folder as passport
                     'filename': summary_filename,
                     'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
                     'content_type': 'text/plain'
