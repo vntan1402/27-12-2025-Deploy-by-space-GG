@@ -373,77 +373,8 @@ const CrewRecords = () => {
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <p className="mt-2 text-gray-600">{language === 'vi' ? 'Đang tải...' : 'Loading...'}</p>
           </div>
-        ) : !selectedShip ? (
-          /* Ship Cards Grid */
-          <div>
-            <h3 className="text-xl font-semibold mb-6 text-gray-800">
-              {language === 'vi' ? 'Chọn tàu để xem thông tin thuyền viên' : 'Select a ship to view crew information'}
-            </h3>
-            
-            {ships.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <div className="text-6xl mb-4">🚢</div>
-                <p className="text-lg">{language === 'vi' ? 'Không có tàu nào' : 'No ships available'}</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {ships.map(ship => (
-                  <div
-                    key={ship.id}
-                    onClick={() => updateSelectedShip(ship)}
-                    className="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-500 hover:shadow-lg transition-all cursor-pointer bg-gradient-to-br from-white to-gray-50"
-                  >
-                    {/* Ship Icon */}
-                    <div className="text-center mb-3">
-                      <div className="text-3xl">🚢</div>
-                    </div>
-                    
-                    {/* Ship Name */}
-                    <h4 className="text-base font-bold text-gray-800 text-center mb-3 line-clamp-2 min-h-[3rem]">
-                      {ship.name}
-                    </h4>
-                    
-                    {/* Ship Details */}
-                    <div className="space-y-1.5 text-sm">
-                      {ship.imo && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 text-xs">IMO:</span>
-                          <span className="font-semibold text-gray-800 text-xs">{ship.imo}</span>
-                        </div>
-                      )}
-                      {ship.flag && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 text-xs">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
-                          <span className="font-semibold text-gray-800 text-xs truncate ml-1">{ship.flag}</span>
-                        </div>
-                      )}
-                      {ship.class_society && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-600 text-xs">{language === 'vi' ? 'Đăng kiểm:' : 'Class:'}</span>
-                          <span className="font-semibold text-gray-800 text-xs truncate ml-1">{shortenClassSociety(ship.class_society)}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Select Button */}
-                    <div className="mt-3 pt-3 border-t border-gray-200">
-                      <button
-                        className="w-full py-1.5 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded font-medium transition-all"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateSelectedShip(ship);
-                        }}
-                      >
-                        {language === 'vi' ? 'Chọn' : 'Select'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
         ) : (
-          /* Crew Content Section */
+          /* Crew Content Section - Always visible */
           <div>
             <CrewListTable 
               selectedShip={selectedShip}
