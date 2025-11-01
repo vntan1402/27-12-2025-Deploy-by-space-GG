@@ -391,8 +391,10 @@ export const AddCrewModal = ({
               <div className="space-y-3">
                 {/* Drag & Drop Area */}
                 <div 
-                  className="border-2 border-dashed border-blue-300 rounded-lg p-6 hover:border-blue-400 cursor-pointer transition-colors"
-                  onClick={() => document.getElementById('passport-upload').click()}
+                  className={`border-2 border-dashed border-blue-300 rounded-lg p-6 hover:border-blue-400 transition-colors relative ${
+                    isAnalyzing ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                  }`}
+                  onClick={() => !isAnalyzing && document.getElementById('passport-upload').click()}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
@@ -410,6 +412,21 @@ export const AddCrewModal = ({
                       <div className="text-blue-500 text-4xl">📁</div>
                     </div>
                   </div>
+                  
+                  {/* Analyzing Overlay */}
+                  {isAnalyzing && (
+                    <div className="absolute inset-0 bg-white bg-opacity-95 rounded-lg flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mb-3"></div>
+                        <p className="text-blue-700 font-semibold text-lg">
+                          {language === 'vi' ? 'Đang phân tích hộ chiếu...' : 'Analyzing passport...'}
+                        </p>
+                        <p className="text-blue-600 text-sm mt-1">
+                          {language === 'vi' ? 'Vui lòng đợi trong giây lát' : 'Please wait a moment'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <input
@@ -420,15 +437,6 @@ export const AddCrewModal = ({
                   className="hidden"
                   disabled={isAnalyzing}
                 />
-                
-                {isAnalyzing && (
-                  <div className="flex items-center justify-center space-x-2 text-blue-600 py-4">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                    <span className="font-medium">
-                      {language === 'vi' ? 'Đang phân tích hộ chiếu...' : 'Analyzing passport...'}
-                    </span>
-                  </div>
-                )}
               </div>
             ) : (
               <div className="space-y-3">
