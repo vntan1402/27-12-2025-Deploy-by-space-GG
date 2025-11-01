@@ -1,26 +1,39 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Add Crew Complete Flow Testing
+Backend API Testing Script - DELETE Crew Endpoint Background File Deletion Testing
 
-FOCUS: Test Add Crew complete flow including file upload and icon display as per review request:
-1. Login with admin1/123456
-2. Download passport file from: https://customer-assets.emergentagent.com/job_drive-doc-manager/artifacts/dzg8a1ia_1.%20Capt.%20CHUONG%20-%20PP.pdf
-3. Call `/api/crew/analyze-passport` with ship_name="BROTHER 36"
-4. Verify AI analysis returns file_content and summary_text
-5. Create crew member via `/api/crew` with extracted data
-6. Call `/api/crew/{crew_id}/upload-passport-files` with required data
-7. Verify upload response contains passport file_id and summary file_id
-8. Check crew record is updated with passport_file_id and summary_file_id
-9. Fetch crew list via `/api/crew` and verify the new crew appears with file IDs
-10. Check Google Drive folder structure
+FOCUS: Test the refactored DELETE /api/crew/{crew_id} endpoint with background file deletion functionality.
+This endpoint was recently refactored to match the Test Report pattern for background Google Drive file deletion.
 
-Test Credentials: admin1/123456
-Expected Results: 
-- Crew record created successfully
-- Files uploaded to correct Drive path: BROTHER 36/Crew Records/Crew List/
-- Crew record updated with passport_file_id and summary_file_id
-- GET /api/crew returns crew with file_id fields populated
-- Icons should display based on passport_file_id and summary_file_id
+TEST REQUIREMENTS:
+1. Authentication & Setup:
+   - Login with admin1/123456 credentials
+   - Resolve company ID (AMCSC)
+   - Find crew member 'HỒ Sỹ Chương' (ID: 25d229a9-a560-484b-b49e-050294c6f711) with passport C9780204
+   - Verify this crew has passport_file_id and summary_file_id for background deletion testing
+
+2. Background Deletion Mode Test (default behavior):
+   - DELETE /api/crew/{crew_id} with background=true (or omit parameter for default)
+   - Expected Response: Status 200 OK, { "success": true, "message": "Crew member deleted from database (passport files are being deleted from Google Drive in background)", "files_deleted_in_background": true }
+   - Verify Immediate Database Deletion: Crew record should be deleted from MongoDB immediately, subsequent GET /api/crew/{crew_id} should return 404
+   - Verify Background File Deletion: Check backend logs for background task messages
+
+3. Certificate Validation Test:
+   - Find a crew member who has crew certificates
+   - Try to DELETE this crew member
+   - Expected Response: Status 400 Bad Request, { "detail": "Cannot delete crew \"{crew_name}\": {count} certificates exist. Please delete all certificates first." }
+
+4. Synchronous Mode Test (background=false):
+   - DELETE /api/crew/{crew_id}?background=false
+   - Expected Response: Status 200 OK, { "success": true, "message": "Crew member and files deleted successfully", "deleted_files": ["passport", "summary"] }
+
+5. Edge Cases:
+   - DELETE crew with no files (no passport_file_id or summary_file_id)
+   - DELETE non-existent crew_id (should return 404)
+   - DELETE without authentication (should return 403)
+
+Test credentials: admin1/123456
+Test crew: 'HỒ Sỹ Chương' (25d229a9-a560-484b-b49e-050294c6f711)
 """
 
 import requests
