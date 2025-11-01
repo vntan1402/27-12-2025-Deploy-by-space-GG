@@ -381,14 +381,14 @@ export const BulkEditDateSignOffModal = ({
               <div className="text-xs text-red-700 font-medium space-y-1">
                 <div>
                   {language === 'vi' 
-                    ? '✅ Nhập ngày: Cập nhật ngày rời tàu'
-                    : '✅ Enter date: Update date sign off'
+                    ? '✅ Nhập ngày: Trạng thái → "Standby", Tàu → "-"'
+                    : '✅ Enter date: Status → "Standby", Ship → "-"'
                   }
                 </div>
                 <div>
                   {language === 'vi' 
-                    ? '🗑️ Để trống: Xóa ngày rời tàu'
-                    : '🗑️ Leave empty: Clear date sign off'
+                    ? '🗑️ Để trống: Xóa ngày rời tàu (không đổi trạng thái/tàu)'
+                    : '🗑️ Leave empty: Clear date sign off (status/ship unchanged)'
                   }
                 </div>
               </div>
