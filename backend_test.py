@@ -338,6 +338,472 @@ class BackendAPITester:
             self.print_result(False, f"Exception during passport file download: {str(e)}")
             return False
     
+    def test_analyze_passport(self):
+        """Test 4: Analyze passport with ship_name='BROTHER 36'"""
+        self.print_test_header("Test 4 - Analyze Passport with AI")
+        
+        if not self.access_token or not self.passport_content:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}"
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/crew/analyze-passport")
+            print(f"🎯 Analyzing passport with ship_name='BROTHER 36'")
+            
+            # Prepare multipart form data
+            files = {
+                'passport_file': ('passport.pdf', self.passport_content, 'application/pdf')
+            }
+            
+            data = {
+                'ship_name': 'BROTHER 36'
+            }
+            
+            print(f"📋 Form data:")
+            print(f"   passport_file: passport.pdf ({len(self.passport_content)} bytes)")
+            print(f"   ship_name: BROTHER 36")
+            
+            # Make request to analyze passport
+            start_time = time.time()
+            response = self.session.post(
+                f"{BACKEND_URL}/crew/analyze-passport",
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=120  # Extended timeout for AI processing
+            )
+            processing_time = time.time() - start_time
+            
+            print(f"📊 Response Status: {response.status_code}")
+            print(f"⏱️ Processing Time: {processing_time:.1f} seconds")
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                print(f"📄 Response Keys: {list(response_data.keys())}")
+                
+                # Check required response fields
+                required_fields = ["success"]
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field not in response_data:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.print_result(False, f"Response missing required fields: {missing_fields}")
+                    return False
+                
+                success = response_data.get("success")
+                print(f"✅ Success: {success}")
+                
+                if success:
+                    # Store analysis data for next test
+                    self.passport_analysis = response_data
+                    
+                    # Check for expected fields from AI analysis
+                    expected_fields = ["full_name", "passport_number", "date_of_birth", "place_of_birth", 
+                                     "nationality", "sex", "passport_expiry_date", "_file_content", "_summary_text"]
+                    
+                    fields_found = []
+                    fields_missing = []
+                    
+                    for field in expected_fields:
+                        if field in response_data and response_data[field]:
+                            fields_found.append(field)
+                            print(f"✅ {field}: {str(response_data[field])[:100]}...")
+                        else:
+                            fields_missing.append(field)
+                            print(f"❌ {field}: Missing or empty")
+                    
+                    print(f"📊 Fields found: {len(fields_found)}/{len(expected_fields)}")
+                    
+                    # Verify critical fields for crew creation
+                    critical_fields = ["full_name", "passport_number", "_file_content", "_summary_text"]
+                    critical_missing = [f for f in critical_fields if f in fields_missing]
+                    
+                    if critical_missing:
+                        self.print_result(False, f"Critical fields missing: {critical_missing}")
+                        return False
+                    
+                    # Verify _file_content is base64 encoded
+                    file_content = response_data.get("_file_content", "")
+                    if file_content and len(file_content) > 1000:
+                        print(f"✅ _file_content present ({len(file_content)} characters)")
+                    else:
+                        print(f"❌ _file_content too short or missing")
+                    
+                    # Verify _summary_text has content
+                    summary_text = response_data.get("_summary_text", "")
+                    if summary_text and len(summary_text) > 100:
+                        print(f"✅ _summary_text present ({len(summary_text)} characters)")
+                    else:
+                        print(f"❌ _summary_text too short or missing")
+                    
+                    self.print_result(True, f"Passport analysis successful - {len(fields_found)}/{len(expected_fields)} fields extracted")
+                    return True
+                else:
+                    error_message = response_data.get("error", "Unknown error")
+                    self.print_result(False, f"Passport analysis failed: {error_message}")
+                    return False
+                    
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Analyze passport failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Analyze passport failed with status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during passport analysis test: {str(e)}")
+            return False
+    
+    def test_create_crew_member(self):
+        """Test 5: Create crew member with extracted passport data"""
+        self.print_test_header("Test 5 - Create Crew Member")
+        
+        if not self.access_token or not self.passport_analysis:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/crew")
+            print(f"🎯 Creating crew member with extracted passport data")
+            
+            # Prepare crew data from passport analysis
+            crew_data = {
+                "full_name": self.passport_analysis.get("full_name", ""),
+                "sex": self.passport_analysis.get("sex", ""),
+                "date_of_birth": self.passport_analysis.get("date_of_birth", ""),
+                "place_of_birth": self.passport_analysis.get("place_of_birth", ""),
+                "passport": self.passport_analysis.get("passport_number", ""),
+                "nationality": self.passport_analysis.get("nationality", ""),
+                "passport_expiry_date": self.passport_analysis.get("passport_expiry_date", ""),
+                "ship_sign_on": "BROTHER 36",
+                "status": "Sign on",
+                "rank": "Captain"
+            }
+            
+            print(f"📋 Crew data:")
+            for key, value in crew_data.items():
+                print(f"   {key}: {value}")
+            
+            # Make request to create crew member
+            response = self.session.post(
+                f"{BACKEND_URL}/crew",
+                headers=headers,
+                json=crew_data,
+                timeout=30
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                print(f"📄 Response Keys: {list(response_data.keys())}")
+                
+                # Check required response fields
+                required_fields = ["id"]
+                missing_fields = []
+                
+                for field in required_fields:
+                    if field not in response_data:
+                        missing_fields.append(field)
+                
+                if missing_fields:
+                    self.print_result(False, f"Response missing required fields: {missing_fields}")
+                    return False
+                
+                # Store crew ID for next test
+                self.crew_id = response_data["id"]
+                self.crew_data = response_data
+                
+                print(f"✅ Crew ID: {self.crew_id}")
+                print(f"✅ Full Name: {response_data.get('full_name')}")
+                print(f"✅ Passport: {response_data.get('passport')}")
+                print(f"✅ Ship Sign On: {response_data.get('ship_sign_on')}")
+                
+                self.print_result(True, f"Crew member created successfully with ID: {self.crew_id}")
+                return True
+                
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Create crew failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Create crew failed with status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during crew creation test: {str(e)}")
+            return False
+    
+    def test_upload_passport_files(self):
+        """Test 6: Upload passport files to Google Drive"""
+        self.print_test_header("Test 6 - Upload Passport Files")
+        
+        if not self.access_token or not self.crew_id or not self.passport_analysis:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/crew/{self.crew_id}/upload-passport-files")
+            print(f"🎯 Uploading passport files for crew ID: {self.crew_id}")
+            
+            # Prepare upload data
+            upload_data = {
+                "file_content": self.passport_analysis.get("_file_content", ""),
+                "filename": "passport.pdf",
+                "content_type": "application/pdf",
+                "summary_text": self.passport_analysis.get("_summary_text", ""),
+                "ship_name": "BROTHER 36"
+            }
+            
+            print(f"📋 Upload data:")
+            print(f"   filename: {upload_data['filename']}")
+            print(f"   content_type: {upload_data['content_type']}")
+            print(f"   ship_name: {upload_data['ship_name']}")
+            print(f"   file_content length: {len(upload_data['file_content'])} characters")
+            print(f"   summary_text length: {len(upload_data['summary_text'])} characters")
+            
+            # Make request to upload passport files
+            start_time = time.time()
+            response = self.session.post(
+                f"{BACKEND_URL}/crew/{self.crew_id}/upload-passport-files",
+                headers=headers,
+                json=upload_data,
+                timeout=120  # Extended timeout for file upload
+            )
+            upload_time = time.time() - start_time
+            
+            print(f"📊 Response Status: {response.status_code}")
+            print(f"⏱️ Upload Time: {upload_time:.1f} seconds")
+            
+            if response.status_code == 200:
+                response_data = response.json()
+                print(f"📄 Response Keys: {list(response_data.keys())}")
+                
+                # Check required response fields
+                required_fields = ["success"]
+                expected_fields = ["passport_file_id", "summary_file_id"]
+                
+                success = response_data.get("success")
+                print(f"✅ Success: {success}")
+                
+                if success:
+                    # Check for file IDs
+                    passport_file_id = response_data.get("passport_file_id")
+                    summary_file_id = response_data.get("summary_file_id")
+                    
+                    if passport_file_id:
+                        self.passport_file_id = passport_file_id
+                        print(f"✅ Passport File ID: {passport_file_id}")
+                    else:
+                        print(f"❌ Passport File ID missing")
+                    
+                    if summary_file_id:
+                        self.summary_file_id = summary_file_id
+                        print(f"✅ Summary File ID: {summary_file_id}")
+                    else:
+                        print(f"❌ Summary File ID missing")
+                    
+                    # Check for folder path information
+                    folder_path = response_data.get("folder_path")
+                    if folder_path:
+                        print(f"✅ Folder Path: {folder_path}")
+                    else:
+                        print(f"⚠️ Folder Path not provided in response")
+                    
+                    if passport_file_id and summary_file_id:
+                        self.print_result(True, f"Passport files uploaded successfully - Passport: {passport_file_id}, Summary: {summary_file_id}")
+                        return True
+                    else:
+                        self.print_result(False, "Upload successful but missing file IDs")
+                        return False
+                else:
+                    error_message = response_data.get("error", "Unknown error")
+                    self.print_result(False, f"File upload failed: {error_message}")
+                    return False
+                    
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Upload passport files failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Upload passport files failed with status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during passport files upload test: {str(e)}")
+            return False
+    
+    def test_verify_crew_record_updated(self):
+        """Test 7: Verify crew record is updated with file IDs"""
+        self.print_test_header("Test 7 - Verify Crew Record Updated")
+        
+        if not self.access_token or not self.crew_id:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            print(f"📡 GET {BACKEND_URL}/crew/{self.crew_id}")
+            print(f"🎯 Verifying crew record updated with file IDs")
+            
+            # Make request to get crew member details
+            response = self.session.get(
+                f"{BACKEND_URL}/crew/{self.crew_id}",
+                headers=headers,
+                timeout=30
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                crew_record = response.json()
+                print(f"📄 Crew Record Keys: {list(crew_record.keys())}")
+                
+                # Check for file ID fields
+                passport_file_id = crew_record.get("passport_file_id")
+                summary_file_id = crew_record.get("summary_file_id")
+                
+                print(f"📋 File ID Verification:")
+                print(f"   passport_file_id: {passport_file_id}")
+                print(f"   summary_file_id: {summary_file_id}")
+                
+                # Verify file IDs match what was returned from upload
+                file_ids_match = True
+                if self.passport_file_id and passport_file_id != self.passport_file_id:
+                    print(f"❌ Passport file ID mismatch: expected {self.passport_file_id}, got {passport_file_id}")
+                    file_ids_match = False
+                
+                if self.summary_file_id and summary_file_id != self.summary_file_id:
+                    print(f"❌ Summary file ID mismatch: expected {self.summary_file_id}, got {summary_file_id}")
+                    file_ids_match = False
+                
+                if passport_file_id and summary_file_id and file_ids_match:
+                    print(f"✅ Crew record successfully updated with both file IDs")
+                    self.print_result(True, f"Crew record updated with passport_file_id and summary_file_id")
+                    return True
+                elif passport_file_id or summary_file_id:
+                    print(f"⚠️ Crew record partially updated (only one file ID present)")
+                    self.print_result(False, "Crew record only partially updated with file IDs")
+                    return False
+                else:
+                    print(f"❌ Crew record not updated with file IDs")
+                    self.print_result(False, "Crew record not updated with file IDs")
+                    return False
+                    
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Get crew record failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Get crew record failed with status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during crew record verification test: {str(e)}")
+            return False
+    
+    def test_verify_crew_list(self):
+        """Test 8: Verify new crew appears in crew list with file IDs"""
+        self.print_test_header("Test 8 - Verify Crew List")
+        
+        if not self.access_token or not self.crew_id:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            print(f"📡 GET {BACKEND_URL}/crew")
+            print(f"🎯 Verifying new crew appears in crew list with file IDs")
+            
+            # Make request to get crew list
+            response = self.session.get(
+                f"{BACKEND_URL}/crew",
+                headers=headers,
+                timeout=30
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                crew_list = response.json()
+                print(f"📄 Crew List Length: {len(crew_list)}")
+                
+                # Find our created crew member
+                created_crew = None
+                for crew in crew_list:
+                    if crew.get("id") == self.crew_id:
+                        created_crew = crew
+                        break
+                
+                if created_crew:
+                    print(f"✅ Created crew found in list")
+                    print(f"📋 Crew Details:")
+                    print(f"   ID: {created_crew.get('id')}")
+                    print(f"   Full Name: {created_crew.get('full_name')}")
+                    print(f"   Passport: {created_crew.get('passport')}")
+                    print(f"   Ship Sign On: {created_crew.get('ship_sign_on')}")
+                    print(f"   passport_file_id: {created_crew.get('passport_file_id')}")
+                    print(f"   summary_file_id: {created_crew.get('summary_file_id')}")
+                    
+                    # Verify file IDs are present
+                    has_passport_file_id = bool(created_crew.get("passport_file_id"))
+                    has_summary_file_id = bool(created_crew.get("summary_file_id"))
+                    
+                    if has_passport_file_id and has_summary_file_id:
+                        print(f"✅ Crew appears in list with both file IDs")
+                        self.print_result(True, f"New crew appears in crew list with file IDs populated")
+                        return True
+                    elif has_passport_file_id or has_summary_file_id:
+                        print(f"⚠️ Crew appears in list with only one file ID")
+                        self.print_result(False, "Crew appears in list but missing one file ID")
+                        return False
+                    else:
+                        print(f"❌ Crew appears in list but without file IDs")
+                        self.print_result(False, "Crew appears in list but file IDs not populated")
+                        return False
+                else:
+                    print(f"❌ Created crew not found in crew list")
+                    self.print_result(False, f"Created crew with ID {self.crew_id} not found in crew list")
+                    return False
+                    
+            else:
+                try:
+                    error_data = response.json()
+                    self.print_result(False, f"Get crew list failed with status {response.status_code}: {error_data}")
+                except:
+                    self.print_result(False, f"Get crew list failed with status {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during crew list verification test: {str(e)}")
+            return False
+    
     def test_calculate_anniversary_date(self):
         """Test 4: Calculate Anniversary Date API"""
         self.print_test_header("Test 4 - Calculate Anniversary Date API")
