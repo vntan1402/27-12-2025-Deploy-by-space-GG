@@ -202,11 +202,16 @@ export const AddCrewModal = ({
     
     console.log('Analysis result:', analysis); // Debug log
     
+    // Extract Vietnamese fields
+    const vietnameseFullName = analysis.full_name || '';
+    const vietnamesePlaceOfBirth = analysis.place_of_birth || '';
+    
     // Auto-populate form fields with correct mapping
     setFormData(prev => ({
       ...prev,
-      full_name: analysis.full_name || prev.full_name,
-      full_name_en: analysis.full_name_en || prev.full_name_en,
+      full_name: vietnameseFullName,
+      // Auto-fill English name: use AI result if available, otherwise remove diacritics from Vietnamese
+      full_name_en: analysis.full_name_en || autoFillEnglishField(vietnameseFullName),
       sex: analysis.sex || prev.sex,
       date_of_birth: analysis.date_of_birth ? 
         (analysis.date_of_birth.includes('/') ? 
@@ -214,8 +219,9 @@ export const AddCrewModal = ({
           analysis.date_of_birth.split('/').reverse().join('-') : 
           analysis.date_of_birth.split('T')[0]
         ) : prev.date_of_birth,
-      place_of_birth: analysis.place_of_birth || prev.place_of_birth,
-      place_of_birth_en: analysis.place_of_birth_en || prev.place_of_birth_en,
+      place_of_birth: vietnamesePlaceOfBirth,
+      // Auto-fill English place: use AI result if available, otherwise remove diacritics from Vietnamese
+      place_of_birth_en: analysis.place_of_birth_en || autoFillEnglishField(vietnamesePlaceOfBirth),
       passport: analysis.passport_number || analysis.passport || prev.passport,
       nationality: analysis.nationality || prev.nationality,
       passport_expiry_date: analysis.passport_expiry_date || analysis.expiry_date ? 
