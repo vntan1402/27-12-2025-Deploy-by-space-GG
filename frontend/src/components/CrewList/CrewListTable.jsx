@@ -20,6 +20,14 @@ export const CrewListTable = ({
   // Modal states
   const [showAddCrewModal, setShowAddCrewModal] = useState(false);
   
+  // Batch processing states
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, success: 0, failed: 0 });
+  const [currentProcessingFile, setCurrentProcessingFile] = useState('');
+  const [batchResults, setBatchResults] = useState([]);
+  const [showBatchProcessingModal, setShowBatchProcessingModal] = useState(false);
+  const [showBatchResultsModal, setShowBatchResultsModal] = useState(false);
+  
   // Filter states
   const [filters, setFilters] = useState({
     ship_sign_on: 'All',
