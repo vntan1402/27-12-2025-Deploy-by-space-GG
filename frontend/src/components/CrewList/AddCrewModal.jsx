@@ -37,6 +37,15 @@ export const AddCrewModal = ({
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Batch processing states
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0, success: 0, failed: 0 });
+  const [currentProcessingFile, setCurrentProcessingFile] = useState('');
+  const [batchResults, setBatchResults] = useState([]);
+  const [showBatchProcessingModal, setShowBatchProcessingModal] = useState(false);
+  const [showBatchResultsModal, setShowBatchResultsModal] = useState(false);
+  
   // Reset form when modal closes
   useEffect(() => {
     return () => {
