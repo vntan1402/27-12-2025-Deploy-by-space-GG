@@ -3,7 +3,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 import { crewService } from '../../services/crewService';
-import { AddCrewModal } from './AddCrewModal';
+import { autoFillEnglishField } from '../../utils/vietnameseHelpers';
+import { AddCrewModal, BatchProcessingModal, BatchResultsModal } from './index';
 
 export const CrewListTable = ({ 
   selectedShip,
