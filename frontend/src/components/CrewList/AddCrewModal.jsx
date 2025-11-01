@@ -676,6 +676,7 @@ export const AddCrewModal = ({
                   onChange={handleFileSelect}
                   className="hidden"
                   disabled={isAnalyzing}
+                  multiple
                 />
               </div>
             ) : (
