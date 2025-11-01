@@ -261,26 +261,11 @@ const CrewRecords = () => {
         />
       }
     >
-      {/* Page Title with Ship Select Button */}
+      {/* Page Title */}
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-800">
           {language === 'vi' ? 'HỆ THỐNG QUẢN LÝ TÀU BIỂN' : 'CREW RECORDS'}
         </h1>
-        
-        {!selectedShip && (
-          <div className="flex items-center gap-4">
-            <p className="text-gray-600">
-              {language === 'vi' ? 'Vui lòng chọn tàu để xem thông tin' : 'Please select a ship to view information'}
-            </p>
-            <button
-              onClick={() => setShowShipModal(true)}
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 whitespace-nowrap"
-            >
-              <span>🚢</span>
-              {language === 'vi' ? 'Chọn tàu' : 'Ship Select'}
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Ship Detail Panel or Company Info Panel */}
