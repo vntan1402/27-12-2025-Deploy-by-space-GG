@@ -633,10 +633,13 @@ export const AddCrewModal = ({
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <p className="text-blue-700 font-medium text-left">
-                          {language === 'vi' ? 'Kéo thả file hoặc click để chọn' : 'Drag & drop file or click to select'}
+                          {language === 'vi' ? 'Kéo thả file(s) hoặc click để chọn' : 'Drag & drop file(s) or click to select'}
                         </p>
                         <p className="text-blue-600 text-sm text-left mt-1">
-                          {language === 'vi' ? 'Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)' : 'Supports: PDF, JPG, PNG (max 10MB)'}
+                          {language === 'vi' ? 'Hỗ trợ: PDF, JPG, PNG (tối đa 10MB/file)' : 'Supports: PDF, JPG, PNG (max 10MB/file)'}
+                        </p>
+                        <p className="text-blue-500 text-xs text-left mt-1 font-medium">
+                          {language === 'vi' ? '💡 1 file: Xem trước | Nhiều file: Tự động xử lý' : '💡 1 file: Review | Multiple files: Auto-process'}
                         </p>
                       </div>
                       <div className="flex-shrink-0 ml-4">
