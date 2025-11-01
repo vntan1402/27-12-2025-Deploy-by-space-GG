@@ -457,31 +457,61 @@ export const AddCrewModal = ({
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="flex items-center space-x-2 text-green-700">
-                  <span>✅</span>
-                  <span className="font-medium">
-                    {language === 'vi' ? 'Hộ chiếu đã được phân tích thành công' : 'Passport analyzed successfully'}
-                  </span>
-                </div>
-                <div className="bg-white p-4 rounded-lg border border-green-200">
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <p><strong>{language === 'vi' ? 'File:' : 'File:'}</strong> {uploadedFile.name}</p>
-                    <p><strong>{language === 'vi' ? 'Kích thước:' : 'Size:'}</strong> {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                    {analyzedData && (
-                      <>
-                        <p><strong>{language === 'vi' ? 'Tên:' : 'Name:'}</strong> {analyzedData.full_name || 'N/A'}</p>
-                        <p><strong>{language === 'vi' ? 'Hộ chiếu:' : 'Passport:'}</strong> {analyzedData.passport_number || 'N/A'}</p>
-                      </>
-                    )}
+                {/* Success Message */}
+                <div className="bg-green-50 border border-green-300 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 text-green-800 mb-3">
+                    <span className="text-2xl">✅</span>
+                    <span className="font-bold text-lg">
+                      {language === 'vi' ? 'Hộ chiếu đã được phân tích thành công!' : 'Passport analyzed successfully!'}
+                    </span>
                   </div>
+                  
+                  {/* File Info */}
+                  <div className="bg-white p-3 rounded-lg border border-green-200">
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <p className="text-gray-600 font-medium">{language === 'vi' ? 'Tên file:' : 'File name:'}</p>
+                        <p className="text-gray-900 truncate" title={uploadedFile.name}>{uploadedFile.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-600 font-medium">{language === 'vi' ? 'Kích thước:' : 'Size:'}</p>
+                        <p className="text-gray-900">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                      </div>
+                      {analyzedData && (
+                        <>
+                          <div>
+                            <p className="text-gray-600 font-medium">{language === 'vi' ? 'Họ tên:' : 'Full name:'}</p>
+                            <p className="text-gray-900 font-semibold">{analyzedData.full_name || 'N/A'}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600 font-medium">{language === 'vi' ? 'Hộ chiếu:' : 'Passport:'}</p>
+                            <p className="text-gray-900 font-semibold">{analyzedData.passport_number || 'N/A'}</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Info message */}
+                  <p className="text-green-700 text-sm mt-3 flex items-start">
+                    <span className="mr-2">ℹ️</span>
+                    <span>
+                      {language === 'vi' 
+                        ? 'Thông tin đã được tự động điền vào form bên dưới. Vui lòng kiểm tra và chỉnh sửa nếu cần.'
+                        : 'Information has been automatically filled in the form below. Please review and edit if needed.'
+                      }
+                    </span>
+                  </p>
                 </div>
+                
+                {/* Remove button */}
                 <button
                   type="button"
                   onClick={handleRemoveFile}
-                  className="text-sm text-red-600 hover:text-red-800 flex items-center space-x-1"
+                  className="text-sm text-red-600 hover:text-red-800 flex items-center space-x-1 transition-colors"
                 >
                   <span>🗑️</span>
-                  <span>{language === 'vi' ? 'Xóa và tải lại' : 'Remove and re-upload'}</span>
+                  <span>{language === 'vi' ? 'Xóa và tải lại file khác' : 'Remove and upload another file'}</span>
                 </button>
               </div>
             )}
