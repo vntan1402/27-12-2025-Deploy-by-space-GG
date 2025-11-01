@@ -1136,6 +1136,41 @@ export const CrewListTable = ({
           }}
         />
       )}
+      
+      {/* Edit Crew Modal */}
+      {showEditCrewModal && selectedCrewForEdit && (
+        <EditCrewModal
+          crew={selectedCrewForEdit}
+          onClose={() => {
+            setShowEditCrewModal(false);
+            setSelectedCrewForEdit(null);
+          }}
+          onSuccess={() => {
+            fetchCrewList();
+            setShowEditCrewModal(false);
+            setSelectedCrewForEdit(null);
+          }}
+          onDelete={(crew) => {
+            setCrewToDelete(crew);
+            setShowDeleteCrewModal(true);
+            setShowEditCrewModal(false);
+          }}
+        />
+      )}
+      
+      {/* Delete Crew Confirm Modal */}
+      {showDeleteCrewModal && crewToDelete && (
+        <DeleteCrewConfirmModal
+          crew={crewToDelete}
+          selectedCount={selectedCrewMembers.size}
+          onClose={() => {
+            setShowDeleteCrewModal(false);
+            setCrewToDelete(null);
+          }}
+          onConfirm={confirmDeleteCrew}
+          isDeleting={isDeleting}
+        />
+      )}
     </div>
   );
 };
