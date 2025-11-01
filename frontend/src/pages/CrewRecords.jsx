@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar, SubMenuBar, CrewListTable } from '../components';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
+import { CompanyInfoPanel } from '../components/CompanyInfoPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
 import { shipService } from '../services';
 import api from '../services/api';
