@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://drive-doc-manager.preview.emergentagent.com/api"
+API_URL="https://crew-migrator.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
