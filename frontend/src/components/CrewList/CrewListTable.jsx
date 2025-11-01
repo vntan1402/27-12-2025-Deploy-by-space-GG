@@ -483,6 +483,20 @@ export const CrewListTable = ({
           </table>
         </div>
       </div>
+      
+      {/* Add Crew Modal */}
+      {showAddCrewModal && (
+        <AddCrewModal
+          selectedShip={selectedShip}
+          onClose={() => setShowAddCrewModal(false)}
+          onSuccess={(crewId) => {
+            fetchCrewList();
+            toast.success(language === 'vi' 
+              ? 'Đã thêm thuyền viên thành công!'
+              : 'Crew member added successfully!');
+          }}
+        />
+      )}
     </div>
   );
 };
