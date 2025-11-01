@@ -35,7 +35,12 @@ class BackendAPITester:
         self.test_ship_id = None
         self.test_ship_name = None
         self.test_ship_data = None
-        self.survey_analysis_data = None
+        self.passport_content = None
+        self.passport_analysis = None
+        self.crew_id = None
+        self.crew_data = None
+        self.passport_file_id = None
+        self.summary_file_id = None
         
     def print_test_header(self, test_name):
         print(f"\n{'='*60}")
