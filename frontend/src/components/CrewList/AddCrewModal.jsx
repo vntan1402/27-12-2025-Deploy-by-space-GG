@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import { crewService } from '../../services/crewService';
+import { autoFillEnglishField } from '../../utils/vietnameseHelpers';
 
 export const AddCrewModal = ({ 
   selectedShip,
