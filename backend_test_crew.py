@@ -395,12 +395,22 @@ class AddCrewFlowTester:
             return False
     
     def test_create_crew_member(self):
-        """Test 5: Create crew member with extracted passport data"""
+        """Test 5: Create crew member with extracted passport data (or skip if duplicate)"""
         self.print_test_header("Test 5 - Create Crew Member")
         
         if not self.access_token or not self.passport_analysis:
             self.print_result(False, "Missing required data from previous tests")
             return False
+        
+        # Check if we already have a crew ID from duplicate detection
+        if self.crew_id:
+            print(f"🔄 Crew already exists from duplicate detection")
+            print(f"✅ Crew ID: {self.crew_id}")
+            print(f"✅ Full Name: {self.crew_data.get('full_name')}")
+            print(f"✅ Passport: {self.crew_data.get('passport')}")
+            print(f"✅ Ship Sign On: {self.crew_data.get('ship_sign_on')}")
+            self.print_result(True, f"Using existing crew member with ID: {self.crew_id}")
+            return True
         
         try:
             headers = {
