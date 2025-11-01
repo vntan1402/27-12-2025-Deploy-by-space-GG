@@ -183,6 +183,243 @@ export const CrewListTable = ({
     }
   }, [crewContextMenu.show, passportContextMenu.show, rankContextMenu.show]);
   
+  // Row context menu handler
+  const handleCrewRightClick = (e, crew) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Check user role
+    if (!user || !['company_officer', 'manager', 'admin', 'super_admin'].includes(user.role)) {
+      return;
+    }
+    
+    // Auto-select crew if not already selected
+    if (!selectedCrewMembers.has(crew.id)) {
+      setSelectedCrewMembers(new Set([crew.id]));
+    }
+    
+    // Calculate menu position (with boundary checking)
+    const menuWidth = 280;
+    const menuHeight = 300;
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Adjust if menu would go off-screen
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10;
+    }
+    
+    setCrewContextMenu({
+      show: true,
+      x,
+      y,
+      crew
+    });
+  };
+  
+  // Handle edit crew
+  const handleEditCrew = () => {
+    if (crewContextMenu.crew) {
+      setSelectedCrewForEdit(crewContextMenu.crew);
+      setShowEditCrewModal(true);
+      setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
+    }
+  };
+  
+  // Handle delete crew
+  const handleDeleteCrew = () => {
+    if (selectedCrewMembers.size > 0) {
+      // For now, handle single delete
+      const crewIds = Array.from(selectedCrewMembers);
+      const crew = sortedCrewData.find(c => c.id === crewIds[0]);
+      setCrewToDelete(crew);
+      setShowDeleteCrewModal(true);
+      setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
+    }
+  };
+  
+  // Confirm delete
+  const confirmDeleteCrew = async () => {
+    if (!crewToDelete) return;
+    
+    try {
+      setIsDeleting(true);
+      await crewService.deleteCrew(crewToDelete.id);
+      
+      toast.success(language === 'vi' 
+        ? `Đã xóa thuyền viên ${crewToDelete.full_name}`
+        : `Deleted crew member ${crewToDelete.full_name}`);
+      
+      // Refresh list
+      fetchCrewList();
+      
+      // Clear selection
+      setSelectedCrewMembers(new Set());
+      
+      // Close modal
+      setShowDeleteCrewModal(false);
+      setCrewToDelete(null);
+      
+    } catch (error) {
+      console.error('Error deleting crew:', error);
+      const errorMsg = error.response?.data?.detail || error.message;
+      
+      if (errorMsg.includes('certificates')) {
+        toast.error(language === 'vi' 
+          ? `Không thể xóa: ${crewToDelete.full_name} còn chứng chỉ. Vui lòng xóa chứng chỉ trước.`
+          : `Cannot delete: ${crewToDelete.full_name} has certificates. Please delete certificates first.`);
+      } else {
+        toast.error(language === 'vi' 
+          ? `Lỗi xóa thuyền viên: ${errorMsg}`
+          : `Error deleting crew: ${errorMsg}`);
+      }
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+  
+  // Passport context menu handler
+  const handlePassportRightClick = (e, crew) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!crew.passport) return;
+    
+    // Calculate menu position
+    const menuWidth = 300;
+    const menuHeight = 200;
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10;
+    }
+    
+    setPassportContextMenu({
+      show: true,
+      x,
+      y,
+      crew
+    });
+  };
+  
+  // View passport file
+  const handleViewPassport = () => {
+    if (passportContextMenu.crew?.passport_file_id) {
+      window.open(`https://drive.google.com/file/d/${passportContextMenu.crew.passport_file_id}/view`, '_blank');
+      toast.success(language === 'vi' ? 'Đã mở file hộ chiếu' : 'Opened passport file');
+    } else {
+      toast.error(language === 'vi' ? 'Không tìm thấy file hộ chiếu' : 'Passport file not found');
+    }
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+  
+  // Copy passport link
+  const handleCopyPassportLink = () => {
+    if (passportContextMenu.crew?.passport_file_id) {
+      const link = `https://drive.google.com/file/d/${passportContextMenu.crew.passport_file_id}/view`;
+      navigator.clipboard.writeText(link);
+      toast.success(language === 'vi' ? 'Đã sao chép link file hộ chiếu' : 'Passport file link copied');
+    } else {
+      toast.error(language === 'vi' ? 'Không tìm thấy file hộ chiếu' : 'Passport file not found');
+    }
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+  
+  // Download passport (open in new tab for now)
+  const handleDownloadPassport = () => {
+    if (passportContextMenu.crew?.passport_file_id) {
+      window.open(`https://drive.google.com/uc?export=download&id=${passportContextMenu.crew.passport_file_id}`, '_blank');
+      toast.success(language === 'vi' ? 'Đang tải file hộ chiếu...' : 'Downloading passport file...');
+    } else {
+      toast.error(language === 'vi' ? 'Không tìm thấy file hộ chiếu' : 'Passport file not found');
+    }
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+  
+  // Auto-rename passport files
+  const handleAutoRenamePassport = async () => {
+    if (!passportContextMenu.crew) return;
+    
+    const crew = passportContextMenu.crew;
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+    
+    try {
+      toast.info(language === 'vi' 
+        ? `Đang đổi tên file hộ chiếu cho ${crew.full_name}...`
+        : `Renaming passport files for ${crew.full_name}...`);
+      
+      await crewService.renameFiles(crew.id);
+      
+      toast.success(language === 'vi' 
+        ? `Đã đổi tên file hộ chiếu thành công`
+        : `Passport files renamed successfully`);
+      
+    } catch (error) {
+      console.error('Error renaming files:', error);
+      toast.error(language === 'vi' 
+        ? `Lỗi đổi tên file: ${error.response?.data?.detail || error.message}`
+        : `Error renaming files: ${error.response?.data?.detail || error.message}`);
+    }
+  };
+  
+  // Rank context menu handler
+  const handleRankRightClick = (e, crew) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Calculate menu position
+    const menuWidth = 250;
+    const menuHeight = 300;
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10;
+    }
+    
+    setRankContextMenu({
+      show: true,
+      x,
+      y,
+      crew
+    });
+  };
+  
+  // Update crew rank
+  const handleUpdateRank = async (rank) => {
+    if (!rankContextMenu.crew) return;
+    
+    const crew = rankContextMenu.crew;
+    setRankContextMenu({ show: false, x: 0, y: 0, crew: null });
+    
+    try {
+      await crewService.updateCrew(crew.id, { rank });
+      
+      toast.success(language === 'vi' 
+        ? `Đã cập nhật chức vụ cho ${crew.full_name}: ${rank}`
+        : `Updated rank for ${crew.full_name}: ${rank}`);
+      
+      // Refresh list
+      fetchCrewList();
+      
+    } catch (error) {
+      console.error('Error updating rank:', error);
+      toast.error(language === 'vi' 
+        ? `Lỗi cập nhật chức vụ: ${error.response?.data?.detail || error.message}`
+        : `Error updating rank: ${error.response?.data?.detail || error.message}`);
+    }
+  };
+  
   // Batch processing handler
   const handleBatchProcessing = async (files) => {
     // Validate all files first
