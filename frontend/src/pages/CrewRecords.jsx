@@ -273,7 +273,7 @@ const CrewRecords = () => {
         <ShipDetailPanel
           ship={selectedShip}
           onClose={() => updateSelectedShip(null)}
-          onEditShip={handleEditShip}
+          showEditButton={false}
           showShipParticular={true}
           onShipSelect={() => setShowShipModal(true)}
           onShipUpdate={handleShipUpdate}
