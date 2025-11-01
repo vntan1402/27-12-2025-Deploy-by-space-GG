@@ -2582,70 +2582,7 @@ class BackendAPITester:
         
         return failed == 0
     
-    def print_test_summary(self, test_results):
-        """Print test summary"""
-        print(f"\n{'='*80}")
-        print(f"BACKEND APIs TEST SUMMARY")
-        print(f"{'='*80}")
-        
-        passed = 0
-        total = len(test_results)
-        
-        for test_name, result in test_results:
-            status = "✅ PASS" if result else "❌ FAIL"
-            print(f"{status}: {test_name}")
-            if result:
-                passed += 1
-        
-        print(f"\n📊 Results: {passed}/{total} tests passed ({(passed/total)*100:.1f}%)")
-        
-        if passed == total:
-            print(f"🎉 All tests passed! Ship calculation APIs are working correctly.")
-            print(f"✅ Authentication with admin1/123456 successful")
-            print(f"✅ Company ID resolution working")
-            print(f"✅ Ships list retrieval working")
-            print(f"✅ Calculate Next Docking API working")
-            print(f"✅ Calculate Anniversary Date API working")
-            print(f"✅ Calculate Special Survey Cycle API working")
-            print(f"✅ Error handling working correctly")
-            print(f"✅ Backend logs verification completed")
-        elif passed >= 5:  # If at least setup and main calculation tests passed
-            print(f"✅ Core functionality working! Ship calculation APIs are functional.")
-            print(f"✅ Main calculation endpoints working")
-            print(f"⚠️ Some auxiliary tests may have failed")
-        else:
-            print(f"❌ Critical tests failed. Please check the ship calculation API implementation.")
-            
-            # Print specific failure analysis
-            failed_tests = [name for name, result in test_results if not result]
-            if failed_tests:
-                print(f"\n❌ Failed Tests:")
-                for failed_test in failed_tests:
-                    print(f"   - {failed_test}")
-                    
-        # Print endpoint requirements summary
-        print(f"\n🔍 SHIP CALCULATION API REQUIREMENTS TESTED:")
-        print(f"   1. Authentication required (admin1/123456 credentials)")
-        print(f"   2. Company ID resolution from user data")
-        print(f"   3. Ships list accessible for test ship selection")
-        print(f"   4. POST /api/ships/{{ship_id}}/calculate-next-docking endpoint")
-        print(f"   5. POST /api/ships/{{ship_id}}/calculate-anniversary-date endpoint")
-        print(f"   6. POST /api/ships/{{ship_id}}/calculate-special-survey-cycle endpoint")
-        print(f"   7. Proper response structure validation")
-        print(f"   8. Error handling for non-existent ships")
-        print(f"   9. Database updates after successful calculations")
-        
-        print(f"\n🎯 KEY SUCCESS CRITERIA:")
-        print(f"   ✅ All three calculation endpoints return proper JSON responses")
-        print(f"   ✅ Success cases return success: true")
-        print(f"   ✅ Failed calculations return success: false with helpful messages")
-        print(f"   ✅ Ship data is persisted to database after successful calculation")
-        print(f"   ✅ Response format matches what frontend expects")
-        print(f"   ✅ No backend errors during API calls")
-        
-        if self.test_ship_name:
-            print(f"\n🚢 Test Ship Used: {self.test_ship_name}")
-            print(f"📋 Note: Ship data may have been updated during calculation testing")
+    # Removed old print_test_summary method - replaced with inline summary in run_all_tests
 
 def main():
     """Main function to run the tests"""
