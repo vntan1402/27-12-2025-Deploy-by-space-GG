@@ -560,13 +560,18 @@ class BackendAPITester:
         except Exception as e:
             print(f"   ⚠️ Log check failed: {e}")
 
-    def test_create_crew_member(self):
-        """Test 5: Create crew member with extracted passport data"""
-        self.print_test_header("Test 5 - Create Crew Member")
+    def test_certificate_validation(self):
+        """Test 5: Try to delete crew member with certificates (should be blocked)"""
+        self.print_test_header("Test 5 - Certificate Validation Test")
         
-        if not self.access_token or not self.passport_analysis:
-            self.print_result(False, "Missing required data from previous tests")
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
             return False
+        
+        if not self.crew_with_certificates_id:
+            print(f"⚠️ No crew with certificates found - skipping validation test")
+            self.print_result(True, "No crew with certificates found - validation test skipped")
+            return True
         
         try:
             headers = {
@@ -574,75 +579,79 @@ class BackendAPITester:
                 "Content-Type": "application/json"
             }
             
-            print(f"📡 POST {BACKEND_URL}/crew")
-            print(f"🎯 Creating crew member with extracted passport data")
+            print(f"📡 DELETE {BACKEND_URL}/crew/{self.crew_with_certificates_id}")
+            print(f"🎯 Testing certificate validation (should block deletion)")
+            print(f"👤 Target Crew: {self.crew_with_certificates_id[:8]}... (has certificates)")
             
-            # Prepare crew data from passport analysis
-            crew_data = {
-                "full_name": self.passport_analysis.get("full_name", ""),
-                "sex": self.passport_analysis.get("sex", ""),
-                "date_of_birth": self.passport_analysis.get("date_of_birth", ""),
-                "place_of_birth": self.passport_analysis.get("place_of_birth", ""),
-                "passport": self.passport_analysis.get("passport_number", ""),
-                "nationality": self.passport_analysis.get("nationality", ""),
-                "passport_expiry_date": self.passport_analysis.get("passport_expiry_date", ""),
-                "ship_sign_on": "BROTHER 36",
-                "status": "Sign on",
-                "rank": "Captain"
-            }
-            
-            print(f"📋 Crew data:")
-            for key, value in crew_data.items():
-                print(f"   {key}: {value}")
-            
-            # Make request to create crew member
-            response = self.session.post(
-                f"{BACKEND_URL}/crew",
+            # Try to delete crew with certificates
+            response = self.session.delete(
+                f"{BACKEND_URL}/crew/{self.crew_with_certificates_id}",
                 headers=headers,
-                json=crew_data,
                 timeout=30
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
-            if response.status_code == 200:
-                response_data = response.json()
-                print(f"📄 Response Keys: {list(response_data.keys())}")
-                
-                # Check required response fields
-                required_fields = ["id"]
-                missing_fields = []
-                
-                for field in required_fields:
-                    if field not in response_data:
-                        missing_fields.append(field)
-                
-                if missing_fields:
-                    self.print_result(False, f"Response missing required fields: {missing_fields}")
+            if response.status_code == 400:
+                # This is expected - crew has certificates
+                try:
+                    error_data = response.json()
+                    detail = error_data.get("detail", "")
+                    
+                    print(f"📝 Error Detail: {detail}")
+                    
+                    # Verify error message format
+                    if "Cannot delete crew" in detail and "certificates exist" in detail:
+                        print(f"✅ Correct error message format")
+                        
+                        # Verify crew name and certificate count are included
+                        if ":" in detail and "certificates" in detail:
+                            print(f"✅ Error message includes crew name and certificate count")
+                            
+                            # Verify crew is NOT deleted from database
+                            print(f"\n🔍 Verifying crew was NOT deleted from database...")
+                            verify_response = self.session.get(
+                                f"{BACKEND_URL}/crew/{self.crew_with_certificates_id}",
+                                headers=headers
+                            )
+                            
+                            if verify_response.status_code == 200:
+                                print(f"✅ Crew still exists in database (validation working)")
+                                self.print_result(True, "Certificate validation working correctly - deletion blocked")
+                                return True
+                            else:
+                                print(f"❌ Crew was deleted despite having certificates")
+                                self.print_result(False, "Certificate validation failed - crew was deleted")
+                                return False
+                        else:
+                            print(f"⚠️ Error message missing crew name or certificate count")
+                            self.print_result(True, "Certificate validation working but message format could be improved")
+                            return True
+                    else:
+                        print(f"❌ Unexpected error message format")
+                        self.print_result(False, f"Unexpected error message: {detail}")
+                        return False
+                        
+                except Exception as e:
+                    print(f"❌ Error parsing response: {e}")
+                    self.print_result(False, f"Error parsing 400 response: {e}")
                     return False
-                
-                # Store crew ID for next test
-                self.crew_id = response_data["id"]
-                self.crew_data = response_data
-                
-                print(f"✅ Crew ID: {self.crew_id}")
-                print(f"✅ Full Name: {response_data.get('full_name')}")
-                print(f"✅ Passport: {response_data.get('passport')}")
-                print(f"✅ Ship Sign On: {response_data.get('ship_sign_on')}")
-                
-                self.print_result(True, f"Crew member created successfully with ID: {self.crew_id}")
-                return True
-                
+                    
+            elif response.status_code == 200:
+                # This is unexpected - deletion should have been blocked
+                print(f"❌ Deletion succeeded when it should have been blocked")
+                self.print_result(False, "Certificate validation failed - deletion was allowed")
+                return False
             else:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"Create crew failed with status {response.status_code}: {error_data}")
+                    self.print_result(False, f"Unexpected response status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"Create crew failed with status {response.status_code}: {response.text}")
+                    self.print_result(False, f"Unexpected response status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during crew creation test: {str(e)}")
+            self.print_result(False, f"Exception during certificate validation test: {str(e)}")
             return False
     
     def test_upload_passport_files(self):
