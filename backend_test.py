@@ -523,6 +523,43 @@ class BackendAPITester:
             self.print_result(False, f"Exception during background deletion test: {str(e)}")
             return False
     
+    def check_background_deletion_logs(self):
+        """Helper method to check backend logs for background deletion messages"""
+        try:
+            import subprocess
+            result = subprocess.run(['tail', '-n', '100', '/var/log/supervisor/backend.out.log'], 
+                                  capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                log_content = result.stdout
+                
+                # Check for expected background task log messages
+                background_started = "🔄 Background task started: Deleting files for crew" in log_content
+                passport_deleted = "✅ Background: Passport file deleted:" in log_content
+                summary_deleted = "✅ Background: Summary file deleted:" in log_content
+                task_completed = "✅ Background task completed: Deleted" in log_content
+                
+                print(f"   📋 Background task started: {'✅ FOUND' if background_started else '❌ NOT FOUND'}")
+                print(f"   📋 Passport file deleted: {'✅ FOUND' if passport_deleted else '❌ NOT FOUND'}")
+                print(f"   📋 Summary file deleted: {'✅ FOUND' if summary_deleted else '❌ NOT FOUND'}")
+                print(f"   📋 Task completed: {'✅ FOUND' if task_completed else '❌ NOT FOUND'}")
+                
+                # Print recent relevant log lines
+                lines = log_content.split('\n')
+                relevant_lines = [line for line in lines if any(keyword in line for keyword in 
+                                ['Background task', 'Background:', 'Deleting files for crew'])]
+                
+                if relevant_lines:
+                    print(f"\n📄 Recent background deletion logs:")
+                    for line in relevant_lines[-5:]:  # Last 5 relevant lines
+                        print(f"   {line}")
+                else:
+                    print(f"   ⚠️ No background deletion logs found yet (may still be processing)")
+                    
+            else:
+                print(f"   ⚠️ Could not read backend logs")
+        except Exception as e:
+            print(f"   ⚠️ Log check failed: {e}")
+
     def test_create_crew_member(self):
         """Test 5: Create crew member with extracted passport data"""
         self.print_test_header("Test 5 - Create Crew Member")
