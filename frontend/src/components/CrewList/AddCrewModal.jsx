@@ -3,8 +3,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import { crewService } from '../../services/crewService';
 import { autoFillEnglishField } from '../../utils/vietnameseHelpers';
-import { BatchProcessingModal } from './BatchProcessingModal';
-import { BatchResultsModal } from './BatchResultsModal';
 
 export const AddCrewModal = ({ 
   selectedShip,
