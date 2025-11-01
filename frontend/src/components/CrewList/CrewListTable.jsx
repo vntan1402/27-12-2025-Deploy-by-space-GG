@@ -498,11 +498,22 @@ export const CrewListTable = ({
       }
       
       if (successCount > 0) {
-        toast.success(
-          language === 'vi' 
-            ? `Đã cập nhật ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}`
-            : `Updated ${successCount} crew member(s)${failCount > 0 ? `, ${failCount} failed` : ''}`
-        );
+        // Check if this is a ship sign on update (has status and date_sign_off)
+        const isShipSignOnUpdate = updates.ship_sign_on && updates.status && updates.hasOwnProperty('date_sign_off');
+        
+        if (isShipSignOnUpdate) {
+          toast.success(
+            language === 'vi' 
+              ? `✅ Đã cập nhật ${successCount} thuyền viên: Tàu "${updates.ship_sign_on}", Trạng thái "Sign on", Đã xóa ngày rời tàu${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
+              : `✅ Updated ${successCount} crew member(s): Ship "${updates.ship_sign_on}", Status "Sign on", Cleared date sign off${failCount > 0 ? ` (${failCount} failed)` : ''}`
+          );
+        } else {
+          toast.success(
+            language === 'vi' 
+              ? `Đã cập nhật ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}`
+              : `Updated ${successCount} crew member(s)${failCount > 0 ? `, ${failCount} failed` : ''}`
+          );
+        }
         fetchCrewList(); // Refresh list
       } else {
         toast.error(language === 'vi' ? 'Không thể cập nhật' : 'Failed to update');
