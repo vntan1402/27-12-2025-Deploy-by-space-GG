@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 import { crewService } from '../../services/crewService';
 import { autoFillEnglishField } from '../../utils/vietnameseHelpers';
+import { estimateFileProcessingTime, startSmoothProgressForFile } from '../../utils/progressHelpers';
 import { RANK_OPTIONS } from '../../utils/constants';
 import { AddCrewModal, EditCrewModal, DeleteCrewConfirmModal, BatchProcessingModal, BatchResultsModal } from './index';
 
