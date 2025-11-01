@@ -16,6 +16,9 @@ export const CrewListTable = ({
   const [loading, setLoading] = useState(false);
   const [selectedCrewMembers, setSelectedCrewMembers] = useState(new Set());
   
+  // Modal states
+  const [showAddCrewModal, setShowAddCrewModal] = useState(false);
+  
   // Filter states
   const [filters, setFilters] = useState({
     ship_sign_on: 'All',
