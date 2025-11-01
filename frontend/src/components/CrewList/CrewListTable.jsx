@@ -1442,6 +1442,44 @@ export const CrewListTable = ({
           isDeleting={isDeleting}
         />
       )}
+      
+      {/* Bulk Edit Modals */}
+      <BulkEditPlaceSignOnModal
+        isOpen={showBulkEditPlaceSignOn}
+        onClose={() => setShowBulkEditPlaceSignOn(false)}
+        value={bulkPlaceSignOn}
+        onChange={setBulkPlaceSignOn}
+        onSubmit={handleBulkUpdatePlaceSignOn}
+        selectedCount={selectedCrewMembers.size}
+      />
+      
+      <BulkEditShipSignOnModal
+        isOpen={showBulkEditShipSignOn}
+        onClose={() => setShowBulkEditShipSignOn(false)}
+        value={bulkShipSignOn}
+        onChange={setBulkShipSignOn}
+        onSubmit={handleBulkUpdateShipSignOn}
+        selectedCount={selectedCrewMembers.size}
+        ships={[]} // TODO: Pass ships list from parent
+      />
+      
+      <BulkEditDateSignOnModal
+        isOpen={showBulkEditDateSignOn}
+        onClose={() => setShowBulkEditDateSignOn(false)}
+        value={bulkDateSignOn}
+        onChange={setBulkDateSignOn}
+        onSubmit={handleBulkUpdateDateSignOn}
+        selectedCount={selectedCrewMembers.size}
+      />
+      
+      <BulkEditDateSignOffModal
+        isOpen={showBulkEditDateSignOff}
+        onClose={() => setShowBulkEditDateSignOff(false)}
+        value={bulkDateSignOff}
+        onChange={setBulkDateSignOff}
+        onSubmit={handleBulkUpdateDateSignOff}
+        selectedCount={selectedCrewMembers.size}
+      />
     </div>
   );
 };
