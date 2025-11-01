@@ -34,6 +34,12 @@ export const CrewListTable = ({
   const [showBatchProcessingModal, setShowBatchProcessingModal] = useState(false);
   const [showBatchResultsModal, setShowBatchResultsModal] = useState(false);
   
+  // New states for enhanced batch processing (matching Test Report style)
+  const [fileProgressMap, setFileProgressMap] = useState({});
+  const [fileStatusMap, setFileStatusMap] = useState({});
+  const [fileSubStatusMap, setFileSubStatusMap] = useState({});
+  const [isBatchModalMinimized, setIsBatchModalMinimized] = useState(false);
+  
   // Filter states
   const [filters, setFilters] = useState({
     ship_sign_on: 'All',
