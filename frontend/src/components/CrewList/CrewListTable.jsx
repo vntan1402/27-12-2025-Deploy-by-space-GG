@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import { crewService } from '../../services/crewService';
+import { AddCrewModal } from './AddCrewModal';
 
 export const CrewListTable = ({ 
   selectedShip,
-  onAddCrew,
   onRefresh 
 }) => {
   const { language, user } = useAuth();
