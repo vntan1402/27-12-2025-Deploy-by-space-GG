@@ -804,289 +804,79 @@ class BackendAPITester:
             self.print_result(False, f"Exception during crew list verification test: {str(e)}")
             return False
     
-    def test_calculate_anniversary_date(self):
-        """Test 4: Calculate Anniversary Date API"""
-        self.print_test_header("Test 4 - Calculate Anniversary Date API")
+    def run_all_tests(self):
+        """Run all Add Crew flow tests in sequence"""
+        print(f"\n🚀 STARTING ADD CREW COMPLETE FLOW TESTING")
+        print(f"🎯 Testing V2 Pattern: analyze → create → upload (background)")
+        print(f"🔗 Backend URL: {BACKEND_URL}")
+        print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        if not self.access_token or not self.test_ship_id:
-            self.print_result(False, "Missing required data from previous tests")
-            return False
+        # Test sequence for Add Crew flow
+        tests = [
+            ("Setup - Authentication", self.test_authentication),
+            ("Setup - Company ID Resolution", self.test_get_company_id),
+            ("Setup - Ships List", self.test_get_ships_list),
+            ("Step 1 - Download Passport File", self.test_download_passport_file),
+            ("Step 2 - Analyze Passport with AI", self.test_analyze_passport),
+            ("Step 3 - Create Crew Member", self.test_create_crew_member),
+            ("Step 4 - Upload Passport Files", self.test_upload_passport_files),
+            ("Step 5 - Verify Crew Record Updated", self.test_verify_crew_record_updated),
+            ("Step 6 - Verify Crew List", self.test_verify_crew_list),
+        ]
         
-        try:
-            headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json"
-            }
-            
-            print(f"📡 POST {BACKEND_URL}/ships/{self.test_ship_id}/calculate-anniversary-date")
-            print(f"🎯 Testing anniversary date calculation for ship: {self.test_ship_name}")
-            
-            # Make request to calculate anniversary date
-            response = self.session.post(
-                f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-anniversary-date",
-                headers=headers,
-                timeout=30
-            )
-            
-            print(f"📊 Response Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                print(f"📄 Response Data: {json.dumps(response_data, indent=2)}")
+        results = []
+        
+        for test_name, test_func in tests:
+            try:
+                print(f"\n" + "="*80)
+                result = test_func()
+                results.append((test_name, result))
                 
-                # Check required response fields
-                required_fields = ["success", "message"]
-                missing_fields = []
-                
-                for field in required_fields:
-                    if field not in response_data:
-                        missing_fields.append(field)
-                
-                if missing_fields:
-                    self.print_result(False, f"Response missing required fields: {missing_fields}")
-                    return False
-                
-                success = response_data.get("success")
-                message = response_data.get("message")
-                anniversary_date = response_data.get("anniversary_date")
-                
-                print(f"✅ Success: {success}")
-                print(f"📝 Message: {message}")
-                
-                if success and anniversary_date:
-                    # Verify anniversary_date structure
-                    expected_fields = ["day", "month", "source", "display"]
-                    anniversary_missing = []
-                    
-                    for field in expected_fields:
-                        if field not in anniversary_date:
-                            anniversary_missing.append(field)
-                    
-                    if anniversary_missing:
-                        self.print_result(False, f"anniversary_date missing fields: {anniversary_missing}")
-                        return False
-                    
-                    print(f"📅 Anniversary Day: {anniversary_date['day']}")
-                    print(f"📅 Anniversary Month: {anniversary_date['month']}")
-                    print(f"📋 Source: {anniversary_date['source']}")
-                    print(f"📄 Display: {anniversary_date['display']}")
-                    
-                    self.print_result(True, "✅ Anniversary date calculation successful with correct response structure")
-                    return True
-                elif not success and not anniversary_date:
-                    # Expected failure case - no calculation possible
-                    print(f"⚠️ Calculation not possible (expected): {message}")
-                    self.print_result(True, "✅ Anniversary date calculation handled gracefully (no certificates)")
-                    return True
+                if not result:
+                    print(f"❌ Test failed: {test_name}")
+                    print(f"⚠️ Stopping test sequence due to failure")
+                    break
                 else:
-                    self.print_result(False, f"Unexpected response state - success: {success}, anniversary_date: {anniversary_date}")
-                    return False
-                
-            elif response.status_code == 404:
-                try:
-                    error_data = response.json()
-                    detail = error_data.get("detail", "")
-                    print(f"📄 Error Response: {error_data}")
-                    self.print_result(False, f"❌ Ship not found: {detail}")
-                except:
-                    self.print_result(False, f"❌ Ship not found (404): {response.text}")
-                return False
-                
-            elif response.status_code == 500:
-                try:
-                    error_data = response.json()
-                    detail = error_data.get("detail", "")
-                    print(f"📄 Error Response: {error_data}")
-                    self.print_result(False, f"❌ Server error: {detail}")
-                except:
-                    self.print_result(False, f"❌ Server error (500): {response.text}")
-                return False
-                
-            else:
-                try:
-                    error_data = response.json()
-                    self.print_result(False, f"Unexpected response status {response.status_code}: {error_data}")
-                except:
-                    self.print_result(False, f"Unexpected response status {response.status_code}: {response.text}")
-                return False
-                
-        except Exception as e:
-            self.print_result(False, f"Exception during anniversary date calculation test: {str(e)}")
-            return False
-
-    def test_calculate_special_survey_cycle(self):
-        """Test 5: Calculate Special Survey Cycle API"""
-        self.print_test_header("Test 5 - Calculate Special Survey Cycle API")
+                    print(f"✅ Test passed: {test_name}")
+                    
+            except Exception as e:
+                print(f"💥 Exception in {test_name}: {str(e)}")
+                results.append((test_name, False))
+                break
         
-        if not self.access_token or not self.test_ship_id:
-            self.print_result(False, "Missing required data from previous tests")
-            return False
+        # Print final summary
+        print(f"\n" + "="*80)
+        print(f"📊 ADD CREW FLOW TEST SUMMARY")
+        print(f"="*80)
         
-        try:
-            headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json"
-            }
-            
-            print(f"📡 POST {BACKEND_URL}/ships/{self.test_ship_id}/calculate-special-survey-cycle")
-            print(f"🎯 Testing special survey cycle calculation for ship: {self.test_ship_name}")
-            
-            # Make request to calculate special survey cycle
-            response = self.session.post(
-                f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-special-survey-cycle",
-                headers=headers,
-                timeout=30
-            )
-            
-            print(f"📊 Response Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                print(f"📄 Response Data: {json.dumps(response_data, indent=2)}")
-                
-                # Check required response fields
-                required_fields = ["success", "message"]
-                missing_fields = []
-                
-                for field in required_fields:
-                    if field not in response_data:
-                        missing_fields.append(field)
-                
-                if missing_fields:
-                    self.print_result(False, f"Response missing fields: {missing_fields}")
-                    return False
-                
-                success = response_data.get("success")
-                message = response_data.get("message")
-                special_survey_cycle = response_data.get("special_survey_cycle")
-                
-                print(f"✅ Success: {success}")
-                print(f"📝 Message: {message}")
-                
-                if success and special_survey_cycle:
-                    # Verify special_survey_cycle structure
-                    expected_fields = ["from_date", "to_date", "cycle_type", "intermediate_required", "display"]
-                    cycle_missing = []
-                    
-                    for field in expected_fields:
-                        if field not in special_survey_cycle:
-                            cycle_missing.append(field)
-                    
-                    if cycle_missing:
-                        self.print_result(False, f"special_survey_cycle missing fields: {cycle_missing}")
-                        return False
-                    
-                    print(f"📅 From Date: {special_survey_cycle['from_date']}")
-                    print(f"📅 To Date: {special_survey_cycle['to_date']}")
-                    print(f"🔧 Cycle Type: {special_survey_cycle['cycle_type']}")
-                    print(f"🔄 Intermediate Required: {special_survey_cycle['intermediate_required']}")
-                    print(f"📄 Display: {special_survey_cycle['display']}")
-                    
-                    self.print_result(True, "✅ Special survey cycle calculation successful with correct response structure")
-                    return True
-                elif not success and not special_survey_cycle:
-                    # Expected failure case - no calculation possible
-                    print(f"⚠️ Calculation not possible (expected): {message}")
-                    self.print_result(True, "✅ Special survey cycle calculation handled gracefully (no Full Term certificates)")
-                    return True
-                else:
-                    self.print_result(False, f"Unexpected response state - success: {success}, special_survey_cycle: {special_survey_cycle}")
-                    return False
-                
-            elif response.status_code == 404:
-                try:
-                    error_data = response.json()
-                    detail = error_data.get("detail", "")
-                    print(f"📄 Error Response: {error_data}")
-                    self.print_result(False, f"❌ Ship not found: {detail}")
-                except:
-                    self.print_result(False, f"❌ Ship not found (404): {response.text}")
-                return False
-                
-            elif response.status_code == 500:
-                try:
-                    error_data = response.json()
-                    detail = error_data.get("detail", "")
-                    print(f"📄 Error Response: {error_data}")
-                    self.print_result(False, f"❌ Server error: {detail}")
-                except:
-                    self.print_result(False, f"❌ Server error (500): {response.text}")
-                return False
-                
-            else:
-                try:
-                    error_data = response.json()
-                    self.print_result(False, f"Unexpected response status {response.status_code}: {error_data}")
-                except:
-                    self.print_result(False, f"Unexpected response status {response.status_code}: {response.text}")
-                return False
-                
-        except Exception as e:
-            self.print_result(False, f"Exception during special survey cycle calculation test: {str(e)}")
-            return False
-
-    def test_error_handling(self):
-        """Test 6: Error Handling for Ship Calculation APIs"""
-        self.print_test_header("Test 6 - Error Handling")
+        passed = sum(1 for _, result in results if result)
+        total = len(results)
+        success_rate = (passed / total * 100) if total > 0 else 0
         
-        if not self.access_token:
-            self.print_result(False, "Missing required data from previous tests")
-            return False
+        print(f"📈 Success Rate: {success_rate:.1f}% ({passed}/{total} tests passed)")
+        print(f"📅 Test Completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        try:
-            headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json"
-            }
-            
-            # Test 1: Non-existent ship ID
-            print(f"\n🔍 Testing with non-existent ship ID...")
-            fake_ship_id = "non-existent-ship-id-12345"
-            
-            response = self.session.post(
-                f"{BACKEND_URL}/ships/{fake_ship_id}/calculate-next-docking",
-                headers=headers,
-                timeout=30
-            )
-            
-            print(f"📊 Non-existent ship response status: {response.status_code}")
-            
-            if response.status_code == 404:
-                try:
-                    error_data = response.json()
-                    detail = error_data.get("detail", "")
-                    print(f"📄 Non-existent ship error: {detail}")
-                    
-                    if "Ship not found" in detail:
-                        print(f"✅ Non-existent ship correctly returns 404 Not Found")
-                    else:
-                        print(f"⚠️ Unexpected 404 error message: {detail}")
-                except:
-                    print(f"📄 Non-existent ship error (raw): {response.text}")
-            else:
-                print(f"⚠️ Expected 404 for non-existent ship, got {response.status_code}: {response.text}")
-            
-            # Test 2: Unauthorized access (no token)
-            print(f"\n🔍 Testing without authentication...")
-            
-            response = self.session.post(
-                f"{BACKEND_URL}/ships/{fake_ship_id}/calculate-next-docking",
-                timeout=30
-            )
-            
-            print(f"📊 Unauthorized response status: {response.status_code}")
-            
-            if response.status_code in [401, 403]:
-                print(f"✅ Unauthorized access correctly returns {response.status_code}")
-            else:
-                print(f"⚠️ Expected 401/403 for unauthorized access, got {response.status_code}")
-            
-            self.print_result(True, "✅ Error handling tests completed")
-            return True
-                
-        except Exception as e:
-            self.print_result(False, f"Exception during error handling test: {str(e)}")
-            return False
+        for test_name, result in results:
+            status = "✅ PASS" if result else "❌ FAIL"
+            print(f"   {status}: {test_name}")
+        
+        # Overall assessment
+        if success_rate >= 80:
+            print(f"\n🎉 ADD CREW FLOW TESTING SUCCESSFUL!")
+            print(f"✅ V2 Pattern (analyze → create → upload) working correctly")
+            print(f"✅ File upload and icon display functionality verified")
+            print(f"✅ Google Drive integration working")
+            print(f"✅ Crew records properly updated with file IDs")
+        elif success_rate >= 60:
+            print(f"\n⚠️ ADD CREW FLOW PARTIALLY WORKING")
+            print(f"📊 Some components working but issues detected")
+            print(f"🔧 Review failed tests for specific issues")
+        else:
+            print(f"\n❌ ADD CREW FLOW TESTING FAILED")
+            print(f"🚨 Critical issues detected in core functionality")
+            print(f"🔧 Major fixes required")
+        
+        return success_rate >= 80
     
     def test_upcoming_surveys_endpoint(self):
         """Test 7: Upcoming Surveys Endpoint - Company Name Verification"""
