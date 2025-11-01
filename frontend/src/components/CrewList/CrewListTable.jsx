@@ -362,7 +362,7 @@ export const CrewListTable = ({
     const crewIds = Array.from(selectedCrewMembers);
     const date = prompt(
       language === 'vi' 
-        ? `Nhập ngày lên tàu mới (YYYY-MM-DD) cho ${crewIds.length} thuyền viên:` 
+        ? `Nhập ngày xuống tàu mới (YYYY-MM-DD) cho ${crewIds.length} thuyền viên:` 
         : `Enter new date sign on (YYYY-MM-DD) for ${crewIds.length} crew members:`
     );
     
