@@ -1,148 +1,153 @@
+/**
+ * Batch Results Modal for Crew Passports
+ * Shows summary of batch processing results
+ * Matches Test Report style with table layout
+ */
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
-export const BatchResultsModal = ({ 
+export const BatchResultsModal = ({
+  isOpen,
   results,
   onClose
 }) => {
   const { language } = useAuth();
-  
+
+  if (!isOpen) return null;
+
   const successCount = results.filter(r => r.success).length;
-  const failedCount = results.filter(r => !r.success).length;
-  const totalCount = results.length;
-  
+  const failCount = results.length - successCount;
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[85vh] overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-xl font-bold text-gray-800">
-                {language === 'vi' ? 'Kết quả xử lý hàng loạt' : 'Batch Processing Results'}
+        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600">
+          <div className="flex justify-between items-center">
+            <div className="text-white">
+              <h3 className="text-xl font-bold">
+                {language === 'vi' ? '📊 Kết quả xử lý hàng loạt' : '📊 Batch Processing Results'}
               </h3>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-blue-100 mt-1">
                 {language === 'vi' 
-                  ? `Đã xử lý ${totalCount} file hộ chiếu`
-                  : `Processed ${totalCount} passport files`}
+                  ? `${successCount} thành công, ${failCount} thất bại trên tổng ${results.length} files` 
+                  : `${successCount} success, ${failCount} failed out of ${results.length} files`}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none"
+              className="text-white hover:text-gray-200 transition-colors"
             >
-              ×
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>
-        
-        {/* Summary Stats */}
-        <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 border-b border-gray-200">
+
+        {/* Summary Statistics */}
+        <div className="p-6 bg-gray-50 border-b border-gray-200">
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white rounded-lg p-4 text-center shadow-sm">
-              <div className="text-3xl font-bold text-gray-800">{totalCount}</div>
+            <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
+              <div className="text-3xl font-bold text-gray-800">{results.length}</div>
               <div className="text-sm text-gray-600 mt-1">
-                {language === 'vi' ? 'Tổng số' : 'Total'}
+                {language === 'vi' ? 'Tổng files' : 'Total Files'}
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 text-center shadow-sm">
+            <div className="bg-white rounded-lg p-4 border border-green-200 text-center">
               <div className="text-3xl font-bold text-green-600">{successCount}</div>
               <div className="text-sm text-gray-600 mt-1">
                 {language === 'vi' ? 'Thành công' : 'Success'}
               </div>
             </div>
-            <div className="bg-white rounded-lg p-4 text-center shadow-sm">
-              <div className="text-3xl font-bold text-red-600">{failedCount}</div>
+            <div className="bg-white rounded-lg p-4 border border-red-200 text-center">
+              <div className="text-3xl font-bold text-red-600">{failCount}</div>
               <div className="text-sm text-gray-600 mt-1">
                 {language === 'vi' ? 'Thất bại' : 'Failed'}
               </div>
             </div>
           </div>
         </div>
-        
-        {/* Results List */}
-        <div className="p-6 overflow-y-auto max-h-[50vh]">
-          <div className="space-y-3">
-            {results.map((result, index) => (
-              <div 
-                key={index}
-                className={`border-2 rounded-lg p-4 ${
-                  result.success 
-                    ? 'border-green-200 bg-green-50' 
-                    : 'border-red-200 bg-red-50'
-                }`}
-              >
-                <div className="flex items-start space-x-3">
-                  {/* Status Icon */}
-                  <div className="flex-shrink-0 mt-1">
-                    <span className="text-2xl">
+
+        {/* Results Table */}
+        <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(85vh - 280px)' }}>
+          <table className="w-full border-collapse">
+            <thead className="bg-gray-100 sticky top-0">
+              <tr>
+                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  {language === 'vi' ? 'Trạng thái' : 'Status'}
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  {language === 'vi' ? 'Tên file' : 'Filename'}
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  {language === 'vi' ? 'Họ tên' : 'Crew Name'}
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  {language === 'vi' ? 'Số hộ chiếu' : 'Passport No'}
+                </th>
+                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                  {language === 'vi' ? 'Ghi chú' : 'Note'}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {results.map((result, index) => (
+                <tr key={index} className={result.success ? 'bg-green-50' : 'bg-red-50'}>
+                  <td className="border border-gray-300 px-4 py-2">
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-semibold ${
+                      result.success 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}>
                       {result.success ? '✅' : '❌'}
+                      {result.success 
+                        ? (language === 'vi' ? 'Thành công' : 'Success')
+                        : (language === 'vi' ? 'Thất bại' : 'Failed')}
                     </span>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <p className={`font-semibold truncate ${
-                          result.success ? 'text-green-800' : 'text-red-800'
-                        }`} title={result.filename}>
-                          {result.filename}
-                        </p>
-                        {result.success && result.crew_name && (
-                          <p className="text-sm text-green-700 mt-1">
-                            <span className="font-medium">
-                              {language === 'vi' ? 'Thuyền viên:' : 'Crew:'} 
-                            </span>{' '}
-                            {result.crew_name}
-                          </p>
-                        )}
-                        {result.passport_number && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            <span className="font-medium">
-                              {language === 'vi' ? 'Hộ chiếu:' : 'Passport:'} 
-                            </span>{' '}
-                            {result.passport_number}
-                          </p>
-                        )}
-                      </div>
-                      <div className="ml-3 flex-shrink-0">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          result.success 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {result.success 
-                            ? (language === 'vi' ? 'Thành công' : 'Success')
-                            : (language === 'vi' ? 'Thất bại' : 'Failed')
-                          }
-                        </span>
-                      </div>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    <div className="max-w-xs truncate" title={result.filename}>
+                      {result.filename}
                     </div>
-                    
-                    {/* Error Message */}
-                    {!result.success && result.error && (
-                      <div className="mt-2 bg-red-100 border border-red-200 rounded p-2">
-                        <p className="text-xs text-red-700">
-                          <span className="font-semibold">
-                            {language === 'vi' ? 'Lỗi:' : 'Error:'} 
-                          </span>{' '}
-                          {result.error}
-                        </p>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    {result.crew_name || '-'}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm font-mono">
+                    {result.passport_number || '-'}
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                    {result.success ? (
+                      <div className="space-y-1">
+                        {result.crewCreated && (
+                          <div className="text-xs text-green-600">
+                            {language === 'vi' ? '✓ Đã tạo record' : '✓ Record created'}
+                          </div>
+                        )}
+                        {result.fileUploaded && (
+                          <div className="text-xs text-green-600">
+                            {language === 'vi' ? '✓ Đã upload file' : '✓ File uploaded'}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-red-600">
+                        {result.error || (language === 'vi' ? 'Lỗi không xác định' : 'Unknown error')}
                       </div>
                     )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        
+
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end">
+        <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all font-medium"
           >
             {language === 'vi' ? 'Đóng' : 'Close'}
           </button>
