@@ -9,7 +9,8 @@ import { BatchResultsModal } from './BatchResultsModal';
 export const AddCrewModal = ({ 
   selectedShip,
   onClose, 
-  onSuccess 
+  onSuccess,
+  onBatchUpload  // New prop for batch upload callback
 }) => {
   const { language, user } = useAuth();
   
