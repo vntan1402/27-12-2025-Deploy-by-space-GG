@@ -2081,8 +2081,14 @@ class BackendAPITester:
                 
                 success = response_data.get("success")
                 analysis_data = response_data.get("analysis", {})
+                duplicate = response_data.get("duplicate", False)
+                error = response_data.get("error", "")
+                message = response_data.get("message", "")
                 
                 print(f"✅ Success: {success}")
+                print(f"🔄 Duplicate: {duplicate}")
+                print(f"❌ Error: {error}")
+                print(f"💬 Message: {message}")
                 print(f"📄 Analysis Data Keys: {list(analysis_data.keys())}")
                 
                 if success and analysis_data:
