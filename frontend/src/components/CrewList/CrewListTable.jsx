@@ -442,6 +442,38 @@ export const CrewListTable = ({
     }
   };
   
+  // Bulk update multiple fields helper
+  const bulkUpdateMultipleFields = async (updates, crewIds) => {
+    try {
+      let successCount = 0;
+      let failCount = 0;
+      
+      for (const crewId of crewIds) {
+        try {
+          await crewService.update(crewId, updates);
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to update crew ${crewId}:`, error);
+          failCount++;
+        }
+      }
+      
+      if (successCount > 0) {
+        toast.success(
+          language === 'vi' 
+            ? `Đã cập nhật ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}`
+            : `Updated ${successCount} crew member(s)${failCount > 0 ? `, ${failCount} failed` : ''}`
+        );
+        fetchCrewList(); // Refresh list
+      } else {
+        toast.error(language === 'vi' ? 'Không thể cập nhật' : 'Failed to update');
+      }
+    } catch (error) {
+      console.error('Bulk update error:', error);
+      toast.error(language === 'vi' ? 'Lỗi cập nhật hàng loạt' : 'Bulk update error');
+    }
+  };
+  
   // Passport context menu handler
   const handlePassportRightClick = (e, crew) => {
     e.preventDefault();
