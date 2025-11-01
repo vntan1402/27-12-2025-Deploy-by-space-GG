@@ -1522,18 +1522,20 @@ class DualAppsScriptManager:
             
             # Determine target folder based on ship_name
             # If ship_name is "-", upload to COMPANY DOCUMENT > Standby Crew
-            # Otherwise, upload to Ship Name > Crew Records/Crew List
+            # Otherwise, upload to Ship Name > Crew Records > Crew List (nested structure)
             if ship_name == "-":
                 target_ship = "COMPANY DOCUMENT"
+                parent_category = None
                 target_category = "Standby Crew"
                 logger.info(f"📤 Uploading passport file (Standby): {target_ship}/{target_category}/{passport_filename}")
             else:
                 target_ship = ship_name
-                target_category = "Crew Records/Crew List"  # Nested path
-                logger.info(f"📤 Uploading passport file (Normal): {target_ship}/{target_category}/{passport_filename}")
+                parent_category = "Crew Records"  # First level folder under ShipName
+                target_category = "Crew List"  # Second level folder under Crew Records
+                logger.info(f"📤 Uploading passport file (Normal): {target_ship}/{parent_category}/{target_category}/{passport_filename}")
             
             # Upload 1: Passport file
-            passport_upload = await self._call_company_apps_script({
+            passport_payload = {
                 'action': 'upload_file_with_folder_creation',
                 'parent_folder_id': self.parent_folder_id,
                 'ship_name': target_ship,
@@ -1541,7 +1543,12 @@ class DualAppsScriptManager:
                 'filename': passport_filename,
                 'file_content': base64.b64encode(passport_file_content).decode('utf-8'),
                 'content_type': passport_content_type
-            })
+            }
+            # Only add parent_category if it exists (for nested structure)
+            if parent_category:
+                passport_payload['parent_category'] = parent_category
+            
+            passport_upload = await self._call_company_apps_script(passport_payload)
             upload_results['passport'] = passport_upload
             
             # Upload 2: Summary file to SAME folder as passport (if provided)
@@ -1549,8 +1556,12 @@ class DualAppsScriptManager:
                 base_name = passport_filename.rsplit('.', 1)[0]
                 summary_filename = f"{base_name}_Summary.txt"
                 
-                logger.info(f"📋 Uploading passport summary file: {target_ship}/{target_category}/{summary_filename}")
-                summary_upload = await self._call_company_apps_script({
+                if parent_category:
+                    logger.info(f"📋 Uploading passport summary file: {target_ship}/{parent_category}/{target_category}/{summary_filename}")
+                else:
+                    logger.info(f"📋 Uploading passport summary file: {target_ship}/{target_category}/{summary_filename}")
+                
+                summary_payload = {
                     'action': 'upload_file_with_folder_creation',
                     'parent_folder_id': self.parent_folder_id,
                     'ship_name': target_ship,
@@ -1558,7 +1569,12 @@ class DualAppsScriptManager:
                     'filename': summary_filename,
                     'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
                     'content_type': 'text/plain'
-                })
+                }
+                # Only add parent_category if it exists (for nested structure)
+                if parent_category:
+                    summary_payload['parent_category'] = parent_category
+                
+                summary_upload = await self._call_company_apps_script(summary_payload)
                 upload_results['summary'] = summary_upload
             
             # Check upload results
