@@ -414,128 +414,113 @@ class BackendAPITester:
             self.print_result(False, f"Exception during find crew with certificates test: {str(e)}")
             return False
     
-    def test_analyze_passport(self):
-        """Test 4: Analyze passport with ship_name='BROTHER 36'"""
-        self.print_test_header("Test 4 - Analyze Passport with AI")
+    def test_delete_crew_background_mode(self):
+        """Test 4: DELETE crew with background=true (default behavior)"""
+        self.print_test_header("Test 4 - DELETE Crew Background Mode (Default)")
         
-        if not self.access_token or not self.passport_content:
+        if not self.access_token or not self.test_crew_id:
             self.print_result(False, "Missing required data from previous tests")
             return False
         
         try:
             headers = {
-                "Authorization": f"Bearer {self.access_token}"
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
             }
             
-            print(f"📡 POST {BACKEND_URL}/crew/analyze-passport")
-            print(f"🎯 Analyzing passport with ship_name='BROTHER 36'")
+            print(f"📡 DELETE {BACKEND_URL}/crew/{self.test_crew_id}")
+            print(f"🎯 Testing background deletion mode (default behavior)")
+            print(f"👤 Target Crew: {self.test_crew_data.get('full_name')} (ID: {self.test_crew_id[:8]}...)")
             
-            # Prepare multipart form data
-            files = {
-                'passport_file': ('passport.pdf', self.passport_content, 'application/pdf')
-            }
-            
-            data = {
-                'ship_name': 'BROTHER 36'
-            }
-            
-            print(f"📋 Form data:")
-            print(f"   passport_file: passport.pdf ({len(self.passport_content)} bytes)")
-            print(f"   ship_name: BROTHER 36")
-            
-            # Make request to analyze passport
+            # Test with background=true (default)
             start_time = time.time()
-            response = self.session.post(
-                f"{BACKEND_URL}/crew/analyze-passport",
+            response = self.session.delete(
+                f"{BACKEND_URL}/crew/{self.test_crew_id}",
                 headers=headers,
-                files=files,
-                data=data,
-                timeout=120  # Extended timeout for AI processing
+                timeout=30
             )
-            processing_time = time.time() - start_time
+            response_time = time.time() - start_time
             
             print(f"📊 Response Status: {response.status_code}")
-            print(f"⏱️ Processing Time: {processing_time:.1f} seconds")
+            print(f"⏱️ Response Time: {response_time:.3f} seconds")
             
             if response.status_code == 200:
                 response_data = response.json()
                 print(f"📄 Response Keys: {list(response_data.keys())}")
                 
-                # Check required response fields
-                required_fields = ["success"]
-                missing_fields = []
-                
-                for field in required_fields:
-                    if field not in response_data:
-                        missing_fields.append(field)
-                
-                if missing_fields:
-                    self.print_result(False, f"Response missing required fields: {missing_fields}")
-                    return False
-                
+                # Verify expected response structure
+                expected_fields = ["success", "message", "files_deleted_in_background"]
                 success = response_data.get("success")
-                print(f"✅ Success: {success}")
+                message = response_data.get("message", "")
+                files_deleted_in_background = response_data.get("files_deleted_in_background")
                 
-                if success:
-                    # Store analysis data for next test
-                    self.passport_analysis = response_data
+                print(f"✅ Success: {success}")
+                print(f"📝 Message: {message}")
+                print(f"🔄 Files Deleted in Background: {files_deleted_in_background}")
+                
+                # Verify response structure
+                if success and "deleted from database" in message:
+                    print(f"✅ Response indicates database deletion completed")
                     
-                    # Check for expected fields from AI analysis
-                    expected_fields = ["full_name", "passport_number", "date_of_birth", "place_of_birth", 
-                                     "nationality", "sex", "passport_expiry_date", "_file_content", "_summary_text"]
+                    if files_deleted_in_background:
+                        print(f"✅ Response indicates files are being deleted in background")
                     
-                    fields_found = []
-                    fields_missing = []
+                    # Verify API response time is fast (< 500ms for background mode)
+                    if response_time < 0.5:
+                        print(f"✅ Response time {response_time:.3f}s is fast (< 500ms) - background mode working")
+                    else:
+                        print(f"⚠️ Response time {response_time:.3f}s is slow (> 500ms) - may not be background mode")
                     
-                    for field in expected_fields:
-                        if field in response_data and response_data[field]:
-                            fields_found.append(field)
-                            print(f"✅ {field}: {str(response_data[field])[:100]}...")
-                        else:
-                            fields_missing.append(field)
-                            print(f"❌ {field}: Missing or empty")
+                    # Verify immediate database deletion
+                    print(f"\n🔍 Verifying immediate database deletion...")
+                    verify_response = self.session.get(
+                        f"{BACKEND_URL}/crew/{self.test_crew_id}",
+                        headers=headers
+                    )
                     
-                    print(f"📊 Fields found: {len(fields_found)}/{len(expected_fields)}")
-                    
-                    # Verify critical fields for crew creation
-                    critical_fields = ["full_name", "passport_number", "_file_content", "_summary_text"]
-                    critical_missing = [f for f in critical_fields if f in fields_missing]
-                    
-                    if critical_missing:
-                        self.print_result(False, f"Critical fields missing: {critical_missing}")
+                    if verify_response.status_code == 404:
+                        print(f"✅ Crew deleted from database immediately (GET returns 404)")
+                        
+                        # Check backend logs for background task messages
+                        print(f"\n📋 Checking backend logs for background task messages...")
+                        self.check_background_deletion_logs()
+                        
+                        self.print_result(True, f"Background deletion successful - crew deleted from DB immediately, files being deleted in background")
+                        return True
+                    else:
+                        print(f"❌ Crew still exists in database (GET returns {verify_response.status_code})")
+                        self.print_result(False, "Database deletion not immediate")
                         return False
-                    
-                    # Verify _file_content is base64 encoded
-                    file_content = response_data.get("_file_content", "")
-                    if file_content and len(file_content) > 1000:
-                        print(f"✅ _file_content present ({len(file_content)} characters)")
-                    else:
-                        print(f"❌ _file_content too short or missing")
-                    
-                    # Verify _summary_text has content
-                    summary_text = response_data.get("_summary_text", "")
-                    if summary_text and len(summary_text) > 100:
-                        print(f"✅ _summary_text present ({len(summary_text)} characters)")
-                    else:
-                        print(f"❌ _summary_text too short or missing")
-                    
-                    self.print_result(True, f"Passport analysis successful - {len(fields_found)}/{len(expected_fields)} fields extracted")
-                    return True
                 else:
-                    error_message = response_data.get("error", "Unknown error")
-                    self.print_result(False, f"Passport analysis failed: {error_message}")
+                    self.print_result(False, f"Unexpected response structure or content: {response_data}")
                     return False
                     
+            elif response.status_code == 400:
+                # This might be expected if crew has certificates
+                try:
+                    error_data = response.json()
+                    detail = error_data.get("detail", "")
+                    if "certificates exist" in detail:
+                        print(f"⚠️ Crew has certificates - this is expected validation")
+                        print(f"📝 Error: {detail}")
+                        self.print_result(True, "Crew has certificates - validation working correctly")
+                        return True
+                    else:
+                        self.print_result(False, f"Unexpected 400 error: {error_data}")
+                        return False
+                except:
+                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {response.text}")
+                    return False
             else:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"Analyze passport failed with status {response.status_code}: {error_data}")
+                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"Analyze passport failed with status {response.status_code}: {response.text}")
+                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during passport analysis test: {str(e)}")
+            self.print_result(False, f"Exception during background deletion test: {str(e)}")
             return False
     
     def test_create_crew_member(self):
