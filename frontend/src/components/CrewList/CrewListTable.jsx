@@ -853,6 +853,7 @@ export const CrewListTable = ({
                 sortedCrewData.map((crew, index) => (
                   <tr 
                     key={crew.id} 
+                    className="hover:bg-gray-50 cursor-pointer"
                     onContextMenu={(e) => handleCrewRightClick(e, crew)}
                     title={language === 'vi' ? 'Nhấp đúp để xem chứng chỉ | Chuột phải để xem menu' : 'Double-click to view certificates | Right-click for menu'}
                   >
