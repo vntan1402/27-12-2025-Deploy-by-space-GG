@@ -299,113 +299,37 @@ class BackendAPITester:
             self.print_result(False, f"Exception during get ships list test: {str(e)}")
             return False
     
-    def test_calculate_next_docking(self):
-        """Test 3: Calculate Next Docking API"""
-        self.print_test_header("Test 3 - Calculate Next Docking API")
-        
-        if not self.access_token or not self.test_ship_id:
-            self.print_result(False, "Missing required data from previous tests")
-            return False
+    def test_download_passport_file(self):
+        """Test 3: Download passport file from provided URL"""
+        self.print_test_header("Test 3 - Download Passport File")
         
         try:
-            headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json"
-            }
+            passport_url = "https://customer-assets.emergentagent.com/job_drive-doc-manager/artifacts/dzg8a1ia_1.%20Capt.%20CHUONG%20-%20PP.pdf"
+            print(f"📥 Downloading passport file from: {passport_url}")
             
-            print(f"📡 POST {BACKEND_URL}/ships/{self.test_ship_id}/calculate-next-docking")
-            print(f"🎯 Testing next docking calculation for ship: {self.test_ship_name}")
+            # Download the passport file
+            download_response = requests.get(passport_url, timeout=30)
             
-            # Make request to calculate next docking
-            response = self.session.post(
-                f"{BACKEND_URL}/ships/{self.test_ship_id}/calculate-next-docking",
-                headers=headers,
-                timeout=30
-            )
+            print(f"📊 Download Status: {download_response.status_code}")
             
-            print(f"📊 Response Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                print(f"📄 Response Data: {json.dumps(response_data, indent=2)}")
+            if download_response.status_code == 200:
+                self.passport_content = download_response.content
+                print(f"📄 File downloaded successfully: {len(self.passport_content)} bytes")
                 
-                # Check required response fields
-                required_fields = ["success", "message"]
-                missing_fields = []
-                
-                for field in required_fields:
-                    if field not in response_data:
-                        missing_fields.append(field)
-                
-                if missing_fields:
-                    self.print_result(False, f"Response missing required fields: {missing_fields}")
-                    return False
-                
-                success = response_data.get("success")
-                message = response_data.get("message")
-                next_docking = response_data.get("next_docking")
-                
-                print(f"✅ Success: {success}")
-                print(f"📝 Message: {message}")
-                
-                if success and next_docking:
-                    # Verify next_docking structure
-                    expected_fields = ["date", "calculation_method", "interval_months"]
-                    next_docking_missing = []
-                    
-                    for field in expected_fields:
-                        if field not in next_docking:
-                            next_docking_missing.append(field)
-                    
-                    if next_docking_missing:
-                        self.print_result(False, f"next_docking missing fields: {next_docking_missing}")
-                        return False
-                    
-                    print(f"📅 Next Docking Date: {next_docking['date']}")
-                    print(f"🔧 Calculation Method: {next_docking['calculation_method']}")
-                    print(f"📊 Interval Months: {next_docking['interval_months']}")
-                    
-                    self.print_result(True, "✅ Next docking calculation successful with correct response structure")
-                    return True
-                elif not success and not next_docking:
-                    # Expected failure case - no calculation possible
-                    print(f"⚠️ Calculation not possible (expected): {message}")
-                    self.print_result(True, "✅ Next docking calculation handled gracefully (no last_docking date)")
+                # Verify it's a PDF file
+                if self.passport_content.startswith(b'%PDF'):
+                    print(f"✅ File verified as PDF format")
+                    self.print_result(True, f"Passport file downloaded successfully ({len(self.passport_content)} bytes)")
                     return True
                 else:
-                    self.print_result(False, f"Unexpected response state - success: {success}, next_docking: {next_docking}")
+                    self.print_result(False, "Downloaded file is not a valid PDF")
                     return False
-                
-            elif response.status_code == 404:
-                try:
-                    error_data = response.json()
-                    detail = error_data.get("detail", "")
-                    print(f"📄 Error Response: {error_data}")
-                    self.print_result(False, f"❌ Ship not found: {detail}")
-                except:
-                    self.print_result(False, f"❌ Ship not found (404): {response.text}")
-                return False
-                
-            elif response.status_code == 500:
-                try:
-                    error_data = response.json()
-                    detail = error_data.get("detail", "")
-                    print(f"📄 Error Response: {error_data}")
-                    self.print_result(False, f"❌ Server error: {detail}")
-                except:
-                    self.print_result(False, f"❌ Server error (500): {response.text}")
-                return False
-                
             else:
-                try:
-                    error_data = response.json()
-                    self.print_result(False, f"Unexpected response status {response.status_code}: {error_data}")
-                except:
-                    self.print_result(False, f"Unexpected response status {response.status_code}: {response.text}")
+                self.print_result(False, f"Failed to download passport file: HTTP {download_response.status_code}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during next docking calculation test: {str(e)}")
+            self.print_result(False, f"Exception during passport file download: {str(e)}")
             return False
     
     def test_calculate_anniversary_date(self):
