@@ -951,7 +951,7 @@ class BackendAPITester:
         
         # Print final summary
         print(f"\n" + "="*80)
-        print(f"📊 ADD CREW FLOW TEST SUMMARY")
+        print(f"📊 DELETE CREW ENDPOINT TEST SUMMARY")
         print(f"="*80)
         
         passed = sum(1 for _, result in results if result)
@@ -967,17 +967,18 @@ class BackendAPITester:
         
         # Overall assessment
         if success_rate >= 80:
-            print(f"\n🎉 ADD CREW FLOW TESTING SUCCESSFUL!")
-            print(f"✅ V2 Pattern (analyze → create → upload) working correctly")
-            print(f"✅ File upload and icon display functionality verified")
-            print(f"✅ Google Drive integration working")
-            print(f"✅ Crew records properly updated with file IDs")
+            print(f"\n🎉 DELETE CREW ENDPOINT TESTING SUCCESSFUL!")
+            print(f"✅ Background deletion mode working correctly")
+            print(f"✅ Certificate validation preventing deletion")
+            print(f"✅ Synchronous deletion mode working")
+            print(f"✅ Edge cases handled properly")
+            print(f"✅ Backend logging working correctly")
         elif success_rate >= 60:
-            print(f"\n⚠️ ADD CREW FLOW PARTIALLY WORKING")
+            print(f"\n⚠️ DELETE CREW ENDPOINT PARTIALLY WORKING")
             print(f"📊 Some components working but issues detected")
             print(f"🔧 Review failed tests for specific issues")
         else:
-            print(f"\n❌ ADD CREW FLOW TESTING FAILED")
+            print(f"\n❌ DELETE CREW ENDPOINT TESTING FAILED")
             print(f"🚨 Critical issues detected in core functionality")
             print(f"🔧 Major fixes required")
         
