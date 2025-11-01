@@ -985,7 +985,15 @@ export const CrewListTable = ({
             </label>
             <select 
               value={filters.ship_sign_on}
-              onChange={(e) => setFilters({...filters, ship_sign_on: e.target.value})}
+              onChange={(e) => {
+                const newShipName = e.target.value;
+                setFilters({...filters, ship_sign_on: newShipName});
+                
+                // Callback to parent to sync selected ship
+                if (onShipFilterChange) {
+                  onShipFilterChange(newShipName);
+                }
+              }}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             >
               <option value="All">{language === 'vi' ? 'Tất cả' : 'All'}</option>
