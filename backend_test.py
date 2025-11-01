@@ -2130,9 +2130,10 @@ class BackendAPITester:
                     # In a real scenario, you might want to handle this differently
                     existing_crew = response_data.get("existing_crew", {})
                     if existing_crew:
-                        print(f"👤 Existing crew: {existing_crew.get('full_name')} (ID: {existing_crew.get('id')})")
+                        crew_id = existing_crew.get('id') or existing_crew.get('_id')
+                        print(f"👤 Existing crew: {existing_crew.get('full_name')} (ID: {crew_id})")
                         # Store the existing crew data for testing
-                        self.crew_id = existing_crew.get('id')
+                        self.crew_id = crew_id
                         self.crew_data = existing_crew
                         # Create mock analysis data for testing
                         self.passport_analysis = {
