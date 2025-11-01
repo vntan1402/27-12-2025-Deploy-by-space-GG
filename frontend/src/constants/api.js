@@ -27,9 +27,9 @@ export const API_ENDPOINTS = {
   SHIP_CALCULATE_SPECIAL_SURVEY: (id) => `/api/ships/${id}/calculate-special-survey-cycle`,
   
   // Crew
-  CREWS: '/api/crews',
-  CREW_BY_ID: (id) => `/api/crews/${id}`,
-  CREW_BULK_DELETE: '/api/crews/bulk-delete',
+  CREWS: '/api/crew',
+  CREW_BY_ID: (id) => `/api/crew/${id}`,
+  CREW_BULK_DELETE: '/api/crew/bulk-delete',
   CREW_MOVE_STANDBY_FILES: '/api/crew/move-standby-files',
   
   // Crew Passport
