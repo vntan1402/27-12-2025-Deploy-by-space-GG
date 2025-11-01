@@ -1199,7 +1199,7 @@ export const CrewListTable = ({
             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
           >
             <span>📅</span>
-            <span>{language === 'vi' ? 'Chỉnh sửa ngày lên tàu' : 'Edit Date Sign On'}</span>
+            <span>{language === 'vi' ? 'Chỉnh sửa ngày xuống tàu' : 'Edit Date Sign On'}</span>
           </button>
           <button
             onClick={() => handleBulkEditDateSignOff()}
