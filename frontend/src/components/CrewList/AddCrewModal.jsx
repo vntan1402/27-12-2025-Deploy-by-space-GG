@@ -199,18 +199,30 @@ export const AddCrewModal = ({
     // Store complete analysis data (including _file_content, _summary_text)
     setAnalyzedData(analysis);
     
-    // Auto-populate form fields
+    console.log('Analysis result:', analysis); // Debug log
+    
+    // Auto-populate form fields with correct mapping
     setFormData(prev => ({
       ...prev,
       full_name: analysis.full_name || prev.full_name,
       full_name_en: analysis.full_name_en || prev.full_name_en,
       sex: analysis.sex || prev.sex,
-      date_of_birth: analysis.date_of_birth ? analysis.date_of_birth.split('T')[0] : prev.date_of_birth,
+      date_of_birth: analysis.date_of_birth ? 
+        (analysis.date_of_birth.includes('/') ? 
+          // Convert DD/MM/YYYY to YYYY-MM-DD
+          analysis.date_of_birth.split('/').reverse().join('-') : 
+          analysis.date_of_birth.split('T')[0]
+        ) : prev.date_of_birth,
       place_of_birth: analysis.place_of_birth || prev.place_of_birth,
       place_of_birth_en: analysis.place_of_birth_en || prev.place_of_birth_en,
-      passport: analysis.passport_number || prev.passport,
+      passport: analysis.passport_number || analysis.passport || prev.passport,
       nationality: analysis.nationality || prev.nationality,
-      passport_expiry_date: analysis.expiry_date ? analysis.expiry_date.split('T')[0] : prev.passport_expiry_date
+      passport_expiry_date: analysis.passport_expiry_date || analysis.expiry_date ? 
+        (analysis.passport_expiry_date?.includes('/') ? 
+          // Convert DD/MM/YYYY to YYYY-MM-DD
+          (analysis.passport_expiry_date || analysis.expiry_date).split('/').reverse().join('-') : 
+          (analysis.passport_expiry_date || analysis.expiry_date).split('T')[0]
+        ) : prev.passport_expiry_date
     }));
     
     toast.success(language === 'vi' 
