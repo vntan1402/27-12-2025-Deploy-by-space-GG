@@ -1225,6 +1225,7 @@ export const CrewListTable = ({
                     key={crew.id} 
                     className="hover:bg-gray-50 cursor-pointer"
                     onContextMenu={(e) => handleCrewRightClick(e, crew)}
+                    onDoubleClick={() => handleCrewDoubleClick(crew)}
                     title={language === 'vi' ? 'Nhấp đúp để xem chứng chỉ | Chuột phải để xem menu' : 'Double-click to view certificates | Right-click for menu'}
                   >
                     <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
