@@ -387,6 +387,7 @@ const CrewCertificate = () => {
               ships={ships}
               onShipFilterChange={handleShipFilterChange}
               onShipSelect={updateSelectedShip}
+              initialCrewFilter={location.state?.filterCrewName || null}
             />
           </div>
         )}
