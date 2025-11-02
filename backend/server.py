@@ -3663,7 +3663,7 @@ async def get_current_company(current_user: UserResponse = Depends(get_current_u
             company = await mongo_db.find_one("companies", {"company_id": company_id})
         
         # Count total crew members for this company
-        total_crew = await mongo_db.count("crew", {"company_id": company_id})
+        total_crew = await mongo_db.count("crew_members", {"company_id": company_id})
         
         if not company:
             # Return basic info if company not in collection
