@@ -74,6 +74,95 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     }
   };
 
+  // Context menu handlers
+  const handleRowRightClick = (e, cert) => {
+    e.preventDefault();
+    setContextMenu({
+      certificate: cert,
+      position: { x: e.clientX, y: e.clientY }
+    });
+  };
+
+  const handleEdit = (cert) => {
+    setCertificateToEdit(cert);
+    setShowEditModal(true);
+  };
+
+  const handleDelete = async () => {
+    if (!certificatesToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      const certsArray = Array.isArray(certificatesToDelete) 
+        ? certificatesToDelete 
+        : [certificatesToDelete];
+      
+      // Delete each certificate
+      for (const cert of certsArray) {
+        await api.delete(`/api/crew-certificates/${cert.id}`);
+      }
+      
+      toast.success(language === 'vi' 
+        ? `✅ Đã xóa ${certsArray.length} chứng chỉ` 
+        : `✅ Deleted ${certsArray.length} certificate(s)`);
+      
+      fetchCertificates();
+      setShowDeleteModal(false);
+      setCertificatesToDelete(null);
+      setSelectedCertificates(new Set());
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(language === 'vi' ? '❌ Không thể xóa chứng chỉ' : '❌ Failed to delete certificate');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleViewOriginal = (cert) => {
+    if (cert.crew_cert_file_id) {
+      window.open(`https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`, '_blank');
+    }
+  };
+
+  const handleViewSummary = (cert) => {
+    if (cert.crew_cert_summary_file_id) {
+      window.open(`https://drive.google.com/file/d/${cert.crew_cert_summary_file_id}/view`, '_blank');
+    }
+  };
+
+  const handleCopyLink = (cert) => {
+    if (cert.crew_cert_file_id) {
+      const link = `https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`;
+      navigator.clipboard.writeText(link);
+      toast.success(language === 'vi' ? '✅ Đã sao chép link' : '✅ Link copied');
+    }
+  };
+
+  const handleDownload = (cert) => {
+    if (cert.crew_cert_file_id) {
+      window.open(`https://drive.google.com/uc?export=download&id=${cert.crew_cert_file_id}`, '_blank');
+    }
+  };
+
+  const handleAutoRename = async (certIds) => {
+    try {
+      const ids = Array.isArray(certIds) ? certIds : [certIds];
+      
+      await api.post('/api/crew-certificates/bulk-auto-rename', {
+        certificate_ids: ids
+      });
+      
+      toast.success(language === 'vi' 
+        ? `✅ Đã đổi tên ${ids.length} file` 
+        : `✅ Renamed ${ids.length} file(s)`);
+      
+      fetchCertificates();
+    } catch (error) {
+      console.error('Auto-rename error:', error);
+      toast.error(language === 'vi' ? '❌ Không thể đổi tên file' : '❌ Failed to rename files');
+    }
+  };
+
   // Get ship/status for certificate (based on crew's ship_sign_on)
   const getCertificateShipStatus = (cert) => {
     if (cert.crew_id && crewList.length > 0) {
