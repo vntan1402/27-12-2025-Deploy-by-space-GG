@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import api from '../../services/api';
+import { crewCertificateService } from '../../services/crewCertificateService';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 import AddCrewCertificateModal from './AddCrewCertificateModal';
 import EditCrewCertificateModal from './EditCrewCertificateModal';
