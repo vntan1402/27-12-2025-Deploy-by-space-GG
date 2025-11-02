@@ -178,9 +178,16 @@ const EditCrewCertificateModal = ({ certificate, onClose, onSuccess, selectedShi
 
     } catch (error) {
       console.error('AI analysis error:', error);
+      
+      // Better error handling
+      const errorDetail = error.response?.data?.detail;
+      const errorMessage = typeof errorDetail === 'string' 
+        ? errorDetail 
+        : (errorDetail ? JSON.stringify(errorDetail) : 'Unknown error');
+      
       toast.error(language === 'vi' 
-        ? '❌ Lỗi phân tích file. Vui lòng nhập thủ công.'
-        : '❌ Analysis failed. Please enter manually.');
+        ? `❌ Lỗi phân tích file: ${errorMessage}` 
+        : `❌ Analysis failed: ${errorMessage}`);
     } finally {
       setIsAnalyzing(false);
     }
