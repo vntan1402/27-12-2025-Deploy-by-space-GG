@@ -58,6 +58,7 @@ const AddCrewCertificateModal = ({
   const [showCertDropdown, setShowCertDropdown] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
+  const [highlightCrewSection, setHighlightCrewSection] = useState(false);
   
   // Form data
   const [formData, setFormData] = useState({
