@@ -271,26 +271,43 @@ const AddCrewCertificateModal = ({
     // Store complete analysis data
     setAnalyzedData(analysis);
     
-    console.log('Certificate analysis result:', analysis);
+    console.log('=== Certificate AI Analysis Result ===');
+    console.log('Full analysis object:', analysis);
+    console.log('cert_name:', analysis.cert_name);
+    console.log('cert_no:', analysis.cert_no);
+    console.log('issued_by:', analysis.issued_by);
+    console.log('issued_date:', analysis.issued_date);
+    console.log('expiry_date:', analysis.expiry_date);
+    console.log('cert_expiry:', analysis.cert_expiry);
+    console.log('rank:', analysis.rank);
+    console.log('======================================');
 
     // Auto-populate form fields
-    setFormData(prev => ({
-      ...prev,
-      cert_name: analysis.cert_name || prev.cert_name,
-      cert_no: analysis.cert_no || prev.cert_no,
-      issued_by: analysis.issued_by || prev.issued_by,
-      issued_date: analysis.issued_date ? 
-        (analysis.issued_date.includes('/') ? 
-          analysis.issued_date.split('/').reverse().join('-') : 
-          analysis.issued_date.split('T')[0]
-        ) : prev.issued_date,
-      cert_expiry: analysis.expiry_date || analysis.cert_expiry ? 
-        ((analysis.expiry_date || analysis.cert_expiry).includes('/') ? 
-          (analysis.expiry_date || analysis.cert_expiry).split('/').reverse().join('-') : 
-          (analysis.expiry_date || analysis.cert_expiry).split('T')[0]
-        ) : prev.cert_expiry,
-      rank: analysis.rank || prev.rank
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        cert_name: analysis.cert_name || prev.cert_name,
+        cert_no: analysis.cert_no || prev.cert_no,
+        issued_by: analysis.issued_by || prev.issued_by,
+        issued_date: analysis.issued_date ? 
+          (analysis.issued_date.includes('/') ? 
+            analysis.issued_date.split('/').reverse().join('-') : 
+            analysis.issued_date.split('T')[0]
+          ) : prev.issued_date,
+        cert_expiry: analysis.expiry_date || analysis.cert_expiry ? 
+          ((analysis.expiry_date || analysis.cert_expiry).includes('/') ? 
+            (analysis.expiry_date || analysis.cert_expiry).split('/').reverse().join('-') : 
+            (analysis.expiry_date || analysis.cert_expiry).split('T')[0]
+          ) : prev.cert_expiry,
+        rank: analysis.rank || prev.rank
+      };
+      
+      console.log('=== Form Data After Update ===');
+      console.log('New form data:', newData);
+      console.log('==============================');
+      
+      return newData;
+    });
 
     toast.success(language === 'vi' 
       ? '✅ Phân tích AI thành công!' 
