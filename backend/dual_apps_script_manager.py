@@ -1371,34 +1371,48 @@ class DualAppsScriptManager:
                 upload_results['certificate'] = cert_upload
                 
             else:
-                # Upload to Ship/Crew Records (existing logic)
-                logger.info(f"📤 Uploading certificate file: {ship_name}/Crew Records/{cert_filename}")
+                # Upload to Ship/Crew Records/Crew Certificates
+                logger.info(f"📤 Uploading certificate file: {ship_name}/Crew Records/Crew Certificates/{cert_filename}")
                 cert_upload = await self._call_company_apps_script({
                     'action': 'upload_file_with_folder_creation',
                     'parent_folder_id': self.parent_folder_id,
                     'ship_name': ship_name,
-                    'category': 'Crew Records',
+                    'category': 'Crew Records/Crew Certificates',
                     'filename': cert_filename,
                     'file_content': base64.b64encode(cert_file_content).decode('utf-8'),
                     'content_type': cert_content_type
                 })
                 upload_results['certificate'] = cert_upload
             
-            # Upload 2: Summary file to SUMMARY folder (if provided)
+            # Upload 2: Summary file to SAME folder as certificate file (if provided)
             if summary_text:
                 base_name = cert_filename.rsplit('.', 1)[0]
                 summary_filename = f"{base_name}_Summary.txt"
                 
-                logger.info(f"📋 Uploading certificate summary file: SUMMARY/Crew Records/{summary_filename}")
-                summary_upload = await self._call_company_apps_script({
-                    'action': 'upload_file_with_folder_creation',
-                    'parent_folder_id': self.parent_folder_id,
-                    'ship_name': 'SUMMARY',
-                    'category': 'Crew Records',
-                    'filename': summary_filename,
-                    'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
-                    'content_type': 'text/plain'
-                })
+                if is_standby:
+                    # Summary in COMPANY DOCUMENT/Standby Crew
+                    logger.info(f"📋 Uploading certificate summary file: COMPANY DOCUMENT/Standby Crew/{summary_filename}")
+                    summary_upload = await self._call_company_apps_script({
+                        'action': 'upload_file_with_folder_creation',
+                        'parent_folder_id': self.parent_folder_id,
+                        'ship_name': 'COMPANY DOCUMENT',
+                        'category': 'Standby Crew',
+                        'filename': summary_filename,
+                        'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
+                        'content_type': 'text/plain'
+                    })
+                else:
+                    # Summary in Ship/Crew Records/Crew Certificates
+                    logger.info(f"📋 Uploading certificate summary file: {ship_name}/Crew Records/Crew Certificates/{summary_filename}")
+                    summary_upload = await self._call_company_apps_script({
+                        'action': 'upload_file_with_folder_creation',
+                        'parent_folder_id': self.parent_folder_id,
+                        'ship_name': ship_name,
+                        'category': 'Crew Records/Crew Certificates',
+                        'filename': summary_filename,
+                        'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
+                        'content_type': 'text/plain'
+                    })
                 upload_results['summary'] = summary_upload
             
             # Check upload results
