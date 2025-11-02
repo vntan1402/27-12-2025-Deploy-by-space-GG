@@ -424,6 +424,21 @@ const AddCrewCertificateModal = ({
     }
   };
 
+  // Filter crew list based on selected ship
+  const getFilteredCrewList = () => {
+    if (!selectedShip) {
+      // If no ship selected, return all crew
+      return crewList;
+    }
+
+    // Filter crew by selected ship
+    return crewList.filter(crew => {
+      const crewShip = crew.ship_sign_on || '-';
+      // Show crew if they're on this ship or standby
+      return crewShip === selectedShip.name || crewShip === '-';
+    });
+  };
+
   // Get all cert names (common + custom)
   const getAllCertNames = () => {
     return [...COMMON_CERT_NAMES, ...customCertNames].sort();
