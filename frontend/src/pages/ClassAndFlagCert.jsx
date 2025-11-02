@@ -209,6 +209,16 @@ const ClassAndFlagCert = () => {
     }
   };
 
+  // Fetch company data
+  const fetchCompanyData = async () => {
+    try {
+      const response = await companyService.getCompanyInfo();
+      setCompanyData(response.data);
+    } catch (error) {
+      console.error('Failed to fetch company data:', error);
+    }
+  };
+
   // Helper function to update selected ship and save to localStorage
   const updateSelectedShip = (ship) => {
     setSelectedShip(ship);
