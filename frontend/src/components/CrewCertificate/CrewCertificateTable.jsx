@@ -175,6 +175,154 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     }
   };
 
+  // Batch upload handler
+  const handleBatchUpload = async (files, preSelectedCrewId = null) => {
+    if (!files || files.length === 0) return;
+    
+    // Validate file count (max 10)
+    if (files.length > 10) {
+      toast.error(language === 'vi' 
+        ? '❌ Tối đa 10 files. Vui lòng chọn lại.' 
+        : '❌ Maximum 10 files. Please select again.');
+      return;
+    }
+
+    // Validate file sizes (max 10MB each)
+    const oversizedFiles = Array.from(files).filter(file => file.size > 10 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      toast.error(language === 'vi' 
+        ? `❌ ${oversizedFiles.length} file(s) vượt quá 10MB` 
+        : `❌ ${oversizedFiles.length} file(s) exceed 10MB`);
+      return;
+    }
+
+    // Initialize batch processing
+    setIsBatchProcessing(true);
+    setIsBatchMinimized(false);
+    setBatchProgress({ current: 0, total: files.length });
+    
+    const initialStatusMap = {};
+    const initialProgressMap = {};
+    const initialSubStatusMap = {};
+    Array.from(files).forEach(file => {
+      initialStatusMap[file.name] = 'waiting';
+      initialProgressMap[file.name] = 0;
+      initialSubStatusMap[file.name] = '';
+    });
+    setFileStatusMap(initialStatusMap);
+    setFileProgressMap(initialProgressMap);
+    setFileSubStatusMap(initialSubStatusMap);
+
+    const results = [];
+
+    // Process files with staggered delay (300ms)
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      try {
+        // Update status to processing
+        setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+        setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? 'Đang phân tích AI...' : 'AI analyzing...' }));
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 10 }));
+
+        // Step 1: AI Analysis
+        const formData = new FormData();
+        formData.append('cert_file', file);
+        if (selectedShip && selectedShip.id) {
+          formData.append('ship_id', selectedShip.id);
+        }
+        if (preSelectedCrewId) {
+          formData.append('crew_id', preSelectedCrewId);
+        }
+
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 30 }));
+        const analysisResponse = await api.post('/api/crew-certificates/analyze-file', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 50 }));
+        setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? 'Tạo chứng chỉ...' : 'Creating certificate...' }));
+
+        const analysisData = analysisResponse.data;
+
+        // Step 2: Create certificate record
+        const createData = {
+          crew_id: analysisData.crew_id,
+          cert_name: analysisData.cert_name,
+          cert_no: analysisData.cert_no,
+          issued_by: analysisData.issued_by,
+          issued_date: analysisData.issued_date,
+          cert_expiry: analysisData.cert_expiry,
+          note: analysisData.note || '',
+          _file_content: analysisData._file_content,
+          _summary_text: analysisData._summary_text
+        };
+
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 70 }));
+        const createResponse = await api.post('/api/crew-certificates/manual', createData);
+
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 85 }));
+        setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? 'Upload file lên Drive...' : 'Uploading to Drive...' }));
+
+        // Step 3: Upload file
+        const certId = createResponse.data.id;
+        const uploadFormData = new FormData();
+        uploadFormData.append('files', file);
+
+        await api.post(`/api/crew-certificates/${certId}/upload-files`, uploadFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
+        setFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
+        setFileSubStatusMap(prev => ({ ...prev, [file.name]: '' }));
+
+        results.push({
+          success: true,
+          filename: file.name,
+          crew_name: analysisData.crew_name,
+          cert_name: analysisData.cert_name,
+          cert_no: analysisData.cert_no,
+          certCreated: true,
+          fileUploaded: true
+        });
+
+      } catch (error) {
+        console.error(`Batch upload error for ${file.name}:`, error);
+        setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+        setFileSubStatusMap(prev => ({ ...prev, [file.name]: '' }));
+        
+        results.push({
+          success: false,
+          filename: file.name,
+          error: error.response?.data?.detail || error.message || 'Unknown error'
+        });
+      }
+
+      // Update progress
+      setBatchProgress({ current: i + 1, total: files.length });
+
+      // Staggered delay (300ms) between files (except after last file)
+      if (i < files.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+    }
+
+    // Show results
+    setBatchResults(results);
+    setIsBatchProcessing(false);
+    setShowBatchResults(true);
+    
+    // Refresh certificate list
+    fetchCertificates();
+    
+    // Success notification
+    const successCount = results.filter(r => r.success).length;
+    toast.success(language === 'vi' 
+      ? `✅ Hoàn tất: ${successCount}/${files.length} chứng chỉ` 
+      : `✅ Completed: ${successCount}/${files.length} certificates`);
+  };
+
   // Get ship/status for certificate (based on crew's ship_sign_on)
   const getCertificateShipStatus = (cert) => {
     if (cert.crew_id && crewList.length > 0) {
