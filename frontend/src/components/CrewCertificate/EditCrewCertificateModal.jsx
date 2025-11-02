@@ -59,8 +59,12 @@ const EditCrewCertificateModal = ({ certificate, onClose, onSuccess, selectedShi
     cert_name: certificate.cert_name || '',
     cert_no: certificate.cert_no || '',
     issued_by: certificate.issued_by || '',
-    issued_date: certificate.issued_date || '',
-    cert_expiry: certificate.cert_expiry || '',
+    issued_date: certificate.issued_date ? 
+      (certificate.issued_date.includes('T') ? certificate.issued_date.split('T')[0] : certificate.issued_date) 
+      : '',
+    cert_expiry: certificate.cert_expiry ? 
+      (certificate.cert_expiry.includes('T') ? certificate.cert_expiry.split('T')[0] : certificate.cert_expiry) 
+      : '',
     note: certificate.note || ''
   });
 
