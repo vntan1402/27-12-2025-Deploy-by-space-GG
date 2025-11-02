@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import api from '../../services/api';
 import { crewCertificateService } from '../../services/crewCertificateService';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import { estimateFileProcessingTime, startSmoothProgressForFile } from '../../utils/progressHelpers';
 import AddCrewCertificateModal from './AddCrewCertificateModal';
 import EditCrewCertificateModal from './EditCrewCertificateModal';
 import CertificateContextMenu from './CertificateContextMenu';
