@@ -573,6 +573,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
                   <tr 
                     key={cert.id} 
                     className={`hover:bg-gray-50 ${selectedCertificates.has(cert.id) ? 'bg-blue-50' : ''}`}
+                    onContextMenu={(e) => handleRowRightClick(e, cert)}
                   >
                     <td className="px-3 py-4 whitespace-nowrap text-center border-r border-gray-200">
                       <input
