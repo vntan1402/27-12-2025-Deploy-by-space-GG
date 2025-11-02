@@ -1509,8 +1509,10 @@ export const CrewListTable = ({
           }}
           onBatchUpload={handleBatchProcessing}
           onShipSelect={(ship) => {
-            // Update selected ship when user selects from dropdown
-            updateSelectedShip(ship);
+            // Notify parent component to update selected ship
+            if (onShipSelect) {
+              onShipSelect(ship);
+            }
           }}
         />
       )}
