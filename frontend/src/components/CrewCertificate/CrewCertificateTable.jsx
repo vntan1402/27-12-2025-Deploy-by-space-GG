@@ -26,6 +26,16 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
   const [contextMenu, setContextMenu] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   
+  // Batch processing state
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
+  const [isBatchMinimized, setIsBatchMinimized] = useState(false);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
+  const [fileProgressMap, setFileProgressMap] = useState({});
+  const [fileStatusMap, setFileStatusMap] = useState({});
+  const [fileSubStatusMap, setFileSubStatusMap] = useState({});
+  const [showBatchResults, setShowBatchResults] = useState(false);
+  const [batchResults, setBatchResults] = useState([]);
+  
   // Filters
   const [filters, setFilters] = useState({
     shipSignOn: 'all',
