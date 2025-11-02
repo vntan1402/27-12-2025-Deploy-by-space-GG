@@ -278,6 +278,11 @@ export const CrewListTable = ({
     });
   };
   
+  // Handle crew double click (navigate to certificates)
+  const handleCrewDoubleClick = (crew) => {
+    navigate(`/crew/${crew.id}/certificates`);
+  };
+  
   // Handle edit crew
   const handleEditCrew = () => {
     if (crewContextMenu.crew) {
