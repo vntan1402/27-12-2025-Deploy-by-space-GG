@@ -86,6 +86,16 @@ export const CompanyInfoPanel = ({ companyData, onClose }) => {
             <span className="ml-2 font-bold">{companyData?.name || '-'}</span>
           </div>
           
+          <div>
+            <span className="font-semibold">{language === 'vi' ? 'Số tàu:' : 'Total Ships:'}</span>
+            <span className="ml-2 font-bold text-blue-600">{companyData?.total_ships || 0}</span>
+          </div>
+          
+          <div>
+            <span className="font-semibold">{language === 'vi' ? 'Tổng thuyền viên:' : 'Total Crew:'}</span>
+            <span className="ml-2 font-bold text-green-600">{companyData?.total_crew || 0}</span>
+          </div>
+          
           {companyData?.email && (
             <div>
               <span className="font-semibold">Email:</span>
@@ -101,29 +111,22 @@ export const CompanyInfoPanel = ({ companyData, onClose }) => {
           )}
           
           <div>
-            <span className="font-semibold">{language === 'vi' ? 'Số tàu:' : 'Total Ships:'}</span>
-            <span className="ml-2">{companyData?.total_ships || 0}</span>
+            <span className="font-semibold">{language === 'vi' ? 'Hạn phần mềm:' : 'Software Expiry:'}</span>
+            <span className="ml-2">{companyData?.software_expiry ? formatDate(companyData.software_expiry) : '-'}</span>
+            {daysRemaining !== null && (
+              <span className={`ml-2 text-xs ${
+                daysRemaining > 30 ? 'text-green-600' : 
+                daysRemaining > 0 ? 'text-yellow-600' : 'text-red-600'
+              }`}>
+                ({daysRemaining > 0 ? `${daysRemaining}d` : language === 'vi' ? 'Hết hạn' : 'Expired'})
+              </span>
+            )}
           </div>
           
           {companyData?.address && (
-            <div className="col-span-2">
+            <div className="col-span-3">
               <span className="font-semibold">{language === 'vi' ? 'Địa chỉ:' : 'Address:'}</span>
               <span className="ml-2">{companyData.address}</span>
-            </div>
-          )}
-          
-          {companyData?.software_expiry && (
-            <div>
-              <span className="font-semibold">{language === 'vi' ? 'Hạn PM:' : 'SW Expiry:'}</span>
-              <span className="ml-2">{formatDate(companyData.software_expiry)}</span>
-              {daysRemaining !== null && (
-                <span className={`ml-2 text-xs ${
-                  daysRemaining > 30 ? 'text-green-600' : 
-                  daysRemaining > 0 ? 'text-yellow-600' : 'text-red-600'
-                }`}>
-                  ({daysRemaining > 0 ? `${daysRemaining}d` : language === 'vi' ? 'Hết hạn' : 'Expired'})
-                </span>
-              )}
             </div>
           )}
         </div>
