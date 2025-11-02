@@ -234,11 +234,18 @@ const AddCrewCertificateModal = ({
       });
 
       const data = response.data || response;
+      
+      console.log('=== API Response from analyze-file ===');
+      console.log('Full response:', data);
+      console.log('data.success:', data.success);
+      console.log('data.analysis:', data.analysis);
+      console.log('=====================================');
 
       // Check if analysis succeeded
       if (data.success && data.analysis) {
         processAnalysisSuccess(data.analysis);
       } else {
+        console.log('⚠️ Analysis failed or no analysis data');
         toast.warning(language === 'vi' 
           ? '⚠️ Không thể phân tích file. Vui lòng nhập thủ công.'
           : '⚠️ Cannot analyze file. Please enter manually.');
