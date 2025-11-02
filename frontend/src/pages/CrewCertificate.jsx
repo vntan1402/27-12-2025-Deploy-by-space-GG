@@ -285,7 +285,7 @@ const CrewCertificate = () => {
       {/* Page Title */}
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-800">
-          {language === 'vi' ? 'Hệ thống quản lý chứng chỉ thuyền viên' : 'Crew Certificates Management System'}
+          {language === 'vi' ? 'Quản lý chứng chỉ thuyền viên' : 'Crew Certificates Management'}
         </h1>
       </div>
 
