@@ -64,16 +64,16 @@ export const AddCrewModal = ({
     };
   }, []);
   
-  // Update ship_sign_on when selectedShip changes
+  // Update ship_sign_on when selectedShip changes (but not in Standby mode)
   useEffect(() => {
-    if (selectedShip && formData.status !== 'Standby') {
+    if (selectedShip && formData.status !== 'Standby' && !isStandbyMode) {
       setFormData(prev => ({
         ...prev,
         ship_sign_on: selectedShip.name,
         status: 'Sign on'
       }));
     }
-  }, [selectedShip]);
+  }, [selectedShip, isStandbyMode]);
   
   // Handle file selection
   const handleFileSelect = async (e) => {
