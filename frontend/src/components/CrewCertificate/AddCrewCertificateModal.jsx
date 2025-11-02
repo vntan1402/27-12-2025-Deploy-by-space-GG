@@ -455,9 +455,11 @@ const AddCrewCertificateModal = ({
     // Check duplicate
     const duplicateCheck = await checkDuplicate();
     if (duplicateCheck?.is_duplicate) {
-      toast.error(language === 'vi' 
-        ? `❌ Chứng chỉ đã tồn tại: ${duplicateCheck.existing_certificate?.cert_name}` 
-        : `❌ Certificate already exists: ${duplicateCheck.existing_certificate?.cert_name}`);
+      const existingCert = duplicateCheck.existing_certificate;
+      setWarningMessage(language === 'vi' 
+        ? `Chứng chỉ đã tồn tại:\n\n${existingCert?.cert_name}\nSố: ${existingCert?.cert_no}\nNgày cấp: ${existingCert?.issued_date || 'N/A'}\nNgày hết hạn: ${existingCert?.cert_expiry || 'N/A'}` 
+        : `Certificate already exists:\n\n${existingCert?.cert_name}\nNumber: ${existingCert?.cert_no}\nIssued: ${existingCert?.issued_date || 'N/A'}\nExpiry: ${existingCert?.cert_expiry || 'N/A'}`);
+      setShowWarningModal(true);
       return;
     }
 
