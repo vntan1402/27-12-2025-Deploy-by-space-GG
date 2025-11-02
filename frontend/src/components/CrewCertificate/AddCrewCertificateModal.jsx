@@ -623,6 +623,7 @@ const AddCrewCertificateModal = ({
                   ref={fileInputRef}
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
+                  multiple
                   onChange={handleFileChange}
                   className="hidden"
                 />
