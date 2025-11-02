@@ -656,8 +656,13 @@ const AddCrewCertificateModal = ({
                     </p>
                     <p className="text-sm text-gray-500 mt-2">
                       {language === 'vi' 
-                        ? 'Hỗ trợ: PDF, JPG, PNG (tối đa 10MB)' 
-                        : 'Supports: PDF, JPG, PNG (max 10MB)'}
+                        ? 'Hỗ trợ: PDF, JPG, PNG (tối đa 10MB/file)' 
+                        : 'Supports: PDF, JPG, PNG (max 10MB/file)'}
+                    </p>
+                    <p className="text-blue-500 text-xs mt-1">
+                      {language === 'vi' 
+                        ? '💡 1 file: Xem trước | Nhiều files: Xử lý hàng loạt (tối đa 10 files)' 
+                        : '💡 1 file: Preview | Multiple files: Batch process (max 10 files)'}
                     </p>
                   </div>
                 )}
