@@ -1317,6 +1317,11 @@ const ClassAndFlagCert = () => {
         )}
       </div>
 
+      {/* Company Info Panel - Show when no ship selected */}
+      {!selectedShip && companyData && (
+        <CompanyInfoPanel companyData={companyData} />
+      )}
+
       {/* Ship Detail Panel */}
       {selectedShip && (
         <ShipDetailPanel
