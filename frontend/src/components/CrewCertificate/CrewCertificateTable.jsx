@@ -246,7 +246,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
         <div className="flex items-center space-x-3">
           {user && ['manager', 'admin', 'super_admin'].includes(user.role) && (
             <button 
-              onClick={() => toast.info('Add Certificate modal - Coming soon')}
+              onClick={() => setShowAddModal(true)}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all flex items-center"
             >
               <span className="mr-2">📜</span>
