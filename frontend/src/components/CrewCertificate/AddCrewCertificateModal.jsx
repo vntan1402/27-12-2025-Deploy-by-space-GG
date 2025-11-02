@@ -154,6 +154,20 @@ const AddCrewCertificateModal = ({
     
     // Multiple files - trigger batch upload
     if (files.length > 1) {
+      // Check if crew is selected (required for batch upload)
+      if (!formData.crew_id) {
+        setWarningMessage(language === 'vi' 
+          ? 'Vui lòng chọn thuyền viên trước khi upload nhiều file' 
+          : 'Please select crew member before batch upload');
+        setShowWarningModal(true);
+        setHighlightCrewSection(true);
+        // Clear file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        return;
+      }
+      
       if (onBatchUpload) {
         // Pass the pre-selected crew ID if available
         const preSelectedCrewId = formData.crew_id || null;
@@ -174,6 +188,16 @@ const AddCrewCertificateModal = ({
     
     // Multiple files - trigger batch upload
     if (files.length > 1) {
+      // Check if crew is selected (required for batch upload)
+      if (!formData.crew_id) {
+        setWarningMessage(language === 'vi' 
+          ? 'Vui lòng chọn thuyền viên trước khi upload nhiều file' 
+          : 'Please select crew member before batch upload');
+        setShowWarningModal(true);
+        setHighlightCrewSection(true);
+        return;
+      }
+      
       if (onBatchUpload) {
         // Pass the pre-selected crew ID if available
         const preSelectedCrewId = formData.crew_id || null;
