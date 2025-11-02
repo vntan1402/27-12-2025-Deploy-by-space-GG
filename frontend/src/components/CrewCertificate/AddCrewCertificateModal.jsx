@@ -482,6 +482,21 @@ const AddCrewCertificateModal = ({
     }
   };
 
+  // Handle close warning modal with highlight effect
+  const handleCloseWarningModal = () => {
+    setShowWarningModal(false);
+    
+    // Highlight crew section if warning was about crew selection
+    if (warningMessage.includes('thuyền viên') || warningMessage.includes('crew member')) {
+      setHighlightCrewSection(true);
+      
+      // Auto-remove highlight after 5 seconds
+      setTimeout(() => {
+        setHighlightCrewSection(false);
+      }, 5000);
+    }
+  };
+
   // Filter crew list based on selected ship
   const getFilteredCrewList = () => {
     console.log('getFilteredCrewList - selectedShip:', selectedShip?.name);
