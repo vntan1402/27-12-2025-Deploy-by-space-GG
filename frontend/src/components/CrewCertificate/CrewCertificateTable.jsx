@@ -277,7 +277,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
             <div className="relative w-64">
               <input
                 type="text"
-                placeholder={language === 'vi' ? 'Tên chứng chỉ, số...' : 'Cert name, no...'}
+                placeholder={language === 'vi' ? 'Tên thuyền viên, chức danh...' : 'Crew name, rank...'}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-3 py-1.5 pl-10 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
