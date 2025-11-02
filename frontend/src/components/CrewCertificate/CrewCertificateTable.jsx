@@ -7,6 +7,8 @@ import AddCrewCertificateModal from './AddCrewCertificateModal';
 import EditCrewCertificateModal from './EditCrewCertificateModal';
 import CertificateContextMenu from './CertificateContextMenu';
 import DeleteCertificateModal from './DeleteCertificateModal';
+import { BatchProcessingModal } from './BatchProcessingModal';
+import { BatchResultsModal } from './BatchResultsModal';
 
 const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipSelect }) => {
   const { language, user } = useAuth();
