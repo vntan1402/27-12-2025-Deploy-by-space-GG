@@ -593,14 +593,6 @@ const EditCrewCertificateModal = ({ certificate, onClose, onSuccess, selectedShi
           </button>
         </div>
       </div>
-
-      {/* Click outside dropdown to close */}
-      {showCertDropdown && (
-        <div
-          className="fixed inset-0 z-0"
-          onClick={() => setShowCertDropdown(false)}
-        />
-      )}
     </div>
   );
 };
