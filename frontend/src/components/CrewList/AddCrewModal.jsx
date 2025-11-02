@@ -55,8 +55,8 @@ export const AddCrewModal = ({
         passport_expiry_date: '',
         rank: '',
         seamen_book: '',
-        status: selectedShip ? 'Sign on' : 'Standby',
-        ship_sign_on: selectedShip?.name || '-',
+        status: isStandbyMode ? 'Standby' : (selectedShip ? 'Sign on' : 'Standby'),
+        ship_sign_on: isStandbyMode ? '-' : (selectedShip?.name || '-'),
         place_sign_on: '',
         date_sign_on: '',
         date_sign_off: ''
