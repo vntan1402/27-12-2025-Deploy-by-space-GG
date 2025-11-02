@@ -110,14 +110,32 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
         ? certificatesToDelete 
         : [certificatesToDelete];
       
-      // Delete each certificate
-      for (const cert of certsArray) {
-        await api.delete(`/api/crew-certificates/${cert.id}`);
+      // Check if bulk delete (multiple certificates)
+      if (certsArray.length > 1) {
+        // Bulk delete
+        const certIds = certsArray.map(cert => cert.id);
+        const result = await crewCertificateService.bulkDelete(certIds);
+        
+        if (result.data.success) {
+          const { deleted_count, files_deleted, errors } = result.data;
+          
+          toast.success(language === 'vi' 
+            ? `✅ Đã xóa ${deleted_count} chứng chỉ${files_deleted > 0 ? ` và ${files_deleted} files` : ''}` 
+            : `✅ Deleted ${deleted_count} certificate(s)${files_deleted > 0 ? ` and ${files_deleted} file(s)` : ''}`);
+          
+          if (errors && errors.length > 0) {
+            toast.warning(language === 'vi' 
+              ? `${errors.length} lỗi xảy ra` 
+              : `${errors.length} error(s) occurred`);
+          }
+        }
+      } else {
+        // Single delete
+        await api.delete(`/api/crew-certificates/${certsArray[0].id}`);
+        toast.success(language === 'vi' 
+          ? `✅ Đã xóa chứng chỉ` 
+          : `✅ Deleted certificate`);
       }
-      
-      toast.success(language === 'vi' 
-        ? `✅ Đã xóa ${certsArray.length} chứng chỉ` 
-        : `✅ Deleted ${certsArray.length} certificate(s)`);
       
       fetchCertificates();
       setShowDeleteModal(false);
