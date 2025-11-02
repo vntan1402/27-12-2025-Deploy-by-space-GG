@@ -815,7 +815,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan="12" className="px-6 py-8 text-center">
+                  <td colSpan="11" className="px-6 py-8 text-center">
                     <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     <p className="mt-2 text-gray-600">{language === 'vi' ? 'Đang tải...' : 'Loading...'}</p>
                   </td>
