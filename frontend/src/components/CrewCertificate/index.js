@@ -3,3 +3,5 @@ export { default as AddCrewCertificateModal } from './AddCrewCertificateModal';
 export { default as EditCrewCertificateModal } from './EditCrewCertificateModal';
 export { default as CertificateContextMenu } from './CertificateContextMenu';
 export { default as DeleteCertificateModal } from './DeleteCertificateModal';
+export { BatchProcessingModal } from './BatchProcessingModal';
+export { BatchResultsModal } from './BatchResultsModal';
