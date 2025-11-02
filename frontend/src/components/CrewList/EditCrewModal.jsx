@@ -64,7 +64,7 @@ export const EditCrewModal = ({
         date_sign_off: formData.date_sign_off || undefined
       };
       
-      await crewService.updateCrew(crew.id, updateData);
+      await crewService.update(crew.id, updateData);
       
       toast.success(language === 'vi' 
         ? 'Cập nhật thuyền viên thành công!'
