@@ -3,6 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import api from '../../services/api';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import AddCrewCertificateModal from './AddCrewCertificateModal';
 
 const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipSelect }) => {
   const { language, user } = useAuth();
@@ -12,6 +13,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
   const [crewList, setCrewList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedCertificates, setSelectedCertificates] = useState(new Set());
+  const [showAddModal, setShowAddModal] = useState(false);
   
   // Filters
   const [filters, setFilters] = useState({
