@@ -298,12 +298,26 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
 
             // Step 3: Upload file
             const certId = createResponse.data.id;
-            const uploadFormData = new FormData();
-            uploadFormData.append('files', file);
-
-            await api.post(`/api/crew-certificates/${certId}/upload-files`, uploadFormData, {
-              headers: { 'Content-Type': 'multipart/form-data' }
+            
+            // Convert file to base64
+            const fileBase64 = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => {
+                const base64String = reader.result.split(',')[1];
+                resolve(base64String);
+              };
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
             });
+
+            const uploadData = {
+              file_content: fileBase64,
+              filename: file.name,
+              content_type: file.type,
+              summary_text: analysisData._summary_text || ''
+            };
+
+            await api.post(`/api/crew-certificates/${certId}/upload-files`, uploadData);
 
             // Complete progress
             progressController.complete();
