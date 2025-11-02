@@ -4,6 +4,9 @@ import { toast } from 'sonner';
 import api from '../../services/api';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 import AddCrewCertificateModal from './AddCrewCertificateModal';
+import EditCrewCertificateModal from './EditCrewCertificateModal';
+import CertificateContextMenu from './CertificateContextMenu';
+import DeleteCertificateModal from './DeleteCertificateModal';
 
 const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipSelect }) => {
   const { language, user } = useAuth();
@@ -14,6 +17,12 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
   const [loading, setLoading] = useState(false);
   const [selectedCertificates, setSelectedCertificates] = useState(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [certificateToEdit, setCertificateToEdit] = useState(null);
+  const [certificatesToDelete, setCertificatesToDelete] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Filters
   const [filters, setFilters] = useState({
