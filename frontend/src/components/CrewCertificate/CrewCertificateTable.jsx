@@ -827,33 +827,21 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
                     className={`hover:bg-gray-50 ${selectedCertificates.has(cert.id) ? 'bg-blue-50' : ''}`}
                     onContextMenu={(e) => handleRowRightClick(e, cert)}
                   >
-                    <td className="px-3 py-4 whitespace-nowrap text-center border-r border-gray-200">
-                      <input
-                        type="checkbox"
-                        checked={selectedCertificates.has(cert.id)}
-                        onChange={() => handleSelectCertificate(cert.id)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                      />
+                    {/* Checkbox + STT */}
+                    <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedCertificates.has(cert.id)}
+                          onChange={() => handleSelectCertificate(cert.id)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                        />
+                        <span className="text-sm text-gray-900">
+                          {index + 1}
+                        </span>
+                      </div>
                     </td>
-                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                      {index + 1}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 uppercase">
-                      {language === 'en' && cert.crew_name_en ? cert.crew_name_en : cert.crew_name}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                      {(() => {
-                        const shipStatus = getCertificateShipStatus(cert);
-                        return (
-                          <span className={shipStatus.isStandby ? 'text-orange-600 font-medium' : 'text-blue-600'}>
-                            {shipStatus.ship}
-                          </span>
-                        );
-                      })()}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                      {cert.rank || '-'}
-                    </td>
+                    {/* Certificate Name */}
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                       <div className="flex items-center space-x-2">
                         <span>{cert.cert_name}</span>
@@ -877,6 +865,26 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
                         )}
                       </div>
                     </td>
+                    {/* Crew Name */}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-200 uppercase">
+                      {language === 'en' && cert.crew_name_en ? cert.crew_name_en : cert.crew_name}
+                    </td>
+                    {/* Ship/Status */}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                      {(() => {
+                        const shipStatus = getCertificateShipStatus(cert);
+                        return (
+                          <span className={shipStatus.isStandby ? 'text-orange-600 font-medium' : 'text-blue-600'}>
+                            {shipStatus.ship}
+                          </span>
+                        );
+                      })()}
+                    </td>
+                    {/* Rank */}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                      {cert.rank || '-'}
+                    </td>
+                    {/* Certificate No. */}
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                       {cert.cert_no}
                     </td>
