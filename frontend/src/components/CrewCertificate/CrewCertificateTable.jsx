@@ -847,6 +847,10 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
             setShowAddModal(false);
             fetchCertificates();
           }}
+          onBatchUpload={(files, preSelectedCrewId) => {
+            setShowAddModal(false);
+            handleBatchUpload(files, preSelectedCrewId);
+          }}
           selectedShip={selectedShip}
           ships={ships}
           preSelectedCrewName={filters.crewName !== 'all' ? filters.crewName : null}
