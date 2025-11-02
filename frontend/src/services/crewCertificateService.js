@@ -68,8 +68,10 @@ export const crewCertificateService = {
    * @returns {Promise} Delete result
    */
   bulkDelete: async (certIds) => {
-    return api.post(API_ENDPOINTS.CREW_CERTIFICATE_BULK_DELETE, {
-      certificate_ids: certIds,
+    return api.delete(API_ENDPOINTS.CREW_CERTIFICATE_BULK_DELETE, {
+      data: {
+        certificate_ids: certIds,
+      }
     });
   },
 
