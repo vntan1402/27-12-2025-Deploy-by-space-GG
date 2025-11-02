@@ -355,6 +355,7 @@ const AddCrewCertificateModal = ({
     console.log('expiry_date:', analysis.expiry_date);
     console.log('cert_expiry:', analysis.cert_expiry);
     console.log('rank:', analysis.rank);
+    console.log('note:', analysis.note);
     console.log('======================================');
 
     // Auto-populate form fields
@@ -374,7 +375,8 @@ const AddCrewCertificateModal = ({
             (analysis.expiry_date || analysis.cert_expiry).split('/').reverse().join('-') : 
             (analysis.expiry_date || analysis.cert_expiry).split('T')[0]
           ) : prev.cert_expiry,
-        rank: analysis.rank || prev.rank
+        rank: analysis.rank || prev.rank,
+        note: analysis.note || prev.note  // ✅ ADDED: Auto-fill note field
       };
       
       console.log('=== Form Data After Update ===');
