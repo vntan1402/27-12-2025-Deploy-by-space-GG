@@ -193,7 +193,7 @@ export const CrewListTable = ({
   // Get sort icon
   const getSortIcon = (column) => {
     if (sortConfig.column !== column) {
-      return <span className="ml-2 text-gray-500 font-bold">⇅</span>;
+      return null;  // Don't show any icon for unsorted columns
     }
     return (
       <span className="ml-2 text-blue-600">
