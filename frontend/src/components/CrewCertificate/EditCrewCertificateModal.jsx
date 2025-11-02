@@ -8,6 +8,7 @@ const COMMON_CERT_NAMES = [
   'Certificate of Competency (COC)',
   'Certificate of Endorsement (COE)',
   'Seaman Book for COC',
+  'Seaman book for GMDSS',
   'GMDSS Certificate',
   'Medical Certificate',
   'Basic Safety Training (BST)',
