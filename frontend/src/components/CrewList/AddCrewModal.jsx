@@ -102,9 +102,9 @@ export const AddCrewModal = ({
     
     // Check if multiple files selected
     if (files.length > 1) {
-      // Batch processing mode - call parent callback
+      // Batch processing mode - call parent callback with current status mode
       if (onBatchUpload) {
-        onBatchUpload(files);
+        onBatchUpload(files, formData.status, formData.ship_sign_on);
       }
     } else {
       // Single file mode
