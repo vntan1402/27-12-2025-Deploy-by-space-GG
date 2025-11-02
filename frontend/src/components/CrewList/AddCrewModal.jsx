@@ -390,7 +390,7 @@ export const AddCrewModal = ({
             <div className="flex items-center space-x-3">
               {/* Ship Select Dropdown - Only show when NOT in Standby mode */}
               {formData.status !== 'Standby' && (
-                <div className="relative">
+                <div className="relative ship-select-dropdown">
                   <button
                     type="button"
                     onClick={(e) => {
