@@ -859,9 +859,9 @@ export const CrewListTable = ({
   };
   
   // Process single file in batch mode
-  const processSingleFileInBatch = async (file) => {
+  const processSingleFileInBatch = async (file, progressController, batchStatus, batchShip) => {
     try {
-      const shipName = selectedShip?.name || '-';
+      const shipName = batchShip || selectedShip?.name || '-';
       
       // Step 1: Analyze passport
       const analysisResponse = await crewService.analyzePassport(file, shipName);
@@ -905,15 +905,9 @@ export const CrewListTable = ({
       const vietnameseFullName = analysis.full_name || '';
       const vietnamesePlaceOfBirth = analysis.place_of_birth || '';
       
-      // Determine status and ship based on current filter mode
-      let crewStatus = 'Sign on';
-      let shipSignOn = selectedShip?.name || '-';
-      
-      if (filters.ship_sign_on === 'Standby') {
-        // If in Standby mode, create crew as Standby with no ship
-        crewStatus = 'Standby';
-        shipSignOn = '-';
-      }
+      // Use the batch status and ship passed from handleBatchProcessing
+      let crewStatus = batchStatus || 'Sign on';
+      let shipSignOn = batchShip || selectedShip?.name || '-';
       
       const crewData = {
         full_name: vietnameseFullName,
