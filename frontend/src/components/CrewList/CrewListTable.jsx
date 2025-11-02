@@ -89,10 +89,23 @@ export const CrewListTable = ({
   const fetchCrewList = async () => {
     setLoading(true);
     try {
-      const response = await crewService.getCrewList({
-        ship_name: filters.ship_sign_on !== 'All' ? filters.ship_sign_on : undefined,
-        status: filters.status !== 'All' ? filters.status : undefined
-      });
+      // Handle special "Standby" filter
+      let queryParams = {};
+      
+      if (filters.ship_sign_on === 'Standby') {
+        // Show only standby crew regardless of ship
+        queryParams.status = 'Standby';
+      } else {
+        // Normal filtering
+        if (filters.ship_sign_on !== 'All' && filters.ship_sign_on !== '-') {
+          queryParams.ship_name = filters.ship_sign_on;
+        }
+        if (filters.status !== 'All') {
+          queryParams.status = filters.status;
+        }
+      }
+      
+      const response = await crewService.getCrewList(queryParams);
       
       setCrewList(response.data || []);
       
