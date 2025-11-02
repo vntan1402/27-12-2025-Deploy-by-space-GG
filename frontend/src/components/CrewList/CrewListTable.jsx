@@ -722,7 +722,7 @@ export const CrewListTable = ({
   };
   
   // Batch processing handler
-  const handleBatchProcessing = async (files) => {
+  const handleBatchProcessing = async (files, modalStatus = null, modalShipSignOn = null) => {
     // Validate all files first
     const validFiles = [];
     for (const file of files) {
@@ -752,6 +752,11 @@ export const CrewListTable = ({
         : 'No valid files to process');
       return;
     }
+    
+    // Store the status and ship for batch processing
+    // Use modal status if provided (from AddCrewModal), otherwise use filter
+    const batchStatus = modalStatus || (filters.ship_sign_on === 'Standby' ? 'Standby' : 'Sign on');
+    const batchShip = modalShipSignOn || (selectedShip?.name || '-');
     
     // Initialize batch processing with enhanced tracking
     setBatchProgress({ current: 0, total: validFiles.length, success: 0, failed: 0 });
