@@ -100,14 +100,8 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
   };
 
   const getSortIcon = (column) => {
-    if (sort.column !== column) {
-      return <span className="ml-1 text-gray-400">⇅</span>;
-    }
-    return (
-      <span className="ml-1 text-blue-600 text-sm font-bold">
-        {sort.direction === 'asc' ? '▲' : '▼'}
-      </span>
-    );
+    // Không hiển thị icon sort
+    return null;
   };
 
   // Handle select
