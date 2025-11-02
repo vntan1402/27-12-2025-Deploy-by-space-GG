@@ -8,7 +8,7 @@ import json
 from datetime import datetime, date, timedelta
 
 # Backend URL
-BACKEND_URL = "https://nautical-crew-app.preview.emergentagent.com/api"
+BACKEND_URL = "https://mariner-papers.preview.emergentagent.com/api"
 
 def debug_certificate_filtering():
     """Debug the certificate filtering logic"""
