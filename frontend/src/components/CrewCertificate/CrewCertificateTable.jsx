@@ -332,7 +332,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
             const result = {
               success: true,
               filename: file.name,
-              crew_name: analysisData.crew_name || crewInfo.full_name,
+              crew_name: crewData.crew_name,
               cert_name: analysisData.cert_name,
               cert_no: analysisData.cert_no,
               certCreated: true,
