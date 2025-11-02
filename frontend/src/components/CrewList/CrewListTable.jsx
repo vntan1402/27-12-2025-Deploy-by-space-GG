@@ -193,10 +193,10 @@ export const CrewListTable = ({
   // Get sort icon
   const getSortIcon = (column) => {
     if (sortConfig.column !== column) {
-      return <span className="text-gray-400">-</span>;
+      return <span className="ml-2 text-gray-500 font-bold">⇅</span>;
     }
     return (
-      <span className="text-blue-600">
+      <span className="ml-2 text-blue-600">
         {sortConfig.direction === 'asc' ? '▲' : '▼'}
       </span>
     );
