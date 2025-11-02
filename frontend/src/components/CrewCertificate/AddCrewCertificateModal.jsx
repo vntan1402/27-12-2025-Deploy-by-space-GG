@@ -204,16 +204,18 @@ const AddCrewCertificateModal = ({
 
   const analyzeFile = async (file) => {
     if (!formData.crew_id) {
-      toast.warning(language === 'vi' 
-        ? 'Vui lòng chọn thuyền viên trước' 
-        : 'Please select crew member first');
+      setWarningMessage(language === 'vi' 
+        ? 'Vui lòng chọn thuyền viên trước khi phân tích file' 
+        : 'Please select crew member before analyzing file');
+      setShowWarningModal(true);
       return;
     }
 
     if (!selectedShip) {
-      toast.warning(language === 'vi' 
-        ? 'Vui lòng chọn tàu trước' 
-        : 'Please select ship first');
+      setWarningMessage(language === 'vi' 
+        ? 'Vui lòng chọn tàu trước khi phân tích file' 
+        : 'Please select ship before analyzing file');
+      setShowWarningModal(true);
       return;
     }
 
