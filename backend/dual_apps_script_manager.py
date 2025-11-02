@@ -1371,13 +1371,14 @@ class DualAppsScriptManager:
                 upload_results['certificate'] = cert_upload
                 
             else:
-                # Upload to Ship/Crew Records/Crew Certificates
+                # Upload to Ship/Crew Records/Crew Certificates (nested structure)
                 logger.info(f"📤 Uploading certificate file: {ship_name}/Crew Records/Crew Certificates/{cert_filename}")
                 cert_upload = await self._call_company_apps_script({
                     'action': 'upload_file_with_folder_creation',
                     'parent_folder_id': self.parent_folder_id,
                     'ship_name': ship_name,
-                    'category': 'Crew Records/Crew Certificates',
+                    'parent_category': 'Crew Records',  # First level folder
+                    'category': 'Crew Certificates',     # Second level folder
                     'filename': cert_filename,
                     'file_content': base64.b64encode(cert_file_content).decode('utf-8'),
                     'content_type': cert_content_type
@@ -1402,13 +1403,14 @@ class DualAppsScriptManager:
                         'content_type': 'text/plain'
                     })
                 else:
-                    # Summary in Ship/Crew Records/Crew Certificates
+                    # Summary in Ship/Crew Records/Crew Certificates (nested structure)
                     logger.info(f"📋 Uploading certificate summary file: {ship_name}/Crew Records/Crew Certificates/{summary_filename}")
                     summary_upload = await self._call_company_apps_script({
                         'action': 'upload_file_with_folder_creation',
                         'parent_folder_id': self.parent_folder_id,
                         'ship_name': ship_name,
-                        'category': 'Crew Records/Crew Certificates',
+                        'parent_category': 'Crew Records',  # First level folder
+                        'category': 'Crew Certificates',     # Second level folder
                         'filename': summary_filename,
                         'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
                         'content_type': 'text/plain'
