@@ -233,127 +233,137 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     setFileProgressMap(initialProgressMap);
     setFileSubStatusMap(initialSubStatusMap);
 
+    const STAGGER_DELAY = 2000; // 2 seconds between file starts (same as crew batch upload)
     const results = [];
 
-    // Process files with staggered delay (300ms)
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      
-      try {
-        // Update status to processing
-        setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
-        setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? 'Đang phân tích AI...' : 'AI analyzing...' }));
-        setFileProgressMap(prev => ({ ...prev, [file.name]: 10 }));
+    // Process files with staggered start (PARALLEL PROCESSING like crew)
+    const promises = Array.from(files).map((file, index) => {
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          // Update status to processing
+          setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+          
+          // Start smooth progress animation
+          const estimatedTime = estimateFileProcessingTime(file);
+          const progressController = startSmoothProgressForFile(
+            file.name,
+            setFileProgressMap,
+            setFileSubStatusMap,
+            estimatedTime,
+            90 // Max 90%, then jump to 100% on complete
+          );
 
-        // Step 1: AI Analysis
-        const formData = new FormData();
-        formData.append('cert_file', file);
-        if (selectedShip && selectedShip.id) {
-          formData.append('ship_id', selectedShip.id);
-        }
-        if (preSelectedCrewId) {
-          formData.append('crew_id', preSelectedCrewId);
-        }
+          try {
+            // Get crew info for required fields
+            const crewInfo = crewList.find(c => c.id === preSelectedCrewId);
+            if (!crewInfo) {
+              throw new Error('Crew member not found');
+            }
 
-        setFileProgressMap(prev => ({ ...prev, [file.name]: 30 }));
-        const analysisResponse = await api.post('/api/crew-certificates/analyze-file', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+            // Step 1: AI Analysis
+            const formData = new FormData();
+            formData.append('cert_file', file);
+            if (selectedShip && selectedShip.id) {
+              formData.append('ship_id', selectedShip.id);
+            }
+            if (preSelectedCrewId) {
+              formData.append('crew_id', preSelectedCrewId);
+            }
 
-        setFileProgressMap(prev => ({ ...prev, [file.name]: 50 }));
-        setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? 'Tạo chứng chỉ...' : 'Creating certificate...' }));
+            const analysisResponse = await api.post('/api/crew-certificates/analyze-file', formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
 
-        const analysisData = analysisResponse.data;
+            const analysisData = analysisResponse.data;
 
-        // Get crew info for required fields
-        const crewInfo = crewList.find(c => c.id === preSelectedCrewId);
-        if (!crewInfo) {
-          throw new Error('Crew member not found');
-        }
+            // Step 2: Create certificate record
+            const createData = {
+              crew_id: analysisData.crew_id || preSelectedCrewId,
+              crew_name: analysisData.crew_name || crewInfo.full_name,
+              crew_name_en: crewInfo.full_name_en || '',
+              passport: analysisData.passport || crewInfo.passport || '',
+              rank: analysisData.rank || crewInfo.rank || '',
+              date_of_birth: crewInfo.date_of_birth || '',
+              cert_name: analysisData.cert_name || '',
+              cert_no: analysisData.cert_no || '',
+              issued_by: analysisData.issued_by || '',
+              issued_date: analysisData.issued_date || '',
+              cert_expiry: analysisData.cert_expiry || '',
+              note: analysisData.note || '',
+              _file_content: analysisData._file_content,
+              _summary_text: analysisData._summary_text
+            };
 
-        // Step 2: Create certificate record
-        const createData = {
-          crew_id: analysisData.crew_id || preSelectedCrewId,
-          crew_name: analysisData.crew_name || crewInfo.full_name,
-          crew_name_en: crewInfo.full_name_en || '',
-          passport: analysisData.passport || crewInfo.passport || '',
-          rank: analysisData.rank || crewInfo.rank || '',
-          date_of_birth: crewInfo.date_of_birth || '',
-          cert_name: analysisData.cert_name || '',
-          cert_no: analysisData.cert_no || '',
-          issued_by: analysisData.issued_by || '',
-          issued_date: analysisData.issued_date || '',
-          cert_expiry: analysisData.cert_expiry || '',
-          note: analysisData.note || '',
-          _file_content: analysisData._file_content,
-          _summary_text: analysisData._summary_text
-        };
+            const createResponse = await api.post('/api/crew-certificates/manual', createData);
 
-        setFileProgressMap(prev => ({ ...prev, [file.name]: 70 }));
-        const createResponse = await api.post('/api/crew-certificates/manual', createData);
+            // Step 3: Upload file
+            const certId = createResponse.data.id;
+            const uploadFormData = new FormData();
+            uploadFormData.append('files', file);
 
-        setFileProgressMap(prev => ({ ...prev, [file.name]: 85 }));
-        setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? 'Upload file lên Drive...' : 'Uploading to Drive...' }));
+            await api.post(`/api/crew-certificates/${certId}/upload-files`, uploadFormData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
 
-        // Step 3: Upload file
-        const certId = createResponse.data.id;
-        const uploadFormData = new FormData();
-        uploadFormData.append('files', file);
+            // Complete progress
+            progressController.complete();
+            setFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
 
-        await api.post(`/api/crew-certificates/${certId}/upload-files`, uploadFormData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
+            const result = {
+              success: true,
+              filename: file.name,
+              crew_name: analysisData.crew_name || crewInfo.full_name,
+              cert_name: analysisData.cert_name,
+              cert_no: analysisData.cert_no,
+              certCreated: true,
+              fileUploaded: true
+            };
+            
+            results.push(result);
+            resolve(result);
 
-        setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
-        setFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
-        setFileSubStatusMap(prev => ({ ...prev, [file.name]: '' }));
-
-        results.push({
-          success: true,
-          filename: file.name,
-          crew_name: analysisData.crew_name,
-          cert_name: analysisData.cert_name,
-          cert_no: analysisData.cert_no,
-          certCreated: true,
-          fileUploaded: true
-        });
-
-      } catch (error) {
-        console.error(`Batch upload error for ${file.name}:`, error);
-        setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
-        setFileSubStatusMap(prev => ({ ...prev, [file.name]: '' }));
-        
-        // Extract error message - handle various error formats
-        let errorMessage = 'Unknown error';
-        if (error.response?.data?.detail) {
-          const detail = error.response.data.detail;
-          if (typeof detail === 'string') {
-            errorMessage = detail;
-          } else if (Array.isArray(detail)) {
-            // Pydantic validation errors
-            errorMessage = detail.map(err => err.msg || JSON.stringify(err)).join(', ');
-          } else if (typeof detail === 'object') {
-            errorMessage = JSON.stringify(detail);
+          } catch (error) {
+            console.error(`Batch upload error for ${file.name}:`, error);
+            
+            // Stop progress animation
+            progressController.stop();
+            setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+            setFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
+            
+            // Extract error message - handle various error formats
+            let errorMessage = 'Unknown error';
+            if (error.response?.data?.detail) {
+              const detail = error.response.data.detail;
+              if (typeof detail === 'string') {
+                errorMessage = detail;
+              } else if (Array.isArray(detail)) {
+                // Pydantic validation errors
+                errorMessage = detail.map(err => err.msg || JSON.stringify(err)).join(', ');
+              } else if (typeof detail === 'object') {
+                errorMessage = JSON.stringify(detail);
+              }
+            } else if (error.message) {
+              errorMessage = error.message;
+            }
+            
+            const errorResult = {
+              success: false,
+              filename: file.name,
+              error: errorMessage
+            };
+            
+            results.push(errorResult);
+            resolve(errorResult);
           }
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
-        
-        results.push({
-          success: false,
-          filename: file.name,
-          error: errorMessage
-        });
-      }
+        }, index * STAGGER_DELAY);
+      });
+    });
 
-      // Update progress
-      setBatchProgress({ current: i + 1, total: files.length });
+    // Wait for all files to complete
+    await Promise.all(promises);
 
-      // Staggered delay (300ms) between files (except after last file)
-      if (i < files.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-    }
+    // Update overall progress
+    setBatchProgress({ current: files.length, total: files.length });
 
     // Show results
     setBatchResults(results);
