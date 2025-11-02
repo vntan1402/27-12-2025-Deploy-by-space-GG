@@ -190,6 +190,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
 
   // Get unique ship names from certificates
   const getUniqueShips = () => {
+    // Không cần nữa - sẽ dùng ships từ props
     const shipSet = new Set();
     certificates.forEach(cert => {
       const shipStatus = getCertificateShipStatus(cert);
