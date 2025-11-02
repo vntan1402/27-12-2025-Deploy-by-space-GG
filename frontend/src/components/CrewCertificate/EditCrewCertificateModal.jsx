@@ -45,7 +45,7 @@ const EditCrewCertificateModal = ({ certificate, onClose, onSuccess, selectedShi
   const [analyzedData, setAnalyzedData] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customCertNames, setCustomCertNames] = useState([]);
-  const [showCertDropdown, setShowCertDropdown] = useState(false);
+  const [customCertInput, setCustomCertInput] = useState('');
   
   // Form data - pre-filled with certificate data
   const [formData, setFormData] = useState({
