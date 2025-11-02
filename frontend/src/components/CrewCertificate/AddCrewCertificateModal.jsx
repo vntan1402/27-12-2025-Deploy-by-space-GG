@@ -56,6 +56,8 @@ const AddCrewCertificateModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customCertNames, setCustomCertNames] = useState([]);
   const [showCertDropdown, setShowCertDropdown] = useState(false);
+  const [showWarningModal, setShowWarningModal] = useState(false);
+  const [warningMessage, setWarningMessage] = useState('');
   
   // Form data
   const [formData, setFormData] = useState({
