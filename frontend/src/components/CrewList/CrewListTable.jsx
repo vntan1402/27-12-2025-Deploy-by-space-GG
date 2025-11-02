@@ -899,6 +899,16 @@ export const CrewListTable = ({
       const vietnameseFullName = analysis.full_name || '';
       const vietnamesePlaceOfBirth = analysis.place_of_birth || '';
       
+      // Determine status and ship based on current filter mode
+      let crewStatus = 'Sign on';
+      let shipSignOn = selectedShip?.name || '-';
+      
+      if (filters.ship_sign_on === 'Standby') {
+        // If in Standby mode, create crew as Standby with no ship
+        crewStatus = 'Standby';
+        shipSignOn = '-';
+      }
+      
       const crewData = {
         full_name: vietnameseFullName,
         full_name_en: analysis.full_name_en || autoFillEnglishField(vietnameseFullName),
@@ -915,8 +925,8 @@ export const CrewListTable = ({
           : analysis.passport_expiry_date?.split('T')[0] || '',
         rank: '',
         seamen_book: '',
-        status: 'Sign on',
-        ship_sign_on: selectedShip?.name || '-',
+        status: crewStatus,
+        ship_sign_on: shipSignOn,
         place_sign_on: '',
         date_sign_on: '',
         date_sign_off: ''
