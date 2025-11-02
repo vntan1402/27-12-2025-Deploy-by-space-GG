@@ -1,0 +1,90 @@
+<analysis>
+The AI engineer successfully progressed the  feature migration to V2, addressing various functional and UI aspects. Initial work focused on refining backend deletion logic, ensuring background Google Drive file removal, and correcting frontend API call mismatches. This was followed by implementing and styling batch processing modals to mirror the 's UX, including individual file progress tracking and a staggered upload sequence. Subsequently, all V1 context menu options, including bulk edit functionalities for Place, Ship, and Dates, were integrated using modal-based interactions. A significant effort was dedicated to synchronizing the ship selector and  filter, introducing a  for All ship selections, and fetching company data for display. The latest work focuses on refining the layout and content of this .
+</analysis>
+
+<product_requirements>
+The  application is migrating from V1 to V2, focusing on enhancing ship management with secure Google Drive integration and AI-assisted features for . The project aims to provide a robust  system with the following key features and fixes implemented or addressed:
+
+1.  **V1 Analysis and V2 Main Page:** The  page was created, mimicking , with Crew List and Crew Certificates sub-categories and integrated into sidebar navigation.
+2.  **Add Crew Modal:** Implemented with AI-powered passport analysis, auto-fill for Vietnamese/English fields, refined UX for analysis messages and spinning icons.
+3.  **Batch Processing:** Migrated from V1, including  and  styled similar to , with smooth progress animation and staggered parallel file processing.
+4.  **File Management:** Ensured summary files upload to the same Google Drive folder as passports, under  for Sign on crew.
+5.  **Deletion Functionality:** Frontend  function was corrected to , and backend  endpoint was refactored to use  for asynchronous Google Drive file deletion (passport and summary files).  functionality was added to the backend and integrated into the frontend.
+6.  **Context Menus:** All V1 row context menu options (edit crew, bulk edit place/ship/date sign on/off, delete) were implemented using dedicated modals instead of .
+7.  **UI Synchronization:** Ship Selector dropdown and  filter are synchronized. When All is selected in the filter,  is replaced by a  displaying company details (name, address, email, software expiry, logo).
+8.  **Auto-Update Logic:** When  is filled,  auto-updates to Standby and  clears. If  is updated without  or , a reminder toast message is displayed.
+9.  **Standby Mode:** The  now hides the Ship Sign On field when in Standby mode, matching V1 behavior.
+10. **CompanyInfoPanel Display:** Fetch company data and ensure  displays correctly with proper layout and content from the company collection.
+</product_requirements>
+
+<key_technical_concepts>
+-   **Frontend**: React.js (components, modals, state management, routing, context menus, , ), ,  (toast notifications), , .
+-   **Backend**: FastAPI (API endpoints, , Pydantic models), MongoDB (UUIDs for IDs).
+-   **Integrations**: Google Drive API (via Apps Script proxy and ), AI/LLM integration (Document AI, System AI).
+-   **Patterns**: V2 analysis-first, background upload, modular component design, asynchronous deletion.
+</key_technical_concepts>
+
+<code_architecture>
+
+-   ****:
+    -   Importance: FastAPI application, defines all API endpoints.
+    -   Changes: The  DELETE endpoint was refactored to use  for Google Drive file deletion. A new  endpoint was added. A  endpoint was implemented to fetch company details by ID, resolving an issue where the  field in  was a UUID instead of a name.
+-   ****:
+    -   Importance: Manages interactions with Google Apps Script for Drive operations (upload/delete).
+    -   Changes:  was corrected to handle nested folder structures correctly by explicitly using  and  (e.g., Crew Records as parent, Crew List as category).
+-   ** (NEW)**:
+    -   Importance: Main page for Crew Records.
+    -   Changes: Integrated , now fetches  and  and passes them as props. Updated logic to always display  and dynamically show either  (for selected ship) or  (for All filter), removing the ship cards grid view. Includes handlers for syncing ship filter changes.
+-   ** (NEW)**:
+    -   Importance: Displays company information.
+    -   Changes: Created to display company , , , , and . Its styling and layout are currently being adjusted to match .
+-   ** (NEW)**:
+    -   Importance: Displays crew list, integrates modals, handles filters, sorting, search, and batch processing.
+    -   Changes:  method call corrected to . Bulk delete functionality was implemented using . Batch processing logic was updated to use individual file progress tracking, smooth animation, and a 2s stagger delay for uploads, mirroring . Added V1 context menu options (bulk edit Place/Ship/Date Sign On/Off) with modal integration and corresponding handler functions. Logic to check for  and  when updating  was added, with toast reminders. Implemented V1's auto-update logic for  (status, clear ship, toast, file move). Includes  for synchronizing  filter with  from  page.
+-   ** (NEW)**:
+    -   Importance: Modal for adding new crew.
+    -   Changes: Success message for AI analysis now only displays when  and  are both present. The Ship Sign On field is now hidden when in Standby mode.
+-   ** (NEW)**:
+    -   Importance: Displays batch upload progress.
+    -   Changes: Updated to match 's style, including a minimize button and individual file progress display.
+-   ** (NEW)**:
+    -   Importance: Displays batch upload results.
+    -   Changes: Updated to match 's style, using a table format for results.
+-   ** (NEW)**:
+    -   Importance: Houses modals for bulk editing crew fields.
+    -   Changes: Created to provide separate modals for bulk editing Place Sign On (text input), Ship Sign On (dropdown with ships list), Date Sign On, and Date Sign Off (date inputs), replacing  calls.
+-   ** (MODIFIED)**:
+    -   Importance: Frontend service for crew API calls.
+    -   Changes: Added  method, corrected  method name to .
+-   ****:
+    -   Importance: Defines API routes.
+    -   Changes:  and  were corrected from  to  (removing the 's').
+</code_architecture>
+
+<pending_tasks>
+-   Full testing of Sync from Drive functionality UI.
+-   Bulk export/download for certificates via context menu.
+-   Certificate File Viewer (embedded PDF viewer in modal, navigation, zoom, etc.).
+-   Scalability improvements (load testing, Redis caching, query optimization, monitoring, sharding,  conversion, performance monitoring).
+-   Implement toast notifications for Deleting files on Drive (start) and Successfully deleted X files (completion) for both  and , referring to .
+-   Finish implementing the  component.
+-   Implement the Crew Certificates sub-category page.
+-   Verify the background file deletion for crew records after the backend changes are fully implemented and tested.
+</pending_tasks>
+
+<current_work>
+Immediately prior to this summary, the AI engineer was addressing the user's feedback regarding the . The user reported that the  was not displaying correctly, specifically that its size and layout did not match the  and that the company logo should be displayed in the position where the ship photo would typically be.
+
+The AI engineer has already implemented the following to enable company information display:
+1.  **Backend Endpoint:** A new  endpoint was added to  to fetch company details based on the user's company ID. This endpoint now correctly returns the company name (e.g., AMCSC) instead of its UUID, and other details like , , and .
+2.  **Frontend Data Fetching:**  now fetches  using  and passes it as a prop to .
+3.  **CompanyInfoPanel Integration:**  dynamically renders  when no ship is selected (i.e., when the All filter is active) and  when a specific ship is selected, maintaining the overall layout.
+4.  **Initial CompanyInfoPanel Content:**  has been updated to display the fetched company , , , , and .
+5.  **Initial CSS Adjustment:** A previous attempt was made to fix potential CSS clipping issues for  by adding  and  classes.
+
+However, the user's latest message indicates that the  is still not displaying correctly, and they provided an image to clarify the desired layout, which matches the 's structure (photo on left, info grid on right, compact height). The AI engineer is currently in the process of analyzing the  to understand its layout and apply similar styling to .
+</current_work>
+
+<optional_next_step>
+Adjust the layout and styling of  to match the , including photo/logo placement and information grid.
+</optional_next_step>
