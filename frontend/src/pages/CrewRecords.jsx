@@ -385,6 +385,7 @@ const CrewRecords = () => {
               onAddCrew={() => toast.info('Add Crew modal - Coming soon')}
               onRefresh={() => toast.success(language === 'vi' ? 'Đã làm mới' : 'Refreshed')}
               onShipFilterChange={handleShipFilterChange}
+              onShipSelect={updateSelectedShip}
             />
           </div>
         )}
