@@ -557,10 +557,13 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     }
     
     return filteredCrew
-      .map(crew => ({
-        value: crew.full_name,
-        displayName: language === 'en' && crew.full_name_en ? crew.full_name_en : crew.full_name
-      }))
+      .map(crew => {
+        const displayName = language === 'en' && crew.full_name_en ? crew.full_name_en : crew.full_name;
+        return {
+          value: crew.full_name,
+          displayName: displayName.toUpperCase() // Viết hoa toàn bộ tên
+        };
+      })
       .sort((a, b) => a.displayName.localeCompare(b.displayName));
   };
 
