@@ -1497,6 +1497,7 @@ export const CrewListTable = ({
       {showAddCrewModal && (
         <AddCrewModal
           selectedShip={selectedShip}
+          isStandbyMode={filters.ship_sign_on === 'Standby'}
           onClose={() => setShowAddCrewModal(false)}
           onSuccess={(crewId) => {
             fetchCrewList();
