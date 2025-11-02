@@ -895,7 +895,7 @@ const AddCrewCertificateModal = ({
             {/* Footer */}
             <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-center">
               <button
-                onClick={() => setShowWarningModal(false)}
+                onClick={handleCloseWarningModal}
                 className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
               >
                 {language === 'vi' ? 'Đã hiểu' : 'OK'}
