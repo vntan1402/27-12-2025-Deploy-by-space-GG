@@ -540,24 +540,32 @@ const AddCrewCertificateModal = ({
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="p-6 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-blue-100">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-              <span className="mr-2">📜</span>
-              {language === 'vi' ? 'Thêm chứng chỉ thuyền viên' : 'Add Crew Certificate'}
-            </h2>
-            {/* Show crew info if pre-selected OR selected from dropdown */}
-            {(preSelectedCrew || formData.crew_id) && (
-              <p className="text-sm text-gray-600 mt-1">
-                {language === 'vi' ? 'Thuyền viên: ' : 'Crew: '}
-                <span className="font-semibold uppercase">
-                  {formData.crew_name} ({formData.passport})
+          <div className="flex-1 mr-4">
+            {/* Title on single line with crew info */}
+            {(preSelectedCrew || formData.crew_id) ? (
+              <h2 className="text-xl font-bold text-gray-800 flex items-center flex-wrap">
+                <span className="mr-2">📜</span>
+                {language === 'vi' ? 'Thêm chứng chỉ cho' : 'Add Crew Certificate for'}
+                <span className="ml-2 text-blue-700 uppercase">
+                  {formData.rank && `${formData.rank} `}
+                  {formData.crew_name}
                 </span>
-              </p>
+                {selectedShip && (
+                  <span className="ml-2 text-green-700">
+                    - {selectedShip.name}
+                  </span>
+                )}
+              </h2>
+            ) : (
+              <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+                <span className="mr-2">📜</span>
+                {language === 'vi' ? 'Thêm chứng chỉ thuyền viên' : 'Add Crew Certificate'}
+              </h2>
             )}
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
