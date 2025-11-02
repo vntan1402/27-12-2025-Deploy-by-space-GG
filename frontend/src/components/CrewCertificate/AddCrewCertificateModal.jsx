@@ -239,6 +239,7 @@ const AddCrewCertificateModal = ({
       console.log('Full response:', data);
       console.log('data.success:', data.success);
       console.log('data.analysis:', data.analysis);
+      console.log('JSON.stringify(data.analysis):', JSON.stringify(data.analysis, null, 2));
       console.log('=====================================');
 
       // Check if analysis succeeded
