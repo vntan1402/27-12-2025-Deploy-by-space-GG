@@ -80,7 +80,7 @@ export const RANK_OPTIONS = [
   { value: 'Bosun', label: 'Bosun', label_vi: 'Thủy thủ trưởng' },
   { value: 'AB', label: 'Able Seaman', label_vi: 'Thủy thủ có bằng' },
   { value: 'OS', label: 'Ordinary Seaman', label_vi: 'Thủy thủ thường' },
-  { value: 'CE', label: 'Chief Engineer', label_vi: 'Máy trưởng' },
+  { value: 'C/E', label: 'Chief Engineer', label_vi: 'Máy trưởng' },
   { value: '2/E', label: 'Second Engineer', label_vi: 'Máy hai' },
   { value: '3/E', label: 'Third Engineer', label_vi: 'Máy ba' },
   { value: '4/E', label: 'Fourth Engineer', label_vi: 'Máy tư' },
