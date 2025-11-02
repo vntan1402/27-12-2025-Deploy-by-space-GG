@@ -1497,6 +1497,7 @@ export const CrewListTable = ({
       {showAddCrewModal && (
         <AddCrewModal
           selectedShip={selectedShip}
+          ships={ships}
           isStandbyMode={filters.ship_sign_on === 'Standby'}
           onClose={() => setShowAddCrewModal(false)}
           onSuccess={(crewId) => {
@@ -1506,6 +1507,10 @@ export const CrewListTable = ({
               : 'Crew member added successfully!');
           }}
           onBatchUpload={handleBatchProcessing}
+          onShipSelect={(ship) => {
+            // Update selected ship when user selects from dropdown
+            updateSelectedShip(ship);
+          }}
         />
       )}
       
