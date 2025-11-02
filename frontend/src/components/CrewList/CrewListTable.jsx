@@ -802,7 +802,7 @@ export const CrewListTable = ({
           );
           
           try {
-            const result = await processSingleFileInBatch(file, progressController);
+            const result = await processSingleFileInBatch(file, progressController, batchStatus, batchShip);
             results.push(result);
             
             // Complete progress
