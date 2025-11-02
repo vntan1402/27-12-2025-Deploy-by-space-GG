@@ -454,10 +454,10 @@ const AddCrewCertificateModal = ({
 
     // Check duplicate
     const duplicateCheck = await checkDuplicate();
-    if (duplicateCheck?.exists) {
+    if (duplicateCheck?.is_duplicate) {
       toast.error(language === 'vi' 
-        ? `❌ Chứng chỉ đã tồn tại: ${duplicateCheck.existing_cert?.cert_name}` 
-        : `❌ Certificate already exists: ${duplicateCheck.existing_cert?.cert_name}`);
+        ? `❌ Chứng chỉ đã tồn tại: ${duplicateCheck.existing_certificate?.cert_name}` 
+        : `❌ Certificate already exists: ${duplicateCheck.existing_certificate?.cert_name}`);
       return;
     }
 
