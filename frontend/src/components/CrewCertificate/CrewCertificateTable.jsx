@@ -303,11 +303,12 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
               className="px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
             >
               <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
-              {getUniqueShips().map(shipName => (
-                <option key={shipName} value={shipName}>
-                  {shipName === '-' ? (language === 'vi' ? 'Standby' : 'Standby') : shipName}
+              {ships && ships.map(ship => (
+                <option key={ship.id} value={ship.name}>
+                  {ship.name}
                 </option>
               ))}
+              <option value="-">{language === 'vi' ? 'Standby' : 'Standby'}</option>
             </select>
           </div>
           
