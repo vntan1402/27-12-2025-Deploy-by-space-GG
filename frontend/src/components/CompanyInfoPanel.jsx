@@ -37,32 +37,28 @@ export const CompanyInfoPanel = ({ companyData, onClose }) => {
   const daysRemaining = companyData?.software_expiry ? getDaysRemaining(companyData.software_expiry) : null;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-6 border border-gray-200">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Company Logo - Left Side (1/3 width) */}
-        <div className="md:col-span-1">
-          <div className="bg-gray-100 rounded-lg p-8 flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300">
-            {companyData?.logo_url && companyData.logo_url !== '' ? (
-              <img 
-                src={companyData.logo_url} 
-                alt="Company Logo" 
-                className="max-w-full max-h-32 object-contain"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.parentElement.innerHTML = '<div class="text-center"><span class="text-6xl">🏢</span><p class="text-sm text-gray-500 mt-2">Company Logo</p></div>';
-                }}
-              />
-            ) : (
-              <div className="text-center">
-                <span className="text-6xl">🏢</span>
-                <p className="text-sm text-gray-500 mt-2">
-                  {language === 'vi' ? 'Logo công ty' : 'Company Logo'}
-                </p>
-              </div>
-            )}
-          </div>
+    <div className="grid md:grid-cols-3 gap-6 mb-6">
+      {/* Company Logo - Left Side (1/3 width) */}
+      <div className="md:col-span-1">
+        <div className="bg-gray-200 rounded-lg p-4 h-48 flex items-center justify-center">
+          {companyData?.logo_url && companyData.logo_url !== '' ? (
+            <img 
+              src={companyData.logo_url} 
+              alt="Company Logo" 
+              className="max-w-full max-h-40 object-contain"
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = '<div class="text-center"><div class="text-4xl mb-2">🏢</div><p class="font-semibold">COMPANY LOGO</p></div>';
+              }}
+            />
+          ) : (
+            <div className="text-center">
+              <div className="text-4xl mb-2">🏢</div>
+              <p className="font-semibold">COMPANY LOGO</p>
+            </div>
+          )}
         </div>
+      </div>
         
         {/* Company Info - Right Side (2/3 width) */}
         <div className="md:col-span-2">
