@@ -3665,6 +3665,10 @@ async def get_current_company(current_user: UserResponse = Depends(get_current_u
         # Count total crew members for this company
         total_crew = await mongo_db.count("crew_members", {"company_id": company_id})
         
+        # Count total ships for this company
+        # Ships can have company as either UUID or company name, so check both
+        total_ships = await mongo_db.count("ships", {"company": company_id})
+        
         if not company:
             # Return basic info if company not in collection
             return {
@@ -3674,7 +3678,7 @@ async def get_current_company(current_user: UserResponse = Depends(get_current_u
                 "phone": None,
                 "software_expiry": None,
                 "logo_url": None,
-                "total_ships": 0,
+                "total_ships": total_ships,
                 "total_crew": total_crew
             }
         
@@ -3685,7 +3689,7 @@ async def get_current_company(current_user: UserResponse = Depends(get_current_u
             "phone": company.get("phone"),
             "software_expiry": company.get("software_expiry"),
             "logo_url": company.get("logo_url"),
-            "total_ships": company.get("total_ships", 0),
+            "total_ships": total_ships,
             "total_crew": total_crew
         }
         
