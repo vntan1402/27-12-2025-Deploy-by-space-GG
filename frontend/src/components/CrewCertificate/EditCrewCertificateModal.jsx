@@ -440,37 +440,57 @@ const EditCrewCertificateModal = ({ certificate, onClose, onSuccess, selectedShi
 
               <div className="grid grid-cols-2 gap-4">
                 {/* Certificate Name */}
-                <div className="col-span-2 relative">
+                <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'}
                     <span className="text-red-500 ml-1">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.cert_name}
-                    onChange={(e) => {
-                      handleInputChange('cert_name', e.target.value);
-                      setShowCertDropdown(true);
-                    }}
-                    onFocus={() => setShowCertDropdown(true)}
+                    onChange={(e) => handleInputChange('cert_name', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  >
+                    <option value="">
+                      {language === 'vi' ? '-- Chọn loại chứng chỉ --' : '-- Select certificate type --'}
+                    </option>
+                    {COMMON_CERT_NAMES.map((name, idx) => (
+                      <option key={idx} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                    {customCertNames.map((name, idx) => (
+                      <option key={`custom-${idx}`} value={name}>
+                        {name} (Custom)
+                      </option>
+                    ))}
+                    <option value="__OTHER__">
+                      {language === 'vi' ? '🔧 Khác (Nhập tên mới)...' : '🔧 Other (Enter new name)...'}
+                    </option>
+                  </select>
                   
-                  {/* Dropdown suggestions */}
-                  {showCertDropdown && getFilteredCertNames().length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                      {getFilteredCertNames().map((name, idx) => (
-                        <div
-                          key={idx}
-                          onClick={() => {
-                            handleInputChange('cert_name', name);
-                            setShowCertDropdown(false);
-                          }}
-                          className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm"
-                        >
-                          {name}
-                        </div>
-                      ))}
+                  {/* Custom name input (shown when "Other" is selected) */}
+                  {formData.cert_name === '__OTHER__' && (
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        value={customCertInput}
+                        onChange={(e) => setCustomCertInput(e.target.value)}
+                        onBlur={() => {
+                          if (customCertInput.trim()) {
+                            saveCustomCertName(customCertInput.trim());
+                            handleInputChange('cert_name', customCertInput.trim());
+                            setCustomCertInput('');
+                          }
+                        }}
+                        placeholder={language === 'vi' ? 'Nhập tên chứng chỉ mới' : 'Enter new certificate name'}
+                        className="w-full px-3 py-2 border border-orange-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        autoFocus
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {language === 'vi' 
+                          ? '💡 Nhập tên và nhấn Tab hoặc click ra ngoài để lưu' 
+                          : '💡 Enter name and press Tab or click outside to save'}
+                      </p>
                     </div>
                   )}
                 </div>
