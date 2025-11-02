@@ -912,6 +912,24 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
           selectedCount={selectedCertificates.size}
         />
       )}
+
+      {/* Batch Processing Modal */}
+      <BatchProcessingModal
+        isOpen={isBatchProcessing}
+        progress={batchProgress}
+        fileProgressMap={fileProgressMap}
+        fileStatusMap={fileStatusMap}
+        fileSubStatusMap={fileSubStatusMap}
+        isMinimized={isBatchMinimized}
+        onToggleMinimize={() => setIsBatchMinimized(!isBatchMinimized)}
+      />
+
+      {/* Batch Results Modal */}
+      <BatchResultsModal
+        isOpen={showBatchResults}
+        onClose={() => setShowBatchResults(false)}
+        results={batchResults}
+      />
     </div>
   );
 };
