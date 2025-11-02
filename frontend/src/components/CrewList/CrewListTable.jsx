@@ -126,8 +126,8 @@ export const CrewListTable = ({
         setFilters(prev => ({ ...prev, ship_sign_on: selectedShip.name }));
       }
     } else {
-      // When no ship selected, set filter to All
-      if (filters.ship_sign_on !== 'All') {
+      // When no ship selected, set filter to All (unless manually set to Standby or -)
+      if (filters.ship_sign_on !== 'All' && filters.ship_sign_on !== 'Standby' && filters.ship_sign_on !== '-') {
         setFilters(prev => ({ ...prev, ship_sign_on: 'All' }));
       }
     }
