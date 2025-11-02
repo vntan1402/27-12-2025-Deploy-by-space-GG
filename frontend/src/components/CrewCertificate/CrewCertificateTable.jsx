@@ -12,7 +12,7 @@ import DeleteCertificateModal from './DeleteCertificateModal';
 import { BatchProcessingModal } from './BatchProcessingModal';
 import { BatchResultsModal } from './BatchResultsModal';
 
-const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipSelect }) => {
+const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipSelect, initialCrewFilter }) => {
   const { language, user } = useAuth();
   
   // State
