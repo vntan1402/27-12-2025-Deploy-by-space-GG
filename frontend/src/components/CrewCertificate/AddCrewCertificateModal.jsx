@@ -584,12 +584,21 @@ const AddCrewCertificateModal = ({
                   disabled={isLoadingCrew}
                 >
                   <option value="">{language === 'vi' ? '-- Chọn thuyền viên --' : '-- Select crew member --'}</option>
-                  {crewList.map(crew => (
+                  {getFilteredCrewList().map(crew => (
                     <option key={crew.id} value={crew.id}>
                       {crew.full_name} - {crew.passport} - {crew.rank || 'N/A'}
                     </option>
                   ))}
                 </select>
+
+                {/* Ship filter info */}
+                {selectedShip && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    {language === 'vi' 
+                      ? `Hiển thị thuyền viên trên tàu: ${selectedShip.name}` 
+                      : `Showing crew on ship: ${selectedShip.name}`}
+                  </p>
+                )}
 
                 {formData.crew_id && (
                   <div className="mt-3 p-3 bg-gray-50 rounded-md">
