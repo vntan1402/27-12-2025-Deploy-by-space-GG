@@ -693,6 +693,61 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
           allCrewList={crewList}
         />
       )}
+
+      {/* Edit Certificate Modal */}
+      {showEditModal && certificateToEdit && (
+        <EditCrewCertificateModal
+          certificate={certificateToEdit}
+          ships={ships}
+          allCrewList={crewList}
+          onClose={() => {
+            setShowEditModal(false);
+            setCertificateToEdit(null);
+          }}
+          onSuccess={() => {
+            setShowEditModal(false);
+            setCertificateToEdit(null);
+            fetchCertificates();
+          }}
+        />
+      )}
+
+      {/* Delete Certificate Modal */}
+      {showDeleteModal && certificatesToDelete && (
+        <DeleteCertificateModal
+          certificates={Array.isArray(certificatesToDelete) ? certificatesToDelete : [certificatesToDelete]}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setCertificatesToDelete(null);
+          }}
+          onConfirm={handleDelete}
+          isDeleting={isDeleting}
+        />
+      )}
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <CertificateContextMenu
+          certificate={contextMenu.certificate}
+          position={contextMenu.position}
+          onClose={() => setContextMenu(null)}
+          onEdit={() => handleEdit(contextMenu.certificate)}
+          onDelete={() => {
+            setCertificatesToDelete(contextMenu.certificate);
+            setShowDeleteModal(true);
+            setContextMenu(null);
+          }}
+          onViewOriginal={() => handleViewOriginal(contextMenu.certificate)}
+          onViewSummary={() => handleViewSummary(contextMenu.certificate)}
+          onCopyLink={() => handleCopyLink(contextMenu.certificate)}
+          onDownload={() => handleDownload(contextMenu.certificate)}
+          onAutoRename={() => {
+            handleAutoRename(contextMenu.certificate.id);
+            setContextMenu(null);
+          }}
+          selectedCount={selectedCertificates.size}
+        />
+      )}
     </div>
   );
 };
