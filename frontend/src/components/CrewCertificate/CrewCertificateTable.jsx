@@ -730,17 +730,26 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {/* Checkbox */}
-                <th className="px-3 py-3 text-center border-r border-gray-200">
-                  <input
-                    type="checkbox"
-                    checked={sortedCertificates.length > 0 && sortedCertificates.every(cert => selectedCertificates.has(cert.id))}
-                    onChange={(e) => handleSelectAll(e.target.checked, sortedCertificates)}
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                  />
+                {/* Checkbox + STT */}
+                <th className="px-3 py-3 text-left border-r border-gray-200">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={sortedCertificates.length > 0 && sortedCertificates.every(cert => selectedCertificates.has(cert.id))}
+                      onChange={(e) => handleSelectAll(e.target.checked, sortedCertificates)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                    />
+                    <span className="text-sm font-bold text-gray-700 tracking-wider">
+                      {language === 'vi' ? 'STT' : 'No.'}
+                    </span>
+                  </div>
                 </th>
-                <th className="px-3 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200">
-                  {language === 'vi' ? 'STT' : 'No.'}
+                <th 
+                  onClick={() => handleSort('cert_name')}
+                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                >
+                  {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'}
+                  {getSortIcon('cert_name')}
                 </th>
                 <th 
                   onClick={() => handleSort('crew_name')}
@@ -762,13 +771,6 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
                 >
                   {language === 'vi' ? 'Chức danh' : 'Rank'}
                   {getSortIcon('rank')}
-                </th>
-                <th 
-                  onClick={() => handleSort('cert_name')}
-                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
-                >
-                  {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'}
-                  {getSortIcon('cert_name')}
                 </th>
                 <th 
                   onClick={() => handleSort('cert_no')}
