@@ -4,8 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar, SubMenuBar, CertificateTable, CertificateFilters, CertificateActionButtons, AddShipCertificateModal, UpcomingSurveyModal, CertificateNotesModal } from '../components';
 import { EditShipCertificateModal, DeleteShipCertificateModal } from '../components/ShipCertificates';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
+import { CompanyInfoPanel } from '../components/CompanyInfoPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
-import { shipService, shipCertificateService } from '../services';
+import { shipService, shipCertificateService, companyService } from '../services';
 import api from '../services/api';
 import { toast } from 'sonner';
 import { shortenClassSociety } from '../utils/shipHelpers';
@@ -27,6 +28,7 @@ const ClassAndFlagCert = () => {
   const [deleteShipData, setDeleteShipData] = useState(null);
   const [isDeletingShip, setIsDeletingShip] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [companyData, setCompanyData] = useState(null);
 
   // Certificate states
   const [certificates, setCertificates] = useState([]);
