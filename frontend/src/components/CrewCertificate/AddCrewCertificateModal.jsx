@@ -442,17 +442,25 @@ const AddCrewCertificateModal = ({
 
   // Filter crew list based on selected ship
   const getFilteredCrewList = () => {
+    console.log('getFilteredCrewList - selectedShip:', selectedShip?.name);
+    console.log('Total crew list:', crewList.length);
+    
     if (!selectedShip) {
       // If no ship selected, return all crew
+      console.log('No ship selected, showing all crew');
       return crewList;
     }
 
-    // Filter crew by selected ship
-    return crewList.filter(crew => {
+    // Filter crew by selected ship ONLY (không bao gồm Standby)
+    const filtered = crewList.filter(crew => {
       const crewShip = crew.ship_sign_on || '-';
-      // Show crew if they're on this ship or standby
-      return crewShip === selectedShip.name || crewShip === '-';
+      return crewShip === selectedShip.name;
     });
+    
+    console.log(`Filtered crew for ship ${selectedShip.name}:`, filtered.length);
+    console.log('Filtered crew:', filtered.map(c => ({ name: c.full_name, ship: c.ship_sign_on })));
+    
+    return filtered;
   };
 
   // Get all cert names (common + custom)
