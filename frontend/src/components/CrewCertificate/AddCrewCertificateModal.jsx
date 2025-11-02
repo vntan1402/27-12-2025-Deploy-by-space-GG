@@ -545,10 +545,13 @@ const AddCrewCertificateModal = ({
               <span className="mr-2">📜</span>
               {language === 'vi' ? 'Thêm chứng chỉ thuyền viên' : 'Add Crew Certificate'}
             </h2>
-            {preSelectedCrew && (
+            {/* Show crew info if pre-selected OR selected from dropdown */}
+            {(preSelectedCrew || formData.crew_id) && (
               <p className="text-sm text-gray-600 mt-1">
                 {language === 'vi' ? 'Thuyền viên: ' : 'Crew: '}
-                <span className="font-medium">{preSelectedCrew.full_name} ({preSelectedCrew.passport})</span>
+                <span className="font-semibold uppercase">
+                  {formData.crew_name} ({formData.passport})
+                </span>
               </p>
             )}
           </div>
