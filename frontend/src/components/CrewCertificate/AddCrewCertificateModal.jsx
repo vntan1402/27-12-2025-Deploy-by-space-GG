@@ -37,7 +37,8 @@ const COMMON_CERT_NAMES = [
 
 const AddCrewCertificateModal = ({ 
   onClose, 
-  onSuccess, 
+  onSuccess,
+  onBatchUpload,
   selectedShip, 
   ships, 
   preSelectedCrew = null,
