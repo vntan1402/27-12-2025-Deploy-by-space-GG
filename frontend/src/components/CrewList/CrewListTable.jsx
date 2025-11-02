@@ -704,7 +704,7 @@ export const CrewListTable = ({
     setRankContextMenu({ show: false, x: 0, y: 0, crew: null });
     
     try {
-      await crewService.updateCrew(crew.id, { rank });
+      await crewService.update(crew.id, { rank });
       
       toast.success(language === 'vi' 
         ? `Đã cập nhật chức vụ cho ${crew.full_name}: ${rank}`
