@@ -749,7 +749,7 @@ const AddCrewCertificateModal = ({
                   <option value="">{language === 'vi' ? '-- Chọn thuyền viên --' : '-- Select crew member --'}</option>
                   {getFilteredCrewList().map(crew => (
                     <option key={crew.id} value={crew.id}>
-                      {crew.full_name} - {crew.passport} - {crew.rank || 'N/A'}
+                      {crew.full_name.toUpperCase()} - {crew.passport} - {crew.rank || 'N/A'}
                     </option>
                   ))}
                 </select>
