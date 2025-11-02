@@ -20841,7 +20841,21 @@ def normalize_certificate_name(extracted_data: dict, summary_text: str) -> dict:
         # Seaman Book + GMDSS → "Seaman book for GMDSS"
         # Seaman Book + Rank keywords → "Seaman Book for COC"
         # ===================================================
-        SEAMAN_BOOK_KEYWORDS = ['SEAMAN BOOK', 'SEAMAN\'S BOOK', 'LIBRETA DE EMBARQUE', 'P0196554A', 'P-NUMBER', 'P NUMBER']
+        SEAMAN_BOOK_KEYWORDS = [
+            'SEAMAN BOOK', 
+            'SEAMAN\'S BOOK', 
+            'LIBRETA DE EMBARQUE',
+            'LIBRETA',  # Short form
+            'SEAMANS BOOK',  # No apostrophe variant
+            'MERCHANT MARINER',  # US variant
+            'P0196554A',  # Specific P-number pattern
+            'P-NUMBER', 
+            'P NUMBER',
+            'P-0',  # P-number pattern prefix
+            'DOCUMENT OF IDENTITY',  # Alternative name
+            'SEAFARER IDENTITY',  # Alternative name
+            'REPUBLICA DE PANAMA'  # Panama Seaman's Book indicator
+        ]
         
         # Check if Seaman Book is mentioned
         has_seaman_book = any(keyword in note_upper or keyword in summary_upper for keyword in SEAMAN_BOOK_KEYWORDS)
