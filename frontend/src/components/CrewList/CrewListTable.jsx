@@ -1023,6 +1023,7 @@ export const CrewListTable = ({
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
             >
               <option value="All">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+              <option value="Standby">{language === 'vi' ? '⚓ Standby' : '⚓ Standby'}</option>
               {ships.map(ship => (
                 <option key={ship.id} value={ship.name}>{ship.name}</option>
               ))}
