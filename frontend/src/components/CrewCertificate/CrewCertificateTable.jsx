@@ -590,6 +590,8 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
           }}
           selectedShip={selectedShip}
           ships={ships}
+          preSelectedCrewName={filters.crewName !== 'all' ? filters.crewName : null}
+          allCrewList={crewList}
         />
       )}
     </div>
