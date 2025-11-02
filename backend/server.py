@@ -20850,7 +20850,14 @@ def normalize_certificate_name(extracted_data: dict, summary_text: str) -> dict:
             logger.info("📖 Found Seaman Book reference, checking combination...")
             
             # Check for GMDSS + Seaman Book → "Seaman book for GMDSS"
-            GMDSS_KEYWORDS = ['GMDSS', 'GLOBAL MARITIME DISTRESS', 'RADIO OPERATOR', 'RADIO COMMUNICATION']
+            GMDSS_KEYWORDS = [
+                'GMDSS', 
+                'MDSS',  # Typo variant: missing 'G'
+                'GLOBAL MARITIME DISTRESS', 
+                'RADIO OPERATOR', 
+                'RADIO COMMUNICATION',
+                'MDSS GENERAL OPERATOR'  # Common variant
+            ]
             has_gmdss = any(keyword in note_upper or keyword in summary_upper for keyword in GMDSS_KEYWORDS)
             
             if has_gmdss:
