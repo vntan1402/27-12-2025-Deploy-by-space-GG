@@ -280,7 +280,14 @@ export const CrewListTable = ({
   
   // Handle crew double click (navigate to certificates)
   const handleCrewDoubleClick = (crew) => {
-    navigate(`/crew/${crew.id}/certificates`);
+    // Navigate to crew certificates page with crew name filter
+    navigate('/crew-certificates', { 
+      state: { 
+        filterCrewName: crew.full_name,
+        selectedShipId: selectedShip?.id || null,
+        selectedShipName: selectedShip?.name || null
+      } 
+    });
   };
   
   // Handle edit crew
