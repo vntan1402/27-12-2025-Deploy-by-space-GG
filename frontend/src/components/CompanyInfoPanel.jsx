@@ -80,55 +80,99 @@ export const CompanyInfoPanel = ({ companyData, onClose }) => {
         </div>
         
         {/* Company Info - 3 columns grid */}
-        <div className="grid grid-cols-3 gap-4 text-sm mb-4">
-          <div className="text-base font-bold">
-            <span className="font-bold">{language === 'vi' ? 'Tên công ty:' : 'Company Name:'}</span>
-            <span className="ml-2 font-bold">{companyData?.name || '-'}</span>
-          </div>
-          
-          <div>
-            <span className="font-semibold">{language === 'vi' ? 'Số tàu:' : 'Total Ships:'}</span>
-            <span className="ml-2 font-bold text-blue-600">{companyData?.total_ships || 0}</span>
-          </div>
-          
-          <div>
-            <span className="font-semibold">{language === 'vi' ? 'Tổng thuyền viên:' : 'Total Crew:'}</span>
-            <span className="ml-2 font-bold text-green-600">{companyData?.total_crew || 0}</span>
-          </div>
-          
-          {companyData?.email && (
+        <div className="grid grid-cols-3 gap-6 text-sm">
+          {/* Column 1: Company Name, Email, Phone */}
+          <div className="space-y-3">
             <div>
-              <span className="font-semibold">Email:</span>
-              <span className="ml-2 text-blue-600">{companyData.email}</span>
+              <div className="text-xs text-gray-500 mb-1">{language === 'vi' ? 'Tên công ty' : 'Company Name'}</div>
+              <div className="font-bold text-base text-gray-800">{companyData?.name || '-'}</div>
             </div>
-          )}
-          
-          {companyData?.phone && (
-            <div>
-              <span className="font-semibold">{language === 'vi' ? 'Điện thoại:' : 'Phone:'}</span>
-              <span className="ml-2">{companyData.phone}</span>
-            </div>
-          )}
-          
-          <div>
-            <span className="font-semibold">{language === 'vi' ? 'Hạn phần mềm:' : 'Software Expiry:'}</span>
-            <span className="ml-2">{companyData?.software_expiry ? formatDate(companyData.software_expiry) : '-'}</span>
-            {daysRemaining !== null && (
-              <span className={`ml-2 text-xs ${
-                daysRemaining > 30 ? 'text-green-600' : 
-                daysRemaining > 0 ? 'text-yellow-600' : 'text-red-600'
-              }`}>
-                ({daysRemaining > 0 ? `${daysRemaining}d` : language === 'vi' ? 'Hết hạn' : 'Expired'})
-              </span>
+            
+            {companyData?.email && (
+              <div>
+                <div className="text-xs text-gray-500 mb-1">Email</div>
+                <div className="text-blue-600">{companyData.email}</div>
+              </div>
+            )}
+            
+            {companyData?.phone && (
+              <div>
+                <div className="text-xs text-gray-500 mb-1">{language === 'vi' ? 'Điện thoại' : 'Phone'}</div>
+                <div>{companyData.phone}</div>
+              </div>
             )}
           </div>
           
-          {companyData?.address && (
-            <div className="col-span-3">
-              <span className="font-semibold">{language === 'vi' ? 'Địa chỉ:' : 'Address:'}</span>
-              <span className="ml-2">{companyData.address}</span>
+          {/* Column 2: Total Ships, Total Crew */}
+          <div className="space-y-3">
+            <div>
+              <div className="text-xs text-gray-500 mb-1">{language === 'vi' ? 'Số tàu' : 'Total Ships'}</div>
+              <div className="font-bold text-2xl text-blue-600">{companyData?.total_ships || 0}</div>
             </div>
-          )}
+            
+            <div>
+              <div className="text-xs text-gray-500 mb-1">{language === 'vi' ? 'Tổng thuyền viên' : 'Total Crew'}</div>
+              <div className="font-bold text-2xl text-green-600">{companyData?.total_crew || 0}</div>
+            </div>
+          </div>
+          
+          {/* Column 3: Software Expiry and Notice (uses both rows if notice needed) */}
+          <div className="space-y-3">
+            <div>
+              <div className="text-xs text-gray-500 mb-1">{language === 'vi' ? 'Hạn phần mềm' : 'Software Expiry'}</div>
+              <div className="font-semibold">
+                {companyData?.software_expiry ? formatDate(companyData.software_expiry) : '-'}
+                {daysRemaining !== null && (
+                  <span className={`ml-2 text-xs ${
+                    daysRemaining > 30 ? 'text-green-600' : 
+                    daysRemaining > 0 ? 'text-yellow-600' : 'text-red-600'
+                  }`}>
+                    ({daysRemaining > 0 ? `${daysRemaining}d` : language === 'vi' ? 'Hết hạn' : 'Expired'})
+                  </span>
+                )}
+              </div>
+            </div>
+            
+            {/* Notice - Only show if less than 30 days remaining */}
+            {daysRemaining !== null && daysRemaining < 30 && daysRemaining >= 0 && (
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+                <div className="flex items-start">
+                  <span className="text-yellow-600 mr-2 text-lg">⚠️</span>
+                  <div>
+                    <div className="font-semibold text-yellow-800 text-xs mb-1">
+                      {language === 'vi' ? 'Lưu ý' : 'Notice'}
+                    </div>
+                    <div className="text-xs text-yellow-700 leading-relaxed">
+                      {language === 'vi' 
+                        ? 'Phần mềm sắp hết hạn, hãy gia hạn phần mềm để tiếp tục sử dụng.'
+                        : 'Software is about to expire, please renew to continue using.'
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Expired Notice */}
+            {daysRemaining !== null && daysRemaining < 0 && (
+              <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                <div className="flex items-start">
+                  <span className="text-red-600 mr-2 text-lg">🚫</span>
+                  <div>
+                    <div className="font-semibold text-red-800 text-xs mb-1">
+                      {language === 'vi' ? 'Cảnh báo' : 'Warning'}
+                    </div>
+                    <div className="text-xs text-red-700 leading-relaxed">
+                      {language === 'vi' 
+                        ? 'Phần mềm đã hết hạn! Vui lòng liên hệ để gia hạn ngay.'
+                        : 'Software has expired! Please contact us to renew immediately.'
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
