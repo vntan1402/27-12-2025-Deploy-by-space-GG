@@ -27,6 +27,7 @@ export const CrewListTable = ({
   onShipSelect  // New prop to handle ship selection from modal
 }) => {
   const { language, user } = useAuth();
+  const navigate = useNavigate();
   
   // State
   const [crewList, setCrewList] = useState([]);
