@@ -716,7 +716,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
       {showDeleteModal && certificatesToDelete && (
         <DeleteCertificateModal
           certificates={Array.isArray(certificatesToDelete) ? certificatesToDelete : [certificatesToDelete]}
-          onClose={() => {
+          onCancel={() => {
             setShowDeleteModal(false);
             setCertificatesToDelete(null);
           }}
