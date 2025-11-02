@@ -579,6 +579,19 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
           </table>
         </div>
       </div>
+
+      {/* Add Certificate Modal */}
+      {showAddModal && (
+        <AddCrewCertificateModal
+          onClose={() => setShowAddModal(false)}
+          onSuccess={() => {
+            setShowAddModal(false);
+            fetchCertificates();
+          }}
+          selectedShip={selectedShip}
+          ships={ships}
+        />
+      )}
     </div>
   );
 };
