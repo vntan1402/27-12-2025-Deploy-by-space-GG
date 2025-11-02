@@ -9,3 +9,6 @@ export * from './ShipCertificates';
 
 // Re-export Crew List components
 export * from './CrewList';
+
+// Re-export CompanyInfoPanel
+export { CompanyInfoPanel } from './CompanyInfoPanel';
