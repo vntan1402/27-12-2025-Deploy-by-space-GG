@@ -20882,7 +20882,15 @@ def normalize_certificate_name(extracted_data: dict, summary_text: str) -> dict:
         # ===================================================
         # PRIORITY 1: Check for GMDSS keywords (HIGHEST)
         # ===================================================
-        GMDSS_KEYWORDS = ['GMDSS', 'GLOBAL MARITIME DISTRESS', 'RADIO OPERATOR', 'RADIO COMMUNICATION']
+        GMDSS_KEYWORDS = [
+            'GMDSS', 
+            'MDSS',  # Typo variant: missing 'G' in GMDSS
+            'GLOBAL MARITIME DISTRESS', 
+            'RADIO OPERATOR', 
+            'RADIO COMMUNICATION',
+            'MDSS GENERAL OPERATOR',  # Common OCR/typo variant (e.g., "MDSS GENERAL OPERATOR IV/2")
+            'GMDSS GENERAL OPERATOR'
+        ]
         
         for keyword in GMDSS_KEYWORDS:
             if keyword in note_upper or keyword in summary_upper:
