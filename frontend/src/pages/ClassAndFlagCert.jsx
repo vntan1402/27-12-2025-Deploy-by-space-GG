@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { MainLayout, Sidebar, SubMenuBar, CertificateTable, CertificateFilters, CertificateActionButtons, AddShipCertificateModal, UpcomingSurveyModal, CertificateNotesModal } from '../components';
+import { MainLayout, Sidebar, SubMenuBar, CertificateTable, CertificateFilters, CertificateActionButtons, AddShipCertificateModal, UpcomingSurveyModal, CertificateNotesModal, CompanyInfoPanel } from '../components';
 import { EditShipCertificateModal, DeleteShipCertificateModal } from '../components/ShipCertificates';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
-import { CompanyInfoPanel } from '../components/CompanyInfoPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
 import { shipService, shipCertificateService, companyService } from '../services';
 import api from '../services/api';
