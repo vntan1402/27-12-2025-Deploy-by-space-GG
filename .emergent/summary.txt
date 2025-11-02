@@ -1,20 +1,20 @@
 <analysis>
-The AI engineer successfully progressed the  feature migration to V2, addressing various functional and UI aspects. Initial work focused on refining backend deletion logic, ensuring background Google Drive file removal, and correcting frontend API call mismatches. This was followed by implementing and styling batch processing modals to mirror the 's UX, including individual file progress tracking and a staggered upload sequence. Subsequently, all V1 context menu options, including bulk edit functionalities for Place, Ship, and Dates, were integrated using modal-based interactions. A significant effort was dedicated to synchronizing the ship selector and  filter, introducing a  for All ship selections, and fetching company data for display. The latest work focuses on refining the layout and content of this .
+The previous AI engineer has been meticulously working on the  V2 migration, tackling a series of functional and UI enhancements based on user feedback. The work began with refining backend deletion, migrating batch processing, and integrating V1 context menus. Subsequently, efforts focused on synchronizing ship filters, implementing the , and expanding its data display. The engineer addressed several bugs, including incorrect batch upload statuses, UI filter issues, API errors, and frontend function calls. The most recent task involves integrating and debugging the display of the  within the  page when no ship is selected, which encountered an issue with the panel not appearing.
 </analysis>
 
 <product_requirements>
-The  application is migrating from V1 to V2, focusing on enhancing ship management with secure Google Drive integration and AI-assisted features for . The project aims to provide a robust  system with the following key features and fixes implemented or addressed:
-
-1.  **V1 Analysis and V2 Main Page:** The  page was created, mimicking , with Crew List and Crew Certificates sub-categories and integrated into sidebar navigation.
-2.  **Add Crew Modal:** Implemented with AI-powered passport analysis, auto-fill for Vietnamese/English fields, refined UX for analysis messages and spinning icons.
-3.  **Batch Processing:** Migrated from V1, including  and  styled similar to , with smooth progress animation and staggered parallel file processing.
-4.  **File Management:** Ensured summary files upload to the same Google Drive folder as passports, under  for Sign on crew.
-5.  **Deletion Functionality:** Frontend  function was corrected to , and backend  endpoint was refactored to use  for asynchronous Google Drive file deletion (passport and summary files).  functionality was added to the backend and integrated into the frontend.
-6.  **Context Menus:** All V1 row context menu options (edit crew, bulk edit place/ship/date sign on/off, delete) were implemented using dedicated modals instead of .
-7.  **UI Synchronization:** Ship Selector dropdown and  filter are synchronized. When All is selected in the filter,  is replaced by a  displaying company details (name, address, email, software expiry, logo).
-8.  **Auto-Update Logic:** When  is filled,  auto-updates to Standby and  clears. If  is updated without  or , a reminder toast message is displayed.
-9.  **Standby Mode:** The  now hides the Ship Sign On field when in Standby mode, matching V1 behavior.
-10. **CompanyInfoPanel Display:** Fetch company data and ensure  displays correctly with proper layout and content from the company collection.
+The  application is migrating from V1 to V2 to enhance ship management with Google Drive integration and AI-assisted . Key features and fixes include:
+1.  **V2  Page:** Mimics  with Crew List and Crew Certificates sub-categories and sidebar navigation.
+2.  **Add Crew Modal:** AI-powered passport analysis, auto-fill, and refined UX.
+3.  **Batch Processing:** V1 migration with  and  (Test Report style), smooth progress, and staggered file processing.
+4.  **File Management:** Summary files upload to .
+5.  **Deletion Functionality:** Frontend  and backend  with  for Google Drive file deletion;  added.
+6.  **Context Menus:** V1 row context menu options (edit, bulk edit place/ship/date sign on/off) implemented using modals.
+7.  **UI Synchronization:** Ship Selector and  filter are synchronized.  replaced by  (displaying company details like name, address, email, software expiry, logo) when All is selected.
+8.  **Auto-Update Logic:**  auto-updates  to Standby and clears . Toast reminder for missing / on  update.
+9.  **Standby Mode:**  hides Ship Sign On in Standby mode.
+10. **CompanyInfoPanel Display:** Fetch and display company data correctly, including name, address, email, software expiry, logo, total ships, total crew. Layout to match  structure, with inline labels/values and an expiry notice if less than 30 days.
+11. ** Integration:** Display  in  page when no ship is selected, above the Submenubar.
 </product_requirements>
 
 <key_technical_concepts>
@@ -28,37 +28,49 @@ The  application is migrating from V1 to V2, focusing on enhancing ship manageme
 
 -   ****:
     -   Importance: FastAPI application, defines all API endpoints.
-    -   Changes: The  DELETE endpoint was refactored to use  for Google Drive file deletion. A new  endpoint was added. A  endpoint was implemented to fetch company details by ID, resolving an issue where the  field in  was a UUID instead of a name.
+    -   Changes:  DELETE endpoint refactored for . New  added.  implemented to fetch company details by ID; modified to return  (by counting ships in the  collection) and  (by counting crew in  collection) and map  to . Fixed 500 error due to incorrect MongoDB count method.
 -   ****:
-    -   Importance: Manages interactions with Google Apps Script for Drive operations (upload/delete).
-    -   Changes:  was corrected to handle nested folder structures correctly by explicitly using  and  (e.g., Crew Records as parent, Crew List as category).
--   ** (NEW)**:
+    -   Importance: Manages MongoDB interactions.
+    -   Changes: Fixed issue with  method by ensuring  was used correctly.
+-   ****:
+    -   Importance: Manages Google Apps Script for Drive operations.
+    -   Changes:  corrected for nested folder structures.
+-   ****:
     -   Importance: Main page for Crew Records.
-    -   Changes: Integrated , now fetches  and  and passes them as props. Updated logic to always display  and dynamically show either  (for selected ship) or  (for All filter), removing the ship cards grid view. Includes handlers for syncing ship filter changes.
--   ** (NEW)**:
+    -   Changes: Integrated , fetches  and . Dynamically shows  or . Fixed  error by passing it correctly as a prop to .
+-   ****:
     -   Importance: Displays company information.
-    -   Changes: Created to display company , , , , and . Its styling and layout are currently being adjusted to match .
--   ** (NEW)**:
+    -   Changes: Created to display company , , , , , , and . Styling and layout adjusted multiple times to match , reorganized into three columns with inline labels/values, and added expiry notice logic.
+-   ****:
     -   Importance: Displays crew list, integrates modals, handles filters, sorting, search, and batch processing.
-    -   Changes:  method call corrected to . Bulk delete functionality was implemented using . Batch processing logic was updated to use individual file progress tracking, smooth animation, and a 2s stagger delay for uploads, mirroring . Added V1 context menu options (bulk edit Place/Ship/Date Sign On/Off) with modal integration and corresponding handler functions. Logic to check for  and  when updating  was added, with toast reminders. Implemented V1's auto-update logic for  (status, clear ship, toast, file move). Includes  for synchronizing  filter with  from  page.
--   ** (NEW)**:
+    -   Changes:  method call corrected. Bulk delete implemented. Batch processing logic updated for individual file progress, animation, stagger delay. V1 context menu options (bulk edit Place/Ship/Date Sign On/Off) integrated. Logic for  and  added with toast reminders. Auto-update logic for  implemented.  for synchronizing  filter. Fixed issue where batch upload in Standby mode incorrectly set status to Sign on. Implemented Standby option for crew status filter and fixed auto-refresh issues for all filters. Fixed table header sorting icons to display  (unsorted),  (ascending),  (descending).
+-   ****:
     -   Importance: Modal for adding new crew.
-    -   Changes: Success message for AI analysis now only displays when  and  are both present. The Ship Sign On field is now hidden when in Standby mode.
--   ** (NEW)**:
+    -   Changes: Success message for AI analysis displays when  and  are present. Ship Sign On field hidden in Standby mode. Added a Ship Select button next to Standby Crew in the header.
+-   ****:
     -   Importance: Displays batch upload progress.
-    -   Changes: Updated to match 's style, including a minimize button and individual file progress display.
--   ** (NEW)**:
+    -   Changes: Updated to match  style, with minimize button and individual file progress.
+-   ****:
     -   Importance: Displays batch upload results.
-    -   Changes: Updated to match 's style, using a table format for results.
--   ** (NEW)**:
+    -   Changes: Updated to match  style, using a table format.
+-   ****:
     -   Importance: Houses modals for bulk editing crew fields.
-    -   Changes: Created to provide separate modals for bulk editing Place Sign On (text input), Ship Sign On (dropdown with ships list), Date Sign On, and Date Sign Off (date inputs), replacing  calls.
--   ** (MODIFIED)**:
+    -   Changes: Created for bulk editing Place Sign On, Ship Sign On, Date Sign On, and Date Sign Off.
+-   ****:
     -   Importance: Frontend service for crew API calls.
-    -   Changes: Added  method, corrected  method name to .
+    -   Changes: Added  method, corrected  method name to . Fixed export to ensure  is a callable function.
+-   ****:
+    -   Importance: Frontend service for company API calls.
+    -   Changes: Imported  for potential re-export or direct use.
 -   ****:
     -   Importance: Defines API routes.
-    -   Changes:  and  were corrected from  to  (removing the 's').
+    -   Changes:  and  corrected to .
+-   ****:
+    -   Importance: Main page for Class & Flag Certificates.
+    -   Changes: Modified to display  when no ship is selected, similar to .
+-   ****:
+    -   Importance: Central export for components.
+    -   Changes: Added  to the export list to make it available globally.
 </code_architecture>
 
 <pending_tasks>
@@ -73,18 +85,19 @@ The  application is migrating from V1 to V2, focusing on enhancing ship manageme
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer was addressing the user's feedback regarding the . The user reported that the  was not displaying correctly, specifically that its size and layout did not match the  and that the company logo should be displayed in the position where the ship photo would typically be.
+Immediately prior to this summary, the AI engineer was addressing the user's feedback regarding the  not displaying correctly on the  page. The user reported that despite previous attempts to integrate it, the  was not visible when no ship was selected.
 
-The AI engineer has already implemented the following to enable company information display:
-1.  **Backend Endpoint:** A new  endpoint was added to  to fetch company details based on the user's company ID. This endpoint now correctly returns the company name (e.g., AMCSC) instead of its UUID, and other details like , , and .
-2.  **Frontend Data Fetching:**  now fetches  using  and passes it as a prop to .
-3.  **CompanyInfoPanel Integration:**  dynamically renders  when no ship is selected (i.e., when the All filter is active) and  when a specific ship is selected, maintaining the overall layout.
-4.  **Initial CompanyInfoPanel Content:**  has been updated to display the fetched company , , , , and .
-5.  **Initial CSS Adjustment:** A previous attempt was made to fix potential CSS clipping issues for  by adding  and  classes.
+The AI engineer had already:
+1.  Modified  to conditionally render  when  is null, similar to .
+2.  Ensured  was being fetched and passed to  in .
 
-However, the user's latest message indicates that the  is still not displaying correctly, and they provided an image to clarify the desired layout, which matches the 's structure (photo on left, info grid on right, compact height). The AI engineer is currently in the process of analyzing the  to understand its layout and apply similar styling to .
+However, the user's latest message (Chat 467) explicitly stated, CompanyInfoPanel chưa hiển thị (CompanyInfoPanel is not displayed), accompanied by a screenshot confirming its absence. The AI engineer is currently debugging this display issue, suspecting problems with component importing or exporting. Recent actions involved:
+-   Checking  (Chat 469), then editing it (Chat 471) (though this file primarily handles API calls).
+-   Searching for  in  (Chat 473).
+-   Reading  (Chat 475) and subsequently editing it (Chat 478) to ensure  is correctly exported.
+-   Finally, editing  (Chat 484) to verify correct import of .
 </current_work>
 
 <optional_next_step>
-Adjust the layout and styling of  to match the , including photo/logo placement and information grid.
+Verify if  now displays correctly in  when no ship is selected, given the recent import/export fixes.
 </optional_next_step>
