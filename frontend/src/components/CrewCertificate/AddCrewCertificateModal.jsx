@@ -651,8 +651,14 @@ const AddCrewCertificateModal = ({
 
             {/* Section 2: Crew Selection (if not pre-selected) */}
             {!preSelectedCrew && (
-              <div className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+              <div className={`rounded-lg p-4 transition-all duration-300 ${
+                highlightCrewSection 
+                  ? 'border-4 border-orange-500 bg-orange-50 animate-pulse' 
+                  : 'border border-gray-200'
+              }`}>
+                <h3 className={`text-lg font-semibold mb-3 flex items-center ${
+                  highlightCrewSection ? 'text-orange-600' : 'text-gray-800'
+                }`}>
                   <span className="mr-2">👤</span>
                   {language === 'vi' ? 'Chọn thuyền viên' : 'Select Crew Member'}
                   <span className="text-red-500 ml-1">*</span>
@@ -660,8 +666,18 @@ const AddCrewCertificateModal = ({
                 
                 <select
                   value={formData.crew_id}
-                  onChange={(e) => handleCrewSelect(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={(e) => {
+                    handleCrewSelect(e.target.value);
+                    // Remove highlight when crew is selected
+                    if (e.target.value) {
+                      setHighlightCrewSection(false);
+                    }
+                  }}
+                  className={`w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    highlightCrewSection 
+                      ? 'border-2 border-orange-500' 
+                      : 'border border-gray-300'
+                  }`}
                   disabled={isLoadingCrew}
                 >
                   <option value="">{language === 'vi' ? '-- Chọn thuyền viên --' : '-- Select crew member --'}</option>
