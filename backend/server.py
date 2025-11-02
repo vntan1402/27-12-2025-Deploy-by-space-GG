@@ -20965,10 +20965,17 @@ def normalize_certificate_name(extracted_data: dict, summary_text: str) -> dict:
         # PRIORITY 3: Check for Rank keywords → COC
         # ===================================================
         RANK_KEYWORDS = [
-            'MASTER', 'CAPTAIN', 'CHIEF MATE', 'CHIEF OFFICER', 
-            'SECOND MATE', 'SECOND OFFICER', 'THIRD MATE', 'THIRD OFFICER',
-            'CHIEF ENGINEER', 'SECOND ENGINEER', 'THIRD ENGINEER',
-            'DECK OFFICER', 'ENGINE OFFICER', 'OFFICER', 'OOW'
+            'MASTER', 'CAPTAIN', 'CAPT',
+            'CHIEF MATE', 'CHIEF OFFICER', 'C/MATE', 'C/M',
+            'SECOND MATE', 'SECOND OFFICER', '2ND MATE', '2/M',
+            'THIRD MATE', 'THIRD OFFICER', '3RD MATE', '3/M',
+            'CHIEF ENGINEER', 'C/E', 'C/ENG',
+            'SECOND ENGINEER', '2ND ENGINEER', '2/E',
+            'THIRD ENGINEER', '3RD ENGINEER', '3/E',
+            'DECK OFFICER', 'ENGINE OFFICER', 'OFFICER', 'OOW',
+            'CAPACITY',  # Field label that indicates officer role
+            'MASTER LIMITED',  # Master with limitations
+            'MASTER UNLIMITED'  # Master without limitations
         ]
         
         for rank in RANK_KEYWORDS:
