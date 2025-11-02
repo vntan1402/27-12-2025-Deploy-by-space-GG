@@ -119,4 +119,12 @@ export const companyService = {
   testGDriveConnection: async (companyId, testData) => {
     return api.post(API_ENDPOINTS.COMPANY_GDRIVE_TEST_PROXY(companyId), testData);
   },
+
+  /**
+   * Get current user's company information
+   * @returns {Promise} Company info (name, email, total_ships, total_crew, etc.)
+   */
+  getCompanyInfo: async () => {
+    return api.get('/api/company');
+  },
 };
