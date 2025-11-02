@@ -82,45 +82,45 @@ export const CompanyInfoPanel = ({ companyData, onClose }) => {
         {/* Company Info - 3 columns grid */}
         <div className="grid grid-cols-3 gap-6 text-sm">
           {/* Column 1: Company Name, Email, Phone */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div>
-              <div className="text-xs text-gray-500 mb-1">{language === 'vi' ? 'Tên công ty' : 'Company Name'}</div>
-              <div className="font-bold text-base text-gray-800">{companyData?.name || '-'}</div>
+              <span className="text-gray-600 font-semibold">{language === 'vi' ? 'Tên công ty:' : 'Company Name:'}</span>
+              <span className="ml-2 font-bold text-gray-800">{companyData?.name || '-'}</span>
             </div>
             
             {companyData?.email && (
               <div>
-                <div className="text-xs text-gray-500 mb-1">Email</div>
-                <div className="text-blue-600">{companyData.email}</div>
+                <span className="text-gray-600 font-semibold">Email:</span>
+                <span className="ml-2 text-blue-600">{companyData.email}</span>
               </div>
             )}
             
             {companyData?.phone && (
               <div>
-                <div className="text-xs text-gray-500 mb-1">{language === 'vi' ? 'Điện thoại' : 'Phone'}</div>
-                <div>{companyData.phone}</div>
+                <span className="text-gray-600 font-semibold">{language === 'vi' ? 'Điện thoại:' : 'Phone:'}</span>
+                <span className="ml-2">{companyData.phone}</span>
               </div>
             )}
           </div>
           
           {/* Column 2: Total Ships, Total Crew */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div>
-              <div className="text-xs text-gray-500 mb-1">{language === 'vi' ? 'Số tàu' : 'Total Ships'}</div>
-              <div className="font-bold text-2xl text-blue-600">{companyData?.total_ships || 0}</div>
+              <span className="text-gray-600 font-semibold">{language === 'vi' ? 'Số tàu:' : 'Total Ships:'}</span>
+              <span className="ml-2 font-bold text-2xl text-blue-600">{companyData?.total_ships || 0}</span>
             </div>
             
             <div>
-              <div className="text-xs text-gray-500 mb-1">{language === 'vi' ? 'Tổng thuyền viên' : 'Total Crew'}</div>
-              <div className="font-bold text-2xl text-green-600">{companyData?.total_crew || 0}</div>
+              <span className="text-gray-600 font-semibold">{language === 'vi' ? 'Tổng thuyền viên:' : 'Total Crew:'}</span>
+              <span className="ml-2 font-bold text-2xl text-green-600">{companyData?.total_crew || 0}</span>
             </div>
           </div>
           
           {/* Column 3: Software Expiry and Notice (uses both rows if notice needed) */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div>
-              <div className="text-xs text-gray-500 mb-1">{language === 'vi' ? 'Hạn phần mềm' : 'Software Expiry'}</div>
-              <div className="font-semibold">
+              <span className="text-gray-600 font-semibold">{language === 'vi' ? 'Hạn phần mềm:' : 'Software Expiry:'}</span>
+              <span className="ml-2 font-semibold">
                 {companyData?.software_expiry ? formatDate(companyData.software_expiry) : '-'}
                 {daysRemaining !== null && (
                   <span className={`ml-2 text-xs ${
@@ -130,12 +130,12 @@ export const CompanyInfoPanel = ({ companyData, onClose }) => {
                     ({daysRemaining > 0 ? `${daysRemaining}d` : language === 'vi' ? 'Hết hạn' : 'Expired'})
                   </span>
                 )}
-              </div>
+              </span>
             </div>
             
             {/* Notice - Only show if less than 30 days remaining */}
             {daysRemaining !== null && daysRemaining < 30 && daysRemaining >= 0 && (
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded mt-2">
                 <div className="flex items-start">
                   <span className="text-yellow-600 mr-2 text-lg">⚠️</span>
                   <div>
@@ -155,7 +155,7 @@ export const CompanyInfoPanel = ({ companyData, onClose }) => {
             
             {/* Expired Notice */}
             {daysRemaining !== null && daysRemaining < 0 && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+              <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded mt-2">
                 <div className="flex items-start">
                   <span className="text-red-600 mr-2 text-lg">🚫</span>
                   <div>
