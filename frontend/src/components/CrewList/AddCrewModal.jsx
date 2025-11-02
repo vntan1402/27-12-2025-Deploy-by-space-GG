@@ -80,6 +80,20 @@ export const AddCrewModal = ({
     }
   }, [selectedShip, isStandbyMode]);
   
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showShipDropdown && !event.target.closest('.ship-select-dropdown')) {
+        setShowShipDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showShipDropdown]);
+  
   // Handle file selection
   const handleFileSelect = async (e) => {
     const files = Array.from(e.target.files || []);
