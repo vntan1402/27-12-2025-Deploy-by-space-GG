@@ -254,7 +254,10 @@ const CrewRecords = () => {
   // Handle submenu navigation
   const handleSubMenuChange = (submenuKey) => {
     setSelectedSubMenu(submenuKey);
-    // TODO: Navigate to crew certificates when implemented
+    // Navigate to crew certificates if needed
+    if (submenuKey === 'crew_certificates') {
+      window.location.href = '/crew-certificates';
+    }
   };
 
   return (
