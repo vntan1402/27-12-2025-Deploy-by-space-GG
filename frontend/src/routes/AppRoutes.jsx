@@ -11,6 +11,7 @@ import TestReport from '../pages/TestReport';
 import DrawingsManuals from '../pages/DrawingsManuals';
 import OtherDocuments from '../pages/OtherDocuments';
 import CrewRecords from '../pages/CrewRecords';
+import CrewCertificate from '../pages/CrewCertificate';
 import SystemSettingsPage from '../pages/SystemSettingsPage';
 
 // Loading component
