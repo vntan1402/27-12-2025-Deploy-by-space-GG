@@ -97,6 +97,14 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path="/crew-certificates"
+          element={
+            <ProtectedRoute>
+              <CrewCertificate />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/settings"
           element={
             <ProtectedRoute>
