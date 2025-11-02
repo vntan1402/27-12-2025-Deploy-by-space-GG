@@ -256,15 +256,25 @@ const AddCrewCertificateModal = ({
       console.error('AI analysis error:', error);
       
       // Handle name mismatch error
-      if (error.response?.status === 400 && error.response?.data?.detail?.includes('Certificate holder name')) {
-        const detail = error.response.data.detail;
-        toast.error(
-          <div>
-            <p className="font-bold">{language === 'vi' ? '⚠️ Tên không khớp' : '⚠️ Name Mismatch'}</p>
-            <p className="text-sm">{detail}</p>
-          </div>,
-          { duration: 6000 }
-        );
+      const errorDetail = error.response?.data?.detail;
+      const errorStatus = error.response?.status;
+      
+      if (errorStatus === 400 && errorDetail) {
+        const detailStr = typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail);
+        
+        if (detailStr.includes('Certificate holder name')) {
+          toast.error(
+            <div>
+              <p className="font-bold">{language === 'vi' ? '⚠️ Tên không khớp' : '⚠️ Name Mismatch'}</p>
+              <p className="text-sm">{detailStr}</p>
+            </div>,
+            { duration: 6000 }
+          );
+        } else {
+          toast.error(language === 'vi' 
+            ? `❌ Lỗi phân tích file: ${detailStr}` 
+            : `❌ Analysis failed: ${detailStr}`);
+        }
       } else {
         toast.error(language === 'vi' 
           ? '❌ Lỗi phân tích file. Vui lòng nhập thủ công.'
