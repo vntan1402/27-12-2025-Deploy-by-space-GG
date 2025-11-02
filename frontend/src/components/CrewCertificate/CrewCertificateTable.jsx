@@ -264,14 +264,25 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
 
         const analysisData = analysisResponse.data;
 
+        // Get crew info for required fields
+        const crewInfo = crewList.find(c => c.id === preSelectedCrewId);
+        if (!crewInfo) {
+          throw new Error('Crew member not found');
+        }
+
         // Step 2: Create certificate record
         const createData = {
-          crew_id: analysisData.crew_id,
-          cert_name: analysisData.cert_name,
-          cert_no: analysisData.cert_no,
-          issued_by: analysisData.issued_by,
-          issued_date: analysisData.issued_date,
-          cert_expiry: analysisData.cert_expiry,
+          crew_id: analysisData.crew_id || preSelectedCrewId,
+          crew_name: analysisData.crew_name || crewInfo.full_name,
+          crew_name_en: crewInfo.full_name_en || '',
+          passport: analysisData.passport || crewInfo.passport || '',
+          rank: analysisData.rank || crewInfo.rank || '',
+          date_of_birth: crewInfo.date_of_birth || '',
+          cert_name: analysisData.cert_name || '',
+          cert_no: analysisData.cert_no || '',
+          issued_by: analysisData.issued_by || '',
+          issued_date: analysisData.issued_date || '',
+          cert_expiry: analysisData.cert_expiry || '',
           note: analysisData.note || '',
           _file_content: analysisData._file_content,
           _summary_text: analysisData._summary_text
