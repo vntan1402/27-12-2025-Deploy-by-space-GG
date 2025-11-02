@@ -3687,7 +3687,7 @@ async def get_current_company(current_user: UserResponse = Depends(get_current_u
             "address": company.get("address"),
             "email": company.get("email"),
             "phone": company.get("phone"),
-            "software_expiry": company.get("software_expiry"),
+            "software_expiry": company.get("system_expiry"),  # Use system_expiry from company document
             "logo_url": company.get("logo_url"),
             "total_ships": total_ships,
             "total_crew": total_crew
