@@ -108,6 +108,7 @@ const ClassAndFlagCert = () => {
   useEffect(() => {
     fetchShips();
     fetchAiConfig();
+    fetchCompanyData();
     
     // Restore selected ship from localStorage
     const savedShipId = localStorage.getItem('selectedShipId');
