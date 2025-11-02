@@ -138,7 +138,9 @@ export const BatchResultsModal = ({
                       </div>
                     ) : (
                       <div className="text-xs text-red-600">
-                        {result.error || (language === 'vi' ? 'Lỗi không xác định' : 'Unknown error')}
+                        {typeof result.error === 'string' 
+                          ? result.error 
+                          : (language === 'vi' ? 'Lỗi không xác định' : 'Unknown error')}
                       </div>
                     )}
                   </td>
