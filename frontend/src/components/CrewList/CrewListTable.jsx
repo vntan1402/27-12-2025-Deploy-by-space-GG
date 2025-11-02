@@ -81,12 +81,10 @@ export const CrewListTable = ({
   const [bulkDateSignOn, setBulkDateSignOn] = useState('');
   const [bulkDateSignOff, setBulkDateSignOff] = useState('');
 
-  // Mock data for now - will be replaced with API calls
+  // Fetch crew list whenever filters change
   useEffect(() => {
-    if (selectedShip) {
-      fetchCrewList();
-    }
-  }, [selectedShip, filters.ship_sign_on, filters.status]);
+    fetchCrewList();
+  }, [filters.ship_sign_on, filters.status]);
 
   const fetchCrewList = async () => {
     setLoading(true);
