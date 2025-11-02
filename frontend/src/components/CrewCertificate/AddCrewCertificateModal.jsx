@@ -660,8 +660,8 @@ const AddCrewCertificateModal = ({
               )}
             </div>
 
-            {/* Section 2: Crew Selection (if not pre-selected) */}
-            {!preSelectedCrew && (
+            {/* Section 2: Crew Selection (if not pre-selected from filter or props) */}
+            {!preSelectedCrew && !preSelectedCrewName && !formData.crew_id && (
               <div className={`rounded-lg p-4 transition-all duration-300 ${
                 highlightCrewSection 
                   ? 'border-4 border-orange-500 bg-orange-50 animate-pulse' 
