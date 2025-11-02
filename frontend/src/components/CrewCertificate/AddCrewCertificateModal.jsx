@@ -77,20 +77,36 @@ const AddCrewCertificateModal = ({
   useEffect(() => {
     if (allCrewList && allCrewList.length > 0) {
       // Use passed crew list
+      console.log('Setting crew list from props:', allCrewList.length, 'crew members');
       setCrewList(allCrewList);
-      // Pre-select crew based on filter
-      if (preSelectedCrewName && !preSelectedCrew) {
-        const crew = allCrewList.find(c => c.full_name === preSelectedCrewName);
-        if (crew) {
-          handleCrewSelect(crew.id);
-        }
-      }
     } else {
       // Fetch crew list if not provided
       fetchCrewList();
     }
     loadCustomCertNames();
-  }, [allCrewList, preSelectedCrewName]);
+  }, [allCrewList]);
+
+  // Pre-select crew after crew list is loaded
+  useEffect(() => {
+    if (preSelectedCrewName && crewList.length > 0 && !formData.crew_id) {
+      console.log('Attempting to pre-select crew:', preSelectedCrewName);
+      const crew = crewList.find(c => c.full_name === preSelectedCrewName);
+      if (crew) {
+        console.log('Found crew to pre-select:', crew);
+        setFormData(prev => ({
+          ...prev,
+          crew_id: crew.id,
+          crew_name: crew.full_name,
+          crew_name_en: crew.full_name_en || '',
+          passport: crew.passport,
+          rank: crew.rank || '',
+          date_of_birth: crew.date_of_birth || ''
+        }));
+      } else {
+        console.log('Crew not found in list');
+      }
+    }
+  }, [preSelectedCrewName, crewList]);
 
   // Load custom certificate names from localStorage
   const loadCustomCertNames = () => {
