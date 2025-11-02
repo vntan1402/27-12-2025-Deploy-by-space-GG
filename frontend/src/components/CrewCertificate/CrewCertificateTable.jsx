@@ -311,10 +311,26 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
         setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
         setFileSubStatusMap(prev => ({ ...prev, [file.name]: '' }));
         
+        // Extract error message - handle various error formats
+        let errorMessage = 'Unknown error';
+        if (error.response?.data?.detail) {
+          const detail = error.response.data.detail;
+          if (typeof detail === 'string') {
+            errorMessage = detail;
+          } else if (Array.isArray(detail)) {
+            // Pydantic validation errors
+            errorMessage = detail.map(err => err.msg || JSON.stringify(err)).join(', ');
+          } else if (typeof detail === 'object') {
+            errorMessage = JSON.stringify(detail);
+          }
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
         results.push({
           success: false,
           filename: file.name,
-          error: error.response?.data?.detail || error.message || 'Unknown error'
+          error: errorMessage
         });
       }
 
