@@ -916,7 +916,17 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
           onClose={() => setContextMenu(null)}
           onEdit={() => handleEdit(contextMenu.certificate)}
           onDelete={() => {
-            setCertificatesToDelete(contextMenu.certificate);
+            // Check if multiple certificates are selected
+            if (selectedCertificates.size > 1) {
+              // Bulk delete - get all selected certificates
+              const selectedCerts = sortedCertificates.filter(cert => 
+                selectedCertificates.has(cert.id)
+              );
+              setCertificatesToDelete(selectedCerts);
+            } else {
+              // Single delete
+              setCertificatesToDelete(contextMenu.certificate);
+            }
             setShowDeleteModal(true);
             setContextMenu(null);
           }}
