@@ -35,7 +35,15 @@ const COMMON_CERT_NAMES = [
   'Radar Certificate'
 ];
 
-const AddCrewCertificateModal = ({ onClose, onSuccess, selectedShip, ships, preSelectedCrew = null }) => {
+const AddCrewCertificateModal = ({ 
+  onClose, 
+  onSuccess, 
+  selectedShip, 
+  ships, 
+  preSelectedCrew = null,
+  preSelectedCrewName = null,
+  allCrewList = []
+}) => {
   const { language, user } = useAuth();
   const fileInputRef = useRef(null);
   
@@ -67,9 +75,22 @@ const AddCrewCertificateModal = ({ onClose, onSuccess, selectedShip, ships, preS
 
   // Fetch crew list on mount
   useEffect(() => {
-    fetchCrewList();
+    if (allCrewList && allCrewList.length > 0) {
+      // Use passed crew list
+      setCrewList(allCrewList);
+      // Pre-select crew based on filter
+      if (preSelectedCrewName && !preSelectedCrew) {
+        const crew = allCrewList.find(c => c.full_name === preSelectedCrewName);
+        if (crew) {
+          handleCrewSelect(crew.id);
+        }
+      }
+    } else {
+      // Fetch crew list if not provided
+      fetchCrewList();
+    }
     loadCustomCertNames();
-  }, []);
+  }, [allCrewList, preSelectedCrewName]);
 
   // Load custom certificate names from localStorage
   const loadCustomCertNames = () => {
