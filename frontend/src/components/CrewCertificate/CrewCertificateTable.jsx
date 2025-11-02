@@ -254,12 +254,6 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
           );
 
           try {
-            // Get crew info for required fields
-            const crewInfo = crewList.find(c => c.id === preSelectedCrewId);
-            if (!crewInfo) {
-              throw new Error('Crew member not found');
-            }
-
             // Step 1: AI Analysis
             const formData = new FormData();
             formData.append('cert_file', file);
@@ -274,24 +268,36 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
               headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            const analysisData = analysisResponse.data;
+            const responseData = analysisResponse.data;
+            
+            // Check if analysis succeeded
+            if (!responseData.success || !responseData.analysis) {
+              throw new Error('Cannot analyze file');
+            }
+
+            const analysisData = responseData.analysis;
+            const crewData = {
+              crew_name: responseData.crew_name,
+              crew_name_en: responseData.crew_name_en,
+              passport: responseData.passport,
+              rank: responseData.rank,
+              date_of_birth: responseData.date_of_birth
+            };
 
             // Step 2: Create certificate record
             const createData = {
-              crew_id: analysisData.crew_id || preSelectedCrewId,
-              crew_name: analysisData.crew_name || crewInfo.full_name,
-              crew_name_en: crewInfo.full_name_en || '',
-              passport: analysisData.passport || crewInfo.passport || '',
-              rank: analysisData.rank || crewInfo.rank || '',
-              date_of_birth: crewInfo.date_of_birth || '',
+              crew_id: preSelectedCrewId,
+              crew_name: crewData.crew_name,
+              crew_name_en: crewData.crew_name_en || '',
+              passport: crewData.passport || '',
+              rank: crewData.rank || '',
+              date_of_birth: crewData.date_of_birth || '',
               cert_name: analysisData.cert_name || '',
               cert_no: analysisData.cert_no || '',
               issued_by: analysisData.issued_by || '',
               issued_date: analysisData.issued_date || '',
               cert_expiry: analysisData.cert_expiry || '',
-              note: analysisData.note || '',
-              _file_content: analysisData._file_content,
-              _summary_text: analysisData._summary_text
+              note: analysisData.note || ''
             };
 
             const createResponse = await api.post('/api/crew-certificates/manual', createData);
