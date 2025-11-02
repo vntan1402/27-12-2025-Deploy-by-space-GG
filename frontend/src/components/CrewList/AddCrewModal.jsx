@@ -6,6 +6,7 @@ import { autoFillEnglishField } from '../../utils/vietnameseHelpers';
 
 export const AddCrewModal = ({ 
   selectedShip,
+  isStandbyMode = false,  // New prop to explicitly indicate Standby mode
   onClose, 
   onSuccess,
   onBatchUpload  // New prop for batch upload callback
@@ -25,8 +26,8 @@ export const AddCrewModal = ({
     passport_expiry_date: '',
     rank: '',
     seamen_book: '',
-    status: selectedShip ? 'Sign on' : 'Standby',
-    ship_sign_on: selectedShip?.name || '-',
+    status: isStandbyMode ? 'Standby' : (selectedShip ? 'Sign on' : 'Standby'),
+    ship_sign_on: isStandbyMode ? '-' : (selectedShip?.name || '-'),
     place_sign_on: '',
     date_sign_on: '',
     date_sign_off: ''
