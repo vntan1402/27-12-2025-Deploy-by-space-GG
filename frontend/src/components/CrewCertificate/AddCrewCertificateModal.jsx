@@ -148,16 +148,40 @@ const AddCrewCertificateModal = ({
 
   // Handle file drop/select
   const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = Array.from(e.target.files || []);
+    
+    if (files.length === 0) return;
+    
+    // Multiple files - trigger batch upload
+    if (files.length > 1) {
+      if (onBatchUpload) {
+        // Pass the pre-selected crew ID if available
+        const preSelectedCrewId = formData.crew_id || null;
+        onBatchUpload(files, preSelectedCrewId);
+      }
+    } else {
+      // Single file - normal flow
+      const file = files[0];
       await handleFileUpload(file);
     }
   };
 
   const handleDrop = async (e) => {
     e.preventDefault();
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
+    const files = Array.from(e.dataTransfer.files || []);
+    
+    if (files.length === 0) return;
+    
+    // Multiple files - trigger batch upload
+    if (files.length > 1) {
+      if (onBatchUpload) {
+        // Pass the pre-selected crew ID if available
+        const preSelectedCrewId = formData.crew_id || null;
+        onBatchUpload(files, preSelectedCrewId);
+      }
+    } else {
+      // Single file - normal flow
+      const file = files[0];
       await handleFileUpload(file);
     }
   };
