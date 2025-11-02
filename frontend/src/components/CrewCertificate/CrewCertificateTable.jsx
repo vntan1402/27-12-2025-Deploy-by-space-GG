@@ -132,11 +132,12 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
 
   // Filter certificates
   const filteredCertificates = certificates.filter(cert => {
-    // Search filter
+    // Search filter - bao gồm cả rank (chức danh)
     if (searchTerm) {
       const search = searchTerm.toLowerCase();
       if (!(
         cert.crew_name?.toLowerCase().includes(search) ||
+        cert.rank?.toLowerCase().includes(search) ||
         cert.cert_name?.toLowerCase().includes(search) ||
         cert.cert_no?.toLowerCase().includes(search) ||
         cert.issued_by?.toLowerCase().includes(search)
