@@ -6,10 +6,12 @@ import { autoFillEnglishField } from '../../utils/vietnameseHelpers';
 
 export const AddCrewModal = ({ 
   selectedShip,
+  ships = [],  // Add ships list prop
   isStandbyMode = false,  // New prop to explicitly indicate Standby mode
   onClose, 
   onSuccess,
-  onBatchUpload  // New prop for batch upload callback
+  onBatchUpload,  // New prop for batch upload callback
+  onShipSelect  // Callback when ship is selected from dropdown
 }) => {
   const { language, user } = useAuth();
   
@@ -38,6 +40,9 @@ export const AddCrewModal = ({
   const [analyzedData, setAnalyzedData] = useState(null); // Store complete analysis result
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Ship dropdown state
+  const [showShipDropdown, setShowShipDropdown] = useState(false);
   
   // Reset form when modal closes
   useEffect(() => {
