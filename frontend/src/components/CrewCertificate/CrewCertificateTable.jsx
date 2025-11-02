@@ -45,6 +45,16 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     crewName: 'all'
   });
   
+  // Apply initial crew filter from navigation state
+  useEffect(() => {
+    if (initialCrewFilter) {
+      setFilters(prev => ({
+        ...prev,
+        crewName: initialCrewFilter
+      }));
+    }
+  }, [initialCrewFilter]);
+  
   // Search
   const [searchTerm, setSearchTerm] = useState('');
   
