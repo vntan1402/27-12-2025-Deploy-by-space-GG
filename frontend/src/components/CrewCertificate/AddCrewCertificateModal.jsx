@@ -188,9 +188,11 @@ const AddCrewCertificateModal = ({
     if (formData.crew_id) {
       await analyzeFile(file);
     } else {
-      toast.info(language === 'vi' 
-        ? 'Vui lòng chọn thuyền viên trước khi phân tích' 
-        : 'Please select crew member before analyzing');
+      // Show modal warning instead of toast
+      setWarningMessage(language === 'vi' 
+        ? 'Vui lòng chọn thuyền viên trước khi phân tích file' 
+        : 'Please select crew member before analyzing file');
+      setShowWarningModal(true);
     }
   };
 
