@@ -22,7 +22,8 @@ export const CrewListTable = ({
   selectedShip,
   ships = [],
   onRefresh,
-  onShipFilterChange
+  onShipFilterChange,
+  onShipSelect  // New prop to handle ship selection from modal
 }) => {
   const { language, user } = useAuth();
   
