@@ -21466,6 +21466,365 @@ async def get_class_society_mappings(
         logger.error(f"Error getting class society mappings: {e}")
         raise HTTPException(status_code=500, detail="Failed to get class society mappings")
 
+
+# ============================================
+# AUDIT CERTIFICATES ENDPOINTS
+# ============================================
+
+@api_router.get("/audit-certificates")
+async def get_audit_certificates(
+    ship_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get all audit certificates for a specific ship"""
+    try:
+        logger.info(f"📁 Fetching audit certificates for ship_id: {ship_id}")
+        
+        certificates = await mongo_db.find_all("audit_certificates", {"ship_id": ship_id})
+        
+        # Enhance each certificate with abbreviation and status  
+        enhanced_certificates = []
+        for cert in certificates:
+            enhanced_cert = await enhance_certificate_response(cert)
+            enhanced_certificates.append(enhanced_cert)
+        
+        logger.info(f"✅ Found {len(enhanced_certificates)} audit certificates")
+        return enhanced_certificates
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching audit certificates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/audit-certificates/{cert_id}")
+async def get_audit_certificate(
+    cert_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific audit certificate by ID"""
+    try:
+        certificate = await mongo_db.find_one("audit_certificates", {"id": cert_id})
+        if not certificate:
+            raise HTTPException(status_code=404, detail="Audit certificate not found")
+        
+        enhanced_cert = await enhance_certificate_response(certificate)
+        return enhanced_cert
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching audit certificate {cert_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/audit-certificates")
+async def create_audit_certificate(
+    cert_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Create a new audit certificate"""
+    try:
+        logger.info(f"📝 Creating new audit certificate: {cert_data.get('cert_name')}")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": cert_data.get("ship_id")})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Validate cert_type
+        if cert_data.get("cert_type"):
+            cert_data["cert_type"] = validate_certificate_type(cert_data["cert_type"])
+        else:
+            cert_data["cert_type"] = validate_certificate_type("Full Term")
+        
+        # Create certificate document
+        cert_data["id"] = str(uuid.uuid4())
+        cert_data["created_at"] = datetime.now(timezone.utc)
+        cert_data["updated_at"] = None
+        cert_data["company"] = current_user.company
+        
+        # Set default survey type if not provided
+        if not cert_data.get('next_survey_type'):
+            cert_data['next_survey_type'] = None
+        
+        await mongo_db.create("audit_certificates", cert_data)
+        
+        # Enhance response
+        enhanced_cert = await enhance_certificate_response(cert_data)
+        
+        logger.info(f"✅ Created audit certificate: {cert_data['id']}")
+        return enhanced_cert
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error creating audit certificate: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.put("/audit-certificates/{cert_id}")
+async def update_audit_certificate(
+    cert_id: str,
+    cert_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Update an audit certificate"""
+    try:
+        # Check if certificate exists
+        existing_cert = await mongo_db.find_one("audit_certificates", {"id": cert_id})
+        if not existing_cert:
+            raise HTTPException(status_code=404, detail="Audit certificate not found")
+        
+        # Validate cert_type if provided
+        if 'cert_type' in cert_data and cert_data['cert_type']:
+            cert_data['cert_type'] = validate_certificate_type(cert_data['cert_type'])
+            
+            # Business rule: Only Full Term certificates can have Last Endorse
+            if cert_data['cert_type'] != 'Full Term' and 'last_endorse' in cert_data:
+                logger.info(f"Clearing last_endorse for {cert_data['cert_type']} certificate")
+                cert_data['last_endorse'] = None
+        
+        cert_data["updated_at"] = datetime.now(timezone.utc)
+        
+        # Update certificate
+        await mongo_db.update("audit_certificates", {"id": cert_id}, cert_data)
+        
+        # Get updated certificate
+        updated_cert = await mongo_db.find_one("audit_certificates", {"id": cert_id})
+        enhanced_cert = await enhance_certificate_response(updated_cert)
+        
+        logger.info(f"✅ Updated audit certificate: {cert_id}")
+        return enhanced_cert
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating audit certificate {cert_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/audit-certificates/{cert_id}")
+async def delete_audit_certificate(
+    cert_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Delete an audit certificate"""
+    try:
+        # Check if certificate exists
+        cert = await mongo_db.find_one("audit_certificates", {"id": cert_id})
+        if not cert:
+            raise HTTPException(status_code=404, detail="Audit certificate not found")
+        
+        # Delete from database
+        await mongo_db.delete("audit_certificates", {"id": cert_id})
+        
+        logger.info(f"✅ Deleted audit certificate: {cert_id}")
+        return {
+            "success": True,
+            "message": "Audit certificate deleted successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting audit certificate {cert_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/audit-certificates/bulk-delete")
+async def bulk_delete_audit_certificates(
+    request: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Bulk delete audit certificates"""
+    try:
+        cert_ids = request.get("cert_ids", [])
+        if not cert_ids:
+            raise HTTPException(status_code=400, detail="No certificate IDs provided")
+        
+        deleted_count = 0
+        for cert_id in cert_ids:
+            try:
+                await mongo_db.delete("audit_certificates", {"id": cert_id})
+                deleted_count += 1
+            except Exception as e:
+                logger.error(f"Error deleting certificate {cert_id}: {e}")
+        
+        logger.info(f"✅ Bulk deleted {deleted_count} audit certificates")
+        return {
+            "success": True,
+            "message": f"Deleted {deleted_count} audit certificates",
+            "deleted_count": deleted_count
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error bulk deleting audit certificates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/audit-certificates/bulk-update")
+async def bulk_update_audit_certificates(
+    request: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Bulk update audit certificates (e.g., survey types)"""
+    try:
+        cert_ids = request.get("cert_ids", [])
+        update_data = request.get("update_data", {})
+        
+        if not cert_ids:
+            raise HTTPException(status_code=400, detail="No certificate IDs provided")
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No update data provided")
+        
+        updated_count = 0
+        update_data["updated_at"] = datetime.now(timezone.utc)
+        
+        for cert_id in cert_ids:
+            try:
+                await mongo_db.update("audit_certificates", {"id": cert_id}, update_data)
+                updated_count += 1
+            except Exception as e:
+                logger.error(f"Error updating certificate {cert_id}: {e}")
+        
+        logger.info(f"✅ Bulk updated {updated_count} audit certificates")
+        return {
+            "success": True,
+            "message": f"Updated {updated_count} audit certificates",
+            "updated_count": updated_count
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error bulk updating audit certificates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/audit-certificates/{cert_id}/upload-file")
+async def upload_audit_certificate_file(
+    cert_id: str,
+    file_data: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Upload file for audit certificate"""
+    try:
+        # Check if certificate exists
+        cert = await mongo_db.find_one("audit_certificates", {"id": cert_id})
+        if not cert:
+            raise HTTPException(status_code=404, detail="Audit certificate not found")
+        
+        # Update certificate with file info
+        update_data = {
+            "google_drive_file_id": file_data.get("file_id"),
+            "google_drive_folder_id": file_data.get("folder_id"),
+            "file_name": file_data.get("file_name"),
+            "updated_at": datetime.now(timezone.utc)
+        }
+        
+        await mongo_db.update("audit_certificates", {"id": cert_id}, update_data)
+        
+        logger.info(f"✅ Uploaded file for audit certificate: {cert_id}")
+        return {
+            "success": True,
+            "message": "File uploaded successfully"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading file for audit certificate {cert_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/audit-certificates/{cert_id}/file-link")
+async def get_audit_certificate_file_link(
+    cert_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get Google Drive file link for audit certificate"""
+    try:
+        cert = await mongo_db.find_one("audit_certificates", {"id": cert_id})
+        if not cert:
+            raise HTTPException(status_code=404, detail="Audit certificate not found")
+        
+        file_id = cert.get("google_drive_file_id")
+        if not file_id:
+            raise HTTPException(status_code=404, detail="No file attached to this certificate")
+        
+        return {
+            "file_link": f"https://drive.google.com/file/d/{file_id}/view",
+            "file_id": file_id,
+            "file_name": cert.get("file_name", "")
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting file link for audit certificate {cert_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/audit-certificates/analyze-file")
+async def analyze_audit_certificate_file(
+    request: dict,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Analyze audit certificate file using AI"""
+    try:
+        # This would integrate with the same AI analysis used for ship certificates
+        # For now, return a placeholder
+        logger.info("📄 Analyzing audit certificate file with AI...")
+        
+        return {
+            "success": True,
+            "message": "AI analysis for audit certificates will be implemented",
+            "extracted_data": {}
+        }
+        
+    except Exception as e:
+        logger.error(f"Error analyzing audit certificate file: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/audit-certificates/upcoming-surveys")
+async def get_upcoming_audit_surveys(
+    days: int = 30,
+    company: str = None,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get upcoming audit surveys within specified days"""
+    try:
+        # Calculate date range
+        today = datetime.now(timezone.utc)
+        end_date = today + timedelta(days=days)
+        
+        # Build query
+        query = {}
+        if company:
+            query["company"] = company
+        
+        # Get all audit certificates
+        certificates = await mongo_db.find_all("audit_certificates", query)
+        
+        # Filter certificates with upcoming surveys
+        upcoming_surveys = []
+        for cert in certificates:
+            next_survey = cert.get("next_survey")
+            if next_survey:
+                try:
+                    survey_date = datetime.fromisoformat(next_survey.replace('Z', '+00:00'))
+                    if today <= survey_date <= end_date:
+                        upcoming_surveys.append(cert)
+                except:
+                    pass
+        
+        logger.info(f"✅ Found {len(upcoming_surveys)} upcoming audit surveys")
+        return {
+            "success": True,
+            "surveys": upcoming_surveys,
+            "total_count": len(upcoming_surveys),
+            "check_date": today.isoformat(),
+            "days": days
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting upcoming audit surveys: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ============================================
 # OTHER DOCUMENTS API ENDPOINTS
 # ============================================
