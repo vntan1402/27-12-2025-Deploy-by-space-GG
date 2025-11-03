@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://nautical-docs.preview.emergentagent.com/api"
+API_URL="https://cert-hub-1.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \

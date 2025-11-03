@@ -348,7 +348,7 @@ Project is successful when:
 
 - V1 Source Code: `/app/frontend-v1/src/App.js`
 - V2 Source Code: `/app/frontend/src/`
-- Backend API: `https://nautical-docs.preview.emergentagent.com`
+- Backend API: `https://cert-hub-1.preview.emergentagent.com`
 
 ---
 
