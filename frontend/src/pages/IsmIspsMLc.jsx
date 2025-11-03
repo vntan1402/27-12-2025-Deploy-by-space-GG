@@ -113,6 +113,27 @@ const IsmIspsMLc = () => {
     }
   }, [selectedShip, selectedSubMenu]);
 
+  // Fetch AI config on mount
+  useEffect(() => {
+    fetchAiConfig();
+  }, []);
+
+  // Close context menus on click outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (contextMenu) setContextMenu(null);
+      if (surveyTypeContextMenu?.show) {
+        setSurveyTypeContextMenu({ show: false, x: 0, y: 0, certificate: null, currentType: '' });
+      }
+    };
+
+    if (contextMenu || surveyTypeContextMenu?.show) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [contextMenu, surveyTypeContextMenu]);
+
+
 
   const fetchShips = async () => {
     try {
