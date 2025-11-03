@@ -259,9 +259,73 @@ const IsmIspsMLc = () => {
         onSubMenuChange={handleSubMenuChange}
       />
 
-      {/* Content Area based on selected submenu */}
-      <div className="mt-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
+      {/* Main Content */}
+      <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            <p className="mt-2 text-gray-600">{language === 'vi' ? 'Đang tải...' : 'Loading...'}</p>
+          </div>
+        ) : !selectedShip ? (
+          /* Ship Cards Grid - Show all ships for selection when no ship selected */
+          <div>
+            <h3 className="text-xl font-semibold mb-6 text-gray-800">
+              {language === 'vi' ? 'Chọn tàu để xem thông tin chứng chỉ' : 'Select a ship to view certificate information'}
+            </h3>
+            
+            {ships.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <div className="text-6xl mb-4">🚢</div>
+                <p className="text-lg">{language === 'vi' ? 'Không có tàu nào' : 'No ships available'}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {ships.map(ship => (
+                  <div
+                    key={ship.id}
+                    className="border-2 border-gray-200 rounded-lg p-6 hover:border-purple-500 hover:shadow-lg transition-all cursor-pointer"
+                    onClick={() => handleShipSelect(ship)}
+                  >
+                    <div className="text-center mb-4">
+                      <div className="text-5xl mb-3">🚢</div>
+                      <h4 className="font-bold text-xl text-gray-800">{ship.name}</h4>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      {ship.imo && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">IMO:</span>
+                          <span className="font-medium text-gray-800">{ship.imo}</span>
+                        </div>
+                      )}
+                      {ship.flag && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">{language === 'vi' ? 'Cờ:' : 'Flag:'}</span>
+                          <span className="font-medium text-gray-800">{ship.flag}</span>
+                        </div>
+                      )}
+                      {ship.class_society && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">{language === 'vi' ? 'Đẳng kiểm:' : 'Class Society:'}</span>
+                          <span className="font-medium text-gray-800">{ship.class_society}</span>
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShipSelect(ship);
+                      }}
+                      className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-medium transition-all"
+                    >
+                      {language === 'vi' ? 'Chọn' : 'Select'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Show submenu content when ship is selected */
           <div className="text-center py-12">
             <div className="text-6xl mb-4">
               {selectedSubMenu === 'audit_certificate' && '📜'}
@@ -281,7 +345,7 @@ const IsmIspsMLc = () => {
                 : 'This feature will be implemented in upcoming phases'}
             </p>
           </div>
-        </div>
+        )}
       </div>
     </MainLayout>
   );
