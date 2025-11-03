@@ -812,6 +812,107 @@ const IsmIspsMLc = () => {
         )}
       </div>
 
+
+
+      {/* Certificate Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-white shadow-lg rounded-lg py-2 z-[9999] border border-gray-200 min-w-[200px]"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Edit */}
+          <button
+            onClick={() => {
+              handleEditCertificate(contextMenu.certificate);
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+          >
+            <span>✏️</span>
+            <span>{language === 'vi' ? 'Chỉnh sửa' : 'Edit'}</span>
+          </button>
+
+          {/* Delete */}
+          <button
+            onClick={() => {
+              handleDeleteCertificate(contextMenu.certificate);
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
+          >
+            <span>🗑️</span>
+            <span>{language === 'vi' ? 'Xóa' : 'Delete'}</span>
+          </button>
+
+          {/* View File */}
+          {contextMenu.certificate?.google_drive_file_id && (
+            <>
+              <div className="border-t border-gray-200 my-1"></div>
+              <button
+                onClick={() => {
+                  window.open(`https://drive.google.com/file/d/${contextMenu.certificate.google_drive_file_id}/view`, '_blank');
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+              >
+                <span>👁️</span>
+                <span>{language === 'vi' ? 'Xem file' : 'View File'}</span>
+              </button>
+
+              {/* Download */}
+              <button
+                onClick={() => {
+                  window.open(`https://drive.google.com/uc?export=download&id=${contextMenu.certificate.google_drive_file_id}`, '_blank');
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+              >
+                <span>⬇️</span>
+                <span>{language === 'vi' ? 'Tải xuống' : 'Download'}</span>
+              </button>
+
+              {/* Copy Link */}
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`https://drive.google.com/file/d/${contextMenu.certificate.google_drive_file_id}/view`);
+                  toast.success(language === 'vi' ? 'Đã copy link' : 'Link copied');
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+              >
+                <span>🔗</span>
+                <span>{language === 'vi' ? 'Copy link' : 'Copy Link'}</span>
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Survey Type Context Menu */}
+      {surveyTypeContextMenu.show && (
+        <div
+          className="fixed bg-white shadow-lg rounded-lg py-2 z-[9999] border border-gray-200 min-w-[180px]"
+          style={{ top: surveyTypeContextMenu.y, left: surveyTypeContextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="px-4 py-2 text-xs text-gray-500 border-b">
+            {language === 'vi' ? 'Thay đổi loại survey' : 'Change survey type'}
+          </div>
+          {['Annual', 'Intermediate', 'Renewal', 'Special'].map(type => (
+            <button
+              key={type}
+              onClick={() => handleSurveyTypeChange(type)}
+              className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-100 ${
+                surveyTypeContextMenu.currentType === type ? 'bg-blue-50 text-blue-600 font-medium' : ''
+              }`}
+            >
+              {surveyTypeContextMenu.currentType === type && '✓ '}{type}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Add Certificate Modal */}
       <AddAuditCertificateModal
         isOpen={showAddCertificateModal}
