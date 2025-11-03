@@ -21873,18 +21873,20 @@ async def multi_audit_cert_upload_for_ship(
                 
                 # Upload file to Google Drive
                 # For audit certificates, we upload to ship's ISM-ISPS-MLC folder
-                drive_manager = GoogleDriveManager(gdrive_config_doc)
+                from dual_apps_script_manager import create_dual_apps_script_manager
+                dual_manager = create_dual_apps_script_manager(user_company_id)
                 
                 # Convert file content to base64 for Apps Script
                 file_base64 = base64.b64encode(file_content).decode('utf-8')
                 
                 # Upload to Google Drive: Ship Name/ISM-ISPS-MLC/Audit Certificates/
-                upload_result = await drive_manager.upload_certificate_to_ship(
+                upload_result = await dual_manager.upload_certificate(
                     ship_name=ship.get("name"),
                     file_name=file.filename,
                     file_base64=file_base64,
                     mime_type=file.content_type,
-                    folder_path="ISM-ISPS-MLC/Audit Certificates"
+                    category="ISM-ISPS-MLC",
+                    subfolder="Audit Certificates"
                 )
                 
                 if not upload_result.get("success"):
