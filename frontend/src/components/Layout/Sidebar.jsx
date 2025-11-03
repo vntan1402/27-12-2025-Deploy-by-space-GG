@@ -47,6 +47,7 @@ export const Sidebar = ({
           selectedCategory={selectedCategory}
           onCategoryChange={onCategoryChange}
           onAddRecord={onAddRecord}
+          showAddShipButton={showAddShipButton}
         />
       </div>
 
