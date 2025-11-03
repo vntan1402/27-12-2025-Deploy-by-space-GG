@@ -152,29 +152,104 @@ const IsmIspsMLc = () => {
               {language === 'vi' ? 'Vui lòng chọn tàu để xem thông tin' : 'Please select a ship to view information'}
             </p>
             <button
-              onClick={() => {
-                // Show ship selection modal (to be implemented)
-                toast.info(language === 'vi' ? 'Chức năng chọn tàu sẽ được triển khai' : 'Ship selection feature will be implemented');
-              }}
+              onClick={() => setShowShipModal(true)}
               className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all flex items-center gap-2 whitespace-nowrap"
             >
               <span className="text-xl">🚢</span>
-              {language === 'vi' ? 'Chọn tàu' : 'Select Ship'}
+              {language === 'vi' ? 'Chọn tàu' : 'Ship Select'}
             </button>
           </div>
         )}
       </div>
 
-      {/* Show CompanyInfoPanel if no ship is selected, otherwise show ShipDetailPanel */}
-      {!selectedShip ? (
+      {/* Company Info Panel - Show when no ship selected */}
+      {!selectedShip && companyData && (
         <CompanyInfoPanel companyData={companyData} />
-      ) : (
+      )}
+
+      {/* Ship Detail Panel - Show when ship is selected */}
+      {selectedShip && (
         <ShipDetailPanel 
           ship={selectedShip}
+          onClose={() => {
+            setSelectedShip(null);
+            localStorage.removeItem('selectedShipId');
+          }}
           onEdit={() => toast.info(language === 'vi' ? 'Chức năng chỉnh sửa tàu sẽ được triển khai' : 'Edit ship feature will be implemented')}
           onDelete={() => toast.info(language === 'vi' ? 'Chức năng xóa tàu sẽ được triển khai' : 'Delete ship feature will be implemented')}
           onShipUpdate={(updatedShip) => setSelectedShip(updatedShip)}
+          onShipSelect={() => setShowShipModal(true)}
         />
+      )}
+
+      {/* Ship Selection Modal */}
+      {showShipModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowShipModal(false)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {language === 'vi' ? 'Chọn tàu để xem thông tin chứng chỉ' : 'Select a ship to view certificate information'}
+                </h2>
+                <button
+                  onClick={() => setShowShipModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="mt-2 text-gray-600">{language === 'vi' ? 'Đang tải...' : 'Loading...'}</p>
+                </div>
+              ) : ships.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>{language === 'vi' ? 'Không có tàu nào' : 'No ships available'}</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  {ships.map(ship => (
+                    <div
+                      key={ship.id}
+                      className="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-500 transition-all cursor-pointer"
+                    >
+                      <div className="text-center mb-4">
+                        <div className="text-4xl mb-2">🚢</div>
+                        <h3 className="font-bold text-lg text-gray-800">{ship.name}</h3>
+                      </div>
+                      <div className="space-y-1 text-sm mb-4">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">IMO:</span>
+                          <span className="font-medium">{ship.imo || '-'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">{language === 'vi' ? 'Cờ:' : 'Flag:' }</span>
+                          <span className="font-medium">{ship.flag || '-'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">{language === 'vi' ? 'Đẳng kiểm:' : 'Class Society:'}</span>
+                          <span className="font-medium">{ship.class_society || '-'}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleShipSelect(ship)}
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-medium transition-all"
+                      >
+                        {language === 'vi' ? 'Chọn' : 'Select'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* SubMenuBar */}
