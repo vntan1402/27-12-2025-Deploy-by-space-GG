@@ -10,7 +10,8 @@ import { MAIN_CATEGORIES } from '../../utils/constants';
 export const CategoryMenu = ({
   selectedCategory,
   onCategoryChange,
-  onAddRecord
+  onAddRecord,
+  showAddShipButton = false  // Default false - chỉ show khi explicitly set to true
 }) => {
   const { language } = useAuth();
   const navigate = useNavigate();
