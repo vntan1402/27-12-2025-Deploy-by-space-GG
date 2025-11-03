@@ -1903,7 +1903,7 @@ def get_enhanced_last_endorse(analysis_result: dict) -> datetime:
     
     # If it's Full Term but no endorsement found, log this for review
     if cert_type == 'Full Term':
-        logger.warning(f"Full Term certificate found but no endorsement date detected - may need manual review")
+        logger.warning("Full Term certificate found but no endorsement date detected - may need manual review")
     
     return None
 
@@ -2055,7 +2055,7 @@ def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
         cert1_endorse = normalize_date_string(cert1.get('last_endorse', ''))
         cert2_endorse = normalize_date_string(cert2.get('last_endorse', ''))
         
-        logger.info(f"🔍 Enhanced Duplicate Check - Comparing 5 fields:")
+        logger.info("🔍 Enhanced Duplicate Check - Comparing 5 fields:")
         logger.info(f"   Cert Name: '{cert1_name}' vs '{cert2_name}'")
         logger.info(f"   Cert No: '{cert1_no}' vs '{cert2_no}'")
         logger.info(f"   Issue Date: '{cert1_issue}' vs '{cert2_issue}' (normalized)")
@@ -2064,7 +2064,7 @@ def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
         
         # All key fields must have values to compare (at minimum cert_name and cert_no)
         if not cert1_name or not cert2_name or not cert1_no or not cert2_no:
-            logger.info(f"   ❌ Missing required fields - not duplicate")
+            logger.info("   ❌ Missing required fields - not duplicate")
             return 0.0
         
         # Check each field for exact match (case insensitive for text, exact for dates)
@@ -2074,7 +2074,7 @@ def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
         valid_match = cert1_valid == cert2_valid  # Exact date match after normalization
         endorse_match = cert1_endorse == cert2_endorse  # Exact date match after normalization
         
-        logger.info(f"   Field matches:")
+        logger.info("   Field matches:")
         logger.info(f"     Name: {name_match}")
         logger.info(f"     Number: {number_match}")
         logger.info(f"     Issue Date: {issue_match}")
@@ -2083,10 +2083,10 @@ def calculate_certificate_similarity(cert1: dict, cert2: dict) -> float:
         
         # ALL 5 fields must match exactly for duplicate detection
         if name_match and number_match and issue_match and valid_match and endorse_match:
-            logger.info(f"   ✅ ALL 5 fields match - DUPLICATE DETECTED")
+            logger.info("   ✅ ALL 5 fields match - DUPLICATE DETECTED")
             return 100.0  # Perfect duplicate
         else:
-            logger.info(f"   ❌ Not all fields match - NOT duplicate")
+            logger.info("   ❌ Not all fields match - NOT duplicate")
             return 0.0  # Not a duplicate
         
     except Exception as e:
@@ -2623,7 +2623,7 @@ Certificate content to analyze:
                     analysis_prompt=docking_analysis_prompt
                 )
                 
-                logger.info(f"🤖 AI Response received:")
+                logger.info("🤖 AI Response received:")
                 logger.info(f"   Type: {type(ai_result)}")
                 logger.info(f"   Is dict: {isinstance(ai_result, dict)}")
                 if isinstance(ai_result, dict):
@@ -3968,7 +3968,7 @@ async def calculate_ship_docking_dates(ship_id: str, current_user: UserResponse 
             if updated_ship:
                 logger.info(f"✅ Verified - Last Docking in DB: {updated_ship.get('last_docking')}")
             else:
-                logger.error(f"❌ Ship not found after update!")
+                logger.error("❌ Ship not found after update!")
         
         # Format response
         response_data = {}
@@ -3979,7 +3979,7 @@ async def calculate_ship_docking_dates(ship_id: str, current_user: UserResponse 
         
         return {
             "success": True,
-            "message": f"Docking dates extracted from CSSC/DD certificates",
+            "message": "Docking dates extracted from CSSC/DD certificates",
             "docking_dates": response_data
         }
         
@@ -4768,9 +4768,9 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
                     else:
                         logger.warning(f"⚠️ User {current_user.username} (role: {current_user.role}) does not have permission to create abbreviation mappings")
                 else:
-                    logger.warning(f"⚠️ No cert_name available for abbreviation mapping")
+                    logger.warning("⚠️ No cert_name available for abbreviation mapping")
             else:
-                logger.info(f"📝 cert_abbreviation is empty or null - will be saved as provided to certificate record")
+                logger.info("📝 cert_abbreviation is empty or null - will be saved as provided to certificate record")
             
             # Always ensure cert_abbreviation is included in update (even if empty/null)
             logger.info(f"💾 Saving cert_abbreviation = '{cert_abbreviation_value}' to certificate {cert_id}")
@@ -4784,7 +4784,7 @@ async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current
             
             # IMPORTANT: If user manually edits next_survey, clear next_survey_display to show manual value
             if 'next_survey' in update_data:
-                logger.info(f"🗓️ Manual next_survey update detected - clearing next_survey_display to show manual value")
+                logger.info("🗓️ Manual next_survey update detected - clearing next_survey_display to show manual value")
                 update_data['next_survey_display'] = None
                 
             await mongo_db.update("certificates", {"id": cert_id}, update_data)
@@ -5511,13 +5511,13 @@ async def extract_survey_report_fields_from_summary(
     Extracts: survey_report_name, survey_report_no, issued_by, issued_date, note, ship_name, ship_imo, surveyor_name
     """
     try:
-        logger.info(f"🤖 Extracting survey report fields from summary")
+        logger.info("🤖 Extracting survey report fields from summary")
         
         # Create survey report extraction prompt with filename
         prompt = create_survey_report_extraction_prompt(summary_text, filename)
         
         if not prompt:
-            logger.error(f"Failed to create survey report extraction prompt")
+            logger.error("Failed to create survey report extraction prompt")
             return {}
         
         # Use System AI for extraction
@@ -5539,7 +5539,7 @@ async def extract_survey_report_fields_from_summary(
                 
                 if ai_response and ai_response.strip():
                     content = ai_response.strip()
-                    logger.info(f"🤖 Survey Report AI response received")
+                    logger.info("🤖 Survey Report AI response received")
                     
                     # Parse JSON response
                     try:
@@ -5571,11 +5571,11 @@ async def extract_survey_report_fields_from_summary(
                                     logger.warning(f"Failed to parse issued_date '{issued_date_raw}': {date_error}")
                                     # If parse fails, might be a form code - move to report_form if empty
                                     if not extracted_data.get('report_form') and len(issued_date_raw) < 20:
-                                        logger.warning(f"⚠️ Moving unparseable issued_date to report_form")
+                                        logger.warning("⚠️ Moving unparseable issued_date to report_form")
                                         extracted_data['report_form'] = issued_date_raw
                                     extracted_data['issued_date'] = ''
                         
-                        logger.info(f"✅ Survey report field extraction successful")
+                        logger.info("✅ Survey report field extraction successful")
                         logger.info(f"   📋 Survey Name: '{extracted_data.get('survey_report_name')}'")
                         logger.info(f"   🔢 Survey No: '{extracted_data.get('survey_report_no')}'")
                         logger.info(f"   🚢 Ship Name: '{extracted_data.get('ship_name', 'NOT EXTRACTED')}'")
@@ -5841,7 +5841,7 @@ def validate_ship_info_match(
         # Overall match: either name or IMO must match
         overall_match = name_match or imo_match
         
-        logger.info(f"🔍 Ship validation:")
+        logger.info("🔍 Ship validation:")
         logger.info(f"   Extracted: '{extracted_ship_name}' (normalized: '{extracted_name_norm}') | IMO: '{extracted_ship_imo}' (norm: '{extracted_imo_norm}')")
         logger.info(f"   Selected:  '{actual_ship_name}' (normalized: '{actual_name_norm}') | IMO: '{actual_ship_imo}' (norm: '{actual_imo_norm}')")
         logger.info(f"   Name Match: {name_match} | IMO Match: {imo_match} | Overall: {overall_match}")
@@ -5880,13 +5880,13 @@ async def extract_test_report_fields_from_summary(
     Extracts: test_report_name, report_form, test_report_no, issued_by, issued_date, valid_date, note, ship_name, ship_imo
     """
     try:
-        logger.info(f"🤖 Extracting test report fields from summary")
+        logger.info("🤖 Extracting test report fields from summary")
         
         # Create test report extraction prompt
         prompt = create_test_report_extraction_prompt(summary_text)
         
         if not prompt:
-            logger.error(f"Failed to create test report extraction prompt")
+            logger.error("Failed to create test report extraction prompt")
             return {}
         
         # Use System AI for extraction
@@ -5908,7 +5908,7 @@ async def extract_test_report_fields_from_summary(
                 
                 if ai_response and ai_response.strip():
                     content = ai_response.strip()
-                    logger.info(f"🤖 Test Report AI response received")
+                    logger.info("🤖 Test Report AI response received")
                     
                     # Parse JSON response
                     try:
@@ -5925,7 +5925,7 @@ async def extract_test_report_fields_from_summary(
                                 except Exception as date_error:
                                     logger.warning(f"Failed to parse {date_field}: {date_error}")
                         
-                        logger.info(f"✅ Successfully extracted test report fields")
+                        logger.info("✅ Successfully extracted test report fields")
                         return extracted_data
                         
                     except json.JSONDecodeError as json_error:
@@ -5959,13 +5959,13 @@ async def extract_drawings_manuals_fields_from_summary(
     Extracts: document_name, document_no, approved_by, approved_date, note
     """
     try:
-        logger.info(f"🤖 Extracting drawings & manuals fields from summary")
+        logger.info("🤖 Extracting drawings & manuals fields from summary")
         
         # Create drawings & manuals extraction prompt
         prompt = create_drawings_manuals_extraction_prompt(summary_text)
         
         if not prompt:
-            logger.error(f"Failed to create drawings & manuals extraction prompt")
+            logger.error("Failed to create drawings & manuals extraction prompt")
             return {}
         
         # Use System AI for extraction
@@ -5987,7 +5987,7 @@ async def extract_drawings_manuals_fields_from_summary(
                 
                 if ai_response and ai_response.strip():
                     content = ai_response.strip()
-                    logger.info(f"🤖 Drawings & Manuals AI response received")
+                    logger.info("🤖 Drawings & Manuals AI response received")
                     
                     # Parse JSON response
                     try:
@@ -6003,7 +6003,7 @@ async def extract_drawings_manuals_fields_from_summary(
                             except Exception as date_error:
                                 logger.warning(f"Failed to parse approved_date: {date_error}")
                         
-                        logger.info(f"✅ Successfully extracted drawings & manuals fields")
+                        logger.info("✅ Successfully extracted drawings & manuals fields")
                         return extracted_data
                         
                     except json.JSONDecodeError as json_error:
@@ -6400,7 +6400,7 @@ async def bulk_delete_survey_reports(
             )
         
         apps_script_url = company_gdrive_config.get("web_app_url")
-        logger.info(f"🔧 Using company Google Drive config")
+        logger.info("🔧 Using company Google Drive config")
         logger.info(f"🔧 Apps Script URL: {apps_script_url[:50] + '...' if len(apps_script_url) > 50 else apps_script_url}")
         
         deleted_count = 0
@@ -6900,7 +6900,7 @@ async def analyze_survey_report_file(
                     # Use merged summary that was already created
                     analysis_result['_summary_text'] = merged_result.get('_merged_summary_text', '')
                     
-                    logger.info(f"✅ Split PDF processing complete!")
+                    logger.info("✅ Split PDF processing complete!")
                     logger.info(f"   📋 Merged Survey Name: '{analysis_result.get('survey_report_name')}'")
                     logger.info(f"   🔢 Merged Survey No: '{analysis_result.get('survey_report_no')}'")
                     logger.info(f"   📄 Enhanced merged summary ready ({len(analysis_result['_summary_text'])} chars)")
@@ -6944,7 +6944,7 @@ async def analyze_survey_report_file(
             else:
                 # For single file, extract fields if not done yet
                 if not needs_split:
-                    logger.info(f"📄 Single file mode (not split) - Will attempt OCR")
+                    logger.info("📄 Single file mode (not split) - Will attempt OCR")
                     
                     # Extract AI analysis results
                     ai_analysis = analysis_only_result.get('ai_analysis', {})
@@ -7112,7 +7112,7 @@ async def analyze_survey_report_file(
                     should_bypass = bypass_validation.lower() == "true"
                     
                     if not validation_result.get('overall_match'):
-                        logger.warning(f"❌ Ship information does NOT match")
+                        logger.warning("❌ Ship information does NOT match")
                         logger.warning(f"   Extracted: Ship='{extracted_ship_name}', IMO='{extracted_ship_imo}'")
                         logger.warning(f"   Selected:  Ship='{ship_name}', IMO='{ship_imo}'")
                         
@@ -7284,7 +7284,7 @@ async def upload_survey_report_files(
         dual_manager = create_dual_apps_script_manager(company_uuid)
         
         # Upload files to Google Drive
-        logger.info(f"📤 Uploading survey report files to Drive...")
+        logger.info("📤 Uploading survey report files to Drive...")
         
         upload_results = {}
         
@@ -7347,7 +7347,7 @@ async def upload_survey_report_files(
             update_data["survey_report_summary_file_id"] = survey_report_summary_file_id
         
         await mongo_db.update("survey_reports", {"id": report_id}, update_data)
-        logger.info(f"✅ Survey report record updated with file IDs")
+        logger.info("✅ Survey report record updated with file IDs")
         
         return {
             "success": True,
@@ -7553,7 +7553,7 @@ async def update_test_report(
         # Fetch updated report
         updated_report = await mongo_db.find_one("test_reports", {"id": report_id})
         
-        logger.info(f"✅ Test report updated successfully")
+        logger.info("✅ Test report updated successfully")
         return TestReportResponse(**updated_report)
         
     except HTTPException:
@@ -8061,7 +8061,7 @@ async def analyze_test_report_file(
         
         if needs_split and total_pages > 15:
             # Large PDF: Split and process in batches
-            logger.info(f"📦 Splitting large PDF into chunks...")
+            logger.info("📦 Splitting large PDF into chunks...")
             analysis_result['processing_method'] = 'split_pdf_batch_processing'
             
             try:
@@ -8421,7 +8421,7 @@ async def analyze_test_report_file(
                 logger.error(f"❌ Document AI analysis failed: {ai_error}")
                 # Don't fail the entire request - return with minimal data
                 # File content is already stored, so upload can proceed
-                logger.warning(f"⚠️ Continuing without AI analysis - file upload will still work")
+                logger.warning("⚠️ Continuing without AI analysis - file upload will still work")
                 analysis_result['test_report_name'] = analysis_result.get('test_report_name') or filename
                 analysis_result['note'] = f"AI analysis failed: {str(ai_error)}"
         
@@ -8499,7 +8499,7 @@ async def analyze_test_report_file(
         else:
             analysis_result['status'] = 'Unknown'
         
-        logger.info(f"✅ Test report analysis completed successfully")
+        logger.info("✅ Test report analysis completed successfully")
         return analysis_result
         
     except HTTPException:
@@ -8565,7 +8565,7 @@ async def upload_test_report_files(
         dual_manager = create_dual_apps_script_manager(company_uuid)
         
         # Upload files to Google Drive
-        logger.info(f"📤 Uploading test report files to Drive...")
+        logger.info("📤 Uploading test report files to Drive...")
         logger.info(f"📄 Uploading to: {ship_name}/Class & Flag Cert/Test Report/{filename}")
         
         upload_result = await dual_manager.upload_test_report_file(
@@ -8596,7 +8596,7 @@ async def upload_test_report_files(
         if update_data:
             update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
             await mongo_db.update("test_reports", {"id": report_id}, update_data)
-            logger.info(f"✅ Test report updated with file IDs")
+            logger.info("✅ Test report updated with file IDs")
         
         # Handle summary upload failure (non-critical)
         summary_error = upload_result.get('summary_error')
@@ -8606,7 +8606,7 @@ async def upload_test_report_files(
         # Get updated report
         updated_report = await mongo_db.find_one("test_reports", {"id": report_id})
         
-        logger.info(f"✅ Test report files uploaded successfully")
+        logger.info("✅ Test report files uploaded successfully")
         return {
             "success": True,
             "message": "Test report files uploaded successfully",
@@ -8774,7 +8774,7 @@ async def update_drawings_manual(
         # Fetch updated document
         updated_doc = await mongo_db.find_one("drawings_manuals", {"id": document_id})
         
-        logger.info(f"✅ Drawings/manual updated successfully")
+        logger.info("✅ Drawings/manual updated successfully")
         return DrawingsManualResponse(**updated_doc)
         
     except HTTPException:
@@ -8874,9 +8874,9 @@ async def bulk_delete_drawings_manuals(
                 )
             else:
                 if not files_to_delete:
-                    logger.warning(f"⚠️ No files to delete (documents had no file_id or summary_file_id)")
+                    logger.warning("⚠️ No files to delete (documents had no file_id or summary_file_id)")
                 if not company_apps_script_url:
-                    logger.warning(f"⚠️ Apps Script URL not configured, skipping file deletion")
+                    logger.warning("⚠️ Apps Script URL not configured, skipping file deletion")
             
             # Return immediately
             message = f"Deleted {deleted_count} document(s) from database"
@@ -9135,9 +9135,9 @@ async def delete_drawings_manual(
                 )
             else:
                 if not has_files:
-                    logger.warning(f"⚠️ No files to delete (document has no file_id or summary_file_id)")
+                    logger.warning("⚠️ No files to delete (document has no file_id or summary_file_id)")
                 if not company_apps_script_url:
-                    logger.warning(f"⚠️ Apps Script URL not configured, skipping file deletion")
+                    logger.warning("⚠️ Apps Script URL not configured, skipping file deletion")
             
             # Return immediately
             message = "Document deleted from database"
@@ -9209,7 +9209,7 @@ async def delete_drawings_manual(
             if files_deleted > 0:
                 message += f" ({files_deleted} file(s) deleted from Google Drive)"
             
-            logger.info(f"✅ Drawings/manual deleted successfully")
+            logger.info("✅ Drawings/manual deleted successfully")
             return {
                 "success": True,
                 "message": message,
@@ -9405,7 +9405,7 @@ async def analyze_drawings_manual_file(
         # Start Document AI Analysis
         if needs_split and total_pages > 15:
             # Large PDF: Split and process in batches
-            logger.info(f"📦 Splitting large PDF into chunks...")
+            logger.info("📦 Splitting large PDF into chunks...")
             analysis_result['processing_method'] = 'split_pdf_batch_processing'
             
             try:
@@ -9651,7 +9651,7 @@ async def analyze_drawings_manual_file(
                     
             except Exception as ai_error:
                 logger.error(f"❌ Document AI analysis failed: {ai_error}")
-                logger.warning(f"⚠️ Continuing without AI analysis - file upload will still work")
+                logger.warning("⚠️ Continuing without AI analysis - file upload will still work")
                 analysis_result['document_name'] = analysis_result.get('document_name') or filename
                 analysis_result['note'] = f"AI analysis failed: {str(ai_error)}"
         
@@ -9691,7 +9691,7 @@ async def analyze_drawings_manual_file(
                 logger.error(f"❌ Error normalizing approved_by: {norm_error}")
                 # Keep original value if normalization fails
         
-        logger.info(f"✅ Drawings & manuals analysis completed successfully")
+        logger.info("✅ Drawings & manuals analysis completed successfully")
         return analysis_result
         
     except HTTPException:
@@ -9757,7 +9757,7 @@ async def upload_drawings_manuals_files(
         dual_manager = create_dual_apps_script_manager(company_uuid)
         
         # Upload files to Google Drive
-        logger.info(f"📤 Uploading drawings & manuals files to Drive...")
+        logger.info("📤 Uploading drawings & manuals files to Drive...")
         logger.info(f"📄 Uploading to: {ship_name}/Class & Flag Cert/Drawings & Manuals/{filename}")
         
         upload_result = await dual_manager.upload_drawings_manuals_file(
@@ -9788,7 +9788,7 @@ async def upload_drawings_manuals_files(
         if update_data:
             update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
             await mongo_db.update("drawings_manuals", {"id": document_id}, update_data)
-            logger.info(f"✅ Document updated with file IDs")
+            logger.info("✅ Document updated with file IDs")
         
         # Handle summary upload failure (non-critical)
         summary_error = upload_result.get('summary_error')
@@ -9798,7 +9798,7 @@ async def upload_drawings_manuals_files(
         # Get updated document
         updated_document = await mongo_db.find_one("drawings_manuals", {"id": document_id})
         
-        logger.info(f"✅ Drawings & manuals files uploaded successfully")
+        logger.info("✅ Drawings & manuals files uploaded successfully")
         return {
             "success": True,
             "message": "Drawings & manuals files uploaded successfully",
@@ -10356,7 +10356,7 @@ async def multi_cert_upload_for_ship(
                         results.append({
                             "filename": file.filename,
                             "status": "error",
-                            "message": f"Unsupported file type. Please upload PDF, JPG, or PNG files only."
+                            "message": "Unsupported file type. Please upload PDF, JPG, or PNG files only."
                         })
                         continue
                 
@@ -10460,7 +10460,7 @@ async def multi_cert_upload_for_ship(
                         elif text_quality_sufficient and overall_extraction_rate >= 0.2:
                             # If we have good text extraction but poor field matching, still give some confidence
                             confidence_score = 0.5  # Medium-low confidence
-                            logger.info(f"📊 Text quality-based confidence: good text content but lower field extraction")
+                            logger.info("📊 Text quality-based confidence: good text content but lower field extraction")
                         else:
                             confidence_score = 0.3  # Low confidence
                         
@@ -10545,7 +10545,7 @@ async def multi_cert_upload_for_ship(
                     # Instead of rejecting, provide user with manual override options
                     logger.info(f"⚠️ File {file.filename} not auto-classified as marine certificate")
                     logger.info(f"   Category detected: {analysis_result.get('category')}")
-                    logger.info(f"   Providing manual override options to user")
+                    logger.info("   Providing manual override options to user")
                     
                     # Create a temporary file reference for viewing
                     temp_file_id = str(uuid.uuid4())
@@ -10569,9 +10569,9 @@ async def multi_cert_upload_for_ship(
                         "file_size": len(file_content),
                         "content_type": file.content_type,
                         "manual_override_options": {
-                            "view": f"View file content",
-                            "skip": f"Skip this file",
-                            "confirm_marine": f"Confirm as Marine Certificate and proceed"
+                            "view": "View file content",
+                            "skip": "Skip this file",
+                            "confirm_marine": "Confirm as Marine Certificate and proceed"
                         }
                     })
                     continue
@@ -12004,7 +12004,7 @@ async def analyze_document_with_ai(file_content: bytes, filename: str, content_t
             
             if pdf_type == "text_based":
                 # Step 2A: Text-based PDF - use direct text extraction (faster)
-                logger.info(f"📄 Detected TEXT-BASED PDF - using direct text extraction")
+                logger.info("📄 Detected TEXT-BASED PDF - using direct text extraction")
                 text_content = text_extraction_result["text_content"]
                 processing_method = "direct_text_extraction"
                 ocr_confidence = 1.0  # High confidence for text-based PDFs
@@ -12013,7 +12013,7 @@ async def analyze_document_with_ai(file_content: bytes, filename: str, content_t
                 
             elif pdf_type == "image_based":
                 # Step 2B: Image-based PDF - use OCR processing (more thorough)
-                logger.info(f"🖼️ Detected IMAGE-BASED PDF - using OCR processing")
+                logger.info("🖼️ Detected IMAGE-BASED PDF - using OCR processing")
                 
                 if ocr_processor is None:
                     logger.warning("⚠️ OCR processor not available for image-based PDF")
@@ -12033,28 +12033,28 @@ async def analyze_document_with_ai(file_content: bytes, filename: str, content_t
                         logger.info(f"📊 Method: {processing_method}, Confidence: {ocr_confidence:.2f}")
                         logger.info(f"📝 Extracted {len(text_content)} characters")
                     else:
-                        logger.warning(f"⚠️ OCR processing failed, using fallback text extraction")
+                        logger.warning("⚠️ OCR processing failed, using fallback text extraction")
                         text_content = text_extraction_result.get("text_content", "")
                         processing_method = "text_extraction_fallback"
                         ocr_confidence = 0.3
             
             else:  # pdf_type == "mixed" or unknown
                 # Step 2C: Mixed or unknown PDF - use hybrid approach
-                logger.info(f"📋 Detected MIXED/UNKNOWN PDF - using hybrid approach")
+                logger.info("📋 Detected MIXED/UNKNOWN PDF - using hybrid approach")
                 text_content = text_extraction_result["text_content"]
                 processing_method = "hybrid_extraction"
                 ocr_confidence = text_extraction_result.get("classification_confidence", 0.7)
                 
                 # If text extraction doesn't give enough content, supplement with OCR
                 if len(text_content) < 100 and ocr_processor is not None:
-                    logger.info(f"🔄 Text extraction insufficient, supplementing with OCR")
+                    logger.info("🔄 Text extraction insufficient, supplementing with OCR")
                     try:
                         ocr_result = await ocr_processor.process_pdf_with_ocr(file_content, filename)
                         if ocr_result["success"] and len(ocr_result["text_content"]) > len(text_content):
                             text_content = ocr_result["text_content"]
                             processing_method = "hybrid_ocr_enhanced"
                             ocr_confidence = max(ocr_confidence, ocr_result["confidence_score"])
-                            logger.info(f"✅ OCR enhancement successful")
+                            logger.info("✅ OCR enhancement successful")
                     except Exception as ocr_error:
                         logger.warning(f"⚠️ OCR enhancement failed: {ocr_error}")
             
@@ -12395,7 +12395,7 @@ def normalize_certificate_analysis_response(ai_response: dict) -> dict:
             ai_response.get('confidence')
         )
         
-        logger.info(f"📋 Normalized certificate analysis:")
+        logger.info("📋 Normalized certificate analysis:")
         logger.info(f"   Category: {normalized.get('category')}")
         logger.info(f"   Cert Name: {normalized.get('cert_name')}")
         logger.info(f"   Cert No: {normalized.get('cert_no')}")
@@ -12575,7 +12575,7 @@ async def create_google_drive_folder_background(ship_dict: dict, current_user):
             })
             
     except asyncio.TimeoutError:
-        timeout_msg = f"Google Drive folder creation timed out after 180 seconds"
+        timeout_msg = "Google Drive folder creation timed out after 180 seconds"
         logger.error(f"⏰ {timeout_msg} for ship: {ship_name}")
         
         # Store timeout status in database
@@ -12719,7 +12719,7 @@ async def create_dynamic_ship_folder_structure(gdrive_config: dict, ship_name: s
             
     except requests.exceptions.Timeout as e:
         logger.error(f"Timeout error during Google Apps Script communication: {e}")
-        logger.error(f"This may be due to complex folder structure creation taking too long")
+        logger.error("This may be due to complex folder structure creation taking too long")
         return {"success": False, "error": "Google Drive folder creation timed out - please try again"}
     except requests.exceptions.RequestException as e:
         logger.error(f"Request error during dynamic folder creation: {e}")
@@ -12935,7 +12935,7 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
         # Debug logging for extracted_ship_name and cert_abbreviation
         extracted_ship_name = analysis_result.get('ship_name')
         extracted_cert_abbreviation = analysis_result.get('cert_abbreviation')
-        logger.info(f"🔍 AI Analysis Debug - Certificate Creation:")
+        logger.info("🔍 AI Analysis Debug - Certificate Creation:")
         logger.info(f"   analysis_result.get('ship_name'): {extracted_ship_name}")
         logger.info(f"   analysis_result.get('cert_abbreviation'): {extracted_cert_abbreviation}")
         logger.info(f"   analysis_result keys: {list(analysis_result.keys())}")
@@ -12988,7 +12988,7 @@ async def create_certificate_from_analysis_with_notes(analysis_result: dict, upl
         cert_data = {k: v for k, v in cert_data.items() if v is not None or k in preserved_fields}
         
         # Debug logging for what's being saved
-        logger.info(f"🔍 Certificate data being saved:")
+        logger.info("🔍 Certificate data being saved:")
         logger.info(f"   extracted_ship_name in cert_data: {cert_data.get('extracted_ship_name')}")
         logger.info(f"   cert_abbreviation in cert_data: {cert_data.get('cert_abbreviation')}")
         logger.info(f"   text_content in cert_data: {bool(cert_data.get('text_content'))}")
@@ -13324,7 +13324,7 @@ CERTIFICATE TEXT:
                     await mongo_db.update("certificates", {"id": cert_id}, update_data)
                     updated += 1
                 else:
-                    logger.warning(f"   ⚠️ No ship information could be extracted")
+                    logger.warning("   ⚠️ No ship information could be extracted")
                     
             except Exception as e:
                 logger.error(f"   ❌ Error processing certificate {cert.get('id', 'unknown')}: {e}")
@@ -13335,7 +13335,7 @@ CERTIFICATE TEXT:
         
         return {
             "success": True,
-            "message": f"Backfill process completed successfully",
+            "message": "Backfill process completed successfully",
             "processed": processed,
             "updated": updated,
             "errors": errors,
@@ -15283,7 +15283,7 @@ async def auto_rename_certificate_file(
         # Call Apps Script without parameters to get available actions list
         test_payload = {}  # Empty payload to get default response with available actions
         
-        logger.info(f"🔍 Checking Apps Script capabilities for auto-rename functionality...")
+        logger.info("🔍 Checking Apps Script capabilities for auto-rename functionality...")
         
         # Make request to Apps Script to check available actions
         import aiohttp
@@ -15304,7 +15304,7 @@ async def auto_rename_certificate_file(
                     logger.info(f"📋 Apps Script available actions: {all_actions}")
                     
                     if "rename_file" not in all_actions:
-                        logger.warning(f"⚠️ Apps Script does not support 'rename_file' action")
+                        logger.warning("⚠️ Apps Script does not support 'rename_file' action")
                         logger.warning(f"   Available actions: {all_actions}")
                         
                         # Return informative error with the suggested filename
@@ -15313,7 +15313,7 @@ async def auto_rename_certificate_file(
                             detail=f"Auto-rename feature not yet supported by Google Drive integration. Suggested filename: {new_filename}"
                         )
                     else:
-                        logger.info(f"✅ Apps Script supports 'rename_file' action")
+                        logger.info("✅ Apps Script supports 'rename_file' action")
         
         # Call Apps Script to rename file
         payload = {
@@ -16000,13 +16000,13 @@ async def extract_maritime_document_fields_from_summary(summary_text: str, docum
                             validated_data = validate_maritime_document_fields(converted_data, document_type)
                             
                             if validated_data:
-                                logger.info(f"✅ System AI passport field extraction successful")
+                                logger.info("✅ System AI passport field extraction successful")
                                 logger.info(f"   Extracted fields: {list(validated_data.keys())}")
                                 return validated_data
                         else:
                             # For non-passport documents, proceed normally
                             validated_data = validate_maritime_document_fields(extracted_data, document_type)
-                            logger.info(f"✅ FALLBACK AI field extraction successful")
+                            logger.info("✅ FALLBACK AI field extraction successful")
                             logger.info(f"   Extracted fields: {list(validated_data.keys())}")
                             return validated_data
                         
@@ -17305,7 +17305,7 @@ EXTRACTED INFORMATION:
             if key not in ["processing_method", "document_type"]:
                 summary_content += f"- {key.replace('_', ' ').title()}: {value if value else 'N/A'}\n"
         
-        summary_content += f"\nThis summary was generated using Google Document AI for maritime crew management purposes."
+        summary_content += "\nThis summary was generated using Google Document AI for maritime crew management purposes."
         
         # Determine folder structure based on document type
         folder_mapping = {
@@ -18412,7 +18412,7 @@ async def rename_crew_files(
             original_filename += ".pdf"  # Default extension for passport files
         
         # First check if Apps Script supports rename_file action (same as certificate function)
-        logger.info(f"🔍 Checking Apps Script capabilities for crew file rename functionality...")
+        logger.info("🔍 Checking Apps Script capabilities for crew file rename functionality...")
         
         # Make request to Apps Script to check available actions
         import aiohttp
@@ -18433,7 +18433,7 @@ async def rename_crew_files(
                     logger.info(f"📋 Apps Script available actions: {all_actions}")
                     
                     if "rename_file" not in all_actions:
-                        logger.warning(f"⚠️ Apps Script does not support 'rename_file' action")
+                        logger.warning("⚠️ Apps Script does not support 'rename_file' action")
                         logger.warning(f"   Available actions: {all_actions}")
                         
                         # Return informative error with the suggested filename
@@ -18442,7 +18442,7 @@ async def rename_crew_files(
                             detail=f"Auto-rename feature not yet supported by Google Drive integration. Suggested filename: {original_filename}"
                         )
                     else:
-                        logger.info(f"✅ Apps Script supports 'rename_file' action")
+                        logger.info("✅ Apps Script supports 'rename_file' action")
         
         # Rename passport file
         if passport_file_id:
@@ -18464,7 +18464,7 @@ async def rename_crew_files(
                         if response.status == 200:
                             result = await response.json()
                             if result.get("success"):
-                                logger.info(f"✅ Passport file renamed successfully")
+                                logger.info("✅ Passport file renamed successfully")
                                 renamed_files.append("passport")
                             else:
                                 logger.warning(f"⚠️ Failed to rename passport file: {result.get('message')}")
@@ -18497,7 +18497,7 @@ async def rename_crew_files(
                         if response.status == 200:
                             result = await response.json()
                             if result.get("success"):
-                                logger.info(f"✅ Summary file renamed successfully")
+                                logger.info("✅ Summary file renamed successfully")
                                 renamed_files.append("summary")
                             else:
                                 logger.warning(f"⚠️ Failed to rename summary file: {result.get('message')}")
@@ -18587,9 +18587,9 @@ async def move_standby_crew_files(
         if not root_folder_id:
             raise HTTPException(status_code=400, detail="Root folder ID not configured")
         
-        logger.info(f"📁 Starting 2-step folder detection for Standby Crew...")
-        logger.info(f"📂 Step 1: Find COMPANY DOCUMENT folder in ROOT folder")
-        logger.info(f"📂 Step 2: Find Standby Crew folder in COMPANY DOCUMENT folder")
+        logger.info("📁 Starting 2-step folder detection for Standby Crew...")
+        logger.info("📂 Step 1: Find COMPANY DOCUMENT folder in ROOT folder")
+        logger.info("📂 Step 2: Find Standby Crew folder in COMPANY DOCUMENT folder")
         
         import aiohttp
         company_document_folder_id = None
@@ -18612,7 +18612,7 @@ async def move_standby_crew_files(
                     if response.status == 200:
                         result = await response.json()
                         
-                        logger.info(f"📋 Folders in ROOT folder:")
+                        logger.info("📋 Folders in ROOT folder:")
                         
                         if result.get("success") and result.get("folders"):
                             folders_list = result.get("folders")
@@ -18690,7 +18690,7 @@ async def move_standby_crew_files(
                     if response.status == 200:
                         result = await response.json()
                         
-                        logger.info(f"📋 Folders in COMPANY DOCUMENT:")
+                        logger.info("📋 Folders in COMPANY DOCUMENT:")
                         
                         if result.get("success") and result.get("folders"):
                             folders_list = result.get("folders")
@@ -18717,10 +18717,10 @@ async def move_standby_crew_files(
                                     standby_folder_id = folder_id
                                     logger.info(f"✅ MATCH FOUND! Standby Crew folder: {standby_folder_id}")
                                     logger.info(f"   - Original name: '{folder_name}'")
-                                    logger.info(f"   - Matched using normalized comparison")
+                                    logger.info("   - Matched using normalized comparison")
                                     break
                                 else:
-                                    logger.info(f"       - No match (different name)")
+                                    logger.info("       - No match (different name)")
                             
                             if not standby_folder_id:
                                 logger.warning(f"⚠️ 'Standby Crew' folder NOT FOUND after checking {len(folders_list)} folders")
@@ -18780,7 +18780,7 @@ async def move_standby_crew_files(
                                             timeout=aiohttp.ClientTimeout(total=10)
                                         ) as delete_response:
                                             if delete_response.status == 200:
-                                                logger.info(f"🗑️ Deleted placeholder file")
+                                                logger.info("🗑️ Deleted placeholder file")
                                     except Exception as delete_error:
                                         logger.warning(f"⚠️ Could not delete placeholder file: {delete_error}")
                             else:
@@ -18949,7 +18949,7 @@ async def move_crew_files_to_ship(
             }
         
         if not ship_name or ship_name == "-":
-            logger.info(f"ℹ️ Ship name is empty or '-', skipping file move")
+            logger.info("ℹ️ Ship name is empty or '-', skipping file move")
             return {
                 "success": True,
                 "moved_count": 0,
@@ -19310,7 +19310,7 @@ async def create_crew_certificate_manual(
                 # Continue with ship_id = None (will upload to Standby folder)
         else:
             # Crew is Standby (ship_sign_on = "-")
-            logger.info(f"📍 Crew is Standby (ship_sign_on = '-'), certificate will go to COMPANY DOCUMENT/Standby Crew")
+            logger.info("📍 Crew is Standby (ship_sign_on = '-'), certificate will go to COMPANY DOCUMENT/Standby Crew")
         
         # Prepare certificate document
         cert_doc = cert_data.dict()
@@ -19622,7 +19622,7 @@ async def analyze_certificate_file_for_crew(
                                 crew_parts = normalize_name_parts(crew_name)
                                 crew_parts_en = normalize_name_parts(crew_name_en) if crew_name_en else []
                                 
-                                logger.info(f"🔍 Name matching validation (permutation-insensitive):")
+                                logger.info("🔍 Name matching validation (permutation-insensitive):")
                                 logger.info(f"   Holder name (from cert): '{holder_name}' → parts: {holder_parts}")
                                 logger.info(f"   Crew name (Vietnamese): '{crew_name}' → parts: {crew_parts}")
                                 if crew_name_en:
@@ -19638,14 +19638,14 @@ async def analyze_certificate_file_for_crew(
                                 should_bypass = bypass_validation.lower() == "true"
                                 
                                 if not is_match:
-                                    logger.warning(f"❌ Certificate holder name does NOT match crew name")
+                                    logger.warning("❌ Certificate holder name does NOT match crew name")
                                     logger.warning(f"   Certificate holder: '{holder_name}' → {holder_parts}")
                                     logger.warning(f"   Selected crew (VN): '{crew_name}' → {crew_parts}")
                                     if crew_name_en:
                                         logger.warning(f"   Selected crew (EN): '{crew_name_en}' → {crew_parts_en}")
                                     
                                     if should_bypass:
-                                        logger.warning(f"⚠️ VALIDATION BYPASSED: User chose to continue despite name mismatch")
+                                        logger.warning("⚠️ VALIDATION BYPASSED: User chose to continue despite name mismatch")
                                     else:
                                         raise HTTPException(
                                             status_code=400,
@@ -19660,7 +19660,7 @@ async def analyze_certificate_file_for_crew(
                                 else:
                                     match_type = "Vietnamese" if is_match_vn else "English"
                                     logger.info(f"✅ Certificate holder name matches crew name ({match_type})")
-                                    logger.info(f"   All name parts match (order-insensitive)")
+                                    logger.info("   All name parts match (order-insensitive)")
                                 
                                 # ============================================================
                                 # VALIDATION 2: Date of Birth Match (if both exist)
@@ -19682,7 +19682,7 @@ async def analyze_certificate_file_for_crew(
                                         # Parse AI extracted DOB (should already be YYYY-MM-DD from standardization)
                                         ai_dob_str = ai_extracted_dob.strip()
                                         
-                                        logger.info(f"🔍 Date of Birth validation:")
+                                        logger.info("🔍 Date of Birth validation:")
                                         logger.info(f"   AI extracted DOB: '{ai_dob_str}'")
                                         logger.info(f"   Crew DOB (from database): '{crew_dob_str}'")
                                         
@@ -19691,12 +19691,12 @@ async def analyze_certificate_file_for_crew(
                                         
                                         # Compare DOB
                                         if ai_dob_str != crew_dob_str:
-                                            logger.warning(f"❌ Date of Birth MISMATCH detected")
+                                            logger.warning("❌ Date of Birth MISMATCH detected")
                                             logger.warning(f"   AI extracted: '{ai_dob_str}'")
                                             logger.warning(f"   Crew data: '{crew_dob_str}'")
                                             
                                             if should_bypass_dob:
-                                                logger.warning(f"⚠️ DOB VALIDATION BYPASSED: User chose to continue despite DOB mismatch")
+                                                logger.warning("⚠️ DOB VALIDATION BYPASSED: User chose to continue despite DOB mismatch")
                                             else:
                                                 raise HTTPException(
                                                     status_code=400,
@@ -19709,7 +19709,7 @@ async def analyze_certificate_file_for_crew(
                                                     }
                                                 )
                                         else:
-                                            logger.info(f"✅ Date of Birth matches crew data")
+                                            logger.info("✅ Date of Birth matches crew data")
                                     
                                     except HTTPException:
                                         # Re-raise HTTP exceptions (validation errors) to propagate to client
@@ -19721,9 +19721,9 @@ async def analyze_certificate_file_for_crew(
                                         logger.warning("⚠️ Skipping DOB validation due to parsing error")
                                 else:
                                     if not date_of_birth:
-                                        logger.info(f"⚠️ Skipping DOB validation: Crew has no date of birth in database")
+                                        logger.info("⚠️ Skipping DOB validation: Crew has no date of birth in database")
                                     elif not ai_extracted_dob:
-                                        logger.info(f"⚠️ Skipping DOB validation: AI did not extract date of birth from certificate")
+                                        logger.info("⚠️ Skipping DOB validation: AI did not extract date of birth from certificate")
                         else:
                             logger.warning("⚠️ Certificate field extraction returned empty result")
                         
@@ -19894,7 +19894,7 @@ async def upload_certificate_files_after_creation(
             # Certificate has no ship_id - crew is Standby, upload to COMPANY DOCUMENT/Standby Crew
             ship_name = None
             is_standby = True
-            logger.info(f"📍 Upload destination: COMPANY DOCUMENT/Standby Crew (Standby crew)")
+            logger.info("📍 Upload destination: COMPANY DOCUMENT/Standby Crew (Standby crew)")
         
         # Extract file data from request
         file_content_b64 = file_data.get('file_content')
@@ -20054,7 +20054,7 @@ async def update_crew_certificate(
         elif 'cert_expiry' in update_data and not update_data['cert_expiry']:
             # If cert_expiry is being cleared
             update_data['status'] = "Valid"
-            logger.info(f"🔄 Reset status to Valid (no expiry date)")
+            logger.info("🔄 Reset status to Valid (no expiry date)")
         
         # Update in database
         await mongo_db.update("crew_certificates", {"id": cert_id}, update_data)
@@ -20585,7 +20585,7 @@ async def extract_crew_certificate_fields_from_summary(
                 
                 if ai_response and ai_response.strip():
                     content = ai_response.strip()
-                    logger.info(f"🤖 Certificate AI response received")
+                    logger.info("🤖 Certificate AI response received")
                     
                     # Parse JSON response
                     try:
@@ -20601,7 +20601,7 @@ async def extract_crew_certificate_fields_from_summary(
                         # Normalize issued_by to standard maritime authority names
                         extracted_data = normalize_issued_by(extracted_data)
                         
-                        logger.info(f"✅ Certificate field extraction successful")
+                        logger.info("✅ Certificate field extraction successful")
                         logger.info(f"   📋 Cert Name: '{extracted_data.get('cert_name')}'")
                         logger.info(f"   🔢 Cert No: '{extracted_data.get('cert_no')}'")
                         logger.info(f"   👤 Holder Name: '{extracted_data.get('holder_name', 'NOT EXTRACTED')}'")
@@ -21855,7 +21855,7 @@ async def multi_audit_cert_upload_for_ship(
                         summary["errors"] += 1
                         summary["error_files"].append({
                             "filename": file.filename,
-                            "error": f"Unsupported file type. Supported: PDF, JPG, PNG"
+                            "error": "Unsupported file type. Supported: PDF, JPG, PNG"
                         })
                         results.append({
                             "filename": file.filename,
@@ -22564,7 +22564,7 @@ async def upload_other_document_folder(
             logger.info(f"   📄 Read file: {filename} ({len(file_content)} bytes)")
         
         # Upload folder to Google Drive
-        logger.info(f"📤 Creating subfolder and uploading files to Google Drive...")
+        logger.info("📤 Creating subfolder and uploading files to Google Drive...")
         upload_result = await dual_manager.upload_other_document_folder(
             files=files_data,
             folder_name=folder_name,
@@ -22579,7 +22579,7 @@ async def upload_other_document_folder(
         folder_link = upload_result.get('folder_link')
         file_ids = upload_result.get('file_ids', [])
         
-        logger.info(f"✅ Folder uploaded to Google Drive")
+        logger.info("✅ Folder uploaded to Google Drive")
         logger.info(f"   Folder ID: {folder_id}")
         logger.info(f"   Folder Link: {folder_link}")
         logger.info(f"   Files uploaded: {len(file_ids)}/{len(files)}")
