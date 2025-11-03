@@ -438,7 +438,7 @@ export const AddAuditCertificateModal = ({
                 </h3>
                 
                 {/* AI Model Display */}
-                {aiConfig && (
+                {aiConfig && aiConfig.provider && (
                   <div className="flex items-center mb-2">
                     <span className="text-sm text-blue-700 mr-2">
                       {language === 'vi' ? 'Model AI đang sử dụng:' : 'AI Model in use:'}
@@ -447,7 +447,10 @@ export const AddAuditCertificateModal = ({
                       <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
                       </svg>
-                      {aiConfig.provider === 'emergent' ? 'Emergent LLM' : aiConfig.provider.charAt(0).toUpperCase() + aiConfig.provider.slice(1)} - {aiConfig.model}
+                      {aiConfig.provider === 'emergent' 
+                        ? 'Emergent LLM' 
+                        : (aiConfig.provider.charAt(0).toUpperCase() + aiConfig.provider.slice(1))
+                      } - {aiConfig.model || 'Default Model'}
                     </div>
                   </div>
                 )}
