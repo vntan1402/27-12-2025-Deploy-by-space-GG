@@ -486,7 +486,7 @@ const TestReport = () => {
             const routes = {
               'ship_certificates': '/certificates',
               'crew': '/crew',
-              'ism': '/ism',
+              'ism': '/ism-isps-mlc',
               'isps': '/isps',
               'mlc': '/mlc',
               'supplies': '/supplies'
