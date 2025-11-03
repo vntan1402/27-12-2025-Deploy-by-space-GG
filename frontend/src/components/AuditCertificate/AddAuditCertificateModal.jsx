@@ -323,7 +323,8 @@ export const AddAuditCertificateModal = ({
       
       // Call onSave to refresh the list
       if (successCount > 0) {
-        onSave();
+        // Refresh certificates list
+        fetchAuditCertificates(selectedShip.id);
       }
 
     } catch (error) {
