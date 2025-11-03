@@ -19,8 +19,8 @@ export const MAIN_CATEGORIES = [
   },
   {
     key: 'ism',
-    name_vi: 'ISM Records',
-    name_en: 'ISM Records',
+    name_vi: 'ISM - ISPS - MLC',
+    name_en: 'ISM - ISPS - MLC',
     icon: '📋'
   },
   {
