@@ -919,6 +919,7 @@ const IsmIspsMLc = () => {
         onClose={() => setShowAddCertificateModal(false)}
         onSave={handleSaveCertificate}
         selectedShip={selectedShip}
+        aiConfig={aiConfig}
         language={language}
       />
 
