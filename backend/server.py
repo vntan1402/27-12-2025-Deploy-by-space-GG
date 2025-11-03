@@ -22041,7 +22041,19 @@ async def auto_rename_audit_certificate_file(
         # Rename file on Google Drive
         from dual_apps_script_manager import create_dual_apps_script_manager
         dual_manager = create_dual_apps_script_manager(user_company_id)
-        rename_result = await dual_manager.rename_file(file_id, new_filename)
+        
+        # Load configuration
+        await dual_manager._load_configuration()
+        
+        if not dual_manager.company_apps_script_url:
+            raise HTTPException(status_code=500, detail="Company Apps Script URL not configured")
+        
+        # Call Apps Script to rename file
+        rename_result = await dual_manager._call_company_apps_script({
+            "action": "rename_file",
+            "file_id": file_id,
+            "new_name": new_filename
+        })
         
         if not rename_result.get("success"):
             raise HTTPException(status_code=500, detail=rename_result.get("message", "Failed to rename file"))
