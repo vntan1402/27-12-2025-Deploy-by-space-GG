@@ -915,6 +915,20 @@ const IsmIspsMLc = () => {
                 <span>🔗</span>
                 <span>{language === 'vi' ? 'Copy link' : 'Copy Link'}</span>
               </button>
+              
+              <div className="border-t border-gray-200 my-1"></div>
+              
+              {/* Auto Rename File */}
+              <button
+                onClick={() => {
+                  handleAutoRenameFile(contextMenu.certificate);
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2"
+              >
+                <span>⚡</span>
+                <span>{language === 'vi' ? 'Đổi tên file tự động' : 'Auto Rename File'}</span>
+              </button>
             </>
           )}
         </div>
