@@ -686,6 +686,7 @@ export const AddAuditCertificateModal = ({
               />
             </div>
           </div>
+          </div>
 
           {/* Notes */}
           <div>
