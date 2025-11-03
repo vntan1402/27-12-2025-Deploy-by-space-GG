@@ -21,6 +21,7 @@ export * from './crewService';
 // Certificates
 export * from './shipCertificateService';  // Ship certificates
 export * from './crewCertificateService';  // Crew certificates
+export * from './auditCertificateService'; // Audit certificates (ISM-ISPS-MLC)
 
 // Reports
 export * from './surveyReportService';
