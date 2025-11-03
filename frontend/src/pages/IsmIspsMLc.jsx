@@ -920,7 +920,7 @@ const IsmIspsMLc = () => {
       {/* Add Certificate Modal */}
       <AddAuditCertificateModal
         isOpen={showAddCertificateModal}
-        onClose={() => setShowAddCertificateModal(false)}
+        onClose={handleClose}
         onSave={handleSaveCertificate}
         selectedShip={selectedShip}
         aiConfig={aiConfig}
