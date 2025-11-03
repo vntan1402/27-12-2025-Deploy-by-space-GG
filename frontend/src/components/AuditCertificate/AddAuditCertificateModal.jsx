@@ -583,7 +583,12 @@ export const AddAuditCertificateModal = ({
           </div>
           
           {/* Manual Form */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h3 className="text-md font-semibold text-gray-700 mb-4">
+              ✍️ {language === 'vi' ? 'Hoặc nhập thủ công:' : 'Or Enter Manually:'}
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-4">
             {/* Certificate Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
