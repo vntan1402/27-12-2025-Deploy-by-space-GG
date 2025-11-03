@@ -203,6 +203,10 @@ const IsmIspsMLc = () => {
     setShowAddCertificateModal(true);
   };
 
+  const handleClose = () => {
+    setShowAddCertificateModal(false);
+  };
+
   const handleEditCertificate = (cert) => {
     setEditingCertificate(cert);
     setShowEditCertificateModal(true);
