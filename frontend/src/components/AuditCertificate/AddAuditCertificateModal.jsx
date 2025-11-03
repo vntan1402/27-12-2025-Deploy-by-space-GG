@@ -45,6 +45,298 @@ export const AddAuditCertificateModal = ({
     }
   }, [selectedShip?.id]);
 
+  // Format date from analysis (DD/MM/YYYY to YYYY-MM-DD)
+  const formatCertDate = (dateStr) => {
+    if (!dateStr || typeof dateStr !== 'string') return '';
+    
+    // Handle DD/MM/YYYY format
+    if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        const [day, month, year] = parts;
+        if (day && month && year && year.length === 4) {
+          return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+      }
+    }
+    
+    // Handle YYYY-MM-DD format
+    const isoPattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (isoPattern.test(dateStr.trim())) {
+      return dateStr.trim();
+    }
+    
+    // Handle ISO datetime
+    if (dateStr.includes('T') || dateStr.includes('Z')) {
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+    }
+    
+    return '';
+  };
+  
+  // Date conversion helper (convert YYYY-MM-DD to UTC ISO string)
+  const convertDateInputToUTC = (dateInput) => {
+    if (!dateInput) return null;
+    
+    try {
+      // Handle YYYY-MM-DD format
+      const parts = dateInput.split('-');
+      if (parts.length === 3) {
+        const [year, month, day] = parts;
+        const date = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day)));
+        return date.toISOString();
+      }
+      
+      // Fallback to direct conversion
+      const date = new Date(dateInput);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString();
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Date conversion error:', error);
+      return null;
+    }
+  };
+  
+  // Handle multi cert upload with AI analysis
+  const handleMultiCertUpload = async (files) => {
+    if (!selectedShip?.id) {
+      toast.error(language === 'vi' 
+        ? '❌ Vui lòng chọn tàu trước khi upload certificate'
+        : '❌ Please select a ship before uploading certificate'
+      );
+      return;
+    }
+
+    if (!files || files.length === 0) return;
+
+    setIsMultiCertProcessing(true);
+    const fileArray = Array.from(files);
+    const totalFiles = fileArray.length;
+
+    // Initialize upload tracking
+    const initialUploads = fileArray.map((file, index) => ({
+      index,
+      filename: file.name,
+      size: file.size,
+      status: 'pending',
+      progress: 0,
+      stage: language === 'vi' ? 'Đang chờ...' : 'Waiting...',
+      extracted_info: null,
+      error: null
+    }));
+    
+    setMultiCertUploads(initialUploads);
+    setUploadSummary({ success: 0, failed: 0, total: totalFiles });
+
+    // Show batch info
+    toast.info(language === 'vi' 
+      ? `🚀 Bắt đầu upload ${totalFiles} file (delay 0.5s giữa các file)...`
+      : `🚀 Starting upload of ${totalFiles} files (0.5s delay between files)...`
+    );
+
+    let successCount = 0;
+    let failedCount = 0;
+    let firstSuccessInfo = null;
+
+    try {
+      // Upload files sequentially with delay
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i];
+        
+        // Delay between uploads (except for first file)
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, 500)); // 0.5s delay
+        }
+
+        try {
+          // Update status to uploading
+          setMultiCertUploads(prev => prev.map((upload, idx) => 
+            idx === i 
+              ? {
+                  ...upload,
+                  status: 'uploading',
+                  stage: language === 'vi' 
+                    ? `Đang upload... (${i + 1}/${totalFiles})`
+                    : `Uploading... (${i + 1}/${totalFiles})`
+                }
+              : upload
+          ));
+
+          // Create FormData for single file
+          const formData = new FormData();
+          formData.append('files', file);
+
+          console.log(`📤 [${i + 1}/${totalFiles}] Uploading:`, file.name);
+
+          // Upload single file
+          const response = await api.post(
+            `/api/audit-certificates/multi-upload?ship_id=${selectedShip.id}`,
+            formData,
+            {
+              headers: { 'Content-Type': 'multipart/form-data' },
+              onUploadProgress: (progressEvent) => {
+                const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                setMultiCertUploads(prev => prev.map((upload, idx) => 
+                  idx === i 
+                    ? {
+                        ...upload,
+                        progress: progress,
+                        stage: language === 'vi' 
+                          ? `Upload ${progress}%... (${i + 1}/${totalFiles})`
+                          : `Uploading ${progress}%... (${i + 1}/${totalFiles})`
+                      }
+                    : upload
+                ));
+              }
+            }
+          );
+
+          console.log(`📥 [${i + 1}/${totalFiles}] Response:`, response.data);
+
+          // Process response
+          const results = response.data.results || [];
+          const result = results[0]; // Single file result
+
+          if (result && (result.status === 'success' || result.status === 'completed')) {
+            successCount++;
+            
+            // Update status to completed
+            setMultiCertUploads(prev => prev.map((upload, idx) => 
+              idx === i 
+                ? {
+                    ...upload,
+                    status: 'completed',
+                    progress: 100,
+                    stage: language === 'vi' ? '✅ Hoàn thành' : '✅ Completed',
+                    extracted_info: result.extracted_info
+                  }
+                : upload
+            ));
+
+            // Store first success for auto-fill
+            if (!firstSuccessInfo && result.extracted_info) {
+              firstSuccessInfo = result.extracted_info;
+              console.log('✅ First success with extracted_info:', firstSuccessInfo);
+            }
+
+            toast.success(language === 'vi' 
+              ? `✅ ${file.name} (${i + 1}/${totalFiles})`
+              : `✅ ${file.name} (${i + 1}/${totalFiles})`
+            );
+
+          } else {
+            // Handle error or other status
+            failedCount++;
+            const errorMsg = result?.message || result?.error || 'Unknown error';
+            
+            setMultiCertUploads(prev => prev.map((upload, idx) => 
+              idx === i 
+                ? {
+                    ...upload,
+                    status: 'error',
+                    progress: 0,
+                    stage: language === 'vi' ? '❌ Thất bại' : '❌ Failed',
+                    error: errorMsg
+                  }
+                : upload
+            ));
+
+            toast.error(language === 'vi' 
+              ? `❌ ${file.name}: ${errorMsg}`
+              : `❌ ${file.name}: ${errorMsg}`
+            );
+          }
+
+        } catch (fileError) {
+          failedCount++;
+          console.error(`❌ [${i + 1}/${totalFiles}] Upload error:`, fileError);
+          
+          setMultiCertUploads(prev => prev.map((upload, idx) => 
+            idx === i 
+              ? {
+                  ...upload,
+                  status: 'error',
+                  progress: 0,
+                  stage: language === 'vi' ? '❌ Lỗi' : '❌ Error',
+                  error: fileError.response?.data?.detail || fileError.message
+                }
+              : upload
+          ));
+
+          toast.error(language === 'vi' 
+            ? `❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`
+            : `❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`
+          );
+        }
+      }
+
+      // Update summary
+      setUploadSummary({
+        success: successCount,
+        failed: failedCount,
+        total: totalFiles
+      });
+
+      // Auto-fill form with first success
+      if (firstSuccessInfo) {
+        const autoFillData = {
+          cert_name: firstSuccessInfo.cert_name || firstSuccessInfo.certificate_name || '',
+          cert_no: firstSuccessInfo.cert_no || firstSuccessInfo.certificate_number || '',
+          issue_date: formatCertDate(firstSuccessInfo.issue_date),
+          valid_date: formatCertDate(firstSuccessInfo.valid_date || firstSuccessInfo.expiry_date),
+          issued_by: firstSuccessInfo.issued_by || '',
+          ship_id: selectedShip.id,
+          ship_name: selectedShip.name
+        };
+
+        console.log('📝 Auto-filling form:', autoFillData);
+
+        const filledFields = Object.keys(autoFillData).filter(key => 
+          autoFillData[key] && String(autoFillData[key]).trim() && !['ship_id', 'ship_name'].includes(key)
+        ).length;
+
+        setFormData(prev => ({
+          ...prev,
+          ...autoFillData
+        }));
+
+        toast.success(language === 'vi' 
+          ? `✅ Đã điền ${filledFields} trường thông tin!`
+          : `✅ Auto-filled ${filledFields} fields!`
+        );
+      }
+
+      // Final summary toast
+      toast.success(language === 'vi'
+        ? `🎉 Hoàn tất: ${successCount} thành công, ${failedCount} thất bại`
+        : `🎉 Complete: ${successCount} success, ${failedCount} failed`
+      );
+      
+      // Call onSave to refresh the list
+      if (successCount > 0) {
+        onSave();
+      }
+
+    } catch (error) {
+      console.error('❌ Batch upload error:', error);
+      toast.error(language === 'vi' 
+        ? `❌ Lỗi upload: ${error.message}`
+        : `❌ Upload error: ${error.message}`
+      );
+    } finally {
+      setIsMultiCertProcessing(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -55,7 +347,19 @@ export const AddAuditCertificateModal = ({
 
     setIsSubmitting(true);
     try {
-      await onSave(formData);
+      // Prepare certificate payload with UTC-safe date conversion
+      const certPayload = {
+        ...formData,
+        ship_id: selectedShip.id,
+        issue_date: convertDateInputToUTC(formData.issue_date),
+        valid_date: convertDateInputToUTC(formData.valid_date),
+        last_endorse: formData.last_endorse ? convertDateInputToUTC(formData.last_endorse) : null,
+        next_survey: formData.next_survey ? convertDateInputToUTC(formData.next_survey) : null
+      };
+
+      await onSave(certPayload);
+      
+      // Reset form
       setFormData({
         ship_id: selectedShip?.id || '',
         ship_name: selectedShip?.name || '',
@@ -72,11 +376,36 @@ export const AddAuditCertificateModal = ({
         issued_by_abbreviation: '',
         notes: ''
       });
+      setMultiCertUploads([]);
+      setUploadSummary({ success: 0, failed: 0, total: 0 });
     } catch (error) {
       // Error handled by parent
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleClose = () => {
+    setFormData({
+      ship_id: selectedShip?.id || '',
+      ship_name: selectedShip?.name || '',
+      cert_name: '',
+      cert_abbreviation: '',
+      cert_no: '',
+      cert_type: 'Full Term',
+      issue_date: '',
+      valid_date: '',
+      last_endorse: '',
+      next_survey: '',
+      next_survey_type: '',
+      issued_by: '',
+      issued_by_abbreviation: '',
+      notes: ''
+    });
+    setMultiCertUploads([]);
+    setUploadSummary({ success: 0, failed: 0, total: 0 });
+    setIsMultiCertProcessing(false);
+    onClose();
   };
 
   if (!isOpen) return null;
