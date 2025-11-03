@@ -149,6 +149,279 @@ const IsmIspsMLc = () => {
     console.log('Selected submenu:', submenuKey);
   };
 
+
+  // ==================== AUDIT CERTIFICATE HANDLERS ====================
+  
+  const fetchAuditCertificates = async (shipId) => {
+    try {
+      setCertificatesLoading(true);
+      const response = await auditCertificateService.getAll(shipId);
+      setAuditCertificates(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch audit certificates:', error);
+      toast.error(language === 'vi' 
+        ? 'Không thể tải danh sách chứng chỉ' 
+        : 'Failed to load certificates'
+      );
+    } finally {
+      setCertificatesLoading(false);
+    }
+  };
+
+  const handleAddCertificate = () => {
+    setShowAddCertificateModal(true);
+  };
+
+  const handleEditCertificate = (cert) => {
+    setEditingCertificate(cert);
+    setShowEditCertificateModal(true);
+  };
+
+  const handleDeleteCertificate = (cert) => {
+    setDeletingCertificate(cert);
+    setShowDeleteCertificateModal(true);
+  };
+
+  const handleSaveCertificate = async (data) => {
+    try {
+      await auditCertificateService.create(data);
+      toast.success(language === 'vi' 
+        ? 'Đã thêm chứng chỉ' 
+        : 'Certificate added successfully'
+      );
+      setShowAddCertificateModal(false);
+      fetchAuditCertificates(selectedShip.id);
+    } catch (error) {
+      console.error('Failed to create certificate:', error);
+      toast.error(language === 'vi' 
+        ? 'Không thể thêm chứng chỉ' 
+        : 'Failed to add certificate'
+      );
+    }
+  };
+
+  const handleUpdateCertificate = async (id, data) => {
+    try {
+      await auditCertificateService.update(id, data);
+      toast.success(language === 'vi' 
+        ? 'Đã cập nhật chứng chỉ' 
+        : 'Certificate updated successfully'
+      );
+      setShowEditCertificateModal(false);
+      setEditingCertificate(null);
+      fetchAuditCertificates(selectedShip.id);
+    } catch (error) {
+      console.error('Failed to update certificate:', error);
+      toast.error(language === 'vi' 
+        ? 'Không thể cập nhật chứng chỉ' 
+        : 'Failed to update certificate'
+      );
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      if (selectedCertificates.size > 1) {
+        // Bulk delete
+        await auditCertificateService.bulkDelete(Array.from(selectedCertificates));
+        toast.success(language === 'vi' 
+          ? `Đã xóa ${selectedCertificates.size} chứng chỉ` 
+          : `Deleted ${selectedCertificates.size} certificates`
+        );
+        setSelectedCertificates(new Set());
+      } else if (deletingCertificate) {
+        // Single delete
+        await auditCertificateService.delete(deletingCertificate.id);
+        toast.success(language === 'vi' 
+          ? 'Đã xóa chứng chỉ' 
+          : 'Certificate deleted successfully'
+        );
+      }
+      setShowDeleteCertificateModal(false);
+      setDeletingCertificate(null);
+      fetchAuditCertificates(selectedShip.id);
+    } catch (error) {
+      console.error('Failed to delete certificate:', error);
+      toast.error(language === 'vi' 
+        ? 'Không thể xóa chứng chỉ' 
+        : 'Failed to delete certificate'
+      );
+    }
+  };
+
+  const handleSelectCertificate = (id) => {
+    const newSelected = new Set(selectedCertificates);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedCertificates(newSelected);
+  };
+
+  const handleSelectAllCertificates = (checked) => {
+    if (checked) {
+      const allIds = getFilteredCertificates().map(cert => cert.id);
+      setSelectedCertificates(new Set(allIds));
+    } else {
+      setSelectedCertificates(new Set());
+    }
+  };
+
+  const handleCertificateSort = (column) => {
+    setCertificateSort(prev => ({
+      column,
+      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const getFilteredCertificates = () => {
+    let filtered = [...auditCertificates];
+
+    // Filter by certificate type
+    if (certificateFilters.certificateType !== 'all') {
+      filtered = filtered.filter(cert => 
+        cert.cert_type === certificateFilters.certificateType
+      );
+    }
+
+    // Filter by status
+    if (certificateFilters.status !== 'all') {
+      filtered = filtered.filter(cert => {
+        const status = getCertificateStatus(cert);
+        return status === certificateFilters.status;
+      });
+    }
+
+    // Filter by search
+    if (certificateFilters.search) {
+      const search = certificateFilters.search.toLowerCase();
+      filtered = filtered.filter(cert =>
+        cert.cert_name?.toLowerCase().includes(search) ||
+        cert.cert_abbreviation?.toLowerCase().includes(search) ||
+        cert.cert_no?.toLowerCase().includes(search) ||
+        cert.issued_by?.toLowerCase().includes(search)
+      );
+    }
+
+    // Sort
+    filtered.sort((a, b) => {
+      const aVal = a[certificateSort.column];
+      const bVal = b[certificateSort.column];
+      
+      if (aVal === bVal) return 0;
+      if (aVal === null || aVal === undefined) return 1;
+      if (bVal === null || bVal === undefined) return -1;
+      
+      const comparison = aVal > bVal ? 1 : -1;
+      return certificateSort.direction === 'asc' ? comparison : -comparison;
+    });
+
+    return filtered;
+  };
+
+  const getUniqueCertificateTypes = () => {
+    const types = new Set(auditCertificates.map(cert => cert.cert_type).filter(Boolean));
+    return Array.from(types);
+  };
+
+  const getCertificateStatus = (cert) => {
+    if (!cert.valid_date) return 'Unknown';
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const validDate = new Date(cert.valid_date);
+    validDate.setHours(0, 0, 0, 0);
+    
+    if (validDate < today) return 'Expired';
+    
+    const diffTime = validDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 30) return 'Over Due';
+    return 'Valid';
+  };
+
+  const handleCertificateDoubleClick = (cert) => {
+    if (cert.google_drive_file_id) {
+      const link = `https://drive.google.com/file/d/${cert.google_drive_file_id}/view`;
+      window.open(link, '_blank');
+    } else {
+      toast.warning(language === 'vi' 
+        ? 'Chứng chỉ này chưa có file đính kèm' 
+        : 'This certificate has no attached file'
+      );
+    }
+  };
+
+  const handleNotesClick = (cert) => {
+    setNotesModal({
+      show: true,
+      certificate: cert,
+      notes: cert.notes || ''
+    });
+  };
+
+  const handleSaveNotes = async (notes) => {
+    try {
+      await auditCertificateService.update(notesModal.certificate.id, {
+        notes,
+        has_notes: notes.length > 0
+      });
+      toast.success(language === 'vi' 
+        ? 'Đã lưu ghi chú' 
+        : 'Notes saved successfully'
+      );
+      setNotesModal({ show: false, certificate: null, notes: '' });
+      fetchAuditCertificates(selectedShip.id);
+    } catch (error) {
+      console.error('Failed to save notes:', error);
+      toast.error(language === 'vi' 
+        ? 'Không thể lưu ghi chú' 
+        : 'Failed to save notes'
+      );
+    }
+  };
+
+  const handleUpcomingSurvey = async () => {
+    try {
+      const response = await auditCertificateService.getUpcomingSurveys(30, user.company);
+      setUpcomingSurveyModal({
+        show: true,
+        surveys: response.data.surveys || [],
+        totalCount: response.data.total_count || 0,
+        company: user.company,
+        companyName: user.company,
+        checkDate: new Date().toISOString().split('T')[0]
+      });
+    } catch (error) {
+      console.error('Failed to fetch upcoming surveys:', error);
+      toast.error(language === 'vi' 
+        ? 'Không thể tải thông tin kiểm tra sắp tới' 
+        : 'Failed to load upcoming surveys'
+      );
+    }
+  };
+
+  const handleRefreshCertificates = async () => {
+    setIsRefreshing(true);
+    await fetchAuditCertificates(selectedShip.id);
+    setIsRefreshing(false);
+    toast.success(language === 'vi' 
+      ? 'Đã làm mới danh sách' 
+      : 'List refreshed'
+    );
+  };
+
+  const handleUpdateSurveyTypes = () => {
+    toast.info(language === 'vi' 
+      ? 'Chức năng cập nhật hàng loạt sẽ được triển khai' 
+      : 'Bulk update feature will be implemented'
+    );
+  };
+
+
   return (
     <MainLayout
       sidebar={
