@@ -291,10 +291,16 @@ export const AddAuditCertificateModal = ({
       if (firstSuccessInfo) {
         const autoFillData = {
           cert_name: firstSuccessInfo.cert_name || firstSuccessInfo.certificate_name || '',
+          cert_abbreviation: firstSuccessInfo.cert_abbreviation || '',
           cert_no: firstSuccessInfo.cert_no || firstSuccessInfo.certificate_number || '',
+          cert_type: firstSuccessInfo.cert_type || 'Full Term',
           issue_date: formatCertDate(firstSuccessInfo.issue_date),
           valid_date: formatCertDate(firstSuccessInfo.valid_date || firstSuccessInfo.expiry_date),
+          last_endorse: formatCertDate(firstSuccessInfo.last_endorse),
+          next_survey: formatCertDate(firstSuccessInfo.next_survey),
+          next_survey_type: firstSuccessInfo.next_survey_type || '',
           issued_by: firstSuccessInfo.issued_by || '',
+          issued_by_abbreviation: firstSuccessInfo.issued_by_abbreviation || '',
           ship_id: selectedShip.id,
           ship_name: selectedShip.name
         };
