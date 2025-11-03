@@ -10,7 +10,8 @@ import { CategoryMenu } from './CategoryMenu';
 export const Sidebar = ({
   selectedCategory,
   onCategoryChange,
-  onAddRecord
+  onAddRecord,
+  showAddShipButton = false  // Default false - only show on Home and Class & Flag Cert pages
 }) => {
   const { language, user, logout } = useAuth();
   const navigate = useNavigate();
