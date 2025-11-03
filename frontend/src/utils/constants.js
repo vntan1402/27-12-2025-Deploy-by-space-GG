@@ -57,7 +57,10 @@ export const SUB_MENU_ITEMS = {
     { key: 'crew_certificates', name_vi: 'Crew Certificates', name_en: 'Crew Certificates' }
   ],
   ism: [
-    { key: 'ism_list', name_vi: 'ISM Documents', name_en: 'ISM Documents' }
+    { key: 'audit_certificate', name_vi: 'Audit Certificate', name_en: 'Audit Certificate' },
+    { key: 'audit_report', name_vi: 'Audit Report', name_en: 'Audit Report' },
+    { key: 'approval_document', name_vi: 'Approval Document', name_en: 'Approval Document' },
+    { key: 'other_document', name_vi: 'Other Document', name_en: 'Other Document' }
   ],
   isps: [
     { key: 'isps_list', name_vi: 'ISPS Documents', name_en: 'ISPS Documents' }
