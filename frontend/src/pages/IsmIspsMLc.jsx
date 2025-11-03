@@ -783,6 +783,8 @@ const IsmIspsMLc = () => {
                   onSort={handleCertificateSort}
                   sortConfig={certificateSort}
                   onDoubleClick={handleCertificateDoubleClick}
+                  onRightClick={handleCertificateRightClick}
+                  onSurveyTypeRightClick={handleSurveyTypeRightClick}
                   onNotesClick={handleNotesClick}
                 />
               )}
