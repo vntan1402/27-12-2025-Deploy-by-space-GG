@@ -10,6 +10,7 @@ export const AddAuditCertificateModal = ({
   isOpen,
   onClose,
   onSave,
+  onSuccess,
   selectedShip,
   language,
   aiConfig
