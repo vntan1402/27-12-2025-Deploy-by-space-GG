@@ -656,27 +656,131 @@ const IsmIspsMLc = () => {
           </div>
         ) : (
           /* Show submenu content when ship is selected */
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">
-              {selectedSubMenu === 'audit_certificate' && '📜'}
-              {selectedSubMenu === 'audit_report' && '📋'}
-              {selectedSubMenu === 'approval_document' && '✅'}
-              {selectedSubMenu === 'other_document' && '📄'}
+          selectedSubMenu === 'audit_certificate' ? (
+            <div className="space-y-4">
+              {/* Action Buttons */}
+              <AuditCertificateActionButtons
+                language={language}
+                selectedShip={selectedShip}
+                selectedCertificatesCount={selectedCertificates.size}
+                isRefreshing={isRefreshing}
+                onUpdateSurveyTypes={handleUpdateSurveyTypes}
+                onUpcomingSurvey={handleUpcomingSurvey}
+                onAddCertificate={handleAddCertificate}
+                onRefresh={handleRefreshCertificates}
+              />
+
+              {/* Filters */}
+              <AuditCertificateFilters
+                filters={certificateFilters}
+                onFilterChange={setCertificateFilters}
+                certificateTypes={getUniqueCertificateTypes()}
+                totalCount={auditCertificates.length}
+                filteredCount={getFilteredCertificates().length}
+                language={language}
+              />
+
+              {/* Table */}
+              {certificatesLoading ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="mt-2 text-gray-600">
+                    {language === 'vi' ? 'Đang tải...' : 'Loading...'}
+                  </p>
+                </div>
+              ) : (
+                <AuditCertificateTable
+                  certificates={getFilteredCertificates()}
+                  language={language}
+                  selectedCertificates={selectedCertificates}
+                  onSelectCertificate={handleSelectCertificate}
+                  onSelectAllCertificates={handleSelectAllCertificates}
+                  onSort={handleCertificateSort}
+                  sortConfig={certificateSort}
+                  onDoubleClick={handleCertificateDoubleClick}
+                  onNotesClick={handleNotesClick}
+                />
+              )}
             </div>
-            <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-              {selectedSubMenu === 'audit_certificate' && (language === 'vi' ? 'Audit Certificate' : 'Audit Certificate')}
-              {selectedSubMenu === 'audit_report' && (language === 'vi' ? 'Audit Report' : 'Audit Report')}
-              {selectedSubMenu === 'approval_document' && (language === 'vi' ? 'Approval Document' : 'Approval Document')}
-              {selectedSubMenu === 'other_document' && (language === 'vi' ? 'Other Document' : 'Other Document')}
-            </h3>
-            <p className="text-gray-500">
-              {language === 'vi' 
-                ? 'Chức năng này sẽ được triển khai trong các giai đoạn tiếp theo' 
-                : 'This feature will be implemented in upcoming phases'}
-            </p>
-          </div>
+          ) : (
+            /* Placeholder for other submenus */
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">
+                {selectedSubMenu === 'audit_report' && '📋'}
+                {selectedSubMenu === 'approval_document' && '✅'}
+                {selectedSubMenu === 'other_document' && '📄'}
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-700 mb-2">
+                {selectedSubMenu === 'audit_report' && (language === 'vi' ? 'Audit Report' : 'Audit Report')}
+                {selectedSubMenu === 'approval_document' && (language === 'vi' ? 'Approval Document' : 'Approval Document')}
+                {selectedSubMenu === 'other_document' && (language === 'vi' ? 'Other Document' : 'Other Document')}
+              </h3>
+              <p className="text-gray-500">
+                {language === 'vi' 
+                  ? 'Chức năng này sẽ được triển khai trong các giai đoạn tiếp theo' 
+                  : 'This feature will be implemented in upcoming phases'}
+              </p>
+            </div>
+          )
         )}
       </div>
+
+      {/* Add Certificate Modal */}
+      <AddAuditCertificateModal
+        isOpen={showAddCertificateModal}
+        onClose={() => setShowAddCertificateModal(false)}
+        onSave={handleSaveCertificate}
+        selectedShip={selectedShip}
+        language={language}
+      />
+
+      {/* Edit Certificate Modal */}
+      <EditAuditCertificateModal
+        isOpen={showEditCertificateModal}
+        onClose={() => {
+          setShowEditCertificateModal(false);
+          setEditingCertificate(null);
+        }}
+        onSave={handleUpdateCertificate}
+        certificate={editingCertificate}
+        language={language}
+      />
+
+      {/* Delete Certificate Modal */}
+      <DeleteAuditCertificateModal
+        isOpen={showDeleteCertificateModal}
+        onClose={() => {
+          setShowDeleteCertificateModal(false);
+          setDeletingCertificate(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        certificate={deletingCertificate}
+        selectedCount={selectedCertificates.size}
+      />
+
+      {/* Notes Modal */}
+      <AuditCertificateNotesModal
+        isOpen={notesModal.show}
+        onClose={() => setNotesModal({ show: false, certificate: null, notes: '' })}
+        onSave={handleSaveNotes}
+        certificate={notesModal.certificate}
+        notes={notesModal.notes}
+        language={language}
+      />
+
+      {/* Upcoming Survey Modal */}
+      <AuditUpcomingSurveyModal
+        isOpen={upcomingSurveyModal.show}
+        onClose={() => setUpcomingSurveyModal({
+          show: false, surveys: [], totalCount: 0,
+          company: '', companyName: '', checkDate: ''
+        })}
+        surveys={upcomingSurveyModal.surveys}
+        totalCount={upcomingSurveyModal.totalCount}
+        companyName={upcomingSurveyModal.companyName}
+        checkDate={upcomingSurveyModal.checkDate}
+        language={language}
+      />
     </MainLayout>
   );
 };
