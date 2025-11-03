@@ -63,24 +63,8 @@ const IsmIspsMLc = () => {
 
   const fetchCompanyData = async () => {
     try {
-      const response = await companyService.getAll();
-      const companies = response.data || response || [];
-      
-      if (!Array.isArray(companies)) {
-        console.error('Companies response is not an array:', companies);
-        return;
-      }
-      
-      // Find company by name (user.company is the company name)
-      const userCompany = companies.find(c => 
-        c.name_vn === user.company || 
-        c.name_en === user.company || 
-        c.name === user.company
-      );
-      
-      if (userCompany) {
-        setCompanyData(userCompany);
-      }
+      const response = await companyService.getCompanyInfo();
+      setCompanyData(response.data);
     } catch (error) {
       console.error('Failed to fetch company data:', error);
     }
