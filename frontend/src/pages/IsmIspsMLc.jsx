@@ -64,6 +64,16 @@ const IsmIspsMLc = () => {
     company: '', companyName: '', checkDate: ''
   });
 
+  // Context menus
+  const [contextMenu, setContextMenu] = useState(null);
+  const [surveyTypeContextMenu, setSurveyTypeContextMenu] = useState({
+    show: false, x: 0, y: 0, certificate: null, currentType: ''
+  });
+
+  // AI Config
+  const [aiConfig, setAiConfig] = useState(null);
+
+
   // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
     fetchShips();
