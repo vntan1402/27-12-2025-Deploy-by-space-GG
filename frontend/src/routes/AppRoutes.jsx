@@ -106,6 +106,14 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path="/ism-isps-mlc"
+          element={
+            <ProtectedRoute>
+              <IsmIspsMLc />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/settings"
           element={
             <ProtectedRoute>
