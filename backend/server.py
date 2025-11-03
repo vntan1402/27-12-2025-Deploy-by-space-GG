@@ -22025,14 +22025,11 @@ async def auto_rename_audit_certificate_file(
         
         # Get Google Drive config
         user_company_id = await resolve_company_id(current_user)
-        gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
-        
-        if not gdrive_config_doc:
-            raise HTTPException(status_code=500, detail="Google Drive not configured")
         
         # Rename file on Google Drive
-        drive_manager = GoogleDriveManager(gdrive_config_doc)
-        rename_result = await drive_manager.rename_file(file_id, new_filename)
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(user_company_id)
+        rename_result = await dual_manager.rename_file(file_id, new_filename)
         
         if not rename_result.get("success"):
             raise HTTPException(status_code=500, detail=rename_result.get("message", "Failed to rename file"))
