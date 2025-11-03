@@ -592,104 +592,177 @@ export const AddAuditCertificateModal = ({
               ✍️ {language === 'vi' ? 'Hoặc nhập thủ công:' : 'Or Enter Manually:'}
             </h3>
             
+            {/* Row 1: Certificate Name & Abbreviation */}
             <div className="grid grid-cols-2 gap-4">
-            {/* Certificate Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.cert_name}
-                onChange={(e) => setFormData({...formData, cert_name: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                required
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.cert_name}
+                  onChange={(e) => setFormData({...formData, cert_name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder={language === 'vi' ? 'Nhập tên chứng chỉ' : 'Enter certificate name'}
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên viết tắt' : 'Abbreviation'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.cert_abbreviation}
+                  onChange={(e) => setFormData({...formData, cert_abbreviation: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder={language === 'vi' ? 'Tên viết tắt' : 'Abbreviation'}
+                />
+              </div>
             </div>
 
-            {/* Certificate No */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'} <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={formData.cert_no}
-                onChange={(e) => setFormData({...formData, cert_no: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                required
-              />
+            {/* Row 2: Certificate Number & Type */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Số chứng chỉ' : 'Certificate Number'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.cert_no}
+                  onChange={(e) => setFormData({...formData, cert_no: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 font-mono"
+                  placeholder={language === 'vi' ? 'Nhập số chứng chỉ' : 'Enter certificate number'}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Loại chứng chỉ' : 'Certificate Type'}
+                </label>
+                <select
+                  value={formData.cert_type}
+                  onChange={(e) => setFormData({...formData, cert_type: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="Full Term">Full Term</option>
+                  <option value="Interim">Interim</option>
+                  <option value="Provisional">Provisional</option>
+                  <option value="Short term">Short term</option>
+                  <option value="Conditional">Conditional</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
             </div>
 
-            {/* Cert Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Loại' : 'Type'}
-              </label>
-              <select
-                value={formData.cert_type}
-                onChange={(e) => setFormData({...formData, cert_type: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Full Term">Full Term</option>
-                <option value="Interim">Interim</option>
-                <option value="Provisional">Provisional</option>
-                <option value="Short term">Short term</option>
-              </select>
+            {/* Row 3: Issue Date & Valid Date */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Ngày cấp' : 'Issue Date'}
+                </label>
+                <input
+                  type="date"
+                  value={formData.issue_date}
+                  onChange={(e) => setFormData({...formData, issue_date: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
+                </label>
+                <input
+                  type="date"
+                  value={formData.valid_date}
+                  onChange={(e) => setFormData({...formData, valid_date: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
 
-            {/* Issue Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Ngày cấp' : 'Issue Date'}
-              </label>
-              <input
-                type="date"
-                value={formData.issue_date}
-                onChange={(e) => setFormData({...formData, issue_date: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            {/* Row 4: Last Endorse & Next Survey (conditional on Full Term) */}
+            {formData.cert_type === 'Full Term' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.last_endorse}
+                    onChange={(e) => setFormData({...formData, last_endorse: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.next_survey}
+                    onChange={(e) => setFormData({...formData, next_survey: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            )}
 
-            {/* Valid Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
-              </label>
-              <input
-                type="date"
-                value={formData.valid_date}
-                onChange={(e) => setFormData({...formData, valid_date: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            {/* Row 5: Next Survey Type (if next_survey is set) */}
+            {formData.next_survey && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Loại kiểm tra tới' : 'Next Survey Type'}
+                  </label>
+                  <select
+                    value={formData.next_survey_type}
+                    onChange={(e) => setFormData({...formData, next_survey_type: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">{language === 'vi' ? '-- Chọn loại --' : '-- Select Type --'}</option>
+                    <option value="Annual">Annual</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Renewal">Renewal</option>
+                    <option value="Special">Special</option>
+                  </select>
+                </div>
+                <div></div>
+              </div>
+            )}
 
-            {/* Next Survey */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Next Survey' : 'Next Survey'}
-              </label>
-              <input
-                type="date"
-                value={formData.next_survey}
-                onChange={(e) => setFormData({...formData, next_survey: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              />
+            {/* Row 6: Issued By & Abbreviation */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.issued_by}
+                  onChange={(e) => setFormData({...formData, issued_by: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder={language === 'vi' ? 'Tên tổ chức cấp' : 'Issuing organization'}
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên viết tắt (Issued By)' : 'Issued By Abbreviation'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.issued_by_abbreviation}
+                  onChange={(e) => setFormData({...formData, issued_by_abbreviation: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder={language === 'vi' ? 'Viết tắt' : 'Abbreviation'}
+                />
+              </div>
             </div>
-
-            {/* Issued By */}
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Cơ quan cấp' : 'Issued By'}
-              </label>
-              <input
-                type="text"
-                value={formData.issued_by}
-                onChange={(e) => setFormData({...formData, issued_by: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
           </div>
 
           {/* Notes */}
