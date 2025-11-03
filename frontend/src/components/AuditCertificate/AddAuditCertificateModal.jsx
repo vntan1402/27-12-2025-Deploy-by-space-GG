@@ -425,10 +425,164 @@ export const AddAuditCertificateModal = ({
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* TODO: Add file upload and AI analysis */}
+        {/* Content */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Multi Cert Upload Section */}
+          <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-blue-50">
+            <div className="flex items-start justify-between mb-3">
+              {/* Title and AI Model */}
+              <div className="flex-1 pr-4">
+                <h3 className="text-lg font-semibold text-blue-900 mb-2">
+                  📋 {language === 'vi' ? 'Multi Cert Upload' : 'Multi Cert Upload'}
+                </h3>
+                
+                {/* AI Model Display */}
+                {aiConfig && (
+                  <div className="flex items-center mb-2">
+                    <span className="text-sm text-blue-700 mr-2">
+                      {language === 'vi' ? 'Model AI đang sử dụng:' : 'AI Model in use:'}
+                    </span>
+                    <div className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
+                      </svg>
+                      {aiConfig.provider === 'emergent' ? 'Emergent LLM' : aiConfig.provider.charAt(0).toUpperCase() + aiConfig.provider.slice(1)} - {aiConfig.model}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Upload Guidelines */}
+              <div className="w-72 mx-4 bg-blue-100 rounded-lg p-3">
+                <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
+                  📝 {language === 'vi' ? 'Hướng dẫn Upload:' : 'Upload Guidelines:'}
+                </h4>
+                <ul className="text-xs text-blue-700 space-y-1">
+                  <li>• {language === 'vi' ? 'PDF, JPG, PNG' : 'PDF, JPG, PNG files'}</li>
+                  <li>• {language === 'vi' ? 'Max 50MB/file' : 'Max 50MB per file'}</li>
+                  <li>• {language === 'vi' ? 'AI tự động phân tích' : 'AI auto-analysis'}</li>
+                </ul>
+              </div>
+
+              {/* Upload Button */}
+              <div className="flex-shrink-0">
+                <label
+                  htmlFor="multi-cert-upload"
+                  className={`inline-flex items-center px-4 py-3 border border-transparent text-sm font-medium rounded-md transition-colors cursor-pointer ${
+                    selectedShip && !isMultiCertProcessing
+                      ? 'text-white bg-blue-600 hover:bg-blue-700 shadow-md'
+                      : 'text-gray-400 bg-gray-300 cursor-not-allowed'
+                  }`}
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  {isMultiCertProcessing 
+                    ? (language === 'vi' ? '⏳ Đang xử lý...' : '⏳ Processing...')
+                    : (language === 'vi' ? '📋 Cert Upload' : '📋 Cert Upload')
+                  }
+                  <input
+                    id="multi-cert-upload"
+                    type="file"
+                    multiple
+                    className="sr-only"
+                    onChange={(e) => {
+                      if (selectedShip && !isMultiCertProcessing) {
+                        handleMultiCertUpload(e.target.files);
+                        e.target.value = '';
+                      }
+                    }}
+                    disabled={!selectedShip || isMultiCertProcessing}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* Upload Summary */}
+            {uploadSummary.total > 0 && (
+              <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Kết quả upload:' : 'Upload Results:'}
+                </div>
+                <div className="flex gap-4 mt-2">
+                  <div className="flex items-center">
+                    <span className="text-green-600 font-bold">{uploadSummary.success}</span>
+                    <span className="text-gray-600 text-sm ml-1">{language === 'vi' ? 'thành công' : 'success'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-red-600 font-bold">{uploadSummary.failed}</span>
+                    <span className="text-gray-600 text-sm ml-1">{language === 'vi' ? 'thất bại' : 'failed'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-blue-600 font-bold">{uploadSummary.total}</span>
+                    <span className="text-gray-600 text-sm ml-1">{language === 'vi' ? 'tổng' : 'total'}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Upload Progress List */}
+            {multiCertUploads.length > 0 && (
+              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
+                {multiCertUploads.map((upload, idx) => (
+                  <div 
+                    key={idx}
+                    className={`p-3 rounded-lg border transition-all ${
+                      upload.status === 'completed' ? 'bg-green-50 border-green-300' :
+                      upload.status === 'error' ? 'bg-red-50 border-red-300' :
+                      upload.status === 'uploading' ? 'bg-blue-50 border-blue-300' :
+                      'bg-gray-50 border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center space-x-2 flex-1 min-w-0">
+                        <span className="text-xs font-mono text-gray-500">#{idx + 1}</span>
+                        <span className="text-sm font-medium truncate" title={upload.filename}>
+                          {upload.filename}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-500 ml-2">{(upload.size / 1024).toFixed(1)} KB</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-medium ${
+                        upload.status === 'completed' ? 'text-green-700' :
+                        upload.status === 'error' ? 'text-red-700' :
+                        upload.status === 'uploading' ? 'text-blue-700' :
+                        'text-gray-700'
+                      }`}>
+                        {upload.stage}
+                      </span>
+                      
+                      {upload.status === 'uploading' && upload.progress > 0 && (
+                        <span className="text-xs text-blue-600 font-bold">{upload.progress}%</span>
+                      )}
+                    </div>
+                    
+                    {/* Progress bar for uploading */}
+                    {upload.status === 'uploading' && upload.progress > 0 && (
+                      <div className="mt-2 w-full bg-blue-200 rounded-full h-1.5">
+                        <div 
+                          className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
+                          style={{ width: `${upload.progress}%` }}
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Error message */}
+                    {upload.status === 'error' && upload.error && (
+                      <div className="mt-1 text-xs text-red-600">
+                        {upload.error}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           
+          {/* Manual Form */}
           <div className="grid grid-cols-2 gap-4">
             {/* Certificate Name */}
             <div>
