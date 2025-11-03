@@ -1291,6 +1291,7 @@ const ClassAndFlagCert = () => {
             }
           }}
           onAddRecord={handleAddRecord}
+          showAddShipButton={true}
         />
       }
     >
