@@ -1,16 +1,18 @@
 /**
- * Add Audit Certificate Modal - Simplified Version
- * TODO: Add full AI analysis and file upload features
+ * Add Audit Certificate Modal - Full Featured
+ * With AI analysis, file upload, duplicate detection
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import api from '../../services/api';
 
 export const AddAuditCertificateModal = ({
   isOpen,
   onClose,
   onSave,
   selectedShip,
-  language
+  language,
+  aiConfig
 }) => {
   const [formData, setFormData] = useState({
     ship_id: selectedShip?.id || '',
@@ -30,6 +32,18 @@ export const AddAuditCertificateModal = ({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Multi cert upload states
+  const [isMultiCertProcessing, setIsMultiCertProcessing] = useState(false);
+  const [multiCertUploads, setMultiCertUploads] = useState([]);
+  const [uploadSummary, setUploadSummary] = useState({ success: 0, failed: 0, total: 0 });
+  
+  // Update ship_id when selectedShip changes
+  useEffect(() => {
+    if (selectedShip?.id) {
+      setFormData(prev => ({ ...prev, ship_id: selectedShip.id, ship_name: selectedShip.name }));
+    }
+  }, [selectedShip?.id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
