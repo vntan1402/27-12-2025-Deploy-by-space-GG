@@ -322,10 +322,9 @@ export const AddAuditCertificateModal = ({
         : `🎉 Complete: ${successCount} success, ${failedCount} failed`
       );
       
-      // Call onSave to refresh the list
-      if (successCount > 0) {
-        // Refresh certificates list
-        fetchAuditCertificates(selectedShip.id);
+      // Call onSuccess to refresh the list
+      if (successCount > 0 && onSuccess) {
+        onSuccess();
       }
 
     } catch (error) {
