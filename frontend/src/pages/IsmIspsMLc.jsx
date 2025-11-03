@@ -29,6 +29,41 @@ const IsmIspsMLc = () => {
   const [loading, setLoading] = useState(false);
   const [companyData, setCompanyData] = useState(null);
 
+  // Audit Certificate States
+  const [auditCertificates, setAuditCertificates] = useState([]);
+  const [certificatesLoading, setCertificatesLoading] = useState(false);
+  const [selectedCertificates, setSelectedCertificates] = useState(new Set());
+  
+  // Certificate Modals
+  const [showAddCertificateModal, setShowAddCertificateModal] = useState(false);
+  const [showEditCertificateModal, setShowEditCertificateModal] = useState(false);
+  const [showDeleteCertificateModal, setShowDeleteCertificateModal] = useState(false);
+  const [editingCertificate, setEditingCertificate] = useState(null);
+  const [deletingCertificate, setDeletingCertificate] = useState(null);
+  
+  // Filters & Sort
+  const [certificateFilters, setCertificateFilters] = useState({
+    certificateType: 'all',
+    status: 'all',
+    search: ''
+  });
+  const [certificateSort, setCertificateSort] = useState({
+    column: 'cert_abbreviation',
+    direction: 'asc'
+  });
+  
+  // Actions
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Notes & Survey modals
+  const [notesModal, setNotesModal] = useState({ 
+    show: false, certificate: null, notes: '' 
+  });
+  const [upcomingSurveyModal, setUpcomingSurveyModal] = useState({
+    show: false, surveys: [], totalCount: 0, 
+    company: '', companyName: '', checkDate: ''
+  });
+
   // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
     fetchShips();
