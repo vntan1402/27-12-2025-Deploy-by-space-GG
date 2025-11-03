@@ -503,6 +503,33 @@ const IsmIspsMLc = () => {
     );
   };
 
+  const handleAutoRenameFile = async (cert) => {
+    try {
+      toast.info(language === 'vi' 
+        ? 'Đang đổi tên file...' 
+        : 'Renaming file...'
+      );
+      
+      const response = await api.post(`/api/audit-certificates/${cert.id}/auto-rename-file`);
+      
+      if (response.data.success) {
+        toast.success(language === 'vi' 
+          ? `Đã đổi tên: ${response.data.new_name}` 
+          : `Renamed to: ${response.data.new_name}`
+        );
+        fetchAuditCertificates(selectedShip.id);
+      } else {
+        toast.error(response.data.message || 'Failed to rename file');
+      }
+    } catch (error) {
+      console.error('Error renaming file:', error);
+      toast.error(language === 'vi' 
+        ? 'Không thể đổi tên file' 
+        : 'Failed to rename file'
+      );
+    }
+  };
+
   const handleUpdateSurveyTypes = () => {
     toast.info(language === 'vi' 
       ? 'Chức năng cập nhật hàng loạt sẽ được triển khai' 
