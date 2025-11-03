@@ -25,8 +25,8 @@ export const MAIN_CATEGORIES = [
   },
   {
     key: 'isps',
-    name_vi: 'ISPS Records',
-    name_en: 'ISPS Records',
+    name_vi: 'Safety Management System',
+    name_en: 'Safety Management System',
     icon: '🛡️'
   },
   {
