@@ -1,12 +1,11 @@
 /**
- * Certificate Table Component
- * Displays ship certificates in a sortable, filterable table
- * Extracted from Frontend V1 App.js (lines 13729-14006)
+ * Audit Certificate Table Component
+ * Displays audit certificates in a sortable, filterable table
  */
 import React from 'react';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 
-export const CertificateTable = ({
+export const AuditCertificateTable = ({
   certificates = [],
   language,
   selectedCertificates,
