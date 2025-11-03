@@ -21779,6 +21779,284 @@ async def analyze_audit_certificate_file(
         logger.error(f"Error analyzing audit certificate file: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@api_router.post("/audit-certificates/multi-upload")
+async def multi_audit_cert_upload_for_ship(
+    ship_id: str,
+    files: List[UploadFile] = File(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Upload multiple audit certificate files for a specific ship with AI analysis and Google Drive integration"""
+    try:
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        results = []
+        summary = {
+            "total_files": len(files),
+            "successfully_created": 0,
+            "errors": 0,
+            "certificates_created": [],
+            "error_files": []
+        }
+        
+        # Get AI configuration
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=500, detail="AI configuration not found. Please configure AI settings first.")
+        
+        ai_config = {
+            "provider": ai_config_doc.get("provider", "openai"),
+            "model": ai_config_doc.get("model", "gpt-4"),
+            "api_key": ai_config_doc.get("api_key"),
+            "use_emergent_key": ai_config_doc.get("use_emergent_key", True)
+        }
+        
+        # Get user's company for Google Drive configuration
+        user_company_id = await resolve_company_id(current_user)
+        
+        # Get company-specific Google Drive configuration
+        gdrive_config_doc = None
+        if user_company_id:
+            gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
+            logger.info(f"Company Google Drive config for {user_company_id}: {'Found' if gdrive_config_doc else 'Not found'}")
+        
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=500, detail="Google Drive not configured. Please configure Google Drive first.")
+        
+        for file in files:
+            try:
+                # Read file content
+                file_content = await file.read()
+                
+                # Check file size (50MB limit)
+                if len(file_content) > 50 * 1024 * 1024:
+                    summary["errors"] += 1
+                    summary["error_files"].append({
+                        "filename": file.filename,
+                        "error": "File size exceeds 50MB limit"
+                    })
+                    results.append({
+                        "filename": file.filename,
+                        "status": "error",
+                        "message": "File size exceeds 50MB limit"
+                    })
+                    continue
+                
+                # Check file type - support PDF, JPG, PNG
+                supported_types = ["application/pdf", "image/jpeg", "image/jpg", "image/png"]
+                if file.content_type not in supported_types:
+                    file_ext = file.filename.lower().split('.')[-1] if '.' in file.filename else ''
+                    supported_extensions = ['pdf', 'jpg', 'jpeg', 'png']
+                    
+                    if file_ext not in supported_extensions:
+                        summary["errors"] += 1
+                        summary["error_files"].append({
+                            "filename": file.filename,
+                            "error": f"Unsupported file type. Supported: PDF, JPG, PNG"
+                        })
+                        results.append({
+                            "filename": file.filename,
+                            "status": "error",
+                            "message": "Unsupported file type. Please upload PDF, JPG, or PNG files only."
+                        })
+                        continue
+                
+                # Analyze document with AI
+                analysis_result = await analyze_document_with_ai(
+                    file_content, file.filename, file.content_type, ai_config
+                )
+                
+                logger.info(f"🔍 AI Analysis for audit certificate {file.filename}: {json.dumps(analysis_result, indent=2, default=str)}")
+                
+                # Upload file to Google Drive
+                # For audit certificates, we upload to ship's ISM-ISPS-MLC folder
+                drive_manager = GoogleDriveManager(gdrive_config_doc)
+                
+                # Convert file content to base64 for Apps Script
+                file_base64 = base64.b64encode(file_content).decode('utf-8')
+                
+                # Upload to Google Drive: Ship Name/ISM-ISPS-MLC/Audit Certificates/
+                upload_result = await drive_manager.upload_certificate_to_ship(
+                    ship_name=ship.get("name"),
+                    file_name=file.filename,
+                    file_base64=file_base64,
+                    mime_type=file.content_type,
+                    folder_path="ISM-ISPS-MLC/Audit Certificates"
+                )
+                
+                if not upload_result.get("success"):
+                    summary["errors"] += 1
+                    summary["error_files"].append({
+                        "filename": file.filename,
+                        "error": upload_result.get("message", "Failed to upload to Google Drive")
+                    })
+                    results.append({
+                        "filename": file.filename,
+                        "status": "error",
+                        "message": upload_result.get("message", "Failed to upload to Google Drive")
+                    })
+                    continue
+                
+                # Create certificate record in database
+                cert_data = {
+                    "id": str(uuid.uuid4()),
+                    "ship_id": ship_id,
+                    "ship_name": ship.get("name"),
+                    "cert_name": analysis_result.get("cert_name", analysis_result.get("certificate_name", "")),
+                    "cert_abbreviation": analysis_result.get("cert_abbreviation", ""),
+                    "cert_no": analysis_result.get("cert_no", analysis_result.get("certificate_number", "")),
+                    "cert_type": validate_certificate_type(analysis_result.get("cert_type", "Full Term")),
+                    "issue_date": analysis_result.get("issue_date"),
+                    "valid_date": analysis_result.get("valid_date", analysis_result.get("expiry_date")),
+                    "last_endorse": analysis_result.get("last_endorse"),
+                    "next_survey": analysis_result.get("next_survey"),
+                    "next_survey_type": analysis_result.get("next_survey_type"),
+                    "issued_by": analysis_result.get("issued_by", ""),
+                    "issued_by_abbreviation": analysis_result.get("issued_by_abbreviation", ""),
+                    "notes": "",
+                    "google_drive_file_id": upload_result.get("file_id"),
+                    "google_drive_folder_id": upload_result.get("folder_id"),
+                    "file_name": file.filename,
+                    "created_at": datetime.now(timezone.utc),
+                    "updated_at": None,
+                    "company": current_user.company
+                }
+                
+                await mongo_db.create("audit_certificates", cert_data)
+                
+                summary["successfully_created"] += 1
+                summary["certificates_created"].append({
+                    "id": cert_data["id"],
+                    "cert_name": cert_data["cert_name"],
+                    "filename": file.filename
+                })
+                
+                results.append({
+                    "filename": file.filename,
+                    "status": "success",
+                    "message": "Certificate uploaded and created successfully",
+                    "extracted_info": analysis_result,
+                    "cert_id": cert_data["id"]
+                })
+                
+                logger.info(f"✅ Created audit certificate from file: {file.filename}")
+                
+            except Exception as file_error:
+                logger.error(f"❌ Error processing file {file.filename}: {file_error}")
+                summary["errors"] += 1
+                summary["error_files"].append({
+                    "filename": file.filename,
+                    "error": str(file_error)
+                })
+                results.append({
+                    "filename": file.filename,
+                    "status": "error",
+                    "message": str(file_error)
+                })
+        
+        logger.info(f"🎉 Multi-upload complete: {summary['successfully_created']} success, {summary['errors']} errors")
+        
+        return {
+            "success": True,
+            "message": f"Processed {len(files)} files: {summary['successfully_created']} success, {summary['errors']} errors",
+            "results": results,
+            "summary": summary
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in multi-upload for audit certificates: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/audit-certificates/{cert_id}/auto-rename-file")
+async def auto_rename_audit_certificate_file(
+    cert_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Auto-rename Google Drive file for audit certificate based on certificate data"""
+    try:
+        # Get certificate
+        cert = await mongo_db.find_one("audit_certificates", {"id": cert_id})
+        if not cert:
+            raise HTTPException(status_code=404, detail="Audit certificate not found")
+        
+        file_id = cert.get("google_drive_file_id")
+        if not file_id:
+            raise HTTPException(status_code=404, detail="No file attached to this certificate")
+        
+        # Get ship info
+        ship = await mongo_db.find_one("ships", {"id": cert.get("ship_id")})
+        ship_name = ship.get("name", "Unknown") if ship else "Unknown"
+        
+        # Generate new file name based on certificate data
+        # Pattern: CertName_CertNo_ValidDate.ext
+        cert_name = cert.get("cert_abbreviation") or cert.get("cert_name", "Certificate")
+        cert_no = cert.get("cert_no", "NoNumber")
+        valid_date = cert.get("valid_date", "")
+        
+        # Format date as YYYYMMDD
+        date_str = ""
+        if valid_date:
+            try:
+                if isinstance(valid_date, str):
+                    date_obj = datetime.fromisoformat(valid_date.replace('Z', '+00:00'))
+                else:
+                    date_obj = valid_date
+                date_str = f"_{date_obj.strftime('%Y%m%d')}"
+            except:
+                pass
+        
+        # Clean strings for file name (remove special characters)
+        import re
+        cert_name_clean = re.sub(r'[^\w\s-]', '', cert_name).strip().replace(' ', '_')
+        cert_no_clean = re.sub(r'[^\w\s-]', '', cert_no).strip().replace(' ', '_')
+        
+        # Get original file extension
+        original_filename = cert.get("file_name", "file.pdf")
+        file_ext = original_filename.split('.')[-1] if '.' in original_filename else 'pdf'
+        
+        new_filename = f"{cert_name_clean}_{cert_no_clean}{date_str}.{file_ext}"
+        
+        # Get Google Drive config
+        user_company_id = await resolve_company_id(current_user)
+        gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
+        
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=500, detail="Google Drive not configured")
+        
+        # Rename file on Google Drive
+        drive_manager = GoogleDriveManager(gdrive_config_doc)
+        rename_result = await drive_manager.rename_file(file_id, new_filename)
+        
+        if not rename_result.get("success"):
+            raise HTTPException(status_code=500, detail=rename_result.get("message", "Failed to rename file"))
+        
+        # Update certificate record with new filename
+        await mongo_db.update("audit_certificates", {"id": cert_id}, {
+            "file_name": new_filename,
+            "updated_at": datetime.now(timezone.utc)
+        })
+        
+        logger.info(f"✅ Auto-renamed audit certificate file: {original_filename} → {new_filename}")
+        
+        return {
+            "success": True,
+            "message": "File renamed successfully",
+            "old_name": original_filename,
+            "new_name": new_filename,
+            "file_id": file_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error auto-renaming audit certificate file {cert_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/audit-certificates/upcoming-surveys")
 async def get_upcoming_audit_surveys(
     days: int = 30,
