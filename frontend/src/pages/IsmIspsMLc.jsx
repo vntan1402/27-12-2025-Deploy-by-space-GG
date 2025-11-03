@@ -93,6 +93,17 @@ const IsmIspsMLc = () => {
     }
   }, [ships]);
 
+  // Fetch audit certificates when ship changes
+  useEffect(() => {
+    if (selectedShip && selectedSubMenu === 'audit_certificate') {
+      fetchAuditCertificates(selectedShip.id);
+    } else {
+      setAuditCertificates([]);
+      setSelectedCertificates(new Set());
+    }
+  }, [selectedShip, selectedSubMenu]);
+
+
   const fetchShips = async () => {
     try {
       setLoading(true);
