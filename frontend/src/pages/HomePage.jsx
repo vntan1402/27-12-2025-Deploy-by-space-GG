@@ -99,6 +99,7 @@ const HomePage = () => {
           selectedCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
           onAddRecord={handleAddShip}
+          showAddShipButton={true}
         />
       }
     >
