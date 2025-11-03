@@ -99,6 +99,7 @@ const IsmIspsMLc = () => {
   const handleShipSelect = (ship) => {
     setSelectedShip(ship);
     localStorage.setItem('selectedShipId', ship.id);
+    setShowShipModal(false);
   };
 
   // Handle submenu navigation
