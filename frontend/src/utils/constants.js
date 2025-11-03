@@ -31,8 +31,8 @@ export const MAIN_CATEGORIES = [
   },
   {
     key: 'mlc',
-    name_vi: 'MLC Records',
-    name_en: 'MLC Records',
+    name_vi: 'Technical Infor',
+    name_en: 'Technical Infor',
     icon: '⚓'
   },
   {
