@@ -386,6 +386,60 @@ const IsmIspsMLc = () => {
     }
   };
 
+
+  const handleCertificateRightClick = (e, cert) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      certificate: cert
+    });
+  };
+
+  const handleSurveyTypeRightClick = (e, certId, currentType) => {
+    e.preventDefault();
+    const certificate = auditCertificates.find(c => c.id === certId);
+    setSurveyTypeContextMenu({
+      show: true,
+      x: e.clientX,
+      y: e.clientY,
+      certificate,
+      currentType
+    });
+  };
+
+  const handleSurveyTypeChange = async (newType) => {
+    try {
+      const cert = surveyTypeContextMenu.certificate;
+      await auditCertificateService.update(cert.id, {
+        next_survey_type: newType
+      });
+      toast.success(language === 'vi' 
+        ? `Đã cập nhật thành ${newType}` 
+        : `Updated to ${newType}`
+      );
+      fetchAuditCertificates(selectedShip.id);
+      setSurveyTypeContextMenu({ show: false, x: 0, y: 0, certificate: null, currentType: '' });
+    } catch (error) {
+      console.error('Error updating survey type:', error);
+      toast.error(language === 'vi' 
+        ? 'Không thể cập nhật' 
+        : 'Failed to update'
+      );
+    }
+  };
+
+  const fetchAiConfig = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ai-config`);
+      const data = await response.json();
+      setAiConfig(data);
+    } catch (error) {
+      console.error('Failed to fetch AI config:', error);
+    }
+  };
+
+
   const handleNotesClick = (cert) => {
     setNotesModal({
       show: true,
