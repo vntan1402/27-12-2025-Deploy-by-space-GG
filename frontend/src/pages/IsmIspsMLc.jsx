@@ -177,7 +177,7 @@ const IsmIspsMLc = () => {
 
       {/* SubMenuBar */}
       <SubMenuBar
-        category="ism"
+        selectedCategory="ism"
         selectedSubMenu={selectedSubMenu}
         onSubMenuChange={handleSubMenuChange}
       />
