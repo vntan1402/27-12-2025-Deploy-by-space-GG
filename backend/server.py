@@ -21872,22 +21872,34 @@ async def multi_audit_cert_upload_for_ship(
                 logger.info(f"🔍 AI Analysis for audit certificate {file.filename}: {json.dumps(analysis_result, indent=2, default=str)}")
                 
                 # Upload file to Google Drive
-                # For audit certificates, we upload to ship's ISM-ISPS-MLC folder
+                # For audit certificates, we upload to ship's ISM-ISPS-MLC/Audit Certificates folder
                 from dual_apps_script_manager import create_dual_apps_script_manager
                 dual_manager = create_dual_apps_script_manager(user_company_id)
+                
+                # Load configuration first
+                await dual_manager._load_configuration()
+                
+                if not dual_manager.company_apps_script_url:
+                    raise ValueError("Company Apps Script URL not configured")
+                
+                if not dual_manager.parent_folder_id:
+                    raise ValueError("Company Google Drive Folder ID not configured")
                 
                 # Convert file content to base64 for Apps Script
                 file_base64 = base64.b64encode(file_content).decode('utf-8')
                 
                 # Upload to Google Drive: Ship Name/ISM-ISPS-MLC/Audit Certificates/
-                upload_result = await dual_manager.upload_certificate(
-                    ship_name=ship.get("name"),
-                    file_name=file.filename,
-                    file_base64=file_base64,
-                    mime_type=file.content_type,
-                    category="ISM-ISPS-MLC",
-                    subfolder="Audit Certificates"
-                )
+                logger.info(f"📤 Uploading audit certificate: {ship.get('name')}/ISM-ISPS-MLC/Audit Certificates/{file.filename}")
+                upload_result = await dual_manager._call_company_apps_script({
+                    'action': 'upload_file_with_folder_creation',
+                    'parent_folder_id': dual_manager.parent_folder_id,
+                    'ship_name': ship.get("name"),
+                    'parent_category': 'ISM-ISPS-MLC',  # First level folder
+                    'category': 'Audit Certificates',    # Second level folder
+                    'filename': file.filename,
+                    'file_content': file_base64,
+                    'content_type': file.content_type
+                })
                 
                 if not upload_result.get("success"):
                     summary["errors"] += 1
