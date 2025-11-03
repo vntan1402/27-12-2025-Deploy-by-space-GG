@@ -922,6 +922,7 @@ const IsmIspsMLc = () => {
         isOpen={showAddCertificateModal}
         onClose={handleClose}
         onSave={handleSaveCertificate}
+        onSuccess={() => fetchAuditCertificates(selectedShip.id)}
         selectedShip={selectedShip}
         aiConfig={aiConfig}
         language={language}
