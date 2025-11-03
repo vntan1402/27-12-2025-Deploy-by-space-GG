@@ -44,7 +44,7 @@ import time
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://mariner-papers.preview.emergentagent.com/api"
+BACKEND_URL = "https://nautical-docs.preview.emergentagent.com/api"
 
 class BackendAPITester:
     def __init__(self):
