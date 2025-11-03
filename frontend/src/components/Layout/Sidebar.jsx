@@ -49,6 +49,19 @@ export const Sidebar = ({
         />
       </div>
 
+      {/* Home Button */}
+      <div className="mt-4">
+        <button
+          onClick={() => navigate('/')}
+          className="w-full bg-blue-700 hover:bg-blue-800 text-white py-3 px-4 rounded-lg transition-all font-semibold flex items-center justify-center shadow-md"
+        >
+          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+          </svg>
+          {language === 'vi' ? 'Trang chủ' : 'Home'}
+        </button>
+      </div>
+
       {/* Bottom Actions */}
       <div className="mt-6 pt-4 border-t border-blue-500 space-y-2">
         {canAccessSettings && (
