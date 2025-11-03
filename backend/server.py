@@ -21547,8 +21547,15 @@ async def create_audit_certificate(
         
         await mongo_db.create("audit_certificates", cert_data)
         
+        # Get the created certificate from DB (to get the _id if needed)
+        created_cert = await mongo_db.find_one("audit_certificates", {"id": cert_data["id"]})
+        
+        # Remove MongoDB's _id field to avoid serialization issues
+        if created_cert and '_id' in created_cert:
+            del created_cert['_id']
+        
         # Enhance response
-        enhanced_cert = await enhance_certificate_response(cert_data)
+        enhanced_cert = await enhance_certificate_response(created_cert or cert_data)
         
         logger.info(f"✅ Created audit certificate: {cert_data['id']}")
         return enhanced_cert
