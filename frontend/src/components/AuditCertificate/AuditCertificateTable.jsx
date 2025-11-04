@@ -250,26 +250,24 @@ export const AuditCertificateTable = ({
                   title={cert.cert_name}
                 >
                   <div className="flex items-center gap-2">
-                    {/* File Icon - Click to view */}
-                    {cert.google_drive_file_id && (
-                      <a
-                        href={`https://drive.google.com/file/d/${cert.google_drive_file_id}/view`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex-shrink-0 text-red-600 hover:text-red-700 transition-colors"
-                        title={language === 'vi' ? 'Xem file gốc' : 'View original file'}
-                      >
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
-                        </svg>
-                      </a>
-                    )}
-                    
                     {/* Certificate Name/Abbreviation */}
                     <span className="font-mono font-bold text-blue-600">
                       {cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A'}
                     </span>
+                    
+                    {/* Original File Icon (📄 red) */}
+                    {cert.google_drive_file_id && (
+                      <span
+                        className="text-red-500 text-xs cursor-pointer hover:text-red-600"
+                        title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${cert.ship_name || 'Unknown'}/ISM-ISPS-MLC/Audit Certificates`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`https://drive.google.com/file/d/${cert.google_drive_file_id}/view`, '_blank');
+                        }}
+                      >
+                        📄
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
