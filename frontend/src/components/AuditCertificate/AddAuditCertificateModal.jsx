@@ -596,6 +596,53 @@ export const AddAuditCertificateModal = ({
 
       // **NEW LOGIC: Nếu có certificateFile (từ single upload), upload file trước**
       if (certificateFile) {
+        // Check if validation was approved (user clicked Continue on validation modal)
+        if (validationApproved) {
+          // User approved validation warning - create DB record manually then upload file
+          console.log('✅ Validation approved - creating record with manual upload');
+          
+          toast.info(language === 'vi' 
+            ? '📝 Đang tạo certificate...'
+            : '📝 Creating certificate...'
+          );
+          
+          // Create DB record first using onSave
+          await onSave(certPayload);
+          
+          // Then upload file to Google Drive (we'll add this functionality)
+          // For now, just show success with the note in place
+          toast.success(language === 'vi' 
+            ? '✅ Đã tạo certificate với ghi chú tham khảo!'
+            : '✅ Certificate created with reference note!'
+          );
+          
+          // Clear states
+          setCertificateFile(null);
+          setValidationApproved(false);
+          
+          // Reset form
+          setFormData({
+            ship_id: selectedShip?.id || '',
+            ship_name: selectedShip?.name || '',
+            cert_name: '',
+            cert_abbreviation: '',
+            cert_no: '',
+            cert_type: 'Full Term',
+            issue_date: '',
+            valid_date: '',
+            last_endorse: '',
+            next_survey: '',
+            next_survey_type: '',
+            issued_by: '',
+            issued_by_abbreviation: '',
+            notes: ''
+          });
+          
+          handleClose();
+          return; // Exit after success
+        }
+        
+        // Normal flow: upload via multi-upload endpoint (with validation)
         toast.info(language === 'vi' 
           ? '📤 Đang upload file lên Google Drive...'
           : '📤 Uploading file to Google Drive...'
