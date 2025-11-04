@@ -22232,7 +22232,7 @@ async def multi_audit_cert_upload_for_ship(
                     "next_survey_type": analysis_result.get("next_survey_type"),
                     "issued_by": analysis_result.get("issued_by", ""),
                     "issued_by_abbreviation": analysis_result.get("issued_by_abbreviation", ""),
-                    "notes": "",
+                    "notes": validation_note if validation_note else "",  # Add validation note if ship name mismatch
                     "google_drive_file_id": upload_result.get("file_id"),
                     "google_drive_folder_id": upload_result.get("folder_id"),
                     "file_name": file.filename,
