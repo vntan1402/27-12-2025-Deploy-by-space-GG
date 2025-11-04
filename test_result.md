@@ -139,15 +139,15 @@ backend:
 frontend:
   - task: "Audit Certificate Single-File Upload Validation Modal"
     implemented: true
-    working: "needs_testing"
+    working: "needs_user_test"
     file: "/app/frontend/src/components/AuditCertificate/AddAuditCertificateModal.jsx"
     stuck_count: 0
     priority: "high"
     needs_retesting: true
     status_history:
-        - working: "needs_testing"
+        - working: "needs_user_test"
           agent: "main"
-          comment: "Implemented validation confirmation modal for single-file uploads in AddAuditCertificateModal. Added validationModal state, handleValidationContinue and handleValidationCancel handlers. Modal displays validation warning message with Continue/Cancel buttons. Continue action adds override note to formData.notes and proceeds with auto-fill. Cancel action clears file and stops upload. Updated handleSingleFileAnalysis to pass ship_id to backend and check for validation_warning in response. Modal UI includes warning icon, message, note preview, and action buttons. Needs testing to verify modal appears correctly and both Continue/Cancel flows work as expected."
+          comment: "FIXED: Implemented complete validation confirmation modal flow. Added validationApproved state to track user approval. When user clicks Continue: sets validationApproved=true, adds override note to formData.notes, auto-fills form. When user clicks Save with validationApproved=true: creates DB record directly using onSave (bypassing multi-upload validation), displays success message, resets all states. When user clicks Cancel: clears file, resets validationApproved, shows cancelled toast. The fix ensures that after user approves validation warning, the certificate is saved successfully without triggering validation error again. Ready for user testing."
 
   - task: "Survey Report Add Modal with AI Analysis and File Upload Flow"
     implemented: true
