@@ -31,87 +31,124 @@ export const AuditUpcomingSurveyModal = ({
             {language === 'vi' 
               ? 'Các Audit Certificate sau cần đánh giá trong thời gian tới, hãy bố trí đánh giá sớm nhất:'
               : 'The following audit certificates require review in the coming period. Please arrange assessments as soon as possible:'}
-              </h2>
-              <p className="text-orange-100 text-sm">
-                {companyName} | {language === 'vi' ? 'Ngày kiểm tra:' : 'Check date:'} {formatDateDisplay(checkDate)}
-              </p>
-            </div>
+          </p>
+          <div className="text-sm text-gray-600 mb-4">
+            {language === 'vi' 
+              ? `Tổng cộng: ${totalCount} certificate | Công ty: ${displayCompany}`
+              : `Total: ${totalCount} certificates | Company: ${displayCompany}`}
           </div>
-          <button
-            onClick={onClose}
-            className="text-white hover:text-orange-200 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Summary */}
-        <div className="px-6 py-4 bg-orange-50 border-b border-orange-200">
-          <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p className="text-orange-800 font-semibold">
-              {language === 'vi' 
-                ? `Tổng cộng ${totalCount} audit certificate cần đánh giá trong những ngày tới`
-                : `Total ${totalCount} audit certificates require review in the coming days`
-              }
-            </p>
-          </div>
-        </div>
-
-        {/* Survey List */}
-        <div className="overflow-y-auto max-h-[50vh] p-6">
-          {surveys && surveys.length > 0 ? (
-            <div className="space-y-3">
-              {surveys.map((cert, index) => (
-                <div key={cert.id || index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-lg font-bold text-blue-600">{index + 1}.</span>
-                        <h3 className="font-semibold text-gray-900">{cert.cert_abbreviation || cert.cert_name}</h3>
-                      </div>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-gray-600">
-                        <p><span className="font-medium">{language === 'vi' ? 'Tàu:' : 'Ship:'}</span> {cert.ship_name}</p>
-                        <p><span className="font-medium">{language === 'vi' ? 'Số:' : 'No:'}</span> {cert.cert_no}</p>
-                        <p><span className="font-medium">{language === 'vi' ? 'Kiểm tra tới:' : 'Next Survey:'}</span> {formatDateDisplay(cert.next_survey)}</p>
-                        <p><span className="font-medium">{language === 'vi' ? 'Loại:' : 'Type:'}</span> {cert.next_survey_type || 'N/A'}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span className="px-3 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
-                        {cert.next_survey_type || 'Survey'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12 text-gray-500">
-              <svg className="w-16 h-16 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-lg font-medium">
-                {language === 'vi' 
-                  ? '🎉 Không có audit certificate nào cần đánh giá trong những ngày tới!'
-                  : '🎉 No audit certificates require review in the coming days!'
-                }
-              </p>
+          {checkDate && (
+            <div className="text-xs text-gray-500">
+              {language === 'vi' ? 'Ngày kiểm tra: ' : 'Check date: '}
+              {new Date(checkDate).toLocaleDateString()}
             </div>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+        {/* Certificates Table */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                  {language === 'vi' ? 'Tên Tàu' : 'Ship Name'}
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                  {language === 'vi' ? 'Tên Certificate' : 'Cert. Name (Abbreviation)'}
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                  {language === 'vi' ? 'Next Survey' : 'Next Survey'}
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                  {language === 'vi' ? 'Loại Survey' : 'Next Survey Type'}
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                  {language === 'vi' ? 'Last Endorse' : 'Last Endorse'}
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
+                  {language === 'vi' ? 'Tình trạng' : 'Status'}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {surveys.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                    {language === 'vi' 
+                      ? '✅ Không có audit certificate cần đánh giá trong những ngày tới'
+                      : '✅ No audit certificates require review in the coming days'}
+                  </td>
+                </tr>
+              ) : (
+                surveys.map((survey, index) => (
+                  <tr 
+                    key={index} 
+                    className={`hover:bg-gray-50 ${
+                      survey.is_overdue ? 'bg-red-50' : 
+                      survey.is_critical ? 'bg-orange-50' :
+                      survey.is_due_soon ? 'bg-yellow-50' : 
+                      ''
+                    }`}
+                  >
+                    <td className="px-4 py-3 text-sm text-gray-900 border-b">
+                      <div className="font-medium">{survey.ship_name}</div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 border-b">
+                      <div className="font-medium">{survey.cert_name_display || survey.cert_name}</div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 border-b">
+                      <div className="font-medium">{survey.next_survey}</div>
+                      <div className="text-xs text-gray-500">
+                        {survey.days_until_window_close >= 0 
+                          ? (language === 'vi' ? `Còn ${survey.days_until_window_close} ngày tới window close` : `${survey.days_until_window_close} days to window close`)
+                          : (language === 'vi' ? `Quá window close ${Math.abs(survey.days_until_window_close)} ngày` : `${Math.abs(survey.days_until_window_close)} days past window close`)
+                        }
+                      </div>
+                      {survey.window_type && (
+                        <div className="text-xs text-blue-600 font-medium">
+                          Window: {survey.window_type}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 border-b">
+                      {survey.next_survey_type || '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 border-b">
+                      {formatDateDisplay(survey.last_endorse)}
+                    </td>
+                    <td className="px-4 py-3 text-sm border-b">
+                      {survey.is_overdue ? (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                          {language === 'vi' ? 'Quá hạn' : 'Overdue'}
+                        </span>
+                      ) : survey.is_critical ? (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                          {language === 'vi' ? 'Khẩn cấp' : 'Critical'}
+                        </span>
+                      ) : survey.is_due_soon ? (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                          {language === 'vi' ? 'Sắp đến hạn' : 'Due Soon'}
+                        </span>
+                      ) : (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {language === 'vi' ? 'Trong Window' : 'In Window'}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="mt-6 flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-medium transition-all"
+            className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200"
           >
-            {language === 'vi' ? 'Đóng' : 'Close'}
+            {language === 'vi' ? 'Đã hiểu' : 'Got it'}
           </button>
         </div>
       </div>
