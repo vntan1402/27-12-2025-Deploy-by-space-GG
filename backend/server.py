@@ -21779,6 +21779,50 @@ async def analyze_audit_certificate_file(
         return {
             "success": True,
             "message": "AI analysis for audit certificates will be implemented",
+
+@api_router.post("/audit-certificates/analyze-file")
+async def analyze_audit_certificate_file(
+    file_content: str,
+    filename: str,
+    content_type: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Analyze audit certificate file with AI - does not create DB record or upload to Drive"""
+    try:
+        # Get AI configuration
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=500, detail="AI configuration not found")
+        
+        ai_config = {
+            "provider": ai_config_doc.get("provider", "openai"),
+            "model": ai_config_doc.get("model", "gpt-4"),
+            "api_key": ai_config_doc.get("api_key"),
+            "use_emergent_key": ai_config_doc.get("use_emergent_key", True)
+        }
+        
+        # Decode base64 file content
+        import base64
+        file_bytes = base64.b64decode(file_content)
+        
+        # Analyze with AI
+        analysis_result = await analyze_document_with_ai(
+            file_bytes, filename, content_type, ai_config
+        )
+        
+        logger.info(f"🔍 AI Analysis (analyze-only) for {filename}: {json.dumps(analysis_result, indent=2, default=str)}")
+        
+        return {
+            "success": True,
+            "message": "File analyzed successfully",
+            "extracted_info": analysis_result,
+            "filename": filename
+        }
+        
+    except Exception as e:
+        logger.error(f"Error analyzing audit certificate file: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
             "extracted_data": {}
         }
         
