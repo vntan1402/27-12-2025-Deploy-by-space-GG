@@ -302,6 +302,68 @@ export const AddAuditCertificateModal = ({
     );
   };
 
+  // Handle category continue - user chose to proceed despite category mismatch
+  const handleCategoryContinue = (extractedInfo, file) => {
+    // Auto-fill form with extracted data (no special note for category)
+    const cert_name = extractedInfo.cert_name || extractedInfo.certificate_name || '';
+    const cert_no = extractedInfo.cert_no || extractedInfo.certificate_number || '';
+    
+    const autoFillData = {
+      cert_name: cert_name,
+      cert_abbreviation: extractedInfo.cert_abbreviation || '',
+      cert_no: cert_no,
+      cert_type: extractedInfo.cert_type || 'Full Term',
+      issue_date: formatCertDate(extractedInfo.issue_date),
+      valid_date: formatCertDate(extractedInfo.valid_date || extractedInfo.expiry_date),
+      last_endorse: formatCertDate(extractedInfo.last_endorse),
+      next_survey: formatCertDate(extractedInfo.next_survey),
+      next_survey_type: extractedInfo.next_survey_type || '',
+      issued_by: extractedInfo.issued_by || '',
+      issued_by_abbreviation: extractedInfo.issued_by_abbreviation || '',
+      ship_id: selectedShip.id,
+      ship_name: extractedInfo.ship_name || '',
+      ship_imo: extractedInfo.imo_number || ''
+    };
+
+    const filledFields = Object.keys(autoFillData).filter(key => 
+      autoFillData[key] && String(autoFillData[key]).trim() && !['ship_id', 'ship_name', 'ship_imo'].includes(key)
+    ).length;
+
+    setFormData(prev => ({
+      ...prev,
+      ...autoFillData
+    }));
+
+    // Store file for later upload when user clicks Save
+    setCertificateFile(file);
+    
+    // Mark validation as approved (to use override endpoint)
+    setValidationApproved(true);
+
+    // Close category modal
+    setCategoryModal({ show: false, message: '', certName: '', onContinue: null, onCancel: null });
+
+    toast.success(language === 'vi' 
+      ? `✅ Đã phân tích và điền ${filledFields} trường! Vui lòng review và click Save.`
+      : `✅ Analyzed and filled ${filledFields} fields! Please review and click Save.`
+    );
+  };
+
+  // Handle category cancel - user chose not to proceed
+  const handleCategoryCancel = () => {
+    // Close category modal
+    setCategoryModal({ show: false, message: '', certName: '', onContinue: null, onCancel: null });
+    
+    // Clear file and approval flag
+    setCertificateFile(null);
+    setValidationApproved(false);
+    
+    toast.info(language === 'vi' 
+      ? 'ℹ️ Upload đã bị hủy'
+      : 'ℹ️ Upload cancelled'
+    );
+  };
+
   // Handle single file: AI analysis only + Auto-fill form
   const handleSingleFileAnalysis = async (file) => {
     try {
