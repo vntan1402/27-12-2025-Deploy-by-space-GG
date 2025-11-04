@@ -385,10 +385,14 @@ export const AddAuditCertificateModal = ({
       const finalSuccessCount = uploadResults.filter(r => r.status === 'success').length;
       const finalFailedCount = uploadResults.filter(r => r.status === 'error').length;
 
+      // Count final results
+      const finalSuccessCount = uploadResults.filter(r => r.status === 'success').length;
+      const finalFailedCount = uploadResults.filter(r => r.status === 'error').length;
+
       // Update summary
       setUploadSummary({
-        success: successCount,
-        failed: failedCount,
+        success: finalSuccessCount,
+        failed: finalFailedCount,
         total: totalFiles
       });
 
@@ -429,12 +433,12 @@ export const AddAuditCertificateModal = ({
 
       // Final summary toast
       toast.success(language === 'vi'
-        ? `🎉 Hoàn tất: ${successCount} thành công, ${failedCount} thất bại`
-        : `🎉 Complete: ${successCount} success, ${failedCount} failed`
+        ? `🎉 Hoàn tất: ${finalSuccessCount} thành công, ${finalFailedCount} thất bại`
+        : `🎉 Complete: ${finalSuccessCount} success, ${finalFailedCount} failed`
       );
       
       // Call onSuccess to refresh the list
-      if (successCount > 0 && onSuccess) {
+      if (finalSuccessCount > 0 && onSuccess) {
         onSuccess();
       }
 
