@@ -1133,8 +1133,8 @@ export const AddAuditCertificateModal = ({
               )}
             </div>
             
-            {/* Row 1: Ship Name & IMO (Read-only) */}
-            <div className="grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded-lg">
+            {/* Row 1: Ship Name & IMO (AI will fill these) */}
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? '🚢 Tên tàu' : '🚢 Ship Name'}
@@ -1142,8 +1142,9 @@ export const AddAuditCertificateModal = ({
                 <input
                   type="text"
                   value={formData.ship_name}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-100 text-gray-700 font-medium cursor-not-allowed"
+                  onChange={(e) => setFormData({...formData, ship_name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder={language === 'vi' ? 'AI sẽ tự động điền' : 'AI will auto-fill'}
                 />
               </div>
               
@@ -1154,8 +1155,9 @@ export const AddAuditCertificateModal = ({
                 <input
                   type="text"
                   value={formData.ship_imo}
-                  readOnly
-                  className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-100 text-gray-700 font-mono cursor-not-allowed"
+                  onChange={(e) => setFormData({...formData, ship_imo: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 font-mono"
+                  placeholder={language === 'vi' ? 'AI sẽ tự động điền' : 'AI will auto-fill'}
                 />
               </div>
             </div>
