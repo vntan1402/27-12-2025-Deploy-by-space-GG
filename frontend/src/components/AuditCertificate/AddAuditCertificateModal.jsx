@@ -211,7 +211,7 @@ export const AddAuditCertificateModal = ({
     }
   };
 
-  // Handle multi files: Batch upload with auto-create DB records
+  // Handle multi files: Batch upload with auto-create DB records (PARALLEL with stagger)
   const handleMultiFileBatchUpload = async (fileArray, totalFiles) => {
     setIsMultiCertProcessing(true);
 
@@ -232,8 +232,8 @@ export const AddAuditCertificateModal = ({
 
     // Show batch info
     toast.info(language === 'vi' 
-      ? `🚀 Bắt đầu upload ${totalFiles} file (delay 0.5s giữa các file)...`
-      : `🚀 Starting upload of ${totalFiles} files (0.5s delay between files)...`
+      ? `🚀 Bắt đầu upload ${totalFiles} file (staggered 2s, parallel processing)...`
+      : `🚀 Starting upload of ${totalFiles} files (staggered 2s, parallel processing)...`
     );
 
     let successCount = 0;
@@ -241,15 +241,14 @@ export const AddAuditCertificateModal = ({
     let firstSuccessInfo = null;
 
     try {
-      // Upload files sequentially with delay
-      for (let i = 0; i < fileArray.length; i++) {
-        const file = fileArray[i];
+      // Create array of upload promises with staggered start
+      const uploadPromises = fileArray.map(async (file, i) => {
+        // Stagger start time: File 0 → 0ms, File 1 → 2000ms, File 2 → 4000ms
+        const startDelay = i * 2000; // 2 seconds between starts
         
-        // Delay between uploads (except for first file)
-        if (i > 0) {
-          await new Promise(resolve => setTimeout(resolve, 500)); // 0.5s delay
-        }
-
+        // Wait for stagger delay
+        await new Promise(resolve => setTimeout(resolve, startDelay));
+        
         try {
           // Update status to uploading
           setMultiCertUploads(prev => prev.map((upload, idx) => 
@@ -268,9 +267,9 @@ export const AddAuditCertificateModal = ({
           const formData = new FormData();
           formData.append('files', file);
 
-          console.log(`📤 [${i + 1}/${totalFiles}] Uploading:`, file.name);
+          console.log(`📤 [${i + 1}/${totalFiles}] Starting upload (parallel):`, file.name);
 
-          // Upload single file
+          // Upload single file (runs in parallel with other uploads)
           const response = await api.post(
             `/api/audit-certificates/multi-upload?ship_id=${selectedShip.id}`,
             formData,
@@ -326,6 +325,8 @@ export const AddAuditCertificateModal = ({
               : `✅ ${file.name} (${i + 1}/${totalFiles})`
             );
 
+            return { status: 'success', index: i, result };
+
           } else {
             // Handle error or other status
             failedCount++;
@@ -347,6 +348,8 @@ export const AddAuditCertificateModal = ({
               ? `❌ ${file.name}: ${errorMsg}`
               : `❌ ${file.name}: ${errorMsg}`
             );
+
+            return { status: 'error', index: i, error: errorMsg };
           }
 
         } catch (fileError) {
@@ -369,8 +372,18 @@ export const AddAuditCertificateModal = ({
             ? `❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`
             : `❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`
           );
+
+          return { status: 'error', index: i, error: fileError.message };
         }
-      }
+      });
+
+      // Wait for all uploads to complete (they run in parallel)
+      console.log('⏳ Waiting for all parallel uploads to complete...');
+      const uploadResults = await Promise.all(uploadPromises);
+      
+      // Count final results
+      const finalSuccessCount = uploadResults.filter(r => r.status === 'success').length;
+      const finalFailedCount = uploadResults.filter(r => r.status === 'error').length;
 
       // Update summary
       setUploadSummary({
