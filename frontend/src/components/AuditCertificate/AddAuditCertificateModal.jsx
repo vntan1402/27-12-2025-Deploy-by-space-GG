@@ -1205,19 +1205,6 @@ export const AddAuditCertificateModal = ({
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Số chứng chỉ' : 'Certificate Number'}
-                </label>
-                <input
-                  type="text"
-                  value={formData.cert_no}
-                  onChange={(e) => setFormData({...formData, cert_no: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 font-mono"
-                  placeholder={language === 'vi' ? 'Nhập số chứng chỉ' : 'Enter certificate number'}
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Loại chứng chỉ' : 'Certificate Type'}
                 </label>
                 <select
@@ -1233,10 +1220,7 @@ export const AddAuditCertificateModal = ({
                   <option value="Other">Other</option>
                 </select>
               </div>
-            </div>
-
-            {/* Row 3: Issue Date & Valid Date */}
-            <div className="grid grid-cols-2 gap-4">
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Ngày cấp' : 'Issue Date'}
