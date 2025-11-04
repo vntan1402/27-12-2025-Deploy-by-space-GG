@@ -187,8 +187,8 @@ export const AddAuditCertificateModal = ({
       issued_by: extractedInfo.issued_by || '',
       issued_by_abbreviation: extractedInfo.issued_by_abbreviation || '',
       ship_id: selectedShip.id,
-      ship_name: selectedShip.name,
-      ship_imo: selectedShip.imo || '',
+      ship_name: extractedInfo.ship_name || '',  // Fill từ AI extraction
+      ship_imo: extractedInfo.imo_number || '',  // Fill từ AI extraction
       notes: overrideNote  // Add the override note
     };
 
