@@ -401,11 +401,12 @@ export const AddAuditCertificateModal = ({
           issued_by: extractedInfo.issued_by || '',
           issued_by_abbreviation: extractedInfo.issued_by_abbreviation || '',
           ship_id: selectedShip.id,
-          ship_name: selectedShip.name
+          ship_name: extractedInfo.ship_name || '',  // Fill từ AI extraction
+          ship_imo: extractedInfo.imo_number || ''   // Fill từ AI extraction
         };
 
         const filledFields = Object.keys(autoFillData).filter(key => 
-          autoFillData[key] && String(autoFillData[key]).trim() && !['ship_id', 'ship_name'].includes(key)
+          autoFillData[key] && String(autoFillData[key]).trim() && !['ship_id', 'ship_name', 'ship_imo'].includes(key)
         ).length;
 
         setFormData(prev => ({
