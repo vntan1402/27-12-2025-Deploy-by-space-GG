@@ -15655,7 +15655,7 @@ def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
                 # No Last Endorse → Intermediate
                 intermediate_date = valid_dt - relativedelta(years=2)
                 return {
-                    'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-2 years ±3M)',
+                    'next_survey': intermediate_date.strftime('%d/%m/%Y') + ' (±3M)',
                     'next_survey_type': 'Intermediate',
                     'reasoning': 'Full Term without Last Endorse: Next Survey = Valid Date - 2 years (Intermediate)',
                     'raw_date': intermediate_date.strftime('%d/%m/%Y'),
