@@ -74,7 +74,12 @@ export const AddAuditCertificateModal = ({
   // Update ship_id when selectedShip changes
   useEffect(() => {
     if (selectedShip?.id) {
-      setFormData(prev => ({ ...prev, ship_id: selectedShip.id, ship_name: selectedShip.name }));
+      setFormData(prev => ({ 
+        ...prev, 
+        ship_id: selectedShip.id, 
+        ship_name: selectedShip.name,
+        ship_imo: selectedShip.imo || ''
+      }));
     }
   }, [selectedShip?.id]);
 
