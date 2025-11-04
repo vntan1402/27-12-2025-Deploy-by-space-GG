@@ -907,6 +907,7 @@ export const AddAuditCertificateModal = ({
     setFormData({
       ship_id: selectedShip?.id || '',
       ship_name: selectedShip?.name || '',
+      ship_imo: selectedShip?.imo || '',
       cert_name: '',
       cert_abbreviation: '',
       cert_no: '',
