@@ -161,11 +161,36 @@ export const AddAuditCertificateModal = ({
       if (response.data.success && response.data.extracted_info) {
         const extractedInfo = response.data.extracted_info;
         
+        // ===== VALIDATE EXTRACTED INFO (CLIENT-SIDE CHECK) =====
+        const cert_name = extractedInfo.cert_name || extractedInfo.certificate_name || '';
+        const cert_no = extractedInfo.cert_no || extractedInfo.certificate_number || '';
+        
+        // Check if critical fields are missing
+        const missingFields = [];
+        if (!cert_name || !cert_name.trim()) {
+          missingFields.push(language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name');
+        }
+        if (!cert_no || !cert_no.trim()) {
+          missingFields.push(language === 'vi' ? 'Số chứng chỉ' : 'Certificate Number');
+        }
+        
+        // If critical fields are missing, show error
+        if (missingFields.length > 0) {
+          toast.error(language === 'vi' 
+            ? `❌ AI không thể trích xuất đủ thông tin:\n• ${missingFields.join('\n• ')}\n\nVui lòng kiểm tra chất lượng file và thử lại.`
+            : `❌ AI could not extract required fields:\n• ${missingFields.join('\n• ')}\n\nPlease check file quality and try again.`
+          , { duration: 6000 });
+          
+          console.warn('⚠️ Validation failed - Missing fields:', missingFields);
+          console.log('Extracted info:', extractedInfo);
+          return; // Don't auto-fill or store file
+        }
+        
         // Auto-fill form
         const autoFillData = {
-          cert_name: extractedInfo.cert_name || extractedInfo.certificate_name || '',
+          cert_name: cert_name,
           cert_abbreviation: extractedInfo.cert_abbreviation || '',
-          cert_no: extractedInfo.cert_no || extractedInfo.certificate_number || '',
+          cert_no: cert_no,
           cert_type: extractedInfo.cert_type || 'Full Term',
           issue_date: formatCertDate(extractedInfo.issue_date),
           valid_date: formatCertDate(extractedInfo.valid_date || extractedInfo.expiry_date),
