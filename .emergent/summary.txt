@@ -1,0 +1,57 @@
+<analysis>
+The AI engineer's work primarily focused on developing and refining the  module, specifically the  functionality. Initial steps involved creating the  page and scaffolding  components and API endpoints, mirroring the  page. Subsequent efforts concentrated on integrating advanced features like AI-powered file analysis, multi-file uploads, and auto-rename from  into the . This included extensive backend modifications for validation, Google Drive interaction, and frontend UI updates. Key issues addressed involved  serialization,  instantiation,  method calls, frontend syntax errors, and refining the single vs. multi-file upload logic to allow user review for single files. The latest work fixed single-file validation error display and is now tasked with replacing toast notifications with a modal for validation errors.
+</analysis>
+
+<product_requirements>
+The goal is to migrate and enhance  functionality to a new  module, specifically within its  section. This involves creating a new  page with a layout and style similar to , including a 5-column responsive ship card display. The  feature requires a data table with 11 columns, filters, and search. An Add Certificate modal needs full AI analysis (PDF/JPG/PNG max 10MB) to auto-fill fields, a crew selection dropdown, and duplicate checks. Batch upload with multi-file support (max 10 files, 10MB each), staggered processing (2s delay), progress modals, and AI extraction is essential. Files are managed on Google Drive (). A context menu with options like Edit, Delete, View File, Copy Link, Download, and Auto Rename File (including Delete Selected for bulk) is required. The UI should provide visual feedback (warnings, highlights). AI detection for GMDSS/Seaman book needs enhancement. A critical recent change is that single-file uploads should *only* autofill the form for user review, and require manual saving, while multi-file uploads auto-create records. Validation errors, especially for single-file uploads, need to be prominently displayed, moving from toasts to modals.
+</product_requirements>
+
+<key_technical_concepts>
+-   **Frontend**: React.js (components, modals, state management, routing, hooks), , , responsive design, form handling, file upload.
+-   **Backend**: FastAPI (API endpoints, ), MongoDB (UUIDs instead of ObjectIDs), Google Apps Script (Google Drive integration), AI/LLM integration (Document AI, System AI for OCR and data extraction).
+-   **Patterns**: V2 analysis-first, modular design, asynchronous operations, error handling, input validation, UI/UX consistency.
+</key_technical_concepts>
+
+<code_architecture>
+
+-   ****: FastAPI application.
+    -   **Importance**: Central API for all backend operations, including AI integration, database interaction, and Google Drive management.
+    -   **Changes**: Added  endpoints for GET, POST (create), PUT, DELETE, and bulk operations. Crucially, a  endpoint was implemented for batch processing with AI analysis, Google Drive upload, and DB creation. A new  endpoint was added for single-file AI analysis without immediate DB/Drive operations. Extensive validation logic (matching Ship Certificates) and duplicate checks were integrated into both multi-upload and single-file analysis. Google Drive and Apps Script integration logic (using ) was refined. Logic to handle MongoDB  serialization was added.
+-   ****: New page for ISM-ISPS-MLC module.
+    -   **Importance**: Renders the main view for Audit Certificates, handling ship selection, category navigation, and integrating  and .
+    -   **Changes**: Passes  to . Manages  state and provides  callback. Integrated  with  and added Auto Rename File functionality.
+-   ****: Modal for adding audit certificates.
+    -   **Importance**: Primary user interface for single and multi-file certificate uploads, AI analysis, and manual data entry.
+    -   **Changes**: Fully re-implemented to match  functionality. Includes multi-upload UI, progress indicators, AI analysis integration, auto-fill for 11 fields, and conditional rendering for Next Survey Type. Distinct logic was implemented for single file uploads (auto-fill only) vs. multi-file uploads (auto-create DB records). Enhanced error handling to display detailed validation messages and an attached file indicator. Fixed  error for  and duplicate variable declarations.
+-   ****: Table to display audit certificates.
+    -   **Importance**: Presents certificate data to the user.
+    -   **Changes**: Updated to display file icons (using emojis 📄/📋) next to the certificate name, matching 's style.
+-   ****: Frontend service for Audit Certificate API calls.
+    -   **Importance**: Abstracts API interactions for audit certificates.
+    -   **Changes**: Confirmed to contain all necessary methods for , , , , , , , , and .
+</code_architecture>
+
+<pending_tasks>
+-   Full testing of Sync from Drive functionality UI.
+-   Bulk export/download for certificates via context menu.
+-   Certificate File Viewer (embedded PDF viewer in modal, navigation, zoom, etc.).
+-   Scalability improvements (load testing, Redis caching, query optimization, monitoring, sharding,  conversion, performance monitoring).
+-   Implement toast notifications for Deleting files on Drive (start) and Successfully deleted X files (completion) for both  and .
+-   Finish implementing the  component (for Crew Records).
+-   Verify the background file deletion for crew records.
+-   Implement Batch get Drive links with progress for .
+-   Replace toast notifications with a modal for displaying validation errors (e.g., Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại).
+</pending_tasks>
+
+<current_work>
+Immediately before this summary request, the AI engineer was addressing a critical user feedback regarding error display during single-file uploads for Audit Certificates. The backend and frontend have been extensively updated to support comprehensive AI analysis, multi-file and single-file uploads with distinct flows (single-file auto-fills for user review, multi-file auto-creates records), auto-rename functionality, and a robust validation system mirroring that of Ship Certificates.
+
+Specifically, the  component has been refactored to handle these different upload scenarios, capture all necessary fields from , display progress, and provide an attached file indicator. Backend endpoints in  ( and ) were created or modified to support these flows, including advanced validation, Google Drive interaction via , and correct MongoDB ObjectId handling. The  was updated to show file icons.
+
+The last identified issue was that single-file validation errors were being displayed as toast notifications and sometimes leading to a generic Upload failed message, instead of specific, user-friendly error messages presented in a modal. The user explicitly requested to switch from toast to a modal for these validation error messages, providing an example error: ❌ Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại. The current work is precisely at the point of implementing this change.
+</current_work>
+
+<optional_next_step>
+Implement a modal to display validation errors for single file uploads, replacing the current toast notifications.
+</optional_next_step>
+
