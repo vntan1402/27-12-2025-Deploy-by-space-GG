@@ -12,6 +12,8 @@ export const EditAuditCertificateModal = ({
   language
 }) => {
   const [formData, setFormData] = useState({
+    ship_name: '',
+    ship_imo: '',
     cert_name: '',
     cert_abbreviation: '',
     cert_no: '',
