@@ -546,11 +546,11 @@ const IsmIspsMLc = () => {
       const response = await auditCertificateService.getUpcomingSurveys(30, user.company);
       setUpcomingSurveyModal({
         show: true,
-        surveys: response.data.surveys || [],
+        surveys: response.data.upcoming_surveys || [],
         totalCount: response.data.total_count || 0,
         company: user.company,
-        companyName: user.company,
-        checkDate: new Date().toISOString().split('T')[0]
+        companyName: response.data.company_name || user.company,
+        checkDate: response.data.check_date || new Date().toISOString().split('T')[0]
       });
     } catch (error) {
       console.error('Failed to fetch upcoming surveys:', error);
