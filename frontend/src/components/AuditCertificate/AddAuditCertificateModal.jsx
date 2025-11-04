@@ -18,6 +18,7 @@ export const AddAuditCertificateModal = ({
   const [formData, setFormData] = useState({
     ship_id: selectedShip?.id || '',
     ship_name: selectedShip?.name || '',
+    ship_imo: selectedShip?.imo || '',
     cert_name: '',
     cert_abbreviation: '',
     cert_no: '',
