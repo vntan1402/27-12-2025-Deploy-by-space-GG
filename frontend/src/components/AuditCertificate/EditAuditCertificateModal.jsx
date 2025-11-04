@@ -59,10 +59,13 @@ export const EditAuditCertificateModal = ({
       return;
     }
 
+    console.log('📝 Submitting edit form data:', formData);
+
     setIsSubmitting(true);
     try {
       await onSave(certificate.id, formData);
     } catch (error) {
+      console.error('Edit form submit error:', error);
       // Error handled by parent
     } finally {
       setIsSubmitting(false);
