@@ -22081,10 +22081,10 @@ async def update_ship_audit_certificates_next_survey(
             if survey_info['next_survey']:
                 if survey_info.get('raw_date'):
                     try:
-                        from datetime import datetime
                         parsed_date = datetime.strptime(survey_info['raw_date'], '%d/%m/%Y')
                         update_data['next_survey'] = parsed_date.isoformat() + 'Z'
-                    except:
+                    except Exception as e:
+                        logger.warning(f"Failed to parse date {survey_info['raw_date']}: {e}")
                         update_data['next_survey'] = None
                 else:
                     update_data['next_survey'] = None
