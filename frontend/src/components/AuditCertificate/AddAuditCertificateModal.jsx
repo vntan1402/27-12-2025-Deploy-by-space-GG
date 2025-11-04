@@ -1391,6 +1391,80 @@ export const AddAuditCertificateModal = ({
           </div>
         </div>
       )}
+
+      {/* Duplicate Confirmation Modal */}
+      {duplicateModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[70]">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4">
+            {/* Header */}
+            <div className="bg-orange-50 border-b border-orange-200 px-6 py-4 rounded-t-xl">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-lg font-semibold text-orange-900">
+                    {language === 'vi' ? '⚠️ Phát hiện chứng chỉ trùng lặp' : '⚠️ Duplicate Certificate Detected'}
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 py-4">
+              <p className="text-gray-700 text-base mb-4">
+                {duplicateModal.message}
+              </p>
+              
+              {duplicateModal.existingCert && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm font-semibold text-orange-900 mb-2">
+                    {language === 'vi' ? '📋 Thông tin certificate đã tồn tại:' : '📋 Existing certificate info:'}
+                  </p>
+                  <div className="space-y-1 text-sm text-gray-700">
+                    <div><span className="font-medium">{language === 'vi' ? 'Tên:' : 'Name:'}</span> {duplicateModal.existingCert.cert_name}</div>
+                    <div><span className="font-medium">{language === 'vi' ? 'Số:' : 'Number:'}</span> {duplicateModal.existingCert.cert_no}</div>
+                    <div><span className="font-medium">{language === 'vi' ? 'Loại:' : 'Type:'}</span> {duplicateModal.existingCert.cert_type}</div>
+                    {duplicateModal.existingCert.issue_date && (
+                      <div><span className="font-medium">{language === 'vi' ? 'Ngày cấp:' : 'Issue Date:'}</span> {duplicateModal.existingCert.issue_date}</div>
+                    )}
+                    {duplicateModal.existingCert.valid_date && (
+                      <div><span className="font-medium">{language === 'vi' ? 'Ngày hết hạn:' : 'Valid Date:'}</span> {duplicateModal.existingCert.valid_date}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  {language === 'vi' 
+                    ? '💡 Nếu bạn tiếp tục, một certificate mới sẽ được tạo mặc dù đã có certificate tương tự.'
+                    : '💡 If you continue, a new certificate will be created despite the existing similar certificate.'
+                  }
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-gray-50 px-6 py-4 rounded-b-xl flex justify-end gap-3">
+              <button
+                onClick={duplicateModal.onCancel}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+              >
+                {language === 'vi' ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                onClick={duplicateModal.onContinue}
+                className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition-colors"
+              >
+                {language === 'vi' ? 'Tiếp tục tạo mới' : 'Continue Anyway'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
