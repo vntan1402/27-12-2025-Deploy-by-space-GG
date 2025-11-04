@@ -746,9 +746,31 @@ export const AddAuditCertificateModal = ({
           
           {/* Manual Form */}
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-md font-semibold text-gray-700 mb-4">
-              ✍️ {language === 'vi' ? 'Hoặc nhập thủ công:' : 'Or Enter Manually:'}
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-md font-semibold text-gray-700">
+                ✍️ {language === 'vi' ? 'Hoặc nhập thủ công:' : 'Or Enter Manually:'}
+              </h3>
+              
+              {/* File attached indicator */}
+              {certificateFile && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8 4a3 3 0 00-3 3v4a5 5 0 0010 0V7a1 1 0 112 0v4a7 7 0 11-14 0V7a5 5 0 0110 0v4a3 3 0 11-6 0V7a1 1 0 012 0v4a1 1 0 102 0V7a3 3 0 00-3-3z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-medium">{certificateFile.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCertificateFile(null);
+                      toast.info(language === 'vi' ? 'Đã xóa file đính kèm' : 'Removed attached file');
+                    }}
+                    className="ml-1 hover:text-blue-900"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+            </div>
             
             {/* Row 1: Certificate Name & Abbreviation */}
             <div className="grid grid-cols-2 gap-4">
