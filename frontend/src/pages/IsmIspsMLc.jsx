@@ -56,6 +56,11 @@ const IsmIspsMLc = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isUpdatingNextSurvey, setIsUpdatingNextSurvey] = useState(false);
   
+  // Batch links fetching
+  const [linksFetching, setLinksFetching] = useState(false);
+  const [linksFetchProgress, setLinksFetchProgress] = useState({ ready: 0, total: 0 });
+  const [certificateLinksCache, setCertificateLinksCache] = useState({});
+  
   // Notes & Survey modals
   const [notesModal, setNotesModal] = useState({ 
     show: false, certificate: null, notes: '' 
