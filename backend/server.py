@@ -21801,7 +21801,10 @@ async def get_upcoming_audit_surveys(
         
         for cert in all_certificates:
             try:
-                next_survey_type = cert.get('next_survey_type', '').strip()
+                next_survey_type_raw = cert.get('next_survey_type')
+                if not next_survey_type_raw:
+                    continue
+                next_survey_type = next_survey_type_raw.strip()
                 cert_name = (cert.get('cert_name') or '').upper()
                 
                 # Skip if no next_survey_type
