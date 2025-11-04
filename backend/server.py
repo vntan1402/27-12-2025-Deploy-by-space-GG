@@ -21981,9 +21981,9 @@ async def multi_audit_cert_upload_for_ship(
                     "id": str(uuid.uuid4()),
                     "ship_id": ship_id,
                     "ship_name": ship.get("name"),
-                    "cert_name": analysis_result.get("cert_name", analysis_result.get("certificate_name", "")),
+                    "cert_name": cert_name,  # Already validated
                     "cert_abbreviation": analysis_result.get("cert_abbreviation", ""),
-                    "cert_no": analysis_result.get("cert_no", analysis_result.get("certificate_number", "")),
+                    "cert_no": cert_no,  # Already validated
                     "cert_type": validate_certificate_type(analysis_result.get("cert_type", "Full Term")),
                     "issue_date": analysis_result.get("issue_date"),
                     "valid_date": analysis_result.get("valid_date", analysis_result.get("expiry_date")),
