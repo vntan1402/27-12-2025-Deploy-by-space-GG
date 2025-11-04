@@ -883,6 +883,8 @@ const IsmIspsMLc = () => {
                 selectedCertificatesCount={selectedCertificates.size}
                 isRefreshing={isRefreshing}
                 isUpdatingSurveyTypes={isUpdatingNextSurvey}
+                linksFetching={linksFetching}
+                linksFetchProgress={linksFetchProgress}
                 onUpdateSurveyTypes={handleUpdateSurveyTypes}
                 onUpcomingSurvey={handleUpcomingSurvey}
                 onAddCertificate={handleAddCertificate}
