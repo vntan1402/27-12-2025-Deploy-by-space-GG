@@ -56,6 +56,15 @@ export const AddAuditCertificateModal = ({
     onCancel: null
   });
   
+  // Duplicate confirmation modal state
+  const [duplicateModal, setDuplicateModal] = useState({
+    show: false,
+    message: '',
+    existingCert: null,
+    onContinue: null,
+    onCancel: null
+  });
+  
   // Multi cert upload states
   const [isMultiCertProcessing, setIsMultiCertProcessing] = useState(false);
   const [multiCertUploads, setMultiCertUploads] = useState([]);
