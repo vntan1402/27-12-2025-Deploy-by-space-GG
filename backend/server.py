@@ -22069,6 +22069,110 @@ async def multi_audit_cert_upload_for_ship(
                 cert_name = analysis_result.get("cert_name") or analysis_result.get("certificate_name")
                 cert_no = analysis_result.get("cert_no") or analysis_result.get("certificate_number")
                 
+                # ===== IMO AND SHIP NAME VALIDATION =====
+                extracted_imo = analysis_result.get('imo_number', '').strip()
+                extracted_ship_name = analysis_result.get('ship_name', '').strip()
+                current_ship_imo = ship.get('imo', '').strip()
+                current_ship_name = ship.get('name', '').strip()
+                validation_note = None
+                progress_message = None
+                
+                logger.info(f"🔍 IMO/Ship Name Validation for {file.filename}:")
+                logger.info(f"   Extracted IMO: '{extracted_imo}'")
+                logger.info(f"   Current Ship IMO: '{current_ship_imo}'")
+                logger.info(f"   Extracted Ship Name: '{extracted_ship_name}'")
+                logger.info(f"   Current Ship Name: '{current_ship_name}'")
+                
+                # Check IMO validation first
+                if extracted_imo and current_ship_imo:
+                    extracted_imo_clean = extracted_imo.replace(' ', '').upper()
+                    current_ship_imo_clean = current_ship_imo.replace(' ', '').upper()
+                    
+                    if extracted_imo_clean != current_ship_imo_clean:
+                        # IMO mismatch - hard reject
+                        logger.warning(f"❌ IMO mismatch for {file.filename}: extracted='{extracted_imo}', current='{current_ship_imo}' - REJECTING")
+                        
+                        summary["errors"] += 1
+                        summary["error_files"].append({
+                            "filename": file.filename,
+                            "error": "IMO number mismatch - certificate belongs to different ship",
+                            "validation_error": {
+                                "type": "imo_mismatch",
+                                "extracted_imo": extracted_imo,
+                                "current_ship_imo": current_ship_imo,
+                                "extracted_ship_name": extracted_ship_name,
+                                "current_ship_name": current_ship_name
+                            }
+                        })
+                        
+                        results.append({
+                            "filename": file.filename,
+                            "status": "error",
+                            "message": "Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại",
+                            "progress_message": "Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại",
+                            "extracted_info": analysis_result,
+                            "validation_error": {
+                                "type": "imo_mismatch",
+                                "extracted_imo": extracted_imo,
+                                "current_ship_imo": current_ship_imo,
+                                "extracted_ship_name": extracted_ship_name,
+                                "current_ship_name": current_ship_name
+                            }
+                        })
+                        continue  # Skip this file completely
+                    
+                    # IMO matches - check ship name for warning
+                    if extracted_ship_name and current_ship_name:
+                        if extracted_ship_name.upper() != current_ship_name.upper():
+                            validation_note = "Chỉ để tham khảo"
+                            progress_message = "Giấy chứng nhận này có tên tàu khác với tàu hiện tại, thông tin chỉ để tham khảo"
+                            logger.info(f"⚠️ Ship name mismatch for {file.filename}: extracted='{extracted_ship_name}', current='{current_ship_name}' - adding reference note")
+                        else:
+                            logger.info(f"✅ IMO and Ship name match for {file.filename}")
+                
+                # ===== DUPLICATE CHECK =====
+                duplicates = await check_audit_certificate_duplicates(analysis_result, ship_id)
+                
+                if duplicates:
+                    # Duplicate detected - requires user choice
+                    existing_cert = duplicates[0]['certificate']
+                    duplicate_result = {
+                        "filename": file.filename,
+                        "status": "pending_duplicate_resolution",
+                        "message": f"Duplicate certificate detected: {existing_cert.get('cert_name', 'Unknown')} (Certificate No: {existing_cert.get('cert_no', 'N/A')})",
+                        "extracted_info": analysis_result,
+                        "duplicates": duplicates,
+                        "requires_user_choice": True,
+                        "duplicate_info": {
+                            "existing_certificate": {
+                                "cert_name": existing_cert.get('cert_name'),
+                                "cert_no": existing_cert.get('cert_no'),
+                                "cert_type": existing_cert.get('cert_type'),
+                                "issue_date": existing_cert.get('issue_date'),
+                                "valid_date": existing_cert.get('valid_date'),
+                                "issued_by": existing_cert.get('issued_by'),
+                                "created_at": existing_cert.get('created_at')
+                            },
+                            "new_certificate": {
+                                "cert_name": cert_name,
+                                "cert_no": cert_no,
+                                "cert_type": analysis_result.get('cert_type'),
+                                "issue_date": analysis_result.get('issue_date'),
+                                "valid_date": analysis_result.get('valid_date'),
+                                "issued_by": analysis_result.get('issued_by')
+                            },
+                            "similarity": duplicates[0]['similarity']
+                        }
+                    }
+                    
+                    # Add validation info if present
+                    if progress_message:
+                        duplicate_result["progress_message"] = progress_message
+                        duplicate_result["validation_note"] = validation_note
+                    
+                    results.append(duplicate_result)
+                    continue  # Skip automatic creation, wait for user choice
+                
                 # Upload file to Google Drive
                 # For audit certificates, we upload to ship's ISM-ISPS-MLC/Audit Certificates folder
                 from dual_apps_script_manager import create_dual_apps_script_manager
