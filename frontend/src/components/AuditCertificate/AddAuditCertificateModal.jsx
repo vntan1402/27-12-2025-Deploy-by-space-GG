@@ -907,8 +907,8 @@ export const AddAuditCertificateModal = ({
   const handleClose = () => {
     setFormData({
       ship_id: selectedShip?.id || '',
-      ship_name: selectedShip?.name || '',
-      ship_imo: selectedShip?.imo || '',
+      ship_name: '',  // Reset để AI fill lại
+      ship_imo: '',   // Reset để AI fill lại
       cert_name: '',
       cert_abbreviation: '',
       cert_no: '',
