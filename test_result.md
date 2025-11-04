@@ -64,6 +64,18 @@
 user_problem_statement: "Implement a validation confirmation modal for single-file uploads in Audit Certificates. When a certificate file's ship IMO/name doesn't match the selected ship, instead of showing a toast notification, display a modal with two options: Continue (adds reference note 'Giấy chứng nhận này của tàu khác, chỉ để tham khảo' to notes field and proceeds) or Cancel (stops upload without creating DB record or uploading file). Backend /api/audit-certificates/analyze-file endpoint needs to accept ship_id parameter and perform IMO validation. Frontend AddAuditCertificateModal.jsx needs validation modal component and handlers for Continue/Cancel actions."
 
 backend:
+  - task: "Audit Certificate Single-File Upload Validation - Backend"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "Modified /api/audit-certificates/analyze-file endpoint to accept ship_id parameter and perform IMO/ship name validation. Returns validation_warning object with type='imo_mismatch', message, can_override=True, and override_note when validation fails. Backend needs testing to verify validation logic works correctly."
+          
   - task: "Recalculation APIs - Next Docking, Special Survey Cycle, Anniversary Date"
     implemented: true
     working: true
