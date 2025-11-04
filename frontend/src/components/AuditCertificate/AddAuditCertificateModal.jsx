@@ -392,6 +392,26 @@ export const AddAuditCertificateModal = ({
         const extractedInfo = response.data.extracted_info;
         const validationWarning = response.data.validation_warning;
         const duplicateWarning = response.data.duplicate_warning;
+        const categoryWarning = response.data.category_warning;
+        
+        // ===== CHECK FOR CATEGORY WARNING (ISM/ISPS/MLC) - FIRST PRIORITY =====
+        if (categoryWarning && categoryWarning.type === 'category_mismatch') {
+          // Show category confirmation modal
+          setCategoryModal({
+            show: true,
+            message: categoryWarning.message,
+            certName: categoryWarning.cert_name,
+            onContinue: () => {
+              // User chose to continue - proceed with category mismatch
+              handleCategoryContinue(extractedInfo, file);
+            },
+            onCancel: () => {
+              // User chose to cancel - clear everything
+              handleCategoryCancel();
+            }
+          });
+          return; // Wait for user choice
+        }
         
         // ===== CHECK FOR SHIP VALIDATION WARNING =====
         if (validationWarning && validationWarning.type === 'imo_mismatch') {
