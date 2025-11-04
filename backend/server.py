@@ -21905,11 +21905,13 @@ async def get_upcoming_audit_surveys(
             "company_name": company_name,
             "check_date": current_date.isoformat(),
             "logic_info": {
-                "description": "Audit Certificate survey windows based on Next Survey Type",
+                "description": "Audit Certificate survey windows based on Next Survey annotation",
                 "window_rules": {
-                    "Initial": "Valid Date - 3M → Valid Date | Overdue: Past Valid Date | Due Soon: ≤90 days | Critical: ≤30 days",
-                    "Renewal": "Next Survey - 3M → Next Survey | Overdue: Past Next Survey | Due Soon: ≤90 days | Critical: ≤30 days",
-                    "Intermediate": "Next Survey ±3M | Overdue: Past Next Survey+3M | Due Soon: ≤3 months | Critical: Overdue <2 months"
+                    "±3M": "Window: Next Survey Date ± 3 months",
+                    "-3M": "Window: Next Survey Date - 3 months → Next Survey Date (only before)",
+                    "Due Soon": "window_open < current_date < (window_close - 30 days)",
+                    "Critical": "≤ 30 days to window_close",
+                    "Overdue": "Past window_close"
                 }
             }
         }
