@@ -21902,36 +21902,172 @@ async def multi_audit_cert_upload_for_ship(
                 
                 logger.info(f"🔍 AI Analysis for audit certificate {file.filename}: {json.dumps(analysis_result, indent=2, default=str)}")
                 
-                # ===== VALIDATION: Check required fields from AI extraction =====
-                cert_name = analysis_result.get("cert_name") or analysis_result.get("certificate_name")
-                cert_no = analysis_result.get("cert_no") or analysis_result.get("certificate_number")
+                # ===== AI EXTRACTION QUALITY CHECK (Ship Certificate Pattern) =====
+                def check_ai_extraction_quality(analysis_result):
+                    """Check if AI extraction is sufficient for automatic processing"""
+                    confidence = analysis_result.get("confidence", "")
+                    
+                    # Convert confidence to numeric for comparison
+                    confidence_score = 0.0
+                    if isinstance(confidence, str):
+                        if confidence.lower() == 'high':
+                            confidence_score = 0.8
+                        elif confidence.lower() == 'medium':
+                            confidence_score = 0.6
+                        elif confidence.lower() == 'low':
+                            confidence_score = 0.3
+                        else:
+                            try:
+                                confidence_score = float(confidence)
+                            except:
+                                confidence_score = 0.0
+                    elif isinstance(confidence, (int, float)):
+                        confidence_score = float(confidence)
+                    
+                    # Critical fields for audit certificate processing
+                    critical_fields_variations = {
+                        'cert_name': ['cert_name', 'certificate_name', 'cert_type', 'document_type'],
+                        'cert_no': ['cert_no', 'certificate_number', 'certificate_no', 'document_number']
+                    }
+                    
+                    extracted_critical_fields = 0
+                    
+                    for field_group, variations in critical_fields_variations.items():
+                        found = False
+                        for variation in variations:
+                            value = analysis_result.get(variation, '').strip() if analysis_result.get(variation) else ''
+                            if value and value.lower() not in ['unknown', 'null', 'none', '']:
+                                extracted_critical_fields += 1
+                                found = True
+                                break
+                        if not found:
+                            value = analysis_result.get(field_group, '').strip() if analysis_result.get(field_group) else ''
+                            if value and value.lower() not in ['unknown', 'null', 'none', '']:
+                                extracted_critical_fields += 1
+                    
+                    critical_extraction_rate = extracted_critical_fields / len(critical_fields_variations)
+                    
+                    # All fields for overall assessment
+                    all_expected_fields = [
+                        'cert_name', 'cert_no', 'cert_type',
+                        'issue_date', 'valid_date', 'issued_by'
+                    ]
+                    extracted_all_fields = 0
+                    
+                    for field in all_expected_fields:
+                        value = analysis_result.get(field, '').strip() if analysis_result.get(field) else ''
+                        if value and value.lower() not in ['unknown', 'null', 'none', '']:
+                            extracted_all_fields += 1
+                    
+                    overall_extraction_rate = extracted_all_fields / len(all_expected_fields)
+                    
+                    # Check text content quality
+                    text_content = analysis_result.get('text_content', '')
+                    text_quality_sufficient = len(text_content) >= 100 if text_content else False
+                    
+                    # Calculate confidence based on extraction performance if not provided
+                    if confidence_score == 0.0 and not confidence:
+                        if critical_extraction_rate >= 1.0 and overall_extraction_rate >= 0.5:
+                            confidence_score = 0.8  # High confidence
+                        elif critical_extraction_rate >= 0.5 and overall_extraction_rate >= 0.3:
+                            confidence_score = 0.6  # Medium confidence
+                        elif text_quality_sufficient and overall_extraction_rate >= 0.2:
+                            confidence_score = 0.5  # Medium-low confidence
+                        else:
+                            confidence_score = 0.3  # Low confidence
+                        
+                        logger.info(f"📊 Auto-calculated confidence score: {confidence_score}")
+                    
+                    # Determine if extraction is sufficient
+                    extraction_sufficient = (
+                        confidence_score >= 0.4 and
+                        critical_extraction_rate >= 1.0 and  # Both cert_name and cert_no required
+                        overall_extraction_rate >= 0.3 and
+                        text_quality_sufficient
+                    )
+                    
+                    return {
+                        'sufficient': extraction_sufficient,
+                        'confidence_score': confidence_score,
+                        'critical_extraction_rate': critical_extraction_rate,
+                        'overall_extraction_rate': overall_extraction_rate,
+                        'text_quality_sufficient': text_quality_sufficient,
+                        'extracted_critical_fields': extracted_critical_fields,
+                        'total_critical_fields': len(critical_fields_variations),
+                        'extracted_all_fields': extracted_all_fields,
+                        'total_all_fields': len(all_expected_fields),
+                        'text_length': len(text_content) if text_content else 0
+                    }
                 
-                # Validate required fields
-                missing_fields = []
-                if not cert_name or not cert_name.strip():
-                    missing_fields.append("Certificate Name")
-                if not cert_no or not cert_no.strip():
-                    missing_fields.append("Certificate Number")
+                # Check AI extraction quality
+                extraction_quality = check_ai_extraction_quality(analysis_result)
+                logger.info(f"🤖 AI Extraction Quality Check for {file.filename}:")
+                logger.info(f"   Confidence Score: {extraction_quality['confidence_score']}")
+                logger.info(f"   Critical Fields: {extraction_quality['extracted_critical_fields']}/{extraction_quality['total_critical_fields']} ({extraction_quality['critical_extraction_rate']:.2%})")
+                logger.info(f"   All Fields: {extraction_quality['extracted_all_fields']}/{extraction_quality['total_all_fields']} ({extraction_quality['overall_extraction_rate']:.2%})")
+                logger.info(f"   Text Length: {extraction_quality['text_length']} characters")
+                logger.info(f"   Extraction Sufficient: {extraction_quality['sufficient']}")
                 
-                if missing_fields:
-                    error_msg = f"AI could not extract required fields: {', '.join(missing_fields)}. Please check the file quality and try again."
-                    logger.warning(f"⚠️ Skipping {file.filename}: {error_msg}")
+                # If AI extraction is insufficient, request manual input
+                if not extraction_quality['sufficient']:
+                    logger.warning(f"⚠️ AI extraction insufficient for {file.filename} - requesting manual input")
+                    
+                    # Determine specific reasons
+                    reasons = []
+                    if extraction_quality['confidence_score'] < 0.4:
+                        reasons.append(f"Low confidence ({extraction_quality['confidence_score']:.1f})")
+                    if extraction_quality['critical_extraction_rate'] < 1.0:
+                        missing = []
+                        cert_name = analysis_result.get("cert_name") or analysis_result.get("certificate_name")
+                        cert_no = analysis_result.get("cert_no") or analysis_result.get("certificate_number")
+                        if not cert_name or not cert_name.strip():
+                            missing.append("Certificate Name")
+                        if not cert_no or not cert_no.strip():
+                            missing.append("Certificate Number")
+                        reasons.append(f"Missing: {', '.join(missing)}")
+                    if not extraction_quality['text_quality_sufficient']:
+                        reasons.append(f"Poor text extraction ({extraction_quality['text_length']} chars)")
+                    
+                    reason_text = ", ".join(reasons)
                     
                     summary["errors"] += 1
                     summary["error_files"].append({
                         "filename": file.filename,
-                        "error": error_msg,
-                        "missing_fields": missing_fields
+                        "error": f"AI extraction insufficient - {reason_text}",
+                        "requires_manual_input": True,
+                        "extraction_quality": extraction_quality
                     })
+                    
                     results.append({
                         "filename": file.filename,
-                        "status": "error",
-                        "message": error_msg,
-                        "extracted_info": analysis_result
+                        "status": "requires_manual_input",
+                        "message": f"AI không thể trích xuất đủ thông tin từ '{file.filename}'. Vui lòng nhập thủ công.",
+                        "progress_message": f"AI không thể trích xuất đủ thông tin - Cần nhập thủ công ({reason_text})",
+                        "extracted_info": analysis_result,
+                        "extraction_quality": extraction_quality,
+                        "requires_manual_input": True,
+                        "manual_input_reason": reason_text,
+                        "manual_input_data": {
+                            "extracted_data": {
+                                "cert_name": analysis_result.get('cert_name') or analysis_result.get('certificate_name', ''),
+                                "cert_abbreviation": analysis_result.get('cert_abbreviation', ''),
+                                "cert_no": analysis_result.get('cert_no') or analysis_result.get('certificate_number', ''),
+                                "cert_type": analysis_result.get('cert_type', ''),
+                                "issue_date": analysis_result.get('issue_date', ''),
+                                "valid_date": analysis_result.get('valid_date') or analysis_result.get('expiry_date', ''),
+                                "issued_by": analysis_result.get('issued_by', '')
+                            },
+                            "confidence": analysis_result.get("confidence", "unknown"),
+                            "text_content": analysis_result.get('text_content', '')[:500] + "..." if analysis_result.get('text_content', '') else ""
+                        }
                     })
-                    continue  # Skip this file - DO NOT upload to Drive or create DB record
+                    continue  # Skip automatic processing
                 
-                logger.info(f"✅ Validation passed for {file.filename}: cert_name={cert_name}, cert_no={cert_no}")
+                logger.info(f"✅ Validation passed for {file.filename}")
+                
+                # Get cert_name and cert_no from validated extraction
+                cert_name = analysis_result.get("cert_name") or analysis_result.get("certificate_name")
+                cert_no = analysis_result.get("cert_no") or analysis_result.get("certificate_number")
                 
                 # Upload file to Google Drive
                 # For audit certificates, we upload to ship's ISM-ISPS-MLC/Audit Certificates folder
