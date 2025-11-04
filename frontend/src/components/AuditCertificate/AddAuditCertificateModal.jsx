@@ -251,7 +251,8 @@ export const AddAuditCertificateModal = ({
       issued_by: extractedInfo.issued_by || '',
       issued_by_abbreviation: extractedInfo.issued_by_abbreviation || '',
       ship_id: selectedShip.id,
-      ship_name: selectedShip.name
+      ship_name: selectedShip.name,
+      ship_imo: selectedShip.imo || ''
     };
 
     const filledFields = Object.keys(autoFillData).filter(key => 
