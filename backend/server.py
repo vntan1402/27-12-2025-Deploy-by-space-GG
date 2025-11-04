@@ -22368,6 +22368,32 @@ async def multi_audit_cert_upload_for_ship(
                 cert_name = analysis_result.get("cert_name") or analysis_result.get("certificate_name")
                 cert_no = analysis_result.get("cert_no") or analysis_result.get("certificate_number")
                 
+                # ===== CATEGORY VALIDATION (ISM/ISPS/MLC CHECK) =====
+                if cert_name:
+                    category_check = check_ism_isps_mlc_category(cert_name)
+                    
+                    if not category_check.get('is_valid'):
+                        logger.warning(f"⚠️ Category mismatch for {file.filename}: '{cert_name}' is not ISM/ISPS/MLC")
+                        
+                        summary["errors"] += 1
+                        summary["error_files"].append({
+                            "filename": file.filename,
+                            "error": f"Certificate '{cert_name}' does not belong to ISM/ISPS/MLC categories",
+                            "category_mismatch": True
+                        })
+                        
+                        results.append({
+                            "filename": file.filename,
+                            "status": "error",
+                            "message": f"Giấy chứng nhận '{cert_name}' không thuộc danh mục ISM/ISPS/MLC",
+                            "progress_message": f"❌ Không thuộc danh mục ISM/ISPS/MLC",
+                            "category_mismatch": True,
+                            "cert_name": cert_name
+                        })
+                        continue  # Skip this file
+                    else:
+                        logger.info(f"✅ Category validation passed: '{cert_name}' belongs to {category_check.get('category')}")
+                
                 # ===== IMO AND SHIP NAME VALIDATION =====
                 extracted_imo = analysis_result.get('imo_number', '').strip()
                 extracted_ship_name = analysis_result.get('ship_name', '').strip()
