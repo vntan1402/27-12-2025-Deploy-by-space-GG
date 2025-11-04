@@ -21711,19 +21711,63 @@ async def update_audit_certificate(
 @api_router.delete("/audit-certificates/{cert_id}")
 async def delete_audit_certificate(
     cert_id: str,
+    background: bool = True,
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
-    """Delete an audit certificate"""
+    """Delete an audit certificate with optional background file deletion"""
     try:
         # Check if certificate exists
         cert = await mongo_db.find_one("audit_certificates", {"id": cert_id})
         if not cert:
             raise HTTPException(status_code=404, detail="Audit certificate not found")
         
-        # Delete from database
-        await mongo_db.delete("audit_certificates", {"id": cert_id})
+        # Extract file info before deleting DB record
+        google_drive_file_id = cert.get("google_drive_file_id")
+        cert_name = cert.get("cert_name", "Unknown")
         
-        logger.info(f"✅ Deleted audit certificate: {cert_id}")
+        # Delete from database immediately
+        await mongo_db.delete("audit_certificates", {"id": cert_id})
+        logger.info(f"✅ Deleted audit certificate from DB: {cert_id} ({cert_name})")
+        
+        # Handle Google Drive file deletion
+        if google_drive_file_id:
+            if background:
+                # Delete file in background
+                user_company_id = await resolve_company_id(current_user)
+                background_tasks.add_task(
+                    delete_audit_certificate_file_background,
+                    google_drive_file_id,
+                    cert_name,
+                    user_company_id
+                )
+                logger.info(f"📋 Scheduled background deletion for file: {google_drive_file_id}")
+                return {
+                    "success": True,
+                    "message": "Audit certificate deleted successfully. File deletion in progress...",
+                    "background_deletion": True
+                }
+            else:
+                # Delete file synchronously (legacy behavior)
+                user_company_id = await resolve_company_id(current_user)
+                from dual_apps_script_manager import create_dual_apps_script_manager
+                dual_manager = create_dual_apps_script_manager(user_company_id)
+                await dual_manager._load_configuration()
+                
+                if dual_manager.company_apps_script_url:
+                    try:
+                        delete_result = await dual_manager._call_company_apps_script({
+                            'action': 'delete_file',
+                            'file_id': google_drive_file_id
+                        })
+                        
+                        if delete_result.get("success"):
+                            logger.info(f"✅ Deleted file from Google Drive: {google_drive_file_id}")
+                        else:
+                            logger.warning(f"⚠️ Failed to delete file: {delete_result.get('message')}")
+                    except Exception as e:
+                        logger.error(f"❌ Error deleting file from Drive: {e}")
+        
         return {
             "success": True,
             "message": "Audit certificate deleted successfully"
@@ -21734,6 +21778,35 @@ async def delete_audit_certificate(
     except Exception as e:
         logger.error(f"Error deleting audit certificate {cert_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+async def delete_audit_certificate_file_background(file_id: str, cert_name: str, company_id: str):
+    """Background task to delete audit certificate file from Google Drive"""
+    try:
+        logger.info(f"🔄 Starting background deletion for audit certificate file: {file_id} ({cert_name})")
+        
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_id)
+        await dual_manager._load_configuration()
+        
+        if not dual_manager.company_apps_script_url:
+            logger.error(f"❌ Company Apps Script URL not configured for company {company_id}")
+            return
+        
+        delete_result = await dual_manager._call_company_apps_script({
+            'action': 'delete_file',
+            'file_id': file_id
+        })
+        
+        if delete_result.get("success"):
+            logger.info(f"✅ Successfully deleted audit certificate file in background: {file_id} ({cert_name})")
+        else:
+            logger.warning(f"⚠️ Failed to delete audit certificate file: {delete_result.get('message')} - {cert_name}")
+            
+    except Exception as e:
+        logger.error(f"❌ Error in background audit certificate file deletion: {e} - {cert_name}")
+        import traceback
+        logger.error(traceback.format_exc())
 
 @api_router.post("/audit-certificates/bulk-delete")
 async def bulk_delete_audit_certificates(
