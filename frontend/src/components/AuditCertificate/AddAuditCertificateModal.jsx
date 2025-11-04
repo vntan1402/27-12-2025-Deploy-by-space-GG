@@ -71,14 +71,13 @@ export const AddAuditCertificateModal = ({
   const [multiCertUploads, setMultiCertUploads] = useState([]);
   const [uploadSummary, setUploadSummary] = useState({ success: 0, failed: 0, total: 0 });
   
-  // Update ship_id when selectedShip changes
+  // Update ship_id when selectedShip changes (nhưng KHÔNG fill ship_name và ship_imo)
   useEffect(() => {
     if (selectedShip?.id) {
       setFormData(prev => ({ 
         ...prev, 
-        ship_id: selectedShip.id, 
-        ship_name: selectedShip.name,
-        ship_imo: selectedShip.imo || ''
+        ship_id: selectedShip.id
+        // Không fill ship_name và ship_imo - để AI fill
       }));
     }
   }, [selectedShip?.id]);
