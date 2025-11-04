@@ -23189,39 +23189,244 @@ async def get_upcoming_audit_surveys(
     company: str = None,
     current_user: UserResponse = Depends(get_current_user)
 ):
-    """Get upcoming audit surveys within specified days"""
+    """
+    Get upcoming audit surveys with advanced window logic based on Next Survey Type
+    
+    Logic:
+    1. Initial (SMC/ISSC/MLC): Window = Valid Date - 3M → Valid Date
+    2. Renewal: Window = Next Survey Date - 3M → Next Survey Date (no grace period after)
+    3. Intermediate: Window = Next Survey Date ± 3M (before and after)
+    """
     try:
-        # Calculate date range
-        today = datetime.now(timezone.utc)
-        end_date = today + timedelta(days=days)
+        from datetime import datetime, timedelta
+        from dateutil.relativedelta import relativedelta
         
-        # Build query
-        query = {}
-        if company:
-            query["company"] = company
+        # Get current date
+        current_date = datetime.now().date()
+        user_company = current_user.company
         
-        # Get all audit certificates
-        certificates = await mongo_db.find_all("audit_certificates", query)
+        logger.info(f"Checking upcoming audit surveys for company: {user_company}")
         
-        # Filter certificates with upcoming surveys
+        # Get company record
+        company_record = await mongo_db.find_one("companies", {"id": user_company})
+        company_name = None
+        if company_record:
+            company_name = company_record.get('name_en') or company_record.get('name_vn')
+        
+        # Get all ships for this company
+        ships_by_id = await mongo_db.find_all("ships", {"company": user_company})
+        ships_by_name = []
+        if company_name:
+            ships_by_name = await mongo_db.find_all("ships", {"company": company_name})
+        
+        # Combine and deduplicate ships
+        all_ships_dict = {}
+        for ship in ships_by_id + ships_by_name:
+            ship_id = ship.get('id')
+            if ship_id and ship_id not in all_ships_dict:
+                all_ships_dict[ship_id] = ship
+        
+        ships = list(all_ships_dict.values())
+        ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
+        
+        logger.info(f"Found {len(ships)} ships for company")
+        
+        if not ship_ids:
+            return {
+                "upcoming_surveys": [],
+                "total_count": 0,
+                "company": user_company,
+                "company_name": company_name,
+                "check_date": current_date.isoformat()
+            }
+        
+        # Get all audit certificates for these ships
+        all_certificates = []
+        for ship_id in ship_ids:
+            certs = await mongo_db.find_all("audit_certificates", {"ship_id": ship_id})
+            all_certificates.extend(certs)
+        
+        logger.info(f"Found {len(all_certificates)} audit certificates to check")
+        
         upcoming_surveys = []
-        for cert in certificates:
-            next_survey = cert.get("next_survey")
-            if next_survey:
-                try:
-                    survey_date = datetime.fromisoformat(next_survey.replace('Z', '+00:00'))
-                    if today <= survey_date <= end_date:
-                        upcoming_surveys.append(cert)
-                except:
-                    pass
         
-        logger.info(f"✅ Found {len(upcoming_surveys)} upcoming audit surveys")
+        for cert in all_certificates:
+            try:
+                next_survey_type = cert.get('next_survey_type', '').strip()
+                cert_name = (cert.get('cert_name') or '').upper()
+                
+                # Skip if no next_survey_type
+                if not next_survey_type:
+                    continue
+                
+                # Determine window based on Next Survey Type
+                window_open = None
+                window_close = None
+                window_type = ''
+                
+                # Case 1: Initial (SMC/ISSC/MLC)
+                if next_survey_type == 'Initial' and any(cert_type in cert_name for cert_type in ['SAFETY MANAGEMENT', 'SHIP SECURITY', 'MARITIME LABOUR', 'SMC', 'ISSC', 'MLC']):
+                    # Window: Valid Date - 3M → Valid Date
+                    valid_date_str = cert.get('valid_date')
+                    if not valid_date_str:
+                        continue
+                    
+                    # Parse valid date
+                    if isinstance(valid_date_str, str):
+                        if 'T' in valid_date_str:
+                            valid_date = datetime.fromisoformat(valid_date_str.replace('Z', '')).date()
+                        else:
+                            valid_date = datetime.strptime(valid_date_str.split(' ')[0] if ' ' in valid_date_str else valid_date_str, '%Y-%m-%d').date()
+                    else:
+                        valid_date = valid_date_str.date() if hasattr(valid_date_str, 'date') else valid_date_str
+                    
+                    window_open = valid_date - relativedelta(months=3)
+                    window_close = valid_date
+                    window_type = 'Initial: Valid-3M→Valid'
+                    next_survey_date = valid_date  # Use valid_date as reference
+                    
+                # Case 2: Renewal
+                elif next_survey_type == 'Renewal':
+                    # Window: Next Survey Date - 3M → Next Survey Date
+                    next_survey_str = cert.get('next_survey')
+                    if not next_survey_str:
+                        continue
+                    
+                    # Parse next_survey to extract actual date (ignore annotations like (-3M))
+                    # Check if it's in raw_date format or database format
+                    next_survey_display = cert.get('next_survey_display', '')
+                    
+                    # Try to extract date from next_survey field
+                    if isinstance(next_survey_str, str):
+                        if 'T' in next_survey_str:
+                            next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '')).date()
+                        else:
+                            # Parse from format like "29/01/2025" or "2025-01-29"
+                            date_part = next_survey_str.split(' ')[0] if ' ' in next_survey_str else next_survey_str
+                            if '/' in date_part:
+                                next_survey_date = datetime.strptime(date_part, '%d/%m/%Y').date()
+                            else:
+                                next_survey_date = datetime.strptime(date_part, '%Y-%m-%d').date()
+                    else:
+                        next_survey_date = next_survey_str.date() if hasattr(next_survey_str, 'date') else next_survey_str
+                    
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date
+                    window_type = 'Renewal: -3M→Date'
+                    
+                # Case 3: Intermediate
+                elif next_survey_type == 'Intermediate':
+                    # Window: Next Survey Date ± 3M
+                    next_survey_str = cert.get('next_survey')
+                    if not next_survey_str:
+                        continue
+                    
+                    # Parse next_survey
+                    if isinstance(next_survey_str, str):
+                        if 'T' in next_survey_str:
+                            next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '')).date()
+                        else:
+                            date_part = next_survey_str.split(' ')[0] if ' ' in next_survey_str else next_survey_str
+                            if '/' in date_part:
+                                next_survey_date = datetime.strptime(date_part, '%d/%m/%Y').date()
+                            else:
+                                next_survey_date = datetime.strptime(date_part, '%Y-%m-%d').date()
+                    else:
+                        next_survey_date = next_survey_str.date() if hasattr(next_survey_str, 'date') else next_survey_str
+                    
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date + relativedelta(months=3)
+                    window_type = 'Intermediate: ±3M'
+                    
+                else:
+                    # Unknown type - skip
+                    continue
+                
+                # Check if current_date is within window
+                if window_open <= current_date <= window_close:
+                    # Find ship information
+                    ship_info = next((ship for ship in ships if ship.get('id') == cert.get('ship_id')), {})
+                    
+                    # Calculate status based on Next Survey Type
+                    days_until_survey = (next_survey_date - current_date).days
+                    
+                    # Status logic based on type
+                    if next_survey_type == 'Initial':
+                        # Initial: Reference to Valid Date
+                        is_overdue = current_date > window_close  # Past Valid Date
+                        is_due_soon = 0 <= days_until_survey <= 90  # ≤ 90 days to Valid Date
+                        is_critical = 0 <= days_until_survey <= 30  # ≤ 30 days to Valid Date
+                        
+                    elif next_survey_type == 'Renewal':
+                        # Renewal: No grace period after Next Survey Date
+                        is_overdue = current_date > next_survey_date  # Past Next Survey Date
+                        is_due_soon = 0 <= days_until_survey <= 90  # ≤ 90 days
+                        is_critical = 0 <= days_until_survey <= 30  # ≤ 30 days
+                        
+                    elif next_survey_type == 'Intermediate':
+                        # Intermediate: ± 3M window
+                        is_overdue = current_date > (next_survey_date + relativedelta(months=3))  # Past Next Survey + 3M
+                        is_due_soon = -90 <= days_until_survey <= 90  # ≤ 3 months to Next Survey Date
+                        # Critical: overdue but < 2 months (between Next Survey Date and Next Survey Date + 2M)
+                        is_critical = (current_date > next_survey_date and 
+                                     current_date <= (next_survey_date + relativedelta(months=2)))
+                    else:
+                        is_overdue = False
+                        is_due_soon = False
+                        is_critical = False
+                    
+                    # Get cert abbreviation
+                    cert_abbreviation = cert.get('cert_abbreviation', '')
+                    cert_name_display = f"{cert.get('cert_name', '')} ({cert_abbreviation})" if cert_abbreviation else cert.get('cert_name', '')
+                    
+                    upcoming_survey = {
+                        'certificate_id': cert.get('id'),
+                        'ship_id': cert.get('ship_id'),
+                        'ship_name': ship_info.get('name', ''),
+                        'cert_name': cert.get('cert_name', ''),
+                        'cert_abbreviation': cert_abbreviation,
+                        'cert_name_display': cert_name_display,
+                        'next_survey': cert.get('next_survey_display') or cert.get('next_survey'),
+                        'next_survey_date': next_survey_date.isoformat(),
+                        'next_survey_type': next_survey_type,
+                        'valid_date': cert.get('valid_date'),
+                        'last_endorse': cert.get('last_endorse', ''),
+                        'status': cert.get('status', ''),
+                        'days_until_survey': days_until_survey,
+                        'is_overdue': is_overdue,
+                        'is_due_soon': is_due_soon,
+                        'is_critical': is_critical,
+                        'is_within_window': True,
+                        'window_open': window_open.isoformat(),
+                        'window_close': window_close.isoformat(),
+                        'window_type': window_type
+                    }
+                    
+                    upcoming_surveys.append(upcoming_survey)
+                    
+            except Exception as cert_error:
+                logger.warning(f"Error processing audit certificate {cert.get('id', 'unknown')}: {cert_error}")
+                continue
+        
+        # Sort by next survey date (soonest first)
+        upcoming_surveys.sort(key=lambda x: x['next_survey_date'] or '9999-12-31')
+        
+        logger.info(f"✅ Found {len(upcoming_surveys)} audit certificates with upcoming surveys")
+        
         return {
-            "success": True,
-            "surveys": upcoming_surveys,
+            "upcoming_surveys": upcoming_surveys,
             "total_count": len(upcoming_surveys),
-            "check_date": today.isoformat(),
-            "days": days
+            "company": user_company,
+            "company_name": company_name,
+            "check_date": current_date.isoformat(),
+            "logic_info": {
+                "description": "Audit Certificate survey windows based on Next Survey Type",
+                "window_rules": {
+                    "Initial": "Valid Date - 3M → Valid Date | Overdue: Past Valid Date | Due Soon: ≤90 days | Critical: ≤30 days",
+                    "Renewal": "Next Survey - 3M → Next Survey | Overdue: Past Next Survey | Due Soon: ≤90 days | Critical: ≤30 days",
+                    "Intermediate": "Next Survey ±3M | Overdue: Past Next Survey+3M | Due Soon: ≤3 months | Critical: Overdue <2 months"
+                }
+            }
         }
         
     except Exception as e:
