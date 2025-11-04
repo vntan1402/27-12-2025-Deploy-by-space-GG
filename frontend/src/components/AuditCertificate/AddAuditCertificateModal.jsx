@@ -189,6 +189,7 @@ export const AddAuditCertificateModal = ({
       issued_by_abbreviation: extractedInfo.issued_by_abbreviation || '',
       ship_id: selectedShip.id,
       ship_name: selectedShip.name,
+      ship_imo: selectedShip.imo || '',
       notes: overrideNote  // Add the override note
     };
 
