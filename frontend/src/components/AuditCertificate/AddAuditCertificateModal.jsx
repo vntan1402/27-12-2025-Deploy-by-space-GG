@@ -634,13 +634,14 @@ export const AddAuditCertificateModal = ({
           issued_by: firstSuccessInfo.issued_by || '',
           issued_by_abbreviation: firstSuccessInfo.issued_by_abbreviation || '',
           ship_id: selectedShip.id,
-          ship_name: selectedShip.name
+          ship_name: firstSuccessInfo.ship_name || '',  // Fill từ AI extraction
+          ship_imo: firstSuccessInfo.imo_number || ''   // Fill từ AI extraction
         };
 
         console.log('📝 Auto-filling form:', autoFillData);
 
         const filledFields = Object.keys(autoFillData).filter(key => 
-          autoFillData[key] && String(autoFillData[key]).trim() && !['ship_id', 'ship_name'].includes(key)
+          autoFillData[key] && String(autoFillData[key]).trim() && !['ship_id', 'ship_name', 'ship_imo'].includes(key)
         ).length;
 
         setFormData(prev => ({
