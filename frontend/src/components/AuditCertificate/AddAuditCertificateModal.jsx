@@ -602,47 +602,65 @@ export const AddAuditCertificateModal = ({
       if (certificateFile) {
         // Check if validation was approved (user clicked Continue on validation modal)
         if (validationApproved) {
-          // User approved validation warning - create DB record manually then upload file
-          console.log('✅ Validation approved - creating record with manual upload');
+          // User approved validation warning - create record with file using special endpoint
+          console.log('✅ Validation approved - creating record with file upload');
           
           toast.info(language === 'vi' 
-            ? '📝 Đang tạo certificate...'
-            : '📝 Creating certificate...'
+            ? '📤 Đang upload file và tạo certificate...'
+            : '📤 Uploading file and creating certificate...'
           );
           
-          // Create DB record first using onSave
-          await onSave(certPayload);
+          // Use special endpoint that uploads file WITHOUT validation (user already approved)
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', certificateFile);
+          uploadFormData.append('cert_data', JSON.stringify(certPayload));
           
-          // Then upload file to Google Drive (we'll add this functionality)
-          // For now, just show success with the note in place
-          toast.success(language === 'vi' 
-            ? '✅ Đã tạo certificate với ghi chú tham khảo!'
-            : '✅ Certificate created with reference note!'
+          const uploadResponse = await api.post(
+            `/api/audit-certificates/create-with-file-override?ship_id=${selectedShip.id}`,
+            uploadFormData,
+            {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            }
           );
           
-          // Clear states
-          setCertificateFile(null);
-          setValidationApproved(false);
+          if (uploadResponse.data.success) {
+            toast.success(language === 'vi' 
+              ? '✅ Đã tạo certificate với file và ghi chú tham khảo!'
+              : '✅ Certificate created with file and reference note!'
+            );
+            
+            // Clear states
+            setCertificateFile(null);
+            setValidationApproved(false);
+            
+            // Call onSuccess to refresh list
+            if (onSuccess) {
+              onSuccess();
+            }
+            
+            // Reset form
+            setFormData({
+              ship_id: selectedShip?.id || '',
+              ship_name: selectedShip?.name || '',
+              cert_name: '',
+              cert_abbreviation: '',
+              cert_no: '',
+              cert_type: 'Full Term',
+              issue_date: '',
+              valid_date: '',
+              last_endorse: '',
+              next_survey: '',
+              next_survey_type: '',
+              issued_by: '',
+              issued_by_abbreviation: '',
+              notes: ''
+            });
+            
+            handleClose();
+          } else {
+            throw new Error(uploadResponse.data.message || 'Upload failed');
+          }
           
-          // Reset form
-          setFormData({
-            ship_id: selectedShip?.id || '',
-            ship_name: selectedShip?.name || '',
-            cert_name: '',
-            cert_abbreviation: '',
-            cert_no: '',
-            cert_type: 'Full Term',
-            issue_date: '',
-            valid_date: '',
-            last_endorse: '',
-            next_survey: '',
-            next_survey_type: '',
-            issued_by: '',
-            issued_by_abbreviation: '',
-            notes: ''
-          });
-          
-          handleClose();
           return; // Exit after success
         }
         
