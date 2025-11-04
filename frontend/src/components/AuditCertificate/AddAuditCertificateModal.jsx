@@ -1290,30 +1290,7 @@ export const AddAuditCertificateModal = ({
                 </div>
               </div>
 
-            {/* Row 5: Next Survey Type (if next_survey is set) */}
-            {formData.next_survey && (
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Loại kiểm tra tới' : 'Next Survey Type'}
-                  </label>
-                  <select
-                    value={formData.next_survey_type}
-                    onChange={(e) => setFormData({...formData, next_survey_type: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">{language === 'vi' ? '-- Chọn loại --' : '-- Select Type --'}</option>
-                    <option value="Annual">Annual</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Renewal">Renewal</option>
-                    <option value="Special">Special</option>
-                  </select>
-                </div>
-                <div></div>
-              </div>
-            )}
-
-            {/* Row 6: Issued By & Abbreviation */}
+            {/* Row 5: Issued By & Abbreviation */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
