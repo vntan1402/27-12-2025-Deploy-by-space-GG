@@ -21636,9 +21636,11 @@ async def update_audit_certificate(
         
         # Get updated certificate
         updated_cert = await mongo_db.find_one("audit_certificates", {"id": cert_id})
-        enhanced_cert = await enhance_certificate_response(updated_cert)
         
         logger.info(f"✅ Updated audit certificate: {cert_id}")
+        logger.info(f"📋 Updated cert data: cert_name={updated_cert.get('cert_name')}, cert_abbreviation={updated_cert.get('cert_abbreviation')}")
+        
+        enhanced_cert = await enhance_certificate_response(updated_cert)
         return enhanced_cert
         
     except HTTPException:
