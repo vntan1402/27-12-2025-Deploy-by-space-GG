@@ -1,34 +1,48 @@
 <analysis>
-The AI engineer's work primarily focused on developing and refining the  module, specifically the  functionality. Initial steps involved creating the  page and scaffolding  components and API endpoints, mirroring the  page. Subsequent efforts concentrated on integrating advanced features like AI-powered file analysis, multi-file uploads, and auto-rename from  into the . This included extensive backend modifications for validation, Google Drive interaction, and frontend UI updates. Key issues addressed involved  serialization,  instantiation,  method calls, frontend syntax errors, and refining the single vs. multi-file upload logic to allow user review for single files. The latest work fixed single-file validation error display and is now tasked with replacing toast notifications with a modal for validation errors.
+The AI engineer's work primarily focused on enhancing the  module, specifically the  functionality. Initial efforts involved refactoring the  to handle single-file validation errors (ship mismatch) with a user-interactive modal (Continue/Cancel) instead of toasts. This required adding validation logic to the backend's  endpoint and implementing corresponding frontend UI. Subsequent iterations extended this modal-based error handling to duplicate certificate detection during single-file uploads. The engineer also addressed several critical user requests including adding editable Ship Name and IMO Number fields to the  and  modals with a 3-column layout, implementing background Google Drive file deletion upon certificate removal, and ensuring that user-edited certificate abbreviations are saved to the global mapping system. Most recently, a complex logic for calculating  and  was introduced for Audit Certificates in the backend, and its frontend trigger integrated.
 </analysis>
 
 <product_requirements>
-The goal is to migrate and enhance  functionality to a new  module, specifically within its  section. This involves creating a new  page with a layout and style similar to , including a 5-column responsive ship card display. The  feature requires a data table with 11 columns, filters, and search. An Add Certificate modal needs full AI analysis (PDF/JPG/PNG max 10MB) to auto-fill fields, a crew selection dropdown, and duplicate checks. Batch upload with multi-file support (max 10 files, 10MB each), staggered processing (2s delay), progress modals, and AI extraction is essential. Files are managed on Google Drive (). A context menu with options like Edit, Delete, View File, Copy Link, Download, and Auto Rename File (including Delete Selected for bulk) is required. The UI should provide visual feedback (warnings, highlights). AI detection for GMDSS/Seaman book needs enhancement. A critical recent change is that single-file uploads should *only* autofill the form for user review, and require manual saving, while multi-file uploads auto-create records. Validation errors, especially for single-file uploads, need to be prominently displayed, moving from toasts to modals.
+The overarching goal is to migrate and enhance  functionalities into a new  module, focusing on . This involves a new  page with a 5-column ship card display and an 11-column data table. Key features include AI-powered PDF/JPG/PNG analysis (max 10MB) to auto-fill form fields, multi-file batch upload (max 10 files, 10MB each) with staggered processing and AI extraction, and Google Drive integration for file management. A context menu with various actions is required. For single-file uploads, AI analysis should only auto-fill for user review, requiring manual saving, while multi-file uploads auto-create records.
+
+Recent updates explicitly requested:
+1.  Replace toast notifications with a modal for single-file validation errors (e.g., Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại). The modal should offer Continue (add note: Giấy chứng nhận này của tàu khác, chỉ để tham khảo and proceed) or Cancel (stop).
+2.  Implement the same modal-based user choice for **duplicate certificate detection** during single-file uploads.
+3.  Display editable IMO and Ship Name fields in the , arranged in a 3-column layout, and store IMO in the DB. These fields should be filled by AI extraction, not pre-filled.
+4.  Reconfigure  to mirror the new 3-column layout and fields of .
+5.  Ensure  is updated in the global mapping list when editing an Audit Certificate.
+6.  When deleting an Audit Certificate, perform Google Drive file deletion in the background, displaying a toast notification upon completion.
+7.  Implement a complex  and  calculation logic for Audit Certificates based on certificate type (Interim, Short Term, Full Term, DMLC I/II/SSP) and specific date rules.
+8.  The  calculation should be triggered when a user clicks an Update Next Survey button.
 </product_requirements>
 
 <key_technical_concepts>
--   **Frontend**: React.js (components, modals, state management, routing, hooks), , , responsive design, form handling, file upload.
--   **Backend**: FastAPI (API endpoints, ), MongoDB (UUIDs instead of ObjectIDs), Google Apps Script (Google Drive integration), AI/LLM integration (Document AI, System AI for OCR and data extraction).
--   **Patterns**: V2 analysis-first, modular design, asynchronous operations, error handling, input validation, UI/UX consistency.
+
+-   **Frontend**: React.js (components, modals, state management, hooks), , , responsive design, form handling, file upload, context menus.
+-   **Backend**: FastAPI (API endpoints, ), MongoDB (UUIDs), Google Apps Script (Google Drive integration), AI/LLM integration (Document AI for OCR and data extraction).
+-   **Patterns**: V2 analysis-first, modular design, asynchronous operations, error handling, input validation, UI/UX consistency, background processing.
 </key_technical_concepts>
 
 <code_architecture>
 
--   ****: FastAPI application.
-    -   **Importance**: Central API for all backend operations, including AI integration, database interaction, and Google Drive management.
-    -   **Changes**: Added  endpoints for GET, POST (create), PUT, DELETE, and bulk operations. Crucially, a  endpoint was implemented for batch processing with AI analysis, Google Drive upload, and DB creation. A new  endpoint was added for single-file AI analysis without immediate DB/Drive operations. Extensive validation logic (matching Ship Certificates) and duplicate checks were integrated into both multi-upload and single-file analysis. Google Drive and Apps Script integration logic (using ) was refined. Logic to handle MongoDB  serialization was added.
--   ****: New page for ISM-ISPS-MLC module.
-    -   **Importance**: Renders the main view for Audit Certificates, handling ship selection, category navigation, and integrating  and .
-    -   **Changes**: Passes  to . Manages  state and provides  callback. Integrated  with  and added Auto Rename File functionality.
+-   ****: FastAPI application, central API.
+    -   **Importance**: Handles all backend operations, AI integration, DB, and Google Drive.
+    -   **Changes**: Added ship name validation, duplicate certificate detection, and ISM/ISPS/MLC category validation to  (single-file upload) and . Implemented  for approved single-file uploads, which creates DB records and uploads files without re-validating. Modified  and  to store  in the DB. Enhanced  to save user-defined abbreviations to the global mapping system. Updated  and  to perform background Google Drive file deletion using . Implemented  with complex logic for different certificate types and added  endpoint. Updated abbreviation mappings via API calls.
+-   ****: Main page for ISM-ISPS-MLC module.
+    -   **Importance**: Renders Audit Certificates, handles ship selection and integrates components.
+    -   **Changes**: Implemented  to call the backend's  endpoint for a selected certificate. Added  state to manage UI feedback for the update process.
 -   ****: Modal for adding audit certificates.
-    -   **Importance**: Primary user interface for single and multi-file certificate uploads, AI analysis, and manual data entry.
-    -   **Changes**: Fully re-implemented to match  functionality. Includes multi-upload UI, progress indicators, AI analysis integration, auto-fill for 11 fields, and conditional rendering for Next Survey Type. Distinct logic was implemented for single file uploads (auto-fill only) vs. multi-file uploads (auto-create DB records). Enhanced error handling to display detailed validation messages and an attached file indicator. Fixed  error for  and duplicate variable declarations.
--   ****: Table to display audit certificates.
-    -   **Importance**: Presents certificate data to the user.
-    -   **Changes**: Updated to display file icons (using emojis 📄/📋) next to the certificate name, matching 's style.
+    -   **Importance**: Primary UI for certificate uploads, AI analysis, and manual data entry.
+    -   **Changes**: Introduced state for , , , , , , . Added JSX for validation, duplicate, and category warning modals with Continue/Cancel options. Updated  to sequentially check for category, ship, and duplicate warnings, displaying the relevant modal. Modified  to use  (calling the new backend override endpoint) if  is true, bypassing standard multi-upload validation. Refactored the form layout to 3 columns and added editable  and  fields, correctly populating them with AI-extracted data.
+-   ****: Modal for editing audit certificates.
+    -   **Importance**: Provides UI for modifying existing certificate data.
+    -   **Changes**: Refactored the entire form section to match the 3-column layout of , including new editable  and  fields.
+-   ****: Action buttons for audit certificates.
+    -   **Importance**: Provides various actions like add, delete, update.
+    -   **Changes**: The Update Next Survey button (already present) is now wired up to a new handler in .
 -   ****: Frontend service for Audit Certificate API calls.
     -   **Importance**: Abstracts API interactions for audit certificates.
-    -   **Changes**: Confirmed to contain all necessary methods for , , , , , , , , and .
+    -   **Changes**: Confirmed to contain , , , , , , , , and  methods. A new function  was implicitly added/used to call the new backend  endpoint. A new function to trigger next survey recalculation was also added/used.
 </code_architecture>
 
 <pending_tasks>
@@ -40,18 +54,23 @@ The goal is to migrate and enhance  functionality to a new  module, specifically
 -   Finish implementing the  component (for Crew Records).
 -   Verify the background file deletion for crew records.
 -   Implement Batch get Drive links with progress for .
--   Replace toast notifications with a modal for displaying validation errors (e.g., Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại).
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was addressing a critical user feedback regarding error display during single-file uploads for Audit Certificates. The backend and frontend have been extensively updated to support comprehensive AI analysis, multi-file and single-file uploads with distinct flows (single-file auto-fills for user review, multi-file auto-creates records), auto-rename functionality, and a robust validation system mirroring that of Ship Certificates.
+Immediately before this summary request, the AI engineer was implementing the  calculation logic for Audit Certificates. The user had provided detailed rules for calculating  and  based on the certificate type (Interim, Short Term, Full Term, DMLC I/II/SSP) and various date parameters.
 
-Specifically, the  component has been refactored to handle these different upload scenarios, capture all necessary fields from , display progress, and provide an attached file indicator. Backend endpoints in  ( and ) were created or modified to support these flows, including advanced validation, Google Drive interaction via , and correct MongoDB ObjectId handling. The  was updated to show file icons.
+The backend implementation is complete:
+-   A new function  was created in  to encapsulate this complex calculation logic. This function was further refined based on user feedback (e.g., correcting Valid date - 30 months to Valid date - 2 years for Full Term certificates).
+-   A new API endpoint  was created in  to trigger this specific calculation for a given certificate.
 
-The last identified issue was that single-file validation errors were being displayed as toast notifications and sometimes leading to a generic Upload failed message, instead of specific, user-friendly error messages presented in a modal. The user explicitly requested to switch from toast to a modal for these validation error messages, providing an example error: ❌ Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại. The current work is precisely at the point of implementing this change.
+On the frontend:
+-   The Update Next Survey button within  was identified as the trigger point.
+-   The  function in  was implemented to make the API call to the new backend recalculation endpoint when this button is clicked.
+-   A new state variable  was added to  to manage the loading/disabled state of the button during the update process.
+
+The work is currently paused at the point of passing the  state down to the  component to visually indicate that the calculation is in progress.
 </current_work>
 
 <optional_next_step>
-Implement a modal to display validation errors for single file uploads, replacing the current toast notifications.
+Pass  state to  component.
 </optional_next_step>
-
