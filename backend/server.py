@@ -48,6 +48,37 @@ EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
 # Create upload directory
 UPLOAD_DIR = Path(ROOT_DIR) / "uploads"
+
+# ISM/ISPS/MLC Certificate Categories
+ISM_ISPS_MLC_CERTIFICATES = {
+    # ISM (International Safety Management Code)
+    "ism": [
+        "SAFETY MANAGEMENT CERTIFICATE",
+        "INTERIM SAFETY MANAGEMENT CERTIFICATE",
+        "SMC",
+        "DOCUMENT OF COMPLIANCE",
+        "INTERIM DOCUMENT OF COMPLIANCE",
+        "DOC",
+    ],
+    # ISPS (International Ship and Port Facility Security)
+    "isps": [
+        "INTERNATIONAL SHIP SECURITY CERTIFICATE",
+        "INTERIM INTERNATIONAL SHIP SECURITY CERTIFICATE",
+        "ISSC",
+        "SHIP SECURITY PLAN",
+        "SSP",
+    ],
+    # MLC (Maritime Labour Convention)
+    "mlc": [
+        "MARITIME LABOUR CERTIFICATE",
+        "INTERIM MARITIME LABOUR CERTIFICATE",
+        "MLC",
+        "DECLARATION OF MARITIME LABOUR COMPLIANCE",
+        "DMLC",
+        "DMLC PART I",
+        "DMLC PART II",
+    ]
+}
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 # Security
