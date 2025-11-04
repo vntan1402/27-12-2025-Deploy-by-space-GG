@@ -206,6 +206,10 @@ export const AddAuditCertificateModal = ({
     // Close validation modal
     setValidationModal({ show: false, message: '', overrideNote: '', onContinue: null, onCancel: null });
     
+    // Clear file and approval flag
+    setCertificateFile(null);
+    setValidationApproved(false);
+    
     toast.info(language === 'vi' 
       ? 'ℹ️ Upload đã bị hủy'
       : 'ℹ️ Upload cancelled'
