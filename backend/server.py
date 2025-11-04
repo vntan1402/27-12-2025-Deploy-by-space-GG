@@ -3387,6 +3387,39 @@ async def check_certificate_duplicates(analysis_result: dict, ship_id: str) -> l
         logger.error(f"Error checking certificate duplicates: {e}")
         return []
 
+async def check_audit_certificate_duplicates(analysis_result: dict, ship_id: str) -> list:
+    """
+    Check for duplicate audit certificates in the database
+    Enhanced duplicate detection based on 5 fields:
+    - Certificate Name, Certificate Number, Issue Date, Valid Date, Last Endorse
+    """
+    try:
+        # Get all audit certificates for this ship
+        all_certificates = await mongo_db.find_all("audit_certificates", {"ship_id": ship_id})
+        
+        duplicates = []
+        
+        for existing_cert in all_certificates:
+            similarity = calculate_certificate_similarity(analysis_result, existing_cert)
+            
+            if similarity >= 100.0:  # Duplicate detected: cert_no exact match + cert_name >75% similarity
+                duplicates.append({
+                    'certificate': existing_cert,
+                    'similarity': similarity,
+                    'cert_no_match': True,
+                    'cert_name_similarity': similarity
+                })
+        
+        # Sort by similarity descending
+        duplicates.sort(key=lambda x: x['similarity'], reverse=True)
+        
+        return duplicates
+        
+    except Exception as e:
+        logger.error(f"Error checking audit certificate duplicates: {e}")
+        return []
+
+
 async def check_ship_name_mismatch(analysis_result: dict, current_ship_id: str) -> dict:
     """Check if AI-detected ship name matches current selected ship"""
     try:
