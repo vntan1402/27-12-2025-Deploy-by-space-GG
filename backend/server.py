@@ -21844,33 +21844,20 @@ async def get_upcoming_audit_surveys(
                     # Find ship information
                     ship_info = next((ship for ship in ships if ship.get('id') == cert.get('ship_id')), {})
                     
-                    # Calculate status based on Next Survey Type
+                    # Calculate status
+                    days_until_window_close = (window_close - current_date).days
                     days_until_survey = (next_survey_date - current_date).days
                     
-                    # Status logic based on type
-                    if next_survey_type == 'Initial':
-                        # Initial: Reference to Valid Date
-                        is_overdue = current_date > window_close  # Past Valid Date
-                        is_due_soon = 0 <= days_until_survey <= 90  # ≤ 90 days to Valid Date
-                        is_critical = 0 <= days_until_survey <= 30  # ≤ 30 days to Valid Date
-                        
-                    elif next_survey_type == 'Renewal':
-                        # Renewal: No grace period after Next Survey Date
-                        is_overdue = current_date > next_survey_date  # Past Next Survey Date
-                        is_due_soon = 0 <= days_until_survey <= 90  # ≤ 90 days
-                        is_critical = 0 <= days_until_survey <= 30  # ≤ 30 days
-                        
-                    elif next_survey_type == 'Intermediate':
-                        # Intermediate: ± 3M window
-                        is_overdue = current_date > (next_survey_date + relativedelta(months=3))  # Past Next Survey + 3M
-                        is_due_soon = -90 <= days_until_survey <= 90  # ≤ 3 months to Next Survey Date
-                        # Critical: overdue but < 2 months (between Next Survey Date and Next Survey Date + 2M)
-                        is_critical = (current_date > next_survey_date and 
-                                     current_date <= (next_survey_date + relativedelta(months=2)))
-                    else:
-                        is_overdue = False
-                        is_due_soon = False
-                        is_critical = False
+                    # Status logic (simplified)
+                    # Overdue: Quá window_close
+                    is_overdue = current_date > window_close
+                    
+                    # Critical: Còn ≤ 30 ngày tới window_close
+                    is_critical = 0 <= days_until_window_close <= 30
+                    
+                    # Due Soon: window_open < current_date < (window_close - 30 days)
+                    window_close_minus_30 = window_close - timedelta(days=30)
+                    is_due_soon = window_open < current_date < window_close_minus_30
                     
                     # Get cert abbreviation
                     cert_abbreviation = cert.get('cert_abbreviation', '')
