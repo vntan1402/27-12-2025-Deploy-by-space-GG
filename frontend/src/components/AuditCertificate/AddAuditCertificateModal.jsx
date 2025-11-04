@@ -805,6 +805,7 @@ export const AddAuditCertificateModal = ({
       notes: ''
     });
     setCertificateFile(null);
+    setValidationApproved(false);
     setMultiCertUploads([]);
     setUploadSummary({ success: 0, failed: 0, total: 0 });
     setIsMultiCertProcessing(false);
