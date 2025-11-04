@@ -21810,13 +21810,6 @@ async def analyze_audit_certificate_file(
         logger.error(f"Error analyzing audit certificate file: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-            "extracted_data": {}
-        }
-        
-    except Exception as e:
-        logger.error(f"Error analyzing audit certificate file: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 
 @api_router.post("/audit-certificates/multi-upload")
 async def multi_audit_cert_upload_for_ship(
