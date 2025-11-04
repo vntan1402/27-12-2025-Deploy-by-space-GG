@@ -88,8 +88,37 @@ export const EditAuditCertificateModal = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Row 1: Ship Name & IMO */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Certificate Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? '🚢 Tên tàu' : '🚢 Ship Name'}
+              </label>
+              <input
+                type="text"
+                value={formData.ship_name}
+                onChange={(e) => setFormData({...formData, ship_name: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                placeholder={language === 'vi' ? 'Tên tàu' : 'Ship Name'}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? '🔢 Số IMO' : '🔢 IMO Number'}
+              </label>
+              <input
+                type="text"
+                value={formData.ship_imo}
+                onChange={(e) => setFormData({...formData, ship_imo: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 font-mono"
+                placeholder={language === 'vi' ? 'Số IMO' : 'IMO Number'}
+              />
+            </div>
+          </div>
+
+          {/* Row 2: Certificate Name, Abbreviation & Number (3 columns) */}
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} <span className="text-red-500">*</span>
@@ -99,28 +128,43 @@ export const EditAuditCertificateModal = ({
                 value={formData.cert_name}
                 onChange={(e) => setFormData({...formData, cert_name: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                placeholder={language === 'vi' ? 'Nhập tên chứng chỉ' : 'Enter certificate name'}
                 required
               />
             </div>
-
-            {/* Certificate No */}
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'} <span className="text-red-500">*</span>
+                {language === 'vi' ? 'Tên viết tắt' : 'Abbreviation'}
+              </label>
+              <input
+                type="text"
+                value={formData.cert_abbreviation}
+                onChange={(e) => setFormData({...formData, cert_abbreviation: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                placeholder={language === 'vi' ? 'Viết tắt' : 'Abbr'}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Số chứng chỉ' : 'Certificate Number'}
               </label>
               <input
                 type="text"
                 value={formData.cert_no}
                 onChange={(e) => setFormData({...formData, cert_no: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 font-mono"
+                placeholder={language === 'vi' ? 'Số chứng chỉ' : 'Cert No'}
               />
             </div>
+          </div>
 
-            {/* Cert Type */}
+          {/* Row 3: Certificate Type, Issue Date & Valid Date (3 columns) */}
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Loại' : 'Type'}
+                {language === 'vi' ? 'Loại chứng chỉ' : 'Certificate Type'}
               </label>
               <select
                 value={formData.cert_type}
@@ -131,10 +175,11 @@ export const EditAuditCertificateModal = ({
                 <option value="Interim">Interim</option>
                 <option value="Provisional">Provisional</option>
                 <option value="Short term">Short term</option>
+                <option value="Conditional">Conditional</option>
+                <option value="Other">Other</option>
               </select>
             </div>
-
-            {/* Issue Date */}
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Ngày cấp' : 'Issue Date'}
@@ -146,8 +191,7 @@ export const EditAuditCertificateModal = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
-
-            {/* Valid Date */}
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
@@ -159,11 +203,25 @@ export const EditAuditCertificateModal = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
+          </div>
 
-            {/* Next Survey */}
+          {/* Row 4: Last Endorse, Next Survey & Next Survey Type (3 columns) */}
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Next Survey' : 'Next Survey'}
+                {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
+              </label>
+              <input
+                type="date"
+                value={formData.last_endorse}
+                onChange={(e) => setFormData({...formData, last_endorse: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}
               </label>
               <input
                 type="date"
@@ -172,22 +230,55 @@ export const EditAuditCertificateModal = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Loại kiểm tra tới' : 'Next Survey Type'}
+              </label>
+              <select
+                value={formData.next_survey_type}
+                onChange={(e) => setFormData({...formData, next_survey_type: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">{language === 'vi' ? '-- Chọn loại --' : '-- Select Type --'}</option>
+                <option value="Annual">Annual</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Renewal">Renewal</option>
+                <option value="Special">Special</option>
+              </select>
+            </div>
+          </div>
 
-            {/* Issued By */}
+          {/* Row 5: Issued By, Abbreviation & empty (2+1 columns) */}
+          <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Cơ quan cấp' : 'Issued By'}
+                {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
               </label>
               <input
                 type="text"
                 value={formData.issued_by}
                 onChange={(e) => setFormData({...formData, issued_by: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                placeholder={language === 'vi' ? 'Tên tổ chức cấp' : 'Issuing organization'}
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Viết tắt' : 'Abbreviation'}
+              </label>
+              <input
+                type="text"
+                value={formData.issued_by_abbreviation}
+                onChange={(e) => setFormData({...formData, issued_by_abbreviation: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                placeholder={language === 'vi' ? 'Viết tắt' : 'Abbr'}
               />
             </div>
           </div>
 
-          {/* Notes */}
+          {/* Row 6: Notes (full width) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {language === 'vi' ? 'Ghi chú' : 'Notes'}
@@ -197,6 +288,7 @@ export const EditAuditCertificateModal = ({
               onChange={(e) => setFormData({...formData, notes: e.target.value})}
               rows={3}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              placeholder={language === 'vi' ? 'Thêm ghi chú...' : 'Add notes...'}
             />
           </div>
 
