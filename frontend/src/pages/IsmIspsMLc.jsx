@@ -815,6 +815,7 @@ const IsmIspsMLc = () => {
                 selectedShip={selectedShip}
                 selectedCertificatesCount={selectedCertificates.size}
                 isRefreshing={isRefreshing}
+                isUpdatingSurveyTypes={isUpdatingNextSurvey}
                 onUpdateSurveyTypes={handleUpdateSurveyTypes}
                 onUpcomingSurvey={handleUpcomingSurvey}
                 onAddCertificate={handleAddCertificate}
