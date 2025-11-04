@@ -21992,7 +21992,8 @@ async def analyze_audit_certificate_file(
             "extracted_info": analysis_result,
             "filename": filename,
             "validation_warning": validation_warning,  # Ship mismatch warning
-            "duplicate_warning": duplicate_warning     # Duplicate certificate warning
+            "duplicate_warning": duplicate_warning,     # Duplicate certificate warning
+            "category_warning": category_warning        # ISM/ISPS/MLC category warning
         }
         
     except Exception as e:
