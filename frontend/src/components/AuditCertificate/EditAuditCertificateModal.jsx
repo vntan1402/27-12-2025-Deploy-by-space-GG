@@ -244,10 +244,9 @@ export const EditAuditCertificateModal = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">{language === 'vi' ? '-- Chọn loại --' : '-- Select Type --'}</option>
-                <option value="Annual">Annual</option>
+                <option value="Initial">Initial</option>
                 <option value="Intermediate">Intermediate</option>
                 <option value="Renewal">Renewal</option>
-                <option value="Special">Special</option>
               </select>
             </div>
           </div>
