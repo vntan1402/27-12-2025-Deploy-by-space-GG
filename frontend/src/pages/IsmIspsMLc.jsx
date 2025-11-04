@@ -530,11 +530,45 @@ const IsmIspsMLc = () => {
     }
   };
 
-  const handleUpdateSurveyTypes = () => {
-    toast.info(language === 'vi' 
-      ? 'Chức năng cập nhật hàng loạt sẽ được triển khai' 
-      : 'Bulk update feature will be implemented'
-    );
+  const handleUpdateSurveyTypes = async () => {
+    if (!selectedShip) {
+      toast.error(language === 'vi' 
+        ? 'Vui lòng chọn tàu trước' 
+        : 'Please select a ship first'
+      );
+      return;
+    }
+
+    try {
+      setIsUpdatingNextSurvey(true);
+      
+      toast.info(language === 'vi' 
+        ? '🔄 Đang tính toán Next Survey cho tất cả Audit Certificates...' 
+        : '🔄 Calculating Next Survey for all Audit Certificates...'
+      );
+
+      const response = await auditCertificateService.updateShipNextSurvey(selectedShip.id);
+
+      if (response.data.success) {
+        const updatedCount = response.data.updated_count || 0;
+        
+        toast.success(language === 'vi' 
+          ? `✅ Đã cập nhật Next Survey cho ${updatedCount} certificates!` 
+          : `✅ Updated Next Survey for ${updatedCount} certificates!`
+        );
+
+        // Refresh certificates list
+        await fetchAuditCertificates(selectedShip.id);
+      }
+    } catch (error) {
+      console.error('Error updating next survey:', error);
+      toast.error(language === 'vi' 
+        ? '❌ Lỗi cập nhật Next Survey: ' + (error.response?.data?.detail || error.message)
+        : '❌ Error updating Next Survey: ' + (error.response?.data?.detail || error.message)
+      );
+    } finally {
+      setIsUpdatingNextSurvey(false);
+    }
   };
 
 
