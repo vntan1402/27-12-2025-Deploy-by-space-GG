@@ -122,9 +122,98 @@ export const AddAuditCertificateModal = ({
 
     if (!files || files.length === 0) return;
 
-    setIsMultiCertProcessing(true);
     const fileArray = Array.from(files);
     const totalFiles = fileArray.length;
+
+    // **LOGIC MỚI: Phân biệt 1 file vs multi files**
+    if (totalFiles === 1) {
+      // ===== SINGLE FILE: Chỉ AI analysis + Auto-fill (không create DB) =====
+      await handleSingleFileAnalysis(fileArray[0]);
+    } else {
+      // ===== MULTI FILES: Batch processing với auto-create DB records =====
+      await handleMultiFileBatchUpload(fileArray, totalFiles);
+    }
+  };
+
+  // Handle single file: AI analysis only + Auto-fill form
+  const handleSingleFileAnalysis = async (file) => {
+    try {
+      setIsMultiCertProcessing(true);
+      
+      toast.info(language === 'vi' 
+        ? '🔍 Đang phân tích file với AI...'
+        : '🔍 Analyzing file with AI...'
+      );
+
+      // Read file content
+      const fileContent = await file.arrayBuffer();
+      const base64Content = btoa(
+        new Uint8Array(fileContent).reduce((data, byte) => data + String.fromCharCode(byte), '')
+      );
+
+      // Call AI analysis endpoint
+      const response = await api.post('/api/audit-certificates/analyze-file', {
+        file_content: base64Content,
+        filename: file.name,
+        content_type: file.type
+      });
+
+      if (response.data.success && response.data.extracted_info) {
+        const extractedInfo = response.data.extracted_info;
+        
+        // Auto-fill form
+        const autoFillData = {
+          cert_name: extractedInfo.cert_name || extractedInfo.certificate_name || '',
+          cert_abbreviation: extractedInfo.cert_abbreviation || '',
+          cert_no: extractedInfo.cert_no || extractedInfo.certificate_number || '',
+          cert_type: extractedInfo.cert_type || 'Full Term',
+          issue_date: formatCertDate(extractedInfo.issue_date),
+          valid_date: formatCertDate(extractedInfo.valid_date || extractedInfo.expiry_date),
+          last_endorse: formatCertDate(extractedInfo.last_endorse),
+          next_survey: formatCertDate(extractedInfo.next_survey),
+          next_survey_type: extractedInfo.next_survey_type || '',
+          issued_by: extractedInfo.issued_by || '',
+          issued_by_abbreviation: extractedInfo.issued_by_abbreviation || '',
+          ship_id: selectedShip.id,
+          ship_name: selectedShip.name
+        };
+
+        const filledFields = Object.keys(autoFillData).filter(key => 
+          autoFillData[key] && String(autoFillData[key]).trim() && !['ship_id', 'ship_name'].includes(key)
+        ).length;
+
+        setFormData(prev => ({
+          ...prev,
+          ...autoFillData
+        }));
+
+        // Store file for later upload when user clicks Save
+        setCertificateFile(file);
+
+        toast.success(language === 'vi' 
+          ? `✅ Đã phân tích và điền ${filledFields} trường! Vui lòng review và click Save.`
+          : `✅ Analyzed and filled ${filledFields} fields! Please review and click Save.`
+        );
+      } else {
+        toast.error(language === 'vi' 
+          ? '❌ Không thể phân tích file'
+          : '❌ Failed to analyze file'
+        );
+      }
+    } catch (error) {
+      console.error('❌ Single file analysis error:', error);
+      toast.error(language === 'vi' 
+        ? `❌ Lỗi phân tích: ${error.response?.data?.detail || error.message}`
+        : `❌ Analysis error: ${error.response?.data?.detail || error.message}`
+      );
+    } finally {
+      setIsMultiCertProcessing(false);
+    }
+  };
+
+  // Handle multi files: Batch upload with auto-create DB records
+  const handleMultiFileBatchUpload = async (fileArray, totalFiles) => {
+    setIsMultiCertProcessing(true);
 
     // Initialize upload tracking
     const initialUploads = fileArray.map((file, index) => ({
