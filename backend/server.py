@@ -21801,97 +21801,42 @@ async def get_upcoming_audit_surveys(
         
         for cert in all_certificates:
             try:
-                next_survey_type_raw = cert.get('next_survey_type')
-                if not next_survey_type_raw:
-                    continue
-                next_survey_type = next_survey_type_raw.strip()
-                cert_name = (cert.get('cert_name') or '').upper()
+                # Get Next Survey Display field (contains date with annotation like "30/10/2025 (±3M)")
+                next_survey_display = cert.get('next_survey_display') or cert.get('next_survey')
                 
-                # Skip if no next_survey_type
-                if not next_survey_type:
+                if not next_survey_display:
                     continue
                 
-                # Determine window based on Next Survey Type
+                # Parse Next Survey to extract date and window annotation
+                next_survey_str = str(next_survey_display)
+                
+                # Extract date part (before annotation)
+                # Format examples: "30/10/2025 (±3M)", "30/11/2025 (-3M)", "31/10/2027 (±3M)"
+                import re
+                date_match = re.search(r'(\d{2}/\d{2}/\d{4})', next_survey_str)
+                if not date_match:
+                    continue
+                
+                date_str = date_match.group(1)
+                next_survey_date = datetime.strptime(date_str, '%d/%m/%Y').date()
+                
+                # Determine window based on annotation
                 window_open = None
                 window_close = None
                 window_type = ''
                 
-                # Case 1: Initial (SMC/ISSC/MLC)
-                if next_survey_type == 'Initial' and any(cert_type in cert_name for cert_type in ['SAFETY MANAGEMENT', 'SHIP SECURITY', 'MARITIME LABOUR', 'SMC', 'ISSC', 'MLC']):
-                    # Window: Valid Date - 3M → Valid Date
-                    valid_date_str = cert.get('valid_date')
-                    if not valid_date_str:
-                        continue
-                    
-                    # Parse valid date
-                    if isinstance(valid_date_str, str):
-                        if 'T' in valid_date_str:
-                            valid_date = datetime.fromisoformat(valid_date_str.replace('Z', '')).date()
-                        else:
-                            valid_date = datetime.strptime(valid_date_str.split(' ')[0] if ' ' in valid_date_str else valid_date_str, '%Y-%m-%d').date()
-                    else:
-                        valid_date = valid_date_str.date() if hasattr(valid_date_str, 'date') else valid_date_str
-                    
-                    window_open = valid_date - relativedelta(months=3)
-                    window_close = valid_date
-                    window_type = 'Initial: Valid-3M→Valid'
-                    next_survey_date = valid_date  # Use valid_date as reference
-                    
-                # Case 2: Renewal
-                elif next_survey_type == 'Renewal':
-                    # Window: Next Survey Date - 3M → Next Survey Date
-                    next_survey_str = cert.get('next_survey')
-                    if not next_survey_str:
-                        continue
-                    
-                    # Parse next_survey to extract actual date (ignore annotations like (-3M))
-                    # Check if it's in raw_date format or database format
-                    next_survey_display = cert.get('next_survey_display', '')
-                    
-                    # Try to extract date from next_survey field
-                    if isinstance(next_survey_str, str):
-                        if 'T' in next_survey_str:
-                            next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '')).date()
-                        else:
-                            # Parse from format like "29/01/2025" or "2025-01-29"
-                            date_part = next_survey_str.split(' ')[0] if ' ' in next_survey_str else next_survey_str
-                            if '/' in date_part:
-                                next_survey_date = datetime.strptime(date_part, '%d/%m/%Y').date()
-                            else:
-                                next_survey_date = datetime.strptime(date_part, '%Y-%m-%d').date()
-                    else:
-                        next_survey_date = next_survey_str.date() if hasattr(next_survey_str, 'date') else next_survey_str
-                    
-                    window_open = next_survey_date - relativedelta(months=3)
-                    window_close = next_survey_date
-                    window_type = 'Renewal: -3M→Date'
-                    
-                # Case 3: Intermediate
-                elif next_survey_type == 'Intermediate':
-                    # Window: Next Survey Date ± 3M
-                    next_survey_str = cert.get('next_survey')
-                    if not next_survey_str:
-                        continue
-                    
-                    # Parse next_survey
-                    if isinstance(next_survey_str, str):
-                        if 'T' in next_survey_str:
-                            next_survey_date = datetime.fromisoformat(next_survey_str.replace('Z', '')).date()
-                        else:
-                            date_part = next_survey_str.split(' ')[0] if ' ' in next_survey_str else next_survey_str
-                            if '/' in date_part:
-                                next_survey_date = datetime.strptime(date_part, '%d/%m/%Y').date()
-                            else:
-                                next_survey_date = datetime.strptime(date_part, '%Y-%m-%d').date()
-                    else:
-                        next_survey_date = next_survey_str.date() if hasattr(next_survey_str, 'date') else next_survey_str
-                    
+                if '(±3M)' in next_survey_str or '(+3M)' in next_survey_str or '(+-3M)' in next_survey_str:
+                    # Window: Next Survey ± 3M
                     window_open = next_survey_date - relativedelta(months=3)
                     window_close = next_survey_date + relativedelta(months=3)
-                    window_type = 'Intermediate: ±3M'
-                    
+                    window_type = '±3M'
+                elif '(-3M)' in next_survey_str:
+                    # Window: Next Survey - 3M → Next Survey (only before)
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date
+                    window_type = '-3M'
                 else:
-                    # Unknown type - skip
+                    # No clear annotation, skip
                     continue
                 
                 # Check if current_date is within window
