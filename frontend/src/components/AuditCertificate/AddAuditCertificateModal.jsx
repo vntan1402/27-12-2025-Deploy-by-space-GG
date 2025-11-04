@@ -1246,9 +1246,8 @@ export const AddAuditCertificateModal = ({
               </div>
             </div>
 
-            {/* Row 4: Last Endorse & Next Survey (conditional on Full Term) */}
-            {formData.cert_type === 'Full Term' && (
-              <div className="grid grid-cols-2 gap-4">
+            {/* Row 4: Last Endorse, Next Survey & Next Survey Type (3 columns) */}
+            <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
