@@ -1511,6 +1511,72 @@ export const AddAuditCertificateModal = ({
         </div>
       )}
 
+      {/* Category Warning Modal (ISM/ISPS/MLC) */}
+      {categoryModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[70]">
+          <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4">
+            {/* Header */}
+            <div className="bg-red-50 border-b border-red-200 px-6 py-4 rounded-t-xl">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-lg font-semibold text-red-900">
+                    {language === 'vi' ? '⚠️ Loại giấy chứng nhận không phù hợp' : '⚠️ Certificate Category Mismatch'}
+                  </h3>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 py-4">
+              <p className="text-gray-700 text-base mb-4">
+                {categoryModal.message}
+              </p>
+              
+              {categoryModal.certName && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm font-semibold text-red-900 mb-2">
+                    {language === 'vi' ? '📋 Tên giấy chứng nhận:' : '📋 Certificate name:'}
+                  </p>
+                  <p className="text-sm text-gray-700 font-medium">
+                    "{categoryModal.certName}"
+                  </p>
+                </div>
+              )}
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-sm text-yellow-800">
+                  {language === 'vi' 
+                    ? '💡 Module ISM-ISPS-MLC chỉ dành cho các giấy chứng nhận liên quan đến ISM (International Safety Management), ISPS (International Ship and Port Facility Security), và MLC (Maritime Labour Convention).'
+                    : '💡 ISM-ISPS-MLC module is only for certificates related to ISM (International Safety Management), ISPS (International Ship and Port Facility Security), and MLC (Maritime Labour Convention).'
+                  }
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-gray-50 px-6 py-4 rounded-b-xl flex justify-end gap-3">
+              <button
+                onClick={categoryModal.onCancel}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+              >
+                {language === 'vi' ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                onClick={categoryModal.onContinue}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              >
+                {language === 'vi' ? 'Tiếp tục tạo' : 'Continue Anyway'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Duplicate Confirmation Modal */}
       {duplicateModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[70]">
