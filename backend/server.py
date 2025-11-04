@@ -21912,6 +21912,24 @@ async def analyze_audit_certificate_file(
         # ===== SHIP VALIDATION (if ship_id provided) =====
         validation_warning = None
         duplicate_warning = None
+        category_warning = None
+        
+        # ===== CATEGORY VALIDATION (ISM/ISPS/MLC CHECK) =====
+        extracted_cert_name = analysis_result.get('cert_name', '').strip()
+        if extracted_cert_name:
+            category_check = check_ism_isps_mlc_category(extracted_cert_name)
+            
+            if not category_check.get('is_valid'):
+                logger.warning(f"⚠️ Category mismatch for {filename}: '{extracted_cert_name}' is not ISM/ISPS/MLC")
+                
+                category_warning = {
+                    "type": "category_mismatch",
+                    "message": "Giấy chứng nhận này không thuộc danh mục ISM/ISPS/MLC, vui lòng kiểm tra lại",
+                    "cert_name": extracted_cert_name,
+                    "can_override": True
+                }
+            else:
+                logger.info(f"✅ Category validation passed: '{extracted_cert_name}' belongs to {category_check.get('category')}")
         
         if ship and ship_id:
             extracted_imo = analysis_result.get('imo_number', '').strip()
