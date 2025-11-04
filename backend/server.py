@@ -15623,7 +15623,7 @@ def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
         if 'INTERIM' in cert_type:
             next_survey_date = valid_dt - relativedelta(months=3)
             return {
-                'next_survey': next_survey_date.strftime('%d/%m/%Y') + ' (-3M)',
+                'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
                 'next_survey_type': 'Initial',
                 'reasoning': 'Interim certificate: Next Survey = Valid Date - 3 months',
                 'raw_date': next_survey_date.strftime('%d/%m/%Y'),
