@@ -54,6 +54,7 @@ const IsmIspsMLc = () => {
   
   // Actions
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isUpdatingNextSurvey, setIsUpdatingNextSurvey] = useState(false);
   
   // Notes & Survey modals
   const [notesModal, setNotesModal] = useState({ 
