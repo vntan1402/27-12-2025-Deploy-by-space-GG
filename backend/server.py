@@ -1335,6 +1335,34 @@ app.add_middleware(
 # Initialize Google Drive Manager
 gdrive_manager = GoogleDriveManager()
 
+def check_ism_isps_mlc_category(cert_name: str) -> dict:
+    """
+    Check if certificate belongs to ISM/ISPS/MLC categories
+    Returns dict with 'is_valid' and 'category' or 'message'
+    """
+    if not cert_name:
+        return {"is_valid": False, "message": "Certificate name is empty"}
+    
+    # Normalize cert name for comparison
+    cert_name_upper = cert_name.upper().strip()
+    
+    # Check against all ISM/ISPS/MLC certificates
+    for category, cert_list in ISM_ISPS_MLC_CERTIFICATES.items():
+        for valid_cert in cert_list:
+            # Check if valid_cert is contained in cert_name or vice versa
+            if valid_cert in cert_name_upper or cert_name_upper in valid_cert:
+                return {
+                    "is_valid": True, 
+                    "category": category.upper(),
+                    "matched_cert": valid_cert
+                }
+    
+    # Not found in any category
+    return {
+        "is_valid": False,
+        "message": f"Certificate '{cert_name}' does not belong to ISM/ISPS/MLC categories"
+    }
+
 async def get_user_defined_abbreviation(cert_name: str) -> Optional[str]:
     """Get user-defined abbreviation for certificate name if it exists"""
     try:
