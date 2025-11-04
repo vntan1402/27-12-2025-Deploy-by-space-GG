@@ -8,26 +8,29 @@ import { formatDateDisplay } from '../../utils/dateHelpers';
 export const AuditUpcomingSurveyModal = ({
   isOpen,
   onClose,
-  surveys,
-  totalCount,
-  companyName,
-  checkDate,
+  surveys = [],
+  totalCount = 0,
+  companyName = '',
+  checkDate = '',
   language
 }) => {
   if (!isOpen) return null;
 
+  // Use company name if available
+  const displayCompany = companyName;
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
+      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <h2 className="text-2xl font-bold text-white">
-                {language === 'vi' ? 'Upcoming Survey - 30 Ngày Tới' : 'Upcoming Survey - Next 30 Days'}
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-orange-600 mb-2 flex items-center">
+            ⚠️ {language === 'vi' ? 'Thông báo Survey sắp đến hạn' : 'Upcoming Survey Notification'}
+          </h3>
+          <p className="text-gray-700 mb-4">
+            {language === 'vi' 
+              ? 'Các Audit Certificate sau cần đánh giá trong thời gian tới, hãy bố trí đánh giá sớm nhất:'
+              : 'The following audit certificates require review in the coming period. Please arrange assessments as soon as possible:'}
               </h2>
               <p className="text-orange-100 text-sm">
                 {companyName} | {language === 'vi' ? 'Ngày kiểm tra:' : 'Check date:'} {formatDateDisplay(checkDate)}
