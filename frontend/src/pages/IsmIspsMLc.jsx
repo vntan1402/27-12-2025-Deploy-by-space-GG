@@ -140,6 +140,13 @@ const IsmIspsMLc = () => {
     }
   }, [contextMenu, surveyTypeContextMenu]);
 
+  // Prefetch certificate links when certificates are loaded
+  useEffect(() => {
+    if (auditCertificates.length > 0) {
+      prefetchCertificateLinks(auditCertificates);
+    }
+  }, [auditCertificates]);
+
 
 
   const fetchShips = async () => {
