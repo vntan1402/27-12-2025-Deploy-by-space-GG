@@ -313,6 +313,7 @@ export const AddAuditCertificateModal = ({
       if (response.data.success && response.data.extracted_info) {
         const extractedInfo = response.data.extracted_info;
         const validationWarning = response.data.validation_warning;
+        const duplicateWarning = response.data.duplicate_warning;
         
         // ===== CHECK FOR SHIP VALIDATION WARNING =====
         if (validationWarning && validationWarning.type === 'imo_mismatch') {
@@ -330,6 +331,25 @@ export const AddAuditCertificateModal = ({
             onCancel: () => {
               // User chose to cancel - clear everything
               handleValidationCancel();
+            }
+          });
+          return; // Wait for user choice
+        }
+        
+        // ===== CHECK FOR DUPLICATE WARNING =====
+        if (duplicateWarning && duplicateWarning.type === 'duplicate') {
+          // Show duplicate confirmation modal
+          setDuplicateModal({
+            show: true,
+            message: duplicateWarning.message,
+            existingCert: duplicateWarning.existing_certificate,
+            onContinue: () => {
+              // User chose to continue - proceed with duplicate
+              handleDuplicateContinue(extractedInfo, file);
+            },
+            onCancel: () => {
+              // User chose to cancel - clear everything
+              handleDuplicateCancel();
             }
           });
           return; // Wait for user choice
