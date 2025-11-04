@@ -21902,6 +21902,37 @@ async def multi_audit_cert_upload_for_ship(
                 
                 logger.info(f"🔍 AI Analysis for audit certificate {file.filename}: {json.dumps(analysis_result, indent=2, default=str)}")
                 
+                # ===== VALIDATION: Check required fields from AI extraction =====
+                cert_name = analysis_result.get("cert_name") or analysis_result.get("certificate_name")
+                cert_no = analysis_result.get("cert_no") or analysis_result.get("certificate_number")
+                
+                # Validate required fields
+                missing_fields = []
+                if not cert_name or not cert_name.strip():
+                    missing_fields.append("Certificate Name")
+                if not cert_no or not cert_no.strip():
+                    missing_fields.append("Certificate Number")
+                
+                if missing_fields:
+                    error_msg = f"AI could not extract required fields: {', '.join(missing_fields)}. Please check the file quality and try again."
+                    logger.warning(f"⚠️ Skipping {file.filename}: {error_msg}")
+                    
+                    summary["errors"] += 1
+                    summary["error_files"].append({
+                        "filename": file.filename,
+                        "error": error_msg,
+                        "missing_fields": missing_fields
+                    })
+                    results.append({
+                        "filename": file.filename,
+                        "status": "error",
+                        "message": error_msg,
+                        "extracted_info": analysis_result
+                    })
+                    continue  # Skip this file - DO NOT upload to Drive or create DB record
+                
+                logger.info(f"✅ Validation passed for {file.filename}: cert_name={cert_name}, cert_no={cert_no}")
+                
                 # Upload file to Google Drive
                 # For audit certificates, we upload to ship's ISM-ISPS-MLC/Audit Certificates folder
                 from dual_apps_script_manager import create_dual_apps_script_manager
