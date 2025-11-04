@@ -66,6 +66,15 @@ export const AddAuditCertificateModal = ({
     onCancel: null
   });
   
+  // Category warning modal state (ISM/ISPS/MLC)
+  const [categoryModal, setCategoryModal] = useState({
+    show: false,
+    message: '',
+    certName: '',
+    onContinue: null,
+    onCancel: null
+  });
+  
   // Multi cert upload states
   const [isMultiCertProcessing, setIsMultiCertProcessing] = useState(false);
   const [multiCertUploads, setMultiCertUploads] = useState([]);
