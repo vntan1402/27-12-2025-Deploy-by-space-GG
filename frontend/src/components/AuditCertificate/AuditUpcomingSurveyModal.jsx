@@ -52,8 +52,8 @@ export const AuditUpcomingSurveyModal = ({
             </svg>
             <p className="text-orange-800 font-semibold">
               {language === 'vi' 
-                ? `Tổng cộng ${totalCount} audit certificates cần kiểm tra trong 30 ngày tới`
-                : `Total ${totalCount} audit certificates require survey in next 30 days`
+                ? `Tổng cộng ${totalCount} audit certificate cần đánh giá trong những ngày tới`
+                : `Total ${totalCount} audit certificates require review in the coming days`
               }
             </p>
           </div>
