@@ -21688,6 +21688,34 @@ async def update_audit_certificate(
                 logger.info(f"Clearing last_endorse for {cert_data['cert_type']} certificate")
                 cert_data['last_endorse'] = None
         
+        # Handle certificate abbreviation - Save to mappings if user has permission
+        if 'cert_abbreviation' in cert_data:
+            cert_abbreviation_value = cert_data.get('cert_abbreviation')
+            logger.info(f"📝 Processing cert_abbreviation update: '{cert_abbreviation_value}' for audit certificate {cert_id}")
+            
+            # If abbreviation is provided and not empty, try to save mapping
+            if cert_abbreviation_value and cert_abbreviation_value.strip():
+                cert_name = cert_data.get('cert_name') or existing_cert.get('cert_name')
+                if cert_name:
+                    # Check if user has permission to create/update abbreviation mappings
+                    if current_user.role in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+                        # Save the user-defined abbreviation mapping
+                        abbreviation_saved = await save_user_defined_abbreviation(
+                            cert_name, 
+                            cert_abbreviation_value.strip(), 
+                            current_user.id
+                        )
+                        if abbreviation_saved:
+                            logger.info(f"✅ Saved user-defined abbreviation mapping: {cert_name} -> {cert_abbreviation_value}")
+                        else:
+                            logger.warning(f"⚠️ Failed to save abbreviation mapping for audit certificate: {cert_name}")
+                    else:
+                        logger.warning(f"⚠️ User {current_user.username} (role: {current_user.role}) does not have permission to create abbreviation mappings")
+                else:
+                    logger.warning("⚠️ No cert_name available for abbreviation mapping")
+            else:
+                logger.info("📝 cert_abbreviation is empty or null - will be saved as provided to certificate record")
+        
         cert_data["updated_at"] = datetime.now(timezone.utc)
         
         # Update certificate
