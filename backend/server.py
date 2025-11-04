@@ -21984,6 +21984,155 @@ async def delete_audit_certificate_file_background(file_id: str, cert_name: str,
         import traceback
         logger.error(traceback.format_exc())
 
+@api_router.post("/audit-certificates/{cert_id}/calculate-next-survey")
+async def calculate_audit_cert_next_survey(
+    cert_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Calculate and update Next Survey for a single audit certificate"""
+    try:
+        # Get certificate data
+        cert = await mongo_db.find_one("audit_certificates", {"id": cert_id})
+        if not cert:
+            raise HTTPException(status_code=404, detail="Audit certificate not found")
+        
+        # Calculate next survey
+        survey_info = calculate_audit_certificate_next_survey(cert)
+        
+        # Prepare update data
+        update_data = {}
+        
+        if survey_info['next_survey']:
+            # Store next_survey as ISO datetime
+            if survey_info.get('raw_date'):
+                try:
+                    from datetime import datetime
+                    parsed_date = datetime.strptime(survey_info['raw_date'], '%d/%m/%Y')
+                    update_data['next_survey'] = parsed_date.isoformat() + 'Z'
+                except:
+                    update_data['next_survey'] = None
+            else:
+                update_data['next_survey'] = None
+                
+            update_data['next_survey_display'] = survey_info['next_survey']
+        else:
+            update_data['next_survey'] = None
+            update_data['next_survey_display'] = None
+            
+        if survey_info['next_survey_type']:
+            update_data['next_survey_type'] = survey_info['next_survey_type']
+        else:
+            update_data['next_survey_type'] = None
+        
+        # Update certificate
+        if update_data:
+            update_data['updated_at'] = datetime.now(timezone.utc)
+            await mongo_db.update("audit_certificates", {"id": cert_id}, update_data)
+        
+        logger.info(f"✅ Updated next survey for audit certificate: {cert_id}")
+        
+        return {
+            "success": True,
+            "message": "Next Survey calculated successfully",
+            "cert_id": cert_id,
+            "next_survey": survey_info['next_survey'],
+            "next_survey_type": survey_info['next_survey_type'],
+            "reasoning": survey_info['reasoning']
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error calculating next survey for audit certificate {cert_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/ships/{ship_id}/audit-certificates/update-next-survey")
+async def update_ship_audit_certificates_next_survey(
+    ship_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Calculate and update Next Survey for all audit certificates of a ship
+    """
+    try:
+        # Get ship data
+        ship_data = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship_data:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Get all audit certificates for the ship
+        certificates = await mongo_db.find_all("audit_certificates", {"ship_id": ship_id})
+        if not certificates:
+            return {
+                "success": True,
+                "message": "No audit certificates found for this ship",
+                "updated_count": 0,
+                "results": []
+            }
+        
+        updated_count = 0
+        results = []
+        
+        for cert in certificates:
+            # Calculate next survey
+            survey_info = calculate_audit_certificate_next_survey(cert)
+            
+            # Prepare update data
+            update_data = {}
+            
+            if survey_info['next_survey']:
+                if survey_info.get('raw_date'):
+                    try:
+                        from datetime import datetime
+                        parsed_date = datetime.strptime(survey_info['raw_date'], '%d/%m/%Y')
+                        update_data['next_survey'] = parsed_date.isoformat() + 'Z'
+                    except:
+                        update_data['next_survey'] = None
+                else:
+                    update_data['next_survey'] = None
+                    
+                update_data['next_survey_display'] = survey_info['next_survey']
+            else:
+                update_data['next_survey'] = None
+                update_data['next_survey_display'] = None
+                
+            if survey_info['next_survey_type']:
+                update_data['next_survey_type'] = survey_info['next_survey_type']
+            else:
+                update_data['next_survey_type'] = None
+            
+            # Update certificate if there are changes
+            if update_data:
+                update_data['updated_at'] = datetime.now(timezone.utc)
+                await mongo_db.update("audit_certificates", {"id": cert["id"]}, update_data)
+                updated_count += 1
+            
+            results.append({
+                "cert_id": cert["id"],
+                "cert_name": cert.get("cert_name", "Unknown"),
+                "cert_type": cert.get("cert_type", "Unknown"),
+                "next_survey": survey_info['next_survey'],
+                "next_survey_type": survey_info['next_survey_type'],
+                "updated": bool(update_data)
+            })
+        
+        logger.info(f"✅ Updated next survey for {updated_count} audit certificates")
+        
+        return {
+            "success": True,
+            "message": f"Updated next survey for {updated_count} audit certificates",
+            "updated_count": updated_count,
+            "results": results
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating audit certificates next survey: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/audit-certificates/bulk-delete")
 async def bulk_delete_audit_certificates(
     request: dict,
