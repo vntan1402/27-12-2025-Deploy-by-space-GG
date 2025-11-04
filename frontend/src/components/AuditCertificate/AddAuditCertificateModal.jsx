@@ -385,10 +385,6 @@ export const AddAuditCertificateModal = ({
       const finalSuccessCount = uploadResults.filter(r => r.status === 'success').length;
       const finalFailedCount = uploadResults.filter(r => r.status === 'error').length;
 
-      // Count final results
-      const finalSuccessCount = uploadResults.filter(r => r.status === 'success').length;
-      const finalFailedCount = uploadResults.filter(r => r.status === 'error').length;
-
       // Update summary
       setUploadSummary({
         success: finalSuccessCount,
