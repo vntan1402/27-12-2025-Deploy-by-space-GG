@@ -21562,6 +21562,10 @@ async def create_audit_certificate(
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
+        # Auto-add ship_imo if not provided
+        if not cert_data.get("ship_imo"):
+            cert_data["ship_imo"] = ship.get("imo", "")
+        
         # Validate cert_type
         if cert_data.get("cert_type"):
             cert_data["cert_type"] = validate_certificate_type(cert_data["cert_type"])
