@@ -169,15 +169,38 @@ export const AddAuditCertificateModal = ({
         new Uint8Array(fileContent).reduce((data, byte) => data + String.fromCharCode(byte), '')
       );
 
-      // Call AI analysis endpoint
+      // Call AI analysis endpoint with ship_id for validation
       const response = await api.post('/api/audit-certificates/analyze-file', {
         file_content: base64Content,
         filename: file.name,
-        content_type: file.type
+        content_type: file.type,
+        ship_id: selectedShip.id  // Include ship_id for backend validation
       });
 
       if (response.data.success && response.data.extracted_info) {
         const extractedInfo = response.data.extracted_info;
+        const validationWarning = response.data.validation_warning;
+        
+        // ===== CHECK FOR SHIP VALIDATION WARNING =====
+        if (validationWarning && validationWarning.type === 'imo_mismatch') {
+          // Show validation confirmation modal instead of toast
+          setValidationModal({
+            show: true,
+            message: validationWarning.message,
+            overrideNote: validationWarning.override_note,
+            extractedInfo: extractedInfo,
+            file: file,
+            onContinue: () => {
+              // User chose to continue - add override note and proceed
+              handleValidationContinue(extractedInfo, file, validationWarning.override_note);
+            },
+            onCancel: () => {
+              // User chose to cancel - clear everything
+              handleValidationCancel();
+            }
+          });
+          return; // Wait for user choice
+        }
         
         // ===== VALIDATE EXTRACTED INFO (CLIENT-SIDE CHECK) =====
         const cert_name = extractedInfo.cert_name || extractedInfo.certificate_name || '';
