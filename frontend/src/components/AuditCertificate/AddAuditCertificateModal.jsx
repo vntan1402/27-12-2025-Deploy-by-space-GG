@@ -1290,9 +1290,9 @@ export const AddAuditCertificateModal = ({
                 </div>
               </div>
 
-            {/* Row 5: Issued By & Abbreviation */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
+            {/* Row 5: Issued By, Abbreviation & empty (2+1 columns) */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
                 </label>
@@ -1307,7 +1307,7 @@ export const AddAuditCertificateModal = ({
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Tên viết tắt (Issued By)' : 'Issued By Abbreviation'}
+                  {language === 'vi' ? 'Viết tắt' : 'Abbreviation'}
                 </label>
                 <input
                   type="text"
