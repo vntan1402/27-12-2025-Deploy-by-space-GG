@@ -46,6 +46,15 @@ export const AddAuditCertificateModal = ({
     details: null
   });
   
+  // Validation confirmation modal state
+  const [validationModal, setValidationModal] = useState({
+    show: false,
+    message: '',
+    overrideNote: '',
+    onContinue: null,
+    onCancel: null
+  });
+  
   // Multi cert upload states
   const [isMultiCertProcessing, setIsMultiCertProcessing] = useState(false);
   const [multiCertUploads, setMultiCertUploads] = useState([]);
