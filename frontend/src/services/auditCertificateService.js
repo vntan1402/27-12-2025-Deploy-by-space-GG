@@ -191,6 +191,24 @@ export const auditCertificateService = {
       }
     });
   },
+
+  /**
+   * Update Next Survey for all audit certificates of a ship
+   * @param {string} shipId - Ship ID
+   * @returns {Promise} Update result with count and details
+   */
+  updateShipNextSurvey: async (shipId) => {
+    return api.post(`/api/ships/${shipId}/audit-certificates/update-next-survey`);
+  },
+
+  /**
+   * Recalculate Next Survey for a single audit certificate
+   * @param {string} certId - Audit certificate ID
+   * @returns {Promise} Recalculation result
+   */
+  recalculateNextSurvey: async (certId) => {
+    return api.post(`/api/audit-certificates/${certId}/calculate-next-survey`);
+  },
 };
 
 export default auditCertificateService;
