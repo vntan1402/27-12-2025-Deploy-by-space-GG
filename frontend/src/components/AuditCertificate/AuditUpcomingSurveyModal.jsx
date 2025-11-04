@@ -94,8 +94,8 @@ export const AuditUpcomingSurveyModal = ({
               </svg>
               <p className="text-lg font-medium">
                 {language === 'vi' 
-                  ? '🎉 Không có audit certificate nào cần kiểm tra trong 30 ngày tới!'
-                  : '🎉 No audit certificates require survey in next 30 days!'
+                  ? '🎉 Không có audit certificate nào cần đánh giá trong những ngày tới!'
+                  : '🎉 No audit certificates require review in the coming days!'
                 }
               </p>
             </div>
