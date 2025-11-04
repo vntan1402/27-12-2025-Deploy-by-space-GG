@@ -21803,11 +21803,19 @@ async def analyze_audit_certificate_file(
     request: dict,
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
-    """Analyze audit certificate file with AI - does not create DB record or upload to Drive"""
+    """Analyze audit certificate file with AI - does not create DB record or upload to Drive, but validates ship info"""
     try:
         file_content = request.get('file_content')
         filename = request.get('filename')
         content_type = request.get('content_type')
+        ship_id = request.get('ship_id')  # Required for validation
+        
+        # Verify ship exists if ship_id provided
+        ship = None
+        if ship_id:
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
         
         # Get AI configuration
         ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
@@ -21832,11 +21840,46 @@ async def analyze_audit_certificate_file(
         
         logger.info(f"🔍 AI Analysis (analyze-only) for {filename}: {json.dumps(analysis_result, indent=2, default=str)}")
         
+        # ===== SHIP VALIDATION (if ship_id provided) =====
+        validation_warning = None
+        if ship and ship_id:
+            extracted_imo = analysis_result.get('imo_number', '').strip()
+            extracted_ship_name = analysis_result.get('ship_name', '').strip()
+            current_ship_imo = ship.get('imo', '').strip()
+            current_ship_name = ship.get('name', '').strip()
+            
+            logger.info(f"🔍 Ship Validation for {filename}:")
+            logger.info(f"   Extracted IMO: '{extracted_imo}'")
+            logger.info(f"   Current Ship IMO: '{current_ship_imo}'")
+            logger.info(f"   Extracted Ship Name: '{extracted_ship_name}'")
+            logger.info(f"   Current Ship Name: '{current_ship_name}'")
+            
+            # Check IMO validation first
+            if extracted_imo and current_ship_imo:
+                extracted_imo_clean = extracted_imo.replace(' ', '').upper()
+                current_ship_imo_clean = current_ship_imo.replace(' ', '').upper()
+                
+                if extracted_imo_clean != current_ship_imo_clean:
+                    # IMO mismatch - return validation warning
+                    logger.warning(f"❌ IMO mismatch for {filename}: extracted='{extracted_imo}', current='{current_ship_imo}'")
+                    
+                    validation_warning = {
+                        "type": "imo_mismatch",
+                        "message": "Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại",
+                        "extracted_imo": extracted_imo,
+                        "current_ship_imo": current_ship_imo,
+                        "extracted_ship_name": extracted_ship_name,
+                        "current_ship_name": current_ship_name,
+                        "can_override": True,  # Allow user to continue with note
+                        "override_note": "Giấy chứng nhận này của tàu khác, chỉ để tham khảo"
+                    }
+        
         return {
             "success": True,
             "message": "File analyzed successfully",
             "extracted_info": analysis_result,
-            "filename": filename
+            "filename": filename,
+            "validation_warning": validation_warning  # Will be null if no issues
         }
         
     except Exception as e:
