@@ -21842,6 +21842,8 @@ async def analyze_audit_certificate_file(
         
         # ===== SHIP VALIDATION (if ship_id provided) =====
         validation_warning = None
+        duplicate_warning = None
+        
         if ship and ship_id:
             extracted_imo = analysis_result.get('imo_number', '').strip()
             extracted_ship_name = analysis_result.get('ship_name', '').strip()
@@ -21870,8 +21872,31 @@ async def analyze_audit_certificate_file(
                         "current_ship_imo": current_ship_imo,
                         "extracted_ship_name": extracted_ship_name,
                         "current_ship_name": current_ship_name,
-                        "can_override": True,  # Allow user to continue with note
+                        "can_override": True,
                         "override_note": "Giấy chứng nhận này của tàu khác, chỉ để tham khảo"
+                    }
+            
+            # ===== DUPLICATE CHECK (if no IMO mismatch) =====
+            if not validation_warning:
+                duplicates = await check_audit_certificate_duplicates(analysis_result, ship_id)
+                
+                if duplicates:
+                    existing_cert = duplicates[0]['certificate']
+                    logger.warning(f"⚠️ Duplicate detected for {filename}: {existing_cert.get('cert_name')} (Cert No: {existing_cert.get('cert_no')})")
+                    
+                    duplicate_warning = {
+                        "type": "duplicate",
+                        "message": f"Duplicate certificate detected: {existing_cert.get('cert_name')} (Certificate No: {existing_cert.get('cert_no')})",
+                        "can_override": True,
+                        "existing_certificate": {
+                            "cert_name": existing_cert.get('cert_name'),
+                            "cert_no": existing_cert.get('cert_no'),
+                            "cert_type": existing_cert.get('cert_type'),
+                            "issue_date": existing_cert.get('issue_date'),
+                            "valid_date": existing_cert.get('valid_date'),
+                            "issued_by": existing_cert.get('issued_by')
+                        },
+                        "similarity": duplicates[0]['similarity']
                     }
         
         return {
@@ -21879,7 +21904,8 @@ async def analyze_audit_certificate_file(
             "message": "File analyzed successfully",
             "extracted_info": analysis_result,
             "filename": filename,
-            "validation_warning": validation_warning  # Will be null if no issues
+            "validation_warning": validation_warning,  # Ship mismatch warning
+            "duplicate_warning": duplicate_warning     # Duplicate certificate warning
         }
         
     except Exception as e:
