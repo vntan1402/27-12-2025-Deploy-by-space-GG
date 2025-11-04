@@ -560,6 +560,7 @@ export const AddAuditCertificateModal = ({
       issued_by_abbreviation: '',
       notes: ''
     });
+    setCertificateFile(null);
     setMultiCertUploads([]);
     setUploadSummary({ success: 0, failed: 0, total: 0 });
     setIsMultiCertProcessing(false);
