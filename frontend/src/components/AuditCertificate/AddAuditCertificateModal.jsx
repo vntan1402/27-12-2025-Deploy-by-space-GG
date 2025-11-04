@@ -188,6 +188,9 @@ export const AddAuditCertificateModal = ({
 
     // Store file for later upload when user clicks Save
     setCertificateFile(file);
+    
+    // Mark validation as approved so submit won't reject it again
+    setValidationApproved(true);
 
     // Close validation modal
     setValidationModal({ show: false, message: '', overrideNote: '', onContinue: null, onCancel: null });
