@@ -21887,6 +21887,114 @@ async def analyze_audit_certificate_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@api_router.post("/audit-certificates/create-with-file-override")
+async def create_audit_certificate_with_file_override(
+    ship_id: str,
+    file: UploadFile = File(...),
+    cert_data: str = Form(...),  # JSON string of certificate data
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Create audit certificate with file upload - VALIDATION OVERRIDE (user already approved)"""
+    try:
+        # Parse cert_data JSON
+        import json
+        cert_dict = json.loads(cert_data)
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Get user's company for Google Drive configuration
+        user_company_id = await resolve_company_id(current_user)
+        
+        # Get company-specific Google Drive configuration
+        gdrive_config_doc = None
+        if user_company_id:
+            gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
+        
+        if not gdrive_config_doc:
+            raise HTTPException(status_code=500, detail="Google Drive not configured")
+        
+        # Read file content
+        file_content = await file.read()
+        
+        # Upload to Google Drive
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(user_company_id)
+        
+        # Load configuration
+        await dual_manager._load_configuration()
+        
+        if not dual_manager.company_apps_script_url:
+            raise ValueError("Company Apps Script URL not configured")
+        
+        if not dual_manager.parent_folder_id:
+            raise ValueError("Company Google Drive Folder ID not configured")
+        
+        # Convert file content to base64
+        import base64
+        file_base64 = base64.b64encode(file_content).decode('utf-8')
+        
+        # Upload to Google Drive: Ship Name/ISM-ISPS-MLC/Audit Certificates/
+        logger.info(f"📤 Uploading audit certificate (override): {ship.get('name')}/ISM-ISPS-MLC/Audit Certificates/{file.filename}")
+        upload_result = await dual_manager._call_company_apps_script({
+            'action': 'upload_file_with_folder_creation',
+            'parent_folder_id': dual_manager.parent_folder_id,
+            'ship_name': ship.get("name"),
+            'parent_category': 'ISM-ISPS-MLC',
+            'category': 'Audit Certificates',
+            'filename': file.filename,
+            'file_content': file_base64,
+            'content_type': file.content_type
+        })
+        
+        if not upload_result.get("success"):
+            raise HTTPException(status_code=500, detail=upload_result.get("message", "Failed to upload to Google Drive"))
+        
+        # Create certificate record in database
+        cert_id = str(uuid.uuid4())
+        certificate_data = {
+            "id": cert_id,
+            "ship_id": ship_id,
+            "ship_name": ship.get("name"),
+            "cert_name": cert_dict.get("cert_name"),
+            "cert_abbreviation": cert_dict.get("cert_abbreviation", ""),
+            "cert_no": cert_dict.get("cert_no"),
+            "cert_type": cert_dict.get("cert_type", "Full Term"),
+            "issue_date": cert_dict.get("issue_date"),
+            "valid_date": cert_dict.get("valid_date"),
+            "last_endorse": cert_dict.get("last_endorse"),
+            "next_survey": cert_dict.get("next_survey"),
+            "next_survey_type": cert_dict.get("next_survey_type"),
+            "issued_by": cert_dict.get("issued_by", ""),
+            "issued_by_abbreviation": cert_dict.get("issued_by_abbreviation", ""),
+            "notes": cert_dict.get("notes", ""),  # Contains override note
+            "google_drive_file_id": upload_result.get("file_id"),
+            "google_drive_folder_id": upload_result.get("folder_id"),
+            "file_name": file.filename,
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": None,
+            "company": current_user.company
+        }
+        
+        await mongo_db.create("audit_certificates", certificate_data)
+        
+        logger.info(f"✅ Created audit certificate with file (override): {cert_id}")
+        
+        return {
+            "success": True,
+            "message": "Certificate created successfully with file",
+            "cert_id": cert_id,
+            "file_id": upload_result.get("file_id"),
+            "file_name": file.filename
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating audit certificate with file override: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/audit-certificates/multi-upload")
 async def multi_audit_cert_upload_for_ship(
     ship_id: str,
