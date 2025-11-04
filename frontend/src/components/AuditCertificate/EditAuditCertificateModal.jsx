@@ -33,6 +33,8 @@ export const EditAuditCertificateModal = ({
   useEffect(() => {
     if (certificate) {
       setFormData({
+        ship_name: certificate.ship_name || '',
+        ship_imo: certificate.ship_imo || '',
         cert_name: certificate.cert_name || '',
         cert_abbreviation: certificate.cert_abbreviation || '',
         cert_no: certificate.cert_no || '',
