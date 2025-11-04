@@ -37,6 +37,15 @@ export const AddAuditCertificateModal = ({
   // Single file upload state (for review before save)
   const [certificateFile, setCertificateFile] = useState(null);
   
+  // Error modal state
+  const [errorModal, setErrorModal] = useState({
+    show: false,
+    type: '', // 'error', 'warning', 'manual_input'
+    title: '',
+    message: '',
+    details: null
+  });
+  
   // Multi cert upload states
   const [isMultiCertProcessing, setIsMultiCertProcessing] = useState(false);
   const [multiCertUploads, setMultiCertUploads] = useState([]);
