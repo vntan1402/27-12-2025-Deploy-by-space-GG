@@ -513,6 +513,61 @@ export const AddAuditCertificateModal = ({
           }
         );
 
+        console.log('📥 Upload response:', uploadResponse.data);
+
+        // Check response status
+        const results = uploadResponse.data.results || [];
+        const firstResult = results[0];
+        
+        if (!firstResult) {
+          throw new Error('No response from server');
+        }
+
+        // Handle different statuses
+        if (firstResult.status === 'requires_manual_input') {
+          // AI extraction insufficient
+          toast.error(language === 'vi' 
+            ? `❌ ${firstResult.message || 'AI không thể trích xuất đủ thông tin'}\n\n${firstResult.manual_input_reason || ''}`
+            : `❌ ${firstResult.message || 'AI could not extract sufficient information'}\n\n${firstResult.manual_input_reason || ''}`
+          , { duration: 8000 });
+          
+          console.warn('⚠️ Manual input required:', firstResult.manual_input_reason);
+          
+          // Don't close modal, let user manually enter data
+          setCertificateFile(null); // Clear file
+          return; // Stop here
+        }
+        
+        if (firstResult.status === 'error') {
+          // Hard error (IMO mismatch, etc.)
+          const errorMessage = firstResult.message || firstResult.progress_message || 'Upload failed';
+          toast.error(language === 'vi' 
+            ? `❌ ${errorMessage}`
+            : `❌ ${errorMessage}`
+          , { duration: 6000 });
+          
+          console.error('❌ Upload error:', firstResult);
+          
+          // Clear file and stop
+          setCertificateFile(null);
+          return;
+        }
+        
+        if (firstResult.status === 'pending_duplicate_resolution') {
+          // Duplicate detected
+          toast.warning(language === 'vi' 
+            ? `⚠️ ${firstResult.message || 'Phát hiện chứng chỉ trùng lặp'}\n\nVui lòng xử lý duplicate từ batch upload.`
+            : `⚠️ ${firstResult.message || 'Duplicate certificate detected'}\n\nPlease handle duplicate from batch upload.`
+          , { duration: 8000 });
+          
+          console.warn('⚠️ Duplicate detected:', firstResult.duplicate_info);
+          
+          // Clear file and stop
+          setCertificateFile(null);
+          return;
+        }
+
+        // Success case
         if (uploadResponse.data.success && uploadResponse.data.summary.successfully_created > 0) {
           toast.success(language === 'vi' 
             ? '✅ Đã tạo certificate với file đính kèm!'
@@ -547,7 +602,7 @@ export const AddAuditCertificateModal = ({
           
           handleClose();
         } else {
-          throw new Error('Upload failed');
+          throw new Error(firstResult.message || 'Upload failed');
         }
       } else {
         // **ORIGINAL LOGIC: Không có file, chỉ tạo DB record**
