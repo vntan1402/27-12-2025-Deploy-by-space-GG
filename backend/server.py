@@ -21770,25 +21770,12 @@ async def analyze_audit_certificate_file(
     request: dict,
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
-    """Analyze audit certificate file using AI"""
-    try:
-        # This would integrate with the same AI analysis used for ship certificates
-        # For now, return a placeholder
-        logger.info("📄 Analyzing audit certificate file with AI...")
-        
-        return {
-            "success": True,
-            "message": "AI analysis for audit certificates will be implemented",
-
-@api_router.post("/audit-certificates/analyze-file")
-async def analyze_audit_certificate_file(
-    file_content: str,
-    filename: str,
-    content_type: str,
-    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
-):
     """Analyze audit certificate file with AI - does not create DB record or upload to Drive"""
     try:
+        file_content = request.get('file_content')
+        filename = request.get('filename')
+        content_type = request.get('content_type')
+        
         # Get AI configuration
         ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
         if not ai_config_doc:
