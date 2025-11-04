@@ -21611,10 +21611,14 @@ async def update_audit_certificate(
 ):
     """Update an audit certificate"""
     try:
+        logger.info(f"📝 Updating audit certificate {cert_id} with data: {json.dumps(cert_data, indent=2, default=str)}")
+        
         # Check if certificate exists
         existing_cert = await mongo_db.find_one("audit_certificates", {"id": cert_id})
         if not existing_cert:
             raise HTTPException(status_code=404, detail="Audit certificate not found")
+        
+        logger.info(f"📋 Existing cert data: cert_name={existing_cert.get('cert_name')}, cert_abbreviation={existing_cert.get('cert_abbreviation')}")
         
         # Validate cert_type if provided
         if 'cert_type' in cert_data and cert_data['cert_type']:
