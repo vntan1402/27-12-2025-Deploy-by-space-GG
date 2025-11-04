@@ -15553,6 +15553,154 @@ async def delete_ship_folder_from_gdrive(
         logger.error(f"❌ Error deleting ship folder from Google Drive: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to delete ship folder: {str(e)}")
 
+def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
+    """
+    Calculate Next Survey and Next Survey Type for Audit Certificates (ISM/ISPS/MLC)
+    
+    Logic:
+    1. Interim: Next Survey = Valid Date - 3M, Type = "Initial"
+    2. Short Term: Next Survey = N/A, Type = N/A
+    3. Full Term:
+       - Priority 1 (check Last Endorse):
+         * If no Last Endorse: Next Survey = Valid Date - 30 months ±3M, Type = "Intermediate"
+         * If has Last Endorse: Next Survey = Valid Date - 3M, Type = "Renewal"
+       - Priority 2 (check time remaining):
+         * If (Valid Date - Current Date) > 33 months: Next Survey = Valid Date - 30 months ±3M, Type = "Intermediate"
+         * If (Valid Date - Current Date) < 27 months: Next Survey = Valid Date - 3M, Type = "Renewal"
+    4. Special documents (DMLC I, DMLC II, SSP): Next Survey = N/A, Type = N/A
+    
+    Args:
+        certificate_data: Certificate information (cert_name, cert_type, valid_date, last_endorse)
+    
+    Returns:
+        dict with next_survey, next_survey_type, and reasoning
+    """
+    try:
+        from datetime import datetime, timedelta
+        from dateutil.relativedelta import relativedelta
+        
+        # Extract certificate information
+        cert_name = certificate_data.get('cert_name', '').upper()
+        cert_type = certificate_data.get('cert_type', '').upper()
+        valid_date = certificate_data.get('valid_date')
+        last_endorse = certificate_data.get('last_endorse')
+        current_date = datetime.now()
+        
+        # Parse valid_date
+        valid_dt = None
+        if valid_date:
+            if isinstance(valid_date, str):
+                valid_dt = parse_date_string(valid_date)
+            else:
+                valid_dt = valid_date
+        
+        # Rule: No valid date = no Next Survey
+        if not valid_dt:
+            return {
+                'next_survey': None,
+                'next_survey_type': None,
+                'reasoning': 'No valid date available'
+            }
+        
+        # Rule 4: Special documents (DMLC I, DMLC II, SSP) = N/A
+        special_docs = ['DMLC I', 'DMLC II', 'DMLC PART I', 'DMLC PART II', 'SSP', 'SHIP SECURITY PLAN']
+        if any(doc in cert_name for doc in special_docs):
+            return {
+                'next_survey': None,
+                'next_survey_type': None,
+                'reasoning': f'{cert_name} does not require Next Survey calculation'
+            }
+        
+        # Rule 2: Short Term = N/A
+        if 'SHORT' in cert_type or 'SHORT TERM' in cert_type:
+            return {
+                'next_survey': None,
+                'next_survey_type': None,
+                'reasoning': 'Short Term certificates do not require Next Survey'
+            }
+        
+        # Rule 1: Interim = Valid Date - 3M, Type = "Initial"
+        if 'INTERIM' in cert_type:
+            next_survey_date = valid_dt - relativedelta(months=3)
+            return {
+                'next_survey': next_survey_date.strftime('%d/%m/%Y') + ' (-3M)',
+                'next_survey_type': 'Initial',
+                'reasoning': 'Interim certificate: Next Survey = Valid Date - 3 months',
+                'raw_date': next_survey_date.strftime('%d/%m/%Y'),
+                'window_months': 3
+            }
+        
+        # Rule 3: Full Term certificates
+        if 'FULL' in cert_type or 'FULL TERM' in cert_type or cert_type == 'FULL TERM':
+            # Parse last_endorse if exists
+            last_endorse_dt = None
+            if last_endorse:
+                if isinstance(last_endorse, str):
+                    last_endorse_dt = parse_date_string(last_endorse)
+                else:
+                    last_endorse_dt = last_endorse
+            
+            # Calculate time remaining
+            months_remaining = (valid_dt.year - current_date.year) * 12 + (valid_dt.month - current_date.month)
+            
+            # Priority 1: Check Last Endorse
+            if last_endorse_dt:
+                # Has Last Endorse → Renewal
+                next_survey_date = valid_dt - relativedelta(months=3)
+                return {
+                    'next_survey': next_survey_date.strftime('%d/%m/%Y') + ' (-3M)',
+                    'next_survey_type': 'Renewal',
+                    'reasoning': 'Full Term with Last Endorse: Next Survey = Valid Date - 3 months (Renewal)',
+                    'raw_date': next_survey_date.strftime('%d/%m/%Y'),
+                    'window_months': 3
+                }
+            else:
+                # No Last Endorse → Intermediate
+                intermediate_date = valid_dt - relativedelta(months=30)
+                return {
+                    'next_survey': intermediate_date.strftime('%d/%m/%Y') + ' (±3M)',
+                    'next_survey_type': 'Intermediate',
+                    'reasoning': 'Full Term without Last Endorse: Next Survey = Valid Date - 30 months (Intermediate)',
+                    'raw_date': intermediate_date.strftime('%d/%m/%Y'),
+                    'window_months': 3
+                }
+            
+            # Priority 2: Time-based logic (as fallback or alternative check)
+            # if months_remaining > 33:
+            #     intermediate_date = valid_dt - relativedelta(months=30)
+            #     return {
+            #         'next_survey': intermediate_date.strftime('%d/%m/%Y') + ' (±3M)',
+            #         'next_survey_type': 'Intermediate',
+            #         'reasoning': f'Full Term with {months_remaining} months remaining: Intermediate Survey',
+            #         'raw_date': intermediate_date.strftime('%d/%m/%Y'),
+            #         'window_months': 3
+            #     }
+            # elif months_remaining < 27:
+            #     renewal_date = valid_dt - relativedelta(months=3)
+            #     return {
+            #         'next_survey': renewal_date.strftime('%d/%m/%Y') + ' (-3M)',
+            #         'next_survey_type': 'Renewal',
+            #         'reasoning': f'Full Term with {months_remaining} months remaining: Renewal Survey',
+            #         'raw_date': renewal_date.strftime('%d/%m/%Y'),
+            #         'window_months': 3
+            #     }
+        
+        # Default: Cannot determine
+        return {
+            'next_survey': None,
+            'next_survey_type': None,
+            'reasoning': f'Cannot determine Next Survey for cert_type: {cert_type}'
+        }
+        
+    except Exception as e:
+        logger.error(f"Error calculating audit certificate next survey: {e}")
+        return {
+            'next_survey': None,
+            'next_survey_type': None,
+            'reasoning': f'Error in calculation: {str(e)}'
+        }
+
+
 def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
     """
     Calculate Next Survey and Next Survey Type based on IMO regulations
