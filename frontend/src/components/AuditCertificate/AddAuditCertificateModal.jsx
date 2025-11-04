@@ -456,29 +456,88 @@ export const AddAuditCertificateModal = ({
         next_survey: formData.next_survey ? convertDateInputToUTC(formData.next_survey) : null
       };
 
-      await onSave(certPayload);
-      
-      // Reset form
-      setFormData({
-        ship_id: selectedShip?.id || '',
-        ship_name: selectedShip?.name || '',
-        cert_name: '',
-        cert_abbreviation: '',
-        cert_no: '',
-        cert_type: 'Full Term',
-        issue_date: '',
-        valid_date: '',
-        last_endorse: '',
-        next_survey: '',
-        next_survey_type: '',
-        issued_by: '',
-        issued_by_abbreviation: '',
-        notes: ''
-      });
-      setMultiCertUploads([]);
-      setUploadSummary({ success: 0, failed: 0, total: 0 });
+      // **NEW LOGIC: Nếu có certificateFile (từ single upload), upload file trước**
+      if (certificateFile) {
+        toast.info(language === 'vi' 
+          ? '📤 Đang upload file lên Google Drive...'
+          : '📤 Uploading file to Google Drive...'
+        );
+
+        // Upload file to Drive using multi-upload endpoint (sẽ tạo DB record)
+        const uploadFormData = new FormData();
+        uploadFormData.append('files', certificateFile);
+
+        const uploadResponse = await api.post(
+          `/api/audit-certificates/multi-upload?ship_id=${selectedShip.id}`,
+          uploadFormData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          }
+        );
+
+        if (uploadResponse.data.success && uploadResponse.data.summary.successfully_created > 0) {
+          toast.success(language === 'vi' 
+            ? '✅ Đã tạo certificate với file đính kèm!'
+            : '✅ Certificate created with attached file!'
+          );
+          
+          // Clear file state
+          setCertificateFile(null);
+          
+          // Call onSuccess to refresh list
+          if (onSuccess) {
+            onSuccess();
+          }
+          
+          // Reset form
+          setFormData({
+            ship_id: selectedShip?.id || '',
+            ship_name: selectedShip?.name || '',
+            cert_name: '',
+            cert_abbreviation: '',
+            cert_no: '',
+            cert_type: 'Full Term',
+            issue_date: '',
+            valid_date: '',
+            last_endorse: '',
+            next_survey: '',
+            next_survey_type: '',
+            issued_by: '',
+            issued_by_abbreviation: '',
+            notes: ''
+          });
+          
+          handleClose();
+        } else {
+          throw new Error('Upload failed');
+        }
+      } else {
+        // **ORIGINAL LOGIC: Không có file, chỉ tạo DB record**
+        await onSave(certPayload);
+        
+        // Reset form
+        setFormData({
+          ship_id: selectedShip?.id || '',
+          ship_name: selectedShip?.name || '',
+          cert_name: '',
+          cert_abbreviation: '',
+          cert_no: '',
+          cert_type: 'Full Term',
+          issue_date: '',
+          valid_date: '',
+          last_endorse: '',
+          next_survey: '',
+          next_survey_type: '',
+          issued_by: '',
+          issued_by_abbreviation: '',
+          notes: ''
+        });
+        setMultiCertUploads([]);
+        setUploadSummary({ success: 0, failed: 0, total: 0 });
+      }
     } catch (error) {
       // Error handled by parent
+      console.error('Submit error:', error);
     } finally {
       setIsSubmitting(false);
     }
