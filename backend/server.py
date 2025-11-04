@@ -21984,6 +21984,7 @@ async def create_audit_certificate_with_file_override(
             "id": cert_id,
             "ship_id": ship_id,
             "ship_name": ship.get("name"),
+            "ship_imo": ship.get("imo", ""),
             "cert_name": cert_dict.get("cert_name"),
             "cert_abbreviation": cert_dict.get("cert_abbreviation", ""),
             "cert_no": cert_dict.get("cert_no"),
