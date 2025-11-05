@@ -1131,7 +1131,7 @@ class AuditReportBase(BaseModel):
     audit_type: Optional[str] = None  # ISM, ISPS, MLC, SMC, DOC, etc.
     audit_report_no: Optional[str] = None
     audit_date: Optional[datetime] = None  # Date of audit
-    audited_by: Optional[str] = None  # Auditor/company name
+    issued_by: Optional[str] = None  # Issuing company or organization
     status: Optional[str] = "Valid"  # Valid, Expired, Pending
     note: Optional[str] = None
     auditor_name: Optional[str] = None  # Auditor name from AI extraction
