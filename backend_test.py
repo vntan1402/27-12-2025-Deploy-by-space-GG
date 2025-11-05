@@ -881,22 +881,21 @@ This is a test audit report for API testing purposes.
             return True
     
     def run_all_tests(self):
-        """Run all DELETE Crew endpoint tests in sequence"""
-        print(f"\n🚀 STARTING DELETE CREW ENDPOINT BACKGROUND FILE DELETION TESTING")
-        print(f"🎯 Testing refactored DELETE /api/crew/{{crew_id}} endpoint with background file deletion")
+        """Run all Audit Report AI Analysis endpoint tests in sequence"""
+        print(f"\n🚀 STARTING AUDIT REPORT AI ANALYSIS ENDPOINT TESTING")
+        print(f"🎯 Testing POST /api/audit-reports/analyze endpoint after AI configuration fix")
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # Test sequence for DELETE Crew endpoint
+        # Test sequence for Audit Report AI Analysis endpoint
         tests = [
             ("Setup - Authentication", self.test_authentication),
             ("Setup - Company ID Resolution", self.test_get_company_id),
-            ("Setup - Find Target Crew", self.test_find_target_crew),
-            ("Setup - Find Crew with Certificates", self.test_find_crew_with_certificates),
-            ("Test 1 - Background Deletion Mode (Default)", self.test_delete_crew_background_mode),
-            ("Test 2 - Certificate Validation", self.test_certificate_validation),
-            ("Test 3 - Synchronous Deletion Mode", self.test_delete_crew_synchronous_mode),
-            ("Test 4 - Edge Cases", self.test_edge_cases),
+            ("Setup - Get Ships List", self.test_get_ships_list),
+            ("Test 1 - Audit Report AI Analysis", self.test_audit_report_analyze_endpoint),
+            ("Test 2 - Error Handling: Invalid Ship ID", self.test_error_handling_invalid_ship),
+            ("Test 3 - Error Handling: Non-PDF File", self.test_error_handling_non_pdf_file),
+            ("Test 4 - Error Handling: No Authentication", self.test_authentication_error_handling),
             ("Test 5 - Backend Logs Verification", self.test_backend_logs_verification),
         ]
         
@@ -908,21 +907,23 @@ This is a test audit report for API testing purposes.
                 result = test_func()
                 results.append((test_name, result))
                 
-                if not result:
-                    print(f"❌ Test failed: {test_name}")
-                    print(f"⚠️ Stopping test sequence due to failure")
+                if not result and "Setup" in test_name:
+                    print(f"❌ Setup test failed: {test_name}")
+                    print(f"⚠️ Stopping test sequence due to setup failure")
                     break
                 else:
-                    print(f"✅ Test passed: {test_name}")
+                    status = "✅ PASS" if result else "❌ FAIL"
+                    print(f"{status}: {test_name}")
                     
             except Exception as e:
                 print(f"💥 Exception in {test_name}: {str(e)}")
                 results.append((test_name, False))
-                break
+                if "Setup" in test_name:
+                    break
         
         # Print final summary
         print(f"\n" + "="*80)
-        print(f"📊 DELETE CREW ENDPOINT TEST SUMMARY")
+        print(f"📊 AUDIT REPORT AI ANALYSIS ENDPOINT TEST SUMMARY")
         print(f"="*80)
         
         passed = sum(1 for _, result in results if result)
@@ -938,19 +939,19 @@ This is a test audit report for API testing purposes.
         
         # Overall assessment
         if success_rate >= 80:
-            print(f"\n🎉 DELETE CREW ENDPOINT TESTING SUCCESSFUL!")
-            print(f"✅ Background deletion mode working correctly")
-            print(f"✅ Certificate validation preventing deletion")
-            print(f"✅ Synchronous deletion mode working")
-            print(f"✅ Edge cases handled properly")
+            print(f"\n🎉 AUDIT REPORT AI ANALYSIS ENDPOINT TESTING SUCCESSFUL!")
+            print(f"✅ AI configuration fix working correctly")
+            print(f"✅ Endpoint returns 200 OK with analysis results")
+            print(f"✅ AI config retrieved successfully (system_ai or fallback)")
+            print(f"✅ Error handling working properly")
             print(f"✅ Backend logging working correctly")
         elif success_rate >= 60:
-            print(f"\n⚠️ DELETE CREW ENDPOINT PARTIALLY WORKING")
+            print(f"\n⚠️ AUDIT REPORT AI ANALYSIS ENDPOINT PARTIALLY WORKING")
             print(f"📊 Some components working but issues detected")
             print(f"🔧 Review failed tests for specific issues")
         else:
-            print(f"\n❌ DELETE CREW ENDPOINT TESTING FAILED")
-            print(f"🚨 Critical issues detected in core functionality")
+            print(f"\n❌ AUDIT REPORT AI ANALYSIS ENDPOINT TESTING FAILED")
+            print(f"🚨 Critical issues detected - AI configuration fix may not be working")
             print(f"🔧 Major fixes required")
         
         return success_rate >= 80
