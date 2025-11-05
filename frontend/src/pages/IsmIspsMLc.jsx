@@ -1638,6 +1638,79 @@ const IsmIspsMLc = () => {
         checkDate={upcomingSurveyModal.checkDate}
         language={language}
       />
+
+      {/* ========== AUDIT REPORT MODALS ========== */}
+      
+      {/* Add Audit Report Modal */}
+      <AddAuditReportModal
+        isOpen={showAddAuditReportModal}
+        onClose={() => setShowAddAuditReportModal(false)}
+        selectedShip={selectedShip}
+        onReportAdded={() => {
+          setShowAddAuditReportModal(false);
+          fetchAuditReports();
+          toast.success(language === 'vi' ? 'Đã thêm audit report!' : 'Audit report added!');
+        }}
+        onStartBatchProcessing={(files) => {
+          setShowAddAuditReportModal(false);
+          startBatchProcessingAuditReports(files);
+        }}
+        language={language}
+      />
+
+      {/* Edit Audit Report Modal */}
+      {showEditAuditReportModal && editingAuditReport && (
+        <EditAuditReportModal
+          isOpen={showEditAuditReportModal}
+          onClose={() => {
+            setShowEditAuditReportModal(false);
+            setEditingAuditReport(null);
+          }}
+          report={editingAuditReport}
+          onReportUpdated={() => {
+            setShowEditAuditReportModal(false);
+            setEditingAuditReport(null);
+            fetchAuditReports();
+            toast.success(language === 'vi' ? 'Đã cập nhật audit report!' : 'Audit report updated!');
+          }}
+          language={language}
+        />
+      )}
+
+      {/* Audit Report Notes Modal */}
+      <AuditReportNotesModal
+        isOpen={auditReportNotesModal.show}
+        onClose={() => setAuditReportNotesModal({ show: false, report: null, notes: '' })}
+        report={auditReportNotesModal.report}
+        notes={auditReportNotesModal.notes}
+        onNotesChange={(notes) => setAuditReportNotesModal(prev => ({ ...prev, notes }))}
+        onSave={handleSaveAuditReportNotes}
+        language={language}
+      />
+
+      {/* Batch Processing Modal for Audit Reports */}
+      <BatchProcessingModal
+        isOpen={isBatchProcessingAuditReports}
+        isMinimized={isAuditReportBatchModalMinimized}
+        onMinimize={() => setIsAuditReportBatchModalMinimized(true)}
+        onRestore={() => setIsAuditReportBatchModalMinimized(false)}
+        progress={auditReportBatchProgress}
+        fileProgressMap={auditReportFileProgressMap}
+        fileStatusMap={auditReportFileStatusMap}
+        fileSubStatusMap={auditReportFileSubStatusMap}
+        language={language}
+      />
+
+      {/* Batch Results Modal for Audit Reports */}
+      <BatchResultsModal
+        isOpen={showAuditReportBatchResults}
+        onClose={() => {
+          setShowAuditReportBatchResults(false);
+          setAuditReportBatchResults([]);
+        }}
+        results={auditReportBatchResults}
+        language={language}
+      />
     </MainLayout>
   );
 };
