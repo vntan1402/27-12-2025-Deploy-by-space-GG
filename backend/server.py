@@ -7704,11 +7704,104 @@ async def analyze_audit_report_file(
                     'total_pages': total_pages,
                     'chunks_count': 1
                 }
-        
-        # Add file content and metadata for later upload (same as Survey Report pattern)
-        analysis['_file_content'] = base64.b64encode(file_content).decode('utf-8')
-        analysis['_filename'] = file.filename
-        analysis['_content_type'] = file.content_type or 'application/pdf'
+                
+                if analysis_only_result.get('success'):
+                    # Extract AI analysis from result
+                    ai_analysis = analysis_only_result.get('ai_analysis', {})
+                    data = ai_analysis.get('data', {}) if isinstance(ai_analysis, dict) else {}
+                    
+                    # Update analysis_result with extracted data
+                    analysis_result.update({
+                        'audit_report_name': data.get('audit_report_name', ''),
+                        'audit_type': data.get('audit_type', ''),
+                        'audit_report_no': data.get('audit_report_no', ''),
+                        'issued_by': data.get('issued_by', ''),
+                        'audit_date': data.get('audit_date', ''),
+                        'ship_name': data.get('ship_name', ''),
+                        'ship_imo': data.get('ship_imo', ''),
+                        'auditor_name': data.get('auditor_name', ''),
+                        'note': data.get('note', ''),
+                        'status': data.get('status', 'Valid'),
+                        'confidence_score': ai_analysis.get('confidence_score', 0.0),
+                        'processing_method': analysis_only_result.get('processing_method', 'clean_analysis')
+                    })
+                else:
+                    logger.warning(f"⚠️ Audit report analysis failed, using fallback values")
+                
+            else:
+                # Split PDF and process each chunk
+                logger.info(f"🔪 Splitting PDF ({total_pages} pages) into chunks...")
+                chunks = splitter.split_pdf(file_content, filename)
+                logger.info(f"📦 Created {len(chunks)} chunks, starting batch processing...")
+                
+                # Process each chunk
+                chunk_results = []
+                for i, chunk in enumerate(chunks):
+                    logger.info(f"🔄 Processing chunk {i+1}/{len(chunks)} (pages {chunk['page_range']})")
+                    
+                    chunk_analysis = await dual_manager.analyze_audit_report_only(
+                        file_content=chunk['content'],
+                        filename=f"{filename}_chunk_{i+1}",
+                        content_type=audit_report_file.content_type or 'application/octet-stream',
+                        document_ai_config=document_ai_config
+                    )
+                    
+                    if chunk_analysis.get('success'):
+                        chunk_results.append({
+                            'chunk_index': i,
+                            'page_range': chunk['page_range'],
+                            'result': chunk_analysis
+                        })
+                        logger.info(f"✅ Chunk {i+1}/{len(chunks)} processed successfully")
+                    else:
+                        logger.warning(f"⚠️ Chunk {i+1}/{len(chunks)} failed: {chunk_analysis.get('message')}")
+                
+                # Merge results from all chunks
+                logger.info(f"🔀 Merging results from {len(chunk_results)} successful chunks...")
+                
+                if chunk_results:
+                    # Use first successful chunk as base
+                    first_chunk = chunk_results[0]['result']
+                    ai_analysis = first_chunk.get('ai_analysis', {})
+                    data = ai_analysis.get('data', {}) if isinstance(ai_analysis, dict) else {}
+                    
+                    analysis_result.update({
+                        'audit_report_name': data.get('audit_report_name', ''),
+                        'audit_type': data.get('audit_type', ''),
+                        'audit_report_no': data.get('audit_report_no', ''),
+                        'issued_by': data.get('issued_by', ''),
+                        'audit_date': data.get('audit_date', ''),
+                        'ship_name': data.get('ship_name', ''),
+                        'ship_imo': data.get('ship_imo', ''),
+                        'auditor_name': data.get('auditor_name', ''),
+                        'note': data.get('note', ''),
+                        'status': data.get('status', 'Valid'),
+                        'confidence_score': ai_analysis.get('confidence_score', 0.0),
+                        'processing_method': 'merged_from_chunks'
+                    })
+                    
+                    # Build merged summary
+                    summary_parts = []
+                    for chunk_result in chunk_results:
+                        chunk_data = chunk_result['result'].get('ai_analysis', {}).get('data', {})
+                        page_range = chunk_result['page_range']
+                        summary_parts.append(f"[Pages {page_range}]: {chunk_data.get('note', 'N/A')}")
+                    
+                    if analysis_result.get('note'):
+                        analysis_result['note'] += f"\n\nChunk Details:\n" + "\n".join(summary_parts)
+                    else:
+                        analysis_result['note'] = "Chunk Details:\n" + "\n".join(summary_parts)
+                
+                # Add split info
+                analysis_result['_split_info'] = {
+                    'was_split': True,
+                    'total_pages': total_pages,
+                    'chunks_count': len(chunks),
+                    'successful_chunks': len(chunk_results),
+                    'failed_chunks': len(chunks) - len(chunk_results)
+                }
+                
+                logger.info(f"✅ Merged analysis from {len(chunk_results)}/{len(chunks)} chunks")
         
         # Create summary text for upload
         summary_lines = [
