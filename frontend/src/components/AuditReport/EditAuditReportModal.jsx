@@ -197,8 +197,8 @@ export const EditAuditReportModal = ({ isOpen, onClose, report, onReportUpdated 
                 </label>
                 <input
                   type="text"
-                  name="audited_by"
-                  value={formData.audited_by}
+                  name="issued_by"
+                  value={formData.issued_by}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   placeholder={language === 'vi' ? 'VD: Lloyd\'s Register, Bureau Veritas...' : 'e.g., Lloyd\'s Register, Bureau Veritas...'}
