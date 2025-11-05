@@ -310,93 +310,37 @@ class BackendAPITester:
             self.print_result(False, f"Exception during get ships list test: {str(e)}")
             return False
     
-    def test_find_crew_with_certificates(self):
-        """Test 3: Find a crew member who has certificates for validation testing"""
-        self.print_test_header("Test 3 - Find Crew Member with Certificates")
-        
-        if not self.access_token:
-            self.print_result(False, "No access token available from authentication test")
-            return False
-        
+    def create_test_pdf(self):
+        """Create a minimal test PDF for audit report analysis"""
         try:
-            headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json"
-            }
+            # Create a simple text file that we'll use as a "PDF" for testing
+            test_content = """
+AUDIT REPORT
+
+Ship Name: BROTHER 36
+IMO Number: 8743531
+Audit Type: ISM
+Audit Report No: AR-2024-001
+Audit Date: 15/01/2024
+Audited By: DNV GL
+Auditor Name: John Smith
+Status: Valid
+Note: Annual ISM audit completed successfully
+
+This is a test audit report for API testing purposes.
+            """.strip()
             
-            print(f"📡 GET {BACKEND_URL}/crew-certificates/all")
-            print(f"🎯 Finding crew member with certificates for validation testing")
+            # Write to a temporary file
+            import tempfile
+            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pdf', delete=False)
+            temp_file.write(test_content)
+            temp_file.close()
             
-            # Make request to get crew certificates
-            response = self.session.get(
-                f"{BACKEND_URL}/crew-certificates/all",
-                headers=headers
-            )
+            return temp_file.name
             
-            print(f"📊 Response Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                certificates = response.json()
-                print(f"📄 Found {len(certificates)} crew certificates")
-                
-                if not certificates:
-                    print(f"⚠️ No crew certificates found - will skip certificate validation test")
-                    self.print_result(True, "No crew certificates found - certificate validation test will be skipped")
-                    return True
-                
-                # Group certificates by crew_id to find crew with certificates
-                crew_cert_counts = {}
-                for cert in certificates:
-                    crew_id = cert.get('crew_id')
-                    crew_name = cert.get('crew_name', 'Unknown')
-                    if crew_id:
-                        if crew_id not in crew_cert_counts:
-                            crew_cert_counts[crew_id] = {
-                                'count': 0,
-                                'crew_name': crew_name
-                            }
-                        crew_cert_counts[crew_id]['count'] += 1
-                
-                # Find crew with most certificates (but not our target crew)
-                best_crew = None
-                max_certs = 0
-                
-                for crew_id, info in crew_cert_counts.items():
-                    cert_count = info['count']
-                    crew_name = info['crew_name']
-                    
-                    print(f"👤 Crew {crew_name} ({crew_id[:8]}...): {cert_count} certificates")
-                    
-                    # Don't use our target crew for this test
-                    if crew_id != self.test_crew_id and cert_count > max_certs:
-                        max_certs = cert_count
-                        best_crew = {
-                            'crew_id': crew_id,
-                            'crew_name': crew_name,
-                            'cert_count': cert_count
-                        }
-                
-                if best_crew:
-                    self.crew_with_certificates_id = best_crew['crew_id']
-                    print(f"✅ Selected crew with certificates: {best_crew['crew_name']} ({best_crew['cert_count']} certificates)")
-                    self.print_result(True, f"Found crew with {best_crew['cert_count']} certificates for validation testing")
-                    return True
-                else:
-                    print(f"⚠️ No suitable crew with certificates found (excluding target crew)")
-                    self.print_result(True, "No suitable crew with certificates found - validation test will be skipped")
-                    return True
-                
-            else:
-                try:
-                    error_data = response.json()
-                    self.print_result(False, f"GET crew-certificates failed with status {response.status_code}: {error_data}")
-                except:
-                    self.print_result(False, f"GET crew-certificates failed with status {response.status_code}: {response.text}")
-                return False
-                
         except Exception as e:
-            self.print_result(False, f"Exception during find crew with certificates test: {str(e)}")
-            return False
+            print(f"⚠️ Could not create test PDF: {e}")
+            return None
     
     def test_delete_crew_background_mode(self):
         """Test 4: DELETE crew with background=true (default behavior)"""
