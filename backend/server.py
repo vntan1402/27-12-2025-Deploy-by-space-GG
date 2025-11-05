@@ -7602,7 +7602,7 @@ async def analyze_audit_report_file(
             )
         
         # Prepare AI prompt for audit report analysis
-        system_prompt = """You are an expert at analyzing maritime audit reports (ISM, ISPS, MLC, SMC, DOC).
+        system_message = """You are an expert at analyzing maritime audit reports (ISM, ISPS, MLC, SMC, DOC).
 Extract the following information from the audit report:
 - audit_report_name: Full name of the audit report
 - audit_type: Type of audit (ISM, ISPS, MLC, SMC, DOC, Internal Audit, External Audit, etc.)
@@ -7620,29 +7620,60 @@ File name: {file.filename}
 
 Extract audit report information and return as JSON."""
 
-        # Call AI service
-        from emergentintegrations import EmergentAIGateway
+        # Call AI service using LlmChat with file content
+        from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
+        import tempfile
+        import json
+        import re
         
-        gateway = EmergentAIGateway(api_key=emergent_llm_key)
+        # Create temporary file for Gemini processing
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+            temp_file.write(file_content)
+            temp_file_path = temp_file.name
         
-        ai_response = gateway.generate_from_base64_image(
-            image_base64=file_b64,
-            user_prompt=user_prompt,
-            system_prompt=system_prompt,
-            response_format="json"
-        )
+        try:
+            # Initialize chat with emergentintegrations
+            chat = LlmChat(
+                api_key=emergent_llm_key,
+                session_id=f"audit_report_analysis_{file.filename}",
+                system_message=system_message
+            ).with_model("gemini", "gemini-2.0-flash-exp")
+            
+            # Create file content for analysis
+            pdf_file = FileContentWithMimeType(
+                file_path=temp_file_path,
+                mime_type="application/pdf"
+            )
+            
+            # Create message with PDF attachment
+            user_message = UserMessage(
+                text=user_prompt,
+                file_contents=[pdf_file]
+            )
+            
+            # Analyze with Gemini
+            ai_response = await chat.send_message(user_message)
+            
+        finally:
+            # Clean up temp file
+            import os
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
         
         # Parse AI response
-        import json
         try:
-            analysis = json.loads(ai_response)
-        except:
-            # If AI returns markdown json, extract it
-            json_match = re.search(r'```json\s*(.*?)\s*```', ai_response, re.DOTALL)
+            # Clean response (remove markdown code blocks if present)
+            clean_response = ai_response.strip()
+            clean_response = clean_response.replace('```json', '').replace('```', '').strip()
+            analysis = json.loads(clean_response)
+        except json.JSONDecodeError:
+            # Try to extract JSON from response using regex
+            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', ai_response, re.DOTALL)
             if json_match:
-                analysis = json.loads(json_match.group(1))
+                analysis = json.loads(json_match.group())
             else:
-                analysis = json.loads(ai_response)
+                logger.error(f"Failed to parse AI response as JSON: {ai_response[:200]}")
+                raise HTTPException(status_code=500, detail="Failed to parse AI response")
         
         # Add file info for upload
         analysis['_file_content'] = file_b64
