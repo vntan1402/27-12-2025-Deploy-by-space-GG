@@ -11,28 +11,25 @@ import { EditAuditReportModal } from './EditAuditReportModal';
 import { AuditReportNotesModal } from './AuditReportNotesModal';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 
-export const AuditReportList = ({ selectedShip, onStartBatchProcessing }) => {
-  const { language } = useAuth();
-
-  // State
-  const [auditReports, setSurveyReports] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Filters
-  const [filters, setFilters] = useState({
-    status: 'all',
-    search: ''
-  });
-
-  // Sorting
-  const [sort, setSort] = useState({
-    column: null,
-    direction: 'asc'
-  });
-
-  // Selection
-  const [selectedReports, setSelectedReports] = useState(new Set());
+export const AuditReportList = ({ 
+  selectedShip, 
+  reports,
+  loading,
+  selectedReports,
+  onSelectReport,
+  onSelectAll,
+  filters,
+  onFiltersChange,
+  sort,
+  onSortChange,
+  onRefresh,
+  isRefreshing,
+  onStartBatchProcessing,
+  onAddReport,
+  onEditReport,
+  onNotesClick,
+  language 
+}) => {
 
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
