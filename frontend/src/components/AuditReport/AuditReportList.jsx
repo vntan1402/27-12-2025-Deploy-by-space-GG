@@ -97,24 +97,6 @@ export const AuditReportList = ({
     }
   };
 
-  // Sort handler
-  const handleSort = (column) => {
-    setSort(prev => ({
-      column,
-      direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
-  };
-
-  // Get sort icon
-  const getSortIcon = (column) => {
-    if (sort.column !== column) return null;
-    return (
-      <span className="ml-1 text-blue-600 text-sm font-bold">
-        {sort.direction === 'asc' ? '▲' : '▼'}
-      </span>
-    );
-  };
-
   // Filter and sort reports
   const getFilteredReports = () => {
     let filtered = [...reports];
