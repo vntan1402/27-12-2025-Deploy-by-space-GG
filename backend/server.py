@@ -7569,13 +7569,16 @@ async def analyze_audit_report_file(
     try:
         logger.info(f"🤖 AI analyzing audit report file: {file.filename}")
         
+        # Convert bypass_validation string to boolean
+        bypass_validation_bool = bypass_validation.lower() in ('true', '1', 'yes')
+        
         # Read file content
         file_content = await file.read()
         file_b64 = base64.b64encode(file_content).decode('utf-8')
         
         # Get ship details for context
         ship = await mongo_db.find_one("ships", {"id": ship_id})
-        if not ship and not bypass_validation:
+        if not ship and not bypass_validation_bool:
             raise HTTPException(status_code=404, detail="Ship not found")
         
         ship_name = ship.get('name', 'Unknown') if ship else 'Unknown'
