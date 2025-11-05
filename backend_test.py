@@ -532,98 +532,92 @@ This is a test audit report for API testing purposes.
         except Exception as e:
             print(f"   ⚠️ Log check failed: {e}")
 
-    def test_certificate_validation(self):
-        """Test 5: Try to delete crew member with certificates (should be blocked)"""
-        self.print_test_header("Test 5 - Certificate Validation Test")
+    def test_error_handling_invalid_ship(self):
+        """Test 4: Error handling with invalid ship_id (should return 404)"""
+        self.print_test_header("Test 4 - Error Handling: Invalid Ship ID")
         
         if not self.access_token:
             self.print_result(False, "No access token available from authentication test")
             return False
         
-        if not self.crew_with_certificates_id:
-            print(f"⚠️ No crew with certificates found - skipping validation test")
-            self.print_result(True, "No crew with certificates found - validation test skipped")
-            return True
-        
         try:
             headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json"
+                "Authorization": f"Bearer {self.access_token}"
             }
             
-            print(f"📡 DELETE {BACKEND_URL}/crew/{self.crew_with_certificates_id}")
-            print(f"🎯 Testing certificate validation (should block deletion)")
-            print(f"👤 Target Crew: {self.crew_with_certificates_id[:8]}... (has certificates)")
+            fake_ship_id = "invalid-ship-id-12345"
+            print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
+            print(f"🎯 Testing with invalid ship_id: {fake_ship_id}")
             
-            # Try to delete crew with certificates
-            response = self.session.delete(
-                f"{BACKEND_URL}/crew/{self.crew_with_certificates_id}",
-                headers=headers,
-                timeout=30
-            )
+            # Create test PDF file
+            test_pdf_path = self.create_test_pdf()
+            if not test_pdf_path:
+                self.print_result(False, "Could not create test PDF file")
+                return False
             
-            print(f"📊 Response Status: {response.status_code}")
-            
-            if response.status_code == 400:
-                # This is expected - crew has certificates
-                try:
-                    error_data = response.json()
-                    detail = error_data.get("detail", "")
+            try:
+                # Prepare multipart form data with invalid ship_id
+                with open(test_pdf_path, 'rb') as pdf_file:
+                    files = {
+                        'file': ('test_audit_report.pdf', pdf_file, 'application/pdf')
+                    }
+                    data = {
+                        'ship_id': fake_ship_id,
+                        'bypass_validation': 'false'
+                    }
                     
-                    print(f"📝 Error Detail: {detail}")
+                    print(f"📄 Testing with invalid ship_id...")
                     
-                    # Verify error message format
-                    if "Cannot delete crew" in detail and "certificates exist" in detail:
-                        print(f"✅ Correct error message format")
-                        
-                        # Verify crew name and certificate count are included
-                        if ":" in detail and "certificates" in detail:
-                            print(f"✅ Error message includes crew name and certificate count")
+                    # Make the API request
+                    response = self.session.post(
+                        f"{BACKEND_URL}/audit-reports/analyze",
+                        headers=headers,
+                        files=files,
+                        data=data,
+                        timeout=30
+                    )
+                    
+                    print(f"📊 Response Status: {response.status_code}")
+                    
+                    if response.status_code == 404:
+                        try:
+                            error_data = response.json()
+                            detail = error_data.get("detail", "")
+                            print(f"✅ Correctly returns 404 for invalid ship_id")
+                            print(f"📝 Error message: {detail}")
                             
-                            # Verify crew is NOT deleted from database
-                            print(f"\n🔍 Verifying crew was NOT deleted from database...")
-                            verify_response = self.session.get(
-                                f"{BACKEND_URL}/crew/{self.crew_with_certificates_id}",
-                                headers=headers
-                            )
-                            
-                            if verify_response.status_code == 200:
-                                print(f"✅ Crew still exists in database (validation working)")
-                                self.print_result(True, "Certificate validation working correctly - deletion blocked")
+                            if "ship" in detail.lower() and "not found" in detail.lower():
+                                print(f"✅ Error message correctly indicates ship not found")
+                                self.print_result(True, "Invalid ship_id error handling working correctly")
                                 return True
                             else:
-                                print(f"❌ Crew was deleted despite having certificates")
-                                self.print_result(False, "Certificate validation failed - crew was deleted")
-                                return False
-                        else:
-                            print(f"⚠️ Error message missing crew name or certificate count")
-                            self.print_result(True, "Certificate validation working but message format could be improved")
+                                print(f"⚠️ Error message format could be clearer")
+                                self.print_result(True, "Invalid ship_id returns 404 but message unclear")
+                                return True
+                        except:
+                            print(f"✅ Returns 404 for invalid ship_id (response not JSON)")
+                            self.print_result(True, "Invalid ship_id error handling working")
                             return True
                     else:
-                        print(f"❌ Unexpected error message format")
-                        self.print_result(False, f"Unexpected error message: {detail}")
+                        try:
+                            error_data = response.json()
+                            print(f"❌ Expected 404, got {response.status_code}: {error_data}")
+                            self.print_result(False, f"Expected 404 for invalid ship_id, got {response.status_code}")
+                        except:
+                            print(f"❌ Expected 404, got {response.status_code}: {response.text}")
+                            self.print_result(False, f"Expected 404 for invalid ship_id, got {response.status_code}")
                         return False
                         
-                except Exception as e:
-                    print(f"❌ Error parsing response: {e}")
-                    self.print_result(False, f"Error parsing 400 response: {e}")
-                    return False
-                    
-            elif response.status_code == 200:
-                # This is unexpected - deletion should have been blocked
-                print(f"❌ Deletion succeeded when it should have been blocked")
-                self.print_result(False, "Certificate validation failed - deletion was allowed")
-                return False
-            else:
+            finally:
+                # Clean up test file
                 try:
-                    error_data = response.json()
-                    self.print_result(False, f"Unexpected response status {response.status_code}: {error_data}")
+                    import os
+                    os.unlink(test_pdf_path)
                 except:
-                    self.print_result(False, f"Unexpected response status {response.status_code}: {response.text}")
-                return False
+                    pass
                 
         except Exception as e:
-            self.print_result(False, f"Exception during certificate validation test: {str(e)}")
+            self.print_result(False, f"Exception during invalid ship_id test: {str(e)}")
             return False
     
     def test_delete_crew_synchronous_mode(self):
