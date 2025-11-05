@@ -461,15 +461,16 @@ This is a fallback test audit report for API testing.
                 # Prepare multipart form data
                 with open(test_pdf_path, 'rb') as pdf_file:
                     files = {
-                        'file': ('test_audit_report.pdf', pdf_file, 'application/pdf')
+                        'file': ('ISM-Code-Audit-Plan.pdf', pdf_file, 'application/pdf')
                     }
                     data = {
                         'ship_id': self.test_ship_id,
                         'bypass_validation': 'false'
                     }
                     
-                    print(f"📄 Uploading test PDF file for analysis...")
+                    print(f"📄 Uploading REAL PDF file for analysis...")
                     print(f"📋 Parameters: ship_id={self.test_ship_id[:8]}..., bypass_validation=false")
+                    print(f"📋 File: ISM-Code-Audit-Plan (07-23) TRUONG MINH LUCKY.pdf")
                     
                     # Make the API request
                     start_time = time.time()
