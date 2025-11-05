@@ -7694,10 +7694,12 @@ Extract audit report information and return as JSON."""
             "message": "Audit report analyzed successfully"
         }
     
-    except HTTPException:
+    except HTTPException as he:
+        logger.error(f"❌ HTTPException in audit report analysis: {he.status_code} - {he.detail}")
         raise
     except Exception as e:
-        logger.error(f"Error analyzing audit report file: {e}")
+        logger.error(f"❌ Error analyzing audit report file: {e}")
+        logger.exception(e)  # Log full traceback
         raise HTTPException(status_code=500, detail=f"Failed to analyze audit report: {str(e)}")
 
 @api_router.post("/audit-reports/{report_id}/upload-files")
