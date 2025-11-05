@@ -852,8 +852,8 @@ This is a fallback test audit report for API testing.
             print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
             print(f"🎯 Testing without authentication header")
             
-            # Create test PDF file
-            test_pdf_path = self.create_test_pdf()
+            # Create fallback test PDF file
+            test_pdf_path = self.create_fallback_pdf()
             if not test_pdf_path:
                 self.print_result(False, "Could not create test PDF file")
                 return False
