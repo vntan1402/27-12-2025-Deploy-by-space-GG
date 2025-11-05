@@ -1139,56 +1139,6 @@ export const AuditReportList = ({
         </div>
       )}
 
-      {/* Add Audit Report Modal */}
-      {showAddModal && (
-        <AddAuditReportModal
-          isOpen={showAddModal}
-          onClose={() => setShowAddModal(false)}
-          selectedShip={selectedShip}
-          onReportAdded={() => {
-            setShowAddModal(false);
-            fetchSurveyReports();
-          }}
-          onStartBatchProcessing={(files) => {
-            setShowAddModal(false);
-            if (onStartBatchProcessing) {
-              onStartBatchProcessing(files);
-            }
-          }}
-        />
-      )}
-
-      {/* Edit Audit Report Modal */}
-      {showEditModal && editingReport && (
-        <EditAuditReportModal
-          isOpen={showEditModal}
-          onClose={() => {
-            setShowEditModal(false);
-            setEditingReport(null);
-          }}
-          report={editingReport}
-          onReportUpdated={() => {
-            setShowEditModal(false);
-            setEditingReport(null);
-            fetchSurveyReports();
-          }}
-        />
-      )}
-
-      {/* Audit Report Notes Modal */}
-      <AuditReportNotesModal
-        isOpen={showNotesModal}
-        onClose={() => {
-          setShowNotesModal(false);
-          setNotesReport(null);
-          setNotesValue('');
-        }}
-        auditReport={notesReport}
-        notes={notesValue}
-        onNotesChange={setNotesValue}
-        onSave={handleSaveNotes}
-        language={language}
-      />
     </div>
   );
 };
