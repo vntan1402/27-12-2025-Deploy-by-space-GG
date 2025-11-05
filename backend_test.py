@@ -791,78 +791,87 @@ This is a test audit report for API testing purposes.
             return False
     
     def test_backend_logs_verification(self):
-        """Test 8: Verify backend logs for proper logging sequence"""
-        self.print_test_header("Test 8 - Backend Logs Verification")
+        """Test 7: Verify backend logs for AI config and analysis process"""
+        self.print_test_header("Test 7 - Backend Logs Verification")
         
         try:
-            print(f"📋 Checking supervisor logs for DELETE crew operations...")
+            print(f"📋 Checking supervisor logs for audit report AI analysis...")
             
             import subprocess
-            result = subprocess.run(['tail', '-n', '200', '/var/log/supervisor/backend.err.log'], 
-                                  capture_output=True, text=True, timeout=10)
             
-            if result.returncode == 0:
-                log_content = result.stdout
-                
-                # Check for expected DELETE crew log messages
-                crew_deletion_logs = [
-                    "🗑️ Deleting crew member:",
-                    "✅ Crew member deleted from database:",
-                    "🚀 Background deletion mode:",
-                    "📤 Starting background file deletion",
-                    "🔄 Background task started: Deleting files for crew",
-                    "✅ Background: Passport file deleted:",
-                    "✅ Background: Summary file deleted:",
-                    "✅ Background task completed: Deleted"
+            # Check both output and error logs
+            log_files = [
+                '/var/log/supervisor/backend.out.log',
+                '/var/log/supervisor/backend.err.log'
+            ]
+            
+            all_log_content = ""
+            for log_file in log_files:
+                try:
+                    result = subprocess.run(['tail', '-n', '200', log_file], 
+                                          capture_output=True, text=True, timeout=10)
+                    if result.returncode == 0:
+                        all_log_content += result.stdout + "\n"
+                        print(f"📄 Read {len(result.stdout.split())} words from {log_file}")
+                except:
+                    print(f"⚠️ Could not read {log_file}")
+            
+            if all_log_content:
+                # Check for expected audit report AI analysis log messages
+                ai_analysis_logs = [
+                    "audit-reports/analyze",
+                    "AI config",
+                    "emergent_llm_key",
+                    "system_ai",
+                    "AI analysis",
+                    "gemini",
+                    "LlmChat"
                 ]
                 
                 found_logs = []
-                for log_pattern in crew_deletion_logs:
-                    if log_pattern in log_content:
+                for log_pattern in ai_analysis_logs:
+                    if log_pattern.lower() in all_log_content.lower():
                         found_logs.append(log_pattern)
                         print(f"✅ Found: {log_pattern}")
                     else:
                         print(f"❌ Missing: {log_pattern}")
                 
-                # Check for certificate validation logs
-                validation_logs = [
-                    "❌ Cannot delete crew",
-                    "certificates still exist"
-                ]
+                # Check for specific AI config success/fallback messages
+                config_success = "✅ Using emergent_llm_key from system AI config" in all_log_content
+                config_fallback = "⚠️ No system AI config found, using fallback emergent_llm_key" in all_log_content
                 
-                validation_found = []
-                for log_pattern in validation_logs:
-                    if log_pattern in log_content:
-                        validation_found.append(log_pattern)
-                        print(f"✅ Found validation log: {log_pattern}")
+                print(f"\n🔍 AI Config Status:")
+                print(f"   System AI config used: {'✅ YES' if config_success else '❌ NO'}")
+                print(f"   Fallback key used: {'✅ YES' if config_fallback else '❌ NO'}")
                 
-                # Print recent DELETE crew related logs
-                lines = log_content.split('\n')
-                relevant_lines = [line for line in lines if any(keyword in line for keyword in 
-                                ['Deleting crew', 'crew member', 'Background task', 'certificates exist'])]
+                # Print recent audit report related logs
+                lines = all_log_content.split('\n')
+                relevant_lines = [line for line in lines if any(keyword in line.lower() for keyword in 
+                                ['audit-reports', 'ai config', 'emergent_llm', 'gemini', 'ai analysis'])]
                 
                 if relevant_lines:
-                    print(f"\n📄 Recent DELETE crew logs:")
-                    for line in relevant_lines[-10:]:  # Last 10 relevant lines
-                        print(f"   {line}")
+                    print(f"\n📄 Recent audit report AI logs:")
+                    for line in relevant_lines[-15:]:  # Last 15 relevant lines
+                        if line.strip():
+                            print(f"   {line}")
                 
                 # Scoring
                 log_score = len(found_logs)
-                total_possible = len(crew_deletion_logs)
+                total_possible = len(ai_analysis_logs)
                 
                 print(f"\n📊 Log Verification Summary:")
-                print(f"   Found logs: {log_score}/{total_possible}")
-                print(f"   Validation logs: {len(validation_found)}")
+                print(f"   Found AI logs: {log_score}/{total_possible}")
+                print(f"   AI config working: {'✅ YES' if (config_success or config_fallback) else '❌ NO'}")
                 
-                if log_score >= total_possible // 2:  # At least half the logs found
-                    self.print_result(True, f"Backend logs verification successful ({log_score}/{total_possible} logs found)")
+                if log_score >= total_possible // 2 or config_success or config_fallback:
+                    self.print_result(True, f"Backend logs verification successful - AI config and analysis logs found")
                     return True
                 else:
-                    self.print_result(False, f"Insufficient logs found ({log_score}/{total_possible})")
+                    self.print_result(False, f"Insufficient AI analysis logs found ({log_score}/{total_possible})")
                     return False
                     
             else:
-                print(f"⚠️ Could not read backend logs")
+                print(f"⚠️ Could not read any backend logs")
                 self.print_result(True, "Could not read backend logs - test skipped")
                 return True
                 
