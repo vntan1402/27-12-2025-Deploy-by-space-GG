@@ -1,39 +1,42 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - DELETE Crew Endpoint Background File Deletion Testing
+Backend API Testing Script - Audit Report AI Analysis Endpoint Testing
 
-FOCUS: Test the refactored DELETE /api/crew/{crew_id} endpoint with background file deletion functionality.
-This endpoint was recently refactored to match the Test Report pattern for background Google Drive file deletion.
+FOCUS: Test the Audit Report AI Analysis endpoint (/api/audit-reports/analyze) after AI configuration fix.
+The fix changed from looking in 'ai_configs' collection with company_id to 'ai_config' collection with id='system_ai'.
 
 TEST REQUIREMENTS:
-1. Authentication & Setup:
-   - Login with admin1/123456 credentials
-   - Resolve company ID (AMCSC)
-   - Find crew member 'HỒ Sỹ Chương' (ID: 25d229a9-a560-484b-b49e-050294c6f711) with passport C9780204
-   - Verify this crew has passport_file_id and summary_file_id for background deletion testing
+1. Authentication Setup:
+   - Login with admin1/123456
+   - Get company_id and ship list
+   - Find a test ship (e.g., BROTHER 36)
 
-2. Background Deletion Mode Test (default behavior):
-   - DELETE /api/crew/{crew_id} with background=true (or omit parameter for default)
-   - Expected Response: Status 200 OK, { "success": true, "message": "Crew member deleted from database (passport files are being deleted from Google Drive in background)", "files_deleted_in_background": true }
-   - Verify Immediate Database Deletion: Crew record should be deleted from MongoDB immediately, subsequent GET /api/crew/{crew_id} should return 404
-   - Verify Background File Deletion: Check backend logs for background task messages
+2. Audit Report Analysis Endpoint Test:
+   - POST /api/audit-reports/analyze
+   - Parameters: ship_id (from ship list), file (PDF), bypass_validation=false
+   - Use a sample PDF audit report if available, or create a minimal PDF for testing
+   - Expected response: success=true, analysis object with fields (audit_report_name, audit_type, audit_report_no, audit_date, audited_by, auditor_name, status, note)
+   - Should NOT return 403/400 errors related to AI config
 
-3. Certificate Validation Test:
-   - Find a crew member who has crew certificates
-   - Try to DELETE this crew member
-   - Expected Response: Status 400 Bad Request, { "detail": "Cannot delete crew \"{crew_name}\": {count} certificates exist. Please delete all certificates first." }
+3. Backend Logs Verification:
+   - Check logs for: "✅ Using emergent_llm_key from system AI config" OR "⚠️ No system AI config found, using fallback emergent_llm_key"
+   - Verify AI analysis process logs
+   - Confirm no errors related to missing AI config or emergent_llm_key
 
-4. Synchronous Mode Test (background=false):
-   - DELETE /api/crew/{crew_id}?background=false
-   - Expected Response: Status 200 OK, { "success": true, "message": "Crew member and files deleted successfully", "deleted_files": ["passport", "summary"] }
+4. Error Handling:
+   - Test with invalid ship_id (should return 404)
+   - Test with non-PDF file (should return 400 with proper message)
+   - Test without authentication (should return 403)
 
-5. Edge Cases:
-   - DELETE crew with no files (no passport_file_id or summary_file_id)
-   - DELETE non-existent crew_id (should return 404)
-   - DELETE without authentication (should return 403)
+SUCCESS CRITERIA:
+- ✅ Endpoint returns 200 OK with analysis results (not 403/400 AI config error)
+- ✅ AI config retrieved successfully (either from system_ai or fallback)
+- ✅ Analysis uses Gemini model and returns proper JSON structure
+- ✅ Backend logs show proper AI config retrieval and analysis process
+- ✅ Error handling works correctly
 
 Test credentials: admin1/123456
-Test crew: 'HỒ Sỹ Chương' (25d229a9-a560-484b-b49e-050294c6f711)
+Test ship: BROTHER 36 (or any available ship)
 """
 
 import requests
