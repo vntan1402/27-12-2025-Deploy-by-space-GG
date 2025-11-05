@@ -342,113 +342,157 @@ This is a test audit report for API testing purposes.
             print(f"⚠️ Could not create test PDF: {e}")
             return None
     
-    def test_delete_crew_background_mode(self):
-        """Test 4: DELETE crew with background=true (default behavior)"""
-        self.print_test_header("Test 4 - DELETE Crew Background Mode (Default)")
+    def test_audit_report_analyze_endpoint(self):
+        """Test 3: POST /api/audit-reports/analyze endpoint with AI configuration fix"""
+        self.print_test_header("Test 3 - Audit Report AI Analysis Endpoint")
         
-        if not self.access_token or not self.test_crew_id:
+        if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
             return False
         
         try:
             headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json"
+                "Authorization": f"Bearer {self.access_token}"
             }
             
-            print(f"📡 DELETE {BACKEND_URL}/crew/{self.test_crew_id}")
-            print(f"🎯 Testing background deletion mode (default behavior)")
-            print(f"👤 Target Crew: {self.test_crew_data.get('full_name')} (ID: {self.test_crew_id[:8]}...)")
+            print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
+            print(f"🎯 Testing AI analysis with ship_id and PDF file")
+            print(f"🚢 Target Ship: {self.test_ship_data.get('name')} (ID: {self.test_ship_id[:8]}...)")
             
-            # Test with background=true (default)
-            start_time = time.time()
-            response = self.session.delete(
-                f"{BACKEND_URL}/crew/{self.test_crew_id}",
-                headers=headers,
-                timeout=30
-            )
-            response_time = time.time() - start_time
-            
-            print(f"📊 Response Status: {response.status_code}")
-            print(f"⏱️ Response Time: {response_time:.3f} seconds")
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                print(f"📄 Response Keys: {list(response_data.keys())}")
-                
-                # Verify expected response structure
-                expected_fields = ["success", "message", "files_deleted_in_background"]
-                success = response_data.get("success")
-                message = response_data.get("message", "")
-                files_deleted_in_background = response_data.get("files_deleted_in_background")
-                
-                print(f"✅ Success: {success}")
-                print(f"📝 Message: {message}")
-                print(f"🔄 Files Deleted in Background: {files_deleted_in_background}")
-                
-                # Verify response structure
-                if success and "deleted from database" in message:
-                    print(f"✅ Response indicates database deletion completed")
-                    
-                    if files_deleted_in_background:
-                        print(f"✅ Response indicates files are being deleted in background")
-                    
-                    # Verify API response time is fast (< 500ms for background mode)
-                    if response_time < 0.5:
-                        print(f"✅ Response time {response_time:.3f}s is fast (< 500ms) - background mode working")
-                    else:
-                        print(f"⚠️ Response time {response_time:.3f}s is slow (> 500ms) - may not be background mode")
-                    
-                    # Verify immediate database deletion
-                    print(f"\n🔍 Verifying immediate database deletion...")
-                    verify_response = self.session.get(
-                        f"{BACKEND_URL}/crew/{self.test_crew_id}",
-                        headers=headers
-                    )
-                    
-                    if verify_response.status_code == 404:
-                        print(f"✅ Crew deleted from database immediately (GET returns 404)")
-                        
-                        # Check backend logs for background task messages
-                        print(f"\n📋 Checking backend logs for background task messages...")
-                        self.check_background_deletion_logs()
-                        
-                        self.print_result(True, f"Background deletion successful - crew deleted from DB immediately, files being deleted in background")
-                        return True
-                    else:
-                        print(f"❌ Crew still exists in database (GET returns {verify_response.status_code})")
-                        self.print_result(False, "Database deletion not immediate")
-                        return False
-                else:
-                    self.print_result(False, f"Unexpected response structure or content: {response_data}")
-                    return False
-                    
-            elif response.status_code == 400:
-                # This might be expected if crew has certificates
-                try:
-                    error_data = response.json()
-                    detail = error_data.get("detail", "")
-                    if "certificates exist" in detail:
-                        print(f"⚠️ Crew has certificates - this is expected validation")
-                        print(f"📝 Error: {detail}")
-                        self.print_result(True, "Crew has certificates - validation working correctly")
-                        return True
-                    else:
-                        self.print_result(False, f"Unexpected 400 error: {error_data}")
-                        return False
-                except:
-                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {response.text}")
-                    return False
-            else:
-                try:
-                    error_data = response.json()
-                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {error_data}")
-                except:
-                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {response.text}")
+            # Create test PDF file
+            test_pdf_path = self.create_test_pdf()
+            if not test_pdf_path:
+                self.print_result(False, "Could not create test PDF file")
                 return False
+            
+            try:
+                # Prepare multipart form data
+                with open(test_pdf_path, 'rb') as pdf_file:
+                    files = {
+                        'file': ('test_audit_report.pdf', pdf_file, 'application/pdf')
+                    }
+                    data = {
+                        'ship_id': self.test_ship_id,
+                        'bypass_validation': 'false'
+                    }
+                    
+                    print(f"📄 Uploading test PDF file for analysis...")
+                    print(f"📋 Parameters: ship_id={self.test_ship_id[:8]}..., bypass_validation=false")
+                    
+                    # Make the API request
+                    start_time = time.time()
+                    response = self.session.post(
+                        f"{BACKEND_URL}/audit-reports/analyze",
+                        headers=headers,
+                        files=files,
+                        data=data,
+                        timeout=120  # AI analysis can take time
+                    )
+                    response_time = time.time() - start_time
+                    
+                    print(f"📊 Response Status: {response.status_code}")
+                    print(f"⏱️ Response Time: {response_time:.1f} seconds")
+                    
+                    if response.status_code == 200:
+                        response_data = response.json()
+                        print(f"📄 Response Keys: {list(response_data.keys())}")
+                        
+                        # Verify expected response structure
+                        success = response_data.get("success")
+                        analysis = response_data.get("analysis", {})
+                        
+                        print(f"✅ Success: {success}")
+                        print(f"🔍 Analysis Keys: {list(analysis.keys()) if analysis else 'None'}")
+                        
+                        if success and analysis:
+                            # Check for expected analysis fields
+                            expected_fields = [
+                                "audit_report_name", "audit_type", "audit_report_no", 
+                                "audit_date", "audited_by", "auditor_name", "status", "note"
+                            ]
+                            
+                            found_fields = []
+                            for field in expected_fields:
+                                if field in analysis:
+                                    found_fields.append(field)
+                                    value = analysis[field]
+                                    print(f"   {field}: {value}")
+                            
+                            print(f"📊 Found {len(found_fields)}/{len(expected_fields)} expected fields")
+                            
+                            # Verify this is NOT a 403/400 AI config error
+                            if len(found_fields) >= 4:  # At least half the fields should be present
+                                print(f"✅ AI analysis successful - extracted audit report fields")
+                                print(f"✅ No AI configuration errors detected")
+                                
+                                # Check backend logs for AI config messages
+                                print(f"\n📋 Checking backend logs for AI config retrieval...")
+                                self.check_ai_config_logs()
+                                
+                                self.print_result(True, f"Audit Report AI analysis successful - endpoint working correctly")
+                                return True
+                            else:
+                                print(f"⚠️ Analysis returned but with limited fields")
+                                self.print_result(False, f"Analysis incomplete - only {len(found_fields)} fields found")
+                                return False
+                        else:
+                            print(f"❌ Analysis failed or returned empty")
+                            self.print_result(False, f"Analysis failed: success={success}, analysis={bool(analysis)}")
+                            return False
+                            
+                    elif response.status_code == 403:
+                        # This indicates AI config error - the main issue we're testing
+                        try:
+                            error_data = response.json()
+                            detail = error_data.get("detail", "")
+                            print(f"❌ 403 Forbidden Error: {detail}")
+                            
+                            if "AI configuration" in detail or "emergent_llm_key" in detail:
+                                print(f"🚨 CRITICAL: AI configuration error detected - this is the bug we're testing!")
+                                self.print_result(False, f"AI configuration error: {detail}")
+                            else:
+                                print(f"❌ Authentication/authorization error: {detail}")
+                                self.print_result(False, f"Authentication error: {detail}")
+                            return False
+                        except:
+                            self.print_result(False, f"403 error with unparseable response: {response.text}")
+                            return False
+                            
+                    elif response.status_code == 400:
+                        # Check if this is AI config related or validation error
+                        try:
+                            error_data = response.json()
+                            detail = error_data.get("detail", "")
+                            print(f"❌ 400 Bad Request: {detail}")
+                            
+                            if "AI configuration" in detail or "emergent_llm_key" in detail:
+                                print(f"🚨 CRITICAL: AI configuration error detected - this is the bug we're testing!")
+                                self.print_result(False, f"AI configuration error: {detail}")
+                            else:
+                                print(f"⚠️ Validation or request error: {detail}")
+                                self.print_result(False, f"Request validation error: {detail}")
+                            return False
+                        except:
+                            self.print_result(False, f"400 error with unparseable response: {response.text}")
+                            return False
+                    else:
+                        try:
+                            error_data = response.json()
+                            self.print_result(False, f"Audit report analysis failed with status {response.status_code}: {error_data}")
+                        except:
+                            self.print_result(False, f"Audit report analysis failed with status {response.status_code}: {response.text}")
+                        return False
+                        
+            finally:
+                # Clean up test file
+                try:
+                    import os
+                    os.unlink(test_pdf_path)
+                except:
+                    pass
                 
         except Exception as e:
-            self.print_result(False, f"Exception during background deletion test: {str(e)}")
+            self.print_result(False, f"Exception during audit report analysis test: {str(e)}")
             return False
     
     def check_background_deletion_logs(self):
