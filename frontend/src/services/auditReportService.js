@@ -3,6 +3,7 @@
  * API calls for audit report management
  */
 import api from './api';
+import { API_TIMEOUT } from '../constants/api';
 
 export const auditReportService = {
   /**
