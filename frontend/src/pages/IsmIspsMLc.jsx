@@ -87,6 +87,45 @@ const IsmIspsMLc = () => {
   // AI Config
   const [aiConfig, setAiConfig] = useState(null);
 
+  // ========== AUDIT REPORT STATES ==========
+  const [auditReports, setAuditReports] = useState([]);
+  const [auditReportsLoading, setAuditReportsLoading] = useState(false);
+  const [selectedAuditReports, setSelectedAuditReports] = useState(new Set());
+  
+  // Audit Report Modals
+  const [showAddAuditReportModal, setShowAddAuditReportModal] = useState(false);
+  const [showEditAuditReportModal, setShowEditAuditReportModal] = useState(false);
+  const [editingAuditReport, setEditingAuditReport] = useState(null);
+  
+  // Audit Report Filters & Sort
+  const [auditReportFilters, setAuditReportFilters] = useState({
+    auditType: 'all',
+    status: 'all',
+    search: ''
+  });
+  const [auditReportSort, setAuditReportSort] = useState({
+    column: 'audit_date',
+    direction: 'desc'
+  });
+  
+  // Audit Report Actions
+  const [isRefreshingAuditReports, setIsRefreshingAuditReports] = useState(false);
+  
+  // Batch Processing for Audit Reports
+  const [isBatchProcessingAuditReports, setIsBatchProcessingAuditReports] = useState(false);
+  const [auditReportBatchProgress, setAuditReportBatchProgress] = useState({ current: 0, total: 0 });
+  const [auditReportFileProgressMap, setAuditReportFileProgressMap] = useState({});
+  const [auditReportFileStatusMap, setAuditReportFileStatusMap] = useState({});
+  const [auditReportFileSubStatusMap, setAuditReportFileSubStatusMap] = useState({});
+  const [auditReportBatchResults, setAuditReportBatchResults] = useState([]);
+  const [showAuditReportBatchResults, setShowAuditReportBatchResults] = useState(false);
+  const [isAuditReportBatchModalMinimized, setIsAuditReportBatchModalMinimized] = useState(false);
+  
+  // Notes Modal for Audit Reports
+  const [auditReportNotesModal, setAuditReportNotesModal] = useState({
+    show: false, report: null, notes: ''
+  });
+
 
   // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
