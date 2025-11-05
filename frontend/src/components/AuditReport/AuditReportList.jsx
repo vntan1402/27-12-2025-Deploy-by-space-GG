@@ -97,7 +97,7 @@ export const AuditReportList = ({
     
     try {
       setIsRefreshing(true);
-      await fetchSurveyReports();
+      if (onRefresh) onRefresh();
       toast.success(language === 'vi' ? '✅ Đã cập nhật danh sách!' : '✅ List refreshed!');
     } catch (error) {
       console.error('Failed to refresh:', error);
@@ -308,7 +308,7 @@ export const AuditReportList = ({
         }, 1000);
       }
       
-      await fetchSurveyReports();
+      if (onRefresh) onRefresh();
     } catch (error) {
       console.error('Failed to delete report:', error);
       const errorMsg = error.response?.data?.detail || 'Failed to delete report';
@@ -372,7 +372,7 @@ export const AuditReportList = ({
       if (onSelectAll) {
         onSelectAll(false);
       }
-      await fetchSurveyReports();
+      if (onRefresh) onRefresh();
     } catch (error) {
       console.error('Failed to bulk delete:', error);
       const errorMsg = error.response?.data?.detail || 'Failed to delete reports';
@@ -612,7 +612,7 @@ export const AuditReportList = ({
       );
 
       // Refresh list to show updated notes
-      await fetchSurveyReports();
+      if (onRefresh) onRefresh();
       
       // Close modal
       setShowNotesModal(false);
