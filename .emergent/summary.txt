@@ -1,76 +1,100 @@
 <analysis>
-The AI engineer's work primarily focused on enhancing the  module, specifically the  functionality. Initial efforts involved refactoring the  to handle single-file validation errors (ship mismatch) with a user-interactive modal (Continue/Cancel) instead of toasts. This required adding validation logic to the backend's  endpoint and implementing corresponding frontend UI. Subsequent iterations extended this modal-based error handling to duplicate certificate detection during single-file uploads. The engineer also addressed several critical user requests including adding editable Ship Name and IMO Number fields to the  and  modals with a 3-column layout, implementing background Google Drive file deletion upon certificate removal, and ensuring that user-edited certificate abbreviations are saved to the global mapping system. Most recently, a complex logic for calculating  and  was introduced for Audit Certificates in the backend, and its frontend trigger integrated.
+The AI engineer's work during this trajectory predominantly focused on the  module, specifically enhancing  functionalities. Initial efforts involved resolving an issue where the  state wasn't propagated to the  component, and implementing batch Google Drive link retrieval. Subsequent critical tasks included fixing a  scoping error in the backend's  endpoint and iteratively refining the  and  calculation and display logic based on continuous user feedback. The engineer also addressed UI/UX improvements by updating dropdown options in modals and standardizing the status display in tables, while also implementing bulk file operations. The trajectory highlights an iterative, feedback-driven development process with frequent debugging.
 </analysis>
 
 <product_requirements>
-The overarching goal is to migrate and enhance  functionalities into a new  module, focusing on . This involves a new  page with a 5-column ship card display and an 11-column data table. Key features include AI-powered PDF/JPG/PNG analysis (max 10MB) to auto-fill form fields, multi-file batch upload (max 10 files, 10MB each) with staggered processing and AI extraction, and Google Drive integration for file management. A context menu with various actions is required. For single-file uploads, AI analysis should only auto-fill for user review, requiring manual saving, while multi-file uploads auto-create records.
-
-Recent updates explicitly requested:
-1.  Replace toast notifications with a modal for single-file validation errors (e.g., Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại). The modal should offer Continue (add note: Giấy chứng nhận này của tàu khác, chỉ để tham khảo and proceed) or Cancel (stop).
-2.  Implement the same modal-based user choice for **duplicate certificate detection** during single-file uploads.
-3.  Display editable IMO and Ship Name fields in the , arranged in a 3-column layout, and store IMO in the DB. These fields should be filled by AI extraction, not pre-filled.
-4.  Reconfigure  to mirror the new 3-column layout and fields of .
-5.  Ensure  is updated in the global mapping list when editing an Audit Certificate.
-6.  When deleting an Audit Certificate, perform Google Drive file deletion in the background, displaying a toast notification upon completion.
-7.  Implement a complex  and  calculation logic for Audit Certificates based on certificate type (Interim, Short Term, Full Term, DMLC I/II/SSP) and specific date rules.
-8.  The  calculation should be triggered when a user clicks an Update Next Survey button.
+The primary goal is to enhance the  module for , building upon existing AI-powered analysis and Google Drive integration. Recent explicit requests involved:
+1.  Ensure  state is passed to .
+2.  Implement Batch get Drive links with progress for Audit Certificates.
+3.  Correct the display of Next Survey for Interim certificates (show Valid Date (-3M) instead of calculated date).
+4.  Correct the display of Next Survey for Full Term certificates without Last Endorse (show calculated date (-2 years) with (±3M) annotation).
+5.  Modify the Next Survey Type dropdown list in Add/Edit modals to remove Annual, Special, and add Initial, while keeping Intermediate, Renewal.
+6.  Resolve issues with Safety Management Certificate abbreviation displaying as SM instead of SMC.
+7.  Redefine the  logic with specific window definitions, overdue, due soon, and critical conditions for Initial, Renewal, and Intermediate types.
+8.  Update the display message for upcoming surveys from cần khảo sát trong 30 ngày tới to cần đánh giá trong những ngày tới.
+9.  Standardize the  UI to match 's table format.
+10. Implement bulk operations (copy link, view, download) for Audit Certificates, mirroring Ship Certificate functionality.
+11. Clarify and adjust the display logic for the Status column, specifically changing Over Due to Due Soon and comparing against window_close instead of Valid Date.
 </product_requirements>
 
 <key_technical_concepts>
-
--   **Frontend**: React.js (components, modals, state management, hooks), , , responsive design, form handling, file upload, context menus.
--   **Backend**: FastAPI (API endpoints, ), MongoDB (UUIDs), Google Apps Script (Google Drive integration), AI/LLM integration (Document AI for OCR and data extraction).
--   **Patterns**: V2 analysis-first, modular design, asynchronous operations, error handling, input validation, UI/UX consistency, background processing.
+-   **Frontend**: React.js (state, hooks, components, modals),  for API calls, Tailwind CSS.
+-   **Backend**: FastAPI (API endpoints, ), MongoDB (UUIDs), date/time manipulation (, ).
+-   **Patterns**: Modular design, iterative development, UI/UX consistency, error handling, background processing.
 </key_technical_concepts>
 
 <code_architecture>
 
--   ****: FastAPI application, central API.
-    -   **Importance**: Handles all backend operations, AI integration, DB, and Google Drive.
-    -   **Changes**: Added ship name validation, duplicate certificate detection, and ISM/ISPS/MLC category validation to  (single-file upload) and . Implemented  for approved single-file uploads, which creates DB records and uploads files without re-validating. Modified  and  to store  in the DB. Enhanced  to save user-defined abbreviations to the global mapping system. Updated  and  to perform background Google Drive file deletion using . Implemented  with complex logic for different certificate types and added  endpoint. Updated abbreviation mappings via API calls.
+-   ****: FastAPI application.
+    -   **Importance**: Central API for all backend operations.
+    -   **Changes**:
+        -   Fixed  scoping issue in .
+        -   Updated  to adjust Next Survey display logic for Interim (Valid Date -3M) and Full Term (calculated date ±3M) certificates.
+        -   Added  API endpoint and fixed previous conflicts.
+        -   Completely refactored  endpoint with new logic based on  window and status (Due Soon, Critical, Overdue).
+        -   Corrected endpoint order to resolve 404 for .
+        -   Fixed  error for .
 -   ****: Main page for ISM-ISPS-MLC module.
-    -   **Importance**: Renders Audit Certificates, handles ship selection and integrates components.
-    -   **Changes**: Implemented  to call the backend's  endpoint for a selected certificate. Added  state to manage UI feedback for the update process.
+    -   **Importance**: Renders Audit Certificates, manages state, and integrates components.
+    -   **Changes**:
+        -    state passed to  (already present, verified).
+        -   Added  and  states for batch link retrieval.
+        -   Implemented  function for batch link fetching, using  to trigger it.
+        -   Passed new  and  props to .
+        -   Fixed API call in  to use .
+        -   Implemented , ,  functions.
+        -   Updated the certificate context menu to include bulk actions.
 -   ****: Modal for adding audit certificates.
-    -   **Importance**: Primary UI for certificate uploads, AI analysis, and manual data entry.
-    -   **Changes**: Introduced state for , , , , , , . Added JSX for validation, duplicate, and category warning modals with Continue/Cancel options. Updated  to sequentially check for category, ship, and duplicate warnings, displaying the relevant modal. Modified  to use  (calling the new backend override endpoint) if  is true, bypassing standard multi-upload validation. Refactored the form layout to 3 columns and added editable  and  fields, correctly populating them with AI-extracted data.
+    -   **Importance**: UI for certificate uploads and data entry.
+    -   **Changes**: Updated Next Survey Type dropdown to remove Annual, Special and add Initial.
 -   ****: Modal for editing audit certificates.
-    -   **Importance**: Provides UI for modifying existing certificate data.
-    -   **Changes**: Refactored the entire form section to match the 3-column layout of , including new editable  and  fields.
+    -   **Importance**: UI for modifying existing certificate data.
+    -   **Changes**: Updated Next Survey Type dropdown to remove Annual, Special and add Initial.
 -   ****: Action buttons for audit certificates.
     -   **Importance**: Provides various actions like add, delete, update.
-    -   **Changes**: The Update Next Survey button (already present) is now wired up to a new handler in .
+    -   **Changes**: Verified to correctly receive and use  (already present).
 -   ****: Frontend service for Audit Certificate API calls.
-    -   **Importance**: Abstracts API interactions for audit certificates.
-    -   **Changes**: Confirmed to contain , , , , , , , , and  methods. A new function  was implicitly added/used to call the new backend  endpoint. A new function to trigger next survey recalculation was also added/used.
+    -   **Importance**: Abstracts API interactions.
+    -   **Changes**: Added  function to call the backend endpoint.
+-   ****: Modal displaying upcoming audit surveys.
+    -   **Importance**: Presents summarized upcoming survey information.
+    -   **Changes**:
+        -   Updated message cần khảo sát trong 30 ngày tới to cần đánh giá trong những ngày tới.
+        -   Refactored UI to match  (table format, color-coded badges, row highlighting).
+-   ****: Table displaying audit certificates.
+    -   **Importance**: Renders the list of audit certificates.
+    -   **Changes**: Changed status text from Over Due to Due Soon. Modified status calculation to compare against  instead of .
+-   ****: Table displaying ship certificates.
+    -   **Importance**: Renders the list of ship certificates.
+    -   **Changes**: Changed status text from Over Due to Due Soon. Modified status calculation to compare against  instead of .
+-   ****: Modal displaying upcoming ship surveys.
+    -   **Importance**: Reference for  UI. No direct changes in trajectory.
 </code_architecture>
 
 <pending_tasks>
 -   Full testing of Sync from Drive functionality UI.
--   Bulk export/download for certificates via context menu.
+-   Bulk export/download for certificates via context menu (partially done: bulk view/download/copy links are implemented, but export is not explicitly confirmed).
 -   Certificate File Viewer (embedded PDF viewer in modal, navigation, zoom, etc.).
 -   Scalability improvements (load testing, Redis caching, query optimization, monitoring, sharding,  conversion, performance monitoring).
 -   Implement toast notifications for Deleting files on Drive (start) and Successfully deleted X files (completion) for both  and .
 -   Finish implementing the  component (for Crew Records).
 -   Verify the background file deletion for crew records.
--   Implement Batch get Drive links with progress for .
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was implementing the  calculation logic for Audit Certificates. The user had provided detailed rules for calculating  and  based on the certificate type (Interim, Short Term, Full Term, DMLC I/II/SSP) and various date parameters.
+Immediately before this summary request, the AI engineer was working on refining the display logic for certificate statuses. The user requested to change the status comparison in the  and  from comparing against  to comparing against .
 
-The backend implementation is complete:
--   A new function  was created in  to encapsulate this complex calculation logic. This function was further refined based on user feedback (e.g., correcting Valid date - 30 months to Valid date - 2 years for Full Term certificates).
--   A new API endpoint  was created in  to trigger this specific calculation for a given certificate.
+Specifically:
+-   **Backend:** The  function and the  endpoint have been updated multiple times to correctly calculate and display  dates based on certificate type (Interim, Full Term) and last endorse dates. The  endpoint logic has also been heavily revised based on user requirements.
+-   **Frontend:** The  and  components'  function has been modified.
+    -   Previously, it compared  with .
+    -   The user requested to compare  with , which is derived from the  annotations (e.g., ±3M, -3M).
+    -   The AI engineer has already implemented this change in both  and .
+    -   The latest action was to restart the frontend after applying this change to .
 
-On the frontend:
--   The Update Next Survey button within  was identified as the trigger point.
--   The  function in  was implemented to make the API call to the new backend recalculation endpoint when this button is clicked.
--   A new state variable  was added to  to manage the loading/disabled state of the button during the update process.
-
-The work is currently paused at the point of passing the  state down to the  component to visually indicate that the calculation is in progress.
+The current state is that the  function in both certificate tables has been updated to use  for status comparison.
 </current_work>
 
 <optional_next_step>
-Pass  state to  component.
+Continue checking the logic of Ship Certificate Upcoming Survey as requested by the user: Kiểm tra lại đoạnc code tính Upcoming Survey cho Ship Certificate.
 </optional_next_step>
