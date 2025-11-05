@@ -7802,45 +7802,86 @@ async def analyze_audit_report_file(
                 }
                 
                 logger.info(f"✅ Merged analysis from {len(chunk_results)}/{len(chunks)} chunks")
-        
-        # Create summary text for upload
-        summary_lines = [
-            "="*60,
-            "AUDIT REPORT ANALYSIS SUMMARY",
-            "="*60,
-            "",
-            f"File: {file.filename}",
-            f"Ship: {ship_name} (IMO: {ship_imo})",
-            f"Analysis Date: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
-            "",
-            "--- Extracted Information ---",
-            f"Audit Report Name: {analysis.get('audit_report_name', 'N/A')}",
-            f"Audit Type: {analysis.get('audit_type', 'N/A')}",
-            f"Audit Report No: {analysis.get('audit_report_no', 'N/A')}",
-            f"Audit Date: {analysis.get('audit_date', 'N/A')}",
-            f"Issued By: {analysis.get('issued_by', 'N/A')}",
-            f"Auditor Name: {analysis.get('auditor_name', 'N/A')}",
-            f"Status: {analysis.get('status', 'N/A')}",
-            "",
-        ]
-        
-        if analysis.get('note'):
-            summary_lines.extend([
-                "--- Notes ---",
-                analysis.get('note', ''),
+            
+            # Build enhanced summary text
+            summary_lines = [
+                "="*60,
+                "AUDIT REPORT ANALYSIS SUMMARY (DOCUMENT AI + SYSTEM AI)",
+                "="*60,
+                "",
+                f"File: {filename}",
+                f"Ship: {ship_name} (IMO: {ship_imo})",
+                f"Analysis Date: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                f"Total Pages: {total_pages}",
+                f"Processing: {'Split into chunks' if needs_split else 'Single file'}",
+                "",
+                "--- Extracted Information ---",
+                f"Audit Report Name: {analysis_result.get('audit_report_name', 'N/A')}",
+                f"Audit Type: {analysis_result.get('audit_type', 'N/A')}",
+                f"Audit Report No: {analysis_result.get('audit_report_no', 'N/A')}",
+                f"Audit Date: {analysis_result.get('audit_date', 'N/A')}",
+                f"Issued By: {analysis_result.get('issued_by', 'N/A')}",
+                f"Auditor Name: {analysis_result.get('auditor_name', 'N/A')}",
+                f"Status: {analysis_result.get('status', 'N/A')}",
+                f"Confidence: {analysis_result.get('confidence_score', 0.0):.2f}",
                 ""
-            ])
-        
-        summary_lines.append("="*60)
-        analysis['_summary_text'] = '\n'.join(summary_lines)
-        
-        logger.info(f"   📄 Summary created ({len(analysis['_summary_text'])} chars)")
-        
-        return {
-            "success": True,
-            "analysis": analysis,
-            "message": "Audit report analyzed successfully"
-        }
+            ]
+            
+            if analysis_result.get('note'):
+                summary_lines.extend([
+                    "--- Notes ---",
+                    analysis_result.get('note', ''),
+                    ""
+                ])
+            
+            if needs_split and analysis_result.get('_split_info'):
+                split_info = analysis_result['_split_info']
+                summary_lines.extend([
+                    "--- PDF Splitting Info ---",
+                    f"Was Split: Yes",
+                    f"Total Pages: {split_info.get('total_pages', 0)}",
+                    f"Chunks Created: {split_info.get('chunks_count', 0)}",
+                    f"Successful Chunks: {split_info.get('successful_chunks', 0)}",
+                    ""
+                ])
+            
+            summary_lines.append("="*60)
+            analysis_result['_summary_text'] = '\n'.join(summary_lines)
+            
+            logger.info(f"✅ Audit report analysis complete: {analysis_result.get('audit_report_name', 'Unknown')}")
+            logger.info(f"   📄 Summary created ({len(analysis_result['_summary_text'])} chars)")
+            
+            # Ship validation (if not bypassed)
+            if not bypass_validation_bool and ship:
+                extracted_ship_name = analysis_result.get('ship_name', '').strip().upper()
+                expected_ship_name = ship_name.strip().upper()
+                
+                if extracted_ship_name and extracted_ship_name != expected_ship_name:
+                    logger.warning(f"⚠️ Ship name mismatch: PDF='{extracted_ship_name}' vs Selected='{expected_ship_name}'")
+                    return {
+                        "success": False,
+                        "validation_error": True,
+                        "extracted_ship_name": analysis_result.get('ship_name', ''),
+                        "extracted_ship_imo": analysis_result.get('ship_imo', ''),
+                        "expected_ship_name": ship_name,
+                        "expected_ship_imo": ship_imo,
+                        "message": "Ship information mismatch. Please confirm to continue."
+                    }
+            
+            return {
+                "success": True,
+                "analysis": analysis_result,
+                "message": "Audit report analyzed successfully"
+            }
+            
+        except Exception as analysis_error:
+            logger.error(f"❌ Error during AI analysis: {analysis_error}")
+            # Return file content anyway for manual entry
+            return {
+                "success": False,
+                "analysis": analysis_result,  # Contains _file_content for upload
+                "message": f"AI analysis failed: {str(analysis_error)}. Manual entry required."
+            }
     
     except HTTPException as he:
         logger.error(f"❌ HTTPException in audit report analysis: {he.status_code} - {he.detail}")
