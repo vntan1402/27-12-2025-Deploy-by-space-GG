@@ -7614,7 +7614,7 @@ Extract the following information from the audit report:
 - audit_type: Type of audit (ISM, ISPS, MLC, SMC, DOC, Internal Audit, External Audit, etc.)
 - audit_report_no: Audit report number or certificate number
 - audit_date: Date when audit was conducted (ISO format: YYYY-MM-DD)
-- audited_by: Name of auditing company or organization
+- issued_by: Name of issuing company or organization
 - auditor_name: Name of the auditor(s)
 - status: Current status (Valid, Expired, Pending)
 - note: Any important notes or observations
