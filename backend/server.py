@@ -5010,6 +5010,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                 window_open = None
                 window_close = None
                 window_type = ''
+                has_explicit_annotation = False
                 
                 if '(±3M)' in next_survey_str or '(+3M)' in next_survey_str or '(+-3M)' in next_survey_str:
                     # Window: Next Survey ± 3M
@@ -21689,6 +21690,7 @@ async def get_upcoming_audit_surveys(
                 window_open = None
                 window_close = None
                 window_type = ''
+                has_explicit_annotation = False
                 
                 if '(±3M)' in next_survey_str or '(+3M)' in next_survey_str or '(+-3M)' in next_survey_str:
                     # Window: Next Survey ± 3M
