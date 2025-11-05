@@ -719,78 +719,75 @@ This is a test audit report for API testing purposes.
             self.print_result(False, f"Exception during non-PDF file test: {str(e)}")
             return False
     
-    def test_edge_cases(self):
-        """Test 7: Edge cases - non-existent crew, no authentication"""
-        self.print_test_header("Test 7 - Edge Cases")
+    def test_authentication_error_handling(self):
+        """Test 6: Error handling without authentication (should return 403)"""
+        self.print_test_header("Test 6 - Error Handling: No Authentication")
         
-        if not self.access_token:
-            self.print_result(False, "No access token available from authentication test")
+        if not self.test_ship_id:
+            self.print_result(False, "No test ship_id available")
             return False
         
-        edge_case_results = []
-        
         try:
-            headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json"
-            }
+            print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
+            print(f"🎯 Testing without authentication header")
             
-            # Edge Case 1: DELETE non-existent crew_id
-            print(f"\n🔍 Edge Case 1: DELETE non-existent crew_id")
-            fake_crew_id = "non-existent-crew-id-12345"
-            print(f"📡 DELETE {BACKEND_URL}/crew/{fake_crew_id}")
-            
-            response = self.session.delete(
-                f"{BACKEND_URL}/crew/{fake_crew_id}",
-                headers=headers,
-                timeout=30
-            )
-            
-            print(f"📊 Response Status: {response.status_code}")
-            
-            if response.status_code == 404:
-                print(f"✅ Correctly returns 404 for non-existent crew")
-                edge_case_results.append(True)
-            else:
-                print(f"❌ Expected 404, got {response.status_code}")
-                edge_case_results.append(False)
-            
-            # Edge Case 2: DELETE without authentication
-            print(f"\n🔍 Edge Case 2: DELETE without authentication")
-            print(f"📡 DELETE {BACKEND_URL}/crew/{fake_crew_id} (no auth header)")
-            
-            response = self.session.delete(
-                f"{BACKEND_URL}/crew/{fake_crew_id}",
-                timeout=30
-            )
-            
-            print(f"📊 Response Status: {response.status_code}")
-            
-            if response.status_code == 403:
-                print(f"✅ Correctly returns 403 for unauthenticated request")
-                edge_case_results.append(True)
-            elif response.status_code == 401:
-                print(f"✅ Correctly returns 401 for unauthenticated request")
-                edge_case_results.append(True)
-            else:
-                print(f"❌ Expected 403/401, got {response.status_code}")
-                edge_case_results.append(False)
-            
-            # Summary of edge case results
-            passed_edge_cases = sum(edge_case_results)
-            total_edge_cases = len(edge_case_results)
-            
-            print(f"\n📊 Edge Cases Summary: {passed_edge_cases}/{total_edge_cases} passed")
-            
-            if passed_edge_cases == total_edge_cases:
-                self.print_result(True, f"All edge cases passed ({passed_edge_cases}/{total_edge_cases})")
-                return True
-            else:
-                self.print_result(False, f"Some edge cases failed ({passed_edge_cases}/{total_edge_cases})")
+            # Create test PDF file
+            test_pdf_path = self.create_test_pdf()
+            if not test_pdf_path:
+                self.print_result(False, "Could not create test PDF file")
                 return False
+            
+            try:
+                # Prepare multipart form data WITHOUT authentication header
+                with open(test_pdf_path, 'rb') as pdf_file:
+                    files = {
+                        'file': ('test_audit_report.pdf', pdf_file, 'application/pdf')
+                    }
+                    data = {
+                        'ship_id': self.test_ship_id,
+                        'bypass_validation': 'false'
+                    }
+                    
+                    print(f"📄 Testing without Authorization header...")
+                    
+                    # Make the API request WITHOUT auth header
+                    response = self.session.post(
+                        f"{BACKEND_URL}/audit-reports/analyze",
+                        files=files,
+                        data=data,
+                        timeout=30
+                    )
+                    
+                    print(f"📊 Response Status: {response.status_code}")
+                    
+                    if response.status_code == 403:
+                        print(f"✅ Correctly returns 403 for unauthenticated request")
+                        self.print_result(True, "Authentication error handling working correctly (403)")
+                        return True
+                    elif response.status_code == 401:
+                        print(f"✅ Correctly returns 401 for unauthenticated request")
+                        self.print_result(True, "Authentication error handling working correctly (401)")
+                        return True
+                    else:
+                        try:
+                            error_data = response.json()
+                            print(f"❌ Expected 403/401, got {response.status_code}: {error_data}")
+                            self.print_result(False, f"Expected 403/401 for unauthenticated request, got {response.status_code}")
+                        except:
+                            print(f"❌ Expected 403/401, got {response.status_code}: {response.text}")
+                            self.print_result(False, f"Expected 403/401 for unauthenticated request, got {response.status_code}")
+                        return False
+                        
+            finally:
+                # Clean up test file
+                try:
+                    import os
+                    os.unlink(test_pdf_path)
+                except:
+                    pass
                 
         except Exception as e:
-            self.print_result(False, f"Exception during edge cases test: {str(e)}")
+            self.print_result(False, f"Exception during authentication test: {str(e)}")
             return False
     
     def test_backend_logs_verification(self):
