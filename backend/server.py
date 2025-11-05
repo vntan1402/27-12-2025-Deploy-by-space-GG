@@ -7581,15 +7581,24 @@ async def analyze_audit_report_file(
         ship_name = ship.get('name', 'Unknown') if ship else 'Unknown'
         ship_imo = ship.get('imo', '') if ship else ''
         
-        # Get AI config
-        company_id = current_user.company
-        ai_config = await mongo_db.find_one("ai_configs", {"company_id": company_id})
+        # Get AI config (using same pattern as Survey Report)
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
         
-        if not ai_config or not ai_config.get('emergent_llm_key'):
-            logger.warning(f"No AI config found for company {company_id}")
+        # Get emergent_llm_key from config or use fallback
+        emergent_llm_key = None
+        if ai_config_doc and ai_config_doc.get('emergent_llm_key'):
+            emergent_llm_key = ai_config_doc['emergent_llm_key']
+            logger.info("✅ Using emergent_llm_key from system AI config")
+        else:
+            # Fallback to get_emergent_llm_key() function
+            emergent_llm_key = get_emergent_llm_key()
+            logger.info("⚠️ No system AI config found, using fallback emergent_llm_key")
+        
+        if not emergent_llm_key:
+            logger.error("No Emergent LLM key available")
             raise HTTPException(
                 status_code=400, 
-                detail="AI configuration not found. Please go to Settings > AI Configuration to set up AI analysis, or contact support to enable Emergent LLM Key."
+                detail="AI configuration not found. Please configure Emergent LLM Key in System Settings."
             )
         
         # Prepare AI prompt for audit report analysis
