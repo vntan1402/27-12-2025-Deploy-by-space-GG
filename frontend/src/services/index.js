@@ -25,6 +25,7 @@ export * from './auditCertificateService'; // Audit certificates (ISM-ISPS-MLC)
 
 // Reports
 export * from './surveyReportService';
+export * from './auditReportService';  // Audit reports (ISM-ISPS-MLC)
 export * from './testReportService';
 
 // Documents
