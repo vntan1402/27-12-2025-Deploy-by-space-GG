@@ -117,7 +117,7 @@ export const AuditReportList = ({
 
   // Filter and sort reports
   const getFilteredReports = () => {
-    let filtered = [...auditReports];
+    let filtered = [...reports];
 
     // Apply status filter
     if (filters.status !== 'all') {
@@ -398,7 +398,7 @@ export const AuditReportList = ({
 
   // Bulk view files - open multiple files in new tabs
   const handleBulkView = async () => {
-    const selectedReportsList = auditReports.filter(r => selectedReports.has(r.id));
+    const selectedReportsList = reports.filter(r => selectedReports.has(r.id));
     const reportsWithFiles = selectedReportsList.filter(r => r.audit_report_file_id);
 
     if (reportsWithFiles.length === 0) {
@@ -450,7 +450,7 @@ export const AuditReportList = ({
 
   // Bulk download files
   const handleBulkDownload = async () => {
-    const selectedReportsList = auditReports.filter(r => selectedReports.has(r.id));
+    const selectedReportsList = reports.filter(r => selectedReports.has(r.id));
     const reportsWithFiles = selectedReportsList.filter(r => r.audit_report_file_id);
 
     if (reportsWithFiles.length === 0) {
@@ -504,7 +504,7 @@ export const AuditReportList = ({
 
   // Bulk copy links
   const handleBulkCopyLinks = async () => {
-    const selectedReportsList = auditReports.filter(r => selectedReports.has(r.id));
+    const selectedReportsList = reports.filter(r => selectedReports.has(r.id));
     const reportsWithFiles = selectedReportsList.filter(r => r.audit_report_file_id);
 
     if (reportsWithFiles.length === 0) {
@@ -665,7 +665,7 @@ export const AuditReportList = ({
   }
 
   // Render loading state
-  if (loading && auditReports.length === 0) {
+  if (loading && reports.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -777,8 +777,8 @@ export const AuditReportList = ({
           {/* Results Count - Right Aligned */}
           <div className="ml-auto text-sm text-gray-600">
             {language === 'vi' 
-              ? `Hiển thị ${filteredReports.length} / ${auditReports.length} báo cáo audit`
-              : `Showing ${filteredReports.length} / ${auditReports.length} report${auditReports.length !== 1 ? 's' : ''}`
+              ? `Hiển thị ${filteredReports.length} / ${reports.length} báo cáo audit`
+              : `Showing ${filteredReports.length} / ${reports.length} report${reports.length !== 1 ? 's' : ''}`
             }
           </div>
         </div>
@@ -886,7 +886,7 @@ export const AuditReportList = ({
             {filteredReports.length === 0 ? (
               <tr>
                 <td colSpan="8" className="border border-gray-300 px-4 py-8 text-center text-gray-500">
-                  {auditReports.length === 0 
+                  {reports.length === 0 
                     ? (language === 'vi' ? 'Chưa có audit report nào' : 'No audit reports available')
                     : (language === 'vi' ? 'Không có audit report nào phù hợp với bộ lọc' : 'No audit reports match the current filters')
                   }
