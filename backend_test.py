@@ -620,104 +620,103 @@ This is a test audit report for API testing purposes.
             self.print_result(False, f"Exception during invalid ship_id test: {str(e)}")
             return False
     
-    def test_delete_crew_synchronous_mode(self):
-        """Test 6: DELETE crew with background=false (synchronous mode)"""
-        self.print_test_header("Test 6 - DELETE Crew Synchronous Mode")
+    def test_error_handling_non_pdf_file(self):
+        """Test 5: Error handling with non-PDF file (should return 400)"""
+        self.print_test_header("Test 5 - Error Handling: Non-PDF File")
         
-        if not self.access_token:
-            self.print_result(False, "No access token available from authentication test")
+        if not self.access_token or not self.test_ship_id:
+            self.print_result(False, "Missing required data from previous tests")
             return False
-        
-        # Use crew without files if available, otherwise skip this test
-        if not self.crew_without_files_id:
-            print(f"⚠️ No crew without files found - skipping synchronous mode test")
-            self.print_result(True, "No crew without files found - synchronous mode test skipped")
-            return True
         
         try:
             headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json"
+                "Authorization": f"Bearer {self.access_token}"
             }
             
-            print(f"📡 DELETE {BACKEND_URL}/crew/{self.crew_without_files_id}?background=false")
-            print(f"🎯 Testing synchronous deletion mode (background=false)")
-            print(f"👤 Target Crew: {self.crew_without_files_id[:8]}... (crew without files)")
+            print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
+            print(f"🎯 Testing with non-PDF file (text file)")
             
-            # Test with background=false (synchronous mode)
-            start_time = time.time()
-            response = self.session.delete(
-                f"{BACKEND_URL}/crew/{self.crew_without_files_id}?background=false",
-                headers=headers,
-                timeout=60  # Longer timeout for synchronous mode
-            )
-            response_time = time.time() - start_time
+            # Create a text file instead of PDF
+            import tempfile
+            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False)
+            temp_file.write("This is not a PDF file")
+            temp_file.close()
             
-            print(f"📊 Response Status: {response.status_code}")
-            print(f"⏱️ Response Time: {response_time:.3f} seconds")
-            
-            if response.status_code == 200:
-                response_data = response.json()
-                print(f"📄 Response Keys: {list(response_data.keys())}")
-                
-                # Verify expected response structure for synchronous mode
-                success = response_data.get("success")
-                message = response_data.get("message", "")
-                deleted_files = response_data.get("deleted_files", [])
-                
-                print(f"✅ Success: {success}")
-                print(f"📝 Message: {message}")
-                print(f"📁 Deleted Files: {deleted_files}")
-                
-                # Verify response structure for synchronous mode
-                if success and "files deleted successfully" in message:
-                    print(f"✅ Response indicates synchronous deletion completed")
+            try:
+                # Prepare multipart form data with text file
+                with open(temp_file.name, 'rb') as text_file:
+                    files = {
+                        'file': ('test_file.txt', text_file, 'text/plain')
+                    }
+                    data = {
+                        'ship_id': self.test_ship_id,
+                        'bypass_validation': 'false'
+                    }
                     
-                    # Verify crew is deleted from database
-                    print(f"\n🔍 Verifying crew deleted from database...")
-                    verify_response = self.session.get(
-                        f"{BACKEND_URL}/crew/{self.crew_without_files_id}",
-                        headers=headers
+                    print(f"📄 Testing with text file instead of PDF...")
+                    
+                    # Make the API request
+                    response = self.session.post(
+                        f"{BACKEND_URL}/audit-reports/analyze",
+                        headers=headers,
+                        files=files,
+                        data=data,
+                        timeout=30
                     )
                     
-                    if verify_response.status_code == 404:
-                        print(f"✅ Crew deleted from database (GET returns 404)")
-                        self.print_result(True, f"Synchronous deletion successful - crew and files deleted")
-                        return True
-                    else:
-                        print(f"❌ Crew still exists in database (GET returns {verify_response.status_code})")
-                        self.print_result(False, "Synchronous deletion failed - crew not deleted from database")
-                        return False
-                else:
-                    self.print_result(False, f"Unexpected response structure or content: {response_data}")
-                    return False
+                    print(f"📊 Response Status: {response.status_code}")
                     
-            elif response.status_code == 400:
-                # This might be expected if crew has certificates
-                try:
-                    error_data = response.json()
-                    detail = error_data.get("detail", "")
-                    if "certificates exist" in detail:
-                        print(f"⚠️ Crew has certificates - this is expected validation")
-                        print(f"📝 Error: {detail}")
-                        self.print_result(True, "Crew has certificates - validation working correctly")
-                        return True
+                    if response.status_code == 400:
+                        try:
+                            error_data = response.json()
+                            detail = error_data.get("detail", "")
+                            print(f"✅ Correctly returns 400 for non-PDF file")
+                            print(f"📝 Error message: {detail}")
+                            
+                            if "pdf" in detail.lower() or "file" in detail.lower():
+                                print(f"✅ Error message correctly indicates file type issue")
+                                self.print_result(True, "Non-PDF file error handling working correctly")
+                                return True
+                            else:
+                                print(f"⚠️ Error message doesn't clearly indicate file type issue")
+                                self.print_result(True, "Non-PDF file returns 400 but message unclear")
+                                return True
+                        except:
+                            print(f"✅ Returns 400 for non-PDF file (response not JSON)")
+                            self.print_result(True, "Non-PDF file error handling working")
+                            return True
+                    elif response.status_code == 422:
+                        # Validation error is also acceptable
+                        try:
+                            error_data = response.json()
+                            print(f"✅ Returns 422 validation error for non-PDF file")
+                            print(f"📝 Error: {error_data}")
+                            self.print_result(True, "Non-PDF file validation working correctly")
+                            return True
+                        except:
+                            print(f"✅ Returns 422 for non-PDF file")
+                            self.print_result(True, "Non-PDF file validation working")
+                            return True
                     else:
-                        self.print_result(False, f"Unexpected 400 error: {error_data}")
+                        try:
+                            error_data = response.json()
+                            print(f"❌ Expected 400/422, got {response.status_code}: {error_data}")
+                            self.print_result(False, f"Expected 400/422 for non-PDF file, got {response.status_code}")
+                        except:
+                            print(f"❌ Expected 400/422, got {response.status_code}: {response.text}")
+                            self.print_result(False, f"Expected 400/422 for non-PDF file, got {response.status_code}")
                         return False
-                except:
-                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {response.text}")
-                    return False
-            else:
+                        
+            finally:
+                # Clean up test file
                 try:
-                    error_data = response.json()
-                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {error_data}")
+                    import os
+                    os.unlink(temp_file.name)
                 except:
-                    self.print_result(False, f"DELETE crew failed with status {response.status_code}: {response.text}")
-                return False
+                    pass
                 
         except Exception as e:
-            self.print_result(False, f"Exception during synchronous deletion test: {str(e)}")
+            self.print_result(False, f"Exception during non-PDF file test: {str(e)}")
             return False
     
     def test_edge_cases(self):
