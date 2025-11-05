@@ -1699,6 +1699,7 @@ const IsmIspsMLc = () => {
         fileStatusMap={auditReportFileStatusMap}
         fileSubStatusMap={auditReportFileSubStatusMap}
         language={language}
+        title={language === 'vi' ? 'Đang xử lý Audit Reports' : 'Processing Audit Reports'}
       />
 
       {/* Batch Results Modal for Audit Reports */}
