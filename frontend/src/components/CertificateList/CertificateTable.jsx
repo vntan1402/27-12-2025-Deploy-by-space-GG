@@ -58,7 +58,7 @@ export const CertificateTable = ({
     const diffTime = validDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays <= 30) return 'Over Due';
+    if (diffDays <= 30) return 'Due Soon';
     return 'Valid';
   };
 
