@@ -1385,16 +1385,40 @@ const IsmIspsMLc = () => {
                 />
               )}
             </div>
+          ) : selectedSubMenu === 'audit_report' ? (
+            /* Audit Report List */
+            <AuditReportList
+              selectedShip={selectedShip}
+              reports={auditReports}
+              loading={auditReportsLoading}
+              selectedReports={selectedAuditReports}
+              onSelectReport={handleSelectAuditReport}
+              onSelectAll={handleSelectAllAuditReports}
+              filters={auditReportFilters}
+              onFiltersChange={setAuditReportFilters}
+              sort={auditReportSort}
+              onSortChange={setAuditReportSort}
+              onRefresh={handleRefreshAuditReports}
+              isRefreshing={isRefreshingAuditReports}
+              onStartBatchProcessing={startBatchProcessingAuditReports}
+              onAddReport={() => setShowAddAuditReportModal(true)}
+              onEditReport={(report) => {
+                setEditingAuditReport(report);
+                setShowEditAuditReportModal(true);
+              }}
+              onNotesClick={(report, notes) => {
+                setAuditReportNotesModal({ show: true, report, notes });
+              }}
+              language={language}
+            />
           ) : (
             /* Placeholder for other submenus */
             <div className="text-center py-12">
               <div className="text-6xl mb-4">
-                {selectedSubMenu === 'audit_report' && '📋'}
                 {selectedSubMenu === 'approval_document' && '✅'}
                 {selectedSubMenu === 'other_document' && '📄'}
               </div>
               <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-                {selectedSubMenu === 'audit_report' && (language === 'vi' ? 'Audit Report' : 'Audit Report')}
                 {selectedSubMenu === 'approval_document' && (language === 'vi' ? 'Approval Document' : 'Approval Document')}
                 {selectedSubMenu === 'other_document' && (language === 'vi' ? 'Other Document' : 'Other Document')}
               </h3>
