@@ -16,7 +16,7 @@ export const EditAuditReportModal = ({ isOpen, onClose, report, onReportUpdated 
     audit_type: '',
     audit_report_no: '',
     audit_date: '',
-    audited_by: '',
+    issued_by: '',
     status: 'Valid',
     note: '',
     auditor_name: ''
