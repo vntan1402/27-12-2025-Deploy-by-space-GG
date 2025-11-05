@@ -7637,7 +7637,7 @@ Extract audit report information and return as JSON."""
                 api_key=emergent_llm_key,
                 session_id=f"audit_report_analysis_{file.filename}",
                 system_message=system_message
-            ).with_model("gemini", "gemini-2.0-flash-exp")
+            ).with_model("gemini", "gemini-2.0-flash")
             
             # Create file content for analysis
             pdf_file = FileContentWithMimeType(
