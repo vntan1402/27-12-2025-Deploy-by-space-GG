@@ -745,7 +745,7 @@ export const AuditReportList = ({
               <input
                 type="text"
                 value={filters.search}
-                onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+                onChange={(e) => onFiltersChange && onFiltersChange({ ...filters, search: e.target.value })}
                 placeholder={language === 'vi' ? 'Tìm theo tên, số...' : 'Search by name, number...'}
                 className="border border-gray-300 rounded px-3 py-1 pl-8 text-sm w-64 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
