@@ -13,7 +13,8 @@ export const BatchProcessingModal = ({
   progress,
   fileProgressMap,
   fileStatusMap,
-  fileSubStatusMap
+  fileSubStatusMap,
+  title // Optional custom title
 }) => {
   const { language } = useAuth();
 
