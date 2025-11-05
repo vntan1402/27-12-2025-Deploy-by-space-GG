@@ -99,7 +99,7 @@ export const UpcomingSurveyModal = ({
                       <div className="font-medium">{survey.cert_name_display}</div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 border-b">
-                      <div className="font-medium">{survey.next_survey}</div>
+                      <div className="font-medium">{formatDateDisplay(survey.next_survey_date)}</div>
                       <div className="text-xs text-gray-500">
                         {survey.days_until_window_close >= 0 
                           ? (language === 'vi' ? `Còn ${survey.days_until_window_close} ngày tới window close` : `${survey.days_until_window_close} days to window close`)
