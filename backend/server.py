@@ -7705,78 +7705,125 @@ Extract audit report information and return as JSON."""
 @api_router.post("/audit-reports/{report_id}/upload-files")
 async def upload_audit_report_files(
     report_id: str,
-    request: dict,
-    background_tasks: BackgroundTasks,
+    file_content: str = Body(...),
+    filename: str = Body(...),
+    content_type: str = Body(...),
+    summary_text: str = Body(None),
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
-    Upload audit report files to Google Drive
-    Uploads original file and optionally summary file
+    Upload audit report files to Google Drive after record creation
+    1. Decode base64 file content
+    2. Upload original file to: ShipName/ISM-ISPS-MLC/Audit Report/
+    3. Upload summary if provided
+    4. Update audit report record with file IDs
     """
     try:
-        logger.info(f"📤 Uploading files for audit report: {report_id}")
+        logger.info(f"📤 Starting file upload for audit report: {report_id}")
         
-        # Get report
+        # Validate report exists
         report = await mongo_db.find_one("audit_reports", {"id": report_id})
         if not report:
             raise HTTPException(status_code=404, detail="Audit report not found")
         
-        # Get ship and company info
-        ship = await mongo_db.find_one("ships", {"id": report['ship_id']})
+        # Get company and ship info
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        ship_id = report.get("ship_id")
+        if not ship_id:
+            raise HTTPException(status_code=400, detail="Audit report has no ship_id")
+        
+        ship = await mongo_db.find_one("ships", {"id": ship_id, "company": company_uuid})
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        company_id = current_user.company
+        ship_name = ship.get("name", "Unknown Ship")
+        audit_report_name = report.get("audit_report_name", "Audit Report")
         
-        # Decode file content
-        file_content = base64.b64decode(request['file_content'])
-        filename = request['filename']
-        content_type = request.get('content_type', 'application/pdf')
-        summary_text = request.get('summary_text')
+        # Decode base64 file content
+        try:
+            file_bytes = base64.b64decode(file_content)
+            logger.info(f"✅ Decoded file content: {len(file_bytes)} bytes")
+        except Exception as e:
+            logger.error(f"Failed to decode base64 file content: {e}")
+            raise HTTPException(status_code=400, detail="Invalid file content encoding")
         
-        # Upload original file
-        gdrive_manager = GoogleDriveManager()
+        # Initialize Dual Apps Script Manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
         
-        # Path: {Ship Name}/ISM-ISPS-MLC/Audit Report/
-        folder_path = f"{ship['name']}/ISM-ISPS-MLC/Audit Report"
+        # Upload files to Google Drive
+        logger.info("📤 Uploading audit report files to Drive...")
         
-        # Upload original file
-        file_id = await gdrive_manager.upload_file(
-            file_content=file_content,
-            filename=filename,
-            folder_path=folder_path,
-            mime_type=content_type
-        )
+        # Upload original file to ShipName/ISM-ISPS-MLC/Audit Report/
+        logger.info(f"📄 Uploading original file to: {ship_name}/ISM-ISPS-MLC/Audit Report/{filename}")
         
-        # Update report with file ID
+        try:
+            # Use same pattern as survey report but for ISM-ISPS-MLC folder
+            original_upload = await dual_manager.upload_file_with_folder_creation(
+                file_content=file_bytes,
+                filename=filename,
+                content_type=content_type,
+                ship_name=ship_name,
+                folder_path="ISM-ISPS-MLC/Audit Report"
+            )
+            
+            if original_upload.get('success'):
+                audit_report_file_id = original_upload.get('file_id')
+                logger.info(f"✅ Original file uploaded: {audit_report_file_id}")
+            else:
+                logger.error(f"❌ Original file upload failed: {original_upload.get('message')}")
+                raise HTTPException(status_code=500, detail="Failed to upload audit report file")
+                
+        except Exception as upload_error:
+            logger.error(f"❌ Error uploading original file: {upload_error}")
+            raise HTTPException(status_code=500, detail=f"Failed to upload audit report file: {str(upload_error)}")
+        
+        # Upload summary file if provided
+        audit_report_summary_file_id = None
+        if summary_text and summary_text.strip():
+            base_name = filename.rsplit('.', 1)[0]
+            summary_filename = f"{base_name}_Summary.txt"
+            
+            logger.info(f"📋 Uploading summary file to: {ship_name}/ISM-ISPS-MLC/Audit Report/{summary_filename}")
+            
+            try:
+                summary_upload = await dual_manager.upload_file_with_folder_creation(
+                    file_content=summary_text.encode('utf-8'),
+                    filename=summary_filename,
+                    content_type='text/plain',
+                    ship_name=ship_name,
+                    folder_path="ISM-ISPS-MLC/Audit Report"
+                )
+                
+                if summary_upload.get('success'):
+                    audit_report_summary_file_id = summary_upload.get('file_id')
+                    logger.info(f"✅ Summary file uploaded: {audit_report_summary_file_id}")
+                else:
+                    logger.warning(f"⚠️ Summary file upload failed (non-critical): {summary_upload.get('message')}")
+                    
+            except Exception as summary_error:
+                logger.warning(f"⚠️ Error uploading summary (non-critical): {summary_error}")
+        
+        # Update database with file IDs
         update_data = {
-            'audit_report_file_id': file_id,
+            'audit_report_file_id': audit_report_file_id,
             'updated_at': datetime.now(timezone.utc).isoformat()
         }
         
-        # Upload summary file if provided
-        if summary_text:
-            summary_filename = f"{filename.rsplit('.', 1)[0]}_summary.txt"
-            summary_content = summary_text.encode('utf-8')
-            
-            summary_file_id = await gdrive_manager.upload_file(
-                file_content=summary_content,
-                filename=summary_filename,
-                folder_path=folder_path,
-                mime_type='text/plain'
-            )
-            
-            update_data['audit_report_summary_file_id'] = summary_file_id
+        if audit_report_summary_file_id:
+            update_data['audit_report_summary_file_id'] = audit_report_summary_file_id
         
-        # Update database
-        await mongo_db.update_one("audit_reports", {"id": report_id}, {"$set": update_data})
+        await mongo_db.update("audit_reports", {"id": report_id}, update_data)
         
         logger.info(f"✅ Files uploaded successfully for audit report: {report_id}")
         
         return {
             "success": True,
-            "file_id": file_id,
-            "summary_file_id": update_data.get('audit_report_summary_file_id'),
+            "file_id": audit_report_file_id,
+            "summary_file_id": audit_report_summary_file_id,
             "message": "Files uploaded successfully"
         }
     
