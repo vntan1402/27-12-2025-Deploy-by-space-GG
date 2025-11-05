@@ -313,8 +313,42 @@ class BackendAPITester:
     def create_test_pdf(self):
         """Create a minimal test PDF for audit report analysis"""
         try:
-            # Create a simple text file that we'll use as a "PDF" for testing
-            test_content = """
+            # Try to create a simple PDF using reportlab if available
+            try:
+                from reportlab.pdfgen import canvas
+                from reportlab.lib.pagesizes import letter
+                import tempfile
+                
+                # Create a temporary PDF file
+                temp_file = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+                temp_file.close()
+                
+                # Create PDF content
+                c = canvas.Canvas(temp_file.name, pagesize=letter)
+                width, height = letter
+                
+                # Add content to PDF
+                c.drawString(100, height - 100, "AUDIT REPORT")
+                c.drawString(100, height - 140, "Ship Name: BROTHER 36")
+                c.drawString(100, height - 160, "IMO Number: 8743531")
+                c.drawString(100, height - 180, "Audit Type: ISM")
+                c.drawString(100, height - 200, "Audit Report No: AR-2024-001")
+                c.drawString(100, height - 220, "Audit Date: 15/01/2024")
+                c.drawString(100, height - 240, "Audited By: DNV GL")
+                c.drawString(100, height - 260, "Auditor Name: John Smith")
+                c.drawString(100, height - 280, "Status: Valid")
+                c.drawString(100, height - 300, "Note: Annual ISM audit completed successfully")
+                c.drawString(100, height - 340, "This is a test audit report for API testing purposes.")
+                
+                c.save()
+                
+                print(f"✅ Created real PDF file for testing")
+                return temp_file.name
+                
+            except ImportError:
+                print(f"⚠️ reportlab not available, creating text file with PDF extension")
+                # Fallback: create a text file with PDF extension
+                test_content = """
 AUDIT REPORT
 
 Ship Name: BROTHER 36
@@ -328,15 +362,14 @@ Status: Valid
 Note: Annual ISM audit completed successfully
 
 This is a test audit report for API testing purposes.
-            """.strip()
-            
-            # Write to a temporary file
-            import tempfile
-            temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pdf', delete=False)
-            temp_file.write(test_content)
-            temp_file.close()
-            
-            return temp_file.name
+                """.strip()
+                
+                import tempfile
+                temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.pdf', delete=False)
+                temp_file.write(test_content)
+                temp_file.close()
+                
+                return temp_file.name
             
         except Exception as e:
             print(f"⚠️ Could not create test PDF: {e}")
