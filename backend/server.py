@@ -7568,12 +7568,15 @@ async def analyze_audit_report_file(
     """
     try:
         logger.info(f"🤖 AI analyzing audit report file: {file.filename}")
+        logger.info(f"📋 Request params: ship_id={ship_id}, bypass_validation={bypass_validation}")
         
         # Convert bypass_validation string to boolean
         bypass_validation_bool = bypass_validation.lower() in ('true', '1', 'yes')
+        logger.info(f"✓ bypass_validation converted to bool: {bypass_validation_bool}")
         
         # Read file content
         file_content = await file.read()
+        logger.info(f"📄 File read successfully: {len(file_content)} bytes")
         file_b64 = base64.b64encode(file_content).decode('utf-8')
         
         # Get ship details for context
