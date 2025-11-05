@@ -73,6 +73,16 @@ export const AuditReportList = ({
     }
   };
 
+  // Get sort icon
+  const getSortIcon = (column) => {
+    if (sort.column !== column) return null;
+    return (
+      <span className="ml-1 text-blue-600 text-sm font-bold">
+        {sort.direction === 'asc' ? '▲' : '▼'}
+      </span>
+    );
+  };
+
   // Get abbreviation from full name
   const getAbbreviation = (fullName) => {
     if (!fullName) return '';
