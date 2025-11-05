@@ -229,9 +229,9 @@ class BackendAPITester:
             self.print_result(False, f"Exception during get company ID test: {str(e)}")
             return False
     
-    def test_find_target_crew(self):
-        """Test 2: Find target crew member 'HỒ Sỹ Chương' for deletion testing"""
-        self.print_test_header("Test 2 - Find Target Crew Member")
+    def test_get_ships_list(self):
+        """Test 2: Get ships list and find test ship (e.g., BROTHER 36)"""
+        self.print_test_header("Test 2 - Get Ships List and Find Test Ship")
         
         if not self.access_token:
             self.print_result(False, "No access token available from authentication test")
@@ -243,89 +243,71 @@ class BackendAPITester:
                 "Content-Type": "application/json"
             }
             
-            print(f"📡 GET {BACKEND_URL}/crew")
-            print(f"🎯 Finding crew member 'HỒ Sỹ Chương' (ID: 25d229a9-a560-484b-b49e-050294c6f711)")
+            print(f"📡 GET {BACKEND_URL}/ships")
+            print(f"🎯 Finding test ship (preferably BROTHER 36)")
             
-            # Make request to get crew list
+            # Make request to get ships list
             response = self.session.get(
-                f"{BACKEND_URL}/crew",
+                f"{BACKEND_URL}/ships",
                 headers=headers
             )
             
             print(f"📊 Response Status: {response.status_code}")
             
             if response.status_code == 200:
-                crew_list = response.json()
-                print(f"📄 Found {len(crew_list)} crew members")
+                ships_list = response.json()
+                print(f"📄 Found {len(ships_list)} ships")
                 
-                if not crew_list:
-                    self.print_result(False, "No crew members found in the system")
+                if not ships_list:
+                    self.print_result(False, "No ships found in the system")
                     return False
                 
-                # Look for target crew member
-                target_crew = None
-                crew_with_certs = None
-                crew_without_files = None
+                self.ships_list = ships_list
                 
-                for crew in crew_list:
-                    crew_name = crew.get('full_name', '')
-                    crew_id = crew.get('id', '')
-                    passport = crew.get('passport', '')
-                    passport_file_id = crew.get('passport_file_id')
-                    summary_file_id = crew.get('summary_file_id')
-                    
-                    print(f"👤 Crew: {crew_name} (ID: {crew_id[:8]}..., Passport: {passport})")
-                    
-                    # Look for HỒ Sỹ Chương with passport C9780204
-                    if ('HỒ' in crew_name.upper() and 'CHƯƠNG' in crew_name.upper()) or crew_id == '25d229a9-a560-484b-b49e-050294c6f711':
-                        target_crew = crew
-                        print(f"✅ Found target crew: {crew_name}")
-                        print(f"   ID: {crew_id}")
-                        print(f"   Passport: {passport}")
-                        print(f"   Has passport_file_id: {bool(passport_file_id)}")
-                        print(f"   Has summary_file_id: {bool(summary_file_id)}")
-                    
-                    # Look for crew without files for edge case testing
-                    if not passport_file_id and not summary_file_id and not crew_without_files:
-                        crew_without_files = crew
-                        print(f"📝 Found crew without files: {crew_name} (for edge case testing)")
+                # Look for BROTHER 36 or any suitable test ship
+                target_ship = None
                 
-                if target_crew:
-                    self.test_crew_id = target_crew['id']
-                    self.test_crew_data = target_crew
+                for ship in ships_list:
+                    ship_name = ship.get('name', '')
+                    ship_id = ship.get('id', '')
+                    imo = ship.get('imo', '')
+                    ship_type = ship.get('ship_type', '')
                     
-                    # Verify this crew has files for background deletion testing
-                    has_passport_file = bool(target_crew.get('passport_file_id'))
-                    has_summary_file = bool(target_crew.get('summary_file_id'))
+                    print(f"🚢 Ship: {ship_name} (ID: {ship_id[:8]}..., IMO: {imo}, Type: {ship_type})")
                     
-                    if has_passport_file and has_summary_file:
-                        print(f"✅ Target crew has both passport and summary files - perfect for background deletion testing")
-                    elif has_passport_file or has_summary_file:
-                        print(f"⚠️ Target crew has only one file - still suitable for testing")
-                    else:
-                        print(f"⚠️ Target crew has no files - will test deletion without files")
+                    # Prefer BROTHER 36 if available
+                    if 'BROTHER 36' in ship_name.upper():
+                        target_ship = ship
+                        print(f"✅ Found preferred test ship: {ship_name}")
+                        break
+                    elif not target_ship:  # Use first ship as fallback
+                        target_ship = ship
+                
+                if target_ship:
+                    self.test_ship_id = target_ship['id']
+                    self.test_ship_data = target_ship
                     
-                    # Store crew without files for edge case testing
-                    if crew_without_files:
-                        self.crew_without_files_id = crew_without_files['id']
-                        print(f"📝 Stored crew without files: {crew_without_files.get('full_name')} ({crew_without_files['id'][:8]}...)")
+                    print(f"✅ Selected test ship: {target_ship.get('name')}")
+                    print(f"   ID: {target_ship['id']}")
+                    print(f"   IMO: {target_ship.get('imo', 'N/A')}")
+                    print(f"   Type: {target_ship.get('ship_type', 'N/A')}")
                     
-                    self.print_result(True, f"Successfully found target crew: {target_crew.get('full_name')} ({target_crew['id'][:8]}...)")
+                    self.print_result(True, f"Successfully found test ship: {target_ship.get('name')} ({target_ship['id'][:8]}...)")
                     return True
                 else:
-                    self.print_result(False, "Target crew 'HỒ Sỹ Chương' not found in crew list")
+                    self.print_result(False, "No suitable test ship found")
                     return False
                 
             else:
                 try:
                     error_data = response.json()
-                    self.print_result(False, f"GET crew failed with status {response.status_code}: {error_data}")
+                    self.print_result(False, f"GET ships failed with status {response.status_code}: {error_data}")
                 except:
-                    self.print_result(False, f"GET crew failed with status {response.status_code}: {response.text}")
+                    self.print_result(False, f"GET ships failed with status {response.status_code}: {response.text}")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during find target crew test: {str(e)}")
+            self.print_result(False, f"Exception during get ships list test: {str(e)}")
             return False
     
     def test_find_crew_with_certificates(self):
