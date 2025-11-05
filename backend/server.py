@@ -7564,7 +7564,7 @@ async def analyze_audit_report_file(
 ):
     """
     Analyze audit report file using AI
-    Extracts: audit_report_name, audit_type, audit_report_no, audit_date, audited_by, auditor_name, status
+    Extracts: audit_report_name, audit_type, audit_report_no, audit_date, issued_by, auditor_name, status
     """
     try:
         logger.info(f"🤖 AI analyzing audit report file: {file.filename}")
