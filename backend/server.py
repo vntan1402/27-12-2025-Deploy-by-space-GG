@@ -5022,8 +5022,12 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                     window_close = next_survey_date
                     window_type = '-3M'
                 else:
-                    # No clear annotation, skip
-                    continue
+                    # No annotation found - DEFAULT to (-3M) for safety
+                    # This ensures all certificates are included in upcoming surveys
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date
+                    window_type = '-3M (default)'
+                    logger.info(f"📌 Certificate {cert.get('id', 'unknown')} has no annotation - using default (-3M) window")
                 
                 # Check if current_date is within window
                 if window_open <= current_date <= window_close:
@@ -21697,8 +21701,12 @@ async def get_upcoming_audit_surveys(
                     window_close = next_survey_date
                     window_type = '-3M'
                 else:
-                    # No clear annotation, skip
-                    continue
+                    # No annotation found - DEFAULT to (-3M) for safety
+                    # This ensures all certificates are included in upcoming surveys
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date
+                    window_type = '-3M (default)'
+                    logger.info(f"📌 Certificate {cert.get('id', 'unknown')} has no annotation - using default (-3M) window")
                 
                 # Check if current_date is within window
                 if window_open <= current_date <= window_close:
