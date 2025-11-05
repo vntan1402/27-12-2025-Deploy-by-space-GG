@@ -277,8 +277,9 @@ export const AuditReportList = ({
   };
 
   const handleEditReport = (report) => {
-    setEditingReport(report);
-    setShowEditModal(true);
+    if (onEditReport) {
+      onEditReport(report);
+    }
     setContextMenu({ show: false, x: 0, y: 0, report: null });
   };
 
