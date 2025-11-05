@@ -87,6 +87,7 @@ export const UpcomingSurveyModal = ({
                     key={index} 
                     className={`hover:bg-gray-50 ${
                       survey.is_overdue ? 'bg-red-50' : 
+                      survey.is_critical ? 'bg-orange-50' :
                       survey.is_due_soon ? 'bg-yellow-50' : 
                       ''
                     }`}
@@ -98,16 +99,16 @@ export const UpcomingSurveyModal = ({
                       <div className="font-medium">{survey.cert_name_display}</div>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 border-b">
-                      <div className="font-medium">{formatDateDisplay(survey.next_survey)}</div>
+                      <div className="font-medium">{survey.next_survey}</div>
                       <div className="text-xs text-gray-500">
-                        {survey.days_until_survey >= 0 
-                          ? (language === 'vi' ? `Còn ${survey.days_until_survey} ngày` : `${survey.days_until_survey} days left`)
-                          : (language === 'vi' ? `Quá hạn ${Math.abs(survey.days_until_survey)} ngày` : `${Math.abs(survey.days_until_survey)} days overdue`)
+                        {survey.days_until_window_close >= 0 
+                          ? (language === 'vi' ? `Còn ${survey.days_until_window_close} ngày tới window close` : `${survey.days_until_window_close} days to window close`)
+                          : (language === 'vi' ? `Quá window close ${Math.abs(survey.days_until_window_close)} ngày` : `${Math.abs(survey.days_until_window_close)} days past window close`)
                         }
                       </div>
                       {survey.window_type && (
                         <div className="text-xs text-blue-600 font-medium">
-                          {survey.window_type}
+                          Window: {survey.window_type}
                         </div>
                       )}
                     </td>
@@ -118,12 +119,13 @@ export const UpcomingSurveyModal = ({
                       {formatDateDisplay(survey.last_endorse)}
                     </td>
                     <td className="px-4 py-3 text-sm border-b">
-                      {survey.is_critical ? (
+                      {survey.is_overdue ? (
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                          {survey.is_overdue 
-                            ? (language === 'vi' ? 'Quá hạn' : 'Overdue')
-                            : (language === 'vi' ? 'Khẩn cấp' : 'Critical')
-                          }
+                          {language === 'vi' ? 'Quá hạn' : 'Overdue'}
+                        </span>
+                      ) : survey.is_critical ? (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                          {language === 'vi' ? 'Khẩn cấp' : 'Critical'}
                         </span>
                       ) : survey.is_due_soon ? (
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
