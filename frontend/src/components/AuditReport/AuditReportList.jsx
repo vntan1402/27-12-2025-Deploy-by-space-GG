@@ -726,7 +726,7 @@ export const AuditReportList = ({
             </label>
             <select
               value={filters.status}
-              onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+              onChange={(e) => onFiltersChange && onFiltersChange({ ...filters, status: e.target.value })}
               className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
