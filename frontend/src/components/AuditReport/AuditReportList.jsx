@@ -164,22 +164,15 @@ export const AuditReportList = ({
 
   // Checkbox selection handlers
   const handleSelectAll = (checked) => {
-    if (checked) {
-      const allIds = new Set(getFilteredReports().map(r => r.id));
-      setSelectedReports(allIds);
-    } else {
-      setSelectedReports(new Set());
+    if (onSelectAll) {
+      onSelectAll(checked);
     }
   };
 
   const handleSelectReport = (reportId) => {
-    const newSelected = new Set(selectedReports);
-    if (newSelected.has(reportId)) {
-      newSelected.delete(reportId);
-    } else {
-      newSelected.add(reportId);
+    if (onSelectReport) {
+      onSelectReport(reportId);
     }
-    setSelectedReports(newSelected);
   };
 
   const isAllSelected = () => {
