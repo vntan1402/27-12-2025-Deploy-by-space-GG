@@ -4916,22 +4916,28 @@ async def get_current_datetime():
 @api_router.get("/certificates/upcoming-surveys")
 async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_user)):
     """
-    Get all certificates with upcoming surveys (within ±3 months window)
-    Returns certificates from all ships belonging to user's company
+    Get upcoming surveys with annotation-based window logic (same as Audit Certificate)
+    
+    Logic:
+    1. Read next_survey_display field with annotation (±3M or -3M)
+    2. Calculate window based on annotation
+    3. Unified status classification based on window_close
     """
     try:
+        from datetime import datetime, timedelta
+        from dateutil.relativedelta import relativedelta
+        
         user_company = current_user.company
-        logger.info(f"Checking upcoming surveys for company: {user_company}")
+        logger.info(f"🔍 Checking upcoming surveys for company: {user_company}")
         
         # Get company record to get company name for dual lookup
         company_record = await mongo_db.find_one("companies", {"id": user_company})
         company_name = None
         if company_record:
             company_name = company_record.get('name_en') or company_record.get('name_vn')
-            logger.info(f"Company name: {company_name}")
+            logger.info(f"📋 Company name: {company_name}")
         
         # Dual lookup: Get all ships by company ID OR company name
-        # This handles data inconsistency where some ships use ID, others use name
         ships_by_id = await mongo_db.find_all("ships", {"company": user_company})
         ships_by_name = []
         if company_name:
@@ -4947,11 +4953,17 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
         ships = list(all_ships_dict.values())
         ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
         
-        logger.info(f"Found {len(ships)} ships for company (by ID: {len(ships_by_id)}, by name: {len(ships_by_name)})")
+        logger.info(f"🚢 Found {len(ships)} ships for company (by ID: {len(ships_by_id)}, by name: {len(ships_by_name)})")
         
         if not ship_ids:
-            logger.info(f"No ships found for company: {user_company}")
-            return {"upcoming_surveys": []}
+            logger.info(f"⚠️ No ships found for company: {user_company}")
+            return {
+                "upcoming_surveys": [],
+                "total_count": 0,
+                "company": user_company,
+                "company_name": company_name,
+                "check_date": datetime.now().date().isoformat()
+            }
         
         # Get all certificates from these ships
         all_certificates = []
@@ -4959,15 +4971,11 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
             certs = await mongo_db.find_all("certificates", {"ship_id": ship_id})
             all_certificates.extend(certs)
         
-        logger.info(f"Found {len(all_certificates)} total certificates to check")
+        logger.info(f"📄 Found {len(all_certificates)} total certificates to check")
         
         # Get current date
-        from datetime import datetime, timedelta
         current_date = datetime.now().date()
-        
-        logger.info(f"Current server date: {current_date.isoformat()}")
-        logger.info(f"Current server datetime: {datetime.now().isoformat()}")
-        logger.info(f"Server timezone: {datetime.now().astimezone().tzinfo}")
+        logger.info(f"📅 Current server date: {current_date.isoformat()}")
         
         upcoming_surveys = []
         
