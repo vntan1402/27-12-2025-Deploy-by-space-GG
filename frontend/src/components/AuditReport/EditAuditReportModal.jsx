@@ -188,12 +188,12 @@ export const EditAuditReportModal = ({ isOpen, onClose, report, onReportUpdated 
               </div>
             </div>
 
-            {/* Row 3: Audited By + Status */}
+            {/* Row 3: Issued By + Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Audited By */}
+              {/* Issued By */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Audit bởi' : 'Audited By'}
+                  {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
                 </label>
                 <input
                   type="text"
