@@ -597,9 +597,9 @@ export const AuditReportList = ({
 
   // Notes modal handlers
   const handleNoteClick = (report) => {
-    setNotesReport(report);
-    setNotesValue(report.note || '');
-    setShowNotesModal(true);
+    if (onNotesClick) {
+      onNotesClick(report, report.note || '');
+    }
     // Hide tooltip when modal opens
     setNoteTooltip({ show: false, x: 0, y: 0, content: '' });
   };
