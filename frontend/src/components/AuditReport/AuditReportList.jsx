@@ -58,26 +58,31 @@ export const AuditReportList = ({
     return () => document.removeEventListener('click', handleClick);
   }, [contextMenu.show]);
 
-  // Fetch audit reports from backend
-  const fetchSurveyReports = async () => {
-    if (!selectedShip) return;
-
-    try {
-      setLoading(true);
-      const response = await auditReportService.getAll(selectedShip.id);
-      const data = response.data || response || [];
-      setSurveyReports(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Failed to fetch audit reports:', error);
-      toast.error(language === 'vi' ? 'Không thể tải danh sách báo cáo audit' : 'Failed to load audit reports');
-      setSurveyReports([]);
-    } finally {
-      setLoading(false);
+  // Handle refresh (call parent handler)
+  const handleRefresh = () => {
+    if (onRefresh) {
+      onRefresh();
     }
   };
 
-  // Refresh reports
-  const handleRefresh = async () => {
+  // Handle sort
+  const handleSort = (column) => {
+    if (onSortChange) {
+      const direction = sort.column === column && sort.direction === 'asc' ? 'desc' : 'asc';
+      onSortChange({ column, direction });
+    }
+  };
+
+  // Get abbreviation from full name
+  const getAbbreviation = (fullName) => {
+    if (!fullName) return '';
+    const words = fullName.trim().split(/\s+/);
+    if (words.length === 1) return words[0].substring(0, 3).toUpperCase();
+    return words.slice(0, 4).map(word => word[0]).join('').toUpperCase();
+  };
+
+  // Original refresh handler kept for compatibility
+  const handleRefreshOld = async () => {
     if (!selectedShip) return;
     
     try {
