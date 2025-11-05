@@ -557,15 +557,15 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
 
             {/* Row 3: Audited By + Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Audited By */}
+              {/* Issued By */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Audit bởi' : 'Audited By'}
+                  {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
                 </label>
                 <input
                   type="text"
-                  name="audited_by"
-                  value={formData.audited_by}
+                  name="issued_by"
+                  value={formData.issued_by}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder={language === 'vi' ? 'VD: Lloyd\'s Register, Bureau Veritas...' : 'e.g., Lloyd\'s Register, Bureau Veritas...'}
