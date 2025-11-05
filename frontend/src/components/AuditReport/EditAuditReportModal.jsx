@@ -69,7 +69,7 @@ export const EditAuditReportModal = ({ isOpen, onClose, report, onReportUpdated 
         audit_type: formData.audit_type.trim() || null,
         audit_report_no: formData.audit_report_no.trim() || null,
         audit_date: formData.audit_date || null,
-        audited_by: formData.audited_by.trim() || null,
+        issued_by: formData.issued_by.trim() || null,
         status: formData.status || 'Valid',
         note: formData.note.trim() || null,
         auditor_name: formData.auditor_name.trim() || null
