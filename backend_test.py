@@ -616,30 +616,34 @@ This is a fallback test audit report for API testing.
         """Helper method to check backend logs for AI config retrieval messages"""
         try:
             import subprocess
-            result = subprocess.run(['tail', '-n', '200', '/var/log/supervisor/backend.out.log'], 
+            result = subprocess.run(['tail', '-n', '300', '/var/log/supervisor/backend.out.log'], 
                                   capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
                 log_content = result.stdout
                 
-                # Check for expected AI config log messages
+                # Check for expected AI config log messages (updated for real testing)
                 system_ai_config = "✅ Using emergent_llm_key from system AI config" in log_content
                 fallback_key = "⚠️ No system AI config found, using fallback emergent_llm_key" in log_content
-                ai_analysis = "🤖 Starting AI analysis" in log_content or "AI analysis" in log_content
+                ai_analyzing = "🤖 AI analyzing audit report file" in log_content
+                ai_complete = "✅ AI analysis complete for audit report" in log_content
                 gemini_model = "gemini" in log_content.lower()
+                bypass_validation = "bypass_validation" in log_content
                 
                 print(f"   📋 System AI config used: {'✅ FOUND' if system_ai_config else '❌ NOT FOUND'}")
                 print(f"   📋 Fallback key used: {'✅ FOUND' if fallback_key else '❌ NOT FOUND'}")
-                print(f"   📋 AI analysis started: {'✅ FOUND' if ai_analysis else '❌ NOT FOUND'}")
+                print(f"   📋 AI analyzing log: {'✅ FOUND' if ai_analyzing else '❌ NOT FOUND'}")
+                print(f"   📋 AI analysis complete: {'✅ FOUND' if ai_complete else '❌ NOT FOUND'}")
                 print(f"   📋 Gemini model used: {'✅ FOUND' if gemini_model else '❌ NOT FOUND'}")
+                print(f"   📋 Bypass validation handled: {'✅ FOUND' if bypass_validation else '❌ NOT FOUND'}")
                 
                 # Print recent relevant log lines
                 lines = log_content.split('\n')
                 relevant_lines = [line for line in lines if any(keyword in line for keyword in 
-                                ['AI config', 'emergent_llm_key', 'AI analysis', 'gemini', 'system_ai'])]
+                                ['AI config', 'emergent_llm_key', 'AI analyzing', 'AI analysis', 'gemini', 'system_ai', 'audit-reports/analyze', 'bypass_validation'])]
                 
                 if relevant_lines:
-                    print(f"\n📄 Recent AI config logs:")
-                    for line in relevant_lines[-10:]:  # Last 10 relevant lines
+                    print(f"\n📄 Recent audit report AI logs:")
+                    for line in relevant_lines[-15:]:  # Last 15 relevant lines
                         print(f"   {line}")
                 else:
                     print(f"   ⚠️ No AI config logs found")
