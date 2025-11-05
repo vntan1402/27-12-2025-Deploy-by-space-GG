@@ -7703,7 +7703,7 @@ Extract audit report information and return as JSON."""
             f"Audit Type: {analysis.get('audit_type', 'N/A')}",
             f"Audit Report No: {analysis.get('audit_report_no', 'N/A')}",
             f"Audit Date: {analysis.get('audit_date', 'N/A')}",
-            f"Audited By: {analysis.get('audited_by', 'N/A')}",
+            f"Issued By: {analysis.get('issued_by', 'N/A')}",
             f"Auditor Name: {analysis.get('auditor_name', 'N/A')}",
             f"Status: {analysis.get('status', 'N/A')}",
             "",
