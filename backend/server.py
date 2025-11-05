@@ -5077,9 +5077,36 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
             except Exception as cert_error:
                 logger.warning(f"⚠️ Error processing certificate {cert.get('id', 'unknown')}: {cert_error}")
                 continue
-            
-            if not next_survey_str and not is_initial_smc_issc_mlc:
-                continue
+        
+        # Sort by next survey date (soonest first)
+        upcoming_surveys.sort(key=lambda x: x['next_survey_date'] or '9999-12-31')
+        
+        logger.info(f"✅ Found {len(upcoming_surveys)} certificates with upcoming surveys")
+        
+        return {
+            "upcoming_surveys": upcoming_surveys,
+            "total_count": len(upcoming_surveys),
+            "company": user_company,
+            "company_name": company_name,
+            "check_date": current_date.isoformat(),
+            "logic_info": {
+                "description": "Ship Certificate survey windows based on Next Survey annotation (same as Audit Certificate logic)",
+                "window_rules": {
+                    "±3M": "Window: Next Survey Date ± 3 months",
+                    "-3M": "Window: Next Survey Date - 3 months → Next Survey Date (only before)",
+                    "Due Soon": "window_open < current_date < (window_close - 30 days)",
+                    "Critical": "≤ 30 days to window_close",
+                    "Overdue": "Past window_close"
+                }
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error getting upcoming surveys: {e}")
+        raise HTTPException(status_code=500, detail=f"Error retrieving upcoming surveys: {str(e)}")
+
+# OLD COMPLEX LOGIC REMOVED - Now using simple annotation-based approach like Audit Certificate
+@api_router.get("/certificates/OLD-upcoming-surveys-BACKUP")
                 
             try:
                 # Parse next survey date (skip for Initial SMC/ISSC/MLC certificates without next_survey)
