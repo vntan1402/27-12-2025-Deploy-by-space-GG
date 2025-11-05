@@ -31,14 +31,6 @@ export const AuditReportList = ({
   language 
 }) => {
 
-  // Modals
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingReport, setEditingReport] = useState(null);
-  const [showNotesModal, setShowNotesModal] = useState(false);
-  const [notesReport, setNotesReport] = useState(null);
-  const [notesValue, setNotesValue] = useState('');
-
   // Context Menu
   const [contextMenu, setContextMenu] = useState({
     show: false,
@@ -54,15 +46,6 @@ export const AuditReportList = ({
     y: 0,
     content: ''
   });
-
-  // Fetch audit reports when ship is selected
-  useEffect(() => {
-    if (selectedShip) {
-      fetchSurveyReports();
-    } else {
-      setSurveyReports([]);
-    }
-  }, [selectedShip]);
 
   // Close context menu when clicking outside
   useEffect(() => {
