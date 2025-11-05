@@ -320,8 +320,54 @@ class BackendAPITester:
             self.print_result(False, f"Exception during get ships list test: {str(e)}")
             return False
     
-    def create_test_pdf(self):
-        """Create a minimal test PDF for audit report analysis"""
+    def download_real_pdf(self):
+        """Download the REAL PDF file from user-provided URL"""
+        pdf_url = "https://customer-assets.emergentagent.com/job_audit-flow/artifacts/7leh4y7w_ISM-Code-Audit-Plan%20%2807-23%29%20TRUONG%20MINH%20LUCKY.pdf"
+        
+        try:
+            print(f"📥 Downloading REAL PDF file from user...")
+            print(f"🔗 URL: {pdf_url}")
+            
+            # Download the PDF file
+            response = requests.get(pdf_url, timeout=30)
+            
+            print(f"📊 Download Status: {response.status_code}")
+            print(f"📄 Content-Type: {response.headers.get('content-type', 'unknown')}")
+            print(f"📏 File Size: {len(response.content)} bytes")
+            
+            if response.status_code == 200:
+                # Verify it's a PDF file
+                content_type = response.headers.get('content-type', '').lower()
+                if 'pdf' in content_type or response.content.startswith(b'%PDF'):
+                    # Save to temporary file
+                    import tempfile
+                    temp_file = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
+                    temp_file.write(response.content)
+                    temp_file.close()
+                    
+                    print(f"✅ Successfully downloaded REAL PDF file ({len(response.content)} bytes)")
+                    print(f"📁 Saved to: {temp_file.name}")
+                    
+                    # Basic PDF validation
+                    if len(response.content) > 1000:  # Should be at least 1KB for a real document
+                        print(f"✅ PDF file size looks reasonable for a real document")
+                        return temp_file.name
+                    else:
+                        print(f"⚠️ PDF file seems too small ({len(response.content)} bytes)")
+                        return temp_file.name  # Still try to use it
+                else:
+                    print(f"❌ Downloaded file is not a PDF (content-type: {content_type})")
+                    return None
+            else:
+                print(f"❌ Failed to download PDF: HTTP {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Exception downloading PDF: {e}")
+            return None
+    
+    def create_fallback_pdf(self):
+        """Create a fallback test PDF if real PDF download fails"""
         try:
             # Try to create a simple PDF using reportlab if available
             try:
@@ -333,45 +379,45 @@ class BackendAPITester:
                 temp_file = tempfile.NamedTemporaryFile(suffix='.pdf', delete=False)
                 temp_file.close()
                 
-                # Create PDF content
+                # Create PDF content similar to ISM audit
                 c = canvas.Canvas(temp_file.name, pagesize=letter)
                 width, height = letter
                 
                 # Add content to PDF
-                c.drawString(100, height - 100, "AUDIT REPORT")
+                c.drawString(100, height - 100, "ISM CODE AUDIT PLAN")
                 c.drawString(100, height - 140, "Ship Name: BROTHER 36")
                 c.drawString(100, height - 160, "IMO Number: 8743531")
                 c.drawString(100, height - 180, "Audit Type: ISM")
-                c.drawString(100, height - 200, "Audit Report No: AR-2024-001")
+                c.drawString(100, height - 200, "Audit Report No: ISM-2024-001")
                 c.drawString(100, height - 220, "Audit Date: 15/01/2024")
-                c.drawString(100, height - 240, "Audited By: DNV GL")
-                c.drawString(100, height - 260, "Auditor Name: John Smith")
+                c.drawString(100, height - 240, "Audited By: Classification Society")
+                c.drawString(100, height - 260, "Auditor Name: TRUONG MINH LUCKY")
                 c.drawString(100, height - 280, "Status: Valid")
-                c.drawString(100, height - 300, "Note: Annual ISM audit completed successfully")
-                c.drawString(100, height - 340, "This is a test audit report for API testing purposes.")
+                c.drawString(100, height - 300, "Note: ISM Code audit plan for vessel compliance")
+                c.drawString(100, height - 340, "This is a fallback test audit report for API testing.")
                 
                 c.save()
                 
-                print(f"✅ Created real PDF file for testing")
+                print(f"✅ Created fallback PDF file for testing")
                 return temp_file.name
                 
             except ImportError:
                 print(f"⚠️ reportlab not available, creating text file with PDF extension")
                 # Fallback: create a text file with PDF extension
                 test_content = """
-AUDIT REPORT
+ISM CODE AUDIT PLAN
 
 Ship Name: BROTHER 36
 IMO Number: 8743531
 Audit Type: ISM
-Audit Report No: AR-2024-001
+Audit Report No: ISM-2024-001
 Audit Date: 15/01/2024
-Audited By: DNV GL
-Auditor Name: John Smith
+Audited By: Classification Society
+Auditor Name: TRUONG MINH LUCKY
 Status: Valid
-Note: Annual ISM audit completed successfully
+Note: ISM Code audit plan for vessel compliance
 
-This is a test audit report for API testing purposes.
+This is a fallback test audit report for API testing.
                 """.strip()
                 
                 import tempfile
@@ -382,7 +428,7 @@ This is a test audit report for API testing purposes.
                 return temp_file.name
             
         except Exception as e:
-            print(f"⚠️ Could not create test PDF: {e}")
+            print(f"⚠️ Could not create fallback PDF: {e}")
             return None
     
     def test_audit_report_analyze_endpoint(self):
