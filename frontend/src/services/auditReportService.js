@@ -69,6 +69,8 @@ export const auditReportService = {
       filename: filename,
       content_type: contentType,
       summary_text: summaryText
+    }, {
+      timeout: API_TIMEOUT.FILE_UPLOAD, // 60 seconds for file upload (same as Survey Report)
     });
   }
 };
