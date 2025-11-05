@@ -7876,10 +7876,32 @@ async def analyze_audit_report_file(
             
         except Exception as analysis_error:
             logger.error(f"❌ Error during AI analysis: {analysis_error}")
+            
+            # Create fallback summary even if AI analysis failed
+            fallback_summary_lines = [
+                "="*60,
+                "AUDIT REPORT - MANUAL ENTRY REQUIRED",
+                "="*60,
+                "",
+                f"File: {filename}",
+                f"Ship: {ship_name} (IMO: {ship_imo})",
+                f"Analysis Date: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
+                f"Total Pages: {total_pages if total_pages > 0 else 'Unknown'}",
+                "",
+                "--- AI Analysis Failed ---",
+                f"Error: {str(analysis_error)}",
+                "",
+                "⚠️ Please enter audit report information manually.",
+                "",
+                "="*60
+            ]
+            analysis_result['_summary_text'] = '\n'.join(fallback_summary_lines)
+            logger.info(f"   📄 Created fallback summary ({len(analysis_result['_summary_text'])} chars)")
+            
             # Return file content anyway for manual entry
             return {
                 "success": False,
-                "analysis": analysis_result,  # Contains _file_content for upload
+                "analysis": analysis_result,  # Contains _file_content and _summary_text for upload
                 "message": f"AI analysis failed: {str(analysis_error)}. Manual entry required."
             }
     
