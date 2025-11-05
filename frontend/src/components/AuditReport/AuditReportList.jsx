@@ -658,7 +658,7 @@ export const AuditReportList = ({
       <div className="flex items-center justify-between gap-4">
         {/* Report List Title with Ship Name - Left Side */}
         <h3 className="text-lg font-semibold text-gray-800">
-          {language === 'vi' ? 'Danh sách Báo cáo Audit cho' : 'Class Audit Report List for'}{' '}
+          {language === 'vi' ? 'Danh sách Báo cáo Audit cho' : 'Audit Report List for'}{' '}
           {selectedShip ? `"${selectedShip.name}"` : (language === 'vi' ? '"Chọn tàu"' : '"Select a ship"')}
         </h3>
 
