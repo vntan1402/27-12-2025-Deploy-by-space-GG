@@ -300,6 +300,8 @@ upcoming_survey = {
 
 ## 🔧 CODE XUNG QUANH (SURROUNDING CODE)
 
+### Backend Context
+
 **Trước endpoint này** (Lines 4800-4915):
 - Các helper functions khác
 - Certificate calculation functions
@@ -315,7 +317,140 @@ upcoming_survey = {
 
 ---
 
+## 🖥️ FRONTEND COMPONENT
+
+### Component Location
+**File**: `/app/frontend/src/components/CertificateList/UpcomingSurveyModal.jsx`  
+**Lines**: 1-158
+
+### Frontend Logic
+
+#### **1. Props Structure** (Lines 9-18)
+```javascript
+{
+  isOpen,           // Modal visibility
+  onClose,          // Close handler
+  surveys = [],     // Array of upcoming surveys from backend
+  totalCount = 0,   // Total count
+  company,          // Company ID
+  companyName,      // Company name
+  checkDate,        // Check date from backend
+  language          // UI language (vi/en)
+}
+```
+
+#### **2. Table Display** (Lines 52-142)
+Modal hiển thị table với các cột:
+- **Ship Name**: Tên tàu
+- **Cert. Name (Abbreviation)**: Tên certificate + viết tắt
+- **Next Survey**: Ngày survey + số ngày còn lại/quá hạn + window type
+- **Next Survey Type**: Loại survey
+- **Last Endorse**: Ngày endorse cuối
+- **Status**: Badge màu theo trạng thái
+
+#### **3. Row Highlighting** (Lines 88-92)
+```javascript
+className={`hover:bg-gray-50 ${
+  survey.is_overdue ? 'bg-red-50' :      // Màu đỏ nhạt
+  survey.is_due_soon ? 'bg-yellow-50' :  // Màu vàng nhạt
+  ''                                      // Không màu
+}`}
+```
+
+#### **4. Status Badge Display** (Lines 121-136)
+```javascript
+// Critical/Overdue: Red badge
+if (survey.is_critical) {
+  return <span className="bg-red-100 text-red-800">
+    {survey.is_overdue ? 'Quá hạn' : 'Khẩn cấp'}
+  </span>
+}
+
+// Due Soon: Yellow badge
+if (survey.is_due_soon) {
+  return <span className="bg-yellow-100 text-yellow-800">
+    Sắp đến hạn
+  </span>
+}
+
+// In Window: Blue badge
+return <span className="bg-blue-100 text-blue-800">
+  Trong Window
+</span>
+```
+
+#### **5. Window Type Display** (Lines 108-112)
+Hiển thị loại window dưới Next Survey date:
+- `Issue→Valid` (Condition Certificate)
+- `Valid-3M→Valid` (Initial SMC/ISSC/MLC)
+- `-3M` (Special Survey)
+- `±3M` (Other surveys)
+
+---
+
+## 🔄 DATA FLOW (LUỒNG DỮ LIỆU)
+
+### Backend → Frontend Flow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ 1. USER CLICKS "Upcoming Survey" BUTTON                         │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ 2. FRONTEND CALLS: GET /api/certificates/upcoming-surveys       │
+│    (from CertificateActionButtons.jsx)                          │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ 3. BACKEND PROCESSES (server.py lines 4916-5250):               │
+│    ├─ Get user's company                                        │
+│    ├─ Find all ships (dual lookup by ID & name)                 │
+│    ├─ Get all certificates from these ships                     │
+│    ├─ For each certificate:                                     │
+│    │   ├─ Calculate window (4 types)                            │
+│    │   ├─ Check if current_date in window                       │
+│    │   ├─ Calculate status (overdue/due_soon/critical)          │
+│    │   └─ Add to upcoming_surveys if in window                  │
+│    └─ Sort by next_survey_date                                  │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ 4. BACKEND RETURNS JSON:                                         │
+│    {                                                             │
+│      upcoming_surveys: [...],  // Array of survey objects       │
+│      total_count: 15,          // Count                         │
+│      company: "...",           // Company ID                    │
+│      company_name: "...",      // Company name                  │
+│      check_date: "2025-01-15", // Server date                   │
+│      logic_info: {...}         // Documentation                 │
+│    }                                                             │
+└──────────────────────┬──────────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ 5. FRONTEND RECEIVES & DISPLAYS (UpcomingSurveyModal.jsx):      │
+│    ├─ Shows modal with table                                    │
+│    ├─ Displays each survey with:                                │
+│    │   ├─ Ship name                                             │
+│    │   ├─ Certificate name + abbreviation                       │
+│    │   ├─ Next survey date + days left + window type            │
+│    │   ├─ Survey type                                           │
+│    │   ├─ Last endorse                                          │
+│    │   └─ Status badge (color-coded)                            │
+│    ├─ Highlights rows (red/yellow based on status)              │
+│    └─ Shows total count & company info                          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## ✅ KẾT LUẬN (CONCLUSION)
+
+### Backend Logic - COMPREHENSIVE & ROBUST
 
 Logic của Ship Certificate Upcoming Survey là **rất toàn diện và chặt chẽ**, với:
 
@@ -325,4 +460,43 @@ Logic của Ship Certificate Upcoming Survey là **rất toàn diện và chặt
 4. ✅ **Response structure đầy đủ** với tất cả thông tin cần thiết
 5. ✅ **Handling special cases** (Initial SMC/ISSC/MLC, Special Survey)
 
-Logic này phù hợp với **maritime regulations** và **industry best practices**.
+### Frontend Display - CLEAN & USER-FRIENDLY
+
+1. ✅ **Table format** hiển thị rõ ràng với 6 cột thông tin
+2. ✅ **Color-coded badges** (Red/Yellow/Blue) cho status
+3. ✅ **Row highlighting** để dễ nhận biết certificates quan trọng
+4. ✅ **Window type display** giúp user hiểu quy tắc
+5. ✅ **Bilingual support** (Vietnamese/English)
+
+### Maritime Compliance
+
+Logic này phù hợp với **maritime regulations** và **industry best practices**:
+- Special Survey có quy tắc nghiêm ngặt (no extension)
+- Condition Certificate tracking expiry dates
+- Initial surveys for critical certificates (SMC/ISSC/MLC)
+- Flexible windows for routine surveys
+
+---
+
+## 🎯 ĐIỂM MẠNH (STRENGTHS)
+
+1. **Comprehensive Window Logic**: 4 loại window phù hợp với từng certificate type
+2. **Accurate Status Classification**: Logic rõ ràng cho overdue/due soon/critical
+3. **Detailed Response**: Backend trả về đầy đủ thông tin window, status, days
+4. **Clean UI**: Frontend hiển thị professional với color coding và table format
+5. **Scalable**: Dễ dàng thêm loại certificate mới hoặc thay đổi rules
+6. **Logging**: Backend có logging chi tiết để debug
+7. **Documentation**: Code có comments và logic_info trong response
+
+---
+
+## 🔍 POTENTIAL IMPROVEMENTS (NẾU CẦN)
+
+1. **Performance**: Với >1000 certificates, có thể cần pagination hoặc indexing
+2. **Caching**: Cache upcoming surveys result (refresh mỗi giờ)
+3. **Notifications**: Thêm email/SMS notification cho critical surveys
+4. **Filtering**: Thêm filter trong modal (by ship, by status, by certificate type)
+5. **Export**: Thêm nút export to Excel/PDF
+6. **Calendar View**: Thêm calendar view option bên cạnh table view
+
+Tuy nhiên, **logic hiện tại đã HOÀN TOÀN ĐÚNG và WORKING CORRECTLY**.
