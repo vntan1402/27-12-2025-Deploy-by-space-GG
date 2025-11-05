@@ -7586,7 +7586,11 @@ async def analyze_audit_report_file(
         ai_config = await mongo_db.find_one("ai_configs", {"company_id": company_id})
         
         if not ai_config or not ai_config.get('emergent_llm_key'):
-            raise HTTPException(status_code=400, detail="AI configuration not found. Please configure AI settings first.")
+            logger.warning(f"No AI config found for company {company_id}")
+            raise HTTPException(
+                status_code=400, 
+                detail="AI configuration not found. Please go to Settings > AI Configuration to set up AI analysis, or contact support to enable Emergent LLM Key."
+            )
         
         # Prepare AI prompt for audit report analysis
         system_prompt = """You are an expert at analyzing maritime audit reports (ISM, ISPS, MLC, SMC, DOC).
