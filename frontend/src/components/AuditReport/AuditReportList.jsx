@@ -628,19 +628,6 @@ export const AuditReportList = ({
     }
   };
 
-  // Get abbreviation from audited_by (first letters of each word, max 4 letters)
-  const getAbbreviation = (issuedBy) => {
-    if (!issuedBy || issuedBy === '-') return '-';
-    
-    const words = issuedBy.trim().split(/\s+/);
-    const abbreviation = words
-      .slice(0, 4) // Max 4 words
-      .map(word => word.charAt(0).toUpperCase())
-      .join('');
-    
-    return abbreviation;
-  };
-
   // Render empty state
   if (!selectedShip) {
     return (
