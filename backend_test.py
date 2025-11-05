@@ -1,42 +1,52 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Audit Report AI Analysis Endpoint Testing
+Backend API Testing Script - Audit Report AI Analysis with REAL PDF File
 
-FOCUS: Test the Audit Report AI Analysis endpoint (/api/audit-reports/analyze) after AI configuration fix.
-The fix changed from looking in 'ai_configs' collection with company_id to 'ai_config' collection with id='system_ai'.
+FOCUS: Test Audit Report AI Analysis endpoint with REAL user-provided PDF file.
+User provided: "ISM-Code-Audit-Plan (07-23) TRUONG MINH LUCKY.pdf"
+URL: https://customer-assets.emergentagent.com/job_audit-flow/artifacts/7leh4y7w_ISM-Code-Audit-Plan%20%2807-23%29%20TRUONG%20MINH%20LUCKY.pdf
 
 TEST REQUIREMENTS:
-1. Authentication Setup:
+1. Setup:
    - Login with admin1/123456
    - Get company_id and ship list
-   - Find a test ship (e.g., BROTHER 36)
+   - Find BROTHER 36 ship (or any available ship)
 
-2. Audit Report Analysis Endpoint Test:
+2. Download Test PDF:
+   - Download the PDF from provided URL
+   - Verify file is valid PDF (check size and content)
+
+3. Test Audit Report Analysis Endpoint:
    - POST /api/audit-reports/analyze
-   - Parameters: ship_id (from ship list), file (PDF), bypass_validation=false
-   - Use a sample PDF audit report if available, or create a minimal PDF for testing
-   - Expected response: success=true, analysis object with fields (audit_report_name, audit_type, audit_report_no, audit_date, audited_by, auditor_name, status, note)
-   - Should NOT return 403/400 errors related to AI config
+   - Parameters: ship_id, file (real PDF), bypass_validation="false"
+   - Expected response: success=true, analysis object with all fields
+   - Should return 200 OK (NOT 400, 403, or 500)
 
-3. Backend Logs Verification:
-   - Check logs for: "✅ Using emergent_llm_key from system AI config" OR "⚠️ No system AI config found, using fallback emergent_llm_key"
-   - Verify AI analysis process logs
-   - Confirm no errors related to missing AI config or emergent_llm_key
+4. Verify Analysis Results:
+   - Check if extracted data makes sense for an ISM Code Audit Plan
+   - Verify audit_type should be "ISM" or related
+   - Check if dates are properly extracted
+   - Verify ship name in analysis
 
-4. Error Handling:
-   - Test with invalid ship_id (should return 404)
-   - Test with non-PDF file (should return 400 with proper message)
-   - Test without authentication (should return 403)
+5. Backend Logs Verification:
+   - Check for "🤖 AI analyzing audit report file" log
+   - Check for AI config fallback mechanism working
+   - Check for "✅ AI analysis complete for audit report" log
+   - Verify no errors related to parameter parsing (bypass_validation)
+   - Confirm Gemini model usage logs
 
 SUCCESS CRITERIA:
-- ✅ Endpoint returns 200 OK with analysis results (not 403/400 AI config error)
-- ✅ AI config retrieved successfully (either from system_ai or fallback)
-- ✅ Analysis uses Gemini model and returns proper JSON structure
-- ✅ Backend logs show proper AI config retrieval and analysis process
-- ✅ Error handling works correctly
+- ✅ PDF file downloaded successfully (should be ~few hundred KB)
+- ✅ Endpoint returns 200 OK (not 400 parameter error)
+- ✅ Analysis object contains all expected fields
+- ✅ Extracted data is relevant to ISM audit (not random/generic)
+- ✅ No backend errors in logs
+- ✅ AI config fallback mechanism working
+- ✅ Response includes file content for later upload (_file_content, _filename, _content_type)
 
 Test credentials: admin1/123456
 Test ship: BROTHER 36 (or any available ship)
+Real PDF URL: https://customer-assets.emergentagent.com/job_audit-flow/artifacts/7leh4y7w_ISM-Code-Audit-Plan%20%2807-23%29%20TRUONG%20MINH%20LUCKY.pdf
 """
 
 import requests
