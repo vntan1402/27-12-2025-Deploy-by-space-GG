@@ -55,7 +55,8 @@ export const auditReportService = {
     return await api.post('/api/audit-reports/analyze', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
-      }
+      },
+      timeout: API_TIMEOUT.AI_ANALYSIS, // 90 seconds for AI processing (same as Survey Report)
     });
   },
 
