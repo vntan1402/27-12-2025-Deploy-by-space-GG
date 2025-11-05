@@ -7557,55 +7557,104 @@ async def bulk_delete_audit_reports(
 
 @api_router.post("/audit-reports/analyze")
 async def analyze_audit_report_file(
+    audit_report_file: UploadFile = File(...),
     ship_id: str = Form(...),
-    file: UploadFile = File(...),
     bypass_validation: str = Form("false"),
-    current_user: UserResponse = Depends(get_current_user)
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
-    Analyze audit report file using AI
+    Analyze audit report file using Google Document AI + System AI
+    1. Extract text with Document AI
+    2. Extract fields with System AI (Gemini)
+    3. Validate ship name/IMO
+    4. Support PDF splitting for large files (>15 pages)
+    5. Return analysis data + file content (base64) for later upload
+    
     Extracts: audit_report_name, audit_type, audit_report_no, audit_date, issued_by, auditor_name, status
     """
     try:
-        logger.info(f"🤖 AI analyzing audit report file: {file.filename}")
-        logger.info(f"📋 Request params: ship_id={ship_id}, bypass_validation={bypass_validation}")
+        logger.info(f"📋 Starting audit report analysis for ship_id: {ship_id}")
+        
+        # Read file content
+        file_content = await audit_report_file.read()
+        filename = audit_report_file.filename
+        
+        # Validate file input
+        if not filename:
+            raise HTTPException(status_code=400, detail="No filename provided")
+        
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="Empty file provided. Please upload a valid PDF file.")
+        
+        # Validate file type (basic check for PDF)
+        if not filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="Invalid file type. Only PDF files are supported for audit reports.")
+        
+        # Check if file content starts with PDF magic bytes
+        if not file_content.startswith(b'%PDF'):
+            raise HTTPException(status_code=400, detail="Invalid PDF file format. The file does not appear to be a valid PDF document.")
+            
+        logger.info(f"📄 Processing audit report file: {filename} ({len(file_content)} bytes)")
         
         # Convert bypass_validation string to boolean
         bypass_validation_bool = bypass_validation.lower() in ('true', '1', 'yes')
-        logger.info(f"✓ bypass_validation converted to bool: {bypass_validation_bool}")
         
-        # Read file content
-        file_content = await file.read()
-        logger.info(f"📄 File read successfully: {len(file_content)} bytes")
-        file_b64 = base64.b64encode(file_content).decode('utf-8')
+        # Check if PDF needs splitting (> 15 pages)
+        from pdf_splitter import PDFSplitter
+        splitter = PDFSplitter(max_pages_per_chunk=12)
         
-        # Get ship details for context
-        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        try:
+            total_pages = splitter.get_page_count(file_content)
+            needs_split = splitter.needs_splitting(file_content)
+            logger.info(f"📊 PDF Analysis: {total_pages} pages, Split needed: {needs_split}")
+        except ValueError as e:
+            # Invalid or corrupted PDF file - return error immediately
+            logger.error(f"❌ Invalid PDF file: {e}")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid or corrupted PDF file: {str(e)}. Please ensure the file is a valid PDF document."
+            )
+        except Exception as e:
+            logger.warning(f"⚠️ Could not detect page count: {e}, assuming single file processing")
+            total_pages = 0
+            needs_split = False
+        
+        # Get company information
+        company_uuid = await resolve_company_id(current_user)
+        
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get ship information
+        ship = await mongo_db.find_one("ships", {
+            "id": ship_id,
+            "company": company_uuid
+        })
+        
         if not ship and not bypass_validation_bool:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        ship_name = ship.get('name', 'Unknown') if ship else 'Unknown'
-        ship_imo = ship.get('imo', '') if ship else ''
+        ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+        ship_imo = ship.get("imo", "") if ship else ""
         
-        # Get AI config (using same pattern as Survey Report)
+        # Get AI configuration for Document AI
         ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
+            raise HTTPException(status_code=404, detail="AI configuration not found. Please configure Google Document AI in System Settings.")
+            
+        document_ai_config = ai_config_doc.get("document_ai", {})
         
-        # Get emergent_llm_key from config or use fallback
-        emergent_llm_key = None
-        if ai_config_doc and ai_config_doc.get('emergent_llm_key'):
-            emergent_llm_key = ai_config_doc['emergent_llm_key']
-            logger.info("✅ Using emergent_llm_key from system AI config")
-        else:
-            # Fallback to get_emergent_llm_key() function
-            emergent_llm_key = get_emergent_llm_key()
-            logger.info("⚠️ No system AI config found, using fallback emergent_llm_key")
+        if not document_ai_config.get("enabled", False):
+            raise HTTPException(status_code=400, detail="Google Document AI is not enabled in System Settings")
+            
+        # Validate required Document AI configuration
+        if not all([
+            document_ai_config.get("project_id"),
+            document_ai_config.get("processor_id")
+        ]):
+            raise HTTPException(status_code=400, detail="Incomplete Google Document AI configuration.")
         
-        if not emergent_llm_key:
-            logger.error("No Emergent LLM key available")
-            raise HTTPException(
-                status_code=400, 
-                detail="AI configuration not found. Please configure Emergent LLM Key in System Settings."
-            )
+        logger.info("🤖 Analyzing audit report with Google Document AI...")
         
         # Prepare AI prompt for audit report analysis
         system_message = """You are an expert at analyzing maritime audit reports (ISM, ISPS, MLC, SMC, DOC).
