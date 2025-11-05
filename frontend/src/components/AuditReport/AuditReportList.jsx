@@ -759,7 +759,7 @@ export const AuditReportList = ({
               </svg>
               {filters.search && (
                 <button
-                  onClick={() => setFilters(prev => ({ ...prev, search: '' }))}
+                  onClick={() => onFiltersChange && onFiltersChange({ ...filters, search: '' })}
                   className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
