@@ -7735,7 +7735,7 @@ async def upload_audit_report_files(
         summary_text = request.get('summary_text')
         
         # Upload original file
-        gdrive_manager = GoogleDriveManager(company_id)
+        gdrive_manager = GoogleDriveManager()
         
         # Path: {Ship Name}/ISM-ISPS-MLC/Audit Report/
         folder_path = f"{ship['name']}/ISM-ISPS-MLC/Audit Report"
