@@ -7391,6 +7391,350 @@ async def get_ship_survey_status(ship_id: str, current_user: UserResponse = Depe
 
 
 
+# ========== AUDIT REPORT ENDPOINTS (ISM-ISPS-MLC) ==========
+
+@api_router.get("/audit-reports", response_model=List[AuditReportResponse])
+async def get_audit_reports(ship_id: Optional[str] = None, current_user: UserResponse = Depends(get_current_user)):
+    """Get audit reports for a ship or all audit reports"""
+    try:
+        query = {}
+        if ship_id:
+            query["ship_id"] = ship_id
+        
+        audit_reports = await mongo_db.find_all("audit_reports", query)
+        return [AuditReportResponse(**report) for report in audit_reports]
+    except Exception as e:
+        logger.error(f"Error fetching audit reports: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch audit reports")
+
+@api_router.get("/audit-reports/{report_id}", response_model=AuditReportResponse)
+async def get_audit_report(report_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Get a single audit report by ID"""
+    try:
+        report = await mongo_db.find_one("audit_reports", {"id": report_id})
+        if not report:
+            raise HTTPException(status_code=404, detail="Audit report not found")
+        return AuditReportResponse(**report)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching audit report: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch audit report")
+
+@api_router.post("/audit-reports", response_model=AuditReportResponse)
+async def create_audit_report(report_data: AuditReportCreate, current_user: UserResponse = Depends(get_current_user)):
+    """Create a new audit report"""
+    try:
+        logger.info(f"Creating new audit report for ship: {report_data.ship_id}")
+        
+        # Generate UUID for report
+        report_id = str(uuid.uuid4())
+        
+        # Prepare report document
+        report_dict = report_data.dict()
+        report_dict['id'] = report_id
+        report_dict['created_at'] = datetime.now(timezone.utc)
+        report_dict['updated_at'] = datetime.now(timezone.utc)
+        
+        # Convert datetime to ISO string for MongoDB
+        if report_dict.get('audit_date'):
+            report_dict['audit_date'] = report_dict['audit_date'].isoformat()
+        if report_dict.get('next_audit_date'):
+            report_dict['next_audit_date'] = report_dict['next_audit_date'].isoformat()
+        report_dict['created_at'] = report_dict['created_at'].isoformat()
+        report_dict['updated_at'] = report_dict['updated_at'].isoformat()
+        
+        # Insert into database
+        await mongo_db.insert_one("audit_reports", report_dict)
+        
+        # Fetch and return created report
+        created_report = await mongo_db.find_one("audit_reports", {"id": report_id})
+        return AuditReportResponse(**created_report)
+    
+    except Exception as e:
+        logger.error(f"Error creating audit report: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to create audit report: {str(e)}")
+
+@api_router.put("/audit-reports/{report_id}", response_model=AuditReportResponse)
+async def update_audit_report(
+    report_id: str, 
+    report_data: AuditReportUpdate, 
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Update an existing audit report"""
+    try:
+        logger.info(f"Updating audit report: {report_id}")
+        
+        # Check if report exists
+        existing_report = await mongo_db.find_one("audit_reports", {"id": report_id})
+        if not existing_report:
+            raise HTTPException(status_code=404, detail="Audit report not found")
+        
+        # Prepare update data (only fields that are provided)
+        update_dict = {k: v for k, v in report_data.dict(exclude_unset=True).items() if v is not None}
+        update_dict['updated_at'] = datetime.now(timezone.utc)
+        
+        # Convert datetime to ISO string
+        if update_dict.get('audit_date'):
+            update_dict['audit_date'] = update_dict['audit_date'].isoformat()
+        if update_dict.get('next_audit_date'):
+            update_dict['next_audit_date'] = update_dict['next_audit_date'].isoformat()
+        update_dict['updated_at'] = update_dict['updated_at'].isoformat()
+        
+        # Update report
+        await mongo_db.update_one("audit_reports", {"id": report_id}, {"$set": update_dict})
+        
+        # Fetch and return updated report
+        updated_report = await mongo_db.find_one("audit_reports", {"id": report_id})
+        return AuditReportResponse(**updated_report)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating audit report: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update audit report: {str(e)}")
+
+@api_router.post("/audit-reports/bulk-delete")
+async def bulk_delete_audit_reports(
+    request: dict,
+    background_tasks: BackgroundTasks,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Bulk delete audit reports
+    Also deletes associated Google Drive files in background
+    """
+    try:
+        report_ids = request.get('report_ids', [])
+        logger.info(f"🗑️ Bulk deleting {len(report_ids)} audit reports")
+        
+        if not report_ids:
+            raise HTTPException(status_code=400, detail="No report IDs provided")
+        
+        # Fetch all reports to get file IDs for Google Drive deletion
+        reports_to_delete = []
+        for report_id in report_ids:
+            report = await mongo_db.find_one("audit_reports", {"id": report_id})
+            if report:
+                reports_to_delete.append(report)
+        
+        # Delete from database
+        deleted_count = 0
+        errors = []
+        
+        for report_id in report_ids:
+            try:
+                result = await mongo_db.delete_one("audit_reports", {"id": report_id})
+                if result:
+                    deleted_count += 1
+            except Exception as e:
+                errors.append({"report_id": report_id, "error": str(e)})
+                logger.error(f"Error deleting audit report {report_id}: {e}")
+        
+        # Schedule Google Drive file deletion in background
+        files_to_delete = []
+        for report in reports_to_delete:
+            if report.get('audit_report_file_id'):
+                files_to_delete.append(report['audit_report_file_id'])
+            if report.get('audit_report_summary_file_id'):
+                files_to_delete.append(report['audit_report_summary_file_id'])
+        
+        if files_to_delete:
+            background_tasks.add_task(delete_gdrive_files_background, files_to_delete, current_user.company)
+        
+        return {
+            "success": True,
+            "deleted_count": deleted_count,
+            "files_deleted": len(files_to_delete),
+            "errors": errors
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in bulk delete audit reports: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete audit reports: {str(e)}")
+
+@api_router.post("/audit-reports/analyze")
+async def analyze_audit_report_file(
+    ship_id: str = Form(...),
+    file: UploadFile = File(...),
+    bypass_validation: bool = Form(False),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Analyze audit report file using AI
+    Extracts: audit_report_name, audit_type, audit_report_no, audit_date, audited_by, auditor_name, status
+    """
+    try:
+        logger.info(f"🤖 AI analyzing audit report file: {file.filename}")
+        
+        # Read file content
+        file_content = await file.read()
+        file_b64 = base64.b64encode(file_content).decode('utf-8')
+        
+        # Get ship details for context
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship and not bypass_validation:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get('name', 'Unknown') if ship else 'Unknown'
+        ship_imo = ship.get('imo', '') if ship else ''
+        
+        # Get AI config
+        company_id = current_user.company
+        ai_config = await mongo_db.find_one("ai_configs", {"company_id": company_id})
+        
+        if not ai_config or not ai_config.get('emergent_llm_key'):
+            raise HTTPException(status_code=400, detail="AI configuration not found. Please configure AI settings first.")
+        
+        # Prepare AI prompt for audit report analysis
+        system_prompt = """You are an expert at analyzing maritime audit reports (ISM, ISPS, MLC, SMC, DOC).
+Extract the following information from the audit report:
+- audit_report_name: Full name of the audit report
+- audit_type: Type of audit (ISM, ISPS, MLC, SMC, DOC, Internal Audit, External Audit, etc.)
+- audit_report_no: Audit report number or certificate number
+- audit_date: Date when audit was conducted (ISO format: YYYY-MM-DD)
+- audited_by: Name of auditing company or organization
+- auditor_name: Name of the auditor(s)
+- status: Current status (Valid, Expired, Pending)
+- note: Any important notes or observations
+
+Return ONLY a JSON object with these fields. If a field cannot be determined, use null."""
+
+        user_prompt = f"""Analyze this audit report for ship "{ship_name}" (IMO: {ship_imo}).
+File name: {file.filename}
+
+Extract audit report information and return as JSON."""
+
+        # Call AI service
+        from emergentintegrations import EmergentAIGateway
+        
+        gateway = EmergentAIGateway(api_key=ai_config['emergent_llm_key'])
+        
+        ai_response = gateway.generate_from_base64_image(
+            image_base64=file_b64,
+            user_prompt=user_prompt,
+            system_prompt=system_prompt,
+            response_format="json"
+        )
+        
+        # Parse AI response
+        import json
+        try:
+            analysis = json.loads(ai_response)
+        except:
+            # If AI returns markdown json, extract it
+            json_match = re.search(r'```json\s*(.*?)\s*```', ai_response, re.DOTALL)
+            if json_match:
+                analysis = json.loads(json_match.group(1))
+            else:
+                analysis = json.loads(ai_response)
+        
+        # Add file info for upload
+        analysis['_file_content'] = file_b64
+        analysis['_filename'] = file.filename
+        analysis['_content_type'] = file.content_type or 'application/pdf'
+        
+        logger.info(f"✅ AI analysis complete for audit report: {analysis.get('audit_report_name', 'Unknown')}")
+        
+        return {
+            "success": True,
+            "analysis": analysis,
+            "message": "Audit report analyzed successfully"
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing audit report file: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to analyze audit report: {str(e)}")
+
+@api_router.post("/audit-reports/{report_id}/upload-files")
+async def upload_audit_report_files(
+    report_id: str,
+    request: dict,
+    background_tasks: BackgroundTasks,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Upload audit report files to Google Drive
+    Uploads original file and optionally summary file
+    """
+    try:
+        logger.info(f"📤 Uploading files for audit report: {report_id}")
+        
+        # Get report
+        report = await mongo_db.find_one("audit_reports", {"id": report_id})
+        if not report:
+            raise HTTPException(status_code=404, detail="Audit report not found")
+        
+        # Get ship and company info
+        ship = await mongo_db.find_one("ships", {"id": report['ship_id']})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        company_id = current_user.company
+        
+        # Decode file content
+        file_content = base64.b64decode(request['file_content'])
+        filename = request['filename']
+        content_type = request.get('content_type', 'application/pdf')
+        summary_text = request.get('summary_text')
+        
+        # Upload original file
+        gdrive_manager = GoogleDriveManager(company_id)
+        
+        # Path: {Ship Name}/ISM-ISPS-MLC/Audit Report/
+        folder_path = f"{ship['name']}/ISM-ISPS-MLC/Audit Report"
+        
+        # Upload original file
+        file_id = await gdrive_manager.upload_file(
+            file_content=file_content,
+            filename=filename,
+            folder_path=folder_path,
+            mime_type=content_type
+        )
+        
+        # Update report with file ID
+        update_data = {
+            'audit_report_file_id': file_id,
+            'updated_at': datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Upload summary file if provided
+        if summary_text:
+            summary_filename = f"{filename.rsplit('.', 1)[0]}_summary.txt"
+            summary_content = summary_text.encode('utf-8')
+            
+            summary_file_id = await gdrive_manager.upload_file(
+                file_content=summary_content,
+                filename=summary_filename,
+                folder_path=folder_path,
+                mime_type='text/plain'
+            )
+            
+            update_data['audit_report_summary_file_id'] = summary_file_id
+        
+        # Update database
+        await mongo_db.update_one("audit_reports", {"id": report_id}, {"$set": update_data})
+        
+        logger.info(f"✅ Files uploaded successfully for audit report: {report_id}")
+        
+        return {
+            "success": True,
+            "file_id": file_id,
+            "summary_file_id": update_data.get('audit_report_summary_file_id'),
+            "message": "Files uploaded successfully"
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error uploading audit report files: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload audit report files: {str(e)}")
+
+
 # ========== TEST REPORT ENDPOINTS (NEW) ==========
 
 @api_router.get("/test-reports", response_model=List[TestReportResponse])
