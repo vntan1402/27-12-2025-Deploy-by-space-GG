@@ -7656,81 +7656,54 @@ async def analyze_audit_report_file(
         
         logger.info("🤖 Analyzing audit report with Google Document AI...")
         
-        # Prepare AI prompt for audit report analysis
-        system_message = """You are an expert at analyzing maritime audit reports (ISM, ISPS, MLC, SMC, DOC).
-Extract the following information from the audit report:
-- audit_report_name: Full name of the audit report
-- audit_type: Type of audit (ISM, ISPS, MLC, SMC, DOC, Internal Audit, External Audit, etc.)
-- audit_report_no: Audit report number or certificate number
-- audit_date: Date when audit was conducted (ISO format: YYYY-MM-DD)
-- issued_by: Name of issuing company or organization
-- auditor_name: Name of the auditor(s)
-- status: Current status (Valid, Expired, Pending)
-- note: Any important notes or observations
-
-Return ONLY a JSON object with these fields. If a field cannot be determined, use null."""
-
-        user_prompt = f"""Analyze this audit report for ship "{ship_name}" (IMO: {ship_imo}).
-File name: {file.filename}
-
-Extract audit report information and return as JSON."""
-
-        # Call AI service using LlmChat with file content
-        from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
-        import tempfile
-        import json
-        import re
+        # Initialize empty analysis data
+        analysis_result = {
+            "audit_report_name": "",
+            "audit_type": "",
+            "audit_report_no": "",
+            "issued_by": "",
+            "audit_date": "",
+            "ship_name": "",
+            "ship_imo": "",
+            "auditor_name": "",
+            "note": "",
+            "status": "Valid",
+            "confidence_score": 0.0,
+            "processing_method": "clean_analysis"
+        }
         
-        # Create temporary file for Gemini processing
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
-            temp_file.write(file_content)
-            temp_file_path = temp_file.name
+        # Use Dual Apps Script Manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # Store file content FIRST before any analysis
+        analysis_result['_file_content'] = base64.b64encode(file_content).decode('utf-8')
+        analysis_result['_filename'] = filename
+        analysis_result['_content_type'] = audit_report_file.content_type or 'application/octet-stream'
+        analysis_result['_ship_name'] = ship_name
+        analysis_result['_summary_text'] = ''  # Initialize empty, will be filled if AI succeeds
         
         try:
-            # Initialize chat with emergentintegrations
-            chat = LlmChat(
-                api_key=emergent_llm_key,
-                session_id=f"audit_report_analysis_{file.filename}",
-                system_message=system_message
-            ).with_model("gemini", "gemini-2.0-flash")
+            # Support for large PDF files (> 15 pages)
+            logger.info(f"📊 PDF Analysis Decision: needs_split={needs_split}, total_pages={total_pages}")
             
-            # Create file content for analysis
-            pdf_file = FileContentWithMimeType(
-                file_path=temp_file_path,
-                mime_type="application/pdf"
-            )
-            
-            # Create message with PDF attachment
-            user_message = UserMessage(
-                text=user_prompt,
-                file_contents=[pdf_file]
-            )
-            
-            # Analyze with Gemini
-            ai_response = await chat.send_message(user_message)
-            
-        finally:
-            # Clean up temp file
-            import os
-            if os.path.exists(temp_file_path):
-                os.unlink(temp_file_path)
-        
-        # Parse AI response
-        try:
-            # Clean response (remove markdown code blocks if present)
-            clean_response = ai_response.strip()
-            clean_response = clean_response.replace('```json', '').replace('```', '').strip()
-            analysis = json.loads(clean_response)
-        except json.JSONDecodeError:
-            # Try to extract JSON from response using regex
-            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', ai_response, re.DOTALL)
-            if json_match:
-                analysis = json.loads(json_match.group())
-            else:
-                logger.error(f"Failed to parse AI response as JSON: {ai_response[:200]}")
-                raise HTTPException(status_code=500, detail="Failed to parse AI response")
-        
-        logger.info(f"✅ AI analysis complete for audit report: {analysis.get('audit_report_name', 'Unknown')}")
+            if not needs_split:
+                # Normal processing for files ≤ 15 pages
+                logger.info(f"🔄 Analyzing audit report (no upload): {filename}")
+                
+                analysis_only_result = await dual_manager.analyze_audit_report_only(
+                    file_content=file_content,
+                    filename=filename,
+                    content_type=audit_report_file.content_type or 'application/octet-stream',
+                    document_ai_config=document_ai_config
+                )
+                
+                # Process single file result
+                analysis_result['_split_info'] = {
+                    'was_split': False,
+                    'total_pages': total_pages,
+                    'chunks_count': 1
+                }
         
         # Add file content and metadata for later upload (same as Survey Report pattern)
         analysis['_file_content'] = base64.b64encode(file_content).decode('utf-8')
