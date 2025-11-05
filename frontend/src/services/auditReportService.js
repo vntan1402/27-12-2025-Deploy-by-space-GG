@@ -49,7 +49,7 @@ export const auditReportService = {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('ship_id', shipId);
-    formData.append('bypass_validation', bypassValidation);
+    formData.append('bypass_validation', bypassValidation ? 'true' : 'false'); // Convert boolean to string like Survey Report
     
     return await api.post('/api/audit-reports/analyze', formData, {
       headers: {
