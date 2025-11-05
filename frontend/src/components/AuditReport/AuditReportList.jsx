@@ -897,7 +897,7 @@ export const AuditReportList = ({
                         <span 
                           className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
                           title={language === 'vi' 
-                            ? `📄 File gốc\n📁 Đường dẫn: ${selectedShip?.name}/Class & Flag Cert/Class Audit Report/` 
+                            ? `📄 File gốc\n📁 Đường dẫn: ${selectedShip?.name}/ISM-ISPS-MLC/Audit Report/` 
                             : `📄 Original file\n📁 Path: ${selectedShip?.name}/Class & Flag Cert/Class Audit Report/`
                           }
                           onClick={(e) => {
