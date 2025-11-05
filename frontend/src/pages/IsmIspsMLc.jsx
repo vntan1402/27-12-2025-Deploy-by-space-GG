@@ -1167,19 +1167,105 @@ const IsmIspsMLc = () => {
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Edit */}
+          {/* Header showing selection count */}
+          {selectedCertificates.size > 1 ? (
+            <div className="px-4 py-2 text-xs font-semibold text-gray-500 border-b border-gray-200">
+              {selectedCertificates.size} {language === 'vi' ? 'chứng chỉ đã chọn' : 'certificates selected'}
+            </div>
+          ) : (
+            <div className="px-4 py-2 text-xs font-semibold text-gray-500 border-b border-gray-200">
+              {contextMenu.certificate?.cert_abbreviation || contextMenu.certificate?.cert_name}
+            </div>
+          )}
+
+          {/* View File - works for single and multiple */}
           <button
             onClick={() => {
-              handleEditCertificate(contextMenu.certificate);
+              if (selectedCertificates.size > 1) {
+                handleBulkView();
+              } else if (contextMenu.certificate) {
+                handleCertificateDoubleClick(contextMenu.certificate);
+              }
               setContextMenu(null);
             }}
             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
           >
-            <span>✏️</span>
-            <span>{language === 'vi' ? 'Chỉnh sửa' : 'Edit'}</span>
+            <span>👁️</span>
+            {selectedCertificates.size > 1 
+              ? (language === 'vi' ? `Xem file (${selectedCertificates.size} chứng chỉ)` : `View Files (${selectedCertificates.size} certificates)`)
+              : (language === 'vi' ? 'Xem file' : 'View File')
+            }
           </button>
 
-          {/* Delete */}
+          {/* Download - works for single and multiple */}
+          <button
+            onClick={() => {
+              if (selectedCertificates.size > 1) {
+                handleBulkDownload();
+              } else if (contextMenu.certificate?.google_drive_file_id) {
+                window.open(`https://drive.google.com/uc?export=download&id=${contextMenu.certificate.google_drive_file_id}`, '_blank');
+              }
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+          >
+            <span>⬇️</span>
+            {selectedCertificates.size > 1 
+              ? (language === 'vi' ? `Tải xuống (${selectedCertificates.size} file)` : `Download (${selectedCertificates.size} files)`)
+              : (language === 'vi' ? 'Tải xuống' : 'Download')
+            }
+          </button>
+
+          {/* Copy Link - works for single and multiple */}
+          <button
+            onClick={() => {
+              handleBulkCopyLinks();
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+          >
+            <span>🔗</span>
+            {selectedCertificates.size > 1 
+              ? (language === 'vi' ? `Sao chép link (${selectedCertificates.size} file)` : `Copy Links (${selectedCertificates.size} files)`)
+              : (language === 'vi' ? 'Copy link' : 'Copy Link')
+            }
+          </button>
+
+          {selectedCertificates.size === 1 && (
+            <>
+              <div className="border-t border-gray-200 my-1"></div>
+              
+              {/* Auto Rename File - single file only */}
+              {contextMenu.certificate?.google_drive_file_id && (
+                <button
+                  onClick={() => {
+                    handleAutoRenameFile(contextMenu.certificate);
+                    setContextMenu(null);
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2"
+                >
+                  <span>⚡</span>
+                  <span>{language === 'vi' ? 'Đổi tên file tự động' : 'Auto Rename File'}</span>
+                </button>
+              )}
+              
+              <div className="border-t border-gray-200 my-1"></div>
+              
+              {/* Edit - single only */}
+              <button
+                onClick={() => {
+                  handleEditCertificate(contextMenu.certificate);
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+              >
+                <span>✏️</span>
+                <span>{language === 'vi' ? 'Chỉnh sửa' : 'Edit'}</span>
+              </button>
+            </>
+          )}
+
+          {/* Delete - works for single and multiple */}
           <button
             onClick={() => {
               handleDeleteCertificate(contextMenu.certificate);
@@ -1188,64 +1274,11 @@ const IsmIspsMLc = () => {
             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
           >
             <span>🗑️</span>
-            <span>{language === 'vi' ? 'Xóa' : 'Delete'}</span>
+            {selectedCertificates.size > 1 
+              ? (language === 'vi' ? `Xóa (${selectedCertificates.size} chứng chỉ)` : `Delete (${selectedCertificates.size} certificates)`)
+              : (language === 'vi' ? 'Xóa' : 'Delete')
+            }
           </button>
-
-          {/* View File */}
-          {contextMenu.certificate?.google_drive_file_id && (
-            <>
-              <div className="border-t border-gray-200 my-1"></div>
-              <button
-                onClick={() => {
-                  window.open(`https://drive.google.com/file/d/${contextMenu.certificate.google_drive_file_id}/view`, '_blank');
-                  setContextMenu(null);
-                }}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
-              >
-                <span>👁️</span>
-                <span>{language === 'vi' ? 'Xem file' : 'View File'}</span>
-              </button>
-
-              {/* Download */}
-              <button
-                onClick={() => {
-                  window.open(`https://drive.google.com/uc?export=download&id=${contextMenu.certificate.google_drive_file_id}`, '_blank');
-                  setContextMenu(null);
-                }}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
-              >
-                <span>⬇️</span>
-                <span>{language === 'vi' ? 'Tải xuống' : 'Download'}</span>
-              </button>
-
-              {/* Copy Link */}
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(`https://drive.google.com/file/d/${contextMenu.certificate.google_drive_file_id}/view`);
-                  toast.success(language === 'vi' ? 'Đã copy link' : 'Link copied');
-                  setContextMenu(null);
-                }}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
-              >
-                <span>🔗</span>
-                <span>{language === 'vi' ? 'Copy link' : 'Copy Link'}</span>
-              </button>
-              
-              <div className="border-t border-gray-200 my-1"></div>
-              
-              {/* Auto Rename File */}
-              <button
-                onClick={() => {
-                  handleAutoRenameFile(contextMenu.certificate);
-                  setContextMenu(null);
-                }}
-                className="w-full px-4 py-2 text-left text-sm hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2"
-              >
-                <span>⚡</span>
-                <span>{language === 'vi' ? 'Đổi tên file tự động' : 'Auto Rename File'}</span>
-              </button>
-            </>
-          )}
         </div>
       )}
 
