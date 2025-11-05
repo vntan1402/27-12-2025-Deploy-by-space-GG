@@ -895,6 +895,210 @@ const IsmIspsMLc = () => {
     }
   };
 
+  // ========== AUDIT REPORT HANDLERS ==========
+  
+  // Fetch audit reports
+  const fetchAuditReports = async () => {
+    if (!selectedShip) return;
+    
+    try {
+      setAuditReportsLoading(true);
+      const response = await auditReportService.getAll(selectedShip.id);
+      const data = response.data || response || [];
+      setAuditReports(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Failed to fetch audit reports:', error);
+      toast.error(language === 'vi' ? 'Không thể tải audit reports' : 'Failed to load audit reports');
+      setAuditReports([]);
+    } finally {
+      setAuditReportsLoading(false);
+    }
+  };
+
+  // Refresh audit reports
+  const handleRefreshAuditReports = async () => {
+    setIsRefreshingAuditReports(true);
+    await fetchAuditReports();
+    setIsRefreshingAuditReports(false);
+    toast.success(language === 'vi' ? 'Đã cập nhật danh sách!' : 'List refreshed!');
+  };
+
+  // Selection handlers
+  const handleSelectAuditReport = (reportId) => {
+    setSelectedAuditReports(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(reportId)) {
+        newSet.delete(reportId);
+      } else {
+        newSet.add(reportId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAllAuditReports = (checked) => {
+    if (checked) {
+      setSelectedAuditReports(new Set(auditReports.map(r => r.id)));
+    } else {
+      setSelectedAuditReports(new Set());
+    }
+  };
+
+  // Batch processing
+  const startBatchProcessingAuditReports = async (files) => {
+    setIsBatchProcessingAuditReports(true);
+    setAuditReportBatchProgress({ current: 0, total: files.length });
+    setAuditReportFileProgressMap({});
+    setAuditReportFileStatusMap({});
+    setAuditReportFileSubStatusMap({});
+    setAuditReportBatchResults([]);
+
+    const results = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileName = file.name;
+
+      try {
+        // Update progress
+        setAuditReportBatchProgress({ current: i + 1, total: files.length });
+        setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 0 }));
+        setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'processing' }));
+        setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: 'Analyzing...' }));
+
+        // Process file
+        const result = await processSingleAuditReportFile(file, fileName);
+        results.push(result);
+
+        // Update status
+        setAuditReportFileStatusMap(prev => ({ 
+          ...prev, 
+          [fileName]: result.success ? 'success' : 'error' 
+        }));
+        setAuditReportFileSubStatusMap(prev => ({ 
+          ...prev, 
+          [fileName]: result.success ? 'Completed' : result.error 
+        }));
+
+      } catch (error) {
+        results.push({
+          success: false,
+          fileName: fileName,
+          error: error.message || 'Unknown error'
+        });
+        setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'error' }));
+        setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: error.message }));
+      }
+    }
+
+    // Finish batch processing
+    setIsBatchProcessingAuditReports(false);
+    setAuditReportBatchResults(results);
+    setShowAuditReportBatchResults(true);
+    
+    // Refresh list
+    await fetchAuditReports();
+  };
+
+  // Process single audit report file
+  const processSingleAuditReportFile = async (file, fileName) => {
+    try {
+      // Step 1: AI Analysis
+      setAuditReportFileSubStatusMap(prev => ({ 
+        ...prev, 
+        [fileName]: 'AI analyzing...' 
+      }));
+      
+      const analysisResponse = await auditReportService.analyzeFile(
+        selectedShip.id,
+        file,
+        false
+      );
+
+      if (!analysisResponse.data?.success) {
+        throw new Error('AI analysis failed');
+      }
+
+      const analysis = analysisResponse.data.analysis;
+
+      // Step 2: Create report record
+      setAuditReportFileSubStatusMap(prev => ({ 
+        ...prev, 
+        [fileName]: 'Creating record...' 
+      }));
+
+      const reportData = {
+        ship_id: selectedShip.id,
+        audit_report_name: analysis.audit_report_name || file.name,
+        audit_type: analysis.audit_type || null,
+        audit_report_no: analysis.audit_report_no || null,
+        audit_date: analysis.audit_date || null,
+        audited_by: analysis.audited_by || null,
+        auditor_name: analysis.auditor_name || null,
+        status: analysis.status || 'Valid',
+        note: analysis.note || null
+      };
+
+      const createResponse = await auditReportService.create(reportData);
+      const reportId = createResponse.data.id;
+
+      // Step 3: Upload files to Google Drive
+      setAuditReportFileSubStatusMap(prev => ({ 
+        ...prev, 
+        [fileName]: 'Uploading to Drive...' 
+      }));
+
+      await auditReportService.uploadFiles(
+        reportId,
+        analysis._file_content,
+        analysis._filename,
+        analysis._content_type,
+        null // summary text (optional)
+      );
+
+      return {
+        success: true,
+        fileName: fileName,
+        reportName: analysis.audit_report_name,
+        reportNo: analysis.audit_report_no
+      };
+
+    } catch (error) {
+      console.error(`Error processing ${fileName}:`, error);
+      return {
+        success: false,
+        fileName: fileName,
+        error: error.message || 'Unknown error'
+      };
+    }
+  };
+
+  // Save notes
+  const handleSaveAuditReportNotes = async () => {
+    try {
+      const reportId = auditReportNotesModal.report?.id;
+      const notes = auditReportNotesModal.notes;
+
+      await auditReportService.update(reportId, { note: notes });
+      
+      toast.success(language === 'vi' ? 'Đã lưu ghi chú!' : 'Notes saved!');
+      setAuditReportNotesModal({ show: false, report: null, notes: '' });
+      
+      // Refresh list
+      await fetchAuditReports();
+    } catch (error) {
+      console.error('Error saving notes:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi lưu ghi chú' : 'Error saving notes');
+    }
+  };
+
+  // Fetch audit reports when ship changes or submenu changes to audit_report
+  useEffect(() => {
+    if (selectedShip && selectedSubMenu === 'audit_report') {
+      fetchAuditReports();
+    }
+  }, [selectedShip, selectedSubMenu]);
+
 
   return (
     <MainLayout
