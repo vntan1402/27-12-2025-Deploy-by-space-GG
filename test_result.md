@@ -49,6 +49,7 @@
 ##
 ## test_plan:
   current_focus:
+    - "Audit Report AI Configuration Fix - Harmonized with Survey Report Pattern"
     - "Delete Ship Feature - Google Drive Folder Deletion Fix"
     - "Certificate Name Searchable Dropdown in Edit Modal"
     - "Auto Move Standby Files Feature"
