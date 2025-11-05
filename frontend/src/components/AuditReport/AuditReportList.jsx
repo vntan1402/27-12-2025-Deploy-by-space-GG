@@ -634,7 +634,7 @@ export const AuditReportList = ({
       <div className="text-center py-12 text-gray-500">
         <div className="text-6xl mb-4">🚢</div>
         <p className="text-lg">
-          {language === 'vi' ? 'Vui lòng chọn tàu để xem Class Audit Report' : 'Please select a ship to view Class Audit Report'}
+          {language === 'vi' ? 'Vui lòng chọn tàu để xem Báo cáo Audit' : 'Please select a ship to view Audit Reports'}
         </p>
       </div>
     );
