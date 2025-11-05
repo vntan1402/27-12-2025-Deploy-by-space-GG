@@ -495,37 +495,37 @@ This is a test audit report for API testing purposes.
             self.print_result(False, f"Exception during audit report analysis test: {str(e)}")
             return False
     
-    def check_background_deletion_logs(self):
-        """Helper method to check backend logs for background deletion messages"""
+    def check_ai_config_logs(self):
+        """Helper method to check backend logs for AI config retrieval messages"""
         try:
             import subprocess
-            result = subprocess.run(['tail', '-n', '100', '/var/log/supervisor/backend.err.log'], 
+            result = subprocess.run(['tail', '-n', '200', '/var/log/supervisor/backend.out.log'], 
                                   capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
                 log_content = result.stdout
                 
-                # Check for expected background task log messages
-                background_started = "🔄 Background task started: Deleting files for crew" in log_content
-                passport_deleted = "✅ Background: Passport file deleted:" in log_content
-                summary_deleted = "✅ Background: Summary file deleted:" in log_content
-                task_completed = "✅ Background task completed: Deleted" in log_content
+                # Check for expected AI config log messages
+                system_ai_config = "✅ Using emergent_llm_key from system AI config" in log_content
+                fallback_key = "⚠️ No system AI config found, using fallback emergent_llm_key" in log_content
+                ai_analysis = "🤖 Starting AI analysis" in log_content or "AI analysis" in log_content
+                gemini_model = "gemini" in log_content.lower()
                 
-                print(f"   📋 Background task started: {'✅ FOUND' if background_started else '❌ NOT FOUND'}")
-                print(f"   📋 Passport file deleted: {'✅ FOUND' if passport_deleted else '❌ NOT FOUND'}")
-                print(f"   📋 Summary file deleted: {'✅ FOUND' if summary_deleted else '❌ NOT FOUND'}")
-                print(f"   📋 Task completed: {'✅ FOUND' if task_completed else '❌ NOT FOUND'}")
+                print(f"   📋 System AI config used: {'✅ FOUND' if system_ai_config else '❌ NOT FOUND'}")
+                print(f"   📋 Fallback key used: {'✅ FOUND' if fallback_key else '❌ NOT FOUND'}")
+                print(f"   📋 AI analysis started: {'✅ FOUND' if ai_analysis else '❌ NOT FOUND'}")
+                print(f"   📋 Gemini model used: {'✅ FOUND' if gemini_model else '❌ NOT FOUND'}")
                 
                 # Print recent relevant log lines
                 lines = log_content.split('\n')
                 relevant_lines = [line for line in lines if any(keyword in line for keyword in 
-                                ['Background task', 'Background:', 'Deleting files for crew'])]
+                                ['AI config', 'emergent_llm_key', 'AI analysis', 'gemini', 'system_ai'])]
                 
                 if relevant_lines:
-                    print(f"\n📄 Recent background deletion logs:")
-                    for line in relevant_lines[-5:]:  # Last 5 relevant lines
+                    print(f"\n📄 Recent AI config logs:")
+                    for line in relevant_lines[-10:]:  # Last 10 relevant lines
                         print(f"   {line}")
                 else:
-                    print(f"   ⚠️ No background deletion logs found yet (may still be processing)")
+                    print(f"   ⚠️ No AI config logs found")
                     
             else:
                 print(f"   ⚠️ Could not read backend logs")
