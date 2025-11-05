@@ -1033,7 +1033,7 @@ const IsmIspsMLc = () => {
         audit_type: analysis.audit_type || null,
         audit_report_no: analysis.audit_report_no || null,
         audit_date: analysis.audit_date || null,
-        audited_by: analysis.audited_by || null,
+        issued_by: analysis.issued_by || null,
         auditor_name: analysis.auditor_name || null,
         status: analysis.status || 'Valid',
         note: analysis.note || null
