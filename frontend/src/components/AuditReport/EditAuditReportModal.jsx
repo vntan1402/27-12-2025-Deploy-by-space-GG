@@ -30,7 +30,7 @@ export const EditAuditReportModal = ({ isOpen, onClose, report, onReportUpdated 
         audit_type: report.audit_type || '',
         audit_report_no: report.audit_report_no || '',
         audit_date: report.audit_date ? report.audit_date.split('T')[0] : '',
-        audited_by: report.audited_by || '',
+        issued_by: report.issued_by || '',
         status: report.status || 'Valid',
         note: report.note || '',
         auditor_name: report.auditor_name || ''
