@@ -1014,7 +1014,7 @@ This is a fallback test audit report for API testing.
             ("Setup - Authentication", self.test_authentication),
             ("Setup - Company ID Resolution", self.test_get_company_id),
             ("Setup - Get Ships List", self.test_get_ships_list),
-            ("Test 1 - Audit Report AI Analysis", self.test_audit_report_analyze_endpoint),
+            ("Test 1 - Audit Report AI Analysis with REAL PDF", self.test_audit_report_analyze_endpoint),
             ("Test 2 - Error Handling: Invalid Ship ID", self.test_error_handling_invalid_ship),
             ("Test 3 - Error Handling: Non-PDF File", self.test_error_handling_non_pdf_file),
             ("Test 4 - Error Handling: No Authentication", self.test_authentication_error_handling),
