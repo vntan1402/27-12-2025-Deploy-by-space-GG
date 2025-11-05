@@ -1,100 +1,74 @@
 <analysis>
-The AI engineer's work during this trajectory predominantly focused on the  module, specifically enhancing  functionalities. Initial efforts involved resolving an issue where the  state wasn't propagated to the  component, and implementing batch Google Drive link retrieval. Subsequent critical tasks included fixing a  scoping error in the backend's  endpoint and iteratively refining the  and  calculation and display logic based on continuous user feedback. The engineer also addressed UI/UX improvements by updating dropdown options in modals and standardizing the status display in tables, while also implementing bulk file operations. The trajectory highlights an iterative, feedback-driven development process with frequent debugging.
+The AI engineer's work during this trajectory predominantly focused on the  module. Initial efforts involved resolving  state propagation, batch Google Drive link retrieval, and backend  scoping errors. A significant phase harmonized  logic for both Ship and Audit Certificates, adopting a simpler, annotation-based approach, along with UI standardization and default annotation fallback. Subsequently, the  functionality was fully migrated to an  module, involving extensive creation of frontend components, services, and backend API endpoints. This migration required thorough refactoring of the new  component to use parent props, resolving numerous compilation and linting errors, and meticulous review of labels and file paths for internationalization. The trajectory concluded with debugging issues related to AI configuration for the new  analysis, identifying discrepancies in AI config lookup methods and an empty database for AI settings.
 </analysis>
 
 <product_requirements>
-The primary goal is to enhance the  module for , building upon existing AI-powered analysis and Google Drive integration. Recent explicit requests involved:
-1.  Ensure  state is passed to .
-2.  Implement Batch get Drive links with progress for Audit Certificates.
-3.  Correct the display of Next Survey for Interim certificates (show Valid Date (-3M) instead of calculated date).
-4.  Correct the display of Next Survey for Full Term certificates without Last Endorse (show calculated date (-2 years) with (±3M) annotation).
-5.  Modify the Next Survey Type dropdown list in Add/Edit modals to remove Annual, Special, and add Initial, while keeping Intermediate, Renewal.
-6.  Resolve issues with Safety Management Certificate abbreviation displaying as SM instead of SMC.
-7.  Redefine the  logic with specific window definitions, overdue, due soon, and critical conditions for Initial, Renewal, and Intermediate types.
-8.  Update the display message for upcoming surveys from cần khảo sát trong 30 ngày tới to cần đánh giá trong những ngày tới.
-9.  Standardize the  UI to match 's table format.
-10. Implement bulk operations (copy link, view, download) for Audit Certificates, mirroring Ship Certificate functionality.
-11. Clarify and adjust the display logic for the Status column, specifically changing Over Due to Due Soon and comparing against window_close instead of Valid Date.
+The primary goal is to enhance the  module for  and introduce . Key requests included:
+1.  Harmonize  calculation and display logic for Ship and Audit Certificates, adopting the Audit Certificate's annotation-based approach.
+2.  Implement a fallback for  calculation to auto-use  if no annotation exists for both Ship and Audit Certificates.
+3.  Format  dates in modals to .
+4.  Migrate the entire  functionality, including UI, services, and backend, to a new  module within .
+5.  Refactor the new  component for modularity and prop-based data handling.
+6.  Review and correct all labels, I18n strings, and file paths for the  module.
+7.  Investigate and resolve issues with AI configuration and analysis for the  feature, including rechecking the AI setup method in  as a reference.
 </product_requirements>
 
 <key_technical_concepts>
--   **Frontend**: React.js (state, hooks, components, modals),  for API calls, Tailwind CSS.
--   **Backend**: FastAPI (API endpoints, ), MongoDB (UUIDs), date/time manipulation (, ).
--   **Patterns**: Modular design, iterative development, UI/UX consistency, error handling, background processing.
+-   **Frontend**: React.js (state, hooks, components, modals),  for API calls, Tailwind CSS for styling, Internationalization (I18n).
+-   **Backend**: FastAPI (API endpoints, ), MongoDB (UUIDs, schema for Audit Reports),  manipulation.
+-   **Patterns**: Modular component design, iterative development, UI/UX consistency, error handling, background processing, API service abstraction.
+-   **External**: Google Drive integration (for file links), Emergent LLM Key (for AI analysis).
 </key_technical_concepts>
 
 <code_architecture>
 
--   ****: FastAPI application.
-    -   **Importance**: Central API for all backend operations.
+-   ****:
+    -   **Importance**: Handles all backend API logic.
     -   **Changes**:
-        -   Fixed  scoping issue in .
-        -   Updated  to adjust Next Survey display logic for Interim (Valid Date -3M) and Full Term (calculated date ±3M) certificates.
-        -   Added  API endpoint and fixed previous conflicts.
-        -   Completely refactored  endpoint with new logic based on  window and status (Due Soon, Critical, Overdue).
-        -   Corrected endpoint order to resolve 404 for .
-        -   Fixed  error for .
--   ****: Main page for ISM-ISPS-MLC module.
-    -   **Importance**: Renders Audit Certificates, manages state, and integrates components.
-    -   **Changes**:
-        -    state passed to  (already present, verified).
-        -   Added  and  states for batch link retrieval.
-        -   Implemented  function for batch link fetching, using  to trigger it.
-        -   Passed new  and  props to .
-        -   Fixed API call in  to use .
-        -   Implemented , ,  functions.
-        -   Updated the certificate context menu to include bulk actions.
--   ****: Modal for adding audit certificates.
-    -   **Importance**: UI for certificate uploads and data entry.
-    -   **Changes**: Updated Next Survey Type dropdown to remove Annual, Special and add Initial.
--   ****: Modal for editing audit certificates.
-    -   **Importance**: UI for modifying existing certificate data.
-    -   **Changes**: Updated Next Survey Type dropdown to remove Annual, Special and add Initial.
--   ****: Action buttons for audit certificates.
-    -   **Importance**: Provides various actions like add, delete, update.
-    -   **Changes**: Verified to correctly receive and use  (already present).
--   ****: Frontend service for Audit Certificate API calls.
-    -   **Importance**: Abstracts API interactions.
-    -   **Changes**: Added  function to call the backend endpoint.
--   ****: Modal displaying upcoming audit surveys.
-    -   **Importance**: Presents summarized upcoming survey information.
-    -   **Changes**:
-        -   Updated message cần khảo sát trong 30 ngày tới to cần đánh giá trong những ngày tới.
-        -   Refactored UI to match  (table format, color-coded badges, row highlighting).
--   ****: Table displaying audit certificates.
-    -   **Importance**: Renders the list of audit certificates.
-    -   **Changes**: Changed status text from Over Due to Due Soon. Modified status calculation to compare against  instead of .
--   ****: Table displaying ship certificates.
-    -   **Importance**: Renders the list of ship certificates.
-    -   **Changes**: Changed status text from Over Due to Due Soon. Modified status calculation to compare against  instead of .
--   ****: Modal displaying upcoming ship surveys.
-    -   **Importance**: Reference for  UI. No direct changes in trajectory.
+        -   Refactored  endpoint to use a simpler, annotation-based logic similar to Audit Certificates.
+        -   Implemented fallback logic for upcoming survey calculation to default to  if no annotation for both Ship and Audit Certificates.
+        -   Added new Pydantic models (, , ) and 6 API endpoints ( for CRUD and analyze functionality).
+        -   Improved error handling for  endpoint.
+-   ****:
+    -   **Importance**: Main page for , now integrating  functionality.
+    -   **Changes**: Imported  components and service. Added state, handlers, and replaced the  placeholder with  and its associated modals.
+-   ****:
+    -   **Importance**: Displays upcoming ship surveys.
+    -   **Changes**: UI updated to match  styling, now uses  for date formatting.
+-   ****:
+    -   **Importance**: Displays upcoming audit surveys.
+    -   **Changes**: Now uses  for  to ensure  format.
+-   ** (NEW directory)**: Contains the new components for .
+    -   ****: Copied from  and refactored to be a pure component, receiving data and callbacks via props. Resolved multiple compilation errors, duplicate declarations, and updated labels/file paths for  context.
+    -   ****, ****, ****: New modals adapted from  counterparts.
+    -   ****: Exports all  components.
+-   ** (NEW file)**:
+    -   **Importance**: Frontend service for  API interactions.
+    -   **Changes**: Provides functions for CRUD operations and AI analysis for audit reports.
+-   ****:
+    -   **Importance**: Central export for all frontend services.
+    -   **Changes**: Added export for .
+-   ****:
+    -   **Importance**: Provides utility functions for date manipulation and formatting.
+    -   **Changes**: Confirmed existence of  for  formatting.
 </code_architecture>
 
 <pending_tasks>
 -   Full testing of Sync from Drive functionality UI.
--   Bulk export/download for certificates via context menu (partially done: bulk view/download/copy links are implemented, but export is not explicitly confirmed).
--   Certificate File Viewer (embedded PDF viewer in modal, navigation, zoom, etc.).
--   Scalability improvements (load testing, Redis caching, query optimization, monitoring, sharding,  conversion, performance monitoring).
--   Implement toast notifications for Deleting files on Drive (start) and Successfully deleted X files (completion) for both  and .
+-   Bulk export/download for certificates via context menu.
+-   Certificate File Viewer.
+-   Scalability improvements.
+-   Toast notifications for Deleting files on Drive for  and .
 -   Finish implementing the  component (for Crew Records).
--   Verify the background file deletion for crew records.
+-   Verify background file deletion for crew records.
+-   Comprehensive testing of the newly migrated  module (Phase 11).
+-   Address AI configuration for , resolve lookup discrepancies, and set up a default AI config.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was working on refining the display logic for certificate statuses. The user requested to change the status comparison in the  and  from comparing against  to comparing against .
-
-Specifically:
--   **Backend:** The  function and the  endpoint have been updated multiple times to correctly calculate and display  dates based on certificate type (Interim, Full Term) and last endorse dates. The  endpoint logic has also been heavily revised based on user requirements.
--   **Frontend:** The  and  components'  function has been modified.
-    -   Previously, it compared  with .
-    -   The user requested to compare  with , which is derived from the  annotations (e.g., ±3M, -3M).
-    -   The AI engineer has already implemented this change in both  and .
-    -   The latest action was to restart the frontend after applying this change to .
-
-The current state is that the  function in both certificate tables has been updated to use  for status comparison.
+Immediately before this summary request, the AI engineer was investigating an issue where  analysis () was failing with 403/400 errors. The core problem is that AI configuration data is missing in the database for the current company/ship. The AI engineer has identified a discrepancy in AI config lookup: older modules (like ) use  with the  collection, while the new  module's analyze endpoint seems to expect configuration tied to  and potentially interacts with an  collection. All attempts to query existing ship or AI config data from the database returned empty results, suggesting a data persistence or environment setup issue. The AI engineer has already retrieved the . The current task is to Kiểm tra lại cách cài đặt AI trong Survey report (Recheck AI setup method in Survey report) to understand a working configuration as a reference for fixing the  AI analysis.
 </current_work>
 
 <optional_next_step>
-Continue checking the logic of Ship Certificate Upcoming Survey as requested by the user: Kiểm tra lại đoạnc code tính Upcoming Survey cho Ship Certificate.
+Recheck the AI setup method for  to understand its working configuration.
 </optional_next_step>
