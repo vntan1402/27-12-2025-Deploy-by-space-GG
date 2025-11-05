@@ -639,6 +639,216 @@ const IsmIspsMLc = () => {
     }
   };
 
+  // Handle bulk view files - open multiple files in new tabs
+  const handleBulkView = async () => {
+    if (selectedCertificates.size === 0) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn chứng chỉ' : 'Please select certificates');
+      return;
+    }
+
+    try {
+      const selectedCerts = auditCertificates.filter(cert => selectedCertificates.has(cert.id));
+      const certsWithFiles = selectedCerts.filter(cert => cert.google_drive_file_id);
+
+      if (certsWithFiles.length === 0) {
+        toast.warning(
+          language === 'vi'
+            ? 'Không có chứng chỉ nào có file đính kèm'
+            : 'No certificates have attached files'
+        );
+        return;
+      }
+
+      // Open files in new tabs (limit to 10 to avoid browser blocking)
+      const limit = Math.min(certsWithFiles.length, 10);
+      for (let i = 0; i < limit; i++) {
+        const cert = certsWithFiles[i];
+        
+        // Check cache first
+        let viewUrl = certificateLinksCache[cert.google_drive_file_id];
+        
+        if (!viewUrl) {
+          // Fetch from API if not cached
+          const response = await api.get(`/api/gdrive/file/${cert.google_drive_file_id}/view`);
+          if (response.data?.success && response.data?.view_url) {
+            viewUrl = response.data.view_url;
+            // Update cache
+            setCertificateLinksCache(prev => ({
+              ...prev,
+              [cert.google_drive_file_id]: viewUrl
+            }));
+          }
+        }
+        
+        if (viewUrl) {
+          window.open(viewUrl, '_blank', 'noopener,noreferrer');
+        }
+      }
+
+      if (certsWithFiles.length > 10) {
+        toast.info(
+          language === 'vi'
+            ? `📄 Đã mở ${limit} file đầu tiên (giới hạn trình duyệt)`
+            : `📄 Opened first ${limit} files (browser limit)`
+        );
+      } else {
+        toast.success(
+          language === 'vi'
+            ? `📄 Đã mở ${limit} file`
+            : `📄 Opened ${limit} files`
+        );
+      }
+    } catch (error) {
+      console.error('Bulk view error:', error);
+      toast.error(
+        language === 'vi'
+          ? '❌ Lỗi khi mở file'
+          : '❌ Error opening files'
+      );
+    }
+  };
+
+  // Handle bulk download files
+  const handleBulkDownload = async () => {
+    if (selectedCertificates.size === 0) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn chứng chỉ' : 'Please select certificates');
+      return;
+    }
+
+    try {
+      const selectedCerts = auditCertificates.filter(cert => selectedCertificates.has(cert.id));
+      const certsWithFiles = selectedCerts.filter(cert => cert.google_drive_file_id);
+
+      if (certsWithFiles.length === 0) {
+        toast.warning(
+          language === 'vi'
+            ? 'Không có chứng chỉ nào có file đính kèm'
+            : 'No certificates have attached files'
+        );
+        return;
+      }
+
+      toast.info(
+        language === 'vi'
+          ? `📥 Đang tải xuống ${certsWithFiles.length} file...`
+          : `📥 Downloading ${certsWithFiles.length} files...`
+      );
+
+      let downloadedCount = 0;
+
+      for (const cert of certsWithFiles) {
+        try {
+          const response = await api.get(`/api/gdrive/file/${cert.google_drive_file_id}/download`, {
+            responseType: 'blob'
+          });
+          
+          // Create download link
+          const url = window.URL.createObjectURL(new Blob([response.data]));
+          const link = document.createElement('a');
+          link.href = url;
+          link.setAttribute('download', `${cert.cert_abbreviation || cert.cert_name}.pdf`);
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          window.URL.revokeObjectURL(url);
+          
+          downloadedCount++;
+          
+          // Small delay between downloads
+          await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (error) {
+          console.error(`Download error for ${cert.cert_abbreviation}:`, error);
+        }
+      }
+
+      toast.success(
+        language === 'vi'
+          ? `✅ Đã tải xuống ${downloadedCount}/${certsWithFiles.length} file`
+          : `✅ Downloaded ${downloadedCount}/${certsWithFiles.length} files`
+      );
+    } catch (error) {
+      console.error('Bulk download error:', error);
+      toast.error(
+        language === 'vi'
+          ? '❌ Lỗi khi tải xuống file'
+          : '❌ Error downloading files'
+      );
+    }
+  };
+
+  // Handle bulk copy links
+  const handleBulkCopyLinks = async () => {
+    if (selectedCertificates.size === 0) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn chứng chỉ' : 'Please select certificates');
+      return;
+    }
+
+    try {
+      const selectedCerts = auditCertificates.filter(cert => selectedCertificates.has(cert.id));
+      const certsWithFiles = selectedCerts.filter(cert => cert.google_drive_file_id);
+
+      if (certsWithFiles.length === 0) {
+        toast.warning(
+          language === 'vi'
+            ? 'Không có chứng chỉ nào có file đính kèm'
+            : 'No certificates have attached files'
+        );
+        return;
+      }
+
+      const links = [];
+
+      for (const cert of certsWithFiles) {
+        // Check cache first
+        let viewUrl = certificateLinksCache[cert.google_drive_file_id];
+        
+        if (!viewUrl) {
+          // Fetch from API if not cached
+          try {
+            const response = await api.get(`/api/gdrive/file/${cert.google_drive_file_id}/view`);
+            if (response.data?.success && response.data?.view_url) {
+              viewUrl = response.data.view_url;
+              // Update cache
+              setCertificateLinksCache(prev => ({
+                ...prev,
+                [cert.google_drive_file_id]: viewUrl
+              }));
+            }
+          } catch (error) {
+            console.error(`Error getting link for ${cert.cert_abbreviation}:`, error);
+          }
+        }
+        
+        if (viewUrl) {
+          links.push(`${cert.cert_abbreviation || cert.cert_name}: ${viewUrl}`);
+        }
+      }
+
+      if (links.length > 0) {
+        // Copy to clipboard
+        await navigator.clipboard.writeText(links.join('\n'));
+        toast.success(
+          language === 'vi'
+            ? `🔗 Đã sao chép ${links.length} link`
+            : `🔗 Copied ${links.length} links`
+        );
+      } else {
+        toast.error(
+          language === 'vi'
+            ? '❌ Không thể lấy link nào'
+            : '❌ Could not get any links'
+        );
+      }
+    } catch (error) {
+      console.error('Bulk copy links error:', error);
+      toast.error(
+        language === 'vi'
+          ? '❌ Lỗi khi sao chép link'
+          : '❌ Error copying links'
+      );
+    }
+  };
+
 
   return (
     <MainLayout
