@@ -75,6 +75,18 @@ backend:
         - working: "needs_testing"
           agent: "main"
           comment: "Modified /api/audit-certificates/analyze-file endpoint to accept ship_id parameter and perform IMO/ship name validation. Returns validation_warning object with type='imo_mismatch', message, can_override=True, and override_note when validation fails. Backend needs testing to verify validation logic works correctly."
+
+  - task: "Audit Report AI Configuration Fix - Harmonized with Survey Report Pattern"
+    implemented: true
+    working: "needs_testing"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "needs_testing"
+          agent: "main"
+          comment: "FIXED: Audit Report analyze endpoint (/api/audit-reports/analyze) was failing with 403/400 errors due to incorrect AI config lookup. ROOT CAUSE: Audit Report was looking for company-specific AI config in 'ai_configs' collection with company_id query, while Survey Report (working) uses system-level AI config from 'ai_config' collection with id='system_ai'. IMPLEMENTATION: (1) Changed AI config lookup to match Survey Report pattern: await mongo_db.find_one('ai_config', {'id': 'system_ai'}), (2) Added fallback to get_emergent_llm_key() function if no config found or no emergent_llm_key in config, (3) Updated AI service to use LlmChat with FileContentWithMimeType instead of EmergentAIGateway (which doesn't exist), (4) Uses Gemini model 'gemini-2.0-flash-exp' with proper file handling via temp file, (5) Proper JSON parsing with markdown cleanup and regex fallback. BENEFITS: Audit Report AI analysis now follows the same proven pattern as Survey Report, graceful fallback to Emergent LLM key if no system config exists, proper error handling with clear messages. TESTING REQUIRED: Test /api/audit-reports/analyze endpoint with valid PDF file, verify AI analysis extracts audit report fields correctly, verify file upload works after analysis, check backend logs for AI config retrieval messages, test with ship_id parameter, verify error handling for invalid files."
           
   - task: "Recalculation APIs - Next Docking, Special Survey Cycle, Anniversary Date"
     implemented: true
