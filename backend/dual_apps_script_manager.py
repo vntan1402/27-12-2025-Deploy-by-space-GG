@@ -1781,6 +1781,163 @@ class DualAppsScriptManager:
                 'error': str(e)
             }
 
+    async def upload_audit_report_file(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        ship_name: str,
+        audit_report_name: str
+    ) -> Dict[str, Any]:
+        """
+        Upload audit report file to Google Drive
+        Path: ShipName/ISM-ISPS-MLC/Audit Report/
+        
+        Args:
+            file_content: Audit report file content
+            filename: File name
+            content_type: MIME type
+            ship_name: Ship name for folder structure
+            audit_report_name: Audit report name (for logging)
+            
+        Returns:
+            dict: Upload results with file ID
+        """
+        try:
+            # Load configuration first
+            await self._load_configuration()
+            
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            if not self.parent_folder_id:
+                raise ValueError("Company Google Drive Folder ID not configured")
+            
+            logger.info(f"📤 Uploading audit report file to Drive: {filename}")
+            logger.info(f"   Ship: {ship_name}")
+            logger.info(f"   Audit Type: {audit_report_name}")
+            logger.info(f"   Target Path: {ship_name}/ISM-ISPS-MLC/Audit Report/")
+            
+            # Upload original file to: ShipName/ISM-ISPS-MLC/Audit Report/
+            # Using upload_file_with_folder_creation action with nested path
+            # Use parent_category and category to create proper nested structure
+            
+            audit_report_upload = await self._call_company_apps_script({
+                'action': 'upload_file_with_folder_creation',
+                'parent_folder_id': self.parent_folder_id,  # ROOT folder
+                'ship_name': ship_name,  # Creates/finds ShipName folder
+                'parent_category': 'ISM-ISPS-MLC',  # First level folder under ShipName
+                'category': 'Audit Report',  # Second level folder under ISM-ISPS-MLC
+                'filename': filename,
+                'file_content': base64.b64encode(file_content).decode('utf-8'),
+                'content_type': content_type
+            })
+            
+            if audit_report_upload.get('success'):
+                file_id = audit_report_upload.get('file_id')
+                logger.info(f"✅ Audit report file uploaded successfully")
+                logger.info(f"   File ID: {file_id}")
+                logger.info(f"   Path: {audit_report_upload.get('file_path', 'N/A')}")
+                
+                return {
+                    'success': True,
+                    'message': 'Audit report file uploaded successfully',
+                    'file_id': file_id,
+                    'file_path': audit_report_upload.get('file_path'),
+                    'upload_details': audit_report_upload
+                }
+            else:
+                logger.error(f"❌ Audit report file upload failed: {audit_report_upload.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Audit report file upload failed',
+                    'error': audit_report_upload.get('message', 'Unknown error'),
+                    'upload_details': audit_report_upload
+                }
+                
+        except Exception as e:
+            logger.error(f"❌ Error uploading audit report file: {e}")
+            return {
+                'success': False,
+                'message': f'File upload failed: {str(e)}',
+                'error': str(e)
+            }
+
+    async def upload_audit_report_summary(
+        self,
+        summary_text: str,
+        filename: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """
+        Upload audit report summary file to Google Drive
+        Path: ShipName/ISM-ISPS-MLC/Audit Report/
+        
+        Args:
+            summary_text: Summary text content
+            filename: Summary file name
+            ship_name: Ship name for folder structure
+            
+        Returns:
+            dict: Upload results with file ID
+        """
+        try:
+            # Load configuration first
+            await self._load_configuration()
+            
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            if not self.parent_folder_id:
+                raise ValueError("Company Google Drive Folder ID not configured")
+            
+            logger.info(f"📋 Uploading audit report summary to Drive: {filename}")
+            logger.info(f"   Ship: {ship_name}")
+            logger.info(f"   Target Path: {ship_name}/ISM-ISPS-MLC/Audit Report/")
+            
+            # Upload summary to same path as audit report
+            summary_upload = await self._call_company_apps_script({
+                'action': 'upload_file_with_folder_creation',
+                'parent_folder_id': self.parent_folder_id,
+                'ship_name': ship_name,
+                'parent_category': 'ISM-ISPS-MLC',
+                'category': 'Audit Report',
+                'filename': filename,
+                'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
+                'content_type': 'text/plain'
+            })
+            
+            if summary_upload.get('success'):
+                file_id = summary_upload.get('file_id')
+                logger.info(f"✅ Audit report summary uploaded successfully")
+                logger.info(f"   File ID: {file_id}")
+                logger.info(f"   Path: {summary_upload.get('file_path', 'N/A')}")
+                
+                return {
+                    'success': True,
+                    'message': 'Audit report summary uploaded successfully',
+                    'summary_file_id': file_id,
+                    'file_path': summary_upload.get('file_path'),
+                    'upload_details': summary_upload
+                }
+            else:
+                logger.error(f"❌ Audit report summary upload failed: {summary_upload.get('message')}")
+                return {
+                    'success': False,
+                    'message': 'Audit report summary upload failed',
+                    'error': summary_upload.get('message', 'Unknown error'),
+                    'upload_details': summary_upload
+                }
+                
+        except Exception as e:
+            logger.error(f"❌ Error uploading audit report summary: {e}")
+            return {
+                'success': False,
+                'message': f'Summary upload failed: {str(e)}',
+                'error': str(e)
+            }
+
+
     async def upload_other_document_file(
         self,
         file_content: bytes,
