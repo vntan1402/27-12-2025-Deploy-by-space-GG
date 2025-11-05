@@ -513,16 +513,40 @@ This is a fallback test audit report for API testing.
                             
                             print(f"📊 Found {len(found_fields)}/{len(expected_fields)} expected fields")
                             
+                            # Verify analysis quality for ISM audit
+                            audit_type = analysis.get("audit_type", "").upper()
+                            audit_name = analysis.get("audit_report_name", "").upper()
+                            
+                            print(f"\n🔍 Analysis Quality Check:")
+                            print(f"   Audit Type: {audit_type}")
+                            print(f"   Audit Name: {audit_name}")
+                            
+                            # Check if it's ISM-related
+                            ism_related = any(keyword in audit_type for keyword in ["ISM", "SAFETY", "MANAGEMENT"]) or \
+                                         any(keyword in audit_name for keyword in ["ISM", "SAFETY", "MANAGEMENT", "AUDIT"])
+                            
+                            print(f"   ISM-related: {'✅ YES' if ism_related else '❌ NO'}")
+                            
+                            # Check for file content fields (for later upload)
+                            file_content_fields = ["_file_content", "_filename", "_content_type"]
+                            file_fields_found = sum(1 for field in file_content_fields if field in response_data)
+                            print(f"   File content fields: {file_fields_found}/{len(file_content_fields)}")
+                            
                             # Verify this is NOT a 403/400 AI config error
                             if len(found_fields) >= 4:  # At least half the fields should be present
                                 print(f"✅ AI analysis successful - extracted audit report fields")
                                 print(f"✅ No AI configuration errors detected")
                                 
+                                if ism_related:
+                                    print(f"✅ Analysis correctly identifies ISM-related content")
+                                else:
+                                    print(f"⚠️ Analysis may not have identified ISM content correctly")
+                                
                                 # Check backend logs for AI config messages
                                 print(f"\n📋 Checking backend logs for AI config retrieval...")
                                 self.check_ai_config_logs()
                                 
-                                self.print_result(True, f"Audit Report AI analysis successful - endpoint working correctly")
+                                self.print_result(True, f"REAL PDF Audit Report AI analysis successful - endpoint working correctly")
                                 return True
                             else:
                                 print(f"⚠️ Analysis returned but with limited fields")
