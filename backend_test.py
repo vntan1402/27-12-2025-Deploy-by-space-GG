@@ -55,10 +55,9 @@ class BackendAPITester:
         self.access_token = None
         self.user_data = None
         self.company_id = None
-        self.test_crew_id = None  # Target crew for deletion testing
-        self.test_crew_data = None
-        self.crew_with_certificates_id = None  # Crew with certificates for validation testing
-        self.crew_without_files_id = None  # Crew without files for edge case testing
+        self.ships_list = None  # List of ships for testing
+        self.test_ship_id = None  # Target ship for audit report testing
+        self.test_ship_data = None
         
     def print_test_header(self, test_name):
         print(f"\n{'='*60}")
