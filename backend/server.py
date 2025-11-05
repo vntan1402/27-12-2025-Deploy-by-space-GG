@@ -4980,14 +4980,103 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
         upcoming_surveys = []
         
         for cert in all_certificates:
-            # Skip certificates without next survey date, EXCEPT for Initial SMC/ISSC/MLC certificates
-            next_survey_str = cert.get('next_survey')
-            next_survey_type = cert.get('next_survey_type') or ''
-            cert_name = (cert.get('cert_name') or '').upper()
-            
-            # Allow Initial SMC/ISSC/MLC certificates to proceed even without next_survey
-            is_initial_smc_issc_mlc = ('Initial' in next_survey_type and 
-                                       any(cert_type in cert_name for cert_type in ['SAFETY MANAGEMENT', 'SHIP SECURITY', 'MARITIME LABOUR', 'SMC', 'ISSC', 'MLC']))
+            try:
+                # Get Next Survey Display field (contains date with annotation like "30/10/2025 (±3M)")
+                next_survey_display = cert.get('next_survey_display') or cert.get('next_survey')
+                
+                if not next_survey_display:
+                    continue
+                
+                # Parse Next Survey to extract date and window annotation
+                next_survey_str = str(next_survey_display)
+                
+                # Extract date part (before annotation)
+                # Format examples: "30/10/2025 (±3M)", "30/11/2025 (-3M)", "31/10/2027 (±3M)"
+                import re
+                date_match = re.search(r'(\d{2}/\d{2}/\d{4})', next_survey_str)
+                if not date_match:
+                    # Try alternative date format (YYYY-MM-DD)
+                    date_match_alt = re.search(r'(\d{4}-\d{2}-\d{2})', next_survey_str)
+                    if date_match_alt:
+                        date_str = date_match_alt.group(1)
+                        next_survey_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                    else:
+                        continue
+                else:
+                    date_str = date_match.group(1)
+                    next_survey_date = datetime.strptime(date_str, '%d/%m/%Y').date()
+                
+                # Determine window based on annotation
+                window_open = None
+                window_close = None
+                window_type = ''
+                
+                if '(±3M)' in next_survey_str or '(+3M)' in next_survey_str or '(+-3M)' in next_survey_str:
+                    # Window: Next Survey ± 3M
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date + relativedelta(months=3)
+                    window_type = '±3M'
+                elif '(-3M)' in next_survey_str:
+                    # Window: Next Survey - 3M → Next Survey (only before)
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date
+                    window_type = '-3M'
+                else:
+                    # No clear annotation, skip
+                    continue
+                
+                # Check if current_date is within window
+                if window_open <= current_date <= window_close:
+                    # Find ship information
+                    ship_info = next((ship for ship in ships if ship.get('id') == cert.get('ship_id')), {})
+                    
+                    # Calculate status (UNIFIED LOGIC like Audit Certificate)
+                    days_until_window_close = (window_close - current_date).days
+                    days_until_survey = (next_survey_date - current_date).days
+                    
+                    # Status logic (simplified and unified)
+                    # Overdue: Past window_close
+                    is_overdue = current_date > window_close
+                    
+                    # Critical: ≤ 30 days to window_close
+                    is_critical = 0 <= days_until_window_close <= 30
+                    
+                    # Due Soon: window_open < current_date < (window_close - 30 days)
+                    window_close_minus_30 = window_close - timedelta(days=30)
+                    is_due_soon = window_open < current_date < window_close_minus_30
+                    
+                    # Get cert abbreviation
+                    cert_abbreviation = cert.get('cert_abbreviation') or cert.get('abbreviation', '')
+                    cert_name_display = f"{cert.get('cert_name', '')} ({cert_abbreviation})" if cert_abbreviation else cert.get('cert_name', '')
+                    
+                    upcoming_survey = {
+                        'certificate_id': cert.get('id'),
+                        'ship_id': cert.get('ship_id'),
+                        'ship_name': ship_info.get('name', ''),
+                        'cert_name': cert.get('cert_name', ''),
+                        'cert_abbreviation': cert_abbreviation,
+                        'cert_name_display': cert_name_display,
+                        'next_survey': next_survey_display,
+                        'next_survey_date': next_survey_date.isoformat(),
+                        'next_survey_type': cert.get('next_survey_type', ''),
+                        'last_endorse': cert.get('last_endorse', ''),
+                        'status': cert.get('status', ''),
+                        'days_until_survey': days_until_survey,
+                        'days_until_window_close': days_until_window_close,
+                        'is_overdue': is_overdue,
+                        'is_due_soon': is_due_soon,
+                        'is_critical': is_critical,
+                        'is_within_window': True,
+                        'window_open': window_open.isoformat(),
+                        'window_close': window_close.isoformat(),
+                        'window_type': window_type
+                    }
+                    
+                    upcoming_surveys.append(upcoming_survey)
+                    
+            except Exception as cert_error:
+                logger.warning(f"⚠️ Error processing certificate {cert.get('id', 'unknown')}: {cert_error}")
+                continue
             
             if not next_survey_str and not is_initial_smc_issc_mlc:
                 continue
