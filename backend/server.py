@@ -7761,13 +7761,12 @@ async def upload_audit_report_files(
         logger.info(f"📄 Uploading original file to: {ship_name}/ISM-ISPS-MLC/Audit Report/{filename}")
         
         try:
-            # Use same pattern as survey report but for ISM-ISPS-MLC folder
-            original_upload = await dual_manager.upload_file_with_folder_creation(
+            original_upload = await dual_manager.upload_audit_report_file(
                 file_content=file_bytes,
                 filename=filename,
                 content_type=content_type,
                 ship_name=ship_name,
-                folder_path="ISM-ISPS-MLC/Audit Report"
+                audit_report_name=audit_report_name
             )
             
             if original_upload.get('success'):
