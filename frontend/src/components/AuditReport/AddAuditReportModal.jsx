@@ -219,7 +219,7 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
       audit_type: analysis.audit_type || prev.audit_type,
       audit_report_no: analysis.audit_report_no || prev.audit_report_no,
       audit_date: analysis.audit_date ? analysis.audit_date.split('T')[0] : prev.audit_date,
-      audited_by: analysis.audited_by || prev.audited_by,
+      issued_by: analysis.issued_by || prev.issued_by,
       status: analysis.status || prev.status,
       note: analysis.note || prev.note,
       auditor_name: analysis.auditor_name || prev.auditor_name
