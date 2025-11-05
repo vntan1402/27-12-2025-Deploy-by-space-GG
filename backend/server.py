@@ -7681,12 +7681,45 @@ Extract audit report information and return as JSON."""
                 logger.error(f"Failed to parse AI response as JSON: {ai_response[:200]}")
                 raise HTTPException(status_code=500, detail="Failed to parse AI response")
         
-        # Add file info for upload
-        analysis['_file_content'] = file_b64
+        logger.info(f"✅ AI analysis complete for audit report: {analysis.get('audit_report_name', 'Unknown')}")
+        
+        # Add file content and metadata for later upload (same as Survey Report pattern)
+        analysis['_file_content'] = base64.b64encode(file_content).decode('utf-8')
         analysis['_filename'] = file.filename
         analysis['_content_type'] = file.content_type or 'application/pdf'
         
-        logger.info(f"✅ AI analysis complete for audit report: {analysis.get('audit_report_name', 'Unknown')}")
+        # Create summary text for upload
+        summary_lines = [
+            "="*60,
+            "AUDIT REPORT ANALYSIS SUMMARY",
+            "="*60,
+            "",
+            f"File: {file.filename}",
+            f"Ship: {ship_name} (IMO: {ship_imo})",
+            f"Analysis Date: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}",
+            "",
+            "--- Extracted Information ---",
+            f"Audit Report Name: {analysis.get('audit_report_name', 'N/A')}",
+            f"Audit Type: {analysis.get('audit_type', 'N/A')}",
+            f"Audit Report No: {analysis.get('audit_report_no', 'N/A')}",
+            f"Audit Date: {analysis.get('audit_date', 'N/A')}",
+            f"Audited By: {analysis.get('audited_by', 'N/A')}",
+            f"Auditor Name: {analysis.get('auditor_name', 'N/A')}",
+            f"Status: {analysis.get('status', 'N/A')}",
+            "",
+        ]
+        
+        if analysis.get('note'):
+            summary_lines.extend([
+                "--- Notes ---",
+                analysis.get('note', ''),
+                ""
+            ])
+        
+        summary_lines.append("="*60)
+        analysis['_summary_text'] = '\n'.join(summary_lines)
+        
+        logger.info(f"   📄 Summary created ({len(analysis['_summary_text'])} chars)")
         
         return {
             "success": True,
