@@ -1003,8 +1003,9 @@ This is a fallback test audit report for API testing.
     
     def run_all_tests(self):
         """Run all Audit Report AI Analysis endpoint tests in sequence"""
-        print(f"\n🚀 STARTING AUDIT REPORT AI ANALYSIS ENDPOINT TESTING")
-        print(f"🎯 Testing POST /api/audit-reports/analyze endpoint after AI configuration fix")
+        print(f"\n🚀 STARTING AUDIT REPORT AI ANALYSIS WITH REAL PDF TESTING")
+        print(f"🎯 Testing POST /api/audit-reports/analyze endpoint with user-provided PDF")
+        print(f"📄 Real PDF: ISM-Code-Audit-Plan (07-23) TRUONG MINH LUCKY.pdf")
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
