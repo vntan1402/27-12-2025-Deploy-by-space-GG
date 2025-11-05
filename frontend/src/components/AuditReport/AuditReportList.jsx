@@ -824,14 +824,14 @@ export const AuditReportList = ({
                 </div>
               </th>
 
-              {/* Audited By */}
+              {/* Issued By */}
               <th 
                 className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('audited_by')}
+                onClick={() => handleSort('issued_by')}
               >
                 <div className="flex items-center justify-between">
-                  <span>{language === 'vi' ? 'Audit bởi' : 'Audited By'}</span>
-                  {getSortIcon('audited_by')}
+                  <span>{language === 'vi' ? 'Cấp bởi' : 'Issued By'}</span>
+                  {getSortIcon('issued_by')}
                 </div>
               </th>
 
