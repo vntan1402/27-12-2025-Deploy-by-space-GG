@@ -7559,7 +7559,7 @@ async def bulk_delete_audit_reports(
 async def analyze_audit_report_file(
     ship_id: str = Form(...),
     file: UploadFile = File(...),
-    bypass_validation: bool = Form(False),
+    bypass_validation: str = Form("false"),
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
