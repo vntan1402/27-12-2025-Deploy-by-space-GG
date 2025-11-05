@@ -375,7 +375,10 @@ export const AuditReportList = ({
         }, 2000);
       }
       
-      setSelectedReports(new Set());
+      // Clear selection after successful deletion
+      if (onSelectAll) {
+        onSelectAll(false);
+      }
       await fetchSurveyReports();
     } catch (error) {
       console.error('Failed to bulk delete:', error);
