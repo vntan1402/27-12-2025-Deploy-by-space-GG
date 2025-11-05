@@ -1124,6 +1124,61 @@ class SurveyReportResponse(BaseModel):
             datetime: lambda v: v.isoformat() if v else None
         }
 
+# Audit Report models (ISM-ISPS-MLC)
+class AuditReportBase(BaseModel):
+    ship_id: str
+    audit_report_name: str
+    audit_type: Optional[str] = None  # ISM, ISPS, MLC, SMC, DOC, etc.
+    audit_report_no: Optional[str] = None
+    audit_date: Optional[datetime] = None  # Date of audit
+    audited_by: Optional[str] = None  # Auditor/company name
+    status: Optional[str] = "Valid"  # Valid, Expired, Pending
+    note: Optional[str] = None
+    auditor_name: Optional[str] = None  # Auditor name from AI extraction
+    next_audit_date: Optional[datetime] = None  # Optional: Next audit due date
+    findings_count: Optional[int] = None  # Optional: Number of findings
+    nc_count: Optional[int] = None  # Optional: Non-conformities count
+
+class AuditReportCreate(AuditReportBase):
+    pass
+
+class AuditReportUpdate(BaseModel):
+    audit_report_name: Optional[str] = None
+    audit_type: Optional[str] = None
+    audit_report_no: Optional[str] = None
+    audit_date: Optional[datetime] = None
+    audited_by: Optional[str] = None
+    status: Optional[str] = None
+    note: Optional[str] = None
+    auditor_name: Optional[str] = None
+    next_audit_date: Optional[datetime] = None
+    findings_count: Optional[int] = None
+    nc_count: Optional[int] = None
+
+class AuditReportResponse(BaseModel):
+    id: str
+    ship_id: str
+    audit_report_name: str
+    audit_type: Optional[str] = None
+    audit_report_no: Optional[str] = None
+    audit_date: Optional[datetime] = None
+    audited_by: Optional[str] = None
+    status: Optional[str] = "Valid"
+    note: Optional[str] = None
+    auditor_name: Optional[str] = None
+    next_audit_date: Optional[datetime] = None
+    findings_count: Optional[int] = None
+    nc_count: Optional[int] = None
+    audit_report_file_id: Optional[str] = None  # Google Drive file ID for original
+    audit_report_summary_file_id: Optional[str] = None  # Google Drive file ID for summary
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
 # Test Report models
 class TestReportBase(BaseModel):
     ship_id: str
