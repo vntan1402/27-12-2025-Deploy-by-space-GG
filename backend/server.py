@@ -5017,6 +5017,7 @@ async def get_upcoming_surveys(current_user: UserResponse = Depends(get_current_
                     window_open = next_survey_date - relativedelta(months=3)
                     window_close = next_survey_date + relativedelta(months=3)
                     window_type = '±3M'
+                    has_explicit_annotation = True
                 elif '(-3M)' in next_survey_str:
                     # Window: Next Survey - 3M → Next Survey (only before)
                     window_open = next_survey_date - relativedelta(months=3)
@@ -21697,6 +21698,7 @@ async def get_upcoming_audit_surveys(
                     window_open = next_survey_date - relativedelta(months=3)
                     window_close = next_survey_date + relativedelta(months=3)
                     window_type = '±3M'
+                    has_explicit_annotation = True
                 elif '(-3M)' in next_survey_str:
                     # Window: Next Survey - 3M → Next Survey (only before)
                     window_open = next_survey_date - relativedelta(months=3)
