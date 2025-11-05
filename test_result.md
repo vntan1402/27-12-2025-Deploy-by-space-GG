@@ -100,6 +100,9 @@ backend:
         - working: "needs_user_test"
           agent: "main"
           comment: "CRITICAL FIX - Frontend Environment URL Mismatch: Troubleshoot agent identified root cause - frontend .env had hardcoded wrong backend URL (https://audit-flow.preview.emergentagent.com) while user accessing from cert-manager-11.preview.emergentagent.com. This caused all requests to go to different backend instance, explaining why no logs appeared despite 400 errors in browser. FIXED: Updated /app/frontend/.env REACT_APP_BACKEND_URL from audit-flow to cert-manager-11.preview.emergentagent.com to match actual deployment. Frontend restarted successfully. This explains why backend testing worked (direct API calls) but UI failed (wrong URL). USER SHOULD NOW TEST: Refresh browser (Ctrl+F5 to clear cache), upload PDF file again, AI analysis should now work correctly as requests will reach correct backend."
+        - working: "needs_user_test"
+          agent: "main"
+          comment: "CORRECTION: Backend URL reverted to audit-flow.preview.emergentagent.com per user confirmation. AI Analysis now working! User successfully uploaded PDF and AI extracted data. NEW ISSUE FOUND: Database insert error when creating audit report - 'MongoDatabase' object has no attribute 'insert_one'. ROOT CAUSE: Code was calling mongo_db.insert_one() instead of mongo_db.create(). FIXED: Changed from insert_one to create method in /api/audit-reports POST endpoint (line 7448). Backend restarted successfully. READY FOR FINAL TEST: User should try uploading PDF again - AI analysis should work AND audit report should be created successfully in database."
           
   - task: "Recalculation APIs - Next Docking, Special Survey Cycle, Anniversary Date"
     implemented: true
