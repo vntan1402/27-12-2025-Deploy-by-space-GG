@@ -7445,7 +7445,7 @@ async def create_audit_report(report_data: AuditReportCreate, current_user: User
         report_dict['updated_at'] = report_dict['updated_at'].isoformat()
         
         # Insert into database
-        await mongo_db.insert_one("audit_reports", report_dict)
+        await mongo_db.create("audit_reports", report_dict)
         
         # Fetch and return created report
         created_report = await mongo_db.find_one("audit_reports", {"id": report_id})
