@@ -79,11 +79,11 @@ backend:
 
   - task: "Audit Report AI Configuration Fix - Harmonized with Survey Report Pattern"
     implemented: true
-    working: true
+    working: "needs_user_test"
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
         - working: "needs_testing"
           agent: "main"
@@ -91,6 +91,9 @@ backend:
         - working: true
           agent: "testing"
           comment: "✅ AUDIT REPORT AI CONFIGURATION FIX VERIFIED WORKING - COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY: Extensive end-to-end testing confirms the AI configuration fix is working correctly with 87.5% success rate (7/8 tests passed). ✅ AUTHENTICATION & SETUP: Login with admin1/123456 successful ✓, Company ID resolution working (AMCSC → 0a6eaf96-0aaf-4793-89be-65d62cb7953c) ✓, Ships list accessible with BROTHER 36 selected as test ship ✓. ✅ CRITICAL AI CONFIG FIX VERIFIED: **AI CONFIGURATION FIX IS WORKING PERFECTLY** - Endpoint no longer returns 403/400 AI config errors ✓, System correctly uses fallback emergent_llm_key when system_ai config not found ✓, Backend logs show '⚠️ No system AI config found, using fallback emergent_llm_key' ✓, AI analysis now uses correct Gemini model 'gemini-2.0-flash' (fixed from invalid 'gemini-2.0-flash-exp') ✓. ✅ AUDIT REPORT AI ANALYSIS ENDPOINT TESTING: POST /api/audit-reports/analyze returns 200 OK with complete analysis ✓, AI successfully extracts all 8 expected fields: audit_report_name, audit_type, audit_report_no, audit_date, audited_by, auditor_name, status, note ✓, Analysis response: {'audit_report_name': 'AUDIT REPORT', 'audit_type': 'ISM', 'audit_report_no': 'AR-2024-001', 'audit_date': '2024-01-15', 'audited_by': 'DNV GL', 'auditor_name': 'John Smith', 'status': 'Valid', 'note': 'Annual ISM audit completed successfully'} ✓, Response time: 2.6 seconds (acceptable for AI analysis) ✓. ✅ ERROR HANDLING VERIFICATION: Invalid ship_id correctly returns 404 'Ship not found' ✓, Unauthenticated requests correctly return 403 Forbidden ✓, All authentication and authorization working correctly ✓. ✅ BACKEND LOGS VERIFICATION: AI config retrieval logs present ✓, Fallback emergent_llm_key usage confirmed ✓, Gemini model usage confirmed ✓, AI analysis completion logs present: '✅ AI analysis complete for audit report: AUDIT REPORT' ✓, No 403/400 AI configuration errors detected ✓. ✅ SUCCESS CRITERIA ALL MET: Endpoint returns 200 OK with analysis results (not 403/400 AI config error) ✓, AI config retrieved successfully using fallback pattern ✓, Analysis uses correct Gemini model and returns proper JSON structure ✓, Backend logs show proper AI config retrieval and analysis process ✓, Error handling works correctly for invalid inputs ✓. Minor: Non-PDF file handling returns 500 instead of 400/422, but this is acceptable as Gemini correctly detects invalid documents. CONCLUSION: **AUDIT REPORT AI CONFIGURATION FIX IS WORKING PERFECTLY** - The critical AI configuration issue has been completely resolved. The endpoint now successfully harmonizes with Survey Report pattern, uses proper fallback mechanisms, and performs AI analysis correctly. All review request requirements fully satisfied. SUCCESS RATE: 87.5% (7/8 tests passed) - AI configuration fix verified working correctly and production-ready."
+        - working: "needs_user_test"
+          agent: "main"
+          comment: "ADDITIONAL FIX: User reported 400 error when testing in UI. Fixed bypass_validation parameter type issue - changed from bool to str in Form parameter since HTTP form data sends strings not booleans. Added conversion logic: bypass_validation_bool = bypass_validation.lower() in ('true', '1', 'yes'). Backend restarted successfully. READY FOR USER TESTING: User should now test the Audit Report AI analysis feature in the ISM-ISPS-MLC page by uploading a PDF audit report and verifying the AI extraction works correctly. If still failing, need to check backend logs for specific error messages."
           
   - task: "Recalculation APIs - Next Docking, Special Survey Cycle, Anniversary Date"
     implemented: true
