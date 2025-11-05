@@ -7789,16 +7789,14 @@ async def upload_audit_report_files(
             logger.info(f"📋 Uploading summary file to: {ship_name}/ISM-ISPS-MLC/Audit Report/{summary_filename}")
             
             try:
-                summary_upload = await dual_manager.upload_file_with_folder_creation(
-                    file_content=summary_text.encode('utf-8'),
+                summary_upload = await dual_manager.upload_audit_report_summary(
+                    summary_text=summary_text,
                     filename=summary_filename,
-                    content_type='text/plain',
-                    ship_name=ship_name,
-                    folder_path="ISM-ISPS-MLC/Audit Report"
+                    ship_name=ship_name
                 )
                 
                 if summary_upload.get('success'):
-                    audit_report_summary_file_id = summary_upload.get('file_id')
+                    audit_report_summary_file_id = summary_upload.get('summary_file_id')
                     logger.info(f"✅ Summary file uploaded: {audit_report_summary_file_id}")
                 else:
                     logger.warning(f"⚠️ Summary file upload failed (non-critical): {summary_upload.get('message')}")
