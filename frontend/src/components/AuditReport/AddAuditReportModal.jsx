@@ -121,7 +121,7 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
       audit_type: '',
       audit_report_no: '',
       audit_date: '',
-      audited_by: '',
+      issued_by: '',
       status: 'Valid',
       note: '',
       auditor_name: ''
