@@ -7623,7 +7623,7 @@ Extract audit report information and return as JSON."""
         # Call AI service
         from emergentintegrations import EmergentAIGateway
         
-        gateway = EmergentAIGateway(api_key=ai_config['emergent_llm_key'])
+        gateway = EmergentAIGateway(api_key=emergent_llm_key)
         
         ai_response = gateway.generate_from_base64_image(
             image_base64=file_b64,
