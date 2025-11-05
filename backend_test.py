@@ -432,8 +432,8 @@ This is a fallback test audit report for API testing.
             return None
     
     def test_audit_report_analyze_endpoint(self):
-        """Test 3: POST /api/audit-reports/analyze endpoint with AI configuration fix"""
-        self.print_test_header("Test 3 - Audit Report AI Analysis Endpoint")
+        """Test 3: POST /api/audit-reports/analyze endpoint with REAL PDF file"""
+        self.print_test_header("Test 3 - Audit Report AI Analysis with REAL PDF")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
@@ -445,14 +445,17 @@ This is a fallback test audit report for API testing.
             }
             
             print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
-            print(f"🎯 Testing AI analysis with ship_id and PDF file")
+            print(f"🎯 Testing AI analysis with REAL user-provided PDF file")
             print(f"🚢 Target Ship: {self.test_ship_data.get('name')} (ID: {self.test_ship_id[:8]}...)")
             
-            # Create test PDF file
-            test_pdf_path = self.create_test_pdf()
+            # Try to download the REAL PDF file first
+            test_pdf_path = self.download_real_pdf()
             if not test_pdf_path:
-                self.print_result(False, "Could not create test PDF file")
-                return False
+                print(f"⚠️ Could not download real PDF, using fallback...")
+                test_pdf_path = self.create_fallback_pdf()
+                if not test_pdf_path:
+                    self.print_result(False, "Could not create any test PDF file")
+                    return False
             
             try:
                 # Prepare multipart form data
