@@ -937,12 +937,12 @@ export const AuditReportList = ({
                     {report.audit_date ? formatDateDisplay(report.audit_date) : '-'}
                   </td>
 
-                  {/* Audited By (Abbreviation with Tooltip) */}
+                  {/* Issued By (Abbreviation with Tooltip) */}
                   <td 
                     className="border border-gray-300 px-4 py-2 text-sm font-semibold text-blue-700" 
-                    title={report.audited_by || '-'}
+                    title={report.issued_by || '-'}
                   >
-                    {getAbbreviation(report.audited_by)}
+                    {getAbbreviation(report.issued_by)}
                   </td>
 
                   {/* Status Badge */}
