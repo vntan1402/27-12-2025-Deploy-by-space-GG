@@ -48,7 +48,7 @@ export const auditReportService = {
    */
   analyzeFile: async (shipId, file, bypassValidation = false) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('audit_report_file', file); // Changed from 'file' to 'audit_report_file' to match backend
     formData.append('ship_id', shipId);
     formData.append('bypass_validation', bypassValidation ? 'true' : 'false'); // Convert boolean to string like Survey Report
     
