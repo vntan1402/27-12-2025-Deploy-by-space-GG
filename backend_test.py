@@ -461,7 +461,7 @@ This is a fallback test audit report for API testing.
                 # Prepare multipart form data
                 with open(test_pdf_path, 'rb') as pdf_file:
                     files = {
-                        'file': ('ISM-Code-Audit-Plan.pdf', pdf_file, 'application/pdf')
+                        'audit_report_file': ('ISM-Code-Audit-Plan.pdf', pdf_file, 'application/pdf')
                     }
                     data = {
                         'ship_id': self.test_ship_id,
