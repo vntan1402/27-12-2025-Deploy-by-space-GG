@@ -1,33 +1,51 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Report Form & OCR Extraction Testing
+Backend API Testing Script - OCR Extraction Testing with Tesseract Available
 
-FOCUS: Test Report Form extraction from filename and OCR header/footer extraction
-OBJECTIVE: Verify that Report Form extraction from filename and OCR header/footer extraction are working.
+FOCUS: Test Audit Report OCR header/footer extraction with Tesseract now available
+OBJECTIVE: Verify OCR header/footer extraction is now working with correct targeted_ocr import.
 
 CRITICAL TEST REQUIREMENTS FROM REVIEW REQUEST:
-1. **Authentication**: Login: admin1 / 123456, Get access token
-2. **Get Ship**: GET /api/ships, Find BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2)
-3. **Test Audit Report Analysis**: POST /api/audit-reports/analyze, ship_id: bc444bc3-aea9-4491-b199-8098efcc16d2 (BROTHER 36), PDF: User's test file, bypass_validation: false
-4. **Verify Report Form Extraction**: Check if `report_form` field is populated, Should extract from filename if AI didn't find it, Expected pattern match for "(07-23)" or similar
-5. **Verify OCR Content in Summary**: Check `_summary_text` field, Should contain sections: "AUDIT REPORT ANALYSIS SUMMARY" (formatted), "RAW DOCUMENT AI TEXT" (raw text), "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)" (OCR), Verify OCR section has header and/or footer text
-6. **Check Backend Logs**: Look for: "🔍 Starting Targeted OCR", "✅ OCR processor available", "✅ Enhanced summary with OCR", "✅ Extracted report_form from filename"
-
-TEST PDF:
-- URL: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
-- Filename pattern: "ISM-Code  Audit-Plan (07-230.pdf"
-- Expected report_form: Should extract "07-230" or similar pattern
-
-EXPECTED RESULTS:
-- ✅ report_form should be populated (from AI or filename)
-- ✅ _summary_text should contain 3 sections
-- ✅ OCR section should have header/footer text
-- ✅ Backend logs show OCR processing
+1. **Authentication**: Login: admin1 / 123456
+2. **Get Ship**: GET /api/ships, Find BROTHER 36 (bc444bc3-aea9-4491-b199-8098efcc16d2)
+3. **Audit Report Analysis with OCR**: POST /api/audit-reports/analyze
+   - PDF: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
+   - ship_id: bc444bc3-aea9-4491-b199-8098efcc16d2
+   - bypass_validation: false
+4. **Verify OCR in Summary**: Check `_summary_text` contains:
+   ```
+   ============================================================
+   ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)
+   ============================================================
+   
+   === HEADER TEXT (Top 15% of page) ===
+   [actual OCR extracted text from PDF header]
+   
+   === FOOTER TEXT (Bottom 15% of page) ===
+   [actual OCR extracted text from PDF footer]
+   ============================================================
+   ```
+5. **Backend Logs Verification**: Look for:
+   - "🔍 Starting Targeted OCR"
+   - "✅ OCR processor available"
+   - "✅ Targeted OCR completed successfully"
+   - "📄 OCR results: header=XXX chars, footer=XXX chars"
+   - "✅ Header text added"
+   - "✅ Footer text added"
+   - "✅ Enhanced summary with OCR"
+6. **Report Form Check**: Verify report_form = "07-230" from filename extraction
 
 SUCCESS CRITERIA:
-- report_form is NOT empty
-- _summary_text contains "ADDITIONAL INFORMATION FROM HEADER/FOOTER"
-- OCR section has actual text content
+- ✅ OCR section present in _summary_text
+- ✅ Header text length > 0
+- ✅ Footer text length > 0
+- ✅ Backend logs show OCR success
+- ✅ report_form = "07-230"
+
+FAILURE INDICATORS:
+- ❌ No "ADDITIONAL INFORMATION FROM HEADER/FOOTER" section
+- ❌ "OCR processor not available"
+- ❌ "OCR extraction returned no results"
 
 Test credentials: admin1/123456
 Test ship: BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2)
