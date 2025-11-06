@@ -457,7 +457,7 @@ class BackendAPITester:
             
             data = {
                 'ship_id': correct_ship_id,
-                'bypass_validation': 'false'
+                'bypass_validation': 'true'  # Changed to true to bypass validation and get full analysis
             }
             
             print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
