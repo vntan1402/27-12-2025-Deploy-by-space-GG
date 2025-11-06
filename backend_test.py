@@ -370,22 +370,23 @@ class BackendAPITester:
             self.print_result(False, f"Exception during ship ID verification test: {str(e)}")
             return False
     
-    def download_ncr_test_pdf(self):
-        """Helper: Download the NCR test PDF from customer assets"""
+    def download_audit_plan_test_pdf(self):
+        """Helper: Download the Audit Plan test PDF from customer assets"""
         try:
-            # NCR form PDF URL from review request
-            pdf_url = "https://customer-assets.emergentagent.com/job_shipaudit/artifacts/atqzy94l_ISM-Code%20%20NCR%20%2807-23%29.pdf"
+            # Audit Plan PDF URL from review request - contains TRUONG MINH LUCKY ship name
+            pdf_url = "https://customer-assets.emergentagent.com/job_shipaudit/artifacts/atqzy94l_ISM-Code%20Audit-Plan%20%2807-230.pdf"
             
-            print(f"📥 Downloading NCR test PDF from: {pdf_url}")
+            print(f"📥 Downloading Audit Plan test PDF from: {pdf_url}")
             
             response = requests.get(pdf_url, timeout=30)
             
             if response.status_code == 200:
                 pdf_content = response.content
-                print(f"✅ NCR PDF downloaded successfully")
+                print(f"✅ Audit Plan PDF downloaded successfully")
                 print(f"📄 File size: {len(pdf_content):,} bytes")
                 print(f"📋 Content-Type: {response.headers.get('content-type', 'Unknown')}")
-                print(f"📄 Expected filename: ISM-Code  NCR (07-23).pdf")
+                print(f"📄 Expected filename: ISM-Code Audit-Plan (07-230.pdf")
+                print(f"🚢 Expected ship name in PDF: TRUONG MINH LUCKY (should NOT match BROTHER 36)")
                 
                 # Validate it's a PDF
                 if pdf_content.startswith(b'%PDF'):
@@ -395,11 +396,11 @@ class BackendAPITester:
                     print(f"❌ Downloaded file is not a valid PDF")
                     return None
             else:
-                print(f"❌ Failed to download NCR PDF: HTTP {response.status_code}")
+                print(f"❌ Failed to download Audit Plan PDF: HTTP {response.status_code}")
                 return None
                 
         except Exception as e:
-            print(f"❌ Exception downloading NCR PDF: {str(e)}")
+            print(f"❌ Exception downloading Audit Plan PDF: {str(e)}")
             return None
     
     def test_audit_report_analyze_ncr_form_extraction(self):
