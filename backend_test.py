@@ -462,7 +462,7 @@ class BackendAPITester:
             
             print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
             print(f"   📋 ship_id: {correct_ship_id}")
-            print(f"   📋 bypass_validation: false")
+            print(f"   📋 bypass_validation: true")
             
             # Make the request
             start_time = time.time()
