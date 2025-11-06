@@ -5589,7 +5589,7 @@ async def extract_audit_report_fields_from_pdf_directly(
 
 {{
     "audit_report_name": "Main title/name of the audit report",
-    "audit_type": "Type of audit (ISM CODE, ISPS, MLC, etc.)",
+    "audit_type": "Type of audit (ISM CODE, ISPS, MLC, CICA, etc.)",
     "report_form": "**CRITICAL** - Form code/number (CHECK FOOTER/HEADER FIRST) - Examples: '07-23', 'CG (02-19)', 'ISM-AUD-01'",
     "audit_report_no": "Report number/reference",
     "issued_by": "**IMPORTANT** - Organization that issued/conducted audit (CHECK LETTERHEAD/HEADER FIRST) - e.g., 'DNV GL', 'PMDS', 'Lloyd's Register'",
