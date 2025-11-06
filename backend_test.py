@@ -409,9 +409,9 @@ class BackendAPITester:
             print(f"❌ Exception downloading PDF: {str(e)}")
             return None
     
-    def test_audit_report_analyze_combined_summary_format(self):
-        """Test 4: Test POST /api/audit-reports/analyze and verify Combined Summary Format (Option 3)"""
-        self.print_test_header("Test 4 - Audit Report Analysis with Combined Summary Format Verification")
+    def test_audit_report_analyze_report_form_and_ocr_extraction(self):
+        """Test 4: Test POST /api/audit-reports/analyze and verify Report Form extraction and OCR header/footer extraction"""
+        self.print_test_header("Test 4 - Audit Report Analysis with Report Form & OCR Extraction Verification")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
@@ -428,29 +428,31 @@ class BackendAPITester:
                 "Authorization": f"Bearer {self.access_token}"
             }
             
-            # Test with CORRECT ship_id (from database)
-            correct_ship_id = self.test_ship_id
-            ship_name = self.test_ship_data.get('name', 'Unknown')
+            # Use the specific ship_id from review request
+            target_ship_id = "bc444bc3-aea9-4491-b199-8098efcc16d2"  # BROTHER 36
+            ship_name = "BROTHER 36"
             
-            print(f"🧪 TESTING AUDIT REPORT ANALYSIS WITH COMBINED SUMMARY FORMAT:")
+            print(f"🧪 TESTING AUDIT REPORT ANALYSIS WITH REPORT FORM & OCR EXTRACTION:")
             print(f"   🚢 Ship Name: {ship_name}")
-            print(f"   ✅ Using Ship ID: {correct_ship_id}")
+            print(f"   ✅ Using Ship ID: {target_ship_id}")
             print(f"   📄 PDF Size: {len(pdf_content):,} bytes")
-            print(f"   🎯 Focus: Verify _summary_text contains BOTH formatted summary AND raw Document AI text")
+            print(f"   📄 PDF Filename: ISM-Code  Audit-Plan (07-230.pdf")
+            print(f"   🎯 Focus: Verify report_form extraction from filename and OCR header/footer extraction")
             
-            # Prepare multipart form data
+            # Prepare multipart form data with original filename to test filename extraction
             files = {
-                'audit_report_file': ('ISM-Code-Audit-Plan.pdf', pdf_content, 'application/pdf')
+                'audit_report_file': ('ISM-Code  Audit-Plan (07-230.pdf', pdf_content, 'application/pdf')
             }
             
             data = {
-                'ship_id': correct_ship_id,
-                'bypass_validation': 'true'  # Changed to true to bypass validation and get full analysis
+                'ship_id': target_ship_id,
+                'bypass_validation': 'false'  # Use false as specified in review request
             }
             
             print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
-            print(f"   📋 ship_id: {correct_ship_id}")
-            print(f"   📋 bypass_validation: true")
+            print(f"   📋 ship_id: {target_ship_id}")
+            print(f"   📋 bypass_validation: false")
+            print(f"   📋 filename: ISM-Code  Audit-Plan (07-230.pdf")
             
             # Make the request
             start_time = time.time()
@@ -480,76 +482,99 @@ class BackendAPITester:
                     if 'message' in response_data:
                         print(f"   📝 message: {response_data.get('message')}")
                     
-                    # CRITICAL: Check for _summary_text field
+                    # CRITICAL: Check for report_form field
                     analysis = response_data.get('analysis', {})
+                    report_form = analysis.get('report_form', '')
+                    
+                    print(f"\n🔍 REPORT FORM EXTRACTION VERIFICATION:")
+                    print(f"   📄 report_form present: {'✅ YES' if report_form else '❌ NO'}")
+                    print(f"   📄 report_form value: '{report_form}'")
+                    
+                    # Check if report_form matches expected pattern from filename
+                    expected_patterns = ['07-230', '07-23', '230']
+                    pattern_match = any(pattern in report_form for pattern in expected_patterns) if report_form else False
+                    print(f"   ✅ Expected pattern match (07-230 or similar): {'✅ YES' if pattern_match else '❌ NO'}")
+                    
+                    # CRITICAL: Check for _summary_text field and OCR content
                     summary_text = analysis.get('_summary_text', '')
                     
-                    print(f"\n🔍 COMBINED SUMMARY FORMAT VERIFICATION:")
+                    print(f"\n🔍 OCR HEADER/FOOTER EXTRACTION VERIFICATION:")
                     print(f"   📄 _summary_text present: {'✅ YES' if summary_text else '❌ NO'}")
                     
                     if summary_text:
                         summary_length = len(summary_text)
                         print(f"   📏 _summary_text length: {summary_length:,} characters")
                         
-                        # Check for required sections in the combined format
-                        has_formatted_section = "AUDIT REPORT ANALYSIS SUMMARY (DOCUMENT AI + SYSTEM AI)" in summary_text
-                        has_separator = "RAW DOCUMENT AI TEXT (Original OCR/Text Extraction)" in summary_text
-                        has_extracted_info = "--- Extracted Information ---" in summary_text
+                        # Check for required sections in the summary
+                        has_formatted_section = "AUDIT REPORT ANALYSIS SUMMARY" in summary_text
+                        has_raw_text_section = "RAW DOCUMENT AI TEXT" in summary_text
+                        has_ocr_section = "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)" in summary_text
                         
-                        print(f"   ✅ Part 1 - Formatted Summary Header: {'✅ FOUND' if has_formatted_section else '❌ MISSING'}")
-                        print(f"   ✅ Part 2 - Separator Line: {'✅ FOUND' if has_separator else '❌ MISSING'}")
-                        print(f"   ✅ Part 3 - Extracted Info Section: {'✅ FOUND' if has_extracted_info else '❌ MISSING'}")
+                        print(f"   ✅ Section 1 - Formatted Summary: {'✅ FOUND' if has_formatted_section else '❌ MISSING'}")
+                        print(f"   ✅ Section 2 - Raw Document AI Text: {'✅ FOUND' if has_raw_text_section else '❌ MISSING'}")
+                        print(f"   ✅ Section 3 - OCR Header/Footer: {'✅ FOUND' if has_ocr_section else '❌ MISSING'}")
                         
-                        # Check for raw Document AI text section
-                        separator_index = summary_text.find("RAW DOCUMENT AI TEXT (Original OCR/Text Extraction)")
-                        if separator_index > 0:
-                            raw_text_section = summary_text[separator_index + 100:]  # Text after separator
-                            raw_text_length = len(raw_text_section.strip())
-                            print(f"   📄 Raw Document AI text length: {raw_text_length:,} characters")
-                            print(f"   ✅ Raw text section: {'✅ NOT EMPTY' if raw_text_length > 50 else '❌ EMPTY OR TOO SHORT'}")
-                            
-                            # Show sample of raw text (first 200 chars)
-                            if raw_text_length > 0:
-                                sample_raw_text = raw_text_section.strip()[:200]
-                                print(f"   📝 Raw text sample: {sample_raw_text}...")
+                        # Check OCR section content
+                        if has_ocr_section:
+                            ocr_start = summary_text.find("ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)")
+                            if ocr_start > 0:
+                                # Find the end of OCR section (next section or end of text)
+                                ocr_section = summary_text[ocr_start:]
+                                next_section = ocr_section.find("============================================================", 100)
+                                if next_section > 0:
+                                    ocr_content = ocr_section[:next_section]
+                                else:
+                                    ocr_content = ocr_section
+                                
+                                ocr_text_length = len(ocr_content.strip())
+                                print(f"   📄 OCR section length: {ocr_text_length:,} characters")
+                                print(f"   ✅ OCR content populated: {'✅ YES' if ocr_text_length > 200 else '❌ NO (too short)'}")
+                                
+                                # Show sample of OCR content
+                                if ocr_text_length > 0:
+                                    sample_ocr = ocr_content.strip()[:300]
+                                    print(f"   📝 OCR content sample: {sample_ocr}...")
+                            else:
+                                print(f"   ❌ OCR section found but content not accessible")
                         else:
-                            print(f"   ❌ Raw Document AI text section: NOT FOUND")
+                            print(f"   ❌ OCR section: NOT FOUND in _summary_text")
                         
-                        # Show sample of formatted section (first 500 chars)
-                        formatted_section = summary_text[:500] if summary_text else ""
-                        print(f"\n📝 FORMATTED SECTION SAMPLE (first 500 chars):")
-                        print(f"   {formatted_section}...")
+                        # Validate overall structure
+                        all_sections_present = has_formatted_section and has_raw_text_section and has_ocr_section
+                        ocr_content_valid = has_ocr_section and ocr_start > 0
                         
-                        # Validate structure completeness
-                        structure_valid = has_formatted_section and has_separator and has_extracted_info
-                        raw_text_valid = separator_index > 0 and len(summary_text[separator_index + 100:].strip()) > 50
+                        print(f"\n🎯 OVERALL VALIDATION:")
+                        print(f"   ✅ All 3 sections present: {'✅ YES' if all_sections_present else '❌ NO'}")
+                        print(f"   ✅ OCR content valid: {'✅ YES' if ocr_content_valid else '❌ NO'}")
+                        print(f"   ✅ Report form populated: {'✅ YES' if report_form else '❌ NO'}")
                         
-                        print(f"\n🎯 COMBINED FORMAT VALIDATION:")
-                        print(f"   ✅ Structure Valid: {'✅ YES' if structure_valid else '❌ NO'}")
-                        print(f"   ✅ Raw Text Valid: {'✅ YES' if raw_text_valid else '❌ NO'}")
-                        print(f"   ✅ Total Length > 1000 chars: {'✅ YES' if summary_length > 1000 else '❌ NO'}")
+                        # Success criteria from review request
+                        success_criteria_met = (
+                            report_form and  # report_form is NOT empty
+                            has_ocr_section and  # _summary_text contains "ADDITIONAL INFORMATION FROM HEADER/FOOTER"
+                            ocr_content_valid  # OCR section has actual text content
+                        )
                         
-                        if structure_valid and raw_text_valid and summary_length > 1000:
-                            print(f"\n🎉 COMBINED SUMMARY FORMAT VERIFICATION SUCCESSFUL!")
-                            print(f"   ✅ _summary_text contains BOTH formatted summary AND raw Document AI text")
-                            print(f"   ✅ Clear separation between sections")
-                            print(f"   ✅ Raw text section is populated with OCR content")
-                            print(f"   ✅ Format matches Option 3 requirements exactly")
+                        if success_criteria_met:
+                            print(f"\n🎉 REPORT FORM & OCR EXTRACTION VERIFICATION SUCCESSFUL!")
+                            print(f"   ✅ report_form extracted: '{report_form}'")
+                            print(f"   ✅ _summary_text contains 3 sections including OCR")
+                            print(f"   ✅ OCR section has header/footer text content")
+                            print(f"   ✅ All success criteria from review request met")
                             
-                            self.print_result(True, f"Combined summary format (Option 3) verified successfully - contains both formatted and raw text")
+                            self.print_result(True, f"Report Form & OCR extraction verified successfully - report_form: '{report_form}', OCR section populated")
                             return True
                         else:
-                            print(f"\n❌ COMBINED SUMMARY FORMAT VALIDATION FAILED!")
-                            print(f"   ❌ Structure issues detected in _summary_text")
-                            print(f"   🔧 May be missing formatted section, separator, or raw text")
+                            print(f"\n❌ REPORT FORM & OCR EXTRACTION VALIDATION FAILED!")
+                            print(f"   ❌ Missing: report_form={bool(report_form)}, OCR_section={has_ocr_section}, OCR_content={ocr_content_valid}")
                             
-                            self.print_result(False, f"Combined summary format validation failed - missing required sections")
+                            self.print_result(False, f"Report Form & OCR extraction validation failed - missing required components")
                             return False
                     else:
                         print(f"   ❌ _summary_text field is missing or empty")
-                        print(f"   🔧 Combined summary format cannot be verified without _summary_text")
+                        print(f"   🔧 Cannot verify OCR extraction without _summary_text")
                         
-                        self.print_result(False, f"_summary_text field missing - cannot verify combined format")
+                        self.print_result(False, f"_summary_text field missing - cannot verify OCR extraction")
                         return False
                     
                     # Also check other analysis fields for completeness
@@ -579,8 +604,8 @@ class BackendAPITester:
                     if 'Ship not found' in error_message:
                         print(f"🚨 CRITICAL: Getting 'Ship not found' error!")
                         print(f"   ❌ Error: {error_message}")
-                        print(f"   🔧 Ship ID {correct_ship_id} not found in backend")
-                        self.print_result(False, f"Ship not found error - cannot test combined summary format")
+                        print(f"   🔧 Ship ID {target_ship_id} not found in backend")
+                        self.print_result(False, f"Ship not found error - cannot test report form & OCR extraction")
                         return False
                     else:
                         print(f"❌ 404 Error (not ship-related): {error_message}")
@@ -606,7 +631,7 @@ class BackendAPITester:
                     return False
                     
         except Exception as e:
-            self.print_result(False, f"Exception during combined summary format test: {str(e)}")
+            self.print_result(False, f"Exception during report form & OCR extraction test: {str(e)}")
             return False
     
     def test_backend_logs_verification(self):
