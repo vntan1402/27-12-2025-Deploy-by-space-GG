@@ -664,75 +664,54 @@ This is a fallback test audit report for API testing.
                             
                             # Check backend logs for System AI extraction process
                             print(f"\n📋 Checking backend logs for System AI extraction process...")
-                            self.check_system_ai_extraction_logs()
+                            criteria_4_met, criteria_5_met = self.check_system_ai_extraction_logs()
                             
-                            # SUCCESS CRITERIA from review request
-                            success_criteria_met = 0
-                            total_criteria = 6
-                            
-                            # 1. Endpoint returns 200 OK
-                            print(f"✅ Criterion 1: Endpoint returns 200 OK")
-                            success_criteria_met += 1
-                            
-                            # 2. At least 5 out of 9 fields contain non-empty values
-                            if len(populated_fields) >= 5:
-                                print(f"✅ Criterion 2: At least 5 fields populated ({len(populated_fields)}/9)")
-                                success_criteria_met += 1
+                            # Add criteria 4 & 5 to total
+                            if criteria_4_met:
+                                print(f"✅ Criterion 4: Backend logs show System AI extraction")
+                                criteria_met += 1
                             else:
-                                print(f"❌ Criterion 2: Only {len(populated_fields)} fields populated (need 5+)")
+                                print(f"❌ Criterion 4: Backend logs missing System AI extraction")
                             
-                            # 3. Key fields should have real data
-                            key_fields = ["audit_report_name", "audit_type", "ship_name"]
-                            key_fields_populated = sum(1 for field in key_fields if field in populated_fields)
-                            if key_fields_populated >= 2:
-                                print(f"✅ Criterion 3: Key fields have real data ({key_fields_populated}/3)")
-                                success_criteria_met += 1
+                            if criteria_5_met:
+                                print(f"✅ Criterion 5: Backend logs show field extraction")
+                                criteria_met += 1
                             else:
-                                print(f"❌ Criterion 3: Key fields missing data ({key_fields_populated}/3)")
+                                print(f"❌ Criterion 5: Backend logs missing field extraction")
                             
-                            # 4. Backend logs show System AI extraction
-                            # (will be checked in log function)
+                            print(f"\n📊 FINAL SUCCESS CRITERIA SUMMARY: {criteria_met}/{total_criteria} met")
                             
-                            # 5. Processing method should be system_ai_extraction_from_summary
-                            processing_method = analysis.get("processing_method", "")
-                            if "system_ai" in processing_method.lower():
-                                print(f"✅ Criterion 4: Processing method indicates System AI: {processing_method}")
-                                success_criteria_met += 1
-                            else:
-                                print(f"❌ Criterion 4: Processing method not System AI: {processing_method}")
-                            
-                            # 6. ISM-related content correctly identified
-                            if ism_related:
-                                print(f"✅ Criterion 5: ISM-related content correctly identified")
-                                success_criteria_met += 1
-                            else:
-                                print(f"❌ Criterion 5: ISM content not identified correctly")
-                            
-                            # 7. No AI configuration errors
-                            print(f"✅ Criterion 6: No AI configuration errors (200 OK received)")
-                            success_criteria_met += 1
-                            
-                            print(f"\n📊 SUCCESS CRITERIA SUMMARY: {success_criteria_met}/{total_criteria} met")
-                            
-                            if len(populated_fields) >= 5 and success_criteria_met >= 4:
-                                print(f"🎉 SUCCESS: System AI extraction fix IS WORKING!")
-                                print(f"   - {len(populated_fields)} fields populated (vs 0 before fix)")
-                                print(f"   - Key audit report fields contain actual data")
-                                print(f"   - Processing method indicates System AI extraction")
-                                self.print_result(True, f"System AI extraction fix VERIFIED WORKING - {len(populated_fields)} fields populated")
+                            # FINAL ASSESSMENT based on review request requirements
+                            if criteria_met >= 4 and summary_length >= 100 and len(populated_fields) >= 6:
+                                print(f"\n🎉 SUCCESS: AUDIT REPORT AI ANALYSIS WITH SUMMARY TEXT AND FIELD EXTRACTION IS WORKING!")
+                                print(f"   ✅ Document AI summary text populated ({summary_length} chars)")
+                                print(f"   ✅ System AI extraction called with summary")
+                                print(f"   ✅ {len(populated_fields)}/9 fields extracted correctly")
+                                print(f"   ✅ Processing method: {processing_method}")
+                                print(f"   ✅ Backend logs confirm complete flow")
+                                self.print_result(True, f"Audit Report AI Analysis WORKING - Summary + Field Extraction verified")
                                 return True
-                            elif len(empty_fields) == len(expected_fields):
-                                print(f"🚨 FAILURE: System AI extraction fix NOT WORKING!")
-                                print(f"   - ALL fields still return empty strings (same as before)")
-                                print(f"   - extract_audit_report_fields_from_summary() function not working")
-                                print(f"   - Need to investigate System AI extraction implementation")
-                                self.print_result(False, f"System AI extraction fix FAILED - all fields still empty")
+                            elif summary_length == 0:
+                                print(f"\n🚨 CRITICAL FAILURE: DOCUMENT AI SUMMARY TEXT IS EMPTY!")
+                                print(f"   ❌ _summary_text is empty - Document AI not working")
+                                print(f"   ❌ Without summary, System AI extraction cannot work")
+                                print(f"   ❌ This is the root cause of field extraction failure")
+                                self.print_result(False, f"Document AI summary text EMPTY - critical issue")
+                                return False
+                            elif len(populated_fields) == 0:
+                                print(f"\n🚨 CRITICAL FAILURE: ALL FIELDS STILL EMPTY!")
+                                print(f"   ❌ System AI extraction not working despite summary present")
+                                print(f"   ❌ All extracted fields return empty strings")
+                                print(f"   ❌ Need to investigate System AI extraction implementation")
+                                self.print_result(False, f"System AI field extraction FAILED - all fields empty")
                                 return False
                             else:
-                                print(f"⚠️ PARTIAL: System AI extraction partially working")
-                                print(f"   - {len(populated_fields)} fields populated, {len(empty_fields)} still empty")
-                                print(f"   - Improvement over previous version but needs refinement")
-                                self.print_result(True, f"System AI extraction PARTIALLY working - {len(populated_fields)} fields populated")
+                                print(f"\n⚠️ PARTIAL SUCCESS: Some components working")
+                                print(f"   📝 Summary text: {summary_length} chars ({'✅' if summary_length >= 100 else '❌'})")
+                                print(f"   🔍 Fields populated: {len(populated_fields)}/9 ({'✅' if len(populated_fields) >= 6 else '❌'})")
+                                print(f"   📋 Backend logs: {criteria_met}/5 criteria ({'✅' if criteria_met >= 4 else '❌'})")
+                                print(f"   🔧 Needs improvement but progress made")
+                                self.print_result(True, f"Audit Report AI Analysis PARTIALLY working - {criteria_met}/5 criteria met")
                                 return True
                         else:
                             print(f"❌ Analysis failed or returned empty")
