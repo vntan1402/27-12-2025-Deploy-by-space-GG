@@ -1132,7 +1132,8 @@ class AuditReportBase(BaseModel):
     report_form: Optional[str] = None  # Report Form type (e.g., "ISM Annual", "ISPS Interim")
     audit_report_no: Optional[str] = None
     audit_date: Optional[datetime] = None  # Date of audit
-    issued_by: Optional[str] = None  # Issuing company or organization
+    issued_by: Optional[str] = None  # Issuing company or organization (full name)
+    issued_by_abbreviation: Optional[str] = None  # Standard abbreviation (e.g., DNV, PMDS, VR)
     status: Optional[str] = "Valid"  # Valid, Expired, Pending
     note: Optional[str] = None
     auditor_name: Optional[str] = None  # Auditor name from AI extraction
