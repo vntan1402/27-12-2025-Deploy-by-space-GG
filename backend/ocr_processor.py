@@ -81,6 +81,20 @@ class EnhancedOCRProcessor:
             logger.warning("⚠️ OCR functionality will be limited without Tesseract")
             # Don't raise exception - make OCR optional
     
+    def is_available(self) -> bool:
+        """Check if OCR processor is available and functional"""
+        try:
+            # Check if we have at least one working OCR engine
+            if self.vision_client:
+                return True
+            
+            # Check if Tesseract is available
+            import pytesseract
+            pytesseract.get_tesseract_version()
+            return True
+        except Exception:
+            return False
+    
     async def process_pdf_with_ocr(self, pdf_content: bytes, filename: str) -> Dict[str, Any]:
         """
         Enhanced PDF processing with multiple OCR engines and improved performance
