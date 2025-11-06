@@ -7140,8 +7140,8 @@ async def analyze_survey_report_file(
                                 "message": "Ship information mismatch. Please verify or bypass validation.",
                                 "extracted_ship_name": extracted_ship_name,
                                 "extracted_ship_imo": extracted_ship_imo,
-                                "selected_ship_name": ship_name,
-                                "selected_ship_imo": ship_imo,
+                                "expected_ship_name": ship_name,  # Changed from selected_ship_name
+                                "expected_ship_imo": ship_imo,     # Changed from selected_ship_imo
                                 "split_info": analysis_result.get('_split_info')
                             }
                         else:
