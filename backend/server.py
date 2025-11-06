@@ -8010,7 +8010,7 @@ async def delete_gdrive_files_background(file_ids: list, company_id: str):
 async def bulk_delete_audit_reports(
     request: dict,
     background_tasks: BackgroundTasks,
-    current_user: UserResponse = Depends(get_current_user)
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
     Bulk delete audit reports
@@ -8022,6 +8022,11 @@ async def bulk_delete_audit_reports(
         
         if not report_ids:
             raise HTTPException(status_code=400, detail="No report IDs provided")
+        
+        # Resolve company ID (handle both UUID and name)
+        company_id = await resolve_company_id(current_user)
+        if not company_id:
+            raise HTTPException(status_code=404, detail="Company not found")
         
         # Fetch all reports to get file IDs for Google Drive deletion
         reports_to_delete = []
@@ -8052,7 +8057,7 @@ async def bulk_delete_audit_reports(
                 files_to_delete.append(report['audit_report_summary_file_id'])
         
         if files_to_delete:
-            background_tasks.add_task(delete_gdrive_files_background, files_to_delete, current_user.company)
+            background_tasks.add_task(delete_gdrive_files_background, files_to_delete, company_id)
         
         return {
             "success": True,
