@@ -8008,15 +8008,15 @@ async def analyze_audit_report_file(
                                         analysis_result['_summary_text'] = summary_text
                                         logger.info(f"✅ Enhanced summary with OCR: {len(summary_text)} chars total")
                                     else:
-                                        logger.warning("⚠️ OCR extraction returned no results")
+                                        logger.warning("⚠️ OCR extraction returned no header/footer text")
                                 else:
                                     logger.warning("⚠️ OCR extraction returned None")
-                            else:
-                                logger.warning("⚠️ OCR processor not available (Tesseract not installed)")
-                        except ImportError:
-                            logger.warning("⚠️ OCR processor module not found")
+                        else:
+                            logger.warning("⚠️ OCR processor not available (Tesseract not installed or not imported)")
                     except Exception as ocr_error:
                         logger.error(f"❌ Error during OCR extraction: {ocr_error}")
+                        import traceback
+                        logger.error(traceback.format_exc())
                     
                     # ✨ KEY STEP: Extract fields from summary using System AI (Gemini)
                     # This is what was missing! Same as Survey Report processing.
