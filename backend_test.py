@@ -811,9 +811,9 @@ class BackendAPITester:
                     return True
                 elif partial_logs_found:
                     print(f"\n⚠️ BACKEND LOGS PARTIALLY FOUND:")
-                    print(f"   ⚠️ Some OCR/report form logs present but not all expected messages")
-                    print(f"   🔧 May indicate partial implementation or different log format")
-                    self.print_result(False, "Backend logs show partial OCR/report form processing")
+                    print(f"   ⚠️ Some OCR logs present but not all critical messages")
+                    print(f"   🔧 May indicate partial implementation or OCR processor issues")
+                    self.print_result(False, "Backend logs show partial OCR processing")
                     return False
                 else:
                     print(f"\n❌ NO OCR/REPORT FORM LOGS FOUND")
