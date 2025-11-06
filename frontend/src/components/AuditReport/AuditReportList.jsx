@@ -750,6 +750,24 @@ export const AuditReportList = ({
             </select>
           </div>
 
+          {/* Audit Type Filter */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              {language === 'vi' ? 'Loại Audit:' : 'Audit Type:'}
+            </label>
+            <select
+              value={filters.auditType || 'all'}
+              onChange={(e) => onFiltersChange && onFiltersChange({ ...filters, auditType: e.target.value })}
+              className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+              <option value="ISM">ISM</option>
+              <option value="ISPS">ISPS</option>
+              <option value="MLC">MLC</option>
+              <option value="CICA">CICA</option>
+            </select>
+          </div>
+
           {/* Search Filter */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700">
