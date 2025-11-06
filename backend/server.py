@@ -5576,6 +5576,15 @@ async def extract_audit_report_fields_from_pdf_directly(
 - Often repeats on every page in header/footer
 - Check filename as hint: {filename}
 
+**CRITICAL FOR ISSUED_BY**:
+- LOOK IN LETTERHEAD/HEADER FIRST (top of first page)
+- Check for company logo, name, address at top
+- May be in footer with contact information
+- Look near "Issued by", "Audited by", "Conducted by" text
+- Common organizations: DNV GL, Lloyd's Register, Bureau Veritas, PMDS, Class NK, ABS
+- Extract FULL organization name (not just abbreviation)
+- DO NOT extract individual auditor names here (use auditor_name field)
+
 **OUTPUT**: Return ONLY valid JSON, no extra text."""
 
         # Create chat with file upload capability
