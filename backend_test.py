@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Audit Report AI Analysis with REAL PDF File
+Backend API Testing Script - Audit Report AI Analysis Field Extraction Fix Verification
 
-FOCUS: Test Audit Report AI Analysis endpoint with REAL user-provided PDF file.
+FOCUS: Test Audit Report AI Analysis with Real User PDF - Field Extraction Fix Verification
+OBJECTIVE: Verify that the new System AI extraction fix resolves the empty fields issue for Audit Report analysis.
+
+WHAT WAS FIXED:
+- Added extract_audit_report_fields_from_summary() function to extract fields from Document AI summary using Gemini
+- Updated audit report analysis endpoint to call this function after Document AI completes
+- This mirrors the working Survey Report extraction pattern
+
 User provided: "ISM-Code Audit-Plan (07-230.pdf"
-URL: https://customer-assets.emergentagent.com/job_audit-flow/artifacts/52s9rwyj_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
+URL: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
 
 TEST REQUIREMENTS:
 1. Setup:
