@@ -5975,7 +5975,7 @@ async def extract_audit_report_fields_from_summary(
                             else:
                                 logger.info(f"🔍 No report_form pattern found in filename: {filename}")
                         
-                        # POST-PROCESSING 2: Standardize "issued_by" organization name to abbreviation
+                        # POST-PROCESSING 3: Standardize "issued_by" organization name to abbreviation
                         if extracted_data.get('issued_by'):
                             raw_issued_by = extracted_data['issued_by']
                             standardized = standardize_issued_by_organization(raw_issued_by)
