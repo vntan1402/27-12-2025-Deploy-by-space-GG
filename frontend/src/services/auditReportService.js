@@ -38,8 +38,8 @@ export const auditReportService = {
    * Bulk delete audit reports
    */
   bulkDelete: async (reportIds) => {
-    return await api.post('/api/audit-reports/bulk-delete', { 
-      report_ids: reportIds 
+    return await api.delete('/api/audit-reports/bulk-delete', {
+      data: { report_ids: reportIds }
     });
   },
 
