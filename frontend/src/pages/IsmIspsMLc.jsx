@@ -1006,9 +1006,23 @@ const IsmIspsMLc = () => {
     );
   };
 
-  // Process single audit report file
+  // Process single audit report file (Match Survey Report pattern)
   const processSingleAuditReportFile = async (file, fileName) => {
+    const result = {
+      filename: fileName,
+      success: false,
+      auditReportCreated: false,
+      fileUploaded: false,
+      reportName: '',
+      reportNo: '',
+      error: null
+    };
+    
     try {
+      // Update status to 'processing'
+      setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'processing' }));
+      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 10 }));
+      
       // Step 1: AI Analysis (with bypass_validation = true in batch mode)
       setAuditReportFileSubStatusMap(prev => ({ 
         ...prev, 
@@ -1029,6 +1043,10 @@ const IsmIspsMLc = () => {
       }
 
       const analysis = data.analysis;
+      result.reportName = analysis.audit_report_name || file.name;
+      result.reportNo = analysis.audit_report_no || '';
+      
+      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 40 }));
 
       // Step 2: Create report record
       setAuditReportFileSubStatusMap(prev => ({ 
@@ -1051,6 +1069,9 @@ const IsmIspsMLc = () => {
 
       const createResponse = await auditReportService.create(reportData);
       const createdReport = createResponse.data || createResponse;
+      result.auditReportCreated = true;
+      
+      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 70 }));
 
       // Step 3: Upload files to Google Drive (SYNCHRONOUS in batch mode)
       setAuditReportFileSubStatusMap(prev => ({ 
@@ -1067,21 +1088,27 @@ const IsmIspsMLc = () => {
           analysis._content_type || 'application/pdf',
           analysis._summary_text || ''
         );
+        result.fileUploaded = true;
       }
 
-      return {
-        success: true,
-        fileName: fileName,
-        reportName: analysis.audit_report_name || file.name,
-        reportNo: analysis.audit_report_no || ''
-      };
+      // Success!
+      result.success = true;
+      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 100 }));
+      setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'completed' }));
+      setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: 'Completed' }));
 
     } catch (error) {
       console.error(`Error processing ${fileName}:`, error);
-      return {
-        success: false,
-        fileName: fileName,
-        error: error.message || 'Unknown error'
+      result.error = error.response?.data?.detail || error.message || 'Processing failed';
+      result.success = false;
+      setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'error' }));
+      setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: result.error }));
+    }
+    
+    // Brief pause before returning (match Survey Report)
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    return result;
       };
     }
   };
