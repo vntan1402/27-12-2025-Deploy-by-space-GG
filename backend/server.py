@@ -8062,12 +8062,36 @@ async def analyze_audit_report_file(
                     
                     # ✨ KEY STEP: Extract fields from summary using System AI (Gemini)
                     # This is what was missing! Same as Survey Report processing.
-                    if summary_text and len(summary_text) > 50:
+                    ai_provider = ai_config_doc.get("provider", "google")
+                    ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
+                    use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                    
+                    extracted_fields = {}
+                    
+                    # NEW APPROACH: Try DIRECT PDF extraction first (bypass Document AI summary)
+                    # This is more reliable for footer/header content
+                    if use_emergent_key and ai_provider in ["google", "emergent"]:
+                        logger.info("🎯 Attempting DIRECT PDF extraction (System AI reads PDF directly)...")
+                        try:
+                            extracted_fields = await extract_audit_report_fields_from_pdf_directly(
+                                file_content,
+                                filename,
+                                ai_model,
+                                use_emergent_key
+                            )
+                            
+                            if extracted_fields and extracted_fields.get('report_form'):
+                                logger.info(f"✅ DIRECT PDF extraction successful! report_form='{extracted_fields.get('report_form')}'")
+                            else:
+                                logger.warning("⚠️ DIRECT PDF extraction returned no report_form, will try summary method")
+                                extracted_fields = {}
+                        except Exception as e:
+                            logger.warning(f"⚠️ DIRECT PDF extraction failed: {e}, falling back to summary method")
+                            extracted_fields = {}
+                    
+                    # FALLBACK: Use summary-based extraction if direct PDF fails
+                    if not extracted_fields and summary_text and len(summary_text) > 50:
                         logger.info("🧠 Extracting audit report fields from SUMMARY (System AI)...")
-                        
-                        ai_provider = ai_config_doc.get("provider", "google")
-                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
-                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
                         
                         extracted_fields = await extract_audit_report_fields_from_summary(
                             summary_text,
