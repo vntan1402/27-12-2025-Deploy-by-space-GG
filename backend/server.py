@@ -5696,24 +5696,24 @@ Analyze the following text summary of a maritime audit report and extract all ke
 - Examples: "ISM CODE CERTIFICATION (ISM)", "ISPS", "MLC", "ISM CODE", "Internal Audit", "External Audit"
 
 **report_form**: 
-- **CRITICAL FIELD** - Extract the report form number or type
-- **WHERE TO LOOK** (in priority order):
-  1. Document HEADER (top of pages) - often contains form codes like "Form 7.10", "ISM-AUD-01"
-  2. Document FOOTER (bottom of pages) - may contain form references
-  3. Near title or report name - sometimes included as "Report Form: XXX"
-  4. In parentheses in document header - e.g., "(07-23)", "(Form A)"
-- **PATTERNS TO RECOGNIZE**:
-  - Alphanumeric codes: "ISM-AUD-01", "ISPS-CERT-02", "MLC-CHK-15"
-  - Form labels: "FORM-A", "Form 1", "FORM B"
-  - Numeric: "7.10", "12.5", "3.14"
-  - Date-style in parentheses: "(07-23)", "(02-19)", "(12-24)"
-  - Abbreviation + date: "CG (02-19)", "VR (07-23)", "SS (12-24)"
-- **SPECIAL INSTRUCTIONS**:
-  - If you see text like "Form: XXX" or "Form No: XXX", extract XXX
-  - If you see "(XX-YY)" near the title, this is likely the form number
-  - Look for revision codes or version numbers that may be the form
-  - Header/footer text often repeats across pages - look for consistent codes
-- Examples: "ISM-AUD-01", "FORM-A", "7.10", "CG (02-19)", "(07-230)"
+- Extract the report form or form type/number used for this audit
+- **CRITICAL 1**: Check the FILENAME first - often contains the report form
+  * Example: Filename "ISM-AUD (07-23).pdf" → Report Form is "(07-23)" or "07-23"
+  * Example: Filename "Audit Plan (07-230.pdf" → Report Form is "07-230"
+  * If filename contains pattern like "[A-Z]+ \([0-9]{2}[-/][0-9]{2,3}\)" or "\([0-9]{2}[-/][0-9]{2,3}\)", extract it as report_form
+- **CRITICAL 2**: Often appears in HEADER or FOOTER sections
+- **Common patterns**: Form codes, abbreviations, or version numbers
+  * Examples: "ISM-AUD-01", "FORM-A", "7.10", "(07-230)", "CG (02-19)", "VR (07-23)"
+  * May be alphanumeric codes, numeric with dots, or date-like patterns in parentheses
+- **Look for**: "Report Form", "Form No.", "Form Type", "Audit Form", "Form Used", "Rev.", "Version"
+- **Also check**: Document header/footer for repeating codes or numbers
+- May contain codes like "ISM Form 7.10", "ISPS-CERT-02", "Form A", etc.
+- Extract the complete form identifier as mentioned in the document
+- **DO NOT confuse with dates**: Forms may look like dates (e.g., "(07-23)") but are form identifiers
+- **IMPORTANT**: ONLY extract if it's clearly a FORM CODE (e.g., "Form 7.10", "(07-230)", "ISM-AUD-01")
+- **DO NOT extract** actual audit dates or document dates - those belong in audit_date field
+- If uncertain whether something is a date or form code, prefer treating it as a form code
+- **PRIORITY**: Filename > Header/Footer > Document body
 
 **audit_report_no**: 
 - Extract the audit report number or reference number
