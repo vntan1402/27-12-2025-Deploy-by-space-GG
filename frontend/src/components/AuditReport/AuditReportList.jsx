@@ -940,6 +940,9 @@ export const AuditReportList = ({
                   {/* Audit Type */}
                   <td className="border border-gray-300 px-4 py-2">{report.audit_type || '-'}</td>
 
+                  {/* Report Form */}
+                  <td className="border border-gray-300 px-4 py-2">{report.report_form || '-'}</td>
+
                   {/* Audit Report No (Monospace Font) */}
                   <td className="border border-gray-300 px-4 py-2 font-mono">{report.audit_report_no || '-'}</td>
 
