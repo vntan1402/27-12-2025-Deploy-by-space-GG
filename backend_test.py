@@ -696,13 +696,10 @@ class BackendAPITester:
                 ocr_enhanced_found = len(ocr_enhanced_logs) > 0
                 
                 print(f"\n📋 EXPECTED LOG MESSAGES VERIFICATION:")
-                print(f"   ✅ '🔍 Starting Targeted OCR': {'✅ FOUND' if ocr_start_found else '❌ NOT FOUND'}")
-                print(f"   ✅ '✅ OCR processor available': {'✅ FOUND' if ocr_available_found else '❌ NOT FOUND'}")
                 print(f"   ✅ '✅ Targeted OCR completed successfully': {'✅ FOUND' if ocr_completed_found else '❌ NOT FOUND'}")
-                print(f"   ✅ '📄 OCR results: header=XXX chars, footer=XXX chars': {'✅ FOUND' if ocr_results_found else '❌ NOT FOUND'}")
                 print(f"   ✅ '✅ Header text added': {'✅ FOUND' if header_added_found else '❌ NOT FOUND'}")
                 print(f"   ✅ '✅ Footer text added': {'✅ FOUND' if footer_added_found else '❌ NOT FOUND'}")
-                print(f"   ✅ '✅ Enhanced summary with OCR': {'✅ FOUND' if ocr_enhanced_found else '❌ NOT FOUND'}")
+                print(f"   ✅ '✅ Enhanced summary created with OCR': {'✅ FOUND' if ocr_enhanced_found else '❌ NOT FOUND'}")
                 
                 # Show sample logs if found
                 if ocr_start_logs:
