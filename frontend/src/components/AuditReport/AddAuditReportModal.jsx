@@ -24,6 +24,10 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
   const [analyzedData, setAnalyzedData] = useState(null); // Store complete analysis result
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef(null);
+  
+  // Validation modal state
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [validationData, setValidationData] = useState(null);
 
   const [formData, setFormData] = useState({
     audit_report_name: '',
