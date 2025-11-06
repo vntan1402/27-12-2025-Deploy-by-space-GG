@@ -776,13 +776,13 @@ class BackendAPITester:
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # Test sequence for Combined Summary Format Testing
+        # Test sequence for Report Form & OCR Extraction Testing
         tests = [
             ("Setup - Authentication", self.test_authentication),
             ("Setup - Company ID Resolution", self.test_get_company_id),
             ("Setup - Get Ships List", self.test_get_ships_list),
             ("Test 1 - Ship ID Verification", self.test_ship_id_verification),
-            ("Test 2 - Audit Analysis Combined Summary Format", self.test_audit_report_analyze_combined_summary_format),
+            ("Test 2 - Audit Analysis Report Form & OCR Extraction", self.test_audit_report_analyze_report_form_and_ocr_extraction),
             ("Test 3 - Backend Logs Verification", self.test_backend_logs_verification),
         ]
         
