@@ -700,7 +700,7 @@ This is a fallback test audit report for API testing.
                 # Prepare multipart form data with invalid ship_id
                 with open(test_pdf_path, 'rb') as pdf_file:
                     files = {
-                        'file': ('test_audit_report.pdf', pdf_file, 'application/pdf')
+                        'audit_report_file': ('test_audit_report.pdf', pdf_file, 'application/pdf')
                     }
                     data = {
                         'ship_id': fake_ship_id,
