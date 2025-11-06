@@ -682,26 +682,18 @@ class BackendAPITester:
                     elif "survey report analysis" in line.lower() or "survey report" in line.lower():
                         survey_analysis_logs.append(line.strip())
                 
-                print(f"\n🔍 OCR PROCESSING LOG ANALYSIS:")
-                print(f"   📊 OCR start logs found: {len(ocr_start_logs)}")
-                print(f"   📊 OCR processor available logs found: {len(ocr_available_logs)}")
+                print(f"\n🔍 SURVEY REPORT OCR PROCESSING LOG ANALYSIS:")
                 print(f"   📊 OCR completed logs found: {len(ocr_completed_logs)}")
-                print(f"   📊 OCR results logs found: {len(ocr_results_logs)}")
                 print(f"   📊 Header added logs found: {len(header_added_logs)}")
                 print(f"   📊 Footer added logs found: {len(footer_added_logs)}")
                 print(f"   📊 OCR enhanced summary logs found: {len(ocr_enhanced_logs)}")
-                print(f"   📊 Report form extraction logs found: {len(report_form_logs)}")
-                print(f"   📊 Audit analysis related logs found: {len(audit_analysis_logs)}")
+                print(f"   📊 Survey analysis related logs found: {len(survey_analysis_logs)}")
                 
                 # Check each type of log
-                ocr_start_found = len(ocr_start_logs) > 0
-                ocr_available_found = len(ocr_available_logs) > 0
                 ocr_completed_found = len(ocr_completed_logs) > 0
-                ocr_results_found = len(ocr_results_logs) > 0
                 header_added_found = len(header_added_logs) > 0
                 footer_added_found = len(footer_added_logs) > 0
                 ocr_enhanced_found = len(ocr_enhanced_logs) > 0
-                report_form_found = len(report_form_logs) > 0
                 
                 print(f"\n📋 EXPECTED LOG MESSAGES VERIFICATION:")
                 print(f"   ✅ '🔍 Starting Targeted OCR': {'✅ FOUND' if ocr_start_found else '❌ NOT FOUND'}")
