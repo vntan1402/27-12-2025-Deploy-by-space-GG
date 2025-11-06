@@ -702,21 +702,9 @@ class BackendAPITester:
                 print(f"   ✅ '✅ Enhanced summary created with OCR': {'✅ FOUND' if ocr_enhanced_found else '❌ NOT FOUND'}")
                 
                 # Show sample logs if found
-                if ocr_start_logs:
-                    print(f"\n   📝 OCR START LOG SAMPLE:")
-                    print(f"      {ocr_start_logs[-1]}")
-                
-                if ocr_available_logs:
-                    print(f"\n   📝 OCR AVAILABLE LOG SAMPLE:")
-                    print(f"      {ocr_available_logs[-1]}")
-                
                 if ocr_completed_logs:
                     print(f"\n   📝 OCR COMPLETED LOG SAMPLE:")
                     print(f"      {ocr_completed_logs[-1]}")
-                
-                if ocr_results_logs:
-                    print(f"\n   📝 OCR RESULTS LOG SAMPLE:")
-                    print(f"      {ocr_results_logs[-1]}")
                 
                 if header_added_logs:
                     print(f"\n   📝 HEADER ADDED LOG SAMPLE:")
@@ -730,9 +718,9 @@ class BackendAPITester:
                     print(f"\n   📝 OCR ENHANCED LOG SAMPLE:")
                     print(f"      {ocr_enhanced_logs[-1]}")
                 
-                # Overall validation - focus on key OCR success indicators
-                critical_logs_found = ocr_start_found and ocr_available_found and ocr_completed_found
-                partial_logs_found = ocr_start_found or ocr_available_found or ocr_completed_found or ocr_enhanced_found
+                # Overall validation - focus on key Survey Report OCR success indicators
+                critical_logs_found = ocr_completed_found and (header_added_found or footer_added_found)
+                partial_logs_found = ocr_completed_found or header_added_found or footer_added_found or ocr_enhanced_found
                 
                 print(f"\n🎯 BACKEND LOGS VALIDATION:")
                 print(f"   ✅ Critical OCR logs found: {'✅ YES' if critical_logs_found else '❌ NO'}")
