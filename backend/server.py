@@ -7812,11 +7812,21 @@ async def analyze_audit_report_file(
         if not company_uuid:
             raise HTTPException(status_code=404, detail="Company not found")
         
+        logger.info(f"🔍 Looking for ship with id={ship_id}, company={company_uuid}")
+        
         # Get ship information
         ship = await mongo_db.find_one("ships", {
             "id": ship_id,
             "company": company_uuid
         })
+        
+        if not ship:
+            # Debug: Try finding ship without company filter
+            ship_any_company = await mongo_db.find_one("ships", {"id": ship_id})
+            if ship_any_company:
+                logger.error(f"❌ Ship {ship_id} exists but belongs to company {ship_any_company.get('company')}, not {company_uuid}")
+            else:
+                logger.error(f"❌ Ship {ship_id} not found in database at all")
         
         if not ship and not bypass_validation_bool:
             raise HTTPException(status_code=404, detail="Ship not found")
