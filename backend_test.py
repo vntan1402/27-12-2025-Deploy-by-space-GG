@@ -42,14 +42,23 @@ TEST REQUIREMENTS:
    - Verify no errors related to parameter parsing (bypass_validation)
    - Confirm Gemini model usage logs
 
-SUCCESS CRITERIA:
-- ✅ PDF file downloaded successfully (should be ~few hundred KB)
-- ✅ Endpoint returns 200 OK (not 400 parameter error)
-- ✅ Analysis object contains all expected fields
-- ✅ Extracted data is relevant to ISM audit (not random/generic)
-- ✅ No backend errors in logs
-- ✅ AI config fallback mechanism working
-- ✅ Response includes file content for later upload (_file_content, _filename, _content_type)
+SUCCESS CRITERIA (from review request):
+- ✅ Endpoint returns 200 OK
+- ✅ At least 5 out of 9 fields contain non-empty values
+- ✅ Fields like audit_report_name, audit_type, ship_name should have real data
+- ✅ Backend logs show System AI extraction was performed
+- ✅ processing_method should be "system_ai_extraction_from_summary"
+
+FAILURE INDICATORS:
+- ❌ All fields still return empty strings (same as before)
+- ❌ Backend logs don't show "Extracting audit report fields from SUMMARY"
+- ❌ processing_method is still "clean_analysis" (indicates old path)
+
+EXPECTED EXTRACTED DATA (based on PDF filename):
+- PDF contains "ISM-Code Audit-Plan (07-23)"
+- Should extract audit type related to ISM
+- Should extract auditor names
+- Should extract dates and reference numbers
 
 Test credentials: admin1/123456
 Test ship: BROTHER 36 (or any available ship)
