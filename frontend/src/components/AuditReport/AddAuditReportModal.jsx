@@ -683,6 +683,109 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
           </button>
         </div>
       </div>
+
+      {/* Ship Validation Modal */}
+      {showValidationModal && validationData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl mx-4 overflow-hidden">
+            {/* Header */}
+            <div className="bg-yellow-500 px-6 py-4 flex items-center gap-3">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <h3 className="text-xl font-bold text-white">
+                {language === 'vi' 
+                  ? 'audit-report-sync.preview.emergentagent.com cho biết' 
+                  : 'audit-report-sync.preview.emergentagent.com says'}
+              </h3>
+              <button
+                onClick={handleValidationCancel}
+                className="ml-auto text-white hover:text-gray-200 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 py-6">
+              <div className="space-y-6">
+                {/* PDF Information */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3 text-lg">
+                    {language === 'vi' ? 'Thông tin trong file PDF:' : 'Information in PDF file:'}
+                  </h4>
+                  <div className="bg-blue-50 rounded-lg p-4 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[80px]">
+                        {language === 'vi' ? '- Tên tàu:' : '- Ship name:'}
+                      </span>
+                      <span className="font-medium text-gray-900 break-all">
+                        {validationData.extracted_ship_name || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[80px]">- IMO:</span>
+                      <span className="font-medium text-gray-900">
+                        {validationData.extracted_ship_imo || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Selected Ship Information */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-3 text-lg">
+                    {language === 'vi' ? 'Tàu bạn đã chọn:' : 'Your selected ship:'}
+                  </h4>
+                  <div className="bg-green-50 rounded-lg p-4 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[80px]">
+                        {language === 'vi' ? '- Tên tàu:' : '- Ship name:'}
+                      </span>
+                      <span className="font-medium text-gray-900 break-all">
+                        {validationData.expected_ship_name}
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-600 min-w-[80px]">- IMO:</span>
+                      <span className="font-medium text-gray-900">
+                        {validationData.expected_ship_imo || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Question */}
+                <div className="text-center py-2">
+                  <p className="text-lg text-gray-700">
+                    {language === 'vi' 
+                      ? `Bạn có muốn tiếp tục với tàu "${validationData.expected_ship_name}" không?`
+                      : `Do you want to continue with ship "${validationData.expected_ship_name}"?`}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="px-6 py-4 bg-gray-50 flex gap-3 justify-end">
+              <button
+                onClick={handleValidationCancel}
+                className="px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors"
+              >
+                {language === 'vi' ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                onClick={handleValidationConfirm}
+                className="px-6 py-2.5 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium transition-colors shadow-md"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
