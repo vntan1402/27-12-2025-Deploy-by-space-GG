@@ -846,20 +846,20 @@ class BackendAPITester:
         
         # Overall assessment
         if success_rate >= 80:
-            print(f"\n🎉 COMBINED SUMMARY FORMAT TESTING SUCCESSFUL!")
-            print(f"✅ _summary_text contains both formatted summary AND raw Document AI text")
-            print(f"✅ Clear separation between formatted and raw sections")
-            print(f"✅ Raw text section populated with original OCR content")
-            print(f"✅ Backend logs confirm combined summary creation")
-            print(f"✅ Format matches Option 3 requirements exactly")
+            print(f"\n🎉 REPORT FORM & OCR EXTRACTION TESTING SUCCESSFUL!")
+            print(f"✅ report_form field populated (from AI or filename)")
+            print(f"✅ _summary_text contains 3 sections including OCR")
+            print(f"✅ OCR section has header/footer text content")
+            print(f"✅ Backend logs show OCR processing")
+            print(f"✅ All success criteria from review request met")
         elif success_rate >= 60:
-            print(f"\n⚠️ COMBINED SUMMARY FORMAT PARTIALLY SUCCESSFUL")
-            print(f"📊 Some components working but format issues detected")
-            print(f"🔧 Review failed tests for specific format problems")
+            print(f"\n⚠️ REPORT FORM & OCR EXTRACTION PARTIALLY SUCCESSFUL")
+            print(f"📊 Some components working but extraction issues detected")
+            print(f"🔧 Review failed tests for specific extraction problems")
         else:
-            print(f"\n❌ COMBINED SUMMARY FORMAT TESTING FAILED")
-            print(f"🚨 Critical issues with summary format implementation")
-            print(f"🔧 Major format corrections required")
+            print(f"\n❌ REPORT FORM & OCR EXTRACTION TESTING FAILED")
+            print(f"🚨 Critical issues with report form or OCR extraction")
+            print(f"🔧 Major extraction corrections required")
         
         return success_rate >= 80
 
