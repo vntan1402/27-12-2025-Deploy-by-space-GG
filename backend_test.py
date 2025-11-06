@@ -525,35 +525,60 @@ class BackendAPITester:
                         summary_length = len(summary_text)
                         print(f"   📏 _summary_text length: {summary_length:,} characters")
                         
-                        # Check for required sections in the summary
-                        has_formatted_section = "AUDIT REPORT ANALYSIS SUMMARY" in summary_text
-                        has_raw_text_section = "RAW DOCUMENT AI TEXT" in summary_text
+                        # Check for OCR section specifically
                         has_ocr_section = "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)" in summary_text
                         
-                        print(f"   ✅ Section 1 - Formatted Summary: {'✅ FOUND' if has_formatted_section else '❌ MISSING'}")
-                        print(f"   ✅ Section 2 - Raw Document AI Text: {'✅ FOUND' if has_raw_text_section else '❌ MISSING'}")
-                        print(f"   ✅ Section 3 - OCR Header/Footer: {'✅ FOUND' if has_ocr_section else '❌ MISSING'}")
+                        print(f"   ✅ OCR Header/Footer Section: {'✅ FOUND' if has_ocr_section else '❌ MISSING'}")
                         
-                        # Check OCR section content
+                        # Check OCR section content and structure
+                        header_text_length = 0
+                        footer_text_length = 0
+                        ocr_content_valid = False
+                        
                         if has_ocr_section:
                             ocr_start = summary_text.find("ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)")
-                            if ocr_start > 0:
-                                # Find the end of OCR section (next section or end of text)
+                            if ocr_start >= 0:
+                                # Extract the OCR section
                                 ocr_section = summary_text[ocr_start:]
-                                next_section = ocr_section.find("============================================================", 100)
-                                if next_section > 0:
-                                    ocr_content = ocr_section[:next_section]
-                                else:
-                                    ocr_content = ocr_section
                                 
-                                ocr_text_length = len(ocr_content.strip())
-                                print(f"   📄 OCR section length: {ocr_text_length:,} characters")
-                                print(f"   ✅ OCR content populated: {'✅ YES' if ocr_text_length > 200 else '❌ NO (too short)'}")
+                                # Look for header and footer subsections
+                                has_header_section = "=== HEADER TEXT (Top 15% of page) ===" in ocr_section
+                                has_footer_section = "=== FOOTER TEXT (Bottom 15% of page) ===" in ocr_section
                                 
-                                # Show sample of OCR content
-                                if ocr_text_length > 0:
-                                    sample_ocr = ocr_content.strip()[:300]
-                                    print(f"   📝 OCR content sample: {sample_ocr}...")
+                                print(f"   ✅ Header subsection: {'✅ FOUND' if has_header_section else '❌ MISSING'}")
+                                print(f"   ✅ Footer subsection: {'✅ FOUND' if has_footer_section else '❌ MISSING'}")
+                                
+                                # Extract header text if present
+                                if has_header_section:
+                                    header_start = ocr_section.find("=== HEADER TEXT (Top 15% of page) ===")
+                                    header_end = ocr_section.find("=== FOOTER TEXT (Bottom 15% of page) ===")
+                                    if header_start >= 0 and header_end > header_start:
+                                        header_content = ocr_section[header_start:header_end].strip()
+                                        # Remove the header marker to get actual text
+                                        header_text = header_content.replace("=== HEADER TEXT (Top 15% of page) ===", "").strip()
+                                        header_text_length = len(header_text)
+                                        print(f"   📄 Header text length: {header_text_length} characters")
+                                        if header_text_length > 0:
+                                            print(f"   📝 Header sample: {header_text[:100]}...")
+                                
+                                # Extract footer text if present
+                                if has_footer_section:
+                                    footer_start = ocr_section.find("=== FOOTER TEXT (Bottom 15% of page) ===")
+                                    footer_end = ocr_section.find("============================================================", footer_start + 50)
+                                    if footer_start >= 0:
+                                        if footer_end > footer_start:
+                                            footer_content = ocr_section[footer_start:footer_end].strip()
+                                        else:
+                                            footer_content = ocr_section[footer_start:].strip()
+                                        # Remove the footer marker to get actual text
+                                        footer_text = footer_content.replace("=== FOOTER TEXT (Bottom 15% of page) ===", "").strip()
+                                        footer_text_length = len(footer_text)
+                                        print(f"   📄 Footer text length: {footer_text_length} characters")
+                                        if footer_text_length > 0:
+                                            print(f"   📝 Footer sample: {footer_text[:100]}...")
+                                
+                                ocr_content_valid = header_text_length > 0 or footer_text_length > 0
+                                print(f"   ✅ OCR content valid: {'✅ YES' if ocr_content_valid else '❌ NO'}")
                             else:
                                 print(f"   ❌ OCR section found but content not accessible")
                         else:
