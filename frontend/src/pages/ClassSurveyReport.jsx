@@ -367,15 +367,38 @@ const ClassSurveyReport = () => {
     
     try {
       // Step 1: AI Analysis with validation check (NO auto-retry)
-      const analyzeResponse = await surveyReportService.analyzeFile(
-        selectedShip.id,
-        file,
-        false // Check validation in batch mode
-      );
+      let analyzeResponse;
+      let data;
       
-      const data = analyzeResponse.data || analyzeResponse;
+      try {
+        analyzeResponse = await surveyReportService.analyzeFile(
+          selectedShip.id,
+          file,
+          false // Check validation in batch mode
+        );
+        data = analyzeResponse.data || analyzeResponse;
+      } catch (apiError) {
+        // API call failed - check if it's validation error in response
+        console.error(`API call failed for ${file.name}:`, apiError);
+        
+        // Check if error response contains validation error
+        if (apiError.response?.data?.validation_error) {
+          const errorData = apiError.response.data;
+          const extractedInfo = `${errorData.extracted_ship_name || 'N/A'} (IMO: ${errorData.extracted_ship_imo || 'N/A'})`;
+          const expectedInfo = `${errorData.expected_ship_name || 'N/A'} (IMO: ${errorData.expected_ship_imo || 'N/A'})`;
+          
+          const errorMsg = language === 'vi' 
+            ? `Thông tin tàu không khớp!\nPDF có: ${extractedInfo}\nĐã chọn: ${expectedInfo}`
+            : `Ship information mismatch!\nPDF has: ${extractedInfo}\nSelected: ${expectedInfo}`;
+          
+          throw new Error(errorMsg);
+        }
+        
+        // Otherwise rethrow original error
+        throw apiError;
+      }
       
-      // If validation error detected, STOP processing (no retry, no DB creation)
+      // If validation error detected in successful response, STOP processing
       if (data.validation_error) {
         console.log(`❌ Ship validation failed for ${file.name}:`, {
           extracted: `${data.extracted_ship_name} (IMO: ${data.extracted_ship_imo})`,
@@ -395,7 +418,7 @@ const ClassSurveyReport = () => {
       }
       
       if (!data.success || !data.analysis) {
-        throw new Error('AI analysis failed');
+        throw new Error(data.message || 'AI analysis failed');
       }
       
       const analysis = data.analysis;
