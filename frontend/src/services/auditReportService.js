@@ -52,10 +52,14 @@ export const auditReportService = {
     formData.append('ship_id', shipId);
     formData.append('bypass_validation', bypassValidation ? 'true' : 'false'); // Convert boolean to string like Survey Report
     
-    // IMPORTANT: Don't set Content-Type header manually for FormData
-    // Axios will automatically set it with the correct boundary
+    // IMPORTANT: When sending FormData, axios needs to set Content-Type with boundary automatically
+    // But we need to explicitly tell axios this is multipart/form-data
     return await api.post('/api/audit-reports/analyze', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
       timeout: API_TIMEOUT.AI_ANALYSIS, // 90 seconds for AI processing (same as Survey Report)
+      transformRequest: [(data) => data] // Prevent axios from converting FormData to JSON
     });
   },
 
