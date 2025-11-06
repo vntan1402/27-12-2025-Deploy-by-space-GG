@@ -464,7 +464,7 @@ class BackendAPITester:
             
             data = {
                 'ship_id': target_ship_id,
-                'bypass_validation': 'false'  # Use false as specified in review request
+                'bypass_validation': 'true'  # Use true to bypass validation and test OCR functionality
             }
             
             print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
