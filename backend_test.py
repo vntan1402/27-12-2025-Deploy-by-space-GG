@@ -438,9 +438,9 @@ This is a fallback test audit report for API testing.
             print(f"⚠️ Could not create fallback PDF: {e}")
             return None
     
-    def test_audit_report_analyze_endpoint(self):
-        """Test 3: POST /api/audit-reports/analyze endpoint with REAL PDF file"""
-        self.print_test_header("Test 3 - Audit Report AI Analysis with REAL PDF")
+    def test_get_audit_reports_for_ship(self):
+        """Test 3: GET /api/audit-reports for BROTHER 36 ship and check file IDs"""
+        self.print_test_header("Test 3 - Get Audit Reports for BROTHER 36 and Check File IDs")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
@@ -448,297 +448,140 @@ This is a fallback test audit report for API testing.
         
         try:
             headers = {
-                "Authorization": f"Bearer {self.access_token}"
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
             }
             
-            print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
-            print(f"🎯 Testing AI analysis with REAL user-provided PDF file")
-            print(f"🚢 Target Ship: {self.test_ship_data.get('name')} (ID: {self.test_ship_id[:8]}...)")
+            print(f"📡 GET {BACKEND_URL}/audit-reports?ship_id={self.test_ship_id}")
+            print(f"🎯 Getting audit reports for ship: {self.test_ship_data.get('name')} (ID: {self.test_ship_id[:8]}...)")
             
-            # Try to download the REAL PDF file first
-            test_pdf_path = self.download_real_pdf()
-            if not test_pdf_path:
-                print(f"⚠️ Could not download real PDF, using fallback...")
-                test_pdf_path = self.create_fallback_pdf()
-                if not test_pdf_path:
-                    self.print_result(False, "Could not create any test PDF file")
-                    return False
+            # Make request to get audit reports for the ship
+            response = self.session.get(
+                f"{BACKEND_URL}/audit-reports",
+                headers=headers,
+                params={"ship_id": self.test_ship_id}
+            )
             
-            try:
-                # Prepare multipart form data
-                with open(test_pdf_path, 'rb') as pdf_file:
-                    files = {
-                        'audit_report_file': ('ISM-Code-Audit-Plan.pdf', pdf_file, 'application/pdf')
-                    }
-                    data = {
-                        'ship_id': self.test_ship_id,
-                        'bypass_validation': 'true'  # Bypass validation to test AI extraction
-                    }
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                audit_reports = response.json()
+                print(f"📄 Found {len(audit_reports)} audit reports for ship {self.test_ship_data.get('name')}")
+                
+                if not audit_reports:
+                    print(f"⚠️ No audit reports found for ship {self.test_ship_data.get('name')}")
+                    print(f"   This could mean:")
+                    print(f"   1. No audit reports have been uploaded yet")
+                    print(f"   2. Ship ID is incorrect")
+                    print(f"   3. Database query issue")
+                    self.print_result(True, "No audit reports found - cannot test file IDs (expected if no uploads)")
+                    return True
+                
+                # Sort by created_at to get the most recent report
+                sorted_reports = sorted(audit_reports, key=lambda x: x.get('created_at', ''), reverse=True)
+                most_recent_report = sorted_reports[0]
+                
+                print(f"\n🔍 AUDIT REPORT FILE ID VERIFICATION:")
+                print(f"   Testing most recent audit report (created: {most_recent_report.get('created_at', 'Unknown')})")
+                
+                # Extract file IDs from the most recent report
+                audit_report_file_id = most_recent_report.get('audit_report_file_id')
+                audit_report_summary_file_id = most_recent_report.get('audit_report_summary_file_id')
+                
+                print(f"\n📋 CRITICAL FILE ID CHECK:")
+                print(f"   Audit Report ID: {most_recent_report.get('id', 'Unknown')}")
+                print(f"   Audit Report Name: {most_recent_report.get('audit_report_name', 'Unknown')}")
+                print(f"   Created At: {most_recent_report.get('created_at', 'Unknown')}")
+                
+                # Check audit_report_file_id
+                print(f"\n📄 ORIGINAL FILE ID CHECK:")
+                if audit_report_file_id:
+                    print(f"   ✅ audit_report_file_id: POPULATED")
+                    print(f"   📁 File ID: {audit_report_file_id}")
                     
-                    print(f"📄 Uploading REAL PDF file for analysis...")
-                    print(f"📋 Parameters: ship_id={self.test_ship_id[:8]}..., bypass_validation=true")
-                    print(f"📋 File: ISM-Code-Audit-Plan (07-23) TRUONG MINH LUCKY.pdf")
-                    
-                    # Make the API request
-                    start_time = time.time()
-                    response = self.session.post(
-                        f"{BACKEND_URL}/audit-reports/analyze",
-                        headers=headers,
-                        files=files,
-                        data=data,
-                        timeout=120  # AI analysis can take time
-                    )
-                    response_time = time.time() - start_time
-                    
-                    print(f"📊 Response Status: {response.status_code}")
-                    print(f"⏱️ Response Time: {response_time:.1f} seconds")
-                    
-                    if response.status_code == 200:
-                        response_data = response.json()
-                        print(f"📄 Response Keys: {list(response_data.keys())}")
-                        
-                        # Verify expected response structure
-                        success = response_data.get("success")
-                        analysis = response_data.get("analysis", {})
-                        ship_name = response_data.get("ship_name")
-                        ship_imo = response_data.get("ship_imo")
-                        message = response_data.get("message")
-                        
-                        print(f"✅ Success: {success}")
-                        print(f"🔍 Analysis Keys: {list(analysis.keys()) if analysis else 'None'}")
-                        print(f"🚢 Ship Name: {ship_name}")
-                        print(f"🚢 Ship IMO: {ship_imo}")
-                        print(f"📝 Message: {message}")
-                        
-                        if success and analysis:
-                            # Check for expected analysis fields (from review request)
-                            expected_fields = [
-                                "audit_report_name", "audit_type", "report_form", "audit_report_no", 
-                                "ship_name", "ship_imo", "auditor_name", "issued_by", "audit_date"
-                            ]
-                            
-                            # Check for file content fields (from review request)
-                            file_content_fields = ["_file_content", "_filename", "_content_type", "_summary_text"]
-                            
-                            found_fields = []
-                            empty_fields = []
-                            populated_fields = []
-                            
-                            print(f"\n🔍 CRITICAL FIELD EXTRACTION VERIFICATION:")
-                            print(f"   Testing Document AI Summary Text + System AI Extraction Flow")
-                            
-                            # CRITICAL CHECK 1: _summary_text from Document AI
-                            summary_text = analysis.get("_summary_text", "")
-                            summary_length = len(summary_text) if summary_text else 0
-                            print(f"\n📝 DOCUMENT AI SUMMARY CHECK:")
-                            print(f"   _summary_text present: {'✅ YES' if summary_text else '❌ NO'}")
-                            print(f"   _summary_text length: {summary_length} chars")
-                            
-                            if summary_length >= 100:
-                                print(f"   ✅ Document AI summary adequate length (100+ chars)")
-                            elif summary_length > 0:
-                                print(f"   ⚠️ Document AI summary too short ({summary_length} chars)")
-                            else:
-                                print(f"   ❌ Document AI summary EMPTY - critical issue")
-                            
-                            # CRITICAL CHECK 2: processing_method
-                            processing_method = analysis.get("processing_method", "")
-                            print(f"\n🔧 PROCESSING METHOD CHECK:")
-                            print(f"   processing_method: '{processing_method}'")
-                            
-                            if "system_ai_extraction_from_summary" in processing_method:
-                                print(f"   ✅ System AI extraction from summary method confirmed")
-                            elif "clean_analysis" in processing_method:
-                                print(f"   ❌ Old clean_analysis method - System AI extraction NOT used")
-                            else:
-                                print(f"   ⚠️ Unknown processing method")
-                            
-                            # CRITICAL CHECK 3: Field extraction results
-                            print(f"\n🔍 FIELD EXTRACTION RESULTS:")
-                            for field in expected_fields:
-                                if field in analysis:
-                                    found_fields.append(field)
-                                    value = analysis[field]
-                                    if value and str(value).strip() and str(value).strip() != "":
-                                        populated_fields.append(field)
-                                        print(f"   ✅ {field}: '{value}' (POPULATED)")
-                                    else:
-                                        empty_fields.append(field)
-                                        print(f"   ❌ {field}: '{value}' (EMPTY)")
-                                else:
-                                    print(f"   ❌ {field}: MISSING")
-                            
-                            print(f"\n📊 EXTRACTION SUMMARY:")
-                            print(f"   Total fields found: {len(found_fields)}/{len(expected_fields)}")
-                            print(f"   Populated fields: {len(populated_fields)}/{len(expected_fields)}")
-                            print(f"   Empty fields: {len(empty_fields)}/{len(expected_fields)}")
-                            
-                            # KEY SUCCESS CRITERIA from review request
-                            criteria_met = 0
-                            total_criteria = 5
-                            
-                            # Criterion 1: _summary_text contains Document AI summary (100+ chars)
-                            if summary_length >= 100:
-                                print(f"✅ Criterion 1: _summary_text contains Document AI summary (100+ chars)")
-                                criteria_met += 1
-                            else:
-                                print(f"❌ Criterion 1: _summary_text missing or too short ({summary_length} chars)")
-                            
-                            # Criterion 2: At least 6/9 fields populated with real data
-                            if len(populated_fields) >= 6:
-                                print(f"✅ Criterion 2: At least 6/9 fields populated ({len(populated_fields)}/9)")
-                                criteria_met += 1
-                            else:
-                                print(f"❌ Criterion 2: Only {len(populated_fields)}/9 fields populated (need 6+)")
-                            
-                            # Criterion 3: processing_method = "system_ai_extraction_from_summary"
-                            if "system_ai_extraction_from_summary" in processing_method:
-                                print(f"✅ Criterion 3: processing_method indicates System AI extraction")
-                                criteria_met += 1
-                            else:
-                                print(f"❌ Criterion 3: processing_method not System AI extraction: {processing_method}")
-                            
-                            # Will check backend logs for criteria 4 & 5 in log function
-                            
-                            # Verify analysis quality for ISM audit
-                            audit_type = analysis.get("audit_type", "").upper()
-                            audit_name = analysis.get("audit_report_name", "").upper()
-                            
-                            print(f"\n🔍 Analysis Quality Check:")
-                            print(f"   Audit Type: {audit_type}")
-                            print(f"   Audit Name: {audit_name}")
-                            
-                            # Check if it's ISM-related
-                            ism_related = any(keyword in audit_type for keyword in ["ISM", "SAFETY", "MANAGEMENT"]) or \
-                                         any(keyword in audit_name for keyword in ["ISM", "SAFETY", "MANAGEMENT", "AUDIT"])
-                            
-                            print(f"   ISM-related: {'✅ YES' if ism_related else '❌ NO'}")
-                            
-                            file_fields_found = sum(1 for field in file_content_fields if field in analysis)
-                            print(f"   File content fields: {file_fields_found}/{len(file_content_fields)}")
-                            
-                            # Check for _summary_text specifically
-                            summary_text = analysis.get("_summary_text", "")
-                            print(f"   Summary text present: {'✅ YES' if summary_text else '❌ NO'}")
-                            
-                            # Check for _file_content base64 encoding
-                            file_content = analysis.get("_file_content", "")
-                            is_base64 = bool(file_content and len(file_content) > 100)
-                            print(f"   File content base64: {'✅ YES' if is_base64 else '❌ NO'}")
-                            
-                            # Check root response fields
-                            root_fields_present = bool(ship_name and ship_imo)
-                            print(f"   Ship name/IMO in root: {'✅ YES' if root_fields_present else '❌ NO'}")
-                            
-                            # Check backend logs for System AI extraction process
-                            print(f"\n📋 Checking backend logs for System AI extraction process...")
-                            criteria_4_met, criteria_5_met = self.check_system_ai_extraction_logs()
-                            
-                            # Add criteria 4 & 5 to total
-                            if criteria_4_met:
-                                print(f"✅ Criterion 4: Backend logs show System AI extraction")
-                                criteria_met += 1
-                            else:
-                                print(f"❌ Criterion 4: Backend logs missing System AI extraction")
-                            
-                            if criteria_5_met:
-                                print(f"✅ Criterion 5: Backend logs show field extraction")
-                                criteria_met += 1
-                            else:
-                                print(f"❌ Criterion 5: Backend logs missing field extraction")
-                            
-                            print(f"\n📊 FINAL SUCCESS CRITERIA SUMMARY: {criteria_met}/{total_criteria} met")
-                            
-                            # FINAL ASSESSMENT based on review request requirements
-                            if criteria_met >= 4 and summary_length >= 100 and len(populated_fields) >= 6:
-                                print(f"\n🎉 SUCCESS: AUDIT REPORT AI ANALYSIS WITH SUMMARY TEXT AND FIELD EXTRACTION IS WORKING!")
-                                print(f"   ✅ Document AI summary text populated ({summary_length} chars)")
-                                print(f"   ✅ System AI extraction called with summary")
-                                print(f"   ✅ {len(populated_fields)}/9 fields extracted correctly")
-                                print(f"   ✅ Processing method: {processing_method}")
-                                print(f"   ✅ Backend logs confirm complete flow")
-                                self.print_result(True, f"Audit Report AI Analysis WORKING - Summary + Field Extraction verified")
-                                return True
-                            elif summary_length == 0:
-                                print(f"\n🚨 CRITICAL FAILURE: DOCUMENT AI SUMMARY TEXT IS EMPTY!")
-                                print(f"   ❌ _summary_text is empty - Document AI not working")
-                                print(f"   ❌ Without summary, System AI extraction cannot work")
-                                print(f"   ❌ This is the root cause of field extraction failure")
-                                self.print_result(False, f"Document AI summary text EMPTY - critical issue")
-                                return False
-                            elif len(populated_fields) == 0:
-                                print(f"\n🚨 CRITICAL FAILURE: ALL FIELDS STILL EMPTY!")
-                                print(f"   ❌ System AI extraction not working despite summary present")
-                                print(f"   ❌ All extracted fields return empty strings")
-                                print(f"   ❌ Need to investigate System AI extraction implementation")
-                                self.print_result(False, f"System AI field extraction FAILED - all fields empty")
-                                return False
-                            else:
-                                print(f"\n⚠️ PARTIAL SUCCESS: Some components working")
-                                print(f"   📝 Summary text: {summary_length} chars ({'✅' if summary_length >= 100 else '❌'})")
-                                print(f"   🔍 Fields populated: {len(populated_fields)}/9 ({'✅' if len(populated_fields) >= 6 else '❌'})")
-                                print(f"   📋 Backend logs: {criteria_met}/5 criteria ({'✅' if criteria_met >= 4 else '❌'})")
-                                print(f"   🔧 Needs improvement but progress made")
-                                self.print_result(True, f"Audit Report AI Analysis PARTIALLY working - {criteria_met}/5 criteria met")
-                                return True
-                        else:
-                            print(f"❌ Analysis failed or returned empty")
-                            self.print_result(False, f"Analysis failed: success={success}, analysis={bool(analysis)}")
-                            return False
-                            
-                    elif response.status_code == 403:
-                        # This indicates AI config error - the main issue we're testing
-                        try:
-                            error_data = response.json()
-                            detail = error_data.get("detail", "")
-                            print(f"❌ 403 Forbidden Error: {detail}")
-                            
-                            if "AI configuration" in detail or "emergent_llm_key" in detail:
-                                print(f"🚨 CRITICAL: AI configuration error detected - this is the bug we're testing!")
-                                self.print_result(False, f"AI configuration error: {detail}")
-                            else:
-                                print(f"❌ Authentication/authorization error: {detail}")
-                                self.print_result(False, f"Authentication error: {detail}")
-                            return False
-                        except:
-                            self.print_result(False, f"403 error with unparseable response: {response.text}")
-                            return False
-                            
-                    elif response.status_code == 400:
-                        # Check if this is AI config related or validation error
-                        try:
-                            error_data = response.json()
-                            detail = error_data.get("detail", "")
-                            print(f"❌ 400 Bad Request: {detail}")
-                            
-                            if "AI configuration" in detail or "emergent_llm_key" in detail:
-                                print(f"🚨 CRITICAL: AI configuration error detected - this is the bug we're testing!")
-                                self.print_result(False, f"AI configuration error: {detail}")
-                            else:
-                                print(f"⚠️ Validation or request error: {detail}")
-                                self.print_result(False, f"Request validation error: {detail}")
-                            return False
-                        except:
-                            self.print_result(False, f"400 error with unparseable response: {response.text}")
-                            return False
+                    # Validate Google Drive file ID format (should be long alphanumeric string)
+                    if len(audit_report_file_id) > 10 and audit_report_file_id.replace('-', '').replace('_', '').isalnum():
+                        print(f"   ✅ File ID format looks valid (Google Drive format)")
                     else:
-                        try:
-                            error_data = response.json()
-                            self.print_result(False, f"Audit report analysis failed with status {response.status_code}: {error_data}")
-                        except:
-                            self.print_result(False, f"Audit report analysis failed with status {response.status_code}: {response.text}")
-                        return False
-                        
-            finally:
-                # Clean up test file
+                        print(f"   ⚠️ File ID format may not be valid Google Drive format")
+                else:
+                    print(f"   ❌ audit_report_file_id: EMPTY/NULL")
+                    print(f"   📁 Value: {audit_report_file_id}")
+                
+                # Check audit_report_summary_file_id (CRITICAL)
+                print(f"\n📝 SUMMARY FILE ID CHECK (CRITICAL):")
+                if audit_report_summary_file_id:
+                    print(f"   ✅ audit_report_summary_file_id: POPULATED")
+                    print(f"   📁 Summary File ID: {audit_report_summary_file_id}")
+                    
+                    # Validate Google Drive file ID format
+                    if len(audit_report_summary_file_id) > 10 and audit_report_summary_file_id.replace('-', '').replace('_', '').isalnum():
+                        print(f"   ✅ Summary file ID format looks valid (Google Drive format)")
+                    else:
+                        print(f"   ⚠️ Summary file ID format may not be valid Google Drive format")
+                else:
+                    print(f"   ❌ audit_report_summary_file_id: EMPTY/NULL")
+                    print(f"   📁 Value: {audit_report_summary_file_id}")
+                
+                # Check other relevant fields
+                print(f"\n📊 ADDITIONAL REPORT DETAILS:")
+                print(f"   Audit Type: {most_recent_report.get('audit_type', 'Unknown')}")
+                print(f"   Audit Report No: {most_recent_report.get('audit_report_no', 'Unknown')}")
+                print(f"   Status: {most_recent_report.get('status', 'Unknown')}")
+                print(f"   Auditor Name: {most_recent_report.get('auditor_name', 'Unknown')}")
+                
+                # FINAL ASSESSMENT based on review request
+                both_files_present = bool(audit_report_file_id and audit_report_summary_file_id)
+                original_file_only = bool(audit_report_file_id and not audit_report_summary_file_id)
+                no_files = bool(not audit_report_file_id and not audit_report_summary_file_id)
+                
+                print(f"\n🎯 REVIEW REQUEST ASSESSMENT:")
+                
+                if both_files_present:
+                    print(f"✅ SUCCESS: Both file IDs are populated!")
+                    print(f"   ✅ audit_report_file_id: {audit_report_file_id}")
+                    print(f"   ✅ audit_report_summary_file_id: {audit_report_summary_file_id}")
+                    print(f"   🎉 Backend upload is working correctly!")
+                    print(f"   📝 If frontend shows issues, it's likely a display/refresh problem")
+                    self.print_result(True, "Both audit_report_file_id and audit_report_summary_file_id are populated - backend working correctly")
+                    return True
+                    
+                elif original_file_only:
+                    print(f"🚨 CRITICAL ISSUE: Only original file ID populated!")
+                    print(f"   ✅ audit_report_file_id: {audit_report_file_id}")
+                    print(f"   ❌ audit_report_summary_file_id: MISSING")
+                    print(f"   🔧 Summary file upload/creation is failing")
+                    print(f"   📋 This matches the reported issue - summary file not being created")
+                    self.print_result(False, "audit_report_summary_file_id is missing - summary file upload failing")
+                    return False
+                    
+                elif no_files:
+                    print(f"⚠️ NO FILE IDs: Both file IDs are missing")
+                    print(f"   ❌ audit_report_file_id: MISSING")
+                    print(f"   ❌ audit_report_summary_file_id: MISSING")
+                    print(f"   🔧 Complete file upload system may be failing")
+                    print(f"   📋 This could indicate a broader upload issue")
+                    self.print_result(False, "Both file IDs missing - complete upload system issue")
+                    return False
+                    
+                else:
+                    print(f"⚠️ UNEXPECTED STATE: Summary file present but original missing")
+                    print(f"   ❌ audit_report_file_id: MISSING")
+                    print(f"   ✅ audit_report_summary_file_id: {audit_report_summary_file_id}")
+                    print(f"   🔧 Unusual state - investigate upload logic")
+                    self.print_result(False, "Unexpected file ID state - original missing but summary present")
+                    return False
+                
+            else:
                 try:
-                    import os
-                    os.unlink(test_pdf_path)
+                    error_data = response.json()
+                    self.print_result(False, f"GET audit-reports failed with status {response.status_code}: {error_data}")
                 except:
-                    pass
+                    self.print_result(False, f"GET audit-reports failed with status {response.status_code}: {response.text}")
+                return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during audit report analysis test: {str(e)}")
+            self.print_result(False, f"Exception during get audit reports test: {str(e)}")
             return False
     
     def check_system_ai_extraction_logs(self):
