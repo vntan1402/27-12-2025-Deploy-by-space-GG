@@ -532,14 +532,18 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Loại Audit' : 'Audit Type'}
                 </label>
-                <input
-                  type="text"
+                <select
                   name="audit_type"
                   value={formData.audit_type}
                   onChange={handleChange}
                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'vi' ? 'VD: FL-01, FL-02...' : 'e.g., FL-01, FL-02...'}
-                />
+                >
+                  <option value="">{language === 'vi' ? 'Chọn loại audit' : 'Select audit type'}</option>
+                  <option value="ISM">ISM</option>
+                  <option value="ISPS">ISPS</option>
+                  <option value="MLC">MLC</option>
+                  <option value="CICA">CICA</option>
+                </select>
               </div>
             </div>
 
