@@ -1031,16 +1031,38 @@ const IsmIspsMLc = () => {
       }));
       
       // Batch mode: WITH validation check (NO auto-retry)
-      const analysisResponse = await auditReportService.analyzeFile(
-        selectedShip.id,
-        file,
-        false // Check validation in batch mode
-      );
-
-      // Handle response with fallback (match Survey Report pattern)
-      const data = analysisResponse.data || analysisResponse;
+      let analysisResponse;
+      let data;
       
-      // If validation error detected, STOP processing (no retry, no DB creation)
+      try {
+        analysisResponse = await auditReportService.analyzeFile(
+          selectedShip.id,
+          file,
+          false // Check validation in batch mode
+        );
+        data = analysisResponse.data || analysisResponse;
+      } catch (apiError) {
+        // API call failed - check if it's validation error in response
+        console.error(`API call failed for ${fileName}:`, apiError);
+        
+        // Check if error response contains validation error
+        if (apiError.response?.data?.validation_error) {
+          const errorData = apiError.response.data;
+          const extractedInfo = `${errorData.extracted_ship_name || 'N/A'} (IMO: ${errorData.extracted_ship_imo || 'N/A'})`;
+          const expectedInfo = `${errorData.expected_ship_name || 'N/A'} (IMO: ${errorData.expected_ship_imo || 'N/A'})`;
+          
+          const errorMsg = language === 'vi' 
+            ? `Thông tin tàu không khớp!\nPDF có: ${extractedInfo}\nĐã chọn: ${expectedInfo}`
+            : `Ship information mismatch!\nPDF has: ${extractedInfo}\nSelected: ${expectedInfo}`;
+          
+          throw new Error(errorMsg);
+        }
+        
+        // Otherwise rethrow original error
+        throw apiError;
+      }
+      
+      // If validation error detected in successful response, STOP processing
       if (data.validation_error) {
         console.log(`❌ Ship validation failed for ${fileName}:`, {
           extracted: `${data.extracted_ship_name} (IMO: ${data.extracted_ship_imo})`,
