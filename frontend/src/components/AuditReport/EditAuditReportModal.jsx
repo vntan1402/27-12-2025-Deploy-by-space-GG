@@ -242,7 +242,7 @@ export const EditAuditReportModal = ({ isOpen, onClose, report, onReportUpdated 
               </div>
             </div>
 
-            {/* Row 4: Auditor Name */}
+            {/* Row 5: Auditor Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Tên Auditor' : 'Auditor Name'}
