@@ -9657,17 +9657,44 @@ async def analyze_test_report_file(
         if not company_uuid:
             raise HTTPException(status_code=404, detail="Company not found")
         
-        # Get ship information
+        logger.info(f"🔍 Looking for ship with id={ship_id}, company={company_uuid}")
+        
+        # Get company name for dual lookup (some ships have company as name, not UUID)
+        company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
+        company_name = company_doc.get("name_vn") if company_doc else None
+        
+        # Try dual lookup: first by UUID, then by company name (for legacy data)
         ship = await mongo_db.find_one("ships", {
             "id": ship_id,
             "company": company_uuid
         })
         
+        if not ship and company_name:
+            # Fallback: Try finding ship by company name (legacy data compatibility)
+            logger.info(f"🔄 Ship not found with UUID, trying company name: {company_name}")
+            ship = await mongo_db.find_one("ships", {
+                "id": ship_id,
+                "company": company_name
+            })
+            if ship:
+                logger.info(f"✅ Ship found using company name: {company_name}")
+        
         if not ship:
+            # Debug: Try finding ship without company filter
+            ship_any_company = await mongo_db.find_one("ships", {"id": ship_id})
+            if ship_any_company:
+                logger.error(f"❌ Ship {ship_id} exists but belongs to company {ship_any_company.get('company')}, not {company_uuid} or {company_name}")
+            else:
+                logger.error(f"❌ Ship {ship_id} not found in database at all")
+        
+        # Convert bypass_validation string to boolean
+        bypass_validation_bool = bypass_validation.lower() in ('true', '1', 'yes')
+        
+        if not ship and not bypass_validation_bool:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        ship_name = ship.get("name", "Unknown Ship")
-        ship_imo = ship.get("imo", "")
+        ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+        ship_imo = ship.get("imo", "") if ship else ""
         
         # Get AI configuration for Document AI
         ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
