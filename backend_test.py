@@ -635,69 +635,109 @@ class BackendAPITester:
             return False
     
     def test_backend_logs_verification(self):
-        """Test 5: Verify backend logs show combined summary creation messages"""
-        self.print_test_header("Test 5 - Backend Logs Verification for Combined Summary Creation")
+        """Test 5: Verify backend logs show OCR processing and report form extraction messages"""
+        self.print_test_header("Test 5 - Backend Logs Verification for OCR Processing and Report Form Extraction")
         
-        print(f"🔍 CHECKING BACKEND LOGS FOR COMBINED SUMMARY MESSAGES:")
-        print(f"   🎯 Looking for: 'Combined summary created: Formatted (XXX chars) + Raw (XXX chars)'")
-        print(f"   📋 This test checks if backend logs confirm the combined summary creation process")
+        print(f"🔍 CHECKING BACKEND LOGS FOR OCR AND REPORT FORM MESSAGES:")
+        print(f"   🎯 Looking for: '🔍 Starting Targeted OCR'")
+        print(f"   🎯 Looking for: '✅ OCR processor available'")
+        print(f"   🎯 Looking for: '✅ Enhanced summary with OCR'")
+        print(f"   🎯 Looking for: '✅ Extracted report_form from filename'")
+        print(f"   📋 This test checks if backend logs confirm OCR processing and filename extraction")
         
         try:
             # Check supervisor backend logs
             import subprocess
             
             # Get recent backend logs
-            log_command = "tail -n 100 /var/log/supervisor/backend.*.log"
+            log_command = "tail -n 200 /var/log/supervisor/backend.*.log"
             result = subprocess.run(log_command, shell=True, capture_output=True, text=True, timeout=10)
             
             if result.returncode == 0:
                 log_content = result.stdout
                 print(f"📄 Retrieved {len(log_content.splitlines())} lines of backend logs")
                 
-                # Look for combined summary creation messages
-                combined_summary_logs = []
+                # Look for OCR and report form extraction messages
+                ocr_start_logs = []
+                ocr_available_logs = []
+                ocr_enhanced_logs = []
+                report_form_logs = []
                 audit_analysis_logs = []
                 
                 for line in log_content.splitlines():
-                    if "Combined summary created" in line:
-                        combined_summary_logs.append(line.strip())
+                    if "🔍 Starting Targeted OCR" in line:
+                        ocr_start_logs.append(line.strip())
+                    elif "✅ OCR processor available" in line:
+                        ocr_available_logs.append(line.strip())
+                    elif "✅ Enhanced summary with OCR" in line:
+                        ocr_enhanced_logs.append(line.strip())
+                    elif "✅ Extracted report_form from filename" in line:
+                        report_form_logs.append(line.strip())
                     elif "audit report analysis" in line.lower() or "audit report" in line.lower():
                         audit_analysis_logs.append(line.strip())
                 
-                print(f"\n🔍 COMBINED SUMMARY LOG ANALYSIS:")
-                print(f"   📊 Combined summary creation logs found: {len(combined_summary_logs)}")
+                print(f"\n🔍 OCR AND REPORT FORM LOG ANALYSIS:")
+                print(f"   📊 OCR start logs found: {len(ocr_start_logs)}")
+                print(f"   📊 OCR processor available logs found: {len(ocr_available_logs)}")
+                print(f"   📊 OCR enhanced summary logs found: {len(ocr_enhanced_logs)}")
+                print(f"   📊 Report form extraction logs found: {len(report_form_logs)}")
                 print(f"   📊 Audit analysis related logs found: {len(audit_analysis_logs)}")
                 
-                if combined_summary_logs:
-                    print(f"   ✅ FOUND COMBINED SUMMARY CREATION LOGS:")
-                    for i, log_line in enumerate(combined_summary_logs[-3:], 1):  # Show last 3
-                        print(f"      {i}. {log_line}")
-                    
-                    # Check if logs show both formatted and raw text lengths
-                    latest_log = combined_summary_logs[-1] if combined_summary_logs else ""
-                    has_formatted_chars = "Formatted (" in latest_log and "chars)" in latest_log
-                    has_raw_chars = "Raw (" in latest_log and "chars)" in latest_log
-                    
-                    print(f"\n   📋 LOG CONTENT VERIFICATION:")
-                    print(f"      ✅ Shows formatted text length: {'✅ YES' if has_formatted_chars else '❌ NO'}")
-                    print(f"      ✅ Shows raw text length: {'✅ YES' if has_raw_chars else '❌ NO'}")
-                    
-                    if has_formatted_chars and has_raw_chars:
-                        print(f"\n   🎉 BACKEND LOGS CONFIRM COMBINED SUMMARY CREATION!")
-                        print(f"      ✅ Backend is correctly creating combined summaries with both sections")
-                        print(f"      ✅ Logs show character counts for both formatted and raw text")
-                        self.print_result(True, "Backend logs confirm combined summary creation with formatted + raw text")
-                        return True
-                    else:
-                        print(f"\n   ⚠️ BACKEND LOGS INCOMPLETE:")
-                        print(f"      ❌ Logs don't show both formatted and raw text lengths")
-                        print(f"      🔧 May indicate partial implementation of combined format")
-                        self.print_result(False, "Backend logs don't show complete combined summary creation")
-                        return False
+                # Check each type of log
+                ocr_start_found = len(ocr_start_logs) > 0
+                ocr_available_found = len(ocr_available_logs) > 0
+                ocr_enhanced_found = len(ocr_enhanced_logs) > 0
+                report_form_found = len(report_form_logs) > 0
+                
+                print(f"\n📋 EXPECTED LOG MESSAGES VERIFICATION:")
+                print(f"   ✅ '🔍 Starting Targeted OCR': {'✅ FOUND' if ocr_start_found else '❌ NOT FOUND'}")
+                print(f"   ✅ '✅ OCR processor available': {'✅ FOUND' if ocr_available_found else '❌ NOT FOUND'}")
+                print(f"   ✅ '✅ Enhanced summary with OCR': {'✅ FOUND' if ocr_enhanced_found else '❌ NOT FOUND'}")
+                print(f"   ✅ '✅ Extracted report_form from filename': {'✅ FOUND' if report_form_found else '❌ NOT FOUND'}")
+                
+                # Show sample logs if found
+                if ocr_start_logs:
+                    print(f"\n   📝 OCR START LOG SAMPLE:")
+                    print(f"      {ocr_start_logs[-1]}")
+                
+                if ocr_available_logs:
+                    print(f"\n   📝 OCR AVAILABLE LOG SAMPLE:")
+                    print(f"      {ocr_available_logs[-1]}")
+                
+                if ocr_enhanced_logs:
+                    print(f"\n   📝 OCR ENHANCED LOG SAMPLE:")
+                    print(f"      {ocr_enhanced_logs[-1]}")
+                
+                if report_form_logs:
+                    print(f"\n   📝 REPORT FORM EXTRACTION LOG SAMPLE:")
+                    print(f"      {report_form_logs[-1]}")
+                
+                # Overall validation
+                all_expected_logs_found = ocr_start_found and ocr_available_found and ocr_enhanced_found and report_form_found
+                partial_logs_found = ocr_start_found or ocr_available_found or ocr_enhanced_found or report_form_found
+                
+                print(f"\n🎯 BACKEND LOGS VALIDATION:")
+                print(f"   ✅ All expected logs found: {'✅ YES' if all_expected_logs_found else '❌ NO'}")
+                print(f"   ✅ Some OCR/report form logs found: {'✅ YES' if partial_logs_found else '❌ NO'}")
+                
+                if all_expected_logs_found:
+                    print(f"\n🎉 BACKEND LOGS VERIFICATION SUCCESSFUL!")
+                    print(f"   ✅ OCR processing logs confirmed")
+                    print(f"   ✅ Report form extraction logs confirmed")
+                    print(f"   ✅ All expected log messages found")
+                    self.print_result(True, "Backend logs confirm OCR processing and report form extraction")
+                    return True
+                elif partial_logs_found:
+                    print(f"\n⚠️ BACKEND LOGS PARTIALLY FOUND:")
+                    print(f"   ⚠️ Some OCR/report form logs present but not all expected messages")
+                    print(f"   🔧 May indicate partial implementation or different log format")
+                    self.print_result(False, "Backend logs show partial OCR/report form processing")
+                    return False
                 else:
-                    print(f"   ❌ NO COMBINED SUMMARY CREATION LOGS FOUND")
+                    print(f"\n❌ NO OCR/REPORT FORM LOGS FOUND")
                     print(f"   🔧 This may indicate:")
-                    print(f"      - Combined summary feature not implemented")
+                    print(f"      - OCR processing not implemented")
+                    print(f"      - Report form extraction not working")
                     print(f"      - Logs not being generated")
                     print(f"      - Recent audit analysis hasn't been performed")
                     
@@ -706,7 +746,7 @@ class BackendAPITester:
                         for i, log_line in enumerate(audit_analysis_logs[-3:], 1):  # Show last 3
                             print(f"      {i}. {log_line}")
                     
-                    self.print_result(False, "No combined summary creation logs found in backend")
+                    self.print_result(False, "No OCR or report form extraction logs found in backend")
                     return False
                     
             else:
