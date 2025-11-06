@@ -126,6 +126,8 @@ export const AuditReportList = ({
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(report =>
         (report.audit_report_name && report.audit_report_name.toLowerCase().includes(searchLower)) ||
+        (report.audit_type && report.audit_type.toLowerCase().includes(searchLower)) ||
+        (report.report_form && report.report_form.toLowerCase().includes(searchLower)) ||
         (report.audit_report_no && report.audit_report_no.toLowerCase().includes(searchLower)) ||
         (report.issued_by && report.issued_by.toLowerCase().includes(searchLower)) ||
         (report.note && report.note.toLowerCase().includes(searchLower))
