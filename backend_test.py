@@ -493,16 +493,25 @@ This is a fallback test audit report for API testing.
                         # Verify expected response structure
                         success = response_data.get("success")
                         analysis = response_data.get("analysis", {})
+                        ship_name = response_data.get("ship_name")
+                        ship_imo = response_data.get("ship_imo")
+                        message = response_data.get("message")
                         
                         print(f"✅ Success: {success}")
                         print(f"🔍 Analysis Keys: {list(analysis.keys()) if analysis else 'None'}")
+                        print(f"🚢 Ship Name: {ship_name}")
+                        print(f"🚢 Ship IMO: {ship_imo}")
+                        print(f"📝 Message: {message}")
                         
                         if success and analysis:
-                            # Check for expected analysis fields
+                            # Check for expected analysis fields (from review request)
                             expected_fields = [
                                 "audit_report_name", "audit_type", "audit_report_no", 
-                                "audit_date", "audited_by", "auditor_name", "status", "note"
+                                "audit_date", "issued_by", "auditor_name", "status", "note"
                             ]
+                            
+                            # Check for file content fields (from review request)
+                            file_content_fields = ["_file_content", "_filename", "_content_type", "_summary_text"]
                             
                             found_fields = []
                             for field in expected_fields:
