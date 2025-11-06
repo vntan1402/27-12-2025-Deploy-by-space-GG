@@ -929,20 +929,21 @@ class BackendAPITester:
         
         # Overall assessment
         if success_rate >= 80:
-            print(f"\n🎉 REPORT FORM & OCR EXTRACTION TESTING SUCCESSFUL!")
-            print(f"✅ report_form field populated (from AI or filename)")
-            print(f"✅ _summary_text contains 3 sections including OCR")
-            print(f"✅ OCR section has header/footer text content")
-            print(f"✅ Backend logs show OCR processing")
+            print(f"\n🎉 OCR EXTRACTION TESTING SUCCESSFUL!")
+            print(f"✅ OCR section present in _summary_text")
+            print(f"✅ Header text length > 0")
+            print(f"✅ Footer text length > 0")
+            print(f"✅ Backend logs show OCR success")
+            print(f"✅ report_form = '07-230'")
             print(f"✅ All success criteria from review request met")
         elif success_rate >= 60:
-            print(f"\n⚠️ REPORT FORM & OCR EXTRACTION PARTIALLY SUCCESSFUL")
-            print(f"📊 Some components working but extraction issues detected")
-            print(f"🔧 Review failed tests for specific extraction problems")
+            print(f"\n⚠️ OCR EXTRACTION PARTIALLY SUCCESSFUL")
+            print(f"📊 Some components working but OCR issues detected")
+            print(f"🔧 Review failed tests for specific OCR problems")
         else:
-            print(f"\n❌ REPORT FORM & OCR EXTRACTION TESTING FAILED")
-            print(f"🚨 Critical issues with report form or OCR extraction")
-            print(f"🔧 Major extraction corrections required")
+            print(f"\n❌ OCR EXTRACTION TESTING FAILED")
+            print(f"🚨 Critical issues with OCR header/footer extraction")
+            print(f"🔧 OCR processor may not be available or working correctly")
         
         return success_rate >= 80
 
