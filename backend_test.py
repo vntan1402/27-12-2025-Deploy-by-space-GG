@@ -504,7 +504,7 @@ This is a fallback test audit report for API testing.
                     }
                     data = {
                         'ship_id': self.test_ship_id,
-                        'bypass_validation': 'false'
+                        'bypass_validation': 'true'  # Bypass validation to test AI extraction
                     }
                     
                     print(f"📄 Uploading REAL PDF file for analysis...")
