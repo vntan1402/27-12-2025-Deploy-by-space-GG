@@ -1024,9 +1024,10 @@ const IsmIspsMLc = () => {
       setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 10 }));
       
       // Step 1: AI Analysis (with bypass_validation = true in batch mode)
+      // Use 'analyzing' to match BatchProcessingModal expectation
       setAuditReportFileSubStatusMap(prev => ({ 
         ...prev, 
-        [fileName]: 'AI analyzing...' 
+        [fileName]: 'analyzing' 
       }));
       
       const analysisResponse = await auditReportService.analyzeFile(
