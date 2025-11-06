@@ -1076,9 +1076,10 @@ const IsmIspsMLc = () => {
       setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 70 }));
 
       // Step 3: Upload files to Google Drive (SYNCHRONOUS in batch mode)
+      // Use 'uploading' to match BatchProcessingModal expectation
       setAuditReportFileSubStatusMap(prev => ({ 
         ...prev, 
-        [fileName]: 'Uploading to Drive...' 
+        [fileName]: 'uploading' 
       }));
 
       // Only upload if file content is available
