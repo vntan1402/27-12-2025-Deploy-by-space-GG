@@ -367,6 +367,10 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
       return;
     }
 
+    // Close context menu and show loading
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+    setIsDeleting(true);
+
     try {
       const reportIds = Array.from(selectedReports);
       const response = await surveyReportService.bulkDelete(reportIds);
@@ -413,8 +417,9 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
           ? `❌ Không thể xóa báo cáo: ${errorMsg}` 
           : `❌ ${errorMsg}`
       );
+    } finally {
+      setIsDeleting(false);
     }
-    setContextMenu({ show: false, x: 0, y: 0, report: null });
   };
 
   // Bulk view files - open multiple files in new tabs
