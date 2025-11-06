@@ -221,6 +221,7 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
       ...formData,
       audit_report_name: analysis.audit_report_name || formData.audit_report_name,
       audit_type: analysis.audit_type || formData.audit_type,
+      report_form: analysis.report_form || formData.report_form,
       audit_report_no: analysis.audit_report_no || formData.audit_report_no,
       audit_date: analysis.audit_date ? analysis.audit_date.split('T')[0] : formData.audit_date,
       issued_by: analysis.issued_by || formData.issued_by,
