@@ -5663,19 +5663,47 @@ async def extract_audit_report_fields_from_pdf_directly(
                     import re
                     
                     filename_form_patterns = [
-                        r'([A-Z]{1,3})\s*\(([0-9]{2}[-/][0-9]{2,3})\)',  # CG (02-19), VR (07-230)
-                        r'([A-Z]{1,3})\s+([0-9]{2}[-/][0-9]{2,3})',      # CG 02-19, VR 07-230
-                        r'([A-Z]{1,3})[-_]([0-9]{2}[-/][0-9]{2,3})',     # CG-02-19, VR_07-230
-                        r'\(([0-9]{2}[-/][0-9]{2,3})\)',                 # Audit-specific: (07-230)
+                        # Pattern 1: Long form names with parentheses (NEW - Priority)
+                        # e.g., "ISPS-Code-Interim-Check List (06-23) TRUONG MINH LUCKY" → "ISPS-Code-Interim-Check List (06-23)"
+                        r'([A-Z][A-Za-z0-9\-\s]+)\s*\(([0-9]{2}[-/][0-9]{2,3})\)',
+                        
+                        # Pattern 2: Short abbreviation with parentheses
+                        # e.g., "CG (02-19).pdf" → "CG (02-19)"
+                        r'([A-Z]{1,3})\s*\(([0-9]{2}[-/][0-9]{2,3})\)',
+                        
+                        # Pattern 3: Short abbreviation with space
+                        # e.g., "CG 02-19" → "CG (02-19)"
+                        r'([A-Z]{1,3})\s+([0-9]{2}[-/][0-9]{2,3})',
+                        
+                        # Pattern 4: Short abbreviation with dash/underscore
+                        # e.g., "CG-02-19" → "CG (02-19)"
+                        r'([A-Z]{1,3})[-_]([0-9]{2}[-/][0-9]{2,3})',
+                        
+                        # Pattern 5: Just parentheses (Audit-specific)
+                        # e.g., "(07-230)" → "(07-230)"
+                        r'\(([0-9]{2}[-/][0-9]{2,3})\)',
                     ]
                     
                     for pattern in filename_form_patterns:
                         match = re.search(pattern, filename, re.IGNORECASE)
                         if match:
                             if len(match.groups()) > 1:
-                                abbrev = match.group(1).upper()
+                                # Pattern with 2 groups
+                                abbrev = match.group(1).strip()
                                 date_part = match.group(2).replace('/', '-')
-                                extracted_form = f"{abbrev} ({date_part})"
+                                
+                                # Clean up abbrev: remove trailing ship name patterns
+                                abbrev_cleaned = abbrev.strip()
+                                
+                                # Remove common ship name patterns at the end
+                                ship_name_patterns = [
+                                    r'\s+[A-Z][A-Z\s]+$',  # All caps words at end (likely ship names)
+                                ]
+                                for ship_pattern in ship_name_patterns:
+                                    abbrev_cleaned = re.sub(ship_pattern, '', abbrev_cleaned)
+                                
+                                abbrev_cleaned = abbrev_cleaned.strip()
+                                extracted_form = f"{abbrev_cleaned} ({date_part})"
                             else:
                                 date_part = match.group(1).replace('/', '-')
                                 extracted_form = f"({date_part})"
