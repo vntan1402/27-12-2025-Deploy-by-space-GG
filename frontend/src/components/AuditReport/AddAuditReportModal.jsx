@@ -631,7 +631,7 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
               />
             </div>
 
-            {/* Row 5: Note */}
+            {/* Row 6: Note */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Ghi chú' : 'Note'}
