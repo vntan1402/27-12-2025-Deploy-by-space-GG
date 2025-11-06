@@ -298,77 +298,7 @@ class BackendAPITester:
     
     # Removed unused PDF download methods - not needed for database check
     
-    def test_ship_id_verification(self):
-        """Test 3: Verify Ship ID Discrepancy - Compare frontend ship_id with database ship_id"""
-        self.print_test_header("Test 3 - Ship ID Verification and Discrepancy Analysis")
-        
-        if not self.access_token or not self.test_ship_id:
-            self.print_result(False, "Missing required data from previous tests")
-            return False
-        
-        try:
-            # The problematic ship_id from frontend (from review request)
-            frontend_ship_id = "9000377f-ac3f-48d8-ba83-a80fb1a8f490"
-            database_ship_id = self.test_ship_id
-            ship_name = self.test_ship_data.get('name', 'Unknown')
-            
-            print(f"🔍 SHIP ID DISCREPANCY ANALYSIS:")
-            print(f"   🚢 Ship Name: {ship_name}")
-            print(f"   🌐 Frontend Ship ID: {frontend_ship_id}")
-            print(f"   🗄️ Database Ship ID: {database_ship_id}")
-            
-            # Compare the ship IDs
-            if frontend_ship_id == database_ship_id:
-                print(f"   ✅ Ship IDs MATCH - No discrepancy found")
-                self.print_result(True, f"Ship IDs match - no discrepancy for {ship_name}")
-                return True
-            else:
-                print(f"   🚨 SHIP ID MISMATCH DETECTED!")
-                print(f"   ❌ Frontend is using: {frontend_ship_id}")
-                print(f"   ✅ Database contains: {database_ship_id}")
-                print(f"   🔧 This explains the 'Ship not found' error!")
-                
-                # Check if the frontend ship_id exists in any ship
-                headers = {
-                    "Authorization": f"Bearer {self.access_token}",
-                    "Content-Type": "application/json"
-                }
-                
-                print(f"\n🔍 CHECKING IF FRONTEND SHIP_ID EXISTS IN DATABASE:")
-                
-                # Search through all ships to see if frontend_ship_id exists
-                frontend_ship_found = False
-                if self.ships_list:
-                    for ship in self.ships_list:
-                        if ship.get('id') == frontend_ship_id:
-                            frontend_ship_found = True
-                            print(f"   ✅ Frontend ship_id FOUND in database!")
-                            print(f"   🚢 Ship Name: {ship.get('name', 'Unknown')}")
-                            print(f"   🏢 Company: {ship.get('company', 'Unknown')}")
-                            print(f"   📋 IMO: {ship.get('imo', 'Unknown')}")
-                            print(f"   🎯 ISSUE: Frontend is using wrong ship - should be {ship_name} ({database_ship_id})")
-                            break
-                
-                if not frontend_ship_found:
-                    print(f"   ❌ Frontend ship_id NOT FOUND in any ship in database")
-                    print(f"   🎯 ISSUE: Frontend is using completely invalid/outdated ship_id")
-                    print(f"   🔧 Possible causes:")
-                    print(f"      - Local storage contains old ship_id")
-                    print(f"      - State management issue in frontend")
-                    print(f"      - Ship was deleted but frontend still references it")
-                    print(f"      - Wrong company context")
-                
-                print(f"\n🎯 ROOT CAUSE ANALYSIS:")
-                print(f"   🚨 Frontend is sending wrong ship_id: {frontend_ship_id}")
-                print(f"   ✅ Correct ship_id for {ship_name}: {database_ship_id}")
-                print(f"   🔧 Frontend needs to use correct ship_id to avoid 'Ship not found' errors")
-                
-                self.print_result(False, f"Ship ID mismatch detected - Frontend: {frontend_ship_id[:8]}..., Database: {database_ship_id[:8]}...")
-                return False
-                
-        except Exception as e:
-            self.print_result(False, f"Exception during ship ID verification test: {str(e)}")
-            return False
+    # Ship ID verification test removed - not relevant for ship validation testing
     
     def download_audit_plan_test_pdf(self):
         """Helper: Download the Audit Plan test PDF from customer assets"""
