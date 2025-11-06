@@ -1023,21 +1023,43 @@ const IsmIspsMLc = () => {
       setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'processing' }));
       setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 10 }));
       
-      // Step 1: AI Analysis (with bypass_validation = true in batch mode)
+      // Step 1: AI Analysis with validation check
       // Use 'analyzing' to match BatchProcessingModal expectation
       setAuditReportFileSubStatusMap(prev => ({ 
         ...prev, 
         [fileName]: 'analyzing' 
       }));
       
-      const analysisResponse = await auditReportService.analyzeFile(
+      // First attempt: WITH validation check
+      let analysisResponse = await auditReportService.analyzeFile(
         selectedShip.id,
         file,
-        true // Auto-bypass ship validation in batch mode
+        false // Check validation first in batch mode
       );
 
       // Handle response with fallback (match Survey Report pattern)
-      const data = analysisResponse.data || analysisResponse;
+      let data = analysisResponse.data || analysisResponse;
+      
+      // If validation error detected, retry with bypass
+      if (data.validation_error) {
+        console.log(`⚠️ Ship validation mismatch for ${fileName}:`, {
+          extracted: `${data.extracted_ship_name} (IMO: ${data.extracted_ship_imo})`,
+          expected: `${data.expected_ship_name} (IMO: ${data.expected_ship_imo})`
+        });
+        
+        // Add warning to result for display in batch results
+        result.validationWarning = language === 'vi' 
+          ? `⚠️ Tàu không khớp: PDF có "${data.extracted_ship_name}" nhưng đã tạo cho "${data.expected_ship_name}"`
+          : `⚠️ Ship mismatch: PDF has "${data.extracted_ship_name}" but created for "${data.expected_ship_name}"`;
+        
+        // Retry with bypass_validation = true
+        analysisResponse = await auditReportService.analyzeFile(
+          selectedShip.id,
+          file,
+          true // Bypass validation on retry
+        );
+        data = analysisResponse.data || analysisResponse;
+      }
       
       if (!data.success || !data.analysis) {
         throw new Error(data.message || 'AI analysis failed');
