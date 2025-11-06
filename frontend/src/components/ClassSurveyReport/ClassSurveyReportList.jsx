@@ -18,6 +18,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
   const [surveyReports, setSurveyReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Filters
   const [filters, setFilters] = useState({
