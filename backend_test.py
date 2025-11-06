@@ -906,9 +906,9 @@ class BackendAPITester:
             status = "✅ PASS" if result else "❌ FAIL"
             print(f"   {status}: {test_name}")
         
-        # Report Form & OCR Extraction Analysis
+        # OCR Extraction Analysis
         print(f"\n" + "="*80)
-        print(f"🔍 REPORT FORM & OCR EXTRACTION ANALYSIS")
+        print(f"🔍 OCR EXTRACTION ANALYSIS")
         print(f"="*80)
         
         if hasattr(self, 'test_ship_data') and self.test_ship_data:
@@ -918,13 +918,14 @@ class BackendAPITester:
             print(f"🚢 Test Ship: {ship_name}")
             print(f"🆔 Ship ID: {ship_id}")
             print(f"📄 Test PDF: ISM-Code Audit-Plan (07-230.pdf")
-            print(f"🎯 Focus: Report Form & OCR Extraction")
+            print(f"🎯 Focus: OCR Header/Footer Extraction")
             
             print(f"\n📋 EXPECTED RESULTS VERIFICATION:")
-            print(f"   ✅ report_form field populated (from AI or filename)")
-            print(f"   ✅ _summary_text contains 3 sections")
-            print(f"   ✅ OCR section has header/footer text")
-            print(f"   ✅ Backend logs show OCR processing")
+            print(f"   ✅ OCR section present in _summary_text")
+            print(f"   ✅ Header text length > 0")
+            print(f"   ✅ Footer text length > 0")
+            print(f"   ✅ Backend logs show OCR success")
+            print(f"   ✅ report_form = '07-230'")
         
         # Overall assessment
         if success_rate >= 80:
