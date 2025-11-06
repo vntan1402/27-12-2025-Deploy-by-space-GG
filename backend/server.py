@@ -7972,8 +7972,8 @@ async def analyze_audit_report_file(
                             logger.info("✅ OCR processor available - performing extraction...")
                             
                             ocr_result = ocr_processor.extract_from_pdf(file_content, page_num=0)
-                                
-                                if ocr_result:
+                            
+                            if ocr_result:
                                     header_text = ocr_result.get('header_text', '').strip()
                                     footer_text = ocr_result.get('footer_text', '').strip()
                                     
