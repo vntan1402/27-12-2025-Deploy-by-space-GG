@@ -5603,21 +5603,18 @@ async def extract_audit_report_fields_from_summary(
                         logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by')}'")
                         
                         # POST-PROCESSING: Extract report_form from filename if AI didn't find it
+                        # Using Survey Report's proven approach - simpler and more effective
                         if not extracted_data.get('report_form') and filename:
                             logger.info(f"🔍 AI didn't find report_form, checking filename: {filename}")
-                            # Pattern: "ISM-AUD-01", "FORM-A", "7.10", etc.
                             import re
+                            
+                            # Survey Report style patterns (3 main patterns proven to work)
                             filename_form_patterns = [
-                                # Survey Report style patterns
-                                r'([A-Z]{1,3})\s*\(([0-9]{2}[-/][0-9]{2})\)',  # CG (02-19), VR (07-23)
-                                r'([A-Z]{1,3})\s+([0-9]{2}[-/][0-9]{2})',      # CG 02-19, VR 07-23
-                                r'([A-Z]{1,3})[-_]([0-9]{2}[-/][0-9]{2})',     # CG-02-19, VR_07-23
-                                # Audit Report style patterns with parentheses
-                                r'\(([0-9]{2}[-/][0-9]{2,3})\.pdf',            # (07-230.pdf, (02-19.pdf
-                                r'\(([0-9]{2}[-/][0-9]{2,3})\)',               # (07-230), (02-19)
-                                r'([A-Z]{1,4}[-_][A-Z]{2,4}[-_][0-9]{1,3})',   # ISM-AUD-01, ISPS-CERT-02
-                                r'(FORM[-_\s][A-Z0-9]{1,3})',                  # FORM-A, FORM 1, FORM_B
-                                r'([0-9]{1,2}\.[0-9]{1,2})',                   # 7.10, 12.5
+                                r'([A-Z]{1,3})\s*\(([0-9]{2}[-/][0-9]{2,3})\)',  # CG (02-19), VR (07-230)
+                                r'([A-Z]{1,3})\s+([0-9]{2}[-/][0-9]{2,3})',      # CG 02-19, VR 07-230
+                                r'([A-Z]{1,3})[-_]([0-9]{2}[-/][0-9]{2,3})',     # CG-02-19, VR_07-230
+                                # Audit-specific: Numbers in parentheses without prefix
+                                r'\(([0-9]{2}[-/][0-9]{2,3})\)',                 # (07-230), (02-19)
                             ]
                             
                             for pattern in filename_form_patterns:
@@ -5629,8 +5626,8 @@ async def extract_audit_report_fields_from_summary(
                                         date_part = match.group(2).replace('/', '-')
                                         extracted_form = f"{abbrev} ({date_part})"
                                     else:
-                                        # Pattern with 1 group
-                                        extracted_form = match.group(1).upper()
+                                        # Pattern with 1 group - just the number
+                                        extracted_form = match.group(1)
                                     
                                     extracted_data['report_form'] = extracted_form
                                     logger.info(f"✅ Extracted report_form from filename: '{extracted_form}'")
