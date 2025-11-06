@@ -5780,6 +5780,22 @@ async def extract_audit_report_fields_from_pdf_directly(
                 logger.info(f"   📄 Report Form: '{extracted_data.get('report_form')}'")
                 logger.info(f"   📋 Audit Name: '{extracted_data.get('audit_report_name')}'")
                 logger.info(f"   🚢 Ship Name: '{extracted_data.get('ship_name')}'")
+                logger.info(f"   🏛️ Issued By (raw): '{extracted_data.get('issued_by')}'")
+                
+                # POST-PROCESSING: Standardize "issued_by" organization name
+                if extracted_data.get('issued_by'):
+                    raw_issued_by = extracted_data['issued_by']
+                    standardized = standardize_issued_by_organization(raw_issued_by)
+                    
+                    # Keep original full name in issued_by
+                    extracted_data['issued_by'] = standardized['full_name']
+                    
+                    # Add abbreviation as separate field
+                    if standardized['abbreviation']:
+                        extracted_data['issued_by_abbreviation'] = standardized['abbreviation']
+                        logger.info(f"   ✅ Standardized: '{standardized['full_name']}' → '{standardized['abbreviation']}'")
+                    else:
+                        logger.info(f"   ⚠️ No standard abbreviation found for: '{raw_issued_by}'")
                 
                 return extracted_data
                 
