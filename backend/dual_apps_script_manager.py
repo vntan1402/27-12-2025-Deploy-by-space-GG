@@ -712,7 +712,8 @@ class DualAppsScriptManager:
                 filename=filename,
                 content_type=content_type,
                 document_ai_config=document_ai_config,
-                action="analyze_maritime_document_ai"  # Use maritime document action for survey reports
+                action="analyze_maritime_document_ai",  # Use maritime document action for survey reports
+                document_type="survey_report"  # Specify document type for correct field extraction
             )
             
             if not ai_result.get('success'):
