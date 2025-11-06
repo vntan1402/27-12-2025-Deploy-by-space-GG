@@ -8008,9 +8008,9 @@ async def analyze_audit_report_file(
                                     analysis_result['_summary_text'] = summary_text
                                     logger.info(f"✅ Enhanced summary with OCR: {len(summary_text)} chars total")
                                 else:
-                                        logger.warning("⚠️ OCR extraction returned no header/footer text")
-                                else:
-                                    logger.warning("⚠️ OCR extraction returned None")
+                                    logger.warning("⚠️ OCR extraction returned no header/footer text")
+                            else:
+                                logger.warning("⚠️ OCR extraction returned None")
                         else:
                             logger.warning("⚠️ OCR processor not available (Tesseract not installed or not imported)")
                     except Exception as ocr_error:
