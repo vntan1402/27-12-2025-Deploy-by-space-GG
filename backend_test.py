@@ -421,9 +421,9 @@ class BackendAPITester:
             print(f"❌ Exception downloading PDF: {str(e)}")
             return None
     
-    def test_audit_report_analyze_with_correct_ship_id(self):
-        """Test 4: Test POST /api/audit-reports/analyze with CORRECT ship_id"""
-        self.print_test_header("Test 4 - Audit Report Analysis with Correct Ship ID")
+    def test_audit_report_analyze_combined_summary_format(self):
+        """Test 4: Test POST /api/audit-reports/analyze and verify Combined Summary Format (Option 3)"""
+        self.print_test_header("Test 4 - Audit Report Analysis with Combined Summary Format Verification")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
@@ -444,10 +444,11 @@ class BackendAPITester:
             correct_ship_id = self.test_ship_id
             ship_name = self.test_ship_data.get('name', 'Unknown')
             
-            print(f"🧪 TESTING AUDIT REPORT ANALYSIS WITH CORRECT SHIP ID:")
+            print(f"🧪 TESTING AUDIT REPORT ANALYSIS WITH COMBINED SUMMARY FORMAT:")
             print(f"   🚢 Ship Name: {ship_name}")
-            print(f"   ✅ Using CORRECT Ship ID: {correct_ship_id}")
+            print(f"   ✅ Using Ship ID: {correct_ship_id}")
             print(f"   📄 PDF Size: {len(pdf_content):,} bytes")
+            print(f"   🎯 Focus: Verify _summary_text contains BOTH formatted summary AND raw Document AI text")
             
             # Prepare multipart form data
             files = {
@@ -491,30 +492,90 @@ class BackendAPITester:
                     if 'message' in response_data:
                         print(f"   📝 message: {response_data.get('message')}")
                     
-                    if 'analysis' in response_data:
-                        analysis = response_data.get('analysis', {})
-                        print(f"   📊 Analysis fields extracted:")
+                    # CRITICAL: Check for _summary_text field
+                    analysis = response_data.get('analysis', {})
+                    summary_text = analysis.get('_summary_text', '')
+                    
+                    print(f"\n🔍 COMBINED SUMMARY FORMAT VERIFICATION:")
+                    print(f"   📄 _summary_text present: {'✅ YES' if summary_text else '❌ NO'}")
+                    
+                    if summary_text:
+                        summary_length = len(summary_text)
+                        print(f"   📏 _summary_text length: {summary_length:,} characters")
                         
-                        # Key fields to check
-                        key_fields = ['audit_report_name', 'audit_type', 'audit_report_no', 'audit_date', 'auditor_name', 'issued_by']
-                        for field in key_fields:
-                            value = analysis.get(field, 'Not extracted')
-                            print(f"      {field}: {value}")
+                        # Check for required sections in the combined format
+                        has_formatted_section = "AUDIT REPORT ANALYSIS SUMMARY (DOCUMENT AI + SYSTEM AI)" in summary_text
+                        has_separator = "RAW DOCUMENT AI TEXT (Original OCR/Text Extraction)" in summary_text
+                        has_extracted_info = "--- Extracted Information ---" in summary_text
+                        
+                        print(f"   ✅ Part 1 - Formatted Summary Header: {'✅ FOUND' if has_formatted_section else '❌ MISSING'}")
+                        print(f"   ✅ Part 2 - Separator Line: {'✅ FOUND' if has_separator else '❌ MISSING'}")
+                        print(f"   ✅ Part 3 - Extracted Info Section: {'✅ FOUND' if has_extracted_info else '❌ MISSING'}")
+                        
+                        # Check for raw Document AI text section
+                        separator_index = summary_text.find("RAW DOCUMENT AI TEXT (Original OCR/Text Extraction)")
+                        if separator_index > 0:
+                            raw_text_section = summary_text[separator_index + 100:]  # Text after separator
+                            raw_text_length = len(raw_text_section.strip())
+                            print(f"   📄 Raw Document AI text length: {raw_text_length:,} characters")
+                            print(f"   ✅ Raw text section: {'✅ NOT EMPTY' if raw_text_length > 50 else '❌ EMPTY OR TOO SHORT'}")
+                            
+                            # Show sample of raw text (first 200 chars)
+                            if raw_text_length > 0:
+                                sample_raw_text = raw_text_section.strip()[:200]
+                                print(f"   📝 Raw text sample: {sample_raw_text}...")
+                        else:
+                            print(f"   ❌ Raw Document AI text section: NOT FOUND")
+                        
+                        # Show sample of formatted section (first 500 chars)
+                        formatted_section = summary_text[:500] if summary_text else ""
+                        print(f"\n📝 FORMATTED SECTION SAMPLE (first 500 chars):")
+                        print(f"   {formatted_section}...")
+                        
+                        # Validate structure completeness
+                        structure_valid = has_formatted_section and has_separator and has_extracted_info
+                        raw_text_valid = separator_index > 0 and len(summary_text[separator_index + 100:].strip()) > 50
+                        
+                        print(f"\n🎯 COMBINED FORMAT VALIDATION:")
+                        print(f"   ✅ Structure Valid: {'✅ YES' if structure_valid else '❌ NO'}")
+                        print(f"   ✅ Raw Text Valid: {'✅ YES' if raw_text_valid else '❌ NO'}")
+                        print(f"   ✅ Total Length > 1000 chars: {'✅ YES' if summary_length > 1000 else '❌ NO'}")
+                        
+                        if structure_valid and raw_text_valid and summary_length > 1000:
+                            print(f"\n🎉 COMBINED SUMMARY FORMAT VERIFICATION SUCCESSFUL!")
+                            print(f"   ✅ _summary_text contains BOTH formatted summary AND raw Document AI text")
+                            print(f"   ✅ Clear separation between sections")
+                            print(f"   ✅ Raw text section is populated with OCR content")
+                            print(f"   ✅ Format matches Option 3 requirements exactly")
+                            
+                            self.print_result(True, f"Combined summary format (Option 3) verified successfully - contains both formatted and raw text")
+                            return True
+                        else:
+                            print(f"\n❌ COMBINED SUMMARY FORMAT VALIDATION FAILED!")
+                            print(f"   ❌ Structure issues detected in _summary_text")
+                            print(f"   🔧 May be missing formatted section, separator, or raw text")
+                            
+                            self.print_result(False, f"Combined summary format validation failed - missing required sections")
+                            return False
+                    else:
+                        print(f"   ❌ _summary_text field is missing or empty")
+                        print(f"   🔧 Combined summary format cannot be verified without _summary_text")
+                        
+                        self.print_result(False, f"_summary_text field missing - cannot verify combined format")
+                        return False
+                    
+                    # Also check other analysis fields for completeness
+                    print(f"\n📊 EXTRACTED FIELDS VERIFICATION:")
+                    key_fields = ['audit_report_name', 'audit_type', 'audit_report_no', 'audit_date', 'auditor_name', 'issued_by']
+                    for field in key_fields:
+                        value = analysis.get(field, 'Not extracted')
+                        print(f"      {field}: {value}")
                     
                     if 'ship_name' in response_data:
                         print(f"   🚢 ship_name: {response_data.get('ship_name')}")
                     
                     if 'ship_imo' in response_data:
                         print(f"   🔢 ship_imo: {response_data.get('ship_imo')}")
-                    
-                    print(f"\n🎉 CRITICAL SUCCESS:")
-                    print(f"   ✅ Correct ship_id ({correct_ship_id}) returns 200 OK")
-                    print(f"   ✅ AI analysis completed successfully")
-                    print(f"   ✅ No 'Ship not found' error")
-                    print(f"   ✅ This proves the ship_id issue is resolved with correct ID")
-                    
-                    self.print_result(True, f"Audit report analysis successful with correct ship_id - returns 200 OK, not 404")
-                    return True
                     
                 except json.JSONDecodeError:
                     print(f"❌ Response is not valid JSON")
@@ -528,11 +589,10 @@ class BackendAPITester:
                     error_message = error_data.get('detail', 'Unknown error')
                     
                     if 'Ship not found' in error_message:
-                        print(f"🚨 CRITICAL: Still getting 'Ship not found' error with correct ship_id!")
+                        print(f"🚨 CRITICAL: Getting 'Ship not found' error!")
                         print(f"   ❌ Error: {error_message}")
-                        print(f"   🔧 This suggests a deeper issue in the backend ship lookup logic")
-                        print(f"   🎯 Ship ID {correct_ship_id} should exist but backend can't find it")
-                        self.print_result(False, f"Ship not found error persists even with correct ship_id")
+                        print(f"   🔧 Ship ID {correct_ship_id} not found in backend")
+                        self.print_result(False, f"Ship not found error - cannot test combined summary format")
                         return False
                     else:
                         print(f"❌ 404 Error (not ship-related): {error_message}")
@@ -558,7 +618,7 @@ class BackendAPITester:
                     return False
                     
         except Exception as e:
-            self.print_result(False, f"Exception during audit report analysis test: {str(e)}")
+            self.print_result(False, f"Exception during combined summary format test: {str(e)}")
             return False
     
     def test_audit_report_analyze_with_wrong_ship_id(self):
