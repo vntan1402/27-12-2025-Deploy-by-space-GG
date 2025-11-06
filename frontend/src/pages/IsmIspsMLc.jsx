@@ -1002,7 +1002,7 @@ const IsmIspsMLc = () => {
   // Process single audit report file
   const processSingleAuditReportFile = async (file, fileName) => {
     try {
-      // Step 1: AI Analysis
+      // Step 1: AI Analysis (with bypass_validation = true in batch mode)
       setAuditReportFileSubStatusMap(prev => ({ 
         ...prev, 
         [fileName]: 'AI analyzing...' 
@@ -1011,14 +1011,17 @@ const IsmIspsMLc = () => {
       const analysisResponse = await auditReportService.analyzeFile(
         selectedShip.id,
         file,
-        false
+        true // Auto-bypass ship validation in batch mode
       );
 
-      if (!analysisResponse.data?.success) {
-        throw new Error('AI analysis failed');
+      // Handle response with fallback (match Survey Report pattern)
+      const data = analysisResponse.data || analysisResponse;
+      
+      if (!data.success || !data.analysis) {
+        throw new Error(data.message || 'AI analysis failed');
       }
 
-      const analysis = analysisResponse.data.analysis;
+      const analysis = data.analysis;
 
       // Step 2: Create report record
       setAuditReportFileSubStatusMap(prev => ({ 
@@ -1030,6 +1033,7 @@ const IsmIspsMLc = () => {
         ship_id: selectedShip.id,
         audit_report_name: analysis.audit_report_name || file.name,
         audit_type: analysis.audit_type || null,
+        report_form: analysis.report_form || null,
         audit_report_no: analysis.audit_report_no || null,
         audit_date: analysis.audit_date || null,
         issued_by: analysis.issued_by || null,
@@ -1039,27 +1043,30 @@ const IsmIspsMLc = () => {
       };
 
       const createResponse = await auditReportService.create(reportData);
-      const reportId = createResponse.data.id;
+      const createdReport = createResponse.data || createResponse;
 
-      // Step 3: Upload files to Google Drive
+      // Step 3: Upload files to Google Drive (SYNCHRONOUS in batch mode)
       setAuditReportFileSubStatusMap(prev => ({ 
         ...prev, 
         [fileName]: 'Uploading to Drive...' 
       }));
 
-      await auditReportService.uploadFiles(
-        reportId,
-        analysis._file_content,
-        analysis._filename,
-        analysis._content_type,
-        null // summary text (optional)
-      );
+      // Only upload if file content is available
+      if (analysis._file_content && analysis._filename) {
+        await auditReportService.uploadFiles(
+          createdReport.id,
+          analysis._file_content,
+          analysis._filename,
+          analysis._content_type || 'application/pdf',
+          analysis._summary_text || ''
+        );
+      }
 
       return {
         success: true,
         fileName: fileName,
-        reportName: analysis.audit_report_name,
-        reportNo: analysis.audit_report_no
+        reportName: analysis.audit_report_name || file.name,
+        reportNo: analysis.audit_report_no || ''
       };
 
     } catch (error) {
