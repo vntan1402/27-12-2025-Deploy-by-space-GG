@@ -644,12 +644,12 @@ class BackendAPITester:
         """Test 5: Verify backend logs show OCR processing and report form extraction messages"""
         self.print_test_header("Test 5 - Backend Logs Verification for OCR Processing and Report Form Extraction")
         
-        print(f"🔍 CHECKING BACKEND LOGS FOR OCR AND REPORT FORM MESSAGES:")
-        print(f"   🎯 Looking for: '🔍 Starting Targeted OCR'")
-        print(f"   🎯 Looking for: '✅ OCR processor available'")
-        print(f"   🎯 Looking for: '✅ Enhanced summary with OCR'")
-        print(f"   🎯 Looking for: '✅ Extracted report_form from filename'")
-        print(f"   📋 This test checks if backend logs confirm OCR processing and filename extraction")
+        print(f"🔍 CHECKING BACKEND LOGS FOR SURVEY REPORT OCR MESSAGES:")
+        print(f"   🎯 Looking for: '✅ Targeted OCR completed successfully'")
+        print(f"   🎯 Looking for: '✅ Header text added'")
+        print(f"   🎯 Looking for: '✅ Footer text added'")
+        print(f"   🎯 Looking for: '✅ Enhanced summary created with OCR'")
+        print(f"   📋 This test checks if backend logs confirm Survey Report OCR processing")
         
         try:
             # Check supervisor backend logs
