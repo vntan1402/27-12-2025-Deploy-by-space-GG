@@ -7871,6 +7871,8 @@ async def analyze_audit_report_file(
             return {
                 "success": True,
                 "analysis": analysis_result,
+                "ship_name": ship_name,
+                "ship_imo": ship_imo,
                 "message": "Audit report analyzed successfully"
             }
             
