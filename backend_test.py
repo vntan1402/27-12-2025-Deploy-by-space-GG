@@ -557,8 +557,36 @@ This is a fallback test audit report for API testing.
                             populated_fields = []
                             
                             print(f"\n🔍 CRITICAL FIELD EXTRACTION VERIFICATION:")
-                            print(f"   Testing for the System AI extraction fix that should resolve empty fields issue")
+                            print(f"   Testing Document AI Summary Text + System AI Extraction Flow")
                             
+                            # CRITICAL CHECK 1: _summary_text from Document AI
+                            summary_text = analysis.get("_summary_text", "")
+                            summary_length = len(summary_text) if summary_text else 0
+                            print(f"\n📝 DOCUMENT AI SUMMARY CHECK:")
+                            print(f"   _summary_text present: {'✅ YES' if summary_text else '❌ NO'}")
+                            print(f"   _summary_text length: {summary_length} chars")
+                            
+                            if summary_length >= 100:
+                                print(f"   ✅ Document AI summary adequate length (100+ chars)")
+                            elif summary_length > 0:
+                                print(f"   ⚠️ Document AI summary too short ({summary_length} chars)")
+                            else:
+                                print(f"   ❌ Document AI summary EMPTY - critical issue")
+                            
+                            # CRITICAL CHECK 2: processing_method
+                            processing_method = analysis.get("processing_method", "")
+                            print(f"\n🔧 PROCESSING METHOD CHECK:")
+                            print(f"   processing_method: '{processing_method}'")
+                            
+                            if "system_ai_extraction_from_summary" in processing_method:
+                                print(f"   ✅ System AI extraction from summary method confirmed")
+                            elif "clean_analysis" in processing_method:
+                                print(f"   ❌ Old clean_analysis method - System AI extraction NOT used")
+                            else:
+                                print(f"   ⚠️ Unknown processing method")
+                            
+                            # CRITICAL CHECK 3: Field extraction results
+                            print(f"\n🔍 FIELD EXTRACTION RESULTS:")
                             for field in expected_fields:
                                 if field in analysis:
                                     found_fields.append(field)
@@ -572,21 +600,37 @@ This is a fallback test audit report for API testing.
                                 else:
                                     print(f"   ❌ {field}: MISSING")
                             
-                            print(f"\n📊 FIELD EXTRACTION RESULTS:")
+                            print(f"\n📊 EXTRACTION SUMMARY:")
                             print(f"   Total fields found: {len(found_fields)}/{len(expected_fields)}")
                             print(f"   Populated fields: {len(populated_fields)}/{len(expected_fields)}")
                             print(f"   Empty fields: {len(empty_fields)}/{len(expected_fields)}")
                             
-                            # This is the KEY TEST - verify the fix resolved empty fields
-                            if len(empty_fields) == len(expected_fields):
-                                print(f"🚨 CRITICAL ISSUE CONFIRMED: ALL FIELDS ARE EMPTY - System AI extraction fix NOT working")
-                                print(f"   This matches the reported issue: all extracted fields return empty strings")
-                            elif len(populated_fields) >= 5:
-                                print(f"✅ SUCCESS: System AI extraction fix IS WORKING - {len(populated_fields)} fields populated")
-                                print(f"   This indicates the new extract_audit_report_fields_from_summary() function is working")
+                            # KEY SUCCESS CRITERIA from review request
+                            criteria_met = 0
+                            total_criteria = 5
+                            
+                            # Criterion 1: _summary_text contains Document AI summary (100+ chars)
+                            if summary_length >= 100:
+                                print(f"✅ Criterion 1: _summary_text contains Document AI summary (100+ chars)")
+                                criteria_met += 1
                             else:
-                                print(f"⚠️ PARTIAL SUCCESS: {len(populated_fields)} fields populated, {len(empty_fields)} still empty")
-                                print(f"   System AI extraction partially working but needs improvement")
+                                print(f"❌ Criterion 1: _summary_text missing or too short ({summary_length} chars)")
+                            
+                            # Criterion 2: At least 6/9 fields populated with real data
+                            if len(populated_fields) >= 6:
+                                print(f"✅ Criterion 2: At least 6/9 fields populated ({len(populated_fields)}/9)")
+                                criteria_met += 1
+                            else:
+                                print(f"❌ Criterion 2: Only {len(populated_fields)}/9 fields populated (need 6+)")
+                            
+                            # Criterion 3: processing_method = "system_ai_extraction_from_summary"
+                            if "system_ai_extraction_from_summary" in processing_method:
+                                print(f"✅ Criterion 3: processing_method indicates System AI extraction")
+                                criteria_met += 1
+                            else:
+                                print(f"❌ Criterion 3: processing_method not System AI extraction: {processing_method}")
+                            
+                            # Will check backend logs for criteria 4 & 5 in log function
                             
                             # Verify analysis quality for ISM audit
                             audit_type = analysis.get("audit_type", "").upper()
