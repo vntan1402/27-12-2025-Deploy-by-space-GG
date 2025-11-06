@@ -1,50 +1,89 @@
 <analysis>
-The AI engineer's trajectory focused on stabilizing and enhancing the  module, particularly the new  functionality. Initial efforts concentrated on resolving Document AI extraction failures where fields remained empty. Key fixes involved adding a  parameter to Apps Script calls and implementing a crucial System AI post-processing step for field extraction, mirroring the  module. The  handling in the frontend was corrected, and a significant Ship not found error was resolved by implementing a dual-lookup (UUID or name) for company IDs due to database inconsistencies. The 403 Forbidden error for  was fixed by ensuring authenticated API calls from the frontend. Recent work included enhancing  extraction (filename-based and System AI prompts) and implementing direct PDF extraction using Gemini 2.0 Flash as a robust fallback. Persistent OCR issues remain due to Tesseract/Poppler system dependency challenges. The latest task involved refining Issued By extraction logic.
+The AI engineer's trajectory showcases an iterative, user-driven development process focusing on enhancing the  module, particularly for  functionality. The work began by addressing a critical missing feature: ship validation for , bringing it to parity with  logic. This involved refactoring backend validation and frontend modal interactions, including multiple iterations to perfect batch upload behavior and error reporting. Subsequently, the engineer provided a detailed overview of AI extraction fields, then tackled several UI/UX improvements such as custom validation modals, expanding  options to include CICA, hiding unnecessary columns, and enriching search and filter capabilities. The final fixes addressed a database update method error and refined the Issued By abbreviation logic. Each step involved identifying the issue, proposing a solution, implementing changes across frontend and backend, testing, and confirming with the user, demonstrating a comprehensive full-stack approach.
 </analysis>
 
 <product_requirements>
-The primary goal is to enhance the  module by improving  and introducing a robust  system with AI capabilities. Specific requirements include:
-1.  **Upcoming Survey Harmonization**: Standardize calculation and display of upcoming survey dates.
-2.  **Date Formatting**: Ensure all  dates in modals are .
-3.  **Audit Report Migration**: Fully port  functionality to .
-4.  **Component Modularity**: Refactor  to be modular with prop-based data.
-5.  **Internationalization**: Review and correct labels and strings for the  module.
-6.  **AI Analysis Integration**: Implement and debug AI configuration and analysis for , drawing from  setup.
-7.  **Field Renaming**: Change Audited By to Issued By across all application layers.
-8.  **Feature Parity**: Upgrade  to include features like Batch Processing.
-9.  **AI Extraction Enhancement**: Ensure AI extracts , , , and other critical fields, integrating them into the database and UI. This now includes direct PDF extraction via System AI.
+The primary objective is to strengthen the  module by upgrading  and establishing a robust  system with advanced AI. Key requirements include:
+1.  **Upcoming Survey Harmonization**: Standardize computation and display of upcoming survey dates.
+2.  **Date Formatting**: All  dates in modals must be .
+3.  **Audit Report Migration**: Complete porting of  functionality to .
+4.  **Component Modularity**: Refactor  for modularity with prop-based data.
+5.  **Internationalization**: Review and correct  module labels/strings.
+6.  **AI Analysis Integration**: Implement and debug AI configuration and analysis for .
+7.  **Field Renaming**: Change Audited By to Issued By across all layers.
+8.  **Feature Parity**: Upgrade  with features like Batch Processing.
+9.  **AI Extraction Enhancement**: Ensure AI extracts , , , and other critical fields, integrating direct PDF extraction.
+10. **Issued By Standardization**: Standardize extracted Issued By organization names to abbreviations, but avoid shortening existing abbreviations.
+11. **Report Form Logic Enhancement**: Apply robust filename-based and AI prompt logic for .
+12. **Audit Type Classification**: Automatically categorize audit types into ISM, ISPS, MLC, and CICA.
+13. **Ship Validation**: Implement robust ship validation (Name OR IMO) for  during analysis, matching  behavior, with expanded modal warnings and strict error handling for batch uploads.
+14. **UI Refinements**: Expand validation warning modals, hide the Audit Report Name column, enable search by  and , and add a filter dropdown for .
 </product_requirements>
 
 <key_technical_concepts>
--   **Frontend**: React.js (state, hooks, components, modals),  for API, Tailwind CSS, Internationalization, .
+-   **Frontend**: React.js (state, hooks, components, modals, ), Tailwind CSS, Internationalization, , Context Menus, Loading Spinners.
 -   **Backend**: FastAPI (API, ), MongoDB (UUIDs, Pydantic, ), .
--   **Patterns**: Modular design, error handling, API service abstraction, background processing.
--   **External**: Google Drive, Emergent LLM Key,  (Gemini 2.0 Flash), , Document AI, , , , Poppler, Tesseract.
+-   **Patterns**: Modular design, error handling, API service abstraction, background processing, AI prompt engineering, Regex for data extraction.
+-   **External**: Google Drive, Emergent LLM Key,  (Gemini 2.0 Flash), Document AI.
 </key_technical_concepts>
 
 <code_architecture>
-The application comprises a React.js frontend and a FastAPI/MongoDB backend.
+The application uses a React.js frontend and a FastAPI/MongoDB backend.
 
 
 
 -   ****:
-    -   **Importance**: Centralizes all backend API logic for .
-    -   **Changes**: Implemented  for Document AI calls. Added System AI post-processing () for field extraction, adopting  logic. Fixed Ship not found errors by introducing dual lookup for  (UUID or name) in  and  endpoints. Enhanced  to combine formatted and raw Document AI output. Integrated filename-based  extraction and refined AI prompts for  and . Added  for direct Gemini PDF extraction.
+    -   **Importance**: Centralizes all backend API logic.
+    -   **Changes**:
+        -   Integrated  (reusing ).
+        -   Refactored  endpoint.
+        -   Updated Pydantic models for .
+        -   Enhanced  extraction logic, prioritizing filename parsing and regex.
+        -   Implemented post-processing for  classification (ISM, ISPS, MLC, **CICA**).
+        -   **Crucially, added  call to  endpoint and refactored  to match Audit Report's robust ship lookup (dual lookup by UUID/company name, conditional error throwing based on ).**
+        -   Fixed  to  in  endpoint.
 -   ****:
-    -   **Importance**: Manages Google Apps Script interactions.
-    -   **Changes**: Passed  to  and .
--   ** / **:
-    -   **Importance**: OCR modules.
-    -   **Changes**: Integrated into  for Audit Report, but Tesseract/Poppler system dependencies remain problematic.
+    -   **Importance**: Contains existing Issued By abbreviation logic.
+    -   **Changes**: No direct changes, but its  mapping is now leveraged.
 -   ****:
-    -   **Importance**: Main page for .
-    -   **Changes**: Corrected  call to  to include authentication, resolving 403 errors.
--   ** (NEW file)**:
-    -   **Importance**: Frontend service for  API.
-    -   **Changes**: Corrected  header handling for  in  to ensure proper file uploads.
+    -   **Importance**: Main page for  module.
+    -   **Changes**:
+        -   Added  state for loading spinners.
+        -   Fixed  initialization.
+        -   Modified  for robust AI analysis response handling.
+        -   Standardized  values.
+        -   Implemented staggered batch processing.
+        -   **Refined batch upload validation logic to strictly halt processing and display errors on ship info mismatch, removing auto-retry.**
+        -   Added detailed try-catch logging for API calls.
 -   ****:
-    -   **Importance**: Backend supervisor configuration.
-    -   **Changes**: Added  to assist Python in locating system executables.
+    -   **Importance**: Lists audit reports and handles UI interactions.
+    -   **Changes**: Integrated loading state for delete operations.
+    -   **Hid the Audit Report Name column (commented out header and body cell).**
+    -   **Enhanced search functionality to include  and  fields.**
+    -   **Added an Audit Type filter dropdown.**
+    -   **Modified  logic to prevent shortening existing abbreviations.**
+-   ****:
+    -   **Importance**: Modal for adding new audit reports.
+    -   **Changes**: Replaced  with a custom  component for ship validation warnings.
+    -   **Converted Audit Type input to a select dropdown (ISM, ISPS, MLC, CICA).**
+-   ****:
+    -   **Importance**: Modal for editing existing audit reports.
+    -   **Changes**: **Converted Audit Type input to a select dropdown (ISM, ISPS, MLC, CICA).**
+-   ****:
+    -   **Importance**: Frontend service for  API calls.
+    -   **Changes**: Changed  to use .
+-   ****:
+    -   **Importance**: Main page for  module.
+    -   **Changes**:
+        -   Applied loading state for delete operations.
+        -   **Refined batch upload validation logic to strictly halt processing and display errors on ship info mismatch, removing auto-retry (mirroring Audit Report).**
+        -   Added detailed try-catch logging for API calls.
+-   ****:
+    -   **Importance**: Modal for adding new survey reports.
+    -   **Changes**: Replaced  with a custom  component for ship validation warnings (mirroring Audit Report).
+-   ****:
+    -   **Importance**: Displays results of batch processing.
+    -   **Changes**: **Removed  display logic and added  for multi-line error messages.**
 </code_architecture>
 
 <pending_tasks>
@@ -61,9 +100,9 @@ The application comprises a React.js frontend and a FastAPI/MongoDB backend.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary, the engineer was focusing on the Issued By field. The user inquired about the logic for extracting and displaying this field. The engineer reviewed the current implementation, specifically the AI prompts in  for both Document AI and the new direct PDF extraction method. These prompts were enhanced to provide more detailed instructions for accurately extracting the Issued By information, adopting robust patterns similar to  logic. The backend was restarted to apply these prompt changes. The current activity involves examining  to understand and confirm how the Issued By field is displayed in the frontend for .
+Immediately prior to this summary, the AI engineer was working on refining the Issued By abbreviation logic in the  table. The user reported that if Issued By was already an abbreviation (e.g., PMDS), the system was incorrectly shortening it further (e.g., to PMD). The engineer identified that the  function in  was cutting single-word strings to the first three characters. The engineer modified this function to first check if the string already appears to be an abbreviation (all uppercase, short) and, if so, to retain it without further shortening. If it's a longer name, the existing abbreviation logic is applied. This task has been implemented, and the frontend was restarted.
 </current_work>
 
 <optional_next_step>
-Test the enhanced Issued By logic with a new Audit Report PDF to verify accurate extraction and auto-filling in the frontend.
+Confirm with the user if the Issued By abbreviation logic is now working as expected.
 </optional_next_step>
