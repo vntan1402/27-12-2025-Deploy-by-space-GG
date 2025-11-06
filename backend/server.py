@@ -5679,9 +5679,24 @@ Analyze the following text summary of a maritime audit report and extract all ke
 - Examples: "ISM CODE CERTIFICATION (ISM)", "ISPS", "MLC", "ISM CODE", "Internal Audit", "External Audit"
 
 **report_form**: 
-- Extract the report form number or type
-- Check the document header/footer for form codes
-- Examples: "ISM-AUD-01", "FORM-A", "7.10"
+- **CRITICAL FIELD** - Extract the report form number or type
+- **WHERE TO LOOK** (in priority order):
+  1. Document HEADER (top of pages) - often contains form codes like "Form 7.10", "ISM-AUD-01"
+  2. Document FOOTER (bottom of pages) - may contain form references
+  3. Near title or report name - sometimes included as "Report Form: XXX"
+  4. In parentheses in document header - e.g., "(07-23)", "(Form A)"
+- **PATTERNS TO RECOGNIZE**:
+  - Alphanumeric codes: "ISM-AUD-01", "ISPS-CERT-02", "MLC-CHK-15"
+  - Form labels: "FORM-A", "Form 1", "FORM B"
+  - Numeric: "7.10", "12.5", "3.14"
+  - Date-style in parentheses: "(07-23)", "(02-19)", "(12-24)"
+  - Abbreviation + date: "CG (02-19)", "VR (07-23)", "SS (12-24)"
+- **SPECIAL INSTRUCTIONS**:
+  - If you see text like "Form: XXX" or "Form No: XXX", extract XXX
+  - If you see "(XX-YY)" near the title, this is likely the form number
+  - Look for revision codes or version numbers that may be the form
+  - Header/footer text often repeats across pages - look for consistent codes
+- Examples: "ISM-AUD-01", "FORM-A", "7.10", "CG (02-19)", "(07-230)"
 
 **audit_report_no**: 
 - Extract the audit report number or reference number
