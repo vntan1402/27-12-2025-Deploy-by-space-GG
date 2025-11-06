@@ -802,6 +802,17 @@ export const AuditReportList = ({
                 </div>
               </th>
 
+              {/* Report Form */}
+              <th 
+                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('report_form')}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{language === 'vi' ? 'Mẫu Báo cáo' : 'Report Form'}</span>
+                  {getSortIcon('report_form')}
+                </div>
+              </th>
+
               {/* Audit Report No */}
               <th 
                 className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
