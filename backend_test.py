@@ -1027,23 +1027,19 @@ This is a fallback test audit report for API testing.
             return True
     
     def run_all_tests(self):
-        """Run all Audit Report AI Analysis endpoint tests in sequence"""
-        print(f"\n🚀 STARTING AUDIT REPORT AI ANALYSIS WITH REAL PDF TESTING")
-        print(f"🎯 Testing POST /api/audit-reports/analyze endpoint with user-provided PDF")
-        print(f"📄 Real PDF: ISM-Code Audit-Plan (07-230.pdf")
+        """Run all Audit Report File Upload Database Check tests in sequence"""
+        print(f"\n🚀 STARTING AUDIT REPORT FILE UPLOAD DATABASE CHECK")
+        print(f"🎯 Verify Audit Report Summary File Upload - Database Check")
+        print(f"📄 Check if audit reports have both audit_report_file_id and audit_report_summary_file_id populated")
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # Test sequence for Audit Report AI Analysis endpoint
+        # Test sequence for Audit Report File ID Database Check
         tests = [
             ("Setup - Authentication", self.test_authentication),
             ("Setup - Company ID Resolution", self.test_get_company_id),
             ("Setup - Get Ships List", self.test_get_ships_list),
-            ("Test 1 - Audit Report AI Analysis with REAL PDF", self.test_audit_report_analyze_endpoint),
-            ("Test 2 - Error Handling: Invalid Ship ID", self.test_error_handling_invalid_ship),
-            ("Test 3 - Error Handling: Non-PDF File", self.test_error_handling_non_pdf_file),
-            ("Test 4 - Error Handling: No Authentication", self.test_authentication_error_handling),
-            ("Test 5 - Backend Logs Verification", self.test_backend_logs_verification),
+            ("Test 1 - Get Audit Reports and Check File IDs", self.test_get_audit_reports_for_ship),
         ]
         
         results = []
