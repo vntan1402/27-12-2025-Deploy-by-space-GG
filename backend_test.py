@@ -737,24 +737,26 @@ class BackendAPITester:
                     return True
                 elif partial_logs_found:
                     print(f"\n⚠️ BACKEND LOGS PARTIALLY FOUND:")
-                    print(f"   ⚠️ Some OCR logs present but not all critical messages")
+                    print(f"   ⚠️ Some Survey Report OCR logs present but not all critical messages")
                     print(f"   🔧 May indicate partial implementation or OCR processor issues")
-                    self.print_result(False, "Backend logs show partial OCR processing")
+                    print(f"   🎯 CONCLUSION: Survey Report OCR partially working")
+                    self.print_result(False, "Backend logs show partial Survey Report OCR processing")
                     return False
                 else:
-                    print(f"\n❌ NO OCR PROCESSING LOGS FOUND")
+                    print(f"\n❌ NO SURVEY REPORT OCR PROCESSING LOGS FOUND")
                     print(f"   🔧 This may indicate:")
                     print(f"      - OCR processor not available (Tesseract not installed)")
-                    print(f"      - OCR processing not implemented")
+                    print(f"      - Survey Report OCR processing not implemented")
                     print(f"      - Logs not being generated")
-                    print(f"      - Recent audit analysis hasn't been performed")
+                    print(f"      - Recent survey analysis hasn't been performed")
+                    print(f"   🎯 CONCLUSION: Survey Report OCR fails → System-wide Tesseract issue")
                     
-                    if audit_analysis_logs:
-                        print(f"\n   📋 RELATED AUDIT ANALYSIS LOGS FOUND:")
-                        for i, log_line in enumerate(audit_analysis_logs[-3:], 1):  # Show last 3
+                    if survey_analysis_logs:
+                        print(f"\n   📋 RELATED SURVEY ANALYSIS LOGS FOUND:")
+                        for i, log_line in enumerate(survey_analysis_logs[-3:], 1):  # Show last 3
                             print(f"      {i}. {log_line}")
                     
-                    self.print_result(False, "No OCR processing logs found in backend")
+                    self.print_result(False, "No Survey Report OCR processing logs found in backend")
                     return False
                     
             else:
