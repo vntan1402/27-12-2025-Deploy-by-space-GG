@@ -1128,7 +1128,7 @@ class SurveyReportResponse(BaseModel):
 class AuditReportBase(BaseModel):
     ship_id: str
     audit_report_name: str
-    audit_type: Optional[str] = None  # ISM, ISPS, MLC, SMC, DOC, etc.
+    audit_type: Optional[str] = None  # ISM, ISPS, MLC, CICA, SMC, DOC, etc.
     report_form: Optional[str] = None  # Report Form type (e.g., "ISM Annual", "ISPS Interim")
     audit_report_no: Optional[str] = None
     audit_date: Optional[datetime] = None  # Date of audit
