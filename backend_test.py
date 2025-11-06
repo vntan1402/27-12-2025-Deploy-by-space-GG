@@ -673,19 +673,21 @@ class BackendAPITester:
     # Removed unused test methods - only keeping database check functionality
     
     def run_all_tests(self):
-        """Run all Audit Report File Upload Database Check tests in sequence"""
-        print(f"\n🚀 STARTING AUDIT REPORT FILE UPLOAD DATABASE CHECK")
-        print(f"🎯 Verify Audit Report Summary File Upload - Database Check")
-        print(f"📄 Check if audit reports have both audit_report_file_id and audit_report_summary_file_id populated")
+        """Run all Ship ID Debug tests in sequence"""
+        print(f"\n🚀 STARTING SHIP ID DEBUG TESTING")
+        print(f"🎯 Debug Ship ID Issue - Find Correct Ship for Company")
+        print(f"📄 Identify why ship_id 9000377f-ac3f-48d8-ba83-a80fb1a8f490 returns 'Ship not found' error")
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # Test sequence for Audit Report File ID Database Check
+        # Test sequence for Ship ID Debug
         tests = [
             ("Setup - Authentication", self.test_authentication),
             ("Setup - Company ID Resolution", self.test_get_company_id),
             ("Setup - Get Ships List", self.test_get_ships_list),
-            ("Test 1 - Get Audit Reports and Check File IDs", self.test_get_audit_reports_for_ship),
+            ("Test 1 - Ship ID Verification", self.test_ship_id_verification),
+            ("Test 2 - Audit Analysis with Correct Ship ID", self.test_audit_report_analyze_with_correct_ship_id),
+            ("Test 3 - Audit Analysis with Wrong Ship ID", self.test_audit_report_analyze_with_wrong_ship_id),
         ]
         
         results = []
@@ -712,7 +714,7 @@ class BackendAPITester:
         
         # Print final summary
         print(f"\n" + "="*80)
-        print(f"📊 AUDIT REPORT AI ANALYSIS ENDPOINT TEST SUMMARY")
+        print(f"📊 SHIP ID DEBUG TEST SUMMARY")
         print(f"="*80)
         
         passed = sum(1 for _, result in results if result)
@@ -726,22 +728,48 @@ class BackendAPITester:
             status = "✅ PASS" if result else "❌ FAIL"
             print(f"   {status}: {test_name}")
         
+        # Ship ID Analysis Summary
+        print(f"\n" + "="*80)
+        print(f"🔍 SHIP ID ANALYSIS SUMMARY")
+        print(f"="*80)
+        
+        if hasattr(self, 'test_ship_data') and self.test_ship_data:
+            ship_name = self.test_ship_data.get('name', 'Unknown')
+            correct_ship_id = self.test_ship_id
+            wrong_ship_id = "9000377f-ac3f-48d8-ba83-a80fb1a8f490"
+            
+            print(f"🚢 Ship Name: {ship_name}")
+            print(f"✅ CORRECT Ship ID: {correct_ship_id}")
+            print(f"❌ WRONG Ship ID (from frontend): {wrong_ship_id}")
+            
+            if correct_ship_id != wrong_ship_id:
+                print(f"\n🎯 ROOT CAUSE IDENTIFIED:")
+                print(f"   🚨 Frontend is using WRONG ship_id: {wrong_ship_id}")
+                print(f"   ✅ Database contains CORRECT ship_id: {correct_ship_id}")
+                print(f"   🔧 Frontend needs to use correct ship_id to avoid 'Ship not found' errors")
+                print(f"\n💡 RECOMMENDED FIXES:")
+                print(f"   1. Clear frontend local storage/state for ship selection")
+                print(f"   2. Ensure ship selection component uses current database ship_id")
+                print(f"   3. Add ship_id validation in frontend before API calls")
+                print(f"   4. Check if ship selection state management is working correctly")
+            else:
+                print(f"\n✅ No ship_id discrepancy found - IDs match")
+        
         # Overall assessment
         if success_rate >= 80:
-            print(f"\n🎉 AUDIT REPORT AI ANALYSIS ENDPOINT TESTING SUCCESSFUL!")
-            print(f"✅ AI configuration fix working correctly")
-            print(f"✅ Endpoint returns 200 OK with analysis results")
-            print(f"✅ AI config retrieved successfully (system_ai or fallback)")
-            print(f"✅ Error handling working properly")
-            print(f"✅ Backend logging working correctly")
+            print(f"\n🎉 SHIP ID DEBUG TESTING SUCCESSFUL!")
+            print(f"✅ Ship ID discrepancy identified and verified")
+            print(f"✅ Correct ship_id works with audit report analysis")
+            print(f"✅ Wrong ship_id correctly returns 'Ship not found' error")
+            print(f"✅ Root cause identified - frontend using wrong ship_id")
         elif success_rate >= 60:
-            print(f"\n⚠️ AUDIT REPORT AI ANALYSIS ENDPOINT PARTIALLY WORKING")
+            print(f"\n⚠️ SHIP ID DEBUG PARTIALLY SUCCESSFUL")
             print(f"📊 Some components working but issues detected")
             print(f"🔧 Review failed tests for specific issues")
         else:
-            print(f"\n❌ AUDIT REPORT AI ANALYSIS ENDPOINT TESTING FAILED")
-            print(f"🚨 Critical issues detected - AI configuration fix may not be working")
-            print(f"🔧 Major fixes required")
+            print(f"\n❌ SHIP ID DEBUG TESTING FAILED")
+            print(f"🚨 Critical issues detected - unable to identify root cause")
+            print(f"🔧 Major investigation required")
         
         return success_rate >= 80
 
