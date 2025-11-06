@@ -925,8 +925,8 @@ export const AuditReportList = ({
                     </div>
                   </td>
 
-                  {/* Audit Report Name with File Icons */}
-                  <td className="border border-gray-300 px-4 py-2">
+                  {/* Audit Report Name with File Icons - HIDDEN */}
+                  {/* <td className="border border-gray-300 px-4 py-2">
                     <div className="flex items-center gap-2">
                       <span>{report.audit_report_name}</span>
                       {report.audit_report_file_id && (
@@ -960,7 +960,7 @@ export const AuditReportList = ({
                         </span>
                       )}
                     </div>
-                  </td>
+                  </td> */}
 
                   {/* Audit Type */}
                   <td className="border border-gray-300 px-4 py-2">{report.audit_type || '-'}</td>
