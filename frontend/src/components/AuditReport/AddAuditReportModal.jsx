@@ -307,6 +307,7 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
       setFormData({
         audit_report_name: '',
         audit_type: '',
+        report_form: '',
         audit_report_no: '',
         audit_date: '',
         issued_by: '',
