@@ -780,8 +780,8 @@ class BackendAPITester:
     
     def run_all_tests(self):
         """Run all OCR Extraction tests in sequence"""
-        print(f"\n🚀 STARTING OCR EXTRACTION TESTING WITH TESSERACT AVAILABLE")
-        print(f"🎯 Test OCR header/footer extraction with Tesseract now available")
+        print(f"\n🚀 STARTING SURVEY REPORT OCR TESTING")
+        print(f"🎯 Test Survey Report OCR - Verify Tesseract is Working")
         print(f"📄 Verify OCR section in _summary_text with actual header/footer content")
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
