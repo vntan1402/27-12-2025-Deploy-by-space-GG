@@ -308,6 +308,17 @@ export const AuditReportList = ({
         }, 1000);
       }
       
+      // Show errors if any (warning, not error)
+      if (result.errors && result.errors.length > 0) {
+        setTimeout(() => {
+          toast.warning(
+            language === 'vi' 
+              ? `⚠️ Có ${result.errors.length} lỗi khi xóa` 
+              : `⚠️ ${result.errors.length} error(s) occurred`
+          );
+        }, 2000);
+      }
+      
       if (onRefresh) onRefresh();
     } catch (error) {
       console.error('Failed to delete report:', error);
