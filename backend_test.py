@@ -812,12 +812,12 @@ class BackendAPITester:
 
 
 if __name__ == "__main__":
-    """Main execution - run Ship ID Debug tests"""
+    """Main execution - run Combined Summary Format tests"""
     tester = BackendAPITester()
     success = tester.run_all_tests()
     
     if success:
-        print(f"\n🎉 ALL TESTS PASSED - SHIP ID ISSUE SUCCESSFULLY DEBUGGED")
+        print(f"\n🎉 ALL TESTS PASSED - COMBINED SUMMARY FORMAT (OPTION 3) VERIFIED SUCCESSFULLY")
         sys.exit(0)
     else:
         print(f"\n❌ SOME TESTS FAILED - REVIEW RESULTS ABOVE")
