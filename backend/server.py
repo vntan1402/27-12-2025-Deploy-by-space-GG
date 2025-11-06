@@ -5585,6 +5585,37 @@ async def extract_audit_report_fields_from_summary(
                         logger.info(f"   📍 Ship IMO: '{extracted_data.get('ship_imo', 'NOT EXTRACTED')}'")
                         logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by')}'")
                         
+                        # POST-PROCESSING: Extract report_form from filename if AI didn't find it
+                        if not extracted_data.get('report_form') and filename:
+                            logger.info(f"🔍 AI didn't find report_form, checking filename: {filename}")
+                            # Pattern: "ISM-AUD-01", "FORM-A", "7.10", etc.
+                            import re
+                            filename_form_patterns = [
+                                r'([A-Z]{1,4}[-_][A-Z]{2,4}[-_][0-9]{1,3})',  # ISM-AUD-01, ISPS-CERT-02
+                                r'(FORM[-_][A-Z0-9]{1,3})',                    # FORM-A, FORM-1
+                                r'([0-9]{1,2}\.[0-9]{1,2})',                   # 7.10, 12.5
+                                r'([A-Z]{1,3})\s*\(([0-9]{2}[-/][0-9]{2})\)', # CG (02-19) - like Survey Report
+                                r'([A-Z]{1,3})\s+([0-9]{2}[-/][0-9]{2})',     # CG 02-19
+                            ]
+                            
+                            for pattern in filename_form_patterns:
+                                match = re.search(pattern, filename)
+                                if match:
+                                    if len(match.groups()) > 1:
+                                        # Pattern with 2 groups (e.g., CG (02-19))
+                                        abbrev = match.group(1)
+                                        date_part = match.group(2).replace('/', '-')
+                                        extracted_form = f"{abbrev} ({date_part})"
+                                    else:
+                                        # Pattern with 1 group
+                                        extracted_form = match.group(1)
+                                    
+                                    extracted_data['report_form'] = extracted_form
+                                    logger.info(f"✅ Extracted report_form from filename: '{extracted_form}'")
+                                    break
+                            else:
+                                logger.warning(f"⚠️ Could not extract report_form from filename: {filename}")
+                        
                         return extracted_data
                         
                     except json.JSONDecodeError as e:
