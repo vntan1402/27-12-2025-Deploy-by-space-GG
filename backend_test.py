@@ -303,13 +303,14 @@ class BackendAPITester:
     def download_audit_plan_test_pdf(self):
         """Helper: Load a local test PDF file for validation testing"""
         try:
-            # Use a local PDF file for testing - try multiple files to find one that works
+            # Use a local PDF file for testing - try larger files that might contain ship information
             test_pdf_files = [
-                "/app/test_passport.pdf",
-                "/app/PASS_PORT_Tran_Trong_Toan.pdf", 
-                "/app/test_poor_quality_cert.pdf",
-                "/app/MINH_ANH_09_certificate.pdf",
-                "/app/3_2O_THUONG_PP.pdf"
+                "/app/CU (02-19).pdf",  # Large PDF, likely contains ship info
+                "/app/CCM_02-19.pdf",   # Large PDF, likely contains ship info
+                "/app/Co2.pdf",         # Medium PDF, might contain ship info
+                "/app/MINH_ANH_09_certificate.pdf",  # Certificate, might contain ship info
+                "/app/PASS_PORT_Tran_Trong_Toan.pdf", # Passport, might contain ship info
+                "/app/test_passport.pdf"  # Small PDF, fallback
             ]
             
             for pdf_path in test_pdf_files:
