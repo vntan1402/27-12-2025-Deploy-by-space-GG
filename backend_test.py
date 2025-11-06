@@ -860,21 +860,23 @@ class BackendAPITester:
         
         # Overall assessment
         if success_rate >= 80:
-            print(f"\n🎉 OCR EXTRACTION TESTING SUCCESSFUL!")
+            print(f"\n🎉 SURVEY REPORT OCR TESTING SUCCESSFUL!")
             print(f"✅ OCR section present in _summary_text")
             print(f"✅ Header text length > 0")
             print(f"✅ Footer text length > 0")
             print(f"✅ Backend logs show OCR success")
-            print(f"✅ report_form = '07-230'")
             print(f"✅ All success criteria from review request met")
+            print(f"🎯 CONCLUSION: Survey Report OCR works → Audit Report code has a bug")
         elif success_rate >= 60:
-            print(f"\n⚠️ OCR EXTRACTION PARTIALLY SUCCESSFUL")
+            print(f"\n⚠️ SURVEY REPORT OCR PARTIALLY SUCCESSFUL")
             print(f"📊 Some components working but OCR issues detected")
             print(f"🔧 Review failed tests for specific OCR problems")
+            print(f"🎯 CONCLUSION: Partial OCR functionality - needs investigation")
         else:
-            print(f"\n❌ OCR EXTRACTION TESTING FAILED")
-            print(f"🚨 Critical issues with OCR header/footer extraction")
+            print(f"\n❌ SURVEY REPORT OCR TESTING FAILED")
+            print(f"🚨 Critical issues with Survey Report OCR header/footer extraction")
             print(f"🔧 OCR processor may not be available or working correctly")
+            print(f"🎯 CONCLUSION: Survey Report OCR fails → System-wide Tesseract issue")
         
         return success_rate >= 80
 
