@@ -723,14 +723,14 @@ class BackendAPITester:
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # Test sequence for Ship ID Debug
+        # Test sequence for Combined Summary Format Testing
         tests = [
             ("Setup - Authentication", self.test_authentication),
             ("Setup - Company ID Resolution", self.test_get_company_id),
             ("Setup - Get Ships List", self.test_get_ships_list),
             ("Test 1 - Ship ID Verification", self.test_ship_id_verification),
-            ("Test 2 - Audit Analysis with Correct Ship ID", self.test_audit_report_analyze_with_correct_ship_id),
-            ("Test 3 - Audit Analysis with Wrong Ship ID", self.test_audit_report_analyze_with_wrong_ship_id),
+            ("Test 2 - Audit Analysis Combined Summary Format", self.test_audit_report_analyze_combined_summary_format),
+            ("Test 3 - Backend Logs Verification", self.test_backend_logs_verification),
         ]
         
         results = []
