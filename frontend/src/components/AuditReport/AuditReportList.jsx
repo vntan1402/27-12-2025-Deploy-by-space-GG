@@ -121,6 +121,13 @@ export const AuditReportList = ({
       );
     }
 
+    // Apply audit type filter
+    if (filters.auditType && filters.auditType !== 'all') {
+      filtered = filtered.filter(report => 
+        report.audit_type && report.audit_type.toLowerCase() === filters.auditType.toLowerCase()
+      );
+    }
+
     // Apply search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
