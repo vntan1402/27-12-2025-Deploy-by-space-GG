@@ -823,7 +823,7 @@ class BackendAPITester:
         
         # Print final summary
         print(f"\n" + "="*80)
-        print(f"📊 SURVEY REPORT OCR TEST SUMMARY")
+        print(f"📊 NCR FORM REPORT FORM EXTRACTION TEST SUMMARY")
         print(f"="*80)
         
         passed = sum(1 for _, result in results if result)
@@ -837,9 +837,9 @@ class BackendAPITester:
             status = "✅ PASS" if result else "❌ FAIL"
             print(f"   {status}: {test_name}")
         
-        # Survey Report OCR Analysis
+        # NCR Form Analysis
         print(f"\n" + "="*80)
-        print(f"🔍 SURVEY REPORT OCR ANALYSIS")
+        print(f"🔍 NCR FORM REPORT FORM EXTRACTION ANALYSIS")
         print(f"="*80)
         
         if hasattr(self, 'test_ship_data') and self.test_ship_data:
@@ -848,38 +848,38 @@ class BackendAPITester:
             
             print(f"🚢 Test Ship: {ship_name}")
             print(f"🆔 Ship ID: {ship_id}")
-            print(f"📄 Test PDF: ISM-Code Audit-Plan (07-230.pdf")
-            print(f"🎯 Focus: Survey Report OCR Header/Footer Extraction")
+            print(f"📄 Test PDF: ISM-Code  NCR (07-23).pdf")
+            print(f"🎯 Focus: System AI Report Form Extraction from Footer")
             
-            print(f"\n📋 EXPECTED RESULTS VERIFICATION:")
-            print(f"   ✅ OCR section present in _summary_text")
-            print(f"   ✅ Header text length > 0")
-            print(f"   ✅ Footer text length > 0")
-            print(f"   ✅ Backend logs show OCR success")
+            print(f"\n📋 SUCCESS CRITERIA VERIFICATION:")
+            print(f"   ✅ report_form is populated (not empty)")
+            print(f"   ✅ Value matches form code in footer or filename")
+            print(f"   ✅ Backend logs show extraction method")
             
-            print(f"\n🎯 KEY QUESTION ANALYSIS:")
-            print(f"   If Survey Report OCR works → Audit Report code has a bug")
-            print(f"   If Survey Report OCR fails → System-wide Tesseract issue")
+            print(f"\n🎯 KEY QUESTIONS ANALYSIS:")
+            print(f"   1. Does report_form field have a value?")
+            print(f"   2. What is the exact value extracted?")
+            print(f"   3. Did it come from AI (footer/content) or filename pattern?")
+            print(f"   4. What does Document AI summary contain about footer?")
         
         # Overall assessment
         if success_rate >= 80:
-            print(f"\n🎉 SURVEY REPORT OCR TESTING SUCCESSFUL!")
-            print(f"✅ OCR section present in _summary_text")
-            print(f"✅ Header text length > 0")
-            print(f"✅ Footer text length > 0")
-            print(f"✅ Backend logs show OCR success")
+            print(f"\n🎉 NCR FORM REPORT FORM EXTRACTION SUCCESSFUL!")
+            print(f"✅ report_form field populated")
+            print(f"✅ Value matches expected form code")
+            print(f"✅ Backend logs show extraction method")
             print(f"✅ All success criteria from review request met")
-            print(f"🎯 CONCLUSION: Survey Report OCR works → Audit Report code has a bug")
+            print(f"🎯 CONCLUSION: System AI can extract report_form from NCR PDF")
         elif success_rate >= 60:
-            print(f"\n⚠️ SURVEY REPORT OCR PARTIALLY SUCCESSFUL")
-            print(f"📊 Some components working but OCR issues detected")
-            print(f"🔧 Review failed tests for specific OCR problems")
-            print(f"🎯 CONCLUSION: Partial OCR functionality - needs investigation")
+            print(f"\n⚠️ NCR FORM EXTRACTION PARTIALLY SUCCESSFUL")
+            print(f"📊 Some components working but extraction issues detected")
+            print(f"🔧 Review failed tests for specific extraction problems")
+            print(f"🎯 CONCLUSION: Partial extraction functionality - needs investigation")
         else:
-            print(f"\n❌ SURVEY REPORT OCR TESTING FAILED")
-            print(f"🚨 Critical issues with Survey Report OCR header/footer extraction")
-            print(f"🔧 OCR processor may not be available or working correctly")
-            print(f"🎯 CONCLUSION: Survey Report OCR fails → System-wide Tesseract issue")
+            print(f"\n❌ NCR FORM REPORT FORM EXTRACTION FAILED")
+            print(f"🚨 Critical issues with report_form extraction from NCR PDF")
+            print(f"🔧 System AI may not be extracting from footer correctly")
+            print(f"🎯 CONCLUSION: report_form extraction not working as expected")
         
         return success_rate >= 80
 
