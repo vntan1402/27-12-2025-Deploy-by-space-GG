@@ -5724,9 +5724,13 @@ Analyze the following text summary of a maritime audit report and extract all ke
 - Examples: "DNV GL", "Lloyd's Register", "Class NK", "Bureau Veritas"
 
 **audit_date**: 
-- Extract the audit date (when the audit was conducted)
-- Convert to ISO format YYYY-MM-DD
-- Examples: "2025-09-18", "2024-01-15"
+- Extract the date when the audit was conducted
+- Look for "Audit Date", "Date of Audit", "Inspection Date", "Date Conducted", "Date"
+- Convert to ISO format "YYYY-MM-DD"
+- **IMPORTANT**: ONLY extract if it's clearly a DATE (e.g., "15 January 2024", "2024-01-15", "15/01/2024")
+- **DO NOT extract** form codes or abbreviations that look like dates (e.g., "(07-23)" is a FORM, not a date)
+- If uncertain whether something is a date or form code, leave audit_date EMPTY and put the value in report_form instead
+- Examples: "2025-09-18", "2024-01-15", "15/01/2024"
 
 **auditor_name**: 
 - Extract the name(s) of the auditor(s) who conducted the audit
