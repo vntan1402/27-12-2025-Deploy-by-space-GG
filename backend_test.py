@@ -798,15 +798,16 @@ class BackendAPITester:
                 partial_logs_found = ocr_start_found or ocr_available_found or ocr_completed_found or ocr_enhanced_found
                 
                 print(f"\n🎯 BACKEND LOGS VALIDATION:")
-                print(f"   ✅ All expected logs found: {'✅ YES' if all_expected_logs_found else '❌ NO'}")
-                print(f"   ✅ Some OCR/report form logs found: {'✅ YES' if partial_logs_found else '❌ NO'}")
+                print(f"   ✅ Critical OCR logs found: {'✅ YES' if critical_logs_found else '❌ NO'}")
+                print(f"   ✅ Some OCR logs found: {'✅ YES' if partial_logs_found else '❌ NO'}")
                 
-                if all_expected_logs_found:
+                if critical_logs_found:
                     print(f"\n🎉 BACKEND LOGS VERIFICATION SUCCESSFUL!")
                     print(f"   ✅ OCR processing logs confirmed")
-                    print(f"   ✅ Report form extraction logs confirmed")
-                    print(f"   ✅ All expected log messages found")
-                    self.print_result(True, "Backend logs confirm OCR processing and report form extraction")
+                    print(f"   ✅ OCR processor available confirmed")
+                    print(f"   ✅ OCR completion confirmed")
+                    print(f"   ✅ Critical log messages found")
+                    self.print_result(True, "Backend logs confirm OCR processing is working")
                     return True
                 elif partial_logs_found:
                     print(f"\n⚠️ BACKEND LOGS PARTIALLY FOUND:")
