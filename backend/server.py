@@ -5526,6 +5526,8 @@ def standardize_issued_by_organization(raw_issued_by: str) -> dict:
     Standardize organization names to their official abbreviations
     For IACS Classification Societies, Panama ROs, and Vietnam Register
     
+    Reuses the existing generate_organization_abbreviation() function for consistency
+    
     Args:
         raw_issued_by: Raw organization name extracted from document
     
@@ -5535,144 +5537,13 @@ def standardize_issued_by_organization(raw_issued_by: str) -> dict:
     if not raw_issued_by or not raw_issued_by.strip():
         return {'full_name': '', 'abbreviation': ''}
     
-    # Normalize input for matching
-    normalized = raw_issued_by.strip().upper()
+    # Use the existing generate_organization_abbreviation function
+    # This ensures consistency with the rest of the application
+    abbreviation = generate_organization_abbreviation(raw_issued_by)
     
-    # Comprehensive organization mapping
-    # Format: abbreviation -> (full_name, [alternative_names_for_matching])
-    ORGANIZATION_MAP = {
-        # IACS Classification Societies
-        'ABS': ('American Bureau of Shipping', [
-            'AMERICAN BUREAU OF SHIPPING',
-            'ABS',
-            'AMERICAN BUREAU',
-        ]),
-        'BV': ('Bureau Veritas', [
-            'BUREAU VERITAS',
-            'BV',
-            'BUREAU VERITAS JAPAN',
-            'BUREAU VERITAS SINGAPORE',
-        ]),
-        'CCS': ('China Classification Society', [
-            'CHINA CLASSIFICATION SOCIETY',
-            'CCS',
-            'CHINESE CLASSIFICATION SOCIETY',
-        ]),
-        'DNV': ('Det Norske Veritas', [
-            'DET NORSKE VERITAS',
-            'DNV',
-            'DNV GL',
-            'DNV-GL',
-            'DNVGL',
-        ]),
-        'IRS': ('Indian Register of Shipping', [
-            'INDIAN REGISTER OF SHIPPING',
-            'IRS',
-            'INDIAN REGISTER',
-        ]),
-        'KR': ('Korean Register', [
-            'KOREAN REGISTER',
-            'KOREAN REGISTER OF SHIPPING',
-            'KR',
-        ]),
-        'LR': ("Lloyd's Register", [
-            'LLOYDS REGISTER',
-            "LLOYD'S REGISTER",
-            'LR',
-            'LLOYD REGISTER',
-        ]),
-        'NK': ('Nippon Kaiji Kyokai', [
-            'NIPPON KAIJI KYOKAI',
-            'CLASS NK',
-            'CLASSNK',
-            'NK',
-            'NIPPON KAIJI',
-        ]),
-        'RINA': ('RINA Services', [
-            'RINA',
-            'RINA SERVICES',
-            'REGISTRO ITALIANO NAVALE',
-        ]),
-        'RS': ('Russian Maritime Register', [
-            'RUSSIAN MARITIME REGISTER',
-            'RUSSIAN MARITIME REGISTER OF SHIPPING',
-            'RS',
-        ]),
-        'CR': ('Croatian Register of Shipping', [
-            'CROATIAN REGISTER',
-            'CROATIAN REGISTER OF SHIPPING',
-            'CR',
-        ]),
-        'PRS': ('Polish Register of Shipping', [
-            'POLISH REGISTER',
-            'POLISH REGISTER OF SHIPPING',
-            'PRS',
-        ]),
-        
-        # Panama Recognized Organizations
-        'PMDS': ('Panama Maritime Documentation Services', [
-            'PANAMA MARITIME DOCUMENTATION SERVICES',
-            'PMDS',
-            'PANAMA MARITIME',
-        ]),
-        'PMA': ('Panama Maritime Authority', [
-            'PANAMA MARITIME AUTHORITY',
-            'PMA',
-            'PANAMA AUTHORITY',
-        ]),
-        
-        # Vietnam Register
-        'VR': ('Vietnam Register', [
-            'VIETNAM REGISTER',
-            'VR',
-            'DANG KIEM',
-            'ĐĂNG KIỂM',
-            'DANG KIEM VIET NAM',
-            'ĐĂNG KIỂM VIỆT NAM',
-        ]),
-        
-        # Other Common Authorities
-        'LMA': ('Liberia Maritime Authority', [
-            'LIBERIA MARITIME AUTHORITY',
-            'LMA',
-        ]),
-        'MIMA': ('Marshall Islands Maritime Authority', [
-            'MARSHALL ISLANDS MARITIME AUTHORITY',
-            'MIMA',
-        ]),
-    }
-    
-    # Try to match against known organizations
-    for abbrev, (full_name, alternatives) in ORGANIZATION_MAP.items():
-        for alt in alternatives:
-            if alt in normalized:
-                return {
-                    'full_name': raw_issued_by.strip(),  # Preserve original formatting
-                    'abbreviation': abbrev
-                }
-    
-    # If no match found, return original value
-    # Check if it's already an abbreviation (2-5 uppercase letters)
-    if len(raw_issued_by.strip()) <= 5 and raw_issued_by.strip().isupper():
-        return {
-            'full_name': raw_issued_by.strip(),
-            'abbreviation': raw_issued_by.strip()
-        }
-    
-    # For longer unmatched names, try to extract abbreviation from parentheses
-    # e.g., "Some Organization (SO)" -> abbreviation = "SO"
-    import re
-    match = re.search(r'\(([A-Z]{2,5})\)', raw_issued_by)
-    if match:
-        return {
-            'full_name': raw_issued_by.strip(),
-            'abbreviation': match.group(1)
-        }
-    
-    # No match - return original without abbreviation
     return {
-        'full_name': raw_issued_by.strip(),
-        'abbreviation': ''
+        'full_name': raw_issued_by.strip(),  # Preserve original formatting
+        'abbreviation': abbreviation if abbreviation else ''
     }
 
 
