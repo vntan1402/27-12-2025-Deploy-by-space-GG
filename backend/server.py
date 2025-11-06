@@ -8217,7 +8217,7 @@ async def update_audit_report(
         update_dict['updated_at'] = update_dict['updated_at'].isoformat()
         
         # Update report
-        await mongo_db.update_one("audit_reports", {"id": report_id}, {"$set": update_dict})
+        await mongo_db.update("audit_reports", {"id": report_id}, update_dict)
         
         # Fetch and return updated report
         updated_report = await mongo_db.find_one("audit_reports", {"id": report_id})
