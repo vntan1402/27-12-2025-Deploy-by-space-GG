@@ -792,7 +792,7 @@ class BackendAPITester:
             ("Setup - Company ID Resolution", self.test_get_company_id),
             ("Setup - Get Ships List", self.test_get_ships_list),
             ("Test 1 - Ship ID Verification", self.test_ship_id_verification),
-            ("Test 2 - Audit Analysis OCR Extraction", self.test_audit_report_analyze_report_form_and_ocr_extraction),
+            ("Test 2 - Survey Report OCR Extraction", self.test_survey_report_analyze_ocr_extraction),
             ("Test 3 - Backend Logs Verification", self.test_backend_logs_verification),
         ]
         
