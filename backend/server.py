@@ -5567,14 +5567,31 @@ async def extract_audit_report_fields_from_summary(
                         # Standardize date format and validate
                         if extracted_data.get('audit_date'):
                             audit_date_raw = extracted_data['audit_date'].strip()
-                            try:
-                                # Parse and convert to ISO format
-                                from dateutil import parser
-                                parsed_date = parser.parse(audit_date_raw)
-                                extracted_data['audit_date'] = parsed_date.strftime('%Y-%m-%d')
-                            except Exception as date_error:
-                                logger.warning(f"Failed to parse audit_date '{audit_date_raw}': {date_error}")
+                            
+                            # BUG FIX (Survey Report pattern): Check if audit_date looks like a Report Form
+                            # Pattern: 1-3 uppercase letters followed by date-like pattern
+                            import re
+                            form_pattern = r'^[A-Z]{1,3}\s*\([0-9]{2}[/-][0-9]{2,3}\)$|^[A-Z]{1,3}\s+[0-9]{2}[/-][0-9]{2,3}$|^\([0-9]{2}[/-][0-9]{2,3}\)$'
+                            
+                            if re.match(form_pattern, audit_date_raw, re.IGNORECASE):
+                                logger.warning(f"⚠️ audit_date '{audit_date_raw}' looks like a Report Form, moving to report_form")
+                                # Move to report_form if empty
+                                if not extracted_data.get('report_form'):
+                                    extracted_data['report_form'] = audit_date_raw
                                 extracted_data['audit_date'] = ''
+                            else:
+                                try:
+                                    # Parse and convert to ISO format
+                                    from dateutil import parser
+                                    parsed_date = parser.parse(audit_date_raw)
+                                    extracted_data['audit_date'] = parsed_date.strftime('%Y-%m-%d')
+                                except Exception as date_error:
+                                    logger.warning(f"Failed to parse audit_date '{audit_date_raw}': {date_error}")
+                                    # If parse fails, might be a form code - move to report_form if empty
+                                    if not extracted_data.get('report_form') and len(audit_date_raw) < 20:
+                                        logger.warning("⚠️ Moving unparseable audit_date to report_form")
+                                        extracted_data['report_form'] = audit_date_raw
+                                    extracted_data['audit_date'] = ''
                         
                         logger.info("✅ Audit report field extraction successful")
                         logger.info(f"   📋 Audit Name: '{extracted_data.get('audit_report_name')}'")
