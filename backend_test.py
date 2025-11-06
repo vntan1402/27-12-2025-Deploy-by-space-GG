@@ -846,14 +846,17 @@ class BackendAPITester:
             print(f"🚢 Test Ship: {ship_name}")
             print(f"🆔 Ship ID: {ship_id}")
             print(f"📄 Test PDF: ISM-Code Audit-Plan (07-230.pdf")
-            print(f"🎯 Focus: OCR Header/Footer Extraction")
+            print(f"🎯 Focus: Survey Report OCR Header/Footer Extraction")
             
             print(f"\n📋 EXPECTED RESULTS VERIFICATION:")
             print(f"   ✅ OCR section present in _summary_text")
             print(f"   ✅ Header text length > 0")
             print(f"   ✅ Footer text length > 0")
             print(f"   ✅ Backend logs show OCR success")
-            print(f"   ✅ report_form = '07-230'")
+            
+            print(f"\n🎯 KEY QUESTION ANALYSIS:")
+            print(f"   If Survey Report OCR works → Audit Report code has a bug")
+            print(f"   If Survey Report OCR fails → System-wide Tesseract issue")
         
         # Overall assessment
         if success_rate >= 80:
