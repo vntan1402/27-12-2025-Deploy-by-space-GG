@@ -159,46 +159,17 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
       
       // Check for validation error (ship mismatch)
       if (data.validation_error) {
-        const { extracted_ship_name, extracted_ship_imo, expected_ship_name, expected_ship_imo } = data;
-        
-        const warningMsg = language === 'vi' 
-          ? `⚠️ CẢNH BÁO: Thông tin tàu không khớp!\n\n` +
-            `Thông tin trong file PDF:\n` +
-            `  - Tên tàu: ${extracted_ship_name || 'N/A'}\n` +
-            `  - IMO: ${extracted_ship_imo || 'N/A'}\n\n` +
-            `Tàu bạn đã chọn:\n` +
-            `  - Tên tàu: ${expected_ship_name}\n` +
-            `  - IMO: ${expected_ship_imo || 'N/A'}\n\n` +
-            `Bạn có muốn tiếp tục với tàu "${expected_ship_name}" không?`
-          : `⚠️ WARNING: Ship information mismatch!\n\n` +
-            `Information in PDF file:\n` +
-            `  - Ship name: ${extracted_ship_name || 'N/A'}\n` +
-            `  - IMO: ${extracted_ship_imo || 'N/A'}\n\n` +
-            `Your selected ship:\n` +
-            `  - Ship name: ${expected_ship_name}\n` +
-            `  - IMO: ${expected_ship_imo || 'N/A'}\n\n` +
-            `Do you want to continue with ship "${expected_ship_name}"?`;
-        
-        if (!window.confirm(warningMsg)) {
-          setIsAnalyzing(false);
-          handleRemoveFile();
-          return;
-        }
-        
-        // User confirmed, retry with bypass_validation = true
-        toast.info(language === 'vi' ? '🔄 Phân tích lại với xác nhận...' : '🔄 Re-analyzing with confirmation...');
-        const retryResponse = await auditReportService.analyzeFile(
-          selectedShip.id,
-          file,
-          true // Bypass validation
-        );
-        
-        const retryData = retryResponse.data || retryResponse;
-        if (retryData.success && retryData.analysis) {
-          processAnalysisSuccess(retryData.analysis, file);
-        } else {
-          processAnalysisFail();
-        }
+        // Show custom validation modal instead of window.confirm
+        setValidationData({
+          extracted_ship_name: data.extracted_ship_name,
+          extracted_ship_imo: data.extracted_ship_imo,
+          expected_ship_name: data.expected_ship_name,
+          expected_ship_imo: data.expected_ship_imo,
+          file: file
+        });
+        setShowValidationModal(true);
+        setIsAnalyzing(false);
+        return;
       } else if (data.success && data.analysis) {
         processAnalysisSuccess(data.analysis, file);
       } else {
