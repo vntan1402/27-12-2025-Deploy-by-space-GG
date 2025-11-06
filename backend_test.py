@@ -1,55 +1,30 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - OCR Extraction Testing with Tesseract Available
+Backend API Testing Script - Survey Report OCR Testing
 
-FOCUS: Test Audit Report OCR header/footer extraction with Tesseract now available
-OBJECTIVE: Verify OCR header/footer extraction is now working with correct targeted_ocr import.
+FOCUS: Test Survey Report OCR - Verify Tesseract is Working
+OBJECTIVE: Test Survey Report to verify OCR is working and producing header/footer text.
 
 CRITICAL TEST REQUIREMENTS FROM REVIEW REQUEST:
 1. **Authentication**: Login: admin1 / 123456
-2. **Get Ship**: GET /api/ships, Find BROTHER 36 (bc444bc3-aea9-4491-b199-8098efcc16d2)
-3. **Audit Report Analysis with OCR**: POST /api/audit-reports/analyze
-   - PDF: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
+2. **Get Ship**: GET /api/ships - Find BROTHER 36 (bc444bc3-aea9-4491-b199-8098efcc16d2)
+3. **Test Survey Report Analysis**: POST /api/survey-reports/analyze-file
+   - Upload any PDF file (create a simple test PDF or use existing)
    - ship_id: bc444bc3-aea9-4491-b199-8098efcc16d2
    - bypass_validation: false
-4. **Verify OCR in Summary**: Check `_summary_text` contains:
-   ```
-   ============================================================
-   ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)
-   ============================================================
-   
-   === HEADER TEXT (Top 15% of page) ===
-   [actual OCR extracted text from PDF header]
-   
-   === FOOTER TEXT (Bottom 15% of page) ===
-   [actual OCR extracted text from PDF footer]
-   ============================================================
-   ```
-5. **Backend Logs Verification**: Look for:
-   - "🔍 Starting Targeted OCR"
-   - "✅ OCR processor available"
+4. **Verify OCR in Response**: Check if `_summary_text` contains "ADDITIONAL INFORMATION FROM HEADER/FOOTER"
+5. **Backend Logs Check**: Look for:
    - "✅ Targeted OCR completed successfully"
-   - "📄 OCR results: header=XXX chars, footer=XXX chars"
    - "✅ Header text added"
    - "✅ Footer text added"
-   - "✅ Enhanced summary with OCR"
-6. **Report Form Check**: Verify report_form = "07-230" from filename extraction
+   - "✅ Enhanced summary created with OCR"
 
-SUCCESS CRITERIA:
-- ✅ OCR section present in _summary_text
-- ✅ Header text length > 0
-- ✅ Footer text length > 0
-- ✅ Backend logs show OCR success
-- ✅ report_form = "07-230"
-
-FAILURE INDICATORS:
-- ❌ No "ADDITIONAL INFORMATION FROM HEADER/FOOTER" section
-- ❌ "OCR processor not available"
-- ❌ "OCR extraction returned no results"
+KEY QUESTION: Is OCR working for Survey Report or is it also broken?
+If Survey Report OCR works → Audit Report code has a bug
+If Survey Report OCR fails → System-wide Tesseract issue
 
 Test credentials: admin1/123456
 Test ship: BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2)
-PDF URL: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
 """
 
 import requests
