@@ -1004,7 +1004,8 @@ class BackendAPITester:
             ("Setup - Get Ships List", self.test_get_ships_list),
             ("Test Case 1 - Validation FAIL (Ship Mismatch)", self.test_audit_report_validation_fail_case),
             ("Test Case 2 - Validation BYPASS (bypass_validation=true)", self.test_audit_report_validation_bypass_case),
-            ("Test Case 3 - Backend Logs Verification", self.test_backend_logs_verification),
+            ("Test Case 3 - Direct Validation Function Testing", self.test_validation_function_directly),
+            ("Test Case 4 - Backend Logs Verification", self.test_backend_logs_verification),
         ]
         
         results = []
