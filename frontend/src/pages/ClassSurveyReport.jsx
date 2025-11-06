@@ -348,7 +348,8 @@ const ClassSurveyReport = () => {
       fileUploaded: false,
       surveyReportName: '',
       surveyReportNo: '',
-      error: null
+      error: null,
+      validationWarning: null  // Track ship validation mismatches
     };
     
     // Update status to 'processing'
@@ -366,14 +367,36 @@ const ClassSurveyReport = () => {
     );
     
     try {
-      // Step 1: AI Analysis (with bypass_validation = true in batch mode)
-      const analyzeResponse = await surveyReportService.analyzeFile(
+      // Step 1: AI Analysis with validation check
+      // First attempt: WITH validation check
+      let analyzeResponse = await surveyReportService.analyzeFile(
         selectedShip.id,
         file,
-        true // Auto-bypass ship validation in batch mode
+        false // Check validation first in batch mode
       );
       
-      const data = analyzeResponse.data || analyzeResponse;
+      let data = analyzeResponse.data || analyzeResponse;
+      
+      // If validation error detected, retry with bypass
+      if (data.validation_error) {
+        console.log(`⚠️ Ship validation mismatch for ${file.name}:`, {
+          extracted: `${data.extracted_ship_name} (IMO: ${data.extracted_ship_imo})`,
+          expected: `${data.expected_ship_name} (IMO: ${data.expected_ship_imo})`
+        });
+        
+        // Add warning to result for display in batch results
+        result.validationWarning = language === 'vi' 
+          ? `⚠️ Tàu không khớp: PDF có "${data.extracted_ship_name}" nhưng đã tạo cho "${data.expected_ship_name}"`
+          : `⚠️ Ship mismatch: PDF has "${data.extracted_ship_name}" but created for "${data.expected_ship_name}"`;
+        
+        // Retry with bypass_validation = true
+        analyzeResponse = await surveyReportService.analyzeFile(
+          selectedShip.id,
+          file,
+          true // Bypass validation on retry
+        );
+        data = analyzeResponse.data || analyzeResponse;
+      }
       
       if (!data.success || !data.analysis) {
         throw new Error('AI analysis failed');
