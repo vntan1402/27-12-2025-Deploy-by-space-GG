@@ -46,7 +46,7 @@ SUCCESS CRITERIA:
 
 Test credentials: admin1/123456
 Test ship: BROTHER 36 (or any available ship)
-Real PDF URL: https://customer-assets.emergentagent.com/job_audit-flow/artifacts/7leh4y7w_ISM-Code-Audit-Plan%20%2807-23%29%20TRUONG%20MINH%20LUCKY.pdf
+Real PDF URL: https://customer-assets.emergentagent.com/job_audit-flow/artifacts/52s9rwyj_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
 """
 
 import requests
