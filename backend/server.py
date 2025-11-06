@@ -7964,15 +7964,11 @@ async def analyze_audit_report_file(
                     try:
                         logger.info("🔍 Starting Targeted OCR for header/footer extraction (INDEPENDENT OF DOCUMENT AI)...")
                         
-                        # Initialize OCR processor (same as Survey Report)
-                        try:
-                            from ocr_processor import OCRProcessor
-                            ocr_processor = OCRProcessor()
+                        # Check if OCR processor is available
+                        if ocr_processor and ocr_processor.is_available():
+                            logger.info("✅ OCR processor available - performing extraction...")
                             
-                            if ocr_processor.is_available():
-                                logger.info("✅ OCR processor available - performing extraction...")
-                                
-                                ocr_result = ocr_processor.extract_from_pdf(file_content, page_num=0)
+                            ocr_result = ocr_processor.extract_from_pdf(file_content, page_num=0)
                                 
                                 if ocr_result:
                                     header_text = ocr_result.get('header_text', '').strip()
