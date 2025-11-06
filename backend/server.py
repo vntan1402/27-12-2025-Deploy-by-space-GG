@@ -7974,19 +7974,19 @@ async def analyze_audit_report_file(
                             ocr_result = ocr_processor.extract_from_pdf(file_content, page_num=0)
                             
                             if ocr_result:
-                                    header_text = ocr_result.get('header_text', '').strip()
-                                    footer_text = ocr_result.get('footer_text', '').strip()
+                                header_text = ocr_result.get('header_text', '').strip()
+                                footer_text = ocr_result.get('footer_text', '').strip()
+                                
+                                logger.info(f"📄 OCR results: header={len(header_text)} chars, footer={len(footer_text)} chars")
+                                
+                                # ADD OCR SECTION TO SUMMARY
+                                if header_text or footer_text:
+                                    logger.info("📝 Creating OCR section...")
                                     
-                                    logger.info(f"📄 OCR results: header={len(header_text)} chars, footer={len(footer_text)} chars")
-                                    
-                                    # ADD OCR SECTION TO SUMMARY
-                                    if header_text or footer_text:
-                                        logger.info("📝 Creating OCR section...")
-                                        
-                                        ocr_section = "\n\n" + "="*60 + "\n"
-                                        ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
-                                        ocr_section += "(Extracted from document for report form and reference numbers)\n"
-                                        ocr_section += "="*60 + "\n\n"
+                                    ocr_section = "\n\n" + "="*60 + "\n"
+                                    ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
+                                    ocr_section += "(Extracted from document for report form and reference numbers)\n"
+                                    ocr_section += "="*60 + "\n\n"
                                         
                                         if header_text:
                                             ocr_section += "=== HEADER TEXT (Top 15% of page) ===\n"
