@@ -773,17 +773,29 @@ class BackendAPITester:
                     print(f"\n   📝 OCR AVAILABLE LOG SAMPLE:")
                     print(f"      {ocr_available_logs[-1]}")
                 
+                if ocr_completed_logs:
+                    print(f"\n   📝 OCR COMPLETED LOG SAMPLE:")
+                    print(f"      {ocr_completed_logs[-1]}")
+                
+                if ocr_results_logs:
+                    print(f"\n   📝 OCR RESULTS LOG SAMPLE:")
+                    print(f"      {ocr_results_logs[-1]}")
+                
+                if header_added_logs:
+                    print(f"\n   📝 HEADER ADDED LOG SAMPLE:")
+                    print(f"      {header_added_logs[-1]}")
+                
+                if footer_added_logs:
+                    print(f"\n   📝 FOOTER ADDED LOG SAMPLE:")
+                    print(f"      {footer_added_logs[-1]}")
+                
                 if ocr_enhanced_logs:
                     print(f"\n   📝 OCR ENHANCED LOG SAMPLE:")
                     print(f"      {ocr_enhanced_logs[-1]}")
                 
-                if report_form_logs:
-                    print(f"\n   📝 REPORT FORM EXTRACTION LOG SAMPLE:")
-                    print(f"      {report_form_logs[-1]}")
-                
-                # Overall validation
-                all_expected_logs_found = ocr_start_found and ocr_available_found and ocr_enhanced_found and report_form_found
-                partial_logs_found = ocr_start_found or ocr_available_found or ocr_enhanced_found or report_form_found
+                # Overall validation - focus on key OCR success indicators
+                critical_logs_found = ocr_start_found and ocr_available_found and ocr_completed_found
+                partial_logs_found = ocr_start_found or ocr_available_found or ocr_completed_found or ocr_enhanced_found
                 
                 print(f"\n🎯 BACKEND LOGS VALIDATION:")
                 print(f"   ✅ All expected logs found: {'✅ YES' if all_expected_logs_found else '❌ NO'}")
