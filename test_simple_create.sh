@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://ai-audit-system-1.preview.emergentagent.com/api"
+API_URL="https://audit-report-sync.preview.emergentagent.com/api"
 
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
   -H "Content-Type: application/json" \
