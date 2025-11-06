@@ -8827,22 +8827,45 @@ async def analyze_audit_report_file(
             logger.info(f"✅ Audit report analysis complete: {analysis_result.get('audit_report_name', 'Unknown')}")
             logger.info(f"   📄 Summary created ({len(analysis_result['_summary_text'])} chars)")
             
-            # Ship validation (if not bypassed)
-            if not bypass_validation_bool and ship:
-                extracted_ship_name = analysis_result.get('ship_name', '').strip().upper()
-                expected_ship_name = ship_name.strip().upper()
+            # ⚠️ VALIDATION: Check if ship name/IMO matches (same as Survey Report)
+            extracted_ship_name = analysis_result.get('ship_name', '').strip()
+            extracted_ship_imo = analysis_result.get('ship_imo', '').strip()
+            
+            if extracted_ship_name or extracted_ship_imo:
+                validation_result = validate_ship_info_match(
+                    extracted_ship_name,
+                    extracted_ship_imo,
+                    ship_name,
+                    ship_imo
+                )
                 
-                if extracted_ship_name and extracted_ship_name != expected_ship_name:
-                    logger.warning(f"⚠️ Ship name mismatch: PDF='{extracted_ship_name}' vs Selected='{expected_ship_name}'")
-                    return {
-                        "success": False,
-                        "validation_error": True,
-                        "extracted_ship_name": analysis_result.get('ship_name', ''),
-                        "extracted_ship_imo": analysis_result.get('ship_imo', ''),
-                        "expected_ship_name": ship_name,
-                        "expected_ship_imo": ship_imo,
-                        "message": "Ship information mismatch. Please confirm to continue."
-                    }
+                # Convert bypass_validation string to boolean (already done at line 8394)
+                should_bypass = bypass_validation_bool
+                
+                if not validation_result.get('overall_match'):
+                    logger.warning("❌ Ship information does NOT match")
+                    logger.warning(f"   Extracted: Ship='{extracted_ship_name}', IMO='{extracted_ship_imo}'")
+                    logger.warning(f"   Selected:  Ship='{ship_name}', IMO='{ship_imo}'")
+                    
+                    if not should_bypass:
+                        # Return validation error for frontend to handle
+                        return {
+                            "success": False,
+                            "validation_error": True,
+                            "validation_details": validation_result,
+                            "message": "Ship information mismatch. Please verify or bypass validation.",
+                            "extracted_ship_name": extracted_ship_name,
+                            "extracted_ship_imo": extracted_ship_imo,
+                            "expected_ship_name": ship_name,
+                            "expected_ship_imo": ship_imo,
+                            "split_info": analysis_result.get('_split_info')
+                        }
+                    else:
+                        logger.info("⚠️ Validation bypassed by user - continuing with analysis")
+                else:
+                    logger.info("✅ Ship information validation passed")
+            else:
+                logger.warning("⚠️ No ship information extracted for validation")
             
             return {
                 "success": True,
