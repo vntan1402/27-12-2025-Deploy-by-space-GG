@@ -1168,6 +1168,7 @@ class AuditReportResponse(BaseModel):
     audit_report_no: Optional[str] = None
     audit_date: Optional[datetime] = None
     issued_by: Optional[str] = None
+    issued_by_abbreviation: Optional[str] = None
     status: Optional[str] = "Valid"
     note: Optional[str] = None
     auditor_name: Optional[str] = None
