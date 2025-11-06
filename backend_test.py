@@ -598,19 +598,23 @@ class BackendAPITester:
                         )
                         
                         if success_criteria_met:
-                            print(f"\n🎉 REPORT FORM & OCR EXTRACTION VERIFICATION SUCCESSFUL!")
-                            print(f"   ✅ report_form extracted: '{report_form}'")
-                            print(f"   ✅ _summary_text contains 3 sections including OCR")
-                            print(f"   ✅ OCR section has header/footer text content")
+                            print(f"\n🎉 OCR EXTRACTION VERIFICATION SUCCESSFUL!")
+                            print(f"   ✅ OCR section present in _summary_text")
+                            print(f"   ✅ Header text length: {header_text_length} chars")
+                            print(f"   ✅ Footer text length: {footer_text_length} chars")
+                            print(f"   ✅ Report form = '07-230': {report_form}")
                             print(f"   ✅ All success criteria from review request met")
                             
-                            self.print_result(True, f"Report Form & OCR extraction verified successfully - report_form: '{report_form}', OCR section populated")
+                            self.print_result(True, f"OCR extraction verified successfully - Header: {header_text_length} chars, Footer: {footer_text_length} chars, Form: '{report_form}'")
                             return True
                         else:
-                            print(f"\n❌ REPORT FORM & OCR EXTRACTION VALIDATION FAILED!")
-                            print(f"   ❌ Missing: report_form={bool(report_form)}, OCR_section={has_ocr_section}, OCR_content={ocr_content_valid}")
+                            print(f"\n❌ OCR EXTRACTION VALIDATION FAILED!")
+                            print(f"   ❌ OCR section: {has_ocr_section}")
+                            print(f"   ❌ Header length: {header_text_length}")
+                            print(f"   ❌ Footer length: {footer_text_length}")
+                            print(f"   ❌ Report form match: {form_match} (got: '{report_form}')")
                             
-                            self.print_result(False, f"Report Form & OCR extraction validation failed - missing required components")
+                            self.print_result(False, f"OCR extraction validation failed - missing required components")
                             return False
                     else:
                         print(f"   ❌ _summary_text field is missing or empty")
