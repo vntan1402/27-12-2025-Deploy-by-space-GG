@@ -7962,49 +7962,62 @@ async def analyze_audit_report_file(
                     
                     # 🔍 ENHANCE WITH OCR: Extract header/footer text (same as Survey Report)
                     try:
-                        logger.info("🔎 Attempting OCR extraction on first page for additional info...")
-                        ocr_result = await dual_manager.extract_header_footer_ocr(
-                            file_content=file_content,
-                            filename=filename,
-                            content_type=audit_report_file.content_type or 'application/octet-stream'
-                        )
+                        logger.info("🔍 Starting Targeted OCR for header/footer extraction (INDEPENDENT OF DOCUMENT AI)...")
                         
-                        if ocr_result and ocr_result.get('success'):
-                            header_text = ocr_result.get('header_text', '').strip()
-                            footer_text = ocr_result.get('footer_text', '').strip()
+                        # Initialize OCR processor (same as Survey Report)
+                        try:
+                            from ocr_processor import OCRProcessor
+                            ocr_processor = OCRProcessor()
                             
-                            # ADD OCR SECTION TO SUMMARY
-                            if header_text or footer_text:
-                                logger.info("📝 Creating OCR section...")
+                            if ocr_processor.is_available():
+                                logger.info("✅ OCR processor available - performing extraction...")
                                 
-                                ocr_section = "\n\n" + "="*60 + "\n"
-                                ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
-                                ocr_section += "(Extracted from document for report form and reference numbers)\n"
-                                ocr_section += "="*60 + "\n\n"
+                                ocr_result = ocr_processor.extract_from_pdf(file_content, page_num=0)
                                 
-                                if header_text:
-                                    ocr_section += "=== HEADER TEXT (Top 15% of page) ===\n"
-                                    ocr_section += header_text + "\n\n"
-                                    logger.info(f"   ✅ Header text added ({len(header_text)} chars)")
-                                
-                                if footer_text:
-                                    ocr_section += "=== FOOTER TEXT (Bottom 15% of page) ===\n"
-                                    ocr_section += footer_text + "\n\n"
-                                    logger.info(f"   ✅ Footer text added ({len(footer_text)} chars)")
-                                
-                                ocr_section += "="*60 + "\n"
-                                ocr_section += "Note: The above header/footer text was extracted using OCR\n"
-                                ocr_section += "and may contain Report Form, Report No., and other critical information.\n"
-                                ocr_section += "="*60
-                                
-                                # Append OCR to summary text
-                                summary_text = summary_text + ocr_section
-                                analysis_result['_summary_text'] = summary_text
-                                logger.info(f"✅ Enhanced summary with OCR: {len(summary_text)} chars total")
-                        else:
-                            logger.warning("⚠️ OCR extraction returned no results")
+                                if ocr_result:
+                                    header_text = ocr_result.get('header_text', '').strip()
+                                    footer_text = ocr_result.get('footer_text', '').strip()
+                                    
+                                    logger.info(f"📄 OCR results: header={len(header_text)} chars, footer={len(footer_text)} chars")
+                                    
+                                    # ADD OCR SECTION TO SUMMARY
+                                    if header_text or footer_text:
+                                        logger.info("📝 Creating OCR section...")
+                                        
+                                        ocr_section = "\n\n" + "="*60 + "\n"
+                                        ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
+                                        ocr_section += "(Extracted from document for report form and reference numbers)\n"
+                                        ocr_section += "="*60 + "\n\n"
+                                        
+                                        if header_text:
+                                            ocr_section += "=== HEADER TEXT (Top 15% of page) ===\n"
+                                            ocr_section += header_text + "\n\n"
+                                            logger.info(f"   ✅ Header text added ({len(header_text)} chars)")
+                                        
+                                        if footer_text:
+                                            ocr_section += "=== FOOTER TEXT (Bottom 15% of page) ===\n"
+                                            ocr_section += footer_text + "\n\n"
+                                            logger.info(f"   ✅ Footer text added ({len(footer_text)} chars)")
+                                        
+                                        ocr_section += "="*60 + "\n"
+                                        ocr_section += "Note: The above header/footer text was extracted using OCR\n"
+                                        ocr_section += "and may contain Report Form, Report No., and other critical information.\n"
+                                        ocr_section += "="*60
+                                        
+                                        # Append OCR to summary text
+                                        summary_text = summary_text + ocr_section
+                                        analysis_result['_summary_text'] = summary_text
+                                        logger.info(f"✅ Enhanced summary with OCR: {len(summary_text)} chars total")
+                                    else:
+                                        logger.warning("⚠️ OCR extraction returned no results")
+                                else:
+                                    logger.warning("⚠️ OCR extraction returned None")
+                            else:
+                                logger.warning("⚠️ OCR processor not available (Tesseract not installed)")
+                        except ImportError:
+                            logger.warning("⚠️ OCR processor module not found")
                     except Exception as ocr_error:
-                        logger.warning(f"⚠️ OCR extraction failed: {ocr_error}")
+                        logger.error(f"❌ Error during OCR extraction: {ocr_error}")
                     
                     # ✨ KEY STEP: Extract fields from summary using System AI (Gemini)
                     # This is what was missing! Same as Survey Report processing.
