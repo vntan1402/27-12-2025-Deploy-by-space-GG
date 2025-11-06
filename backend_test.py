@@ -787,7 +787,7 @@ This is a fallback test audit report for API testing.
                 # Prepare multipart form data with text file
                 with open(temp_file.name, 'rb') as text_file:
                     files = {
-                        'file': ('test_file.txt', text_file, 'text/plain')
+                        'audit_report_file': ('test_file.txt', text_file, 'text/plain')
                     }
                     data = {
                         'ship_id': self.test_ship_id,
