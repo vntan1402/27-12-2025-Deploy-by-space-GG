@@ -757,7 +757,7 @@ class BackendAPITester:
         
         # Print final summary
         print(f"\n" + "="*80)
-        print(f"📊 SHIP ID DEBUG TEST SUMMARY")
+        print(f"📊 COMBINED SUMMARY FORMAT TEST SUMMARY")
         print(f"="*80)
         
         passed = sum(1 for _, result in results if result)
@@ -771,48 +771,42 @@ class BackendAPITester:
             status = "✅ PASS" if result else "❌ FAIL"
             print(f"   {status}: {test_name}")
         
-        # Ship ID Analysis Summary
+        # Combined Summary Format Analysis
         print(f"\n" + "="*80)
-        print(f"🔍 SHIP ID ANALYSIS SUMMARY")
+        print(f"🔍 COMBINED SUMMARY FORMAT ANALYSIS")
         print(f"="*80)
         
         if hasattr(self, 'test_ship_data') and self.test_ship_data:
             ship_name = self.test_ship_data.get('name', 'Unknown')
-            correct_ship_id = self.test_ship_id
-            wrong_ship_id = "9000377f-ac3f-48d8-ba83-a80fb1a8f490"
+            ship_id = self.test_ship_id
             
-            print(f"🚢 Ship Name: {ship_name}")
-            print(f"✅ CORRECT Ship ID: {correct_ship_id}")
-            print(f"❌ WRONG Ship ID (from frontend): {wrong_ship_id}")
+            print(f"🚢 Test Ship: {ship_name}")
+            print(f"🆔 Ship ID: {ship_id}")
+            print(f"📄 Test PDF: ISM-Code Audit-Plan (07-230.pdf")
+            print(f"🎯 Focus: Combined Summary Format (Option 3)")
             
-            if correct_ship_id != wrong_ship_id:
-                print(f"\n🎯 ROOT CAUSE IDENTIFIED:")
-                print(f"   🚨 Frontend is using WRONG ship_id: {wrong_ship_id}")
-                print(f"   ✅ Database contains CORRECT ship_id: {correct_ship_id}")
-                print(f"   🔧 Frontend needs to use correct ship_id to avoid 'Ship not found' errors")
-                print(f"\n💡 RECOMMENDED FIXES:")
-                print(f"   1. Clear frontend local storage/state for ship selection")
-                print(f"   2. Ensure ship selection component uses current database ship_id")
-                print(f"   3. Add ship_id validation in frontend before API calls")
-                print(f"   4. Check if ship selection state management is working correctly")
-            else:
-                print(f"\n✅ No ship_id discrepancy found - IDs match")
+            print(f"\n📋 EXPECTED STRUCTURE VERIFICATION:")
+            print(f"   ✅ Part 1: Formatted summary with extracted fields")
+            print(f"   ✅ Part 2: Clear separator line")
+            print(f"   ✅ Part 3: Raw Document AI text (original OCR)")
+            print(f"   ✅ Backend logs: Combined summary creation messages")
         
         # Overall assessment
         if success_rate >= 80:
-            print(f"\n🎉 SHIP ID DEBUG TESTING SUCCESSFUL!")
-            print(f"✅ Ship ID discrepancy identified and verified")
-            print(f"✅ Correct ship_id works with audit report analysis")
-            print(f"✅ Wrong ship_id correctly returns 'Ship not found' error")
-            print(f"✅ Root cause identified - frontend using wrong ship_id")
+            print(f"\n🎉 COMBINED SUMMARY FORMAT TESTING SUCCESSFUL!")
+            print(f"✅ _summary_text contains both formatted summary AND raw Document AI text")
+            print(f"✅ Clear separation between formatted and raw sections")
+            print(f"✅ Raw text section populated with original OCR content")
+            print(f"✅ Backend logs confirm combined summary creation")
+            print(f"✅ Format matches Option 3 requirements exactly")
         elif success_rate >= 60:
-            print(f"\n⚠️ SHIP ID DEBUG PARTIALLY SUCCESSFUL")
-            print(f"📊 Some components working but issues detected")
-            print(f"🔧 Review failed tests for specific issues")
+            print(f"\n⚠️ COMBINED SUMMARY FORMAT PARTIALLY SUCCESSFUL")
+            print(f"📊 Some components working but format issues detected")
+            print(f"🔧 Review failed tests for specific format problems")
         else:
-            print(f"\n❌ SHIP ID DEBUG TESTING FAILED")
-            print(f"🚨 Critical issues detected - unable to identify root cause")
-            print(f"🔧 Major investigation required")
+            print(f"\n❌ COMBINED SUMMARY FORMAT TESTING FAILED")
+            print(f"🚨 Critical issues with summary format implementation")
+            print(f"🔧 Major format corrections required")
         
         return success_rate >= 80
 
