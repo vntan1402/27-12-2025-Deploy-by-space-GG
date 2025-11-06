@@ -5517,6 +5517,190 @@ async def get_all_certificates(current_user: UserResponse = Depends(get_current_
 
 # ==================== Survey Report Helper Functions ====================
 
+async def extract_audit_report_fields_from_summary(
+    summary_text: str,
+    ai_provider: str,
+    ai_model: str,
+    use_emergent_key: bool,
+    filename: str = ""
+) -> dict:
+    """
+    Extract audit report fields from Document AI summary using System AI
+    Extracts: audit_report_name, audit_type, report_form, audit_report_no, issued_by, audit_date, auditor_name, ship_name, ship_imo, note
+    """
+    try:
+        logger.info("🤖 Extracting audit report fields from summary")
+        
+        # Create audit report extraction prompt with filename
+        prompt = create_audit_report_extraction_prompt(summary_text, filename)
+        
+        if not prompt:
+            logger.error("Failed to create audit report extraction prompt")
+            return {}
+        
+        # Use System AI for extraction
+        if use_emergent_key and ai_provider in ["google", "emergent"]:
+            try:
+                from emergentintegrations.llm.chat import LlmChat, UserMessage
+                
+                emergent_key = get_emergent_llm_key()
+                chat = LlmChat(
+                    api_key=emergent_key,
+                    session_id=f"audit_extraction_{int(time.time())}",
+                    system_message="You are a maritime audit report analysis expert."
+                ).with_model("gemini", ai_model)
+                
+                logger.info(f"📤 Sending extraction prompt to {ai_model}...")
+                
+                user_message = UserMessage(text=prompt)
+                ai_response = await chat.send_message(user_message)
+                
+                if ai_response and ai_response.strip():
+                    content = ai_response.strip()
+                    logger.info("🤖 Audit Report AI response received")
+                    
+                    # Parse JSON response
+                    try:
+                        clean_content = content.replace('```json', '').replace('```', '').strip()
+                        extracted_data = json.loads(clean_content)
+                        
+                        # Standardize date format and validate
+                        if extracted_data.get('audit_date'):
+                            audit_date_raw = extracted_data['audit_date'].strip()
+                            try:
+                                # Parse and convert to ISO format
+                                from dateutil import parser
+                                parsed_date = parser.parse(audit_date_raw)
+                                extracted_data['audit_date'] = parsed_date.strftime('%Y-%m-%d')
+                            except Exception as date_error:
+                                logger.warning(f"Failed to parse audit_date '{audit_date_raw}': {date_error}")
+                                extracted_data['audit_date'] = ''
+                        
+                        logger.info("✅ Audit report field extraction successful")
+                        logger.info(f"   📋 Audit Name: '{extracted_data.get('audit_report_name')}'")
+                        logger.info(f"   📝 Audit Type: '{extracted_data.get('audit_type')}'")
+                        logger.info(f"   📄 Report Form: '{extracted_data.get('report_form')}'")
+                        logger.info(f"   🔢 Audit No: '{extracted_data.get('audit_report_no')}'")
+                        logger.info(f"   🚢 Ship Name: '{extracted_data.get('ship_name', 'NOT EXTRACTED')}'")
+                        logger.info(f"   📍 Ship IMO: '{extracted_data.get('ship_imo', 'NOT EXTRACTED')}'")
+                        logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by')}'")
+                        
+                        return extracted_data
+                        
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Failed to parse audit report extraction JSON: {e}")
+                        logger.error(f"Raw content: {content[:500]}")
+                        return {}
+                else:
+                    logger.error("No content in audit report AI extraction response")
+                    return {}
+                    
+            except Exception as e:
+                logger.error(f"Audit report AI extraction error: {e}")
+                return {}
+        else:
+            logger.warning("AI extraction not supported for non-Emergent configurations")
+            return {}
+            
+    except Exception as e:
+        logger.error(f"Audit report field extraction error: {e}")
+        logger.error(f"Error traceback: {traceback.format_exc()}")
+        return {}
+
+
+def create_audit_report_extraction_prompt(summary_text: str, filename: str = "") -> str:
+    """
+    Create AI prompt for extracting audit report fields
+    
+    Args:
+        summary_text: Document summary text
+        filename: Original filename
+    """
+    prompt = f"""You are an AI specialized in maritime audit report information extraction.
+
+Your task:
+Analyze the following text summary of a maritime audit report and extract all key fields.
+
+**IMPORTANT CONTEXT:**
+- Original filename: {filename}
+- This is an ISM/ISPS/MLC audit report for a ship
+
+=== INSTRUCTIONS ===
+1. Extract only the audit report fields listed below.
+2. Return the output strictly in valid JSON format.
+3. If a field is not found, leave it as an empty string "".
+4. Normalize all dates to ISO format "YYYY-MM-DD".
+5. Do not infer or fabricate any missing information.
+
+=== FIELD EXTRACTION RULES ===
+
+**audit_report_name**: 
+- Extract the main title or name of the audit report
+- Examples: "RECORD OF OPENING AND CLOSING MEETINGS", "ISM CODE AUDIT REPORT", "ISPS AUDIT REPORT"
+
+**audit_type**: 
+- Extract the type of audit being conducted
+- Examples: "ISM CODE CERTIFICATION (ISM)", "ISPS", "MLC", "ISM CODE", "Internal Audit", "External Audit"
+
+**report_form**: 
+- Extract the report form number or type
+- Check the document header/footer for form codes
+- Examples: "ISM-AUD-01", "FORM-A", "7.10"
+
+**audit_report_no**: 
+- Extract the audit report number or reference number
+- Examples: "A/25/1573", "AUD-2024-001", "REP-12345"
+
+**issued_by**: 
+- Extract the organization or company that issued the audit report
+- Examples: "DNV GL", "Lloyd's Register", "Class NK", "Bureau Veritas"
+
+**audit_date**: 
+- Extract the audit date (when the audit was conducted)
+- Convert to ISO format YYYY-MM-DD
+- Examples: "2025-09-18", "2024-01-15"
+
+**auditor_name**: 
+- Extract the name(s) of the auditor(s) who conducted the audit
+- Can be single name or multiple names separated by comma
+- Examples: "VU NGOC TAN, NGUYEN KIEN CUONG", "John Smith", "Jane Doe"
+
+**ship_name**: 
+- Extract the name of the ship being audited
+- Examples: "BROTHER 36", "MINH ANH 09", "LUCKY STAR"
+
+**ship_imo**: 
+- Extract the IMO number of the ship
+- 7-digit number
+- Examples: "8743531", "9123456"
+
+**note**: 
+- Extract any important notes, observations, or comments
+- Keep it concise (max 200 characters)
+
+=== OUTPUT FORMAT ===
+Return ONLY valid JSON in this exact format:
+{{
+    "audit_report_name": "",
+    "audit_type": "",
+    "report_form": "",
+    "audit_report_no": "",
+    "issued_by": "",
+    "audit_date": "",
+    "auditor_name": "",
+    "ship_name": "",
+    "ship_imo": "",
+    "note": ""
+}}
+
+=== DOCUMENT SUMMARY ===
+{summary_text}
+
+=== YOUR RESPONSE (JSON ONLY) ==="""
+    
+    return prompt
+
+
 async def extract_survey_report_fields_from_summary(
     summary_text: str,
     ai_provider: str,
