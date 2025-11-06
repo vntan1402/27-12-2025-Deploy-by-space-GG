@@ -159,7 +159,22 @@ export const EditAuditReportModal = ({ isOpen, onClose, report, onReportUpdated 
               </div>
             </div>
 
-            {/* Row 2: Audit Report No + Audit Date */}
+            {/* Row 2: Report Form */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Mẫu Báo cáo' : 'Report Form'}
+              </label>
+              <input
+                type="text"
+                name="report_form"
+                value={formData.report_form}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                placeholder={language === 'vi' ? 'VD: Form A, Form B...' : 'e.g., Form A, Form B...'}
+              />
+            </div>
+
+            {/* Row 3: Audit Report No + Audit Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Audit Report No */}
               <div>
