@@ -1146,6 +1146,7 @@ class AuditReportCreate(AuditReportBase):
 class AuditReportUpdate(BaseModel):
     audit_report_name: Optional[str] = None
     audit_type: Optional[str] = None
+    report_form: Optional[str] = None
     audit_report_no: Optional[str] = None
     audit_date: Optional[datetime] = None
     issued_by: Optional[str] = None
