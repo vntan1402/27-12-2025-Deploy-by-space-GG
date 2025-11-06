@@ -14,6 +14,7 @@ export const EditAuditReportModal = ({ isOpen, onClose, report, onReportUpdated 
   const [formData, setFormData] = useState({
     audit_report_name: '',
     audit_type: '',
+    report_form: '',
     audit_report_no: '',
     audit_date: '',
     issued_by: '',
