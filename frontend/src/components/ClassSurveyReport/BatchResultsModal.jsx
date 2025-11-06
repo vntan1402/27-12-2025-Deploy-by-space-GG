@@ -64,11 +64,6 @@ export const BatchResultsModal = ({ isOpen, onClose, results }) => {
                         <span className="text-green-600 font-semibold">
                           ✅ {language === 'vi' ? 'Thành công' : 'Success'}
                         </span>
-                        {result.validationWarning && (
-                          <span className="text-xs text-yellow-600 font-medium px-2 py-1 bg-yellow-50 rounded border border-yellow-200 max-w-xs break-words">
-                            {result.validationWarning}
-                          </span>
-                        )}
                         {result.surveyReportCreated && (
                           <span className="text-xs text-green-600">
                             {language === 'vi' ? '📋 Đã tạo record' : '📋 Record created'}
@@ -85,7 +80,7 @@ export const BatchResultsModal = ({ isOpen, onClose, results }) => {
                         <span className="text-red-600 font-semibold">
                           ❌ {language === 'vi' ? 'Thất bại' : 'Failed'}
                         </span>
-                        <span className="text-xs text-red-600">
+                        <span className="text-xs text-red-600 max-w-xs break-words whitespace-pre-line">
                           {result.error === 'DUPLICATE' 
                             ? (language === 'vi' ? '⚠️ Đã tồn tại' : '⚠️ Duplicate')
                             : result.error}
