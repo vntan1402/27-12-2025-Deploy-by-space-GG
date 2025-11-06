@@ -8214,7 +8214,20 @@ async def upload_audit_report_files(
         if not ship_id:
             raise HTTPException(status_code=400, detail="Audit report has no ship_id")
         
+        # Get company name for dual lookup (legacy data support)
+        company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
+        company_name = company_doc.get("name_vn") if company_doc else None
+        
+        # Try dual lookup: UUID first, then company name
         ship = await mongo_db.find_one("ships", {"id": ship_id, "company": company_uuid})
+        
+        if not ship and company_name:
+            # Fallback: Try with company name for legacy data
+            logger.info(f"🔄 Ship not found with UUID, trying company name: {company_name}")
+            ship = await mongo_db.find_one("ships", {"id": ship_id, "company": company_name})
+            if ship:
+                logger.info(f"✅ Ship found using company name for upload")
+        
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
