@@ -322,7 +322,7 @@ class BackendAPITester:
     
     def download_real_pdf(self):
         """Download the REAL PDF file from user-provided URL"""
-        pdf_url = "https://customer-assets.emergentagent.com/job_audit-flow/artifacts/52s9rwyj_ISM-Code%20%20Audit-Plan%20%2807-230.pdf"
+        pdf_url = "https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf"
         
         try:
             print(f"📥 Downloading REAL PDF file from user...")
