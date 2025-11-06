@@ -892,7 +892,7 @@ class BackendAPITester:
         
         # Print final summary
         print(f"\n" + "="*80)
-        print(f"📊 REPORT FORM & OCR EXTRACTION TEST SUMMARY")
+        print(f"📊 OCR EXTRACTION TEST SUMMARY")
         print(f"="*80)
         
         passed = sum(1 for _, result in results if result)
