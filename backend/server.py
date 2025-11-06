@@ -5830,25 +5830,9 @@ async def extract_audit_report_fields_from_summary(
                         logger.info(f"   📍 Ship IMO: '{extracted_data.get('ship_imo', 'NOT EXTRACTED')}'")
                         logger.info(f"   🏛️ Issued By (raw): '{extracted_data.get('issued_by')}'")
                         
-                        # POST-PROCESSING 1: Standardize "issued_by" organization name to abbreviation
-                        if extracted_data.get('issued_by'):
-                            raw_issued_by = extracted_data['issued_by']
-                            standardized = standardize_issued_by_organization(raw_issued_by)
-                            
-                            # Keep original full name in issued_by
-                            extracted_data['issued_by'] = standardized['full_name']
-                            
-                            # Add abbreviation as separate field
-                            if standardized['abbreviation']:
-                                extracted_data['issued_by_abbreviation'] = standardized['abbreviation']
-                                logger.info(f"   ✅ Standardized Issued By: '{standardized['full_name']}' → '{standardized['abbreviation']}'")
-                            else:
-                                logger.info(f"   ⚠️ Could not standardize Issued By: '{raw_issued_by}' (no matching abbreviation found)")
-                        
-                        # POST-PROCESSING 2: Extract report_form from filename if AI didn't find it (Survey Report pattern)
-                        if not extracted_data.get('report_form') and filename:
-                            logger.info(f"🔍 AI didn't find report_form, checking filename: {filename}")
-                            # Pattern: "CG (02-19).pdf" or "CU 02-19.pdf" or "VR (07-230).pdf"
+                        # POST-PROCESSING 1: Extract report_form from filename FIRST (PRIORITY 1)
+                        # Override AI extraction if filename has clear pattern
+                        if filename:
                             import re
                             filename_form_patterns = [
                                 r'([A-Z]{1,3})\s*\(([0-9]{2}[-/][0-9]{2,3})\)',  # CG (02-19), VR (07-230)
@@ -5862,7 +5846,7 @@ async def extract_audit_report_fields_from_summary(
                                 if match:
                                     if len(match.groups()) > 1:
                                         # Pattern with 2 groups (e.g., CG (02-19))
-                                        abbrev = match.group(1)
+                                        abbrev = match.group(1).upper()
                                         date_part = match.group(2).replace('/', '-')
                                         extracted_form = f"{abbrev} ({date_part})"
                                     else:
@@ -5870,11 +5854,27 @@ async def extract_audit_report_fields_from_summary(
                                         date_part = match.group(1).replace('/', '-')
                                         extracted_form = f"({date_part})"
                                     
+                                    # PRIORITY 1: Filename overrides AI extraction
                                     extracted_data['report_form'] = extracted_form
-                                    logger.info(f"✅ Extracted report_form from filename: '{extracted_form}'")
+                                    logger.info(f"✅ [PRIORITY 1] Extracted report_form from filename: '{extracted_form}' (overriding AI: '{extracted_data.get('report_form', 'none')}')")
                                     break
                             else:
-                                logger.warning(f"⚠️ Could not extract report_form from filename: {filename}")
+                                logger.info(f"🔍 No report_form pattern found in filename: {filename}")
+                        
+                        # POST-PROCESSING 2: Standardize "issued_by" organization name to abbreviation
+                        if extracted_data.get('issued_by'):
+                            raw_issued_by = extracted_data['issued_by']
+                            standardized = standardize_issued_by_organization(raw_issued_by)
+                            
+                            # Keep original full name in issued_by
+                            extracted_data['issued_by'] = standardized['full_name']
+                            
+                            # Add abbreviation as separate field
+                            if standardized['abbreviation']:
+                                extracted_data['issued_by_abbreviation'] = standardized['abbreviation']
+                                logger.info(f"   ✅ Standardized Issued By: '{standardized['full_name']}' → '{standardized['abbreviation']}'")
+                            else:
+                                logger.info(f"   ⚠️ Could not standardize Issued By: '{raw_issued_by}' (no matching abbreviation found)")
                         
                         return extracted_data
                         
