@@ -663,36 +663,24 @@ class BackendAPITester:
                 log_content = result.stdout
                 print(f"📄 Retrieved {len(log_content.splitlines())} lines of backend logs")
                 
-                # Look for OCR processing messages as specified in review request
-                ocr_start_logs = []
-                ocr_available_logs = []
+                # Look for Survey Report OCR processing messages as specified in review request
                 ocr_completed_logs = []
-                ocr_results_logs = []
                 header_added_logs = []
                 footer_added_logs = []
                 ocr_enhanced_logs = []
-                report_form_logs = []
-                audit_analysis_logs = []
+                survey_analysis_logs = []
                 
                 for line in log_content.splitlines():
-                    if "🔍 Starting Targeted OCR" in line:
-                        ocr_start_logs.append(line.strip())
-                    elif "✅ OCR processor available" in line:
-                        ocr_available_logs.append(line.strip())
-                    elif "✅ Targeted OCR completed successfully" in line:
+                    if "✅ Targeted OCR completed successfully" in line:
                         ocr_completed_logs.append(line.strip())
-                    elif "📄 OCR results: header=" in line and "chars, footer=" in line:
-                        ocr_results_logs.append(line.strip())
                     elif "✅ Header text added" in line:
                         header_added_logs.append(line.strip())
                     elif "✅ Footer text added" in line:
                         footer_added_logs.append(line.strip())
-                    elif "✅ Enhanced summary with OCR" in line:
+                    elif "✅ Enhanced summary created with OCR" in line:
                         ocr_enhanced_logs.append(line.strip())
-                    elif "✅ Extracted report_form from filename" in line:
-                        report_form_logs.append(line.strip())
-                    elif "audit report analysis" in line.lower() or "audit report" in line.lower():
-                        audit_analysis_logs.append(line.strip())
+                    elif "survey report analysis" in line.lower() or "survey report" in line.lower():
+                        survey_analysis_logs.append(line.strip())
                 
                 print(f"\n🔍 OCR PROCESSING LOG ANALYSIS:")
                 print(f"   📊 OCR start logs found: {len(ocr_start_logs)}")
