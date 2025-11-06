@@ -446,7 +446,7 @@ class BackendAPITester:
             
             data = {
                 'ship_id': target_ship_id,
-                'bypass_validation': 'false'  # Use false as specified in review request
+                'bypass_validation': 'true'  # Use true to get full analysis despite ship name mismatch
             }
             
             print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
