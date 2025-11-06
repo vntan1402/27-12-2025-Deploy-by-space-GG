@@ -415,19 +415,19 @@ class BackendAPITester:
             print(f"❌ Exception downloading NCR PDF: {str(e)}")
             return None
     
-    def test_survey_report_analyze_ocr_extraction(self):
-        """Test 4: Test POST /api/survey-reports/analyze-file and verify OCR header/footer extraction"""
-        self.print_test_header("Test 4 - Survey Report Analysis with OCR Extraction Verification")
+    def test_audit_report_analyze_ncr_form_extraction(self):
+        """Test 4: Test POST /api/audit-reports/analyze and verify report_form extraction from NCR PDF"""
+        self.print_test_header("Test 4 - Audit Report Analysis with NCR Form Report Form Extraction")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
             return False
         
         try:
-            # Download the test PDF
-            pdf_content = self.download_test_pdf()
+            # Download the NCR test PDF
+            pdf_content = self.download_ncr_test_pdf()
             if not pdf_content:
-                self.print_result(False, "Failed to download test PDF")
+                self.print_result(False, "Failed to download NCR test PDF")
                 return False
             
             headers = {
@@ -438,16 +438,17 @@ class BackendAPITester:
             target_ship_id = "bc444bc3-aea9-4491-b199-8098efcc16d2"  # BROTHER 36
             ship_name = "BROTHER 36"
             
-            print(f"🧪 TESTING SURVEY REPORT ANALYSIS WITH OCR EXTRACTION:")
+            print(f"🧪 TESTING AUDIT REPORT ANALYSIS WITH NCR FORM EXTRACTION:")
             print(f"   🚢 Ship Name: {ship_name}")
             print(f"   ✅ Using Ship ID: {target_ship_id}")
             print(f"   📄 PDF Size: {len(pdf_content):,} bytes")
-            print(f"   📄 PDF Filename: ISM-Code  Audit-Plan (07-230.pdf")
-            print(f"   🎯 Focus: Verify OCR header/footer extraction in Survey Report")
+            print(f"   📄 PDF Filename: ISM-Code  NCR (07-23).pdf")
+            print(f"   🎯 Focus: Verify report_form extraction from footer")
+            print(f"   🎯 Expected report_form values: '(07-23)', 'NCR (07-23)', '07-23', or similar")
             
-            # Prepare multipart form data for Survey Report analysis
+            # Prepare multipart form data for Audit Report analysis
             files = {
-                'survey_report_file': ('ISM-Code  Audit-Plan (07-230.pdf', pdf_content, 'application/pdf')
+                'audit_report_file': ('ISM-Code  NCR (07-23).pdf', pdf_content, 'application/pdf')
             }
             
             data = {
@@ -455,15 +456,15 @@ class BackendAPITester:
                 'bypass_validation': 'false'  # Use false as specified in review request
             }
             
-            print(f"📡 POST {BACKEND_URL}/survey-reports/analyze-file")
+            print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
             print(f"   📋 ship_id: {target_ship_id}")
             print(f"   📋 bypass_validation: false")
-            print(f"   📋 filename: ISM-Code  Audit-Plan (07-230.pdf")
+            print(f"   📋 filename: ISM-Code  NCR (07-23).pdf")
             
             # Make the request
             start_time = time.time()
             response = self.session.post(
-                f"{BACKEND_URL}/survey-reports/analyze-file",
+                f"{BACKEND_URL}/audit-reports/analyze",
                 headers=headers,
                 files=files,
                 data=data,
@@ -488,54 +489,48 @@ class BackendAPITester:
                     if 'message' in response_data:
                         print(f"   📝 message: {response_data.get('message')}")
                     
-                    # CRITICAL: Check for _summary_text field and OCR content
+                    # CRITICAL: Check for report_form field extraction
                     analysis = response_data.get('analysis', {})
-                    summary_text = analysis.get('_summary_text', '')
+                    report_form = analysis.get('report_form', '')
                     
-                    print(f"\n🔍 OCR HEADER/FOOTER EXTRACTION VERIFICATION:")
+                    print(f"\n🔍 REPORT FORM EXTRACTION VERIFICATION:")
+                    print(f"   📄 report_form field present: {'✅ YES' if 'report_form' in analysis else '❌ NO'}")
+                    print(f"   📄 report_form value: '{report_form}'")
+                    print(f"   📄 report_form populated: {'✅ YES' if report_form and report_form.strip() else '❌ NO'}")
+                    
+                    # Check if report_form matches expected values
+                    expected_values = ['(07-23)', 'NCR (07-23)', '07-23', '07-230']
+                    form_match = any(expected in str(report_form) for expected in expected_values) if report_form else False
+                    
+                    print(f"   📄 Expected values: {expected_values}")
+                    print(f"   ✅ Form matches expected: {'✅ YES' if form_match else '❌ NO'}")
+                    
+                    # Check Document AI summary for footer content
+                    summary_text = analysis.get('_summary_text', '')
+                    print(f"\n🔍 DOCUMENT AI SUMMARY ANALYSIS:")
                     print(f"   📄 _summary_text present: {'✅ YES' if summary_text else '❌ NO'}")
                     
                     if summary_text:
                         summary_length = len(summary_text)
                         print(f"   📏 _summary_text length: {summary_length:,} characters")
                         
-                        # Check for OCR section specifically
+                        # Look for footer-related content in summary
+                        footer_keywords = ['footer', 'bottom', '07-23', 'NCR', 'form']
+                        footer_content_found = any(keyword.lower() in summary_text.lower() for keyword in footer_keywords)
+                        print(f"   📄 Footer-related content: {'✅ FOUND' if footer_content_found else '❌ NOT FOUND'}")
+                        
+                        # Check for OCR section (if available)
                         has_ocr_section = "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)" in summary_text
-                        
-                        print(f"   ✅ OCR Header/Footer Section: {'✅ FOUND' if has_ocr_section else '❌ MISSING'}")
-                        
-                        # Check OCR section content and structure
-                        header_text_length = 0
-                        footer_text_length = 0
-                        ocr_content_valid = False
+                        print(f"   📄 OCR Header/Footer Section: {'✅ FOUND' if has_ocr_section else '❌ NOT FOUND'}")
                         
                         if has_ocr_section:
+                            # Extract footer text from OCR section
                             ocr_start = summary_text.find("ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)")
                             if ocr_start >= 0:
-                                # Extract the OCR section
                                 ocr_section = summary_text[ocr_start:]
-                                
-                                # Look for header and footer subsections
-                                has_header_section = "=== HEADER TEXT (Top 15% of page) ===" in ocr_section
                                 has_footer_section = "=== FOOTER TEXT (Bottom 15% of page) ===" in ocr_section
+                                print(f"   📄 OCR Footer subsection: {'✅ FOUND' if has_footer_section else '❌ NOT FOUND'}")
                                 
-                                print(f"   ✅ Header subsection: {'✅ FOUND' if has_header_section else '❌ MISSING'}")
-                                print(f"   ✅ Footer subsection: {'✅ FOUND' if has_footer_section else '❌ MISSING'}")
-                                
-                                # Extract header text if present
-                                if has_header_section:
-                                    header_start = ocr_section.find("=== HEADER TEXT (Top 15% of page) ===")
-                                    header_end = ocr_section.find("=== FOOTER TEXT (Bottom 15% of page) ===")
-                                    if header_start >= 0 and header_end > header_start:
-                                        header_content = ocr_section[header_start:header_end].strip()
-                                        # Remove the header marker to get actual text
-                                        header_text = header_content.replace("=== HEADER TEXT (Top 15% of page) ===", "").strip()
-                                        header_text_length = len(header_text)
-                                        print(f"   📄 Header text length: {header_text_length} characters")
-                                        if header_text_length > 0:
-                                            print(f"   📝 Header sample: {header_text[:100]}...")
-                                
-                                # Extract footer text if present
                                 if has_footer_section:
                                     footer_start = ocr_section.find("=== FOOTER TEXT (Bottom 15% of page) ===")
                                     footer_end = ocr_section.find("============================================================", footer_start + 50)
@@ -544,70 +539,55 @@ class BackendAPITester:
                                             footer_content = ocr_section[footer_start:footer_end].strip()
                                         else:
                                             footer_content = ocr_section[footer_start:].strip()
-                                        # Remove the footer marker to get actual text
                                         footer_text = footer_content.replace("=== FOOTER TEXT (Bottom 15% of page) ===", "").strip()
-                                        footer_text_length = len(footer_text)
-                                        print(f"   📄 Footer text length: {footer_text_length} characters")
-                                        if footer_text_length > 0:
-                                            print(f"   📝 Footer sample: {footer_text[:100]}...")
-                                
-                                ocr_content_valid = header_text_length > 0 or footer_text_length > 0
-                                print(f"   ✅ OCR content valid: {'✅ YES' if ocr_content_valid else '❌ NO'}")
-                            else:
-                                print(f"   ❌ OCR section found but content not accessible")
-                        else:
-                            print(f"   ❌ OCR section: NOT FOUND in _summary_text")
-                        
-                        print(f"\n🎯 OVERALL VALIDATION:")
-                        print(f"   ✅ OCR section present: {'✅ YES' if has_ocr_section else '❌ NO'}")
-                        print(f"   ✅ Header text length > 0: {'✅ YES' if header_text_length > 0 else '❌ NO'}")
-                        print(f"   ✅ Footer text length > 0: {'✅ YES' if footer_text_length > 0 else '❌ NO'}")
-                        print(f"   ✅ Report form = '07-230': {'✅ YES' if form_match else '❌ NO'}")
-                        
-                        # Success criteria from review request - Survey Report OCR focus
-                        success_criteria_met = (
-                            has_ocr_section and  # OCR section present in _summary_text
-                            (header_text_length > 0 or footer_text_length > 0)  # Header or footer text length > 0
-                        )
-                        
-                        if success_criteria_met:
-                            print(f"\n🎉 SURVEY REPORT OCR EXTRACTION VERIFICATION SUCCESSFUL!")
-                            print(f"   ✅ OCR section present in _summary_text")
-                            print(f"   ✅ Header text length: {header_text_length} chars")
-                            print(f"   ✅ Footer text length: {footer_text_length} chars")
-                            print(f"   ✅ Survey Report OCR is WORKING - Tesseract is functional")
-                            print(f"   🎯 CONCLUSION: Survey Report OCR works → Audit Report code has a bug")
-                            
-                            self.print_result(True, f"Survey Report OCR extraction verified successfully - Header: {header_text_length} chars, Footer: {footer_text_length} chars")
-                            return True
-                        else:
-                            print(f"\n❌ SURVEY REPORT OCR EXTRACTION VALIDATION FAILED!")
-                            print(f"   ❌ OCR section: {has_ocr_section}")
-                            print(f"   ❌ Header length: {header_text_length}")
-                            print(f"   ❌ Footer length: {footer_text_length}")
-                            print(f"   🎯 CONCLUSION: Survey Report OCR fails → System-wide Tesseract issue")
-                            
-                            self.print_result(False, f"Survey Report OCR extraction validation failed - System-wide Tesseract issue")
-                            return False
-                    else:
-                        print(f"   ❌ _summary_text field is missing or empty")
-                        print(f"   🔧 Cannot verify OCR extraction without _summary_text")
-                        
-                        self.print_result(False, f"_summary_text field missing - cannot verify OCR extraction")
-                        return False
+                                        print(f"   📄 Footer text length: {len(footer_text)} characters")
+                                        if len(footer_text) > 0:
+                                            print(f"   📝 Footer sample: {footer_text[:200]}...")
+                                            # Check if footer contains form code
+                                            footer_has_form = any(expected in footer_text for expected in expected_values)
+                                            print(f"   ✅ Footer contains form code: {'✅ YES' if footer_has_form else '❌ NO'}")
                     
-                    # Also check other analysis fields for completeness
-                    print(f"\n📊 EXTRACTED FIELDS VERIFICATION:")
-                    key_fields = ['survey_report_name', 'survey_report_no', 'issued_date', 'issued_by', 'surveyor_name']
+                    # Check other extracted fields
+                    print(f"\n📊 OTHER EXTRACTED FIELDS:")
+                    key_fields = ['audit_report_name', 'audit_type', 'audit_report_no', 'audit_date', 'auditor_name', 'issued_by', 'status', 'note']
                     for field in key_fields:
                         value = analysis.get(field, 'Not extracted')
-                        print(f"      {field}: {value}")
+                        print(f"   {field}: {value}")
                     
                     if 'ship_name' in response_data:
                         print(f"   🚢 ship_name: {response_data.get('ship_name')}")
                     
                     if 'ship_imo' in response_data:
                         print(f"   🔢 ship_imo: {response_data.get('ship_imo')}")
+                    
+                    # Overall validation
+                    print(f"\n🎯 SUCCESS CRITERIA VALIDATION:")
+                    report_form_populated = bool(report_form and report_form.strip())
+                    form_matches_expected = form_match
+                    
+                    print(f"   ✅ report_form is populated: {'✅ YES' if report_form_populated else '❌ NO'}")
+                    print(f"   ✅ Value matches expected: {'✅ YES' if form_matches_expected else '❌ NO'}")
+                    print(f"   📄 Actual report_form: '{report_form}'")
+                    
+                    # Success criteria from review request
+                    success_criteria_met = report_form_populated and form_matches_expected
+                    
+                    if success_criteria_met:
+                        print(f"\n🎉 NCR FORM REPORT_FORM EXTRACTION SUCCESSFUL!")
+                        print(f"   ✅ report_form field populated: '{report_form}'")
+                        print(f"   ✅ Value matches expected form code")
+                        print(f"   ✅ System AI successfully extracted report_form from NCR PDF")
+                        
+                        self.print_result(True, f"NCR form report_form extraction successful: '{report_form}'")
+                        return True
+                    else:
+                        print(f"\n❌ NCR FORM REPORT_FORM EXTRACTION FAILED!")
+                        print(f"   ❌ report_form populated: {report_form_populated}")
+                        print(f"   ❌ Form matches expected: {form_matches_expected}")
+                        print(f"   📄 Actual value: '{report_form}'")
+                        
+                        self.print_result(False, f"NCR form report_form extraction failed - Value: '{report_form}'")
+                        return False
                     
                 except json.JSONDecodeError:
                     print(f"❌ Response is not valid JSON")
@@ -624,7 +604,7 @@ class BackendAPITester:
                         print(f"🚨 CRITICAL: Getting 'Ship not found' error!")
                         print(f"   ❌ Error: {error_message}")
                         print(f"   🔧 Ship ID {target_ship_id} not found in backend")
-                        self.print_result(False, f"Ship not found error - cannot test Survey Report OCR extraction")
+                        self.print_result(False, f"Ship not found error - cannot test NCR form extraction")
                         return False
                     else:
                         print(f"❌ 404 Error (not ship-related): {error_message}")
@@ -641,16 +621,16 @@ class BackendAPITester:
                     error_data = response.json()
                     print(f"❌ Request failed with status {response.status_code}")
                     print(f"📄 Error: {error_data}")
-                    self.print_result(False, f"Survey report analysis failed with status {response.status_code}")
+                    self.print_result(False, f"Audit report analysis failed with status {response.status_code}")
                     return False
                 except:
                     print(f"❌ Request failed with status {response.status_code}")
                     print(f"📄 Response: {response.text[:500]}...")
-                    self.print_result(False, f"Survey report analysis failed with status {response.status_code}")
+                    self.print_result(False, f"Audit report analysis failed with status {response.status_code}")
                     return False
                     
         except Exception as e:
-            self.print_result(False, f"Exception during Survey Report OCR extraction test: {str(e)}")
+            self.print_result(False, f"Exception during NCR form extraction test: {str(e)}")
             return False
     
     def test_backend_logs_verification(self):
