@@ -703,9 +703,13 @@ class BackendAPITester:
                 log_content = result.stdout
                 print(f"📄 Retrieved {len(log_content.splitlines())} lines of backend logs")
                 
-                # Look for OCR and report form extraction messages
+                # Look for OCR processing messages as specified in review request
                 ocr_start_logs = []
                 ocr_available_logs = []
+                ocr_completed_logs = []
+                ocr_results_logs = []
+                header_added_logs = []
+                footer_added_logs = []
                 ocr_enhanced_logs = []
                 report_form_logs = []
                 audit_analysis_logs = []
@@ -715,6 +719,14 @@ class BackendAPITester:
                         ocr_start_logs.append(line.strip())
                     elif "✅ OCR processor available" in line:
                         ocr_available_logs.append(line.strip())
+                    elif "✅ Targeted OCR completed successfully" in line:
+                        ocr_completed_logs.append(line.strip())
+                    elif "📄 OCR results: header=" in line and "chars, footer=" in line:
+                        ocr_results_logs.append(line.strip())
+                    elif "✅ Header text added" in line:
+                        header_added_logs.append(line.strip())
+                    elif "✅ Footer text added" in line:
+                        footer_added_logs.append(line.strip())
                     elif "✅ Enhanced summary with OCR" in line:
                         ocr_enhanced_logs.append(line.strip())
                     elif "✅ Extracted report_form from filename" in line:
