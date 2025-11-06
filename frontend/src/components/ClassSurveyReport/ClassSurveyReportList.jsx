@@ -314,6 +314,10 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
       return;
     }
 
+    // Close context menu and show loading
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+    setIsDeleting(true);
+
     try {
       const response = await surveyReportService.bulkDelete([report.id]);
       const result = response.data;
@@ -347,8 +351,9 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
           ? `❌ Không thể xóa báo cáo: ${errorMsg}` 
           : `❌ ${errorMsg}`
       );
+    } finally {
+      setIsDeleting(false);
     }
-    setContextMenu({ show: false, x: 0, y: 0, report: null });
   };
 
   const handleBulkDelete = async () => {
