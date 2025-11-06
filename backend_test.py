@@ -628,7 +628,7 @@ class BackendAPITester:
                     error_data = response.json()
                     print(f"❌ Request failed with status {response.status_code}")
                     print(f"📄 Error: {error_data}")
-                    self.print_result(False, f"Audit report analysis failed with status {response.status_code}")
+                    self.print_result(False, f"Survey report analysis failed with status {response.status_code}")
                     return False
                 except:
                     print(f"❌ Request failed with status {response.status_code}")
