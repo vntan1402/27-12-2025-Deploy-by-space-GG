@@ -1,41 +1,28 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - NCR Form Report Form Extraction Testing
+Backend API Testing Script - Audit Report Ship Validation Testing
 
-FOCUS: Test System AI Report Form Extraction from Footer - NCR Form
-OBJECTIVE: Test if System AI can extract report_form from footer of PDF document.
+FOCUS: Test Audit Report ship validation implementation to verify it matches Survey Report behavior exactly
+OBJECTIVE: Verify the `/api/audit-reports/analyze` endpoint includes robust ship validation using `validate_ship_info_match()` function
 
 CRITICAL TEST REQUIREMENTS FROM REVIEW REQUEST:
-1. **Authentication**: Login: admin1 / 123456
-2. **Get Ship**: GET /api/ships - Find BROTHER 36 (bc444bc3-aea9-4491-b199-8098efcc16d2)
-3. **Test Audit Report Analysis**: POST /api/audit-reports/analyze
-   - PDF: NCR form from https://customer-assets.emergentagent.com/job_shipaudit/artifacts/atqzy94l_ISM-Code%20%20NCR%20%2807-23%29.pdf
-   - Filename: "ISM-Code  NCR (07-23).pdf"
-   - ship_id: bc444bc3-aea9-4491-b199-8098efcc16d2
-   - bypass_validation: false
-4. **Verify Report Form Extraction**: Check `report_form` field in response
-   - Expected: Should extract form code from footer
-   - Possible values: "(07-23)", "NCR (07-23)", "07-23", or similar
-5. **Check Backend Logs for AI Processing**: Look for:
-   - "🤖 Extracting audit report fields from summary"
-   - "📤 Sending extraction prompt to gemini"
-   - "📄 Extracted Report Form: '...'"
-   - "✅ Extracted report_form from filename: '...'" (if AI fails)
-
-KEY QUESTIONS:
-1. Does `report_form` field have a value?
-2. What is the exact value extracted?
-3. Did it come from AI (footer/content) or filename pattern?
-4. What does Document AI summary contain about footer?
+1. **Setup & Authentication**: Login: admin1/123456, Get company_id (should be AMCSC), Get test ship: BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2, IMO: 8743531)
+2. **Test Case 1: Validation PASS (matching ship info)**: Use 'ISM-Code Audit-Plan (07-230.pdf' which contains ship_name='TRUONG MINH LUCKY' which should NOT match BROTHER 36, expect validation error with success=false, validation_error=true
+3. **Test Case 2: Bypass Validation (bypass_validation=true)**: Same PDF, should return success=true with analysis data (validation bypassed)
+4. **Test Case 3: Validation Error Response Structure**: Verify response contains success: false, validation_error: true, validation_details, message, extracted/expected ship info, split_info
+5. **Backend Logs Verification**: Look for validation logs: "🔍 Ship validation:", "Extracted: Ship='...', IMO='...'", "Selected: Ship='...', IMO='...'", "Name Match: ... | IMO Match: ... | Overall: ...", validation results
+6. **Compare with Survey Report**: Validation logic should be identical to Survey Report's validation
 
 SUCCESS CRITERIA:
-- ✅ report_form is populated (not empty)
-- ✅ Value matches form code in footer or filename
-- ✅ Backend logs show extraction method
+- ✅ Validation fails when ship info doesn't match (without bypass)
+- ✅ Validation is bypassed when bypass_validation=true
+- ✅ Response structure matches expected format with validation_details
+- ✅ Backend logs show proper validation sequence
+- ✅ Validation logic matches Survey Report exactly
 
 Test credentials: admin1/123456
-Test ship: BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2)
-Test PDF: ISM-Code  NCR (07-23).pdf
+Test ship: BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2, IMO: 8743531)
+Test PDF: 'ISM-Code Audit-Plan (07-230.pdf' (contains TRUONG MINH LUCKY)
 """
 
 import requests
