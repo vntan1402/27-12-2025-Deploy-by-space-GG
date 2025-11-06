@@ -634,122 +634,132 @@ class BackendAPITester:
             return False
     
     def test_backend_logs_verification(self):
-        """Test 5: Verify backend logs show OCR processing and report form extraction messages"""
-        self.print_test_header("Test 5 - Backend Logs Verification for OCR Processing and Report Form Extraction")
+        """Test 5: Verify backend logs show AI processing and report form extraction messages"""
+        self.print_test_header("Test 5 - Backend Logs Verification for AI Processing and Report Form Extraction")
         
-        print(f"🔍 CHECKING BACKEND LOGS FOR SURVEY REPORT OCR MESSAGES:")
-        print(f"   🎯 Looking for: '✅ Targeted OCR completed successfully'")
-        print(f"   🎯 Looking for: '✅ Header text added'")
-        print(f"   🎯 Looking for: '✅ Footer text added'")
-        print(f"   🎯 Looking for: '✅ Enhanced summary created with OCR'")
-        print(f"   📋 This test checks if backend logs confirm Survey Report OCR processing")
+        print(f"🔍 CHECKING BACKEND LOGS FOR AUDIT REPORT AI PROCESSING MESSAGES:")
+        print(f"   🎯 Looking for: '🤖 Extracting audit report fields from summary'")
+        print(f"   🎯 Looking for: '📤 Sending extraction prompt to gemini'")
+        print(f"   🎯 Looking for: '📄 Extracted Report Form: ...'")
+        print(f"   🎯 Looking for: '✅ Extracted report_form from filename: ...'")
+        print(f"   📋 This test checks if backend logs confirm AI processing and report_form extraction")
         
         try:
             # Check supervisor backend logs
             import subprocess
             
             # Get recent backend logs
-            log_command = "tail -n 200 /var/log/supervisor/backend.*.log"
+            log_command = "tail -n 300 /var/log/supervisor/backend.*.log"
             result = subprocess.run(log_command, shell=True, capture_output=True, text=True, timeout=10)
             
             if result.returncode == 0:
                 log_content = result.stdout
                 print(f"📄 Retrieved {len(log_content.splitlines())} lines of backend logs")
                 
-                # Look for Survey Report OCR processing messages as specified in review request
-                ocr_completed_logs = []
-                header_added_logs = []
-                footer_added_logs = []
-                ocr_enhanced_logs = []
-                survey_analysis_logs = []
+                # Look for AI processing messages as specified in review request
+                ai_extraction_logs = []
+                gemini_prompt_logs = []
+                report_form_extracted_logs = []
+                filename_extraction_logs = []
+                audit_analysis_logs = []
                 
                 for line in log_content.splitlines():
-                    if "✅ Targeted OCR completed successfully" in line:
-                        ocr_completed_logs.append(line.strip())
-                    elif "✅ Header text added" in line:
-                        header_added_logs.append(line.strip())
-                    elif "✅ Footer text added" in line:
-                        footer_added_logs.append(line.strip())
-                    elif "✅ Enhanced summary created with OCR" in line:
-                        ocr_enhanced_logs.append(line.strip())
-                    elif "survey report analysis" in line.lower() or "survey report" in line.lower():
-                        survey_analysis_logs.append(line.strip())
+                    if "🤖 Extracting audit report fields from summary" in line:
+                        ai_extraction_logs.append(line.strip())
+                    elif "📤 Sending extraction prompt to gemini" in line:
+                        gemini_prompt_logs.append(line.strip())
+                    elif "📄 Extracted Report Form:" in line:
+                        report_form_extracted_logs.append(line.strip())
+                    elif "✅ Extracted report_form from filename:" in line:
+                        filename_extraction_logs.append(line.strip())
+                    elif "audit report analysis" in line.lower() or "audit report" in line.lower():
+                        audit_analysis_logs.append(line.strip())
                 
-                print(f"\n🔍 SURVEY REPORT OCR PROCESSING LOG ANALYSIS:")
-                print(f"   📊 OCR completed logs found: {len(ocr_completed_logs)}")
-                print(f"   📊 Header added logs found: {len(header_added_logs)}")
-                print(f"   📊 Footer added logs found: {len(footer_added_logs)}")
-                print(f"   📊 OCR enhanced summary logs found: {len(ocr_enhanced_logs)}")
-                print(f"   📊 Survey analysis related logs found: {len(survey_analysis_logs)}")
+                print(f"\n🔍 AUDIT REPORT AI PROCESSING LOG ANALYSIS:")
+                print(f"   📊 AI extraction logs found: {len(ai_extraction_logs)}")
+                print(f"   📊 Gemini prompt logs found: {len(gemini_prompt_logs)}")
+                print(f"   📊 Report form extracted logs found: {len(report_form_extracted_logs)}")
+                print(f"   📊 Filename extraction logs found: {len(filename_extraction_logs)}")
+                print(f"   📊 Audit analysis related logs found: {len(audit_analysis_logs)}")
                 
                 # Check each type of log
-                ocr_completed_found = len(ocr_completed_logs) > 0
-                header_added_found = len(header_added_logs) > 0
-                footer_added_found = len(footer_added_logs) > 0
-                ocr_enhanced_found = len(ocr_enhanced_logs) > 0
+                ai_extraction_found = len(ai_extraction_logs) > 0
+                gemini_prompt_found = len(gemini_prompt_logs) > 0
+                report_form_found = len(report_form_extracted_logs) > 0
+                filename_extraction_found = len(filename_extraction_logs) > 0
                 
                 print(f"\n📋 EXPECTED LOG MESSAGES VERIFICATION:")
-                print(f"   ✅ '✅ Targeted OCR completed successfully': {'✅ FOUND' if ocr_completed_found else '❌ NOT FOUND'}")
-                print(f"   ✅ '✅ Header text added': {'✅ FOUND' if header_added_found else '❌ NOT FOUND'}")
-                print(f"   ✅ '✅ Footer text added': {'✅ FOUND' if footer_added_found else '❌ NOT FOUND'}")
-                print(f"   ✅ '✅ Enhanced summary created with OCR': {'✅ FOUND' if ocr_enhanced_found else '❌ NOT FOUND'}")
+                print(f"   ✅ '🤖 Extracting audit report fields from summary': {'✅ FOUND' if ai_extraction_found else '❌ NOT FOUND'}")
+                print(f"   ✅ '📤 Sending extraction prompt to gemini': {'✅ FOUND' if gemini_prompt_found else '❌ NOT FOUND'}")
+                print(f"   ✅ '📄 Extracted Report Form: ...': {'✅ FOUND' if report_form_found else '❌ NOT FOUND'}")
+                print(f"   ✅ '✅ Extracted report_form from filename: ...': {'✅ FOUND' if filename_extraction_found else '❌ NOT FOUND'}")
                 
                 # Show sample logs if found
-                if ocr_completed_logs:
-                    print(f"\n   📝 OCR COMPLETED LOG SAMPLE:")
-                    print(f"      {ocr_completed_logs[-1]}")
+                if ai_extraction_logs:
+                    print(f"\n   📝 AI EXTRACTION LOG SAMPLE:")
+                    print(f"      {ai_extraction_logs[-1]}")
                 
-                if header_added_logs:
-                    print(f"\n   📝 HEADER ADDED LOG SAMPLE:")
-                    print(f"      {header_added_logs[-1]}")
+                if gemini_prompt_logs:
+                    print(f"\n   📝 GEMINI PROMPT LOG SAMPLE:")
+                    print(f"      {gemini_prompt_logs[-1]}")
                 
-                if footer_added_logs:
-                    print(f"\n   📝 FOOTER ADDED LOG SAMPLE:")
-                    print(f"      {footer_added_logs[-1]}")
+                if report_form_found:
+                    print(f"\n   📝 REPORT FORM EXTRACTED LOG SAMPLE:")
+                    print(f"      {report_form_extracted_logs[-1]}")
                 
-                if ocr_enhanced_logs:
-                    print(f"\n   📝 OCR ENHANCED LOG SAMPLE:")
-                    print(f"      {ocr_enhanced_logs[-1]}")
+                if filename_extraction_found:
+                    print(f"\n   📝 FILENAME EXTRACTION LOG SAMPLE:")
+                    print(f"      {filename_extraction_logs[-1]}")
                 
-                # Overall validation - focus on key Survey Report OCR success indicators
-                critical_logs_found = ocr_completed_found and (header_added_found or footer_added_found)
-                partial_logs_found = ocr_completed_found or header_added_found or footer_added_found or ocr_enhanced_found
+                # Determine extraction method
+                extraction_method = "unknown"
+                if report_form_found and ai_extraction_found:
+                    extraction_method = "AI (footer/content)"
+                elif filename_extraction_found:
+                    extraction_method = "filename pattern"
+                elif ai_extraction_found or gemini_prompt_found:
+                    extraction_method = "AI attempted"
+                
+                print(f"\n🎯 EXTRACTION METHOD ANALYSIS:")
+                print(f"   📋 Extraction method: {extraction_method}")
+                
+                # Overall validation - focus on key AI processing indicators
+                critical_logs_found = (ai_extraction_found and gemini_prompt_found) or filename_extraction_found
+                partial_logs_found = ai_extraction_found or gemini_prompt_found or report_form_found or filename_extraction_found
                 
                 print(f"\n🎯 BACKEND LOGS VALIDATION:")
-                print(f"   ✅ Critical OCR logs found: {'✅ YES' if critical_logs_found else '❌ NO'}")
-                print(f"   ✅ Some OCR logs found: {'✅ YES' if partial_logs_found else '❌ NO'}")
+                print(f"   ✅ Critical AI logs found: {'✅ YES' if critical_logs_found else '❌ NO'}")
+                print(f"   ✅ Some extraction logs found: {'✅ YES' if partial_logs_found else '❌ NO'}")
+                print(f"   📋 Extraction method confirmed: {extraction_method}")
                 
                 if critical_logs_found:
                     print(f"\n🎉 BACKEND LOGS VERIFICATION SUCCESSFUL!")
-                    print(f"   ✅ Survey Report OCR processing logs confirmed")
-                    print(f"   ✅ OCR completion confirmed")
-                    print(f"   ✅ Header/Footer text addition confirmed")
-                    print(f"   ✅ Critical log messages found")
-                    print(f"   🎯 CONCLUSION: Survey Report OCR is WORKING")
-                    self.print_result(True, "Backend logs confirm Survey Report OCR processing is working")
+                    print(f"   ✅ Audit Report AI processing logs confirmed")
+                    print(f"   ✅ Extraction method identified: {extraction_method}")
+                    print(f"   ✅ Backend logs show extraction process")
+                    self.print_result(True, f"Backend logs confirm extraction method: {extraction_method}")
                     return True
                 elif partial_logs_found:
                     print(f"\n⚠️ BACKEND LOGS PARTIALLY FOUND:")
-                    print(f"   ⚠️ Some Survey Report OCR logs present but not all critical messages")
-                    print(f"   🔧 May indicate partial implementation or OCR processor issues")
-                    print(f"   🎯 CONCLUSION: Survey Report OCR partially working")
-                    self.print_result(False, "Backend logs show partial Survey Report OCR processing")
+                    print(f"   ⚠️ Some AI processing logs present but not complete flow")
+                    print(f"   🔧 May indicate partial implementation or processing issues")
+                    print(f"   📋 Extraction method: {extraction_method}")
+                    self.print_result(False, f"Backend logs show partial processing - Method: {extraction_method}")
                     return False
                 else:
-                    print(f"\n❌ NO SURVEY REPORT OCR PROCESSING LOGS FOUND")
+                    print(f"\n❌ NO AI PROCESSING LOGS FOUND")
                     print(f"   🔧 This may indicate:")
-                    print(f"      - OCR processor not available (Tesseract not installed)")
-                    print(f"      - Survey Report OCR processing not implemented")
+                    print(f"      - AI processing not implemented")
                     print(f"      - Logs not being generated")
-                    print(f"      - Recent survey analysis hasn't been performed")
-                    print(f"   🎯 CONCLUSION: Survey Report OCR fails → System-wide Tesseract issue")
+                    print(f"      - Recent audit analysis hasn't been performed")
+                    print(f"      - System AI configuration issues")
                     
-                    if survey_analysis_logs:
-                        print(f"\n   📋 RELATED SURVEY ANALYSIS LOGS FOUND:")
-                        for i, log_line in enumerate(survey_analysis_logs[-3:], 1):  # Show last 3
+                    if audit_analysis_logs:
+                        print(f"\n   📋 RELATED AUDIT ANALYSIS LOGS FOUND:")
+                        for i, log_line in enumerate(audit_analysis_logs[-3:], 1):  # Show last 3
                             print(f"      {i}. {log_line}")
                     
-                    self.print_result(False, "No Survey Report OCR processing logs found in backend")
+                    self.print_result(False, "No AI processing logs found in backend")
                     return False
                     
             else:
