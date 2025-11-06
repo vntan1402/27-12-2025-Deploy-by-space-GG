@@ -5865,10 +5865,24 @@ async def extract_audit_report_fields_from_summary(
                                 match = re.search(pattern, filename)
                                 if match:
                                     if len(match.groups()) > 1:
-                                        # Pattern with 2 groups (e.g., CG (02-19))
-                                        abbrev = match.group(1).upper()
+                                        # Pattern with 2 groups
+                                        abbrev = match.group(1).strip()
                                         date_part = match.group(2).replace('/', '-')
-                                        extracted_form = f"{abbrev} ({date_part})"
+                                        
+                                        # Clean up abbrev: capitalize properly and remove trailing spaces
+                                        # Handle both short (e.g., "CG") and long forms (e.g., "ISPS-Code-Interim-Check List")
+                                        abbrev_cleaned = abbrev.strip()
+                                        
+                                        # For long forms, remove common ship name patterns at the end
+                                        # e.g., "ISPS-Code-Interim-Check List TRUONG MINH" → "ISPS-Code-Interim-Check List"
+                                        ship_name_patterns = [
+                                            r'\s+[A-Z][A-Z\s]+$',  # All caps words at end (likely ship names)
+                                        ]
+                                        for ship_pattern in ship_name_patterns:
+                                            abbrev_cleaned = re.sub(ship_pattern, '', abbrev_cleaned)
+                                        
+                                        abbrev_cleaned = abbrev_cleaned.strip()
+                                        extracted_form = f"{abbrev_cleaned} ({date_part})"
                                     else:
                                         # Pattern with 1 group - just parentheses (e.g., (07-230))
                                         date_part = match.group(1).replace('/', '-')
