@@ -7957,107 +7957,161 @@ async def update_audit_report(
         raise HTTPException(status_code=500, detail=f"Failed to update audit report: {str(e)}")
 
 
-# Background file deletion for audit reports
-async def delete_gdrive_files_background(file_ids: list, company_id: str):
-    """
-    Background task to delete multiple audit report files from Google Drive
-    
-    Args:
-        file_ids: List of Google Drive file IDs to delete
-        company_id: Company ID for Apps Script configuration
-    """
-    try:
-        logger.info(f"🔄 Starting background deletion for {len(file_ids)} audit report files")
-        
-        from dual_apps_script_manager import create_dual_apps_script_manager
-        dual_manager = create_dual_apps_script_manager(company_id)
-        await dual_manager._load_configuration()
-        
-        if not dual_manager.company_apps_script_url:
-            logger.error(f"❌ Company Apps Script URL not configured for company {company_id}")
-            return
-        
-        success_count = 0
-        failed_count = 0
-        
-        for file_id in file_ids:
-            try:
-                delete_result = await dual_manager._call_company_apps_script({
-                    'action': 'delete_file',
-                    'file_id': file_id
-                })
-                
-                if delete_result.get("success"):
-                    success_count += 1
-                    logger.info(f"✅ Deleted audit report file: {file_id}")
-                else:
-                    failed_count += 1
-                    logger.warning(f"⚠️ Failed to delete audit report file {file_id}: {delete_result.get('message')}")
-                    
-            except Exception as e:
-                failed_count += 1
-                logger.error(f"❌ Error deleting audit report file {file_id}: {e}")
-        
-        logger.info(f"✅ Background deletion complete for audit reports: {success_count} succeeded, {failed_count} failed")
-        
-    except Exception as e:
-        logger.error(f"❌ Error in audit report bulk background file deletion: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
+# Pydantic model for bulk delete request
+class BulkDeleteAuditReportsRequest(BaseModel):
+    report_ids: list[str]
 
 
-@api_router.post("/audit-reports/bulk-delete")
+# IMPORTANT: Bulk delete MUST come BEFORE single delete to avoid routing conflict
+@api_router.delete("/audit-reports/bulk-delete")
 async def bulk_delete_audit_reports(
-    request: dict,
-    background_tasks: BackgroundTasks,
+    request: BulkDeleteAuditReportsRequest,
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
-    Bulk delete audit reports
-    Also deletes associated Google Drive files in background
+    Bulk delete audit reports including associated Google Drive files (original + summary)
+    Follows the same pattern as Survey Report bulk delete
     """
     try:
-        report_ids = request.get('report_ids', [])
-        logger.info(f"🗑️ Bulk deleting {len(report_ids)} audit reports")
-        
-        if not report_ids:
-            raise HTTPException(status_code=400, detail="No report IDs provided")
-        
-        # Resolve company ID (handle both UUID and name)
-        company_id = await resolve_company_id(current_user)
-        if not company_id:
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
             raise HTTPException(status_code=404, detail="Company not found")
         
-        # Fetch all reports to get file IDs for Google Drive deletion
-        reports_to_delete = []
-        for report_id in report_ids:
-            report = await mongo_db.find_one("audit_reports", {"id": report_id})
-            if report:
-                reports_to_delete.append(report)
+        report_ids = request.report_ids
         
-        # Delete from database
+        logger.info(f"🗑️ Bulk delete audit reports request received: {len(report_ids)} report(s)")
+        logger.info(f"📋 Report IDs: {report_ids}")
+        
+        # Get company Google Drive config (REQUIRED - no fallback)
+        company_gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        if not company_gdrive_config or not company_gdrive_config.get("web_app_url"):
+            logger.error(f"❌ Company Google Drive config not found for company: {company_uuid}")
+            raise HTTPException(
+                status_code=400, 
+                detail="Company Google Drive is not configured. Please configure Google Drive in System Settings before deleting audit reports."
+            )
+        
+        apps_script_url = company_gdrive_config.get("web_app_url")
+        logger.info("🔧 Using company Google Drive config")
+        logger.info(f"🔧 Apps Script URL: {apps_script_url[:50] + '...' if len(apps_script_url) > 50 else apps_script_url}")
+        
         deleted_count = 0
+        files_deleted = 0
         errors = []
         
-        for report_id in report_ids:
+        for report_id in request.report_ids:
             try:
-                result = await mongo_db.delete_one("audit_reports", {"id": report_id})
-                if result:
-                    deleted_count += 1
+                logger.info(f"🔍 Checking audit report: {report_id}")
+                
+                # Check if audit report exists
+                report = await mongo_db.find_one("audit_reports", {
+                    "id": report_id
+                })
+                
+                if not report:
+                    logger.warning(f"⚠️ Audit report not found: {report_id}")
+                    errors.append(f"Audit report {report_id} not found")
+                    continue
+                
+                logger.info(f"✅ Found audit report: {report.get('audit_report_name')}")
+                
+                # Delete associated files from Google Drive if exist (both original and summary)
+                original_file_id = report.get("audit_report_file_id")
+                summary_file_id = report.get("audit_report_summary_file_id")
+                
+                # Delete files if Apps Script URL is configured
+                if apps_script_url:
+                    
+                    import aiohttp
+                    
+                    # Delete original file
+                    if original_file_id:
+                        logger.info(f"🗑️ Deleting original audit report file: {original_file_id}")
+                        try:
+                            async with aiohttp.ClientSession() as session:
+                                payload = {
+                                    "action": "delete_file",
+                                    "file_id": original_file_id
+                                }
+                                async with session.post(
+                                    apps_script_url,
+                                    json=payload,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=aiohttp.ClientTimeout(total=30)
+                                ) as response:
+                                    if response.status == 200:
+                                        result = await response.json()
+                                        if result.get("success"):
+                                            logger.info(f"✅ Original file deleted: {original_file_id}")
+                                            files_deleted += 1
+                        except Exception as e:
+                            logger.error(f"❌ Error deleting original file {original_file_id}: {e}")
+                    
+                    # Delete summary file
+                    if summary_file_id:
+                        logger.info(f"🗑️ Deleting summary file: {summary_file_id}")
+                        try:
+                            async with aiohttp.ClientSession() as session:
+                                payload = {
+                                    "action": "delete_file",
+                                    "file_id": summary_file_id
+                                }
+                                async with session.post(
+                                    apps_script_url,
+                                    json=payload,
+                                    headers={"Content-Type": "application/json"},
+                                    timeout=aiohttp.ClientTimeout(total=30)
+                                ) as response:
+                                    if response.status == 200:
+                                        result = await response.json()
+                                        if result.get("success"):
+                                            logger.info(f"✅ Summary file deleted: {summary_file_id}")
+                                            files_deleted += 1
+                        except Exception as e:
+                            logger.error(f"❌ Error deleting summary file {summary_file_id}: {e}")
+                
+                # Delete from database
+                await mongo_db.delete("audit_reports", {"id": report_id})
+                deleted_count += 1
+                logger.info(f"✅ Audit report deleted from database: {report_id}")
+                
             except Exception as e:
-                errors.append({"report_id": report_id, "error": str(e)})
-                logger.error(f"Error deleting audit report {report_id}: {e}")
+                errors.append(f"Error deleting audit report {report_id}: {str(e)}")
+                logger.error(f"Error in bulk delete for audit report {report_id}: {e}")
         
-        # Schedule Google Drive file deletion in background
-        files_to_delete = []
-        for report in reports_to_delete:
-            if report.get('audit_report_file_id'):
-                files_to_delete.append(report['audit_report_file_id'])
-            if report.get('audit_report_summary_file_id'):
-                files_to_delete.append(report['audit_report_summary_file_id'])
+        # Log audit trail
+        await log_audit_trail(
+            user_id=current_user.id,
+            action="BULK_DELETE_AUDIT_REPORTS",
+            resource_type="audit_report",
+            resource_id="bulk",
+            details={
+                "deleted_count": deleted_count,
+                "files_deleted": files_deleted,
+                "errors": errors
+            },
+            company_id=company_uuid
+        )
         
-        if files_to_delete:
-            background_tasks.add_task(delete_gdrive_files_background, files_to_delete, company_id)
+        # If no reports were deleted at all, return error
+        if deleted_count == 0 and len(errors) > 0:
+            error_details = "; ".join(errors)
+            raise HTTPException(status_code=404, detail=f"Audit reports not found. {error_details}")
+        
+        message = f"Deleted {deleted_count} audit report(s)"
+        if files_deleted > 0:
+            message += f", {files_deleted} file(s) deleted from Google Drive"
+        if errors:
+            message += f", {len(errors)} error(s)"
+        
+        return {
+            "success": True,
+            "message": message,
+            "deleted_count": deleted_count,
+            "files_deleted": files_deleted,
+            "errors": errors if errors else None,
+            "partial_success": len(errors) > 0 and deleted_count > 0
+        }
         
         return {
             "success": True,
