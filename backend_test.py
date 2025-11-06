@@ -885,15 +885,15 @@ class BackendAPITester:
 
 
 if __name__ == "__main__":
-    """Main execution - run OCR Extraction tests"""
+    """Main execution - run NCR Form Report Form Extraction tests"""
     tester = BackendAPITester()
     success = tester.run_all_tests()
     
     if success:
-        print(f"\n🎉 ALL TESTS PASSED - SURVEY REPORT OCR VERIFIED SUCCESSFULLY")
-        print(f"🎯 CONCLUSION: Survey Report OCR works → Audit Report code has a bug")
+        print(f"\n🎉 ALL TESTS PASSED - NCR FORM REPORT FORM EXTRACTION VERIFIED SUCCESSFULLY")
+        print(f"🎯 CONCLUSION: System AI can extract report_form from NCR PDF footer")
         sys.exit(0)
     else:
         print(f"\n❌ SOME TESTS FAILED - REVIEW RESULTS ABOVE")
-        print(f"🎯 CONCLUSION: Survey Report OCR fails → System-wide Tesseract issue")
+        print(f"🎯 CONCLUSION: report_form extraction needs investigation")
         sys.exit(1)
