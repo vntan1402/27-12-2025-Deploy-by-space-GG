@@ -5927,7 +5927,7 @@ async def extract_audit_report_fields_from_summary(
                         
                         # POST-PROCESSING 1: Determine audit_type from available data
                         # Priority: filename > report_form > audit_report_name > AI extraction
-                        # Normalize to one of: ISM, ISPS, MLC
+                        # Normalize to one of: ISM, ISPS, MLC, CICA
                         audit_type = extracted_data.get('audit_type', '')
                         
                         # Check filename first (Priority 1)
@@ -5939,6 +5939,8 @@ async def extract_audit_report_fields_from_summary(
                                 audit_type = 'ISPS'
                             elif 'MLC' in filename_upper:
                                 audit_type = 'MLC'
+                            elif 'CICA' in filename_upper:
+                                audit_type = 'CICA'
                         
                         # Check report_form if audit_type still empty (Priority 2)
                         if not audit_type and extracted_data.get('report_form'):
@@ -5949,6 +5951,8 @@ async def extract_audit_report_fields_from_summary(
                                 audit_type = 'ISPS'
                             elif 'MLC' in report_form_upper:
                                 audit_type = 'MLC'
+                            elif 'CICA' in report_form_upper:
+                                audit_type = 'CICA'
                         
                         # Check audit_report_name if still empty (Priority 3)
                         if not audit_type and extracted_data.get('audit_report_name'):
@@ -5959,6 +5963,8 @@ async def extract_audit_report_fields_from_summary(
                                 audit_type = 'ISPS'
                             elif 'MLC' in name_upper:
                                 audit_type = 'MLC'
+                            elif 'CICA' in name_upper:
+                                audit_type = 'CICA'
                         
                         # Normalize AI extraction if exists but not standard (Priority 4)
                         if not audit_type and extracted_data.get('audit_type'):
@@ -5969,6 +5975,8 @@ async def extract_audit_report_fields_from_summary(
                                 audit_type = 'ISPS'
                             elif 'MLC' in ai_type_upper:
                                 audit_type = 'MLC'
+                            elif 'CICA' in ai_type_upper:
+                                audit_type = 'CICA'
                         
                         # Update with normalized value
                         if audit_type:
