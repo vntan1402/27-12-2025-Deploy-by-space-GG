@@ -5664,7 +5664,7 @@ def create_audit_report_extraction_prompt(summary_text: str, filename: str = "")
     
     Args:
         summary_text: Document summary text
-        filename: Original filename
+        filename: Original filename (can help identify report form)
     """
     prompt = f"""You are an AI specialized in maritime audit report information extraction.
 
@@ -5673,6 +5673,7 @@ Analyze the following text summary of a maritime audit report and extract all ke
 
 **IMPORTANT CONTEXT:**
 - Original filename: {filename}
+- The filename often contains the Report Form (e.g., "Audit (07-23).pdf" → Report Form is "07-23")
 - This is an ISM/ISPS/MLC audit report for a ship
 
 === INSTRUCTIONS ===
