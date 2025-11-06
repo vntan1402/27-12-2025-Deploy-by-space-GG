@@ -8112,7 +8112,25 @@ async def analyze_audit_report_file(
                 ])
             
             summary_lines.append("="*60)
-            analysis_result['_summary_text'] = '\n'.join(summary_lines)
+            
+            # Get raw Document AI text before overwriting
+            raw_document_ai_text = analysis_result.get('_summary_text', '')
+            
+            # Combine formatted summary with raw Document AI text (Option 3)
+            formatted_summary = '\n'.join(summary_lines)
+            
+            if raw_document_ai_text and len(raw_document_ai_text) > 50:
+                # Append raw Document AI text to formatted summary
+                combined_summary = formatted_summary + "\n\n" + "="*60 + "\n"
+                combined_summary += "RAW DOCUMENT AI TEXT (Original OCR/Text Extraction)\n"
+                combined_summary += "="*60 + "\n\n"
+                combined_summary += raw_document_ai_text
+                analysis_result['_summary_text'] = combined_summary
+                logger.info(f"✅ Combined summary created: Formatted ({len(formatted_summary)} chars) + Raw ({len(raw_document_ai_text)} chars)")
+            else:
+                # If no raw text available, just use formatted summary
+                analysis_result['_summary_text'] = formatted_summary
+                logger.info(f"⚠️ No raw Document AI text available, using formatted summary only")
             
             logger.info(f"✅ Audit report analysis complete: {analysis_result.get('audit_report_name', 'Unknown')}")
             logger.info(f"   📄 Summary created ({len(analysis_result['_summary_text'])} chars)")
