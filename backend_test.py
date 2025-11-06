@@ -285,8 +285,8 @@ class BackendAPITester:
                     
                     print(f"🚢 Ship: {ship_name} (ID: {ship_id[:8]}..., IMO: {imo}, Type: {ship_type})")
                     
-                    # Prefer BROTHER 36 if available
-                    if 'BROTHER 36' in ship_name.upper():
+                    # Prefer BROTHER 36 if available (specific ID from review request)
+                    if 'BROTHER 36' in ship_name.upper() or ship_id == 'bc444bc3-aea9-4491-b199-8098efcc16d2':
                         target_ship = ship
                         print(f"✅ Found preferred test ship: {ship_name}")
                         break
