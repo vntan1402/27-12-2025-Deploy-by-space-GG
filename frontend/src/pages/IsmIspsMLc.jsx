@@ -943,7 +943,7 @@ const IsmIspsMLc = () => {
     }
   };
 
-  // Batch processing (Match Survey Report pattern)
+  // Batch processing (Match Survey Report pattern with STAGGERED processing)
   const startBatchProcessingAuditReports = async (files) => {
     if (!selectedShip) {
       toast.error(language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship');
@@ -970,49 +970,25 @@ const IsmIspsMLc = () => {
     setAuditReportFileSubStatusMap(initialSubStatusMap);
     setAuditReportBatchResults([]);
 
+    const STAGGER_DELAY = 5000; // 5 seconds between file starts (match Survey Report)
     const results = [];
 
-    // Process files sequentially
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const fileName = file.name;
+    // Process files with staggered start (parallel processing with delays)
+    const promises = files.map((file, index) => {
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          const result = await processSingleAuditReportFile(file, file.name);
+          results.push(result);
+          setAuditReportBatchProgress({ current: results.length, total: files.length });
+          resolve(result);
+        }, index * STAGGER_DELAY);
+      });
+    });
 
-      try {
-        // Update status to 'processing'
-        setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'processing' }));
-        setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 0 }));
-        setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: 'AI analyzing...' }));
+    // Wait for all files to complete
+    await Promise.all(promises);
 
-        // Process file
-        const result = await processSingleAuditReportFile(file, fileName);
-        results.push(result);
-        
-        // Update progress count
-        setAuditReportBatchProgress({ current: results.length, total: files.length });
-
-        // Update final status
-        setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 100 }));
-        setAuditReportFileStatusMap(prev => ({ 
-          ...prev, 
-          [fileName]: result.success ? 'completed' : 'error' 
-        }));
-        setAuditReportFileSubStatusMap(prev => ({ 
-          ...prev, 
-          [fileName]: result.success ? 'Completed' : result.error 
-        }));
-
-      } catch (error) {
-        results.push({
-          success: false,
-          fileName: fileName,
-          error: error.message || 'Unknown error'
-        });
-        setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'error' }));
-        setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: error.message }));
-      }
-    }
-
-    // Finish batch processing
+    // Show results
     setIsBatchProcessingAuditReports(false);
     setAuditReportBatchResults(results);
     setShowAuditReportBatchResults(true);
