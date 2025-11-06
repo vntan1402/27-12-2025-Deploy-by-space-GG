@@ -775,12 +775,12 @@ class BackendAPITester:
 
 
 if __name__ == "__main__":
-    """Main execution - run Audit Report AI Analysis endpoint tests"""
+    """Main execution - run Ship ID Debug tests"""
     tester = BackendAPITester()
     success = tester.run_all_tests()
     
     if success:
-        print(f"\n🎉 ALL TESTS PASSED - AUDIT REPORT AI ANALYSIS ENDPOINT IS WORKING CORRECTLY")
+        print(f"\n🎉 ALL TESTS PASSED - SHIP ID ISSUE SUCCESSFULLY DEBUGGED")
         sys.exit(0)
     else:
         print(f"\n❌ SOME TESTS FAILED - REVIEW RESULTS ABOVE")
