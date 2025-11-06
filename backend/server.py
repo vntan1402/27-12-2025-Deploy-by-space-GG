@@ -5833,8 +5833,28 @@ Analyze the following text summary of a maritime audit report and extract all ke
 - Examples: "A/25/1573", "AUD-2024-001", "REP-12345"
 
 **issued_by**: 
-- Extract the organization or company that issued the audit report
-- Examples: "DNV GL", "Lloyd's Register", "Class NK", "Bureau Veritas"
+- Extract the organization or company that issued/conducted the audit report
+- **WHERE TO LOOK** (in priority order):
+  1. Document HEADER/LETTERHEAD - Top of first page usually has company logo/name
+  2. Document FOOTER - Company name often appears at bottom
+  3. Near "Issued by", "Audited by", "Conducted by" labels
+  4. Signature sections - Organization name near signatures
+  5. Stamps or seals - Company name in official stamps
+- **COMMON ORGANIZATIONS**:
+  * Classification Societies: "DNV GL", "Lloyd's Register (LR)", "American Bureau of Shipping (ABS)", "Bureau Veritas (BV)", "Class NK", "RINA", "China Classification Society (CCS)", "Korean Register (KR)"
+  * Flag Authorities: "Panama Maritime Authority", "Liberia Maritime Authority", "Marshall Islands Maritime Authority"
+  * Service Companies: "Panama Maritime Documentation Services (PMDS)", "Vietnam Register (VR/Đăng kiểm)", "Maritime Documentation Services"
+  * Internal: "Ship Management Company", "Company Internal Audit Team"
+- **EXTRACTION TIPS**:
+  * Look for full organization name first (e.g., "Panama Maritime Documentation Services")
+  * May include country/location (e.g., "Bureau Veritas Japan")
+  * Check letterhead, footer, and signature areas
+  * May be abbreviated in text but full name in header
+- **AVOID EXTRACTING**:
+  * Individual auditor names (those go in auditor_name field)
+  * Ship name or company name (those are separate fields)
+  * Job titles (e.g., "Lead Auditor" is not the organization)
+- Examples: "DNV GL", "Lloyd's Register", "Class NK", "Bureau Veritas", "Panama Maritime Documentation Services (PMDS)", "Vietnam Register"
 
 **audit_date**: 
 - Extract the date when the audit was conducted
