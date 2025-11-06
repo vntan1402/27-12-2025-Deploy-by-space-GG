@@ -943,36 +943,58 @@ const IsmIspsMLc = () => {
     }
   };
 
-  // Batch processing
+  // Batch processing (Match Survey Report pattern)
   const startBatchProcessingAuditReports = async (files) => {
+    if (!selectedShip) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship');
+      return;
+    }
+
     setIsBatchProcessingAuditReports(true);
     setAuditReportBatchProgress({ current: 0, total: files.length });
-    setAuditReportFileProgressMap({});
-    setAuditReportFileStatusMap({});
-    setAuditReportFileSubStatusMap({});
+    setIsAuditReportBatchModalMinimized(false);
+    
+    // Initialize progress maps (Match Survey Report pattern)
+    const initialProgressMap = {};
+    const initialStatusMap = {};
+    const initialSubStatusMap = {};
+    
+    files.forEach(file => {
+      initialProgressMap[file.name] = 0;
+      initialStatusMap[file.name] = 'waiting';
+      initialSubStatusMap[file.name] = null;
+    });
+    
+    setAuditReportFileProgressMap(initialProgressMap);
+    setAuditReportFileStatusMap(initialStatusMap);
+    setAuditReportFileSubStatusMap(initialSubStatusMap);
     setAuditReportBatchResults([]);
 
     const results = [];
 
+    // Process files sequentially
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const fileName = file.name;
 
       try {
-        // Update progress
-        setAuditReportBatchProgress({ current: i + 1, total: files.length });
-        setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 0 }));
+        // Update status to 'processing'
         setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'processing' }));
-        setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: 'Analyzing...' }));
+        setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 0 }));
+        setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: 'AI analyzing...' }));
 
         // Process file
         const result = await processSingleAuditReportFile(file, fileName);
         results.push(result);
+        
+        // Update progress count
+        setAuditReportBatchProgress({ current: results.length, total: files.length });
 
-        // Update status
+        // Update final status
+        setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 100 }));
         setAuditReportFileStatusMap(prev => ({ 
           ...prev, 
-          [fileName]: result.success ? 'success' : 'error' 
+          [fileName]: result.success ? 'completed' : 'error' 
         }));
         setAuditReportFileSubStatusMap(prev => ({ 
           ...prev, 
@@ -997,6 +1019,15 @@ const IsmIspsMLc = () => {
     
     // Refresh list
     await fetchAuditReports();
+    
+    // Summary toast
+    const successCount = results.filter(r => r.success).length;
+    const failCount = results.length - successCount;
+    toast.success(
+      language === 'vi'
+        ? `✅ Đã xử lý ${results.length} files: ${successCount} thành công, ${failCount} thất bại`
+        : `✅ Processed ${results.length} files: ${successCount} success, ${failCount} failed`
+    );
   };
 
   // Process single audit report file
