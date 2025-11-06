@@ -611,7 +611,7 @@ class BackendAPITester:
                         print(f"🚨 CRITICAL: Getting 'Ship not found' error!")
                         print(f"   ❌ Error: {error_message}")
                         print(f"   🔧 Ship ID {target_ship_id} not found in backend")
-                        self.print_result(False, f"Ship not found error - cannot test report form & OCR extraction")
+                        self.print_result(False, f"Ship not found error - cannot test Survey Report OCR extraction")
                         return False
                     else:
                         print(f"❌ 404 Error (not ship-related): {error_message}")
