@@ -404,6 +404,8 @@ export const AuditReportList = ({
           ? `❌ Không thể xóa báo cáo audit: ${errorMsg}` 
           : `❌ ${errorMsg}`
       );
+    } finally {
+      setIsDeleting(false);
     }
     setContextMenu({ show: false, x: 0, y: 0, report: null });
   };
