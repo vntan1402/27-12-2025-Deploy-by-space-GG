@@ -64,6 +64,11 @@ export const BatchResultsModal = ({ isOpen, onClose, results }) => {
                         <span className="text-green-600 font-semibold">
                           ✅ {language === 'vi' ? 'Thành công' : 'Success'}
                         </span>
+                        {result.validationWarning && (
+                          <span className="text-xs text-yellow-600 font-medium px-2 py-1 bg-yellow-50 rounded border border-yellow-200 max-w-xs break-words">
+                            {result.validationWarning}
+                          </span>
+                        )}
                         {result.surveyReportCreated && (
                           <span className="text-xs text-green-600">
                             {language === 'vi' ? '📋 Đã tạo record' : '📋 Record created'}
