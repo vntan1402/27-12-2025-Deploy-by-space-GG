@@ -8113,18 +8113,11 @@ async def bulk_delete_audit_reports(
             "partial_success": len(errors) > 0 and deleted_count > 0
         }
         
-        return {
-            "success": True,
-            "deleted_count": deleted_count,
-            "files_deleted": len(files_to_delete),
-            "errors": errors
-        }
-    
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error in bulk delete audit reports: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to delete audit reports: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to bulk delete audit reports: {str(e)}")
 
 @api_router.post("/audit-reports/analyze")
 async def analyze_audit_report_file(
