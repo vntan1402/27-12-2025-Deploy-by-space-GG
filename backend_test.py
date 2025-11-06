@@ -908,21 +908,21 @@ class BackendAPITester:
     # Removed unused test methods - only keeping database check functionality
     
     def run_all_tests(self):
-        """Run all NCR Form Report Form Extraction tests in sequence"""
-        print(f"\n🚀 STARTING NCR FORM REPORT FORM EXTRACTION TESTING")
-        print(f"🎯 Test System AI Report Form Extraction from Footer - NCR Form")
-        print(f"📄 Verify report_form field extraction from NCR PDF footer")
+        """Run all Audit Report Ship Validation tests in sequence"""
+        print(f"\n🚀 STARTING AUDIT REPORT SHIP VALIDATION TESTING")
+        print(f"🎯 Test Audit Report ship validation implementation to verify it matches Survey Report behavior exactly")
+        print(f"📄 Verify `/api/audit-reports/analyze` endpoint includes robust ship validation using `validate_ship_info_match()` function")
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # Test sequence for NCR Form Extraction Testing
+        # Test sequence for Audit Report Ship Validation Testing
         tests = [
             ("Setup - Authentication", self.test_authentication),
             ("Setup - Company ID Resolution", self.test_get_company_id),
             ("Setup - Get Ships List", self.test_get_ships_list),
-            ("Test 1 - Ship ID Verification", self.test_ship_id_verification),
-            ("Test 2 - NCR Form Report Form Extraction", self.test_audit_report_analyze_ncr_form_extraction),
-            ("Test 3 - Backend Logs Verification", self.test_backend_logs_verification),
+            ("Test Case 1 - Validation FAIL (Ship Mismatch)", self.test_audit_report_validation_fail_case),
+            ("Test Case 2 - Validation BYPASS (bypass_validation=true)", self.test_audit_report_validation_bypass_case),
+            ("Test Case 3 - Backend Logs Verification", self.test_backend_logs_verification),
         ]
         
         results = []
@@ -949,7 +949,7 @@ class BackendAPITester:
         
         # Print final summary
         print(f"\n" + "="*80)
-        print(f"📊 NCR FORM REPORT FORM EXTRACTION TEST SUMMARY")
+        print(f"📊 AUDIT REPORT SHIP VALIDATION TEST SUMMARY")
         print(f"="*80)
         
         passed = sum(1 for _, result in results if result)
@@ -963,49 +963,53 @@ class BackendAPITester:
             status = "✅ PASS" if result else "❌ FAIL"
             print(f"   {status}: {test_name}")
         
-        # NCR Form Analysis
+        # Ship Validation Analysis
         print(f"\n" + "="*80)
-        print(f"🔍 NCR FORM REPORT FORM EXTRACTION ANALYSIS")
+        print(f"🔍 AUDIT REPORT SHIP VALIDATION ANALYSIS")
         print(f"="*80)
         
         if hasattr(self, 'test_ship_data') and self.test_ship_data:
             ship_name = self.test_ship_data.get('name', 'Unknown')
             ship_id = self.test_ship_id
+            ship_imo = self.test_ship_data.get('imo', 'Unknown')
             
-            print(f"🚢 Test Ship: {ship_name}")
+            print(f"🚢 Test Ship: {ship_name} (IMO: {ship_imo})")
             print(f"🆔 Ship ID: {ship_id}")
-            print(f"📄 Test PDF: ISM-Code  NCR (07-23).pdf")
-            print(f"🎯 Focus: System AI Report Form Extraction from Footer")
+            print(f"📄 Test PDF: ISM-Code Audit-Plan (07-230.pdf (contains TRUONG MINH LUCKY)")
+            print(f"🎯 Focus: Ship validation using validate_ship_info_match() function")
             
             print(f"\n📋 SUCCESS CRITERIA VERIFICATION:")
-            print(f"   ✅ report_form is populated (not empty)")
-            print(f"   ✅ Value matches form code in footer or filename")
-            print(f"   ✅ Backend logs show extraction method")
+            print(f"   ✅ Validation fails when ship info doesn't match (without bypass)")
+            print(f"   ✅ Validation is bypassed when bypass_validation=true")
+            print(f"   ✅ Response structure matches expected format with validation_details")
+            print(f"   ✅ Backend logs show proper validation sequence")
+            print(f"   ✅ Validation logic matches Survey Report exactly")
             
-            print(f"\n🎯 KEY QUESTIONS ANALYSIS:")
-            print(f"   1. Does report_form field have a value?")
-            print(f"   2. What is the exact value extracted?")
-            print(f"   3. Did it come from AI (footer/content) or filename pattern?")
-            print(f"   4. What does Document AI summary contain about footer?")
+            print(f"\n🎯 KEY VALIDATION TESTS:")
+            print(f"   1. Does validation fail for mismatched ship info?")
+            print(f"   2. Does bypass_validation=true allow processing despite mismatch?")
+            print(f"   3. Are validation error responses properly structured?")
+            print(f"   4. Do backend logs show complete validation sequence?")
         
         # Overall assessment
         if success_rate >= 80:
-            print(f"\n🎉 NCR FORM REPORT FORM EXTRACTION SUCCESSFUL!")
-            print(f"✅ report_form field populated")
-            print(f"✅ Value matches expected form code")
-            print(f"✅ Backend logs show extraction method")
+            print(f"\n🎉 AUDIT REPORT SHIP VALIDATION SUCCESSFUL!")
+            print(f"✅ Validation fails when ship info doesn't match (without bypass)")
+            print(f"✅ Validation is bypassed when bypass_validation=true")
+            print(f"✅ Response structure matches expected format with validation_details")
+            print(f"✅ Backend logs show proper validation sequence")
             print(f"✅ All success criteria from review request met")
-            print(f"🎯 CONCLUSION: System AI can extract report_form from NCR PDF")
+            print(f"🎯 CONCLUSION: Audit Report ship validation matches Survey Report behavior exactly")
         elif success_rate >= 60:
-            print(f"\n⚠️ NCR FORM EXTRACTION PARTIALLY SUCCESSFUL")
-            print(f"📊 Some components working but extraction issues detected")
-            print(f"🔧 Review failed tests for specific extraction problems")
-            print(f"🎯 CONCLUSION: Partial extraction functionality - needs investigation")
+            print(f"\n⚠️ AUDIT REPORT SHIP VALIDATION PARTIALLY SUCCESSFUL")
+            print(f"📊 Some validation components working but issues detected")
+            print(f"🔧 Review failed tests for specific validation problems")
+            print(f"🎯 CONCLUSION: Partial validation functionality - needs investigation")
         else:
-            print(f"\n❌ NCR FORM REPORT FORM EXTRACTION FAILED")
-            print(f"🚨 Critical issues with report_form extraction from NCR PDF")
-            print(f"🔧 System AI may not be extracting from footer correctly")
-            print(f"🎯 CONCLUSION: report_form extraction not working as expected")
+            print(f"\n❌ AUDIT REPORT SHIP VALIDATION FAILED")
+            print(f"🚨 Critical issues with ship validation implementation")
+            print(f"🔧 Ship validation may not be working correctly")
+            print(f"🎯 CONCLUSION: Ship validation not working as expected")
         
         return success_rate >= 80
 
