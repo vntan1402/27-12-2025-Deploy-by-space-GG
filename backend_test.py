@@ -3,8 +3,8 @@
 Backend API Testing Script - Audit Report AI Analysis with REAL PDF File
 
 FOCUS: Test Audit Report AI Analysis endpoint with REAL user-provided PDF file.
-User provided: "ISM-Code-Audit-Plan (07-23) TRUONG MINH LUCKY.pdf"
-URL: https://customer-assets.emergentagent.com/job_audit-flow/artifacts/7leh4y7w_ISM-Code-Audit-Plan%20%2807-23%29%20TRUONG%20MINH%20LUCKY.pdf
+User provided: "ISM-Code Audit-Plan (07-230.pdf"
+URL: https://customer-assets.emergentagent.com/job_audit-flow/artifacts/52s9rwyj_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
 
 TEST REQUIREMENTS:
 1. Setup:
