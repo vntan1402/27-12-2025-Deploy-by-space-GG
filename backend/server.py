@@ -5880,9 +5880,24 @@ async def extract_audit_report_fields_from_summary(
                         logger.info(f"   🔢 Audit No: '{extracted_data.get('audit_report_no')}'")
                         logger.info(f"   🚢 Ship Name: '{extracted_data.get('ship_name', 'NOT EXTRACTED')}'")
                         logger.info(f"   📍 Ship IMO: '{extracted_data.get('ship_imo', 'NOT EXTRACTED')}'")
-                        logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by')}'")
+                        logger.info(f"   🏛️ Issued By (raw): '{extracted_data.get('issued_by')}'")
                         
-                        # POST-PROCESSING: Extract report_form from filename if AI didn't find it
+                        # POST-PROCESSING 1: Standardize "issued_by" organization name to abbreviation
+                        if extracted_data.get('issued_by'):
+                            raw_issued_by = extracted_data['issued_by']
+                            standardized = standardize_issued_by_organization(raw_issued_by)
+                            
+                            # Keep original full name in issued_by
+                            extracted_data['issued_by'] = standardized['full_name']
+                            
+                            # Add abbreviation as separate field
+                            if standardized['abbreviation']:
+                                extracted_data['issued_by_abbreviation'] = standardized['abbreviation']
+                                logger.info(f"   ✅ Standardized Issued By: '{standardized['full_name']}' → '{standardized['abbreviation']}'")
+                            else:
+                                logger.info(f"   ⚠️ Could not standardize Issued By: '{raw_issued_by}' (no matching abbreviation found)")
+                        
+                        # POST-PROCESSING 2: Extract report_form from filename if AI didn't find it
                         # Using Survey Report's proven approach - simpler and more effective
                         if not extracted_data.get('report_form') and filename:
                             logger.info(f"🔍 AI didn't find report_form, checking filename: {filename}")
