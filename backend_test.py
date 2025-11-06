@@ -584,20 +584,17 @@ class BackendAPITester:
                         else:
                             print(f"   ❌ OCR section: NOT FOUND in _summary_text")
                         
-                        # Validate overall structure
-                        all_sections_present = has_formatted_section and has_raw_text_section and has_ocr_section
-                        ocr_content_valid = has_ocr_section and ocr_start > 0
-                        
                         print(f"\n🎯 OVERALL VALIDATION:")
-                        print(f"   ✅ All 3 sections present: {'✅ YES' if all_sections_present else '❌ NO'}")
-                        print(f"   ✅ OCR content valid: {'✅ YES' if ocr_content_valid else '❌ NO'}")
-                        print(f"   ✅ Report form populated: {'✅ YES' if report_form else '❌ NO'}")
+                        print(f"   ✅ OCR section present: {'✅ YES' if has_ocr_section else '❌ NO'}")
+                        print(f"   ✅ Header text length > 0: {'✅ YES' if header_text_length > 0 else '❌ NO'}")
+                        print(f"   ✅ Footer text length > 0: {'✅ YES' if footer_text_length > 0 else '❌ NO'}")
+                        print(f"   ✅ Report form = '07-230': {'✅ YES' if form_match else '❌ NO'}")
                         
                         # Success criteria from review request
                         success_criteria_met = (
-                            report_form and  # report_form is NOT empty
-                            has_ocr_section and  # _summary_text contains "ADDITIONAL INFORMATION FROM HEADER/FOOTER"
-                            ocr_content_valid  # OCR section has actual text content
+                            has_ocr_section and  # OCR section present in _summary_text
+                            (header_text_length > 0 or footer_text_length > 0) and  # Header or footer text length > 0
+                            form_match  # report_form = "07-230"
                         )
                         
                         if success_criteria_met:
