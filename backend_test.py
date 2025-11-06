@@ -506,21 +506,48 @@ This is a fallback test audit report for API testing.
                         if success and analysis:
                             # Check for expected analysis fields (from review request)
                             expected_fields = [
-                                "audit_report_name", "audit_type", "audit_report_no", 
-                                "audit_date", "issued_by", "auditor_name", "status", "note"
+                                "audit_report_name", "audit_type", "report_form", "audit_report_no", 
+                                "ship_name", "ship_imo", "auditor_name", "issued_by", "audit_date"
                             ]
                             
                             # Check for file content fields (from review request)
                             file_content_fields = ["_file_content", "_filename", "_content_type", "_summary_text"]
                             
                             found_fields = []
+                            empty_fields = []
+                            populated_fields = []
+                            
+                            print(f"\n🔍 CRITICAL FIELD EXTRACTION VERIFICATION:")
+                            print(f"   Testing for the System AI extraction fix that should resolve empty fields issue")
+                            
                             for field in expected_fields:
                                 if field in analysis:
                                     found_fields.append(field)
                                     value = analysis[field]
-                                    print(f"   {field}: {value}")
+                                    if value and str(value).strip() and str(value).strip() != "":
+                                        populated_fields.append(field)
+                                        print(f"   ✅ {field}: '{value}' (POPULATED)")
+                                    else:
+                                        empty_fields.append(field)
+                                        print(f"   ❌ {field}: '{value}' (EMPTY)")
+                                else:
+                                    print(f"   ❌ {field}: MISSING")
                             
-                            print(f"📊 Found {len(found_fields)}/{len(expected_fields)} expected fields")
+                            print(f"\n📊 FIELD EXTRACTION RESULTS:")
+                            print(f"   Total fields found: {len(found_fields)}/{len(expected_fields)}")
+                            print(f"   Populated fields: {len(populated_fields)}/{len(expected_fields)}")
+                            print(f"   Empty fields: {len(empty_fields)}/{len(expected_fields)}")
+                            
+                            # This is the KEY TEST - verify the fix resolved empty fields
+                            if len(empty_fields) == len(expected_fields):
+                                print(f"🚨 CRITICAL ISSUE CONFIRMED: ALL FIELDS ARE EMPTY - System AI extraction fix NOT working")
+                                print(f"   This matches the reported issue: all extracted fields return empty strings")
+                            elif len(populated_fields) >= 5:
+                                print(f"✅ SUCCESS: System AI extraction fix IS WORKING - {len(populated_fields)} fields populated")
+                                print(f"   This indicates the new extract_audit_report_fields_from_summary() function is working")
+                            else:
+                                print(f"⚠️ PARTIAL SUCCESS: {len(populated_fields)} fields populated, {len(empty_fields)} still empty")
+                                print(f"   System AI extraction partially working but needs improvement")
                             
                             # Verify analysis quality for ISM audit
                             audit_type = analysis.get("audit_type", "").upper()
