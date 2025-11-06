@@ -1015,15 +1015,15 @@ class BackendAPITester:
 
 
 if __name__ == "__main__":
-    """Main execution - run NCR Form Report Form Extraction tests"""
+    """Main execution - run Audit Report Ship Validation tests"""
     tester = BackendAPITester()
     success = tester.run_all_tests()
     
     if success:
-        print(f"\n🎉 ALL TESTS PASSED - NCR FORM REPORT FORM EXTRACTION VERIFIED SUCCESSFULLY")
-        print(f"🎯 CONCLUSION: System AI can extract report_form from NCR PDF footer")
+        print(f"\n🎉 ALL TESTS PASSED - AUDIT REPORT SHIP VALIDATION VERIFIED SUCCESSFULLY")
+        print(f"🎯 CONCLUSION: Audit Report ship validation matches Survey Report behavior exactly")
         sys.exit(0)
     else:
         print(f"\n❌ SOME TESTS FAILED - REVIEW RESULTS ABOVE")
-        print(f"🎯 CONCLUSION: report_form extraction needs investigation")
+        print(f"🎯 CONCLUSION: Ship validation implementation needs investigation")
         sys.exit(1)
