@@ -1,50 +1,48 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Debug Ship ID Issue
+Backend API Testing Script - Audit Report Summary File Combined Format Testing
 
-FOCUS: Debug Ship ID Issue - Find Correct Ship for Company
-OBJECTIVE: Identify why ship_id `9000377f-ac3f-48d8-ba83-a80fb1a8f490` is returning "Ship not found" error and find the correct ship ID for admin1 user.
+FOCUS: Test Audit Report Summary File - Combined Format (Option 3)
+OBJECTIVE: Verify that the summary file now contains both formatted summary AND raw Document AI text as per Option 3.
 
 CRITICAL TEST REQUIREMENTS FROM REVIEW REQUEST:
-1. Login as admin1 (username: admin1, password: 123456)
-2. Get Ships for Admin1's Company (GET /api/ships)
-3. Find "BROTHER 36" in the list and get its correct ship_id
-4. Compare the ship_id being used in frontend (9000377f-ac3f-48d8-ba83-a80fb1a8f490) with actual ship_id from database
-5. Test with Correct Ship ID using PDF: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
-6. Verify POST /api/audit-reports/analyze works with correct ship_id (should return 200 OK, not 404)
+1. **Authentication**: Login: admin1 / 123456, Get access token
+2. **Get Ships**: GET /api/ships, Find BROTHER 36 or TRUONG MINH LUCKY, Use correct ship_id (bc444bc3-aea9-4491-b199-8098efcc16d2 for BROTHER 36)
+3. **Test Audit Report Analysis**: POST /api/audit-reports/analyze, PDF: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf, ship_id: correct ship ID, bypass_validation: false
+4. **Verify Summary Content Structure**: Check that `_summary_text` contains both formatted summary AND raw Document AI text
 
-TEST SCENARIO:
-1. **Login as admin1**:
-   - POST /api/auth/login
-   - username: admin1
-   - password: 123456
-   - Get access token and company_id
+EXPECTED SUMMARY STRUCTURE:
+```
+============================================================
+AUDIT REPORT ANALYSIS SUMMARY (DOCUMENT AI + SYSTEM AI)
+============================================================
 
-2. **Get Ships for Admin1's Company**:
-   - GET /api/ships
-   - This will return all ships for the logged-in user's company
-   - Find "BROTHER 36" in the list
-   - Get its correct ship_id
+File: ...
+Ship: ...
+Analysis Date: ...
 
-3. **Verify Ship IDs**:
-   - Compare the ship_id being used in frontend (9000377f-ac3f-48d8-ba83-a80fb1a8f490)
-   - With the actual ship_id from database for BROTHER 36
-   - Report the discrepancy
+--- Extracted Information ---
+Audit Report Name: ...
+Audit Type: ...
+[... other fields ...]
 
-4. **Test with Correct Ship ID**:
-   - Use the PDF: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
-   - POST /api/audit-reports/analyze with the **CORRECT** ship_id
-   - Verify it works (should return 200 OK, not 404)
+============================================================
 
-**EXPECTED FINDINGS**:
-- Ship ID `9000377f-ac3f-48d8-ba83-a80fb1a8f490` may belong to a different ship or different company
-- The correct ship_id for BROTHER 36 should be something else (likely `bc444bc3-aea9-4491-b199-8098efcc16d2` based on earlier logs)
+============================================================
+RAW DOCUMENT AI TEXT (Original OCR/Text Extraction)
+============================================================
 
-**KEY QUESTION**:
-Why is the frontend sending the wrong ship_id? Is it a state management issue or local storage issue?
+[Raw text content from Document AI]
+```
+
+SUCCESS CRITERIA:
+- _summary_text contains BOTH formatted fields AND raw Document AI text
+- Clear separation between two sections
+- Raw text section should contain original OCR/text extraction
+- Backend logs should show "Combined summary created: Formatted (XXX chars) + Raw (XXX chars)"
 
 Test credentials: admin1/123456
-Test ship: BROTHER 36
+Test ship: BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2)
 PDF URL: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
 """
 
