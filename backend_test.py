@@ -769,10 +769,10 @@ class BackendAPITester:
     # Removed unused test methods - only keeping database check functionality
     
     def run_all_tests(self):
-        """Run all Combined Summary Format tests in sequence"""
-        print(f"\n🚀 STARTING AUDIT REPORT COMBINED SUMMARY FORMAT TESTING")
-        print(f"🎯 Test Audit Report Summary File - Combined Format (Option 3)")
-        print(f"📄 Verify _summary_text contains both formatted summary AND raw Document AI text")
+        """Run all Report Form & OCR Extraction tests in sequence"""
+        print(f"\n🚀 STARTING AUDIT REPORT FORM & OCR EXTRACTION TESTING")
+        print(f"🎯 Test Report Form extraction from filename and OCR header/footer extraction")
+        print(f"📄 Verify report_form field populated and _summary_text contains OCR section")
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
