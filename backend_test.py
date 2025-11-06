@@ -536,10 +536,21 @@ This is a fallback test audit report for API testing.
                             
                             print(f"   ISM-related: {'✅ YES' if ism_related else '❌ NO'}")
                             
-                            # Check for file content fields (for later upload)
-                            file_content_fields = ["_file_content", "_filename", "_content_type"]
-                            file_fields_found = sum(1 for field in file_content_fields if field in response_data)
+                            file_fields_found = sum(1 for field in file_content_fields if field in analysis)
                             print(f"   File content fields: {file_fields_found}/{len(file_content_fields)}")
+                            
+                            # Check for _summary_text specifically
+                            summary_text = analysis.get("_summary_text", "")
+                            print(f"   Summary text present: {'✅ YES' if summary_text else '❌ NO'}")
+                            
+                            # Check for _file_content base64 encoding
+                            file_content = analysis.get("_file_content", "")
+                            is_base64 = bool(file_content and len(file_content) > 100)
+                            print(f"   File content base64: {'✅ YES' if is_base64 else '❌ NO'}")
+                            
+                            # Check root response fields
+                            root_fields_present = bool(ship_name and ship_imo)
+                            print(f"   Ship name/IMO in root: {'✅ YES' if root_fields_present else '❌ NO'}")
                             
                             # Verify this is NOT a 403/400 AI config error
                             if len(found_fields) >= 4:  # At least half the fields should be present
