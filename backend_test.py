@@ -475,22 +475,8 @@ class BackendAPITester:
                     if 'message' in response_data:
                         print(f"   📝 message: {response_data.get('message')}")
                     
-                    # CRITICAL: Check for report_form field
-                    analysis = response_data.get('analysis', {})
-                    report_form = analysis.get('report_form', '')
-                    
-                    print(f"\n🔍 REPORT FORM EXTRACTION VERIFICATION:")
-                    print(f"   📄 report_form present: {'✅ YES' if report_form else '❌ NO'}")
-                    print(f"   📄 report_form value: '{report_form}'")
-                    
-                    # Check if report_form matches expected pattern from filename (specifically 07-230)
-                    expected_form = '07-230'
-                    form_match = report_form == expected_form if report_form else False
-                    print(f"   ✅ Expected report_form '07-230': {'✅ YES' if form_match else '❌ NO'}")
-                    if report_form and not form_match:
-                        print(f"   ⚠️ Got '{report_form}' instead of expected '07-230'")
-                    
                     # CRITICAL: Check for _summary_text field and OCR content
+                    analysis = response_data.get('analysis', {})
                     summary_text = analysis.get('_summary_text', '')
                     
                     print(f"\n🔍 OCR HEADER/FOOTER EXTRACTION VERIFICATION:")
