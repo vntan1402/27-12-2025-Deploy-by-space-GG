@@ -887,8 +887,10 @@ if __name__ == "__main__":
     success = tester.run_all_tests()
     
     if success:
-        print(f"\n🎉 ALL TESTS PASSED - OCR EXTRACTION VERIFIED SUCCESSFULLY")
+        print(f"\n🎉 ALL TESTS PASSED - SURVEY REPORT OCR VERIFIED SUCCESSFULLY")
+        print(f"🎯 CONCLUSION: Survey Report OCR works → Audit Report code has a bug")
         sys.exit(0)
     else:
         print(f"\n❌ SOME TESTS FAILED - REVIEW RESULTS ABOVE")
+        print(f"🎯 CONCLUSION: Survey Report OCR fails → System-wide Tesseract issue")
         sys.exit(1)
