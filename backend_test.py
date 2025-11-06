@@ -458,7 +458,7 @@ class BackendAPITester:
             
             print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
             print(f"   📋 ship_id: {target_ship_id}")
-            print(f"   📋 bypass_validation: false")
+            print(f"   📋 bypass_validation: true")
             print(f"   📋 filename: ISM-Code  NCR (07-23).pdf")
             
             # Make the request
