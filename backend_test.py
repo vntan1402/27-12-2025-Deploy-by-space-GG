@@ -834,9 +834,9 @@ class BackendAPITester:
             status = "✅ PASS" if result else "❌ FAIL"
             print(f"   {status}: {test_name}")
         
-        # OCR Extraction Analysis
+        # Survey Report OCR Analysis
         print(f"\n" + "="*80)
-        print(f"🔍 OCR EXTRACTION ANALYSIS")
+        print(f"🔍 SURVEY REPORT OCR ANALYSIS")
         print(f"="*80)
         
         if hasattr(self, 'test_ship_data') and self.test_ship_data:
