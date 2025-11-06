@@ -1,91 +1,59 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Audit Report AI Analysis with User PDF - Summary Text and Field Extraction
+Backend API Testing Script - Audit Report File Upload Database Check
 
-FOCUS: Test Audit Report AI Analysis Complete Flow - Document AI Summary + System AI Extraction
-OBJECTIVE: Verify Summary Text (_summary_text) is populated by Document AI and System AI extraction is called with the summary
+FOCUS: Verify Audit Report Summary File Upload - Database Check
+OBJECTIVE: Check if audit reports in database have both `audit_report_file_id` and `audit_report_summary_file_id` populated after upload.
 
 CRITICAL TEST REQUIREMENTS FROM REVIEW REQUEST:
-1. Summary text (`_summary_text`) is populated by Document AI
-2. System AI extraction is called with the summary  
-3. All fields are extracted correctly
+1. Login: admin1 / 123456
+2. Get audit reports for BROTHER 36 ship
+3. Find the most recently created report
+4. Check that both audit_report_file_id and audit_report_summary_file_id are populated (not null/empty)
+5. Verify both contain valid Google Drive file IDs
 
-TEST FILE:
-- PDF URL: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
-- Expected size: ~450-460KB
-
-COMPREHENSIVE TEST FLOW:
-1. Authentication & Setup:
+TEST SCENARIO:
+1. **Authentication**:
    - Login: admin1 / 123456
-   - Get company_id and ship_id for BROTHER 36
+   - Get access token
 
-2. Audit Report AI Analysis:
-   - POST /api/audit-reports/analyze
-   - audit_report_file: User's PDF
-   - ship_id: BROTHER 36 ID
-   - bypass_validation: false
+2. **Get Audit Reports for BROTHER 36**:
+   - GET /api/audit-reports?ship_id={BROTHER_36_ID}
+   - Find the most recently created report
 
-3. CRITICAL CHECKS - Response Data:
-   Check the response JSON for these fields:
+3. **Check File IDs in Database**:
+   For the most recent audit report, verify:
+   ```json
    {
-     "analysis": {
-       "audit_report_name": "...",  // Should NOT be empty
-       "audit_type": "...",          // Should NOT be empty  
-       "report_form": "...",         // Should NOT be empty
-       "audit_report_no": "...",     // Should NOT be empty
-       "ship_name": "...",           // Should NOT be empty
-       "ship_imo": "...",            // Should NOT be empty
-       "auditor_name": "...",        // Should NOT be empty
-       "issued_by": "...",           // May be empty
-       "audit_date": "...",          // Should have date
-       "_summary_text": "...",       // **CRITICAL**: Should have Document AI summary (100+ chars)
-       "_file_content": "...",       // Base64 file content
-       "processing_method": "system_ai_extraction_from_summary"  // Should indicate new method
-     }
+     "audit_report_file_id": "...",  // Should have file ID (original PDF)
+     "audit_report_summary_file_id": "..."  // Should have file ID (summary text)
    }
+   ```
 
-4. CRITICAL CHECKS - Backend Logs:
-   Search backend logs for these specific messages:
-   "📋 Starting audit report analysis"
-   "🔍 Document AI success: True"
-   "📝 Document AI summary length: XXX chars"  // Should be > 100
-   "🧠 Extracting audit report fields from SUMMARY (System AI)..."
-   "📤 Sending extraction prompt to gemini"
-   "🤖 Audit Report AI response received"
-   "✅ System AI extraction from summary completed!"
-   "📋 Extracted Audit Name: '...'"
-   "📝 Extracted Audit Type: '...'"
-   "📄 Extracted Report Form: '...'"
-   "🔢 Extracted Audit No: '...'"
-   "🚢 Extracted Ship Name: '...'"
-   "📍 Extracted Ship IMO: '...'"
+4. **Verify Both Fields Are Populated**:
+   - `audit_report_file_id` should NOT be null/empty
+   - `audit_report_summary_file_id` should NOT be null/empty
+   - Both should be Google Drive file IDs (format: long alphanumeric string)
 
-5. VALIDATION:
-   - Verify `_summary_text` is NOT empty (this is needed for upload)
-   - Verify at least 6 out of 9 fields contain real data
-   - Verify backend logs show System AI extraction was called
-   - Verify `processing_method` = "system_ai_extraction_from_summary"
+5. **Log the File IDs**:
+   - Print audit_report_file_id value
+   - Print audit_report_summary_file_id value
+   - Confirm both are present
 
-KEY COMPARISON:
-- **Before fix**: All fields empty, no System AI extraction, processing_method = "clean_analysis"
-- **After fix**: Fields populated, System AI extraction logs present, processing_method = "system_ai_extraction_from_summary"
+**EXPECTED RESULTS**:
+- ✅ audit_report_file_id: populated with file ID
+- ✅ audit_report_summary_file_id: populated with file ID
+- ✅ Both fields contain valid Google Drive file IDs
 
-SUCCESS CRITERIA:
-- ✅ `_summary_text` contains Document AI summary (100+ chars)
-- ✅ At least 6/9 fields populated with real data
-- ✅ Backend logs show "🧠 Extracting audit report fields from SUMMARY"
-- ✅ Backend logs show "✅ System AI extraction from summary completed!"
-- ✅ `processing_method` = "system_ai_extraction_from_summary"
+**FAILURE INDICATORS**:
+- ❌ audit_report_summary_file_id is null/undefined/empty
+- ❌ Only audit_report_file_id is populated, summary is missing
 
-FAILURE INDICATORS:
-- ❌ `_summary_text` is empty or very short
-- ❌ All fields still empty
-- ❌ No System AI extraction logs
-- ❌ `processing_method` still "clean_analysis"
+**SUCCESS CRITERIA**:
+If audit_report_summary_file_id is populated, the backend upload is working correctly and the issue is frontend display/refresh.
 
 Test credentials: admin1/123456
 Test ship: BROTHER 36 (or any available ship)
-Real PDF URL: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
 """
 
 import requests
