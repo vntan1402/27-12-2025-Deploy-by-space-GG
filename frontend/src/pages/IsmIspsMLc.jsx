@@ -1031,35 +1031,33 @@ const IsmIspsMLc = () => {
         [fileName]: 'analyzing' 
       }));
       
-      // First attempt: WITH validation check
-      let analysisResponse = await auditReportService.analyzeFile(
+      // Batch mode: WITH validation check (NO auto-retry)
+      const analysisResponse = await auditReportService.analyzeFile(
         selectedShip.id,
         file,
-        false // Check validation first in batch mode
+        false // Check validation in batch mode
       );
 
       // Handle response with fallback (match Survey Report pattern)
-      let data = analysisResponse.data || analysisResponse;
+      const data = analysisResponse.data || analysisResponse;
       
-      // If validation error detected, retry with bypass
+      // If validation error detected, STOP processing (no retry, no DB creation)
       if (data.validation_error) {
-        console.log(`⚠️ Ship validation mismatch for ${fileName}:`, {
+        console.log(`❌ Ship validation failed for ${fileName}:`, {
           extracted: `${data.extracted_ship_name} (IMO: ${data.extracted_ship_imo})`,
           expected: `${data.expected_ship_name} (IMO: ${data.expected_ship_imo})`
         });
         
-        // Add warning to result for display in batch results
-        result.validationWarning = language === 'vi' 
-          ? `⚠️ Tàu không khớp: PDF có "${data.extracted_ship_name}" nhưng đã tạo cho "${data.expected_ship_name}"`
-          : `⚠️ Ship mismatch: PDF has "${data.extracted_ship_name}" but created for "${data.expected_ship_name}"`;
+        // Build detailed error message
+        const extractedInfo = `${data.extracted_ship_name || 'N/A'} (IMO: ${data.extracted_ship_imo || 'N/A'})`;
+        const expectedInfo = `${data.expected_ship_name} (IMO: ${data.expected_ship_imo || 'N/A'})`;
         
-        // Retry with bypass_validation = true
-        analysisResponse = await auditReportService.analyzeFile(
-          selectedShip.id,
-          file,
-          true // Bypass validation on retry
-        );
-        data = analysisResponse.data || analysisResponse;
+        const errorMsg = language === 'vi' 
+          ? `Thông tin tàu không khớp!\nPDF có: ${extractedInfo}\nĐã chọn: ${expectedInfo}`
+          : `Ship information mismatch!\nPDF has: ${extractedInfo}\nSelected: ${expectedInfo}`;
+        
+        // Throw error to stop processing
+        throw new Error(errorMsg);
       }
       
       if (!data.success || !data.analysis) {
