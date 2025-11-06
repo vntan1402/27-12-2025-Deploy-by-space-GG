@@ -549,9 +549,8 @@ const IsmIspsMLc = () => {
 
   const fetchAiConfig = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/ai-config`);
-      const data = await response.json();
-      setAiConfig(data);
+      const response = await api.get('/api/ai-config');
+      setAiConfig(response.data);
     } catch (error) {
       console.error('Failed to fetch AI config:', error);
     }
