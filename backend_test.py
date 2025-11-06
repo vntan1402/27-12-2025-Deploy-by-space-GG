@@ -621,109 +621,94 @@ class BackendAPITester:
             self.print_result(False, f"Exception during combined summary format test: {str(e)}")
             return False
     
-    def test_audit_report_analyze_with_wrong_ship_id(self):
-        """Test 5: Test POST /api/audit-reports/analyze with WRONG ship_id (should fail)"""
-        self.print_test_header("Test 5 - Audit Report Analysis with Wrong Ship ID (Expected to Fail)")
+    def test_backend_logs_verification(self):
+        """Test 5: Verify backend logs show combined summary creation messages"""
+        self.print_test_header("Test 5 - Backend Logs Verification for Combined Summary Creation")
         
-        if not self.access_token:
-            self.print_result(False, "Missing access token from authentication test")
-            return False
+        print(f"🔍 CHECKING BACKEND LOGS FOR COMBINED SUMMARY MESSAGES:")
+        print(f"   🎯 Looking for: 'Combined summary created: Formatted (XXX chars) + Raw (XXX chars)'")
+        print(f"   📋 This test checks if backend logs confirm the combined summary creation process")
         
         try:
-            # Download the test PDF
-            pdf_content = self.download_test_pdf()
-            if not pdf_content:
-                self.print_result(False, "Failed to download test PDF")
-                return False
+            # Check supervisor backend logs
+            import subprocess
             
-            headers = {
-                "Authorization": f"Bearer {self.access_token}"
-            }
+            # Get recent backend logs
+            log_command = "tail -n 100 /var/log/supervisor/backend.*.log"
+            result = subprocess.run(log_command, shell=True, capture_output=True, text=True, timeout=10)
             
-            # Test with WRONG ship_id (from frontend - the problematic one)
-            wrong_ship_id = "9000377f-ac3f-48d8-ba83-a80fb1a8f490"
-            
-            print(f"🧪 TESTING AUDIT REPORT ANALYSIS WITH WRONG SHIP ID:")
-            print(f"   ❌ Using WRONG Ship ID: {wrong_ship_id}")
-            print(f"   📄 PDF Size: {len(pdf_content):,} bytes")
-            print(f"   🎯 Expected Result: 404 'Ship not found' error")
-            
-            # Prepare multipart form data
-            files = {
-                'audit_report_file': ('ISM-Code-Audit-Plan.pdf', pdf_content, 'application/pdf')
-            }
-            
-            data = {
-                'ship_id': wrong_ship_id,
-                'bypass_validation': 'false'
-            }
-            
-            print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
-            print(f"   📋 ship_id: {wrong_ship_id}")
-            print(f"   📋 bypass_validation: false")
-            
-            # Make the request
-            start_time = time.time()
-            response = self.session.post(
-                f"{BACKEND_URL}/audit-reports/analyze",
-                headers=headers,
-                files=files,
-                data=data,
-                timeout=60  # Shorter timeout since we expect it to fail quickly
-            )
-            end_time = time.time()
-            
-            response_time = end_time - start_time
-            print(f"📊 Response Status: {response.status_code}")
-            print(f"⏱️ Response Time: {response_time:.1f} seconds")
-            
-            if response.status_code == 404:
-                try:
-                    error_data = response.json()
-                    error_message = error_data.get('detail', 'Unknown error')
+            if result.returncode == 0:
+                log_content = result.stdout
+                print(f"📄 Retrieved {len(log_content.splitlines())} lines of backend logs")
+                
+                # Look for combined summary creation messages
+                combined_summary_logs = []
+                audit_analysis_logs = []
+                
+                for line in log_content.splitlines():
+                    if "Combined summary created" in line:
+                        combined_summary_logs.append(line.strip())
+                    elif "audit report analysis" in line.lower() or "audit report" in line.lower():
+                        audit_analysis_logs.append(line.strip())
+                
+                print(f"\n🔍 COMBINED SUMMARY LOG ANALYSIS:")
+                print(f"   📊 Combined summary creation logs found: {len(combined_summary_logs)}")
+                print(f"   📊 Audit analysis related logs found: {len(audit_analysis_logs)}")
+                
+                if combined_summary_logs:
+                    print(f"   ✅ FOUND COMBINED SUMMARY CREATION LOGS:")
+                    for i, log_line in enumerate(combined_summary_logs[-3:], 1):  # Show last 3
+                        print(f"      {i}. {log_line}")
                     
-                    if 'Ship not found' in error_message:
-                        print(f"✅ EXPECTED RESULT: Got 'Ship not found' error as expected!")
-                        print(f"   ✅ Error: {error_message}")
-                        print(f"   ✅ This confirms the wrong ship_id is indeed invalid")
-                        print(f"   ✅ Backend correctly rejects invalid ship_id")
-                        self.print_result(True, f"Wrong ship_id correctly returns 404 'Ship not found' error")
+                    # Check if logs show both formatted and raw text lengths
+                    latest_log = combined_summary_logs[-1] if combined_summary_logs else ""
+                    has_formatted_chars = "Formatted (" in latest_log and "chars)" in latest_log
+                    has_raw_chars = "Raw (" in latest_log and "chars)" in latest_log
+                    
+                    print(f"\n   📋 LOG CONTENT VERIFICATION:")
+                    print(f"      ✅ Shows formatted text length: {'✅ YES' if has_formatted_chars else '❌ NO'}")
+                    print(f"      ✅ Shows raw text length: {'✅ YES' if has_raw_chars else '❌ NO'}")
+                    
+                    if has_formatted_chars and has_raw_chars:
+                        print(f"\n   🎉 BACKEND LOGS CONFIRM COMBINED SUMMARY CREATION!")
+                        print(f"      ✅ Backend is correctly creating combined summaries with both sections")
+                        print(f"      ✅ Logs show character counts for both formatted and raw text")
+                        self.print_result(True, "Backend logs confirm combined summary creation with formatted + raw text")
                         return True
                     else:
-                        print(f"⚠️ Got 404 but not 'Ship not found' error: {error_message}")
-                        self.print_result(True, f"Wrong ship_id returns 404 (different error): {error_message}")
-                        return True
-                        
-                except json.JSONDecodeError:
-                    print(f"⚠️ 404 error with non-JSON response: {response.text}")
-                    self.print_result(True, "Wrong ship_id returns 404 with non-JSON response")
-                    return True
+                        print(f"\n   ⚠️ BACKEND LOGS INCOMPLETE:")
+                        print(f"      ❌ Logs don't show both formatted and raw text lengths")
+                        print(f"      🔧 May indicate partial implementation of combined format")
+                        self.print_result(False, "Backend logs don't show complete combined summary creation")
+                        return False
+                else:
+                    print(f"   ❌ NO COMBINED SUMMARY CREATION LOGS FOUND")
+                    print(f"   🔧 This may indicate:")
+                    print(f"      - Combined summary feature not implemented")
+                    print(f"      - Logs not being generated")
+                    print(f"      - Recent audit analysis hasn't been performed")
                     
-            elif response.status_code == 200:
-                print(f"🚨 UNEXPECTED: Wrong ship_id returned 200 OK!")
-                print(f"   ❌ This should not happen - wrong ship_id should fail")
-                print(f"   🔧 There may be an issue with ship_id validation in backend")
-                try:
-                    response_data = response.json()
-                    print(f"   📄 Response: {response_data}")
-                except:
-                    print(f"   📄 Response: {response.text[:200]}...")
-                self.print_result(False, f"Wrong ship_id unexpectedly returned 200 OK - validation issue")
-                return False
+                    if audit_analysis_logs:
+                        print(f"\n   📋 RELATED AUDIT ANALYSIS LOGS FOUND:")
+                        for i, log_line in enumerate(audit_analysis_logs[-3:], 1):  # Show last 3
+                            print(f"      {i}. {log_line}")
+                    
+                    self.print_result(False, "No combined summary creation logs found in backend")
+                    return False
                     
             else:
-                try:
-                    error_data = response.json()
-                    print(f"⚠️ Unexpected status {response.status_code}: {error_data}")
-                    self.print_result(True, f"Wrong ship_id returns {response.status_code} (not 404 but still fails)")
-                    return True
-                except:
-                    print(f"⚠️ Unexpected status {response.status_code}: {response.text[:200]}...")
-                    self.print_result(True, f"Wrong ship_id returns {response.status_code} (not 404 but still fails)")
-                    return True
-                    
+                print(f"❌ Failed to retrieve backend logs")
+                print(f"   Error: {result.stderr}")
+                self.print_result(False, "Could not access backend logs for verification")
+                return False
+                
+        except subprocess.TimeoutExpired:
+            print(f"❌ Timeout while retrieving backend logs")
+            self.print_result(False, "Timeout accessing backend logs")
+            return False
         except Exception as e:
-            self.print_result(False, f"Exception during wrong ship_id test: {str(e)}")
+            print(f"❌ Exception while checking backend logs: {str(e)}")
+            self.print_result(False, f"Exception during backend logs verification: {str(e)}")
             return False
     
     # Removed unused helper methods - not needed for database check
