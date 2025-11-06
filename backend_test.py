@@ -508,10 +508,12 @@ class BackendAPITester:
                     print(f"   📄 report_form present: {'✅ YES' if report_form else '❌ NO'}")
                     print(f"   📄 report_form value: '{report_form}'")
                     
-                    # Check if report_form matches expected pattern from filename
-                    expected_patterns = ['07-230', '07-23', '230']
-                    pattern_match = any(pattern in report_form for pattern in expected_patterns) if report_form else False
-                    print(f"   ✅ Expected pattern match (07-230 or similar): {'✅ YES' if pattern_match else '❌ NO'}")
+                    # Check if report_form matches expected pattern from filename (specifically 07-230)
+                    expected_form = '07-230'
+                    form_match = report_form == expected_form if report_form else False
+                    print(f"   ✅ Expected report_form '07-230': {'✅ YES' if form_match else '❌ NO'}")
+                    if report_form and not form_match:
+                        print(f"   ⚠️ Got '{report_form}' instead of expected '07-230'")
                     
                     # CRITICAL: Check for _summary_text field and OCR content
                     summary_text = analysis.get('_summary_text', '')
