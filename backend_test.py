@@ -402,9 +402,9 @@ class BackendAPITester:
             print(f"❌ Exception downloading PDF: {str(e)}")
             return None
     
-    def test_audit_report_analyze_report_form_and_ocr_extraction(self):
-        """Test 4: Test POST /api/audit-reports/analyze and verify Report Form extraction and OCR header/footer extraction"""
-        self.print_test_header("Test 4 - Audit Report Analysis with Report Form & OCR Extraction Verification")
+    def test_survey_report_analyze_ocr_extraction(self):
+        """Test 4: Test POST /api/survey-reports/analyze-file and verify OCR header/footer extraction"""
+        self.print_test_header("Test 4 - Survey Report Analysis with OCR Extraction Verification")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
