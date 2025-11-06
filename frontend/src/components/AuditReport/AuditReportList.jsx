@@ -351,6 +351,10 @@ export const AuditReportList = ({
       return;
     }
 
+    // Close context menu and show loading
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+    setIsDeleting(true);
+
     try {
       const reportIds = Array.from(selectedReports);
       const response = await auditReportService.bulkDelete(reportIds);
