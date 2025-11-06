@@ -1015,8 +1015,7 @@ const IsmIspsMLc = () => {
       fileUploaded: false,
       surveyReportName: '',  // Use Survey Report field names for BatchResultsModal compatibility
       surveyReportNo: '',    // Use Survey Report field names for BatchResultsModal compatibility
-      error: null,
-      validationWarning: null  // Track ship validation mismatches
+      error: null
     };
     
     try {
