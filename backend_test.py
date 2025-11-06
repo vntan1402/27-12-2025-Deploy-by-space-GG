@@ -851,20 +851,20 @@ class BackendAPITester:
     # Removed unused test methods - only keeping database check functionality
     
     def run_all_tests(self):
-        """Run all Report Form & OCR Extraction tests in sequence"""
-        print(f"\n🚀 STARTING AUDIT REPORT FORM & OCR EXTRACTION TESTING")
-        print(f"🎯 Test Report Form extraction from filename and OCR header/footer extraction")
-        print(f"📄 Verify report_form field populated and _summary_text contains OCR section")
+        """Run all OCR Extraction tests in sequence"""
+        print(f"\n🚀 STARTING OCR EXTRACTION TESTING WITH TESSERACT AVAILABLE")
+        print(f"🎯 Test OCR header/footer extraction with Tesseract now available")
+        print(f"📄 Verify OCR section in _summary_text with actual header/footer content")
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
-        # Test sequence for Report Form & OCR Extraction Testing
+        # Test sequence for OCR Extraction Testing
         tests = [
             ("Setup - Authentication", self.test_authentication),
             ("Setup - Company ID Resolution", self.test_get_company_id),
             ("Setup - Get Ships List", self.test_get_ships_list),
             ("Test 1 - Ship ID Verification", self.test_ship_id_verification),
-            ("Test 2 - Audit Analysis Report Form & OCR Extraction", self.test_audit_report_analyze_report_form_and_ocr_extraction),
+            ("Test 2 - Audit Analysis OCR Extraction", self.test_audit_report_analyze_report_form_and_ocr_extraction),
             ("Test 3 - Backend Logs Verification", self.test_backend_logs_verification),
         ]
         
