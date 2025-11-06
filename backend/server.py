@@ -5596,6 +5596,7 @@ async def extract_audit_report_fields_from_summary(
                                 r'([A-Z]{1,3})\s+([0-9]{2}[-/][0-9]{2})',      # CG 02-19, VR 07-23
                                 r'([A-Z]{1,3})[-_]([0-9]{2}[-/][0-9]{2})',     # CG-02-19, VR_07-23
                                 # Audit Report style patterns with parentheses
+                                r'\(([0-9]{2}[-/][0-9]{2,3})\.pdf',            # (07-230.pdf, (02-19.pdf
                                 r'\(([0-9]{2}[-/][0-9]{2,3})\)',               # (07-230), (02-19)
                                 r'([A-Z]{1,4}[-_][A-Z]{2,4}[-_][0-9]{1,3})',   # ISM-AUD-01, ISPS-CERT-02
                                 r'(FORM[-_\s][A-Z0-9]{1,3})',                  # FORM-A, FORM 1, FORM_B
