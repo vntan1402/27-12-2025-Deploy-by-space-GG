@@ -7781,20 +7781,31 @@ async def analyze_audit_report_file(
                     ai_analysis = first_chunk.get('ai_analysis', {})
                     data = ai_analysis.get('data', {}) if isinstance(ai_analysis, dict) else {}
                     
+                    # Field name mapping with fallbacks (same as single file processing)
+                    audit_report_name = data.get('audit_report_name', '') or data.get('survey_report_name', '')
+                    audit_type = data.get('audit_type', '') or data.get('audit_type_extracted', '')
+                    report_form = data.get('report_form', '') or data.get('report_form_extracted', '')
+                    audit_report_no = data.get('audit_report_no', '') or data.get('survey_report_no', '')
+                    audit_date = data.get('audit_date', '') or data.get('issued_date', '')
+                    auditor_name = data.get('auditor_name', '') or data.get('surveyor_name', '')
+                    
                     analysis_result.update({
-                        'audit_report_name': data.get('audit_report_name', ''),
-                        'audit_type': data.get('audit_type', ''),
-                        'audit_report_no': data.get('audit_report_no', ''),
+                        'audit_report_name': audit_report_name,
+                        'audit_type': audit_type,
+                        'report_form': report_form,
+                        'audit_report_no': audit_report_no,
                         'issued_by': data.get('issued_by', ''),
-                        'audit_date': data.get('audit_date', ''),
+                        'audit_date': audit_date,
                         'ship_name': data.get('ship_name', ''),
                         'ship_imo': data.get('ship_imo', ''),
-                        'auditor_name': data.get('auditor_name', ''),
+                        'auditor_name': auditor_name,
                         'note': data.get('note', ''),
                         'status': data.get('status', 'Valid'),
                         'confidence_score': ai_analysis.get('confidence_score', 0.0),
                         'processing_method': 'merged_from_chunks'
                     })
+                    
+                    logger.info(f"   📋 Merged: name='{audit_report_name[:50]}', type='{audit_type}', form='{report_form}'")
                     
                     # Build merged summary
                     summary_parts = []
