@@ -1162,6 +1162,7 @@ class AuditReportResponse(BaseModel):
     ship_id: str
     audit_report_name: str
     audit_type: Optional[str] = None
+    report_form: Optional[str] = None
     audit_report_no: Optional[str] = None
     audit_date: Optional[datetime] = None
     issued_by: Optional[str] = None
