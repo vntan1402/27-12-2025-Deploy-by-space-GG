@@ -1,30 +1,41 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Survey Report OCR Testing
+Backend API Testing Script - NCR Form Report Form Extraction Testing
 
-FOCUS: Test Survey Report OCR - Verify Tesseract is Working
-OBJECTIVE: Test Survey Report to verify OCR is working and producing header/footer text.
+FOCUS: Test System AI Report Form Extraction from Footer - NCR Form
+OBJECTIVE: Test if System AI can extract report_form from footer of PDF document.
 
 CRITICAL TEST REQUIREMENTS FROM REVIEW REQUEST:
 1. **Authentication**: Login: admin1 / 123456
 2. **Get Ship**: GET /api/ships - Find BROTHER 36 (bc444bc3-aea9-4491-b199-8098efcc16d2)
-3. **Test Survey Report Analysis**: POST /api/survey-reports/analyze-file
-   - Upload any PDF file (create a simple test PDF or use existing)
+3. **Test Audit Report Analysis**: POST /api/audit-reports/analyze
+   - PDF: NCR form from https://customer-assets.emergentagent.com/job_shipaudit/artifacts/atqzy94l_ISM-Code%20%20NCR%20%2807-23%29.pdf
+   - Filename: "ISM-Code  NCR (07-23).pdf"
    - ship_id: bc444bc3-aea9-4491-b199-8098efcc16d2
    - bypass_validation: false
-4. **Verify OCR in Response**: Check if `_summary_text` contains "ADDITIONAL INFORMATION FROM HEADER/FOOTER"
-5. **Backend Logs Check**: Look for:
-   - "✅ Targeted OCR completed successfully"
-   - "✅ Header text added"
-   - "✅ Footer text added"
-   - "✅ Enhanced summary created with OCR"
+4. **Verify Report Form Extraction**: Check `report_form` field in response
+   - Expected: Should extract form code from footer
+   - Possible values: "(07-23)", "NCR (07-23)", "07-23", or similar
+5. **Check Backend Logs for AI Processing**: Look for:
+   - "🤖 Extracting audit report fields from summary"
+   - "📤 Sending extraction prompt to gemini"
+   - "📄 Extracted Report Form: '...'"
+   - "✅ Extracted report_form from filename: '...'" (if AI fails)
 
-KEY QUESTION: Is OCR working for Survey Report or is it also broken?
-If Survey Report OCR works → Audit Report code has a bug
-If Survey Report OCR fails → System-wide Tesseract issue
+KEY QUESTIONS:
+1. Does `report_form` field have a value?
+2. What is the exact value extracted?
+3. Did it come from AI (footer/content) or filename pattern?
+4. What does Document AI summary contain about footer?
+
+SUCCESS CRITERIA:
+- ✅ report_form is populated (not empty)
+- ✅ Value matches form code in footer or filename
+- ✅ Backend logs show extraction method
 
 Test credentials: admin1/123456
 Test ship: BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2)
+Test PDF: ISM-Code  NCR (07-23).pdf
 """
 
 import requests
