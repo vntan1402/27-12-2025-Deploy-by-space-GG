@@ -31,6 +31,9 @@ export const AuditReportList = ({
   language 
 }) => {
 
+  // Delete loading state
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Context Menu
   const [contextMenu, setContextMenu] = useState({
     show: false,
