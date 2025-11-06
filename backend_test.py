@@ -585,7 +585,7 @@ class BackendAPITester:
                     
                     # Also check other analysis fields for completeness
                     print(f"\n📊 EXTRACTED FIELDS VERIFICATION:")
-                    key_fields = ['audit_report_name', 'audit_type', 'audit_report_no', 'audit_date', 'auditor_name', 'issued_by']
+                    key_fields = ['survey_report_name', 'survey_report_no', 'issued_date', 'issued_by', 'surveyor_name']
                     for field in key_fields:
                         value = analysis.get(field, 'Not extracted')
                         print(f"      {field}: {value}")
