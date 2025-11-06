@@ -425,32 +425,32 @@ class BackendAPITester:
             target_ship_id = "bc444bc3-aea9-4491-b199-8098efcc16d2"  # BROTHER 36
             ship_name = "BROTHER 36"
             
-            print(f"🧪 TESTING AUDIT REPORT ANALYSIS WITH REPORT FORM & OCR EXTRACTION:")
+            print(f"🧪 TESTING SURVEY REPORT ANALYSIS WITH OCR EXTRACTION:")
             print(f"   🚢 Ship Name: {ship_name}")
             print(f"   ✅ Using Ship ID: {target_ship_id}")
             print(f"   📄 PDF Size: {len(pdf_content):,} bytes")
             print(f"   📄 PDF Filename: ISM-Code  Audit-Plan (07-230.pdf")
-            print(f"   🎯 Focus: Verify report_form extraction from filename and OCR header/footer extraction")
+            print(f"   🎯 Focus: Verify OCR header/footer extraction in Survey Report")
             
-            # Prepare multipart form data with original filename to test filename extraction
+            # Prepare multipart form data for Survey Report analysis
             files = {
-                'audit_report_file': ('ISM-Code  Audit-Plan (07-230.pdf', pdf_content, 'application/pdf')
+                'survey_report_file': ('ISM-Code  Audit-Plan (07-230.pdf', pdf_content, 'application/pdf')
             }
             
             data = {
                 'ship_id': target_ship_id,
-                'bypass_validation': 'true'  # Use true to bypass validation and test OCR functionality
+                'bypass_validation': 'false'  # Use false as specified in review request
             }
             
-            print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
+            print(f"📡 POST {BACKEND_URL}/survey-reports/analyze-file")
             print(f"   📋 ship_id: {target_ship_id}")
-            print(f"   📋 bypass_validation: true")
+            print(f"   📋 bypass_validation: false")
             print(f"   📋 filename: ISM-Code  Audit-Plan (07-230.pdf")
             
             # Make the request
             start_time = time.time()
             response = self.session.post(
-                f"{BACKEND_URL}/audit-reports/analyze",
+                f"{BACKEND_URL}/survey-reports/analyze-file",
                 headers=headers,
                 files=files,
                 data=data,
