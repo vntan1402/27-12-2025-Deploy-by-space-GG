@@ -1,56 +1,71 @@
 <analysis>
-The AI engineer's work during this trajectory predominantly focused on the  module. Initial efforts involved resolving  state propagation, batch Google Drive link retrieval, and backend  scoping errors. A significant phase harmonized  logic for both Ship and Audit Certificates, adopting a simpler, annotation-based approach, along with UI standardization and default annotation fallback. Subsequently, the  functionality was fully migrated to an  module, involving extensive creation of frontend components, services, and backend API endpoints. This migration required thorough refactoring of the new  component to use parent props, resolving numerous compilation and linting errors, and meticulous review of labels and file paths for internationalization. The trajectory concluded with debugging issues related to AI configuration for the new  analysis, identifying discrepancies in AI config lookup methods and an empty database for AI settings.
+The previous AI engineer's trajectory primarily focused on the  module, specifically enhancing  and fully migrating  functionality to a new  module. Initial efforts addressed AI configuration discrepancies, leading to harmonizing AI config lookup and using a fallback . A significant portion involved resolving a series of bugs: incorrect backend URL configuration,  parameter type mismatches,  method inconsistencies ( vs ),  initialization errors, and refactoring file uploads to use . The process also included adding missing AI analysis return fields, configuring frontend timeouts, and renaming the Audited By field to Issued By across the stack.
+
+The engineer then embarked on a Full Implementation to bring  features to parity with , including batch processing and detailed Document AI integration. This involved extensive backend refactoring of the  endpoint and new methods in , along with corresponding frontend updates for modals and tables. Most recently, issues with Document AI's field extraction for Audit Reports arose, where the analysis process completes but returns empty data for critical fields like , , and , preventing auto-filling of the form. The last action was confirming this Document AI extraction failure by reviewing console logs showing empty extracted fields.
 </analysis>
 
 <product_requirements>
-The primary goal is to enhance the  module for  and introduce . Key requests included:
-1.  Harmonize  calculation and display logic for Ship and Audit Certificates, adopting the Audit Certificate's annotation-based approach.
-2.  Implement a fallback for  calculation to auto-use  if no annotation exists for both Ship and Audit Certificates.
-3.  Format  dates in modals to .
-4.  Migrate the entire  functionality, including UI, services, and backend, to a new  module within .
-5.  Refactor the new  component for modularity and prop-based data handling.
-6.  Review and correct all labels, I18n strings, and file paths for the  module.
-7.  Investigate and resolve issues with AI configuration and analysis for the  feature, including rechecking the AI setup method in  as a reference.
+The overarching goal is to enhance the  module by improving  and introducing a robust  system with AI capabilities.
+1.  **Upcoming Survey Harmonization**: Standardize the calculation and display of upcoming surveys for both Ship and Audit Certificates, using an annotation-based approach with a  default fallback if no annotation exists.
+2.  **Date Formatting**: Ensure all  dates in modals are formatted as .
+3.  **Audit Report Migration**: Fully migrate  functionality (UI, services, backend) into a new  module within .
+4.  **Component Modularity**: Refactor the new  component to be modular and handle data via props.
+5.  **Internationalization (I18n)**: Review and correct all labels, I18n strings, and file paths for the  module.
+6.  **AI Analysis Integration**: Implement and debug AI configuration and analysis for , referencing the existing  AI setup.
+7.  **Field Renaming**: Change the Audited By field to Issued By across all relevant frontend, backend, and database components.
+8.  **Feature Parity**: Upgrade  to include all features available in , specifically Batch Processing.
+9.  **AI Extraction Enhancement**: Ensure AI extracts , , and  fields for Audit Reports, and integrate these into the database and UI.
 </product_requirements>
 
 <key_technical_concepts>
--   **Frontend**: React.js (state, hooks, components, modals),  for API calls, Tailwind CSS for styling, Internationalization (I18n).
--   **Backend**: FastAPI (API endpoints, ), MongoDB (UUIDs, schema for Audit Reports),  manipulation.
--   **Patterns**: Modular component design, iterative development, UI/UX consistency, error handling, background processing, API service abstraction.
--   **External**: Google Drive integration (for file links), Emergent LLM Key (for AI analysis).
+-   **Frontend**: React.js (state, hooks, components, modals),  for API calls, Tailwind CSS, Internationalization (I18n), .
+-   **Backend**: FastAPI (API endpoints, ), MongoDB (UUIDs, Pydantic models,  handling),  encoding.
+-   **Patterns**: Modular design, iterative development, UI/UX consistency, error handling, API service abstraction, background processing.
+-   **External**: Google Drive integration (for file links), Emergent LLM Key, , .
 </key_technical_concepts>
 
 <code_architecture>
 
 -   ****:
-    -   **Importance**: Handles all backend API logic.
-    -   **Changes**:
-        -   Refactored  endpoint to use a simpler, annotation-based logic similar to Audit Certificates.
-        -   Implemented fallback logic for upcoming survey calculation to default to  if no annotation for both Ship and Audit Certificates.
-        -   Added new Pydantic models (, , ) and 6 API endpoints ( for CRUD and analyze functionality).
-        -   Improved error handling for  endpoint.
+    -   **Importance**: Centralizes all backend API logic.
+    -   **Changes**: Refactored  to use annotation-based logic. Added new Pydantic models (, , ) and 6 API endpoints for  (CRUD, analyze). AI config lookup changed to  collection with  and  fallback. Switched  usage. Corrected  from  to  with manual conversion. Renamed  to  in models, prompt, and response. Refactored  to use . Updated  to return , , , , , . Added fallback summary generation in exception handler. Included , ,  in Pydantic models, AI prompt, and processing logic.
 -   ****:
-    -   **Importance**: Main page for , now integrating  functionality.
-    -   **Changes**: Imported  components and service. Added state, handlers, and replaced the  placeholder with  and its associated modals.
+    -   **Importance**: Provides MongoDB wrapper methods.
+    -   **Changes**: Confirmed existence of  method and lack of  method.
+-   ****:
+    -   **Importance**: Handles Google Drive interactions.
+    -   **Changes**: Corrected  call to .
+-   ****:
+    -   **Importance**: Manages interactions with dual Apps Script for file processing/upload.
+    -   **Changes**: Added  and  methods, mirroring Survey Report's functionality.
+-   ****:
+    -   **Importance**: Main page for , integrating  functionality.
+    -   **Changes**: Imported  components and service. Integrated  and its associated modals. Incorporated batch processing handlers and state. Passed  prop to . Updated  references to .
 -   ****:
     -   **Importance**: Displays upcoming ship surveys.
-    -   **Changes**: UI updated to match  styling, now uses  for date formatting.
+    -   **Changes**: UI updated for date formatting ().
 -   ****:
     -   **Importance**: Displays upcoming audit surveys.
-    -   **Changes**: Now uses  for  to ensure  format.
--   ** (NEW directory)**: Contains the new components for .
-    -   ****: Copied from  and refactored to be a pure component, receiving data and callbacks via props. Resolved multiple compilation errors, duplicate declarations, and updated labels/file paths for  context.
-    -   ****, ****, ****: New modals adapted from  counterparts.
-    -   ****: Exports all  components.
+    -   **Changes**: Used  for date formatting.
+-   ** (NEW directory)**: Contains new components for .
+    -   ****: Refactored for prop-based data. Updated labels, table headers, and data display for  and .
+    -   ****: Adapted from . Implemented AI analysis,  handling, batch processing, split/OCR info display. Added debug console logs. Updated labels for , and added  field.
+    -   ****: Adapted from . Updated labels for , and added  field.
+-   ****:
+    -   **Importance**: Reusable modal for batch processing.
+    -   **Changes**: Added  prop to allow dynamic title display.
 -   ** (NEW file)**:
     -   **Importance**: Frontend service for  API interactions.
-    -   **Changes**: Provides functions for CRUD operations and AI analysis for audit reports.
+    -   **Changes**: Functions for CRUD and AI analysis. Explicitly converts  to string. Updated AI analysis parameter name from  to . Added  and .
 -   ****:
-    -   **Importance**: Central export for all frontend services.
-    -   **Changes**: Added export for .
+    -   **Importance**: Frontend service for  API interactions.
+    -   **Changes**: Fixed  in return for ship validation.
 -   ****:
-    -   **Importance**: Provides utility functions for date manipulation and formatting.
-    -   **Changes**: Confirmed existence of  for  formatting.
+    -   **Importance**: Defines API-related constants.
+    -   **Changes**: Confirmed  values.
+-   ****:
+    -   **Importance**: Stores environment variables like .
+    -   **Changes**:  was changed multiple times due to environment issues, currently set to .
 </code_architecture>
 
 <pending_tasks>
@@ -66,9 +81,9 @@ The primary goal is to enhance the  module for  and introduce . Key requests inc
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was investigating an issue where  analysis () was failing with 403/400 errors. The core problem is that AI configuration data is missing in the database for the current company/ship. The AI engineer has identified a discrepancy in AI config lookup: older modules (like ) use  with the  collection, while the new  module's analyze endpoint seems to expect configuration tied to  and potentially interacts with an  collection. All attempts to query existing ship or AI config data from the database returned empty results, suggesting a data persistence or environment setup issue. The AI engineer has already retrieved the . The current task is to Kiểm tra lại cách cài đặt AI trong Survey report (Recheck AI setup method in Survey report) to understand a working configuration as a reference for fixing the  AI analysis.
+Immediately before this summary request, the AI engineer was addressing an issue where the  modal displayed Analysis complete! but the form fields were not auto-filled with data extracted from the PDF. Frontend console logs confirmed that analysis data was received and form data was being set, but all extracted fields (e.g., , , , , ) were empty strings. Backend logs, while showing successful AI analysis (200 OK), confirmed that the  field was indeed empty. This led to the conclusion that the Document AI service, despite being called successfully, is failing to extract data for these specific fields in the context of  processing, even though the same PDF file yields successful extractions when processed through the  module. The core problem is identified as .
 </current_work>
 
 <optional_next_step>
-Recheck the AI setup method for  to understand its working configuration.
+Investigate why Document AI extraction is failing for Audit Report fields, specifically comparing its Document AI prompting/processing to Survey Report.
 </optional_next_step>

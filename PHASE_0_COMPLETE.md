@@ -170,7 +170,7 @@ Status: Running on port 3000
 #### Environment Variables (.env)
 
 ```env
-REACT_APP_BACKEND_URL=https://audit-flow.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://shipaudit.preview.emergentagent.com
 REACT_APP_VERSION=2.0.0
 DISABLE_ESLINT_PLUGIN=true
 ESLINT_NO_DEV_ERRORS=true
@@ -204,7 +204,7 @@ ESLINT_NO_DEV_ERRORS=true
 
 **Access:**
 - Local: http://localhost:3000
-- Preview: https://audit-flow.preview.emergentagent.com
+- Preview: https://shipaudit.preview.emergentagent.com
 
 ---
 
