@@ -321,150 +321,351 @@ class BackendAPITester:
     
     # Removed unused PDF download methods - not needed for database check
     
-    def test_get_audit_reports_for_ship(self):
-        """Test 3: GET /api/audit-reports for BROTHER 36 ship and check file IDs"""
-        self.print_test_header("Test 3 - Get Audit Reports for BROTHER 36 and Check File IDs")
+    def test_ship_id_verification(self):
+        """Test 3: Verify Ship ID Discrepancy - Compare frontend ship_id with database ship_id"""
+        self.print_test_header("Test 3 - Ship ID Verification and Discrepancy Analysis")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
             return False
         
         try:
-            headers = {
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json"
-            }
+            # The problematic ship_id from frontend (from review request)
+            frontend_ship_id = "9000377f-ac3f-48d8-ba83-a80fb1a8f490"
+            database_ship_id = self.test_ship_id
+            ship_name = self.test_ship_data.get('name', 'Unknown')
             
-            print(f"📡 GET {BACKEND_URL}/audit-reports?ship_id={self.test_ship_id}")
-            print(f"🎯 Getting audit reports for ship: {self.test_ship_data.get('name')} (ID: {self.test_ship_id[:8]}...)")
+            print(f"🔍 SHIP ID DISCREPANCY ANALYSIS:")
+            print(f"   🚢 Ship Name: {ship_name}")
+            print(f"   🌐 Frontend Ship ID: {frontend_ship_id}")
+            print(f"   🗄️ Database Ship ID: {database_ship_id}")
             
-            # Make request to get audit reports for the ship
-            response = self.session.get(
-                f"{BACKEND_URL}/audit-reports",
-                headers=headers,
-                params={"ship_id": self.test_ship_id}
-            )
-            
-            print(f"📊 Response Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                audit_reports = response.json()
-                print(f"📄 Found {len(audit_reports)} audit reports for ship {self.test_ship_data.get('name')}")
-                
-                if not audit_reports:
-                    print(f"⚠️ No audit reports found for ship {self.test_ship_data.get('name')}")
-                    print(f"   This could mean:")
-                    print(f"   1. No audit reports have been uploaded yet")
-                    print(f"   2. Ship ID is incorrect")
-                    print(f"   3. Database query issue")
-                    self.print_result(True, "No audit reports found - cannot test file IDs (expected if no uploads)")
-                    return True
-                
-                # Sort by created_at to get the most recent report
-                sorted_reports = sorted(audit_reports, key=lambda x: x.get('created_at', ''), reverse=True)
-                most_recent_report = sorted_reports[0]
-                
-                print(f"\n🔍 AUDIT REPORT FILE ID VERIFICATION:")
-                print(f"   Testing most recent audit report (created: {most_recent_report.get('created_at', 'Unknown')})")
-                
-                # Extract file IDs from the most recent report
-                audit_report_file_id = most_recent_report.get('audit_report_file_id')
-                audit_report_summary_file_id = most_recent_report.get('audit_report_summary_file_id')
-                
-                print(f"\n📋 CRITICAL FILE ID CHECK:")
-                print(f"   Audit Report ID: {most_recent_report.get('id', 'Unknown')}")
-                print(f"   Audit Report Name: {most_recent_report.get('audit_report_name', 'Unknown')}")
-                print(f"   Created At: {most_recent_report.get('created_at', 'Unknown')}")
-                
-                # Check audit_report_file_id
-                print(f"\n📄 ORIGINAL FILE ID CHECK:")
-                if audit_report_file_id:
-                    print(f"   ✅ audit_report_file_id: POPULATED")
-                    print(f"   📁 File ID: {audit_report_file_id}")
-                    
-                    # Validate Google Drive file ID format (should be long alphanumeric string)
-                    if len(audit_report_file_id) > 10 and audit_report_file_id.replace('-', '').replace('_', '').isalnum():
-                        print(f"   ✅ File ID format looks valid (Google Drive format)")
-                    else:
-                        print(f"   ⚠️ File ID format may not be valid Google Drive format")
-                else:
-                    print(f"   ❌ audit_report_file_id: EMPTY/NULL")
-                    print(f"   📁 Value: {audit_report_file_id}")
-                
-                # Check audit_report_summary_file_id (CRITICAL)
-                print(f"\n📝 SUMMARY FILE ID CHECK (CRITICAL):")
-                if audit_report_summary_file_id:
-                    print(f"   ✅ audit_report_summary_file_id: POPULATED")
-                    print(f"   📁 Summary File ID: {audit_report_summary_file_id}")
-                    
-                    # Validate Google Drive file ID format
-                    if len(audit_report_summary_file_id) > 10 and audit_report_summary_file_id.replace('-', '').replace('_', '').isalnum():
-                        print(f"   ✅ Summary file ID format looks valid (Google Drive format)")
-                    else:
-                        print(f"   ⚠️ Summary file ID format may not be valid Google Drive format")
-                else:
-                    print(f"   ❌ audit_report_summary_file_id: EMPTY/NULL")
-                    print(f"   📁 Value: {audit_report_summary_file_id}")
-                
-                # Check other relevant fields
-                print(f"\n📊 ADDITIONAL REPORT DETAILS:")
-                print(f"   Audit Type: {most_recent_report.get('audit_type', 'Unknown')}")
-                print(f"   Audit Report No: {most_recent_report.get('audit_report_no', 'Unknown')}")
-                print(f"   Status: {most_recent_report.get('status', 'Unknown')}")
-                print(f"   Auditor Name: {most_recent_report.get('auditor_name', 'Unknown')}")
-                
-                # FINAL ASSESSMENT based on review request
-                both_files_present = bool(audit_report_file_id and audit_report_summary_file_id)
-                original_file_only = bool(audit_report_file_id and not audit_report_summary_file_id)
-                no_files = bool(not audit_report_file_id and not audit_report_summary_file_id)
-                
-                print(f"\n🎯 REVIEW REQUEST ASSESSMENT:")
-                
-                if both_files_present:
-                    print(f"✅ SUCCESS: Both file IDs are populated!")
-                    print(f"   ✅ audit_report_file_id: {audit_report_file_id}")
-                    print(f"   ✅ audit_report_summary_file_id: {audit_report_summary_file_id}")
-                    print(f"   🎉 Backend upload is working correctly!")
-                    print(f"   📝 If frontend shows issues, it's likely a display/refresh problem")
-                    self.print_result(True, "Both audit_report_file_id and audit_report_summary_file_id are populated - backend working correctly")
-                    return True
-                    
-                elif original_file_only:
-                    print(f"🚨 CRITICAL ISSUE: Only original file ID populated!")
-                    print(f"   ✅ audit_report_file_id: {audit_report_file_id}")
-                    print(f"   ❌ audit_report_summary_file_id: MISSING")
-                    print(f"   🔧 Summary file upload/creation is failing")
-                    print(f"   📋 This matches the reported issue - summary file not being created")
-                    self.print_result(False, "audit_report_summary_file_id is missing - summary file upload failing")
-                    return False
-                    
-                elif no_files:
-                    print(f"⚠️ NO FILE IDs: Both file IDs are missing")
-                    print(f"   ❌ audit_report_file_id: MISSING")
-                    print(f"   ❌ audit_report_summary_file_id: MISSING")
-                    print(f"   🔧 Complete file upload system may be failing")
-                    print(f"   📋 This could indicate a broader upload issue")
-                    self.print_result(False, "Both file IDs missing - complete upload system issue")
-                    return False
-                    
-                else:
-                    print(f"⚠️ UNEXPECTED STATE: Summary file present but original missing")
-                    print(f"   ❌ audit_report_file_id: MISSING")
-                    print(f"   ✅ audit_report_summary_file_id: {audit_report_summary_file_id}")
-                    print(f"   🔧 Unusual state - investigate upload logic")
-                    self.print_result(False, "Unexpected file ID state - original missing but summary present")
-                    return False
-                
+            # Compare the ship IDs
+            if frontend_ship_id == database_ship_id:
+                print(f"   ✅ Ship IDs MATCH - No discrepancy found")
+                self.print_result(True, f"Ship IDs match - no discrepancy for {ship_name}")
+                return True
             else:
-                try:
-                    error_data = response.json()
-                    self.print_result(False, f"GET audit-reports failed with status {response.status_code}: {error_data}")
-                except:
-                    self.print_result(False, f"GET audit-reports failed with status {response.status_code}: {response.text}")
+                print(f"   🚨 SHIP ID MISMATCH DETECTED!")
+                print(f"   ❌ Frontend is using: {frontend_ship_id}")
+                print(f"   ✅ Database contains: {database_ship_id}")
+                print(f"   🔧 This explains the 'Ship not found' error!")
+                
+                # Check if the frontend ship_id exists in any ship
+                headers = {
+                    "Authorization": f"Bearer {self.access_token}",
+                    "Content-Type": "application/json"
+                }
+                
+                print(f"\n🔍 CHECKING IF FRONTEND SHIP_ID EXISTS IN DATABASE:")
+                
+                # Search through all ships to see if frontend_ship_id exists
+                frontend_ship_found = False
+                if self.ships_list:
+                    for ship in self.ships_list:
+                        if ship.get('id') == frontend_ship_id:
+                            frontend_ship_found = True
+                            print(f"   ✅ Frontend ship_id FOUND in database!")
+                            print(f"   🚢 Ship Name: {ship.get('name', 'Unknown')}")
+                            print(f"   🏢 Company: {ship.get('company', 'Unknown')}")
+                            print(f"   📋 IMO: {ship.get('imo', 'Unknown')}")
+                            print(f"   🎯 ISSUE: Frontend is using wrong ship - should be {ship_name} ({database_ship_id})")
+                            break
+                
+                if not frontend_ship_found:
+                    print(f"   ❌ Frontend ship_id NOT FOUND in any ship in database")
+                    print(f"   🎯 ISSUE: Frontend is using completely invalid/outdated ship_id")
+                    print(f"   🔧 Possible causes:")
+                    print(f"      - Local storage contains old ship_id")
+                    print(f"      - State management issue in frontend")
+                    print(f"      - Ship was deleted but frontend still references it")
+                    print(f"      - Wrong company context")
+                
+                print(f"\n🎯 ROOT CAUSE ANALYSIS:")
+                print(f"   🚨 Frontend is sending wrong ship_id: {frontend_ship_id}")
+                print(f"   ✅ Correct ship_id for {ship_name}: {database_ship_id}")
+                print(f"   🔧 Frontend needs to use correct ship_id to avoid 'Ship not found' errors")
+                
+                self.print_result(False, f"Ship ID mismatch detected - Frontend: {frontend_ship_id[:8]}..., Database: {database_ship_id[:8]}...")
                 return False
                 
         except Exception as e:
-            self.print_result(False, f"Exception during get audit reports test: {str(e)}")
+            self.print_result(False, f"Exception during ship ID verification test: {str(e)}")
+            return False
+    
+    def download_test_pdf(self):
+        """Helper: Download the test PDF from customer assets"""
+        try:
+            pdf_url = "https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf"
+            
+            print(f"📥 Downloading test PDF from: {pdf_url}")
+            
+            response = requests.get(pdf_url, timeout=30)
+            
+            if response.status_code == 200:
+                pdf_content = response.content
+                print(f"✅ PDF downloaded successfully")
+                print(f"📄 File size: {len(pdf_content):,} bytes")
+                print(f"📋 Content-Type: {response.headers.get('content-type', 'Unknown')}")
+                
+                # Validate it's a PDF
+                if pdf_content.startswith(b'%PDF'):
+                    print(f"✅ PDF validation successful")
+                    return pdf_content
+                else:
+                    print(f"❌ Downloaded file is not a valid PDF")
+                    return None
+            else:
+                print(f"❌ Failed to download PDF: HTTP {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"❌ Exception downloading PDF: {str(e)}")
+            return None
+    
+    def test_audit_report_analyze_with_correct_ship_id(self):
+        """Test 4: Test POST /api/audit-reports/analyze with CORRECT ship_id"""
+        self.print_test_header("Test 4 - Audit Report Analysis with Correct Ship ID")
+        
+        if not self.access_token or not self.test_ship_id:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            # Download the test PDF
+            pdf_content = self.download_test_pdf()
+            if not pdf_content:
+                self.print_result(False, "Failed to download test PDF")
+                return False
+            
+            headers = {
+                "Authorization": f"Bearer {self.access_token}"
+            }
+            
+            # Test with CORRECT ship_id (from database)
+            correct_ship_id = self.test_ship_id
+            ship_name = self.test_ship_data.get('name', 'Unknown')
+            
+            print(f"🧪 TESTING AUDIT REPORT ANALYSIS WITH CORRECT SHIP ID:")
+            print(f"   🚢 Ship Name: {ship_name}")
+            print(f"   ✅ Using CORRECT Ship ID: {correct_ship_id}")
+            print(f"   📄 PDF Size: {len(pdf_content):,} bytes")
+            
+            # Prepare multipart form data
+            files = {
+                'audit_report_file': ('ISM-Code-Audit-Plan.pdf', pdf_content, 'application/pdf')
+            }
+            
+            data = {
+                'ship_id': correct_ship_id,
+                'bypass_validation': 'false'
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
+            print(f"   📋 ship_id: {correct_ship_id}")
+            print(f"   📋 bypass_validation: false")
+            
+            # Make the request
+            start_time = time.time()
+            response = self.session.post(
+                f"{BACKEND_URL}/audit-reports/analyze",
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=120  # 2 minutes timeout for AI analysis
+            )
+            end_time = time.time()
+            
+            response_time = end_time - start_time
+            print(f"📊 Response Status: {response.status_code}")
+            print(f"⏱️ Response Time: {response_time:.1f} seconds")
+            
+            if response.status_code == 200:
+                try:
+                    response_data = response.json()
+                    print(f"✅ SUCCESS: Audit report analysis completed successfully!")
+                    
+                    # Check response structure
+                    print(f"\n📋 RESPONSE ANALYSIS:")
+                    if 'success' in response_data:
+                        print(f"   ✅ success: {response_data.get('success')}")
+                    
+                    if 'message' in response_data:
+                        print(f"   📝 message: {response_data.get('message')}")
+                    
+                    if 'analysis' in response_data:
+                        analysis = response_data.get('analysis', {})
+                        print(f"   📊 Analysis fields extracted:")
+                        
+                        # Key fields to check
+                        key_fields = ['audit_report_name', 'audit_type', 'audit_report_no', 'audit_date', 'auditor_name', 'issued_by']
+                        for field in key_fields:
+                            value = analysis.get(field, 'Not extracted')
+                            print(f"      {field}: {value}")
+                    
+                    if 'ship_name' in response_data:
+                        print(f"   🚢 ship_name: {response_data.get('ship_name')}")
+                    
+                    if 'ship_imo' in response_data:
+                        print(f"   🔢 ship_imo: {response_data.get('ship_imo')}")
+                    
+                    print(f"\n🎉 CRITICAL SUCCESS:")
+                    print(f"   ✅ Correct ship_id ({correct_ship_id}) returns 200 OK")
+                    print(f"   ✅ AI analysis completed successfully")
+                    print(f"   ✅ No 'Ship not found' error")
+                    print(f"   ✅ This proves the ship_id issue is resolved with correct ID")
+                    
+                    self.print_result(True, f"Audit report analysis successful with correct ship_id - returns 200 OK, not 404")
+                    return True
+                    
+                except json.JSONDecodeError:
+                    print(f"❌ Response is not valid JSON")
+                    print(f"📄 Response text: {response.text[:500]}...")
+                    self.print_result(False, "Invalid JSON response from audit report analysis")
+                    return False
+                    
+            elif response.status_code == 404:
+                try:
+                    error_data = response.json()
+                    error_message = error_data.get('detail', 'Unknown error')
+                    
+                    if 'Ship not found' in error_message:
+                        print(f"🚨 CRITICAL: Still getting 'Ship not found' error with correct ship_id!")
+                        print(f"   ❌ Error: {error_message}")
+                        print(f"   🔧 This suggests a deeper issue in the backend ship lookup logic")
+                        print(f"   🎯 Ship ID {correct_ship_id} should exist but backend can't find it")
+                        self.print_result(False, f"Ship not found error persists even with correct ship_id")
+                        return False
+                    else:
+                        print(f"❌ 404 Error (not ship-related): {error_message}")
+                        self.print_result(False, f"404 error: {error_message}")
+                        return False
+                        
+                except json.JSONDecodeError:
+                    print(f"❌ 404 error with non-JSON response: {response.text}")
+                    self.print_result(False, "404 error with invalid response format")
+                    return False
+                    
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Request failed with status {response.status_code}")
+                    print(f"📄 Error: {error_data}")
+                    self.print_result(False, f"Audit report analysis failed with status {response.status_code}")
+                    return False
+                except:
+                    print(f"❌ Request failed with status {response.status_code}")
+                    print(f"📄 Response: {response.text[:500]}...")
+                    self.print_result(False, f"Audit report analysis failed with status {response.status_code}")
+                    return False
+                    
+        except Exception as e:
+            self.print_result(False, f"Exception during audit report analysis test: {str(e)}")
+            return False
+    
+    def test_audit_report_analyze_with_wrong_ship_id(self):
+        """Test 5: Test POST /api/audit-reports/analyze with WRONG ship_id (should fail)"""
+        self.print_test_header("Test 5 - Audit Report Analysis with Wrong Ship ID (Expected to Fail)")
+        
+        if not self.access_token:
+            self.print_result(False, "Missing access token from authentication test")
+            return False
+        
+        try:
+            # Download the test PDF
+            pdf_content = self.download_test_pdf()
+            if not pdf_content:
+                self.print_result(False, "Failed to download test PDF")
+                return False
+            
+            headers = {
+                "Authorization": f"Bearer {self.access_token}"
+            }
+            
+            # Test with WRONG ship_id (from frontend - the problematic one)
+            wrong_ship_id = "9000377f-ac3f-48d8-ba83-a80fb1a8f490"
+            
+            print(f"🧪 TESTING AUDIT REPORT ANALYSIS WITH WRONG SHIP ID:")
+            print(f"   ❌ Using WRONG Ship ID: {wrong_ship_id}")
+            print(f"   📄 PDF Size: {len(pdf_content):,} bytes")
+            print(f"   🎯 Expected Result: 404 'Ship not found' error")
+            
+            # Prepare multipart form data
+            files = {
+                'audit_report_file': ('ISM-Code-Audit-Plan.pdf', pdf_content, 'application/pdf')
+            }
+            
+            data = {
+                'ship_id': wrong_ship_id,
+                'bypass_validation': 'false'
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
+            print(f"   📋 ship_id: {wrong_ship_id}")
+            print(f"   📋 bypass_validation: false")
+            
+            # Make the request
+            start_time = time.time()
+            response = self.session.post(
+                f"{BACKEND_URL}/audit-reports/analyze",
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=60  # Shorter timeout since we expect it to fail quickly
+            )
+            end_time = time.time()
+            
+            response_time = end_time - start_time
+            print(f"📊 Response Status: {response.status_code}")
+            print(f"⏱️ Response Time: {response_time:.1f} seconds")
+            
+            if response.status_code == 404:
+                try:
+                    error_data = response.json()
+                    error_message = error_data.get('detail', 'Unknown error')
+                    
+                    if 'Ship not found' in error_message:
+                        print(f"✅ EXPECTED RESULT: Got 'Ship not found' error as expected!")
+                        print(f"   ✅ Error: {error_message}")
+                        print(f"   ✅ This confirms the wrong ship_id is indeed invalid")
+                        print(f"   ✅ Backend correctly rejects invalid ship_id")
+                        self.print_result(True, f"Wrong ship_id correctly returns 404 'Ship not found' error")
+                        return True
+                    else:
+                        print(f"⚠️ Got 404 but not 'Ship not found' error: {error_message}")
+                        self.print_result(True, f"Wrong ship_id returns 404 (different error): {error_message}")
+                        return True
+                        
+                except json.JSONDecodeError:
+                    print(f"⚠️ 404 error with non-JSON response: {response.text}")
+                    self.print_result(True, "Wrong ship_id returns 404 with non-JSON response")
+                    return True
+                    
+            elif response.status_code == 200:
+                print(f"🚨 UNEXPECTED: Wrong ship_id returned 200 OK!")
+                print(f"   ❌ This should not happen - wrong ship_id should fail")
+                print(f"   🔧 There may be an issue with ship_id validation in backend")
+                try:
+                    response_data = response.json()
+                    print(f"   📄 Response: {response_data}")
+                except:
+                    print(f"   📄 Response: {response.text[:200]}...")
+                self.print_result(False, f"Wrong ship_id unexpectedly returned 200 OK - validation issue")
+                return False
+                    
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"⚠️ Unexpected status {response.status_code}: {error_data}")
+                    self.print_result(True, f"Wrong ship_id returns {response.status_code} (not 404 but still fails)")
+                    return True
+                except:
+                    print(f"⚠️ Unexpected status {response.status_code}: {response.text[:200]}...")
+                    self.print_result(True, f"Wrong ship_id returns {response.status_code} (not 404 but still fails)")
+                    return True
+                    
+        except Exception as e:
+            self.print_result(False, f"Exception during wrong ship_id test: {str(e)}")
             return False
     
     # Removed unused helper methods - not needed for database check
