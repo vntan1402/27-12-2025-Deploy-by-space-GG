@@ -5999,18 +5999,24 @@ Analyze the following text summary of a maritime audit report and extract all ke
 **report_form**: 
 - Extract the report form or form type/number used for this audit
 - **CRITICAL 1**: Check the FILENAME first - often contains the report form
-  * Example: Filename "ISM-AUD (07-23).pdf" → Report Form is "(07-23)" or "07-23"
-  * Example: Filename "Audit Plan (07-230.pdf" → Report Form is "07-230"
-  * If filename contains pattern like "[A-Z]+ \([0-9]{2}[-/][0-9]{2,3}\)" or "\([0-9]{2}[-/][0-9]{2,3}\)", extract it as report_form
+  * Example: Filename "ISM-AUD (07-23).pdf" → Report Form is "ISM-AUD (07-23)"
+  * Example: Filename "Audit Plan (07-230).pdf" → Report Form is "(07-230)"
+  * Example: Filename "ISPS-Code-Interim-Check List (06-23) TRUONG MINH LUCKY SCAN.pdf" → Report Form is "ISPS-Code-Interim-Check List (06-23)"
+  * **PATTERN**: Extract everything from start until the closing parenthesis with numbers, EXCLUDE ship names after
+  * Long form pattern: "[Full-Form-Name] (XX-YYY)" where Full-Form-Name can have spaces, dashes, letters
+  * Short form pattern: "[A-Z]+ (XX-YY)" like "CG (02-19)", "VR (07-23)"
+  * Numbers-only pattern: "(XX-YYY)" like "(07-230)"
 - **CRITICAL 2**: Often appears in HEADER or FOOTER sections
 - **Common patterns**: Form codes, abbreviations, or version numbers
-  * Examples: "ISM-AUD-01", "FORM-A", "7.10", "(07-230)", "CG (02-19)", "VR (07-23)"
+  * Examples: "ISM-AUD-01", "FORM-A", "7.10", "(07-230)", "CG (02-19)", "VR (07-23)", "ISPS-Code-Interim-Check List (06-23)"
   * May be alphanumeric codes, numeric with dots, or date-like patterns in parentheses
+  * Can be LONG form names like "ISPS-Code-Interim-Check List (06-23)" or short like "CG (02-19)"
 - **Look for**: "Report Form", "Form No.", "Form Type", "Audit Form", "Form Used", "Rev.", "Version"
 - **Also check**: Document header/footer for repeating codes or numbers
 - May contain codes like "ISM Form 7.10", "ISPS-CERT-02", "Form A", etc.
 - Extract the complete form identifier as mentioned in the document
 - **DO NOT confuse with dates**: Forms may look like dates (e.g., "(07-23)") but are form identifiers
+- **DO NOT include ship names**: If filename has "...(06-23) SHIP NAME", extract only "...(06-23)", NOT the ship name
 - **IMPORTANT**: ONLY extract if it's clearly a FORM CODE (e.g., "Form 7.10", "(07-230)", "ISM-AUD-01")
 - **DO NOT extract** actual audit dates or document dates - those belong in audit_date field
 - If uncertain whether something is a date or form code, prefer treating it as a form code
