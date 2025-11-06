@@ -324,11 +324,39 @@ export const EditCrewModal = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
+                  {formData.date_sign_off && (
+                    <span className="ml-2 text-xs text-orange-600 font-medium">
+                      {language === 'vi' ? '(Tự động: Standby, Tàu "-")' : '(Auto: Standby, Ship "-")'}
+                    </span>
+                  )}
                 </label>
                 <input
                   type="date"
                   value={formData.date_sign_off}
-                  onChange={(e) => setFormData({...formData, date_sign_off: e.target.value})}
+                  onChange={(e) => {
+                    const newDateSignOff = e.target.value;
+                    
+                    // Auto-update Status and Ship Sign On when Date Sign Off is filled
+                    if (newDateSignOff) {
+                      setFormData({
+                        ...formData, 
+                        date_sign_off: newDateSignOff,
+                        status: 'Standby',
+                        ship_sign_on: '-'
+                      });
+                      
+                      // Show info toast
+                      toast.info(
+                        language === 'vi'
+                          ? '✨ Tự động: Trạng thái → "Standby", Tàu → "-"'
+                          : '✨ Auto-updated: Status → "Standby", Ship → "-"',
+                        { duration: 3000 }
+                      );
+                    } else {
+                      // Just update date_sign_off, don't change status/ship
+                      setFormData({...formData, date_sign_off: newDateSignOff});
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
