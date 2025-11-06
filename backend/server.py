@@ -7845,10 +7845,13 @@ async def analyze_audit_report_file(
                 "--- Extracted Information ---",
                 f"Audit Report Name: {analysis_result.get('audit_report_name', 'N/A')}",
                 f"Audit Type: {analysis_result.get('audit_type', 'N/A')}",
+                f"Report Form: {analysis_result.get('report_form', 'N/A')}",
                 f"Audit Report No: {analysis_result.get('audit_report_no', 'N/A')}",
                 f"Audit Date: {analysis_result.get('audit_date', 'N/A')}",
                 f"Issued By: {analysis_result.get('issued_by', 'N/A')}",
                 f"Auditor Name: {analysis_result.get('auditor_name', 'N/A')}",
+                f"Ship Name: {analysis_result.get('ship_name', 'N/A')}",
+                f"Ship IMO: {analysis_result.get('ship_imo', 'N/A')}",
                 f"Status: {analysis_result.get('status', 'N/A')}",
                 f"Confidence: {analysis_result.get('confidence_score', 0.0):.2f}",
                 ""
