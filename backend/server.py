@@ -5651,67 +5651,12 @@ async def extract_audit_report_fields_from_pdf_directly(
                 extracted_data = json.loads(clean_content)
                 
                 logger.info("✅ Direct PDF extraction successful!")
-                logger.info(f"   📄 Report Form (raw): '{extracted_data.get('report_form')}'")
+                logger.info(f"   📄 Report Form: '{extracted_data.get('report_form')}'")
                 logger.info(f"   📋 Audit Name: '{extracted_data.get('audit_report_name')}'")
                 logger.info(f"   🚢 Ship Name: '{extracted_data.get('ship_name')}'")
                 logger.info(f"   🏛️ Issued By (raw): '{extracted_data.get('issued_by')}'")
-                logger.info(f"   📅 Audit Date (raw): '{extracted_data.get('audit_date')}'")
                 
-                # POST-PROCESSING 1: Bug Fix - Check if audit_date looks like a Report Form
-                if extracted_data.get('audit_date'):
-                    import re
-                    audit_date_raw = extracted_data['audit_date'].strip() if isinstance(extracted_data['audit_date'], str) else str(extracted_data['audit_date'])
-                    
-                    form_pattern = r'^[A-Z]{1,3}\s*\([0-9]{2}[/-][0-9]{2,3}\)$|^[A-Z]{1,3}\s+[0-9]{2}[/-][0-9]{2,3}$|^\([0-9]{2}[/-][0-9]{2,3}\)$'
-                    
-                    if re.match(form_pattern, audit_date_raw, re.IGNORECASE):
-                        logger.warning(f"⚠️ audit_date '{audit_date_raw}' looks like a Report Form, moving to report_form")
-                        if not extracted_data.get('report_form'):
-                            extracted_data['report_form'] = audit_date_raw
-                        extracted_data['audit_date'] = ''
-                    else:
-                        try:
-                            from dateutil import parser
-                            parsed_date = parser.parse(audit_date_raw)
-                            extracted_data['audit_date'] = parsed_date.strftime('%Y-%m-%d')
-                        except Exception as date_error:
-                            logger.warning(f"Failed to parse audit_date '{audit_date_raw}': {date_error}")
-                            if not extracted_data.get('report_form') and len(audit_date_raw) < 20:
-                                logger.warning("⚠️ Moving unparseable audit_date to report_form")
-                                extracted_data['report_form'] = audit_date_raw
-                            extracted_data['audit_date'] = ''
-                
-                # POST-PROCESSING 2: Extract report_form from filename if AI didn't find it
-                if not extracted_data.get('report_form') and filename:
-                    logger.info(f"🔍 AI didn't find report_form, checking filename: {filename}")
-                    import re
-                    
-                    filename_form_patterns = [
-                        r'([A-Z]{1,3})\s*\(([0-9]{2}[-/][0-9]{2,3})\)',  # CG (02-19), VR (07-230)
-                        r'([A-Z]{1,3})\s+([0-9]{2}[-/][0-9]{2,3})',      # CG 02-19, VR 07-230
-                        r'([A-Z]{1,3})[-_]([0-9]{2}[-/][0-9]{2,3})',     # CG-02-19, VR_07-230
-                        r'\(([0-9]{2}[-/][0-9]{2,3})\)',                 # (07-230), (02-19)
-                    ]
-                    
-                    for pattern in filename_form_patterns:
-                        match = re.search(pattern, filename, re.IGNORECASE)
-                        if match:
-                            if len(match.groups()) > 1:
-                                abbrev = match.group(1).upper()
-                                date_part = match.group(2).replace('/', '-')
-                                extracted_form = f"{abbrev} ({date_part})"
-                            else:
-                                extracted_form = match.group(1)
-                            
-                            extracted_data['report_form'] = extracted_form
-                            logger.info(f"✅ Extracted report_form from filename: '{extracted_form}'")
-                            break
-                    else:
-                        logger.warning(f"⚠️ Could not extract report_form from filename: {filename}")
-                
-                logger.info(f"   📄 Report Form (final): '{extracted_data.get('report_form')}'")
-                
-                # POST-PROCESSING 3: Standardize "issued_by" organization name
+                # POST-PROCESSING: Standardize "issued_by" organization name
                 if extracted_data.get('issued_by'):
                     raw_issued_by = extracted_data['issued_by']
                     standardized = standardize_issued_by_organization(raw_issued_by)
