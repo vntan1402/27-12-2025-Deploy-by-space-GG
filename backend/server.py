@@ -7814,17 +7814,31 @@ async def analyze_audit_report_file(
         
         logger.info(f"🔍 Looking for ship with id={ship_id}, company={company_uuid}")
         
-        # Get ship information
+        # Get company name for dual lookup (some ships have company as name, not UUID)
+        company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
+        company_name = company_doc.get("name_vn") if company_doc else None
+        
+        # Try dual lookup: first by UUID, then by company name (for legacy data)
         ship = await mongo_db.find_one("ships", {
             "id": ship_id,
             "company": company_uuid
         })
         
+        if not ship and company_name:
+            # Fallback: Try finding ship by company name (legacy data compatibility)
+            logger.info(f"🔄 Ship not found with UUID, trying company name: {company_name}")
+            ship = await mongo_db.find_one("ships", {
+                "id": ship_id,
+                "company": company_name
+            })
+            if ship:
+                logger.info(f"✅ Ship found using company name: {company_name}")
+        
         if not ship:
             # Debug: Try finding ship without company filter
             ship_any_company = await mongo_db.find_one("ships", {"id": ship_id})
             if ship_any_company:
-                logger.error(f"❌ Ship {ship_id} exists but belongs to company {ship_any_company.get('company')}, not {company_uuid}")
+                logger.error(f"❌ Ship {ship_id} exists but belongs to company {ship_any_company.get('company')}, not {company_uuid} or {company_name}")
             else:
                 logger.error(f"❌ Ship {ship_id} not found in database at all")
         
