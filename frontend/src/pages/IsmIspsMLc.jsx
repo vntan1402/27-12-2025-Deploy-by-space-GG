@@ -1011,10 +1011,10 @@ const IsmIspsMLc = () => {
     const result = {
       filename: fileName,
       success: false,
-      auditReportCreated: false,
+      surveyReportCreated: false,  // Use Survey Report field names for BatchResultsModal compatibility
       fileUploaded: false,
-      reportName: '',
-      reportNo: '',
+      surveyReportName: '',  // Use Survey Report field names for BatchResultsModal compatibility
+      surveyReportNo: '',    // Use Survey Report field names for BatchResultsModal compatibility
       error: null
     };
     
