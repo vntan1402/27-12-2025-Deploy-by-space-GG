@@ -803,64 +803,86 @@ This is a fallback test audit report for API testing.
             if result.returncode == 0:
                 log_content = result.stdout
                 
-                # Check for System AI extraction specific log messages (from review request)
+                # Check for CRITICAL log messages from review request
+                starting_analysis = "📋 Starting audit report analysis" in log_content
+                document_ai_success = "🔍 Document AI success: True" in log_content
+                document_ai_summary = "📝 Document AI summary length:" in log_content
                 extracting_fields = "🧠 Extracting audit report fields from SUMMARY (System AI)" in log_content
+                sending_prompt = "📤 Sending extraction prompt to gemini" in log_content
+                ai_response = "🤖 Audit Report AI response received" in log_content
                 extraction_complete = "✅ System AI extraction from summary completed!" in log_content
+                
+                # Specific extraction logs
                 extracted_name = "📋 Extracted Audit Name:" in log_content
                 extracted_type = "📝 Extracted Audit Type:" in log_content
                 extracted_form = "📄 Extracted Report Form:" in log_content
+                extracted_no = "🔢 Extracted Audit No:" in log_content
+                extracted_ship = "🚢 Extracted Ship Name:" in log_content
+                extracted_imo = "📍 Extracted Ship IMO:" in log_content
                 
-                # Check for AI config messages
-                system_ai_config = "✅ Using emergent_llm_key from system AI config" in log_content
-                fallback_key = "⚠️ No system AI config found, using fallback emergent_llm_key" in log_content
-                ai_analyzing = "🤖 AI analyzing audit report file" in log_content
-                ai_complete = "✅ AI analysis complete for audit report" in log_content
-                gemini_model = "gemini" in log_content.lower()
+                print(f"\n📋 CRITICAL BACKEND LOGS VERIFICATION (from review request):")
+                print(f"   📋 Starting audit report analysis: {'✅ FOUND' if starting_analysis else '❌ NOT FOUND'}")
+                print(f"   🔍 Document AI success: True: {'✅ FOUND' if document_ai_success else '❌ NOT FOUND'}")
+                print(f"   📝 Document AI summary length: {'✅ FOUND' if document_ai_summary else '❌ NOT FOUND'}")
+                print(f"   🧠 Extracting fields from SUMMARY: {'✅ FOUND' if extracting_fields else '❌ NOT FOUND'}")
+                print(f"   📤 Sending extraction prompt to gemini: {'✅ FOUND' if sending_prompt else '❌ NOT FOUND'}")
+                print(f"   🤖 Audit Report AI response received: {'✅ FOUND' if ai_response else '❌ NOT FOUND'}")
+                print(f"   ✅ System AI extraction completed: {'✅ FOUND' if extraction_complete else '❌ NOT FOUND'}")
                 
-                print(f"   📋 SYSTEM AI EXTRACTION LOGS:")
-                print(f"   📋 Extracting fields from summary: {'✅ FOUND' if extracting_fields else '❌ NOT FOUND'}")
-                print(f"   📋 System AI extraction complete: {'✅ FOUND' if extraction_complete else '❌ NOT FOUND'}")
-                print(f"   📋 Extracted audit name log: {'✅ FOUND' if extracted_name else '❌ NOT FOUND'}")
-                print(f"   📋 Extracted audit type log: {'✅ FOUND' if extracted_type else '❌ NOT FOUND'}")
-                print(f"   📋 Extracted report form log: {'✅ FOUND' if extracted_form else '❌ NOT FOUND'}")
+                print(f"\n📋 SPECIFIC FIELD EXTRACTION LOGS:")
+                print(f"   📋 Extracted Audit Name: {'✅ FOUND' if extracted_name else '❌ NOT FOUND'}")
+                print(f"   📝 Extracted Audit Type: {'✅ FOUND' if extracted_type else '❌ NOT FOUND'}")
+                print(f"   📄 Extracted Report Form: {'✅ FOUND' if extracted_form else '❌ NOT FOUND'}")
+                print(f"   🔢 Extracted Audit No: {'✅ FOUND' if extracted_no else '❌ NOT FOUND'}")
+                print(f"   🚢 Extracted Ship Name: {'✅ FOUND' if extracted_ship else '❌ NOT FOUND'}")
+                print(f"   📍 Extracted Ship IMO: {'✅ FOUND' if extracted_imo else '❌ NOT FOUND'}")
                 
-                print(f"\n   📋 AI CONFIG LOGS:")
-                print(f"   📋 System AI config used: {'✅ FOUND' if system_ai_config else '❌ NOT FOUND'}")
-                print(f"   📋 Fallback key used: {'✅ FOUND' if fallback_key else '❌ NOT FOUND'}")
-                print(f"   📋 AI analyzing log: {'✅ FOUND' if ai_analyzing else '❌ NOT FOUND'}")
-                print(f"   📋 AI analysis complete: {'✅ FOUND' if ai_complete else '❌ NOT FOUND'}")
-                print(f"   📋 Gemini model used: {'✅ FOUND' if gemini_model else '❌ NOT FOUND'}")
+                # Count critical logs found
+                critical_logs = [
+                    starting_analysis, document_ai_success, document_ai_summary,
+                    extracting_fields, sending_prompt, ai_response, extraction_complete
+                ]
+                critical_found = sum(1 for log in critical_logs if log)
                 
-                # Print recent System AI extraction log lines
+                extraction_logs = [
+                    extracted_name, extracted_type, extracted_form,
+                    extracted_no, extracted_ship, extracted_imo
+                ]
+                extraction_found = sum(1 for log in extraction_logs if log)
+                
+                print(f"\n📊 LOG VERIFICATION SUMMARY:")
+                print(f"   Critical process logs: {critical_found}/7")
+                print(f"   Field extraction logs: {extraction_found}/6")
+                
+                # Print recent relevant log lines
                 lines = log_content.split('\n')
-                system_ai_lines = [line for line in lines if any(keyword in line for keyword in 
-                                ['System AI', 'Extracting audit report fields', 'Extracted Audit', 'Extracted Report', 'extraction from summary'])]
+                relevant_lines = [line for line in lines if any(keyword in line for keyword in 
+                                ['audit report analysis', 'Document AI', 'System AI', 'Extracting audit', 'Extracted Audit', 'gemini'])]
                 
-                if system_ai_lines:
-                    print(f"\n📄 System AI Extraction Logs:")
-                    for line in system_ai_lines[-10:]:  # Last 10 System AI lines
-                        print(f"   {line}")
+                if relevant_lines:
+                    print(f"\n📄 Recent Audit Report Analysis Logs:")
+                    for line in relevant_lines[-15:]:  # Last 15 relevant lines
+                        if line.strip():
+                            print(f"   {line}")
                 else:
-                    print(f"   ⚠️ No System AI extraction logs found")
+                    print(f"   ⚠️ No audit report analysis logs found")
                 
-                # Print recent AI analysis log lines
-                ai_lines = [line for line in lines if any(keyword in line for keyword in 
-                           ['AI config', 'emergent_llm_key', 'AI analyzing', 'AI analysis', 'gemini', 'audit-reports/analyze'])]
+                # SUCCESS CRITERIA 4 & 5 from review request
+                criteria_4_met = extracting_fields and extraction_complete
+                criteria_5_met = extraction_found >= 3  # At least 3 field extraction logs
                 
-                if ai_lines:
-                    print(f"\n📄 Recent AI Analysis Logs:")
-                    for line in ai_lines[-10:]:  # Last 10 AI lines
-                        print(f"   {line}")
+                print(f"\n✅ SUCCESS CRITERIA FROM LOGS:")
+                print(f"   Criterion 4 - System AI extraction logs: {'✅ MET' if criteria_4_met else '❌ NOT MET'}")
+                print(f"   Criterion 5 - Field extraction logs: {'✅ MET' if criteria_5_met else '❌ NOT MET'}")
                 
-                # Return whether System AI extraction logs were found
-                return extracting_fields and extraction_complete
+                return criteria_4_met, criteria_5_met
                     
             else:
                 print(f"   ⚠️ Could not read backend logs")
-                return False
+                return False, False
         except Exception as e:
             print(f"   ⚠️ Log check failed: {e}")
-            return False
+            return False, False
 
     def check_ai_config_logs(self):
         """Helper method to check backend logs for AI config retrieval messages"""
