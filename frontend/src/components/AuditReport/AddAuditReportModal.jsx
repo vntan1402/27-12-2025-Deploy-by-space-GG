@@ -209,21 +209,26 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
 
   // Process successful analysis
   const processAnalysisSuccess = (analysis, file) => {
+    console.log('🔍 Analysis data received:', analysis);
+    
     // Store complete analysis data (including _file_content, _summary_text)
     setAnalyzedData(analysis);
     
     // Auto-populate form fields
-    setFormData(prev => ({
-      ...prev,
-      audit_report_name: analysis.audit_report_name || prev.audit_report_name,
-      audit_type: analysis.audit_type || prev.audit_type,
-      audit_report_no: analysis.audit_report_no || prev.audit_report_no,
-      audit_date: analysis.audit_date ? analysis.audit_date.split('T')[0] : prev.audit_date,
-      issued_by: analysis.issued_by || prev.issued_by,
-      status: analysis.status || prev.status,
-      note: analysis.note || prev.note,
-      auditor_name: analysis.auditor_name || prev.auditor_name
-    }));
+    const newFormData = {
+      ...formData,
+      audit_report_name: analysis.audit_report_name || formData.audit_report_name,
+      audit_type: analysis.audit_type || formData.audit_type,
+      audit_report_no: analysis.audit_report_no || formData.audit_report_no,
+      audit_date: analysis.audit_date ? analysis.audit_date.split('T')[0] : formData.audit_date,
+      issued_by: analysis.issued_by || formData.issued_by,
+      status: analysis.status || formData.status,
+      note: analysis.note || formData.note,
+      auditor_name: analysis.auditor_name || formData.auditor_name
+    };
+    
+    console.log('📝 Setting form data:', newFormData);
+    setFormData(newFormData);
 
     // Show split info if file was split
     if (analysis._split_info?.was_split) {
