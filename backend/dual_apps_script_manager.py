@@ -146,7 +146,8 @@ class DualAppsScriptManager:
         filename: str, 
         content_type: str,
         document_ai_config: Dict[str, Any],
-        action: str = "analyze_passport_document_ai"  # Default to passport for backward compatibility
+        action: str = "analyze_passport_document_ai",  # Default to passport for backward compatibility
+        document_type: str = None  # NEW: Specify document type for AI extraction
     ) -> Dict[str, Any]:
         """
         Call System Apps Script for Document AI processing only
@@ -155,6 +156,9 @@ class DualAppsScriptManager:
             action: Apps Script action to call
                 - "analyze_passport_document_ai" for passports
                 - "analyze_maritime_document_ai" for survey reports / maritime documents
+            document_type: Type of document for field extraction
+                - "survey_report" for survey reports
+                - "audit_report" for audit reports
         """
         try:
             if not self.system_apps_script_url:
@@ -170,6 +174,11 @@ class DualAppsScriptManager:
                 "location": document_ai_config.get("location", "us"),
                 "processor_id": document_ai_config.get("processor_id")
             }
+            
+            # Add document_type if specified (helps Apps Script use correct extraction template)
+            if document_type:
+                payload["document_type"] = document_type
+                logger.info(f"📄 Document type specified: {document_type}")
             
             logger.info(f"📡 Calling System Apps Script for Document AI: {filename} (action: {action})")
             
