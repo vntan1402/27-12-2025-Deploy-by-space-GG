@@ -1050,9 +1050,10 @@ const IsmIspsMLc = () => {
       setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 40 }));
 
       // Step 2: Create report record
+      // Keep 'analyzing' during record creation (part of same phase)
       setAuditReportFileSubStatusMap(prev => ({ 
         ...prev, 
-        [fileName]: 'Creating record...' 
+        [fileName]: 'analyzing' 
       }));
 
       const reportData = {
