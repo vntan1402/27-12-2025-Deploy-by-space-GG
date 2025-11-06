@@ -89,8 +89,23 @@ export const AuditReportList = ({
   // Get abbreviation from full name
   const getAbbreviation = (fullName) => {
     if (!fullName) return '';
-    const words = fullName.trim().split(/\s+/);
-    if (words.length === 1) return words[0].substring(0, 3).toUpperCase();
+    
+    const trimmed = fullName.trim();
+    
+    // If already an abbreviation (all uppercase, no spaces or short), return as-is
+    // Examples: PMDS, DNV, LR, BV, RINA
+    if (trimmed.length <= 6 && trimmed === trimmed.toUpperCase() && !/\s/.test(trimmed)) {
+      return trimmed;
+    }
+    
+    // Otherwise, create abbreviation
+    const words = trimmed.split(/\s+/);
+    if (words.length === 1) {
+      // Single word but long (e.g., "Panama") - take first 3 chars
+      return words[0].substring(0, 3).toUpperCase();
+    }
+    
+    // Multiple words - take first letter of each (max 4 words)
     return words.slice(0, 4).map(word => word[0]).join('').toUpperCase();
   };
 
