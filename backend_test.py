@@ -949,12 +949,12 @@ class BackendAPITester:
 
 
 if __name__ == "__main__":
-    """Main execution - run Report Form & OCR Extraction tests"""
+    """Main execution - run OCR Extraction tests"""
     tester = BackendAPITester()
     success = tester.run_all_tests()
     
     if success:
-        print(f"\n🎉 ALL TESTS PASSED - REPORT FORM & OCR EXTRACTION VERIFIED SUCCESSFULLY")
+        print(f"\n🎉 ALL TESTS PASSED - OCR EXTRACTION VERIFIED SUCCESSFULLY")
         sys.exit(0)
     else:
         print(f"\n❌ SOME TESTS FAILED - REVIEW RESULTS ABOVE")
