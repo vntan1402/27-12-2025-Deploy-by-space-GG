@@ -1,68 +1,91 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Audit Report AI Analysis Field Extraction Fix Verification
+Backend API Testing Script - Audit Report AI Analysis with User PDF - Summary Text and Field Extraction
 
-FOCUS: Test Audit Report AI Analysis with Real User PDF - Field Extraction Fix Verification
-OBJECTIVE: Verify that the new System AI extraction fix resolves the empty fields issue for Audit Report analysis.
+FOCUS: Test Audit Report AI Analysis Complete Flow - Document AI Summary + System AI Extraction
+OBJECTIVE: Verify Summary Text (_summary_text) is populated by Document AI and System AI extraction is called with the summary
 
-WHAT WAS FIXED:
-- Added extract_audit_report_fields_from_summary() function to extract fields from Document AI summary using Gemini
-- Updated audit report analysis endpoint to call this function after Document AI completes
-- This mirrors the working Survey Report extraction pattern
+CRITICAL TEST REQUIREMENTS FROM REVIEW REQUEST:
+1. Summary text (`_summary_text`) is populated by Document AI
+2. System AI extraction is called with the summary  
+3. All fields are extracted correctly
 
-User provided: "ISM-Code Audit-Plan (07-230.pdf"
-URL: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
+TEST FILE:
+- PDF URL: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
+- Expected size: ~450-460KB
 
-TEST REQUIREMENTS:
-1. Setup:
-   - Login with admin1/123456
-   - Get company_id and ship list
-   - Find BROTHER 36 ship (or any available ship)
+COMPREHENSIVE TEST FLOW:
+1. Authentication & Setup:
+   - Login: admin1 / 123456
+   - Get company_id and ship_id for BROTHER 36
 
-2. Download Test PDF:
-   - Download the PDF from provided URL
-   - Verify file is valid PDF (check size and content)
-
-3. Test Audit Report Analysis Endpoint:
+2. Audit Report AI Analysis:
    - POST /api/audit-reports/analyze
-   - Parameters: ship_id, file (real PDF), bypass_validation="false"
-   - Expected response: success=true, analysis object with all fields
-   - Should return 200 OK (NOT 400, 403, or 500)
+   - audit_report_file: User's PDF
+   - ship_id: BROTHER 36 ID
+   - bypass_validation: false
 
-4. Verify Analysis Results:
-   - Check if extracted data makes sense for an ISM Code Audit Plan
-   - Verify audit_type should be "ISM" or related
-   - Check if dates are properly extracted
-   - Verify ship name in analysis
+3. CRITICAL CHECKS - Response Data:
+   Check the response JSON for these fields:
+   {
+     "analysis": {
+       "audit_report_name": "...",  // Should NOT be empty
+       "audit_type": "...",          // Should NOT be empty  
+       "report_form": "...",         // Should NOT be empty
+       "audit_report_no": "...",     // Should NOT be empty
+       "ship_name": "...",           // Should NOT be empty
+       "ship_imo": "...",            // Should NOT be empty
+       "auditor_name": "...",        // Should NOT be empty
+       "issued_by": "...",           // May be empty
+       "audit_date": "...",          // Should have date
+       "_summary_text": "...",       // **CRITICAL**: Should have Document AI summary (100+ chars)
+       "_file_content": "...",       // Base64 file content
+       "processing_method": "system_ai_extraction_from_summary"  // Should indicate new method
+     }
+   }
 
-5. Backend Logs Verification:
-   - Check for "🤖 AI analyzing audit report file" log
-   - Check for AI config fallback mechanism working
-   - Check for "✅ AI analysis complete for audit report" log
-   - Verify no errors related to parameter parsing (bypass_validation)
-   - Confirm Gemini model usage logs
+4. CRITICAL CHECKS - Backend Logs:
+   Search backend logs for these specific messages:
+   "📋 Starting audit report analysis"
+   "🔍 Document AI success: True"
+   "📝 Document AI summary length: XXX chars"  // Should be > 100
+   "🧠 Extracting audit report fields from SUMMARY (System AI)..."
+   "📤 Sending extraction prompt to gemini"
+   "🤖 Audit Report AI response received"
+   "✅ System AI extraction from summary completed!"
+   "📋 Extracted Audit Name: '...'"
+   "📝 Extracted Audit Type: '...'"
+   "📄 Extracted Report Form: '...'"
+   "🔢 Extracted Audit No: '...'"
+   "🚢 Extracted Ship Name: '...'"
+   "📍 Extracted Ship IMO: '...'"
 
-SUCCESS CRITERIA (from review request):
-- ✅ Endpoint returns 200 OK
-- ✅ At least 5 out of 9 fields contain non-empty values
-- ✅ Fields like audit_report_name, audit_type, ship_name should have real data
-- ✅ Backend logs show System AI extraction was performed
-- ✅ processing_method should be "system_ai_extraction_from_summary"
+5. VALIDATION:
+   - Verify `_summary_text` is NOT empty (this is needed for upload)
+   - Verify at least 6 out of 9 fields contain real data
+   - Verify backend logs show System AI extraction was called
+   - Verify `processing_method` = "system_ai_extraction_from_summary"
+
+KEY COMPARISON:
+- **Before fix**: All fields empty, no System AI extraction, processing_method = "clean_analysis"
+- **After fix**: Fields populated, System AI extraction logs present, processing_method = "system_ai_extraction_from_summary"
+
+SUCCESS CRITERIA:
+- ✅ `_summary_text` contains Document AI summary (100+ chars)
+- ✅ At least 6/9 fields populated with real data
+- ✅ Backend logs show "🧠 Extracting audit report fields from SUMMARY"
+- ✅ Backend logs show "✅ System AI extraction from summary completed!"
+- ✅ `processing_method` = "system_ai_extraction_from_summary"
 
 FAILURE INDICATORS:
-- ❌ All fields still return empty strings (same as before)
-- ❌ Backend logs don't show "Extracting audit report fields from SUMMARY"
-- ❌ processing_method is still "clean_analysis" (indicates old path)
-
-EXPECTED EXTRACTED DATA (based on PDF filename):
-- PDF contains "ISM-Code Audit-Plan (07-23)"
-- Should extract audit type related to ISM
-- Should extract auditor names
-- Should extract dates and reference numbers
+- ❌ `_summary_text` is empty or very short
+- ❌ All fields still empty
+- ❌ No System AI extraction logs
+- ❌ `processing_method` still "clean_analysis"
 
 Test credentials: admin1/123456
 Test ship: BROTHER 36 (or any available ship)
-Real PDF URL: https://customer-assets.emergentagent.com/job_audit-flow/artifacts/52s9rwyj_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
+Real PDF URL: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
 """
 
 import requests
