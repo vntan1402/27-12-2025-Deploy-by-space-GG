@@ -5517,6 +5517,121 @@ async def get_all_certificates(current_user: UserResponse = Depends(get_current_
 
 # ==================== Survey Report Helper Functions ====================
 
+async def extract_audit_report_fields_from_pdf_directly(
+    file_content: bytes,
+    filename: str,
+    ai_model: str,
+    use_emergent_key: bool
+) -> dict:
+    """
+    Extract audit report fields DIRECTLY from PDF file using Gemini 2.0 Flash
+    This bypasses Document AI and reads the PDF directly, ensuring footer/header content is captured
+    
+    Args:
+        file_content: Raw PDF file bytes
+        filename: Original filename
+        ai_model: Gemini model to use (e.g., gemini-2.0-flash)
+        use_emergent_key: Whether to use emergent LLM key
+    """
+    try:
+        logger.info("🎯 Starting DIRECT PDF extraction with Gemini 2.0 Flash...")
+        
+        if not use_emergent_key:
+            logger.warning("Direct PDF extraction requires emergent key")
+            return {}
+        
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        import base64
+        
+        emergent_key = get_emergent_llm_key()
+        
+        # Create prompt for direct PDF extraction
+        extraction_prompt = f"""You are an AI specialized in maritime audit report information extraction.
+
+**TASK**: Extract key information from this PDF audit report.
+
+**IMPORTANT**: This PDF contains header and footer information. Make sure to read the ENTIRE document including headers and footers.
+
+**FILENAME**: {filename}
+(The filename often contains hints about the report form)
+
+**EXTRACT THE FOLLOWING FIELDS** (return as JSON):
+
+{{
+    "audit_report_name": "Main title/name of the audit report",
+    "audit_type": "Type of audit (ISM CODE, ISPS, MLC, etc.)",
+    "report_form": "**CRITICAL** - Form code/number (CHECK FOOTER/HEADER FIRST) - Examples: '07-23', 'CG (02-19)', 'ISM-AUD-01'",
+    "audit_report_no": "Report number/reference",
+    "issued_by": "Organization that issued the report",
+    "audit_date": "Date of audit (YYYY-MM-DD format)",
+    "auditor_name": "Name(s) of auditor(s)",
+    "ship_name": "Name of ship being audited",
+    "ship_imo": "IMO number (7 digits)",
+    "note": "Any important notes or observations"
+}}
+
+**CRITICAL FOR REPORT_FORM**:
+- LOOK IN FOOTER/HEADER FIRST (bottom and top of pages)
+- May appear as "(07-23)", "Form 7.10", "CG (02-19)", etc.
+- Often repeats on every page in header/footer
+- Check filename as hint: {filename}
+
+**OUTPUT**: Return ONLY valid JSON, no extra text."""
+
+        # Create chat with file upload capability
+        chat = LlmChat(
+            api_key=emergent_key,
+            session_id=f"direct_pdf_extract_{int(time.time())}",
+            system_message="You are a maritime document analysis expert. Extract information accurately from PDF files."
+        ).with_model("gemini", ai_model)
+        
+        # Encode PDF as base64 for upload
+        pdf_base64 = base64.b64encode(file_content).decode('utf-8')
+        
+        logger.info(f"📤 Sending PDF ({len(file_content)} bytes) directly to {ai_model}...")
+        
+        # Send PDF with extraction prompt
+        user_message = UserMessage(
+            text=extraction_prompt,
+            files=[{
+                "data": pdf_base64,
+                "mime_type": "application/pdf",
+                "name": filename
+            }]
+        )
+        
+        ai_response = await chat.send_message(user_message)
+        
+        if ai_response and ai_response.strip():
+            content = ai_response.strip()
+            logger.info("🤖 Direct PDF AI response received")
+            
+            # Parse JSON response
+            try:
+                clean_content = content.replace('```json', '').replace('```', '').strip()
+                extracted_data = json.loads(clean_content)
+                
+                logger.info("✅ Direct PDF extraction successful!")
+                logger.info(f"   📄 Report Form: '{extracted_data.get('report_form')}'")
+                logger.info(f"   📋 Audit Name: '{extracted_data.get('audit_report_name')}'")
+                logger.info(f"   🚢 Ship Name: '{extracted_data.get('ship_name')}'")
+                
+                return extracted_data
+                
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse direct PDF extraction JSON: {e}")
+                logger.error(f"Raw content: {content[:500]}")
+                return {}
+        else:
+            logger.error("No content in direct PDF AI response")
+            return {}
+            
+    except Exception as e:
+        logger.error(f"Direct PDF extraction error: {e}")
+        logger.error(f"Error traceback: {traceback.format_exc()}")
+        return {}
+
+
 async def extract_audit_report_fields_from_summary(
     summary_text: str,
     ai_provider: str,
