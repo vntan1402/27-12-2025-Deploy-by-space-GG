@@ -1043,8 +1043,8 @@ const IsmIspsMLc = () => {
       }
 
       const analysis = data.analysis;
-      result.reportName = analysis.audit_report_name || file.name;
-      result.reportNo = analysis.audit_report_no || '';
+      result.surveyReportName = analysis.audit_report_name || file.name;
+      result.surveyReportNo = analysis.audit_report_no || '';
       
       setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 40 }));
 
