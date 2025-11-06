@@ -711,46 +711,77 @@ This is a fallback test audit report for API testing.
             self.print_result(False, f"Exception during audit report analysis test: {str(e)}")
             return False
     
-    def check_ai_config_logs(self):
-        """Helper method to check backend logs for AI config retrieval messages"""
+    def check_system_ai_extraction_logs(self):
+        """Helper method to check backend logs for System AI extraction process"""
         try:
             import subprocess
-            result = subprocess.run(['tail', '-n', '300', '/var/log/supervisor/backend.out.log'], 
+            result = subprocess.run(['tail', '-n', '500', '/var/log/supervisor/backend.out.log'], 
                                   capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
                 log_content = result.stdout
                 
-                # Check for expected AI config log messages (updated for real testing)
+                # Check for System AI extraction specific log messages (from review request)
+                extracting_fields = "🧠 Extracting audit report fields from SUMMARY (System AI)" in log_content
+                extraction_complete = "✅ System AI extraction from summary completed!" in log_content
+                extracted_name = "📋 Extracted Audit Name:" in log_content
+                extracted_type = "📝 Extracted Audit Type:" in log_content
+                extracted_form = "📄 Extracted Report Form:" in log_content
+                
+                # Check for AI config messages
                 system_ai_config = "✅ Using emergent_llm_key from system AI config" in log_content
                 fallback_key = "⚠️ No system AI config found, using fallback emergent_llm_key" in log_content
                 ai_analyzing = "🤖 AI analyzing audit report file" in log_content
                 ai_complete = "✅ AI analysis complete for audit report" in log_content
                 gemini_model = "gemini" in log_content.lower()
-                bypass_validation = "bypass_validation" in log_content
                 
+                print(f"   📋 SYSTEM AI EXTRACTION LOGS:")
+                print(f"   📋 Extracting fields from summary: {'✅ FOUND' if extracting_fields else '❌ NOT FOUND'}")
+                print(f"   📋 System AI extraction complete: {'✅ FOUND' if extraction_complete else '❌ NOT FOUND'}")
+                print(f"   📋 Extracted audit name log: {'✅ FOUND' if extracted_name else '❌ NOT FOUND'}")
+                print(f"   📋 Extracted audit type log: {'✅ FOUND' if extracted_type else '❌ NOT FOUND'}")
+                print(f"   📋 Extracted report form log: {'✅ FOUND' if extracted_form else '❌ NOT FOUND'}")
+                
+                print(f"\n   📋 AI CONFIG LOGS:")
                 print(f"   📋 System AI config used: {'✅ FOUND' if system_ai_config else '❌ NOT FOUND'}")
                 print(f"   📋 Fallback key used: {'✅ FOUND' if fallback_key else '❌ NOT FOUND'}")
                 print(f"   📋 AI analyzing log: {'✅ FOUND' if ai_analyzing else '❌ NOT FOUND'}")
                 print(f"   📋 AI analysis complete: {'✅ FOUND' if ai_complete else '❌ NOT FOUND'}")
                 print(f"   📋 Gemini model used: {'✅ FOUND' if gemini_model else '❌ NOT FOUND'}")
-                print(f"   📋 Bypass validation handled: {'✅ FOUND' if bypass_validation else '❌ NOT FOUND'}")
                 
-                # Print recent relevant log lines
+                # Print recent System AI extraction log lines
                 lines = log_content.split('\n')
-                relevant_lines = [line for line in lines if any(keyword in line for keyword in 
-                                ['AI config', 'emergent_llm_key', 'AI analyzing', 'AI analysis', 'gemini', 'system_ai', 'audit-reports/analyze', 'bypass_validation'])]
+                system_ai_lines = [line for line in lines if any(keyword in line for keyword in 
+                                ['System AI', 'Extracting audit report fields', 'Extracted Audit', 'Extracted Report', 'extraction from summary'])]
                 
-                if relevant_lines:
-                    print(f"\n📄 Recent audit report AI logs:")
-                    for line in relevant_lines[-15:]:  # Last 15 relevant lines
+                if system_ai_lines:
+                    print(f"\n📄 System AI Extraction Logs:")
+                    for line in system_ai_lines[-10:]:  # Last 10 System AI lines
                         print(f"   {line}")
                 else:
-                    print(f"   ⚠️ No AI config logs found")
+                    print(f"   ⚠️ No System AI extraction logs found")
+                
+                # Print recent AI analysis log lines
+                ai_lines = [line for line in lines if any(keyword in line for keyword in 
+                           ['AI config', 'emergent_llm_key', 'AI analyzing', 'AI analysis', 'gemini', 'audit-reports/analyze'])]
+                
+                if ai_lines:
+                    print(f"\n📄 Recent AI Analysis Logs:")
+                    for line in ai_lines[-10:]:  # Last 10 AI lines
+                        print(f"   {line}")
+                
+                # Return whether System AI extraction logs were found
+                return extracting_fields and extraction_complete
                     
             else:
                 print(f"   ⚠️ Could not read backend logs")
+                return False
         except Exception as e:
             print(f"   ⚠️ Log check failed: {e}")
+            return False
+
+    def check_ai_config_logs(self):
+        """Helper method to check backend logs for AI config retrieval messages"""
+        return self.check_system_ai_extraction_logs()
 
     def test_error_handling_invalid_ship(self):
         """Test 4: Error handling with invalid ship_id (should return 404)"""
