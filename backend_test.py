@@ -403,19 +403,19 @@ class BackendAPITester:
             print(f"❌ Exception downloading Audit Plan PDF: {str(e)}")
             return None
     
-    def test_audit_report_analyze_ncr_form_extraction(self):
-        """Test 4: Test POST /api/audit-reports/analyze and verify report_form extraction from NCR PDF"""
-        self.print_test_header("Test 4 - Audit Report Analysis with NCR Form Report Form Extraction")
+    def test_audit_report_validation_fail_case(self):
+        """Test Case 1: Validation FAIL - Ship info mismatch should return validation error"""
+        self.print_test_header("Test Case 1 - Audit Report Validation FAIL (Ship Info Mismatch)")
         
         if not self.access_token or not self.test_ship_id:
             self.print_result(False, "Missing required data from previous tests")
             return False
         
         try:
-            # Download the NCR test PDF
-            pdf_content = self.download_ncr_test_pdf()
+            # Download the Audit Plan test PDF (contains TRUONG MINH LUCKY, not BROTHER 36)
+            pdf_content = self.download_audit_plan_test_pdf()
             if not pdf_content:
-                self.print_result(False, "Failed to download NCR test PDF")
+                self.print_result(False, "Failed to download Audit Plan test PDF")
                 return False
             
             headers = {
@@ -425,29 +425,30 @@ class BackendAPITester:
             # Use the specific ship_id from review request
             target_ship_id = "bc444bc3-aea9-4491-b199-8098efcc16d2"  # BROTHER 36
             ship_name = "BROTHER 36"
+            ship_imo = "8743531"
             
-            print(f"🧪 TESTING AUDIT REPORT ANALYSIS WITH NCR FORM EXTRACTION:")
-            print(f"   🚢 Ship Name: {ship_name}")
+            print(f"🧪 TESTING AUDIT REPORT VALIDATION FAIL CASE:")
+            print(f"   🚢 Selected Ship: {ship_name} (IMO: {ship_imo})")
             print(f"   ✅ Using Ship ID: {target_ship_id}")
             print(f"   📄 PDF Size: {len(pdf_content):,} bytes")
-            print(f"   📄 PDF Filename: ISM-Code  NCR (07-23).pdf")
-            print(f"   🎯 Focus: Verify report_form extraction from footer")
-            print(f"   🎯 Expected report_form values: '(07-23)', 'NCR (07-23)', '07-23', or similar")
+            print(f"   📄 PDF Filename: ISM-Code Audit-Plan (07-230.pdf")
+            print(f"   🚢 PDF Contains Ship: TRUONG MINH LUCKY (should NOT match BROTHER 36)")
+            print(f"   🎯 Expected: Validation error with success=false, validation_error=true")
             
             # Prepare multipart form data for Audit Report analysis
             files = {
-                'audit_report_file': ('ISM-Code  NCR (07-23).pdf', pdf_content, 'application/pdf')
+                'audit_report_file': ('ISM-Code Audit-Plan (07-230.pdf', pdf_content, 'application/pdf')
             }
             
             data = {
                 'ship_id': target_ship_id,
-                'bypass_validation': 'true'  # Use true to bypass ship validation and get extracted data
+                'bypass_validation': 'false'  # Do NOT bypass validation - should fail
             }
             
             print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
             print(f"   📋 ship_id: {target_ship_id}")
-            print(f"   📋 bypass_validation: true")
-            print(f"   📋 filename: ISM-Code  NCR (07-23).pdf")
+            print(f"   📋 bypass_validation: false (validation should fail)")
+            print(f"   📋 filename: ISM-Code Audit-Plan (07-230.pdf")
             
             # Make the request
             start_time = time.time()
@@ -467,141 +468,90 @@ class BackendAPITester:
             if response.status_code == 200:
                 try:
                     response_data = response.json()
-                    print(f"✅ SUCCESS: Audit report analysis completed successfully!")
                     
-                    # Check response structure
-                    print(f"\n📋 RESPONSE ANALYSIS:")
-                    if 'success' in response_data:
-                        print(f"   ✅ success: {response_data.get('success')}")
+                    # Check if this is a validation error response
+                    success = response_data.get('success', True)
+                    validation_error = response_data.get('validation_error', False)
                     
-                    if 'message' in response_data:
-                        print(f"   📝 message: {response_data.get('message')}")
+                    print(f"\n🔍 VALIDATION ERROR RESPONSE VERIFICATION:")
+                    print(f"   📄 success: {success}")
+                    print(f"   📄 validation_error: {validation_error}")
                     
-                    # CRITICAL: Check for report_form field extraction
-                    analysis = response_data.get('analysis', {})
-                    report_form = analysis.get('report_form', '')
-                    
-                    print(f"\n🔍 REPORT FORM EXTRACTION VERIFICATION:")
-                    print(f"   📄 report_form field present: {'✅ YES' if 'report_form' in analysis else '❌ NO'}")
-                    print(f"   📄 report_form value: '{report_form}'")
-                    print(f"   📄 report_form populated: {'✅ YES' if report_form and report_form.strip() else '❌ NO'}")
-                    
-                    # Check if report_form matches expected values
-                    expected_values = ['(07-23)', 'NCR (07-23)', '07-23', '07-230']
-                    form_match = any(expected in str(report_form) for expected in expected_values) if report_form else False
-                    
-                    print(f"   📄 Expected values: {expected_values}")
-                    print(f"   ✅ Form matches expected: {'✅ YES' if form_match else '❌ NO'}")
-                    
-                    # Check Document AI summary for footer content
-                    summary_text = analysis.get('_summary_text', '')
-                    print(f"\n🔍 DOCUMENT AI SUMMARY ANALYSIS:")
-                    print(f"   📄 _summary_text present: {'✅ YES' if summary_text else '❌ NO'}")
-                    
-                    if summary_text:
-                        summary_length = len(summary_text)
-                        print(f"   📏 _summary_text length: {summary_length:,} characters")
+                    if not success and validation_error:
+                        print(f"✅ SUCCESS: Validation correctly failed as expected!")
                         
-                        # Look for footer-related content in summary
-                        footer_keywords = ['footer', 'bottom', '07-23', 'NCR', 'form']
-                        footer_content_found = any(keyword.lower() in summary_text.lower() for keyword in footer_keywords)
-                        print(f"   📄 Footer-related content: {'✅ FOUND' if footer_content_found else '❌ NOT FOUND'}")
+                        # Verify response structure
+                        required_fields = ['validation_details', 'message', 'extracted_ship_name', 'extracted_ship_imo', 'expected_ship_name', 'expected_ship_imo']
+                        missing_fields = []
                         
-                        # Check for OCR section (if available)
-                        has_ocr_section = "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)" in summary_text
-                        print(f"   📄 OCR Header/Footer Section: {'✅ FOUND' if has_ocr_section else '❌ NOT FOUND'}")
+                        for field in required_fields:
+                            if field not in response_data:
+                                missing_fields.append(field)
                         
-                        if has_ocr_section:
-                            # Extract footer text from OCR section
-                            ocr_start = summary_text.find("ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)")
-                            if ocr_start >= 0:
-                                ocr_section = summary_text[ocr_start:]
-                                has_footer_section = "=== FOOTER TEXT (Bottom 15% of page) ===" in ocr_section
-                                print(f"   📄 OCR Footer subsection: {'✅ FOUND' if has_footer_section else '❌ NOT FOUND'}")
-                                
-                                if has_footer_section:
-                                    footer_start = ocr_section.find("=== FOOTER TEXT (Bottom 15% of page) ===")
-                                    footer_end = ocr_section.find("============================================================", footer_start + 50)
-                                    if footer_start >= 0:
-                                        if footer_end > footer_start:
-                                            footer_content = ocr_section[footer_start:footer_end].strip()
-                                        else:
-                                            footer_content = ocr_section[footer_start:].strip()
-                                        footer_text = footer_content.replace("=== FOOTER TEXT (Bottom 15% of page) ===", "").strip()
-                                        print(f"   📄 Footer text length: {len(footer_text)} characters")
-                                        if len(footer_text) > 0:
-                                            print(f"   📝 Footer sample: {footer_text[:200]}...")
-                                            # Check if footer contains form code
-                                            footer_has_form = any(expected in footer_text for expected in expected_values)
-                                            print(f"   ✅ Footer contains form code: {'✅ YES' if footer_has_form else '❌ NO'}")
-                    
-                    # Check other extracted fields
-                    print(f"\n📊 OTHER EXTRACTED FIELDS:")
-                    key_fields = ['audit_report_name', 'audit_type', 'audit_report_no', 'audit_date', 'auditor_name', 'issued_by', 'status', 'note']
-                    for field in key_fields:
-                        value = analysis.get(field, 'Not extracted')
-                        print(f"   {field}: {value}")
-                    
-                    if 'ship_name' in response_data:
-                        print(f"   🚢 ship_name: {response_data.get('ship_name')}")
-                    
-                    if 'ship_imo' in response_data:
-                        print(f"   🔢 ship_imo: {response_data.get('ship_imo')}")
-                    
-                    # Overall validation
-                    print(f"\n🎯 SUCCESS CRITERIA VALIDATION:")
-                    report_form_populated = bool(report_form and report_form.strip())
-                    form_matches_expected = form_match
-                    
-                    print(f"   ✅ report_form is populated: {'✅ YES' if report_form_populated else '❌ NO'}")
-                    print(f"   ✅ Value matches expected: {'✅ YES' if form_matches_expected else '❌ NO'}")
-                    print(f"   📄 Actual report_form: '{report_form}'")
-                    
-                    # Success criteria from review request
-                    success_criteria_met = report_form_populated and form_matches_expected
-                    
-                    if success_criteria_met:
-                        print(f"\n🎉 NCR FORM REPORT_FORM EXTRACTION SUCCESSFUL!")
-                        print(f"   ✅ report_form field populated: '{report_form}'")
-                        print(f"   ✅ Value matches expected form code")
-                        print(f"   ✅ System AI successfully extracted report_form from NCR PDF")
+                        print(f"\n📋 VALIDATION ERROR RESPONSE STRUCTURE:")
+                        print(f"   📄 Required fields present: {'✅ YES' if not missing_fields else '❌ NO'}")
+                        if missing_fields:
+                            print(f"   ❌ Missing fields: {missing_fields}")
                         
-                        self.print_result(True, f"NCR form report_form extraction successful: '{report_form}'")
-                        return True
+                        # Check validation details
+                        validation_details = response_data.get('validation_details', {})
+                        print(f"   📄 validation_details: {validation_details}")
+                        
+                        # Check extracted vs expected ship info
+                        extracted_ship_name = response_data.get('extracted_ship_name', '')
+                        extracted_ship_imo = response_data.get('extracted_ship_imo', '')
+                        expected_ship_name = response_data.get('expected_ship_name', '')
+                        expected_ship_imo = response_data.get('expected_ship_imo', '')
+                        
+                        print(f"\n🔍 SHIP INFO COMPARISON:")
+                        print(f"   📄 Extracted Ship Name: '{extracted_ship_name}'")
+                        print(f"   📄 Extracted Ship IMO: '{extracted_ship_imo}'")
+                        print(f"   📄 Expected Ship Name: '{expected_ship_name}'")
+                        print(f"   📄 Expected Ship IMO: '{expected_ship_imo}'")
+                        
+                        # Verify the mismatch is correct
+                        expected_mismatch = (extracted_ship_name != expected_ship_name) or (extracted_ship_imo != expected_ship_imo)
+                        print(f"   ✅ Ship info mismatch confirmed: {'✅ YES' if expected_mismatch else '❌ NO'}")
+                        
+                        # Check message
+                        message = response_data.get('message', '')
+                        expected_message_keywords = ['mismatch', 'verify', 'bypass']
+                        message_appropriate = any(keyword.lower() in message.lower() for keyword in expected_message_keywords)
+                        print(f"   📄 Message: '{message}'")
+                        print(f"   ✅ Message appropriate: {'✅ YES' if message_appropriate else '❌ NO'}")
+                        
+                        # Overall validation
+                        validation_response_correct = (not success and validation_error and 
+                                                     not missing_fields and expected_mismatch and 
+                                                     message_appropriate)
+                        
+                        if validation_response_correct:
+                            print(f"\n🎉 VALIDATION FAIL CASE SUCCESSFUL!")
+                            print(f"   ✅ Validation correctly failed for mismatched ship info")
+                            print(f"   ✅ Response structure matches expected format")
+                            print(f"   ✅ Ship info mismatch properly detected")
+                            print(f"   ✅ Appropriate error message provided")
+                            
+                            self.print_result(True, "Validation fail case successful - ship mismatch correctly detected")
+                            return True
+                        else:
+                            print(f"\n❌ VALIDATION FAIL CASE ISSUES DETECTED!")
+                            print(f"   ❌ Response structure or content issues")
+                            self.print_result(False, "Validation fail case has response structure issues")
+                            return False
                     else:
-                        print(f"\n❌ NCR FORM REPORT_FORM EXTRACTION FAILED!")
-                        print(f"   ❌ report_form populated: {report_form_populated}")
-                        print(f"   ❌ Form matches expected: {form_matches_expected}")
-                        print(f"   📄 Actual value: '{report_form}'")
+                        print(f"❌ UNEXPECTED: Validation did not fail as expected!")
+                        print(f"   ❌ success: {success} (should be False)")
+                        print(f"   ❌ validation_error: {validation_error} (should be True)")
+                        print(f"   🔧 Ship validation may not be working correctly")
                         
-                        self.print_result(False, f"NCR form report_form extraction failed - Value: '{report_form}'")
+                        self.print_result(False, "Validation did not fail as expected - validation logic issue")
                         return False
                     
                 except json.JSONDecodeError:
                     print(f"❌ Response is not valid JSON")
                     print(f"📄 Response text: {response.text[:500]}...")
                     self.print_result(False, "Invalid JSON response from audit report analysis")
-                    return False
-                    
-            elif response.status_code == 404:
-                try:
-                    error_data = response.json()
-                    error_message = error_data.get('detail', 'Unknown error')
-                    
-                    if 'Ship not found' in error_message:
-                        print(f"🚨 CRITICAL: Getting 'Ship not found' error!")
-                        print(f"   ❌ Error: {error_message}")
-                        print(f"   🔧 Ship ID {target_ship_id} not found in backend")
-                        self.print_result(False, f"Ship not found error - cannot test NCR form extraction")
-                        return False
-                    else:
-                        print(f"❌ 404 Error (not ship-related): {error_message}")
-                        self.print_result(False, f"404 error: {error_message}")
-                        return False
-                        
-                except json.JSONDecodeError:
-                    print(f"❌ 404 error with non-JSON response: {response.text}")
-                    self.print_result(False, "404 error with invalid response format")
                     return False
                     
             else:
@@ -618,7 +568,168 @@ class BackendAPITester:
                     return False
                     
         except Exception as e:
-            self.print_result(False, f"Exception during NCR form extraction test: {str(e)}")
+            self.print_result(False, f"Exception during validation fail test: {str(e)}")
+            return False
+
+    def test_audit_report_validation_bypass_case(self):
+        """Test Case 2: Bypass Validation - Same PDF with bypass_validation=true should succeed"""
+        self.print_test_header("Test Case 2 - Audit Report Validation BYPASS (bypass_validation=true)")
+        
+        if not self.access_token or not self.test_ship_id:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            # Download the same Audit Plan test PDF
+            pdf_content = self.download_audit_plan_test_pdf()
+            if not pdf_content:
+                self.print_result(False, "Failed to download Audit Plan test PDF")
+                return False
+            
+            headers = {
+                "Authorization": f"Bearer {self.access_token}"
+            }
+            
+            # Use the same ship_id as previous test
+            target_ship_id = "bc444bc3-aea9-4491-b199-8098efcc16d2"  # BROTHER 36
+            ship_name = "BROTHER 36"
+            ship_imo = "8743531"
+            
+            print(f"🧪 TESTING AUDIT REPORT VALIDATION BYPASS CASE:")
+            print(f"   🚢 Selected Ship: {ship_name} (IMO: {ship_imo})")
+            print(f"   ✅ Using Ship ID: {target_ship_id}")
+            print(f"   📄 PDF Size: {len(pdf_content):,} bytes")
+            print(f"   📄 Same PDF as Test Case 1 (contains TRUONG MINH LUCKY)")
+            print(f"   🎯 Expected: Success with analysis data (validation bypassed)")
+            
+            # Prepare multipart form data for Audit Report analysis
+            files = {
+                'audit_report_file': ('ISM-Code Audit-Plan (07-230.pdf', pdf_content, 'application/pdf')
+            }
+            
+            data = {
+                'ship_id': target_ship_id,
+                'bypass_validation': 'true'  # BYPASS validation - should succeed
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/audit-reports/analyze")
+            print(f"   📋 ship_id: {target_ship_id}")
+            print(f"   📋 bypass_validation: true (validation should be bypassed)")
+            print(f"   📋 filename: ISM-Code Audit-Plan (07-230.pdf")
+            
+            # Make the request
+            start_time = time.time()
+            response = self.session.post(
+                f"{BACKEND_URL}/audit-reports/analyze",
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=120  # 2 minutes timeout for AI analysis
+            )
+            end_time = time.time()
+            
+            response_time = end_time - start_time
+            print(f"📊 Response Status: {response.status_code}")
+            print(f"⏱️ Response Time: {response_time:.1f} seconds")
+            
+            if response.status_code == 200:
+                try:
+                    response_data = response.json()
+                    
+                    # Check if this is a successful analysis response
+                    success = response_data.get('success', False)
+                    validation_error = response_data.get('validation_error', False)
+                    
+                    print(f"\n🔍 BYPASS VALIDATION RESPONSE VERIFICATION:")
+                    print(f"   📄 success: {success}")
+                    print(f"   📄 validation_error: {validation_error}")
+                    
+                    if success and not validation_error:
+                        print(f"✅ SUCCESS: Validation correctly bypassed as expected!")
+                        
+                        # Check for analysis data
+                        analysis = response_data.get('analysis', {})
+                        has_analysis_data = bool(analysis)
+                        
+                        print(f"\n📋 ANALYSIS DATA VERIFICATION:")
+                        print(f"   📄 analysis object present: {'✅ YES' if has_analysis_data else '❌ NO'}")
+                        
+                        if has_analysis_data:
+                            # Check key analysis fields
+                            key_fields = ['audit_report_name', 'audit_type', 'ship_name', 'ship_imo']
+                            populated_fields = []
+                            
+                            for field in key_fields:
+                                value = analysis.get(field, '')
+                                if value and str(value).strip():
+                                    populated_fields.append(field)
+                                print(f"   📄 {field}: '{value}'")
+                            
+                            print(f"   📊 Populated fields: {len(populated_fields)}/{len(key_fields)}")
+                            
+                            # Check ship info in analysis
+                            extracted_ship_name = analysis.get('ship_name', '')
+                            extracted_ship_imo = analysis.get('ship_imo', '')
+                            
+                            print(f"\n🔍 EXTRACTED SHIP INFO (should be TRUONG MINH LUCKY):")
+                            print(f"   📄 Extracted Ship Name: '{extracted_ship_name}'")
+                            print(f"   📄 Extracted Ship IMO: '{extracted_ship_imo}'")
+                            
+                            # Verify this is the mismatched ship info from PDF
+                            contains_truong_minh = 'TRUONG MINH' in extracted_ship_name.upper() if extracted_ship_name else False
+                            print(f"   ✅ Contains TRUONG MINH: {'✅ YES' if contains_truong_minh else '❌ NO'}")
+                        
+                        # Check message
+                        message = response_data.get('message', '')
+                        print(f"   📄 Message: '{message}'")
+                        
+                        # Overall validation
+                        bypass_successful = (success and not validation_error and has_analysis_data)
+                        
+                        if bypass_successful:
+                            print(f"\n🎉 VALIDATION BYPASS CASE SUCCESSFUL!")
+                            print(f"   ✅ Validation correctly bypassed")
+                            print(f"   ✅ Analysis data returned successfully")
+                            print(f"   ✅ Ship info extracted from PDF (TRUONG MINH LUCKY)")
+                            print(f"   ✅ No validation error despite ship mismatch")
+                            
+                            self.print_result(True, "Validation bypass case successful - analysis completed despite mismatch")
+                            return True
+                        else:
+                            print(f"\n❌ VALIDATION BYPASS CASE ISSUES!")
+                            print(f"   ❌ Expected success with analysis data")
+                            self.print_result(False, "Validation bypass case failed - no analysis data")
+                            return False
+                    else:
+                        print(f"❌ UNEXPECTED: Validation bypass did not work as expected!")
+                        print(f"   ❌ success: {success} (should be True)")
+                        print(f"   ❌ validation_error: {validation_error} (should be False)")
+                        print(f"   🔧 Bypass validation parameter may not be working")
+                        
+                        self.print_result(False, "Validation bypass failed - bypass parameter not working")
+                        return False
+                    
+                except json.JSONDecodeError:
+                    print(f"❌ Response is not valid JSON")
+                    print(f"📄 Response text: {response.text[:500]}...")
+                    self.print_result(False, "Invalid JSON response from audit report analysis")
+                    return False
+                    
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Request failed with status {response.status_code}")
+                    print(f"📄 Error: {error_data}")
+                    self.print_result(False, f"Audit report analysis failed with status {response.status_code}")
+                    return False
+                except:
+                    print(f"❌ Request failed with status {response.status_code}")
+                    print(f"📄 Response: {response.text[:500]}...")
+                    self.print_result(False, f"Audit report analysis failed with status {response.status_code}")
+                    return False
+                    
+        except Exception as e:
+            self.print_result(False, f"Exception during validation bypass test: {str(e)}")
             return False
     
     def test_backend_logs_verification(self):
