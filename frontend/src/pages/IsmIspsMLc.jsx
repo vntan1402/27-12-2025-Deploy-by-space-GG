@@ -1069,7 +1069,7 @@ const IsmIspsMLc = () => {
 
       const createResponse = await auditReportService.create(reportData);
       const createdReport = createResponse.data || createResponse;
-      result.auditReportCreated = true;
+      result.surveyReportCreated = true;
       
       setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 70 }));
 
