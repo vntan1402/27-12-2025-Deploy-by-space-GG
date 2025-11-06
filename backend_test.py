@@ -508,7 +508,7 @@ This is a fallback test audit report for API testing.
                     }
                     
                     print(f"📄 Uploading REAL PDF file for analysis...")
-                    print(f"📋 Parameters: ship_id={self.test_ship_id[:8]}..., bypass_validation=false")
+                    print(f"📋 Parameters: ship_id={self.test_ship_id[:8]}..., bypass_validation=true")
                     print(f"📋 File: ISM-Code-Audit-Plan (07-23) TRUONG MINH LUCKY.pdf")
                     
                     # Make the API request
