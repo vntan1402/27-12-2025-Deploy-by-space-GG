@@ -1,59 +1,51 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Audit Report File Upload Database Check
+Backend API Testing Script - Debug Ship ID Issue
 
-FOCUS: Verify Audit Report Summary File Upload - Database Check
-OBJECTIVE: Check if audit reports in database have both `audit_report_file_id` and `audit_report_summary_file_id` populated after upload.
+FOCUS: Debug Ship ID Issue - Find Correct Ship for Company
+OBJECTIVE: Identify why ship_id `9000377f-ac3f-48d8-ba83-a80fb1a8f490` is returning "Ship not found" error and find the correct ship ID for admin1 user.
 
 CRITICAL TEST REQUIREMENTS FROM REVIEW REQUEST:
-1. Login: admin1 / 123456
-2. Get audit reports for BROTHER 36 ship
-3. Find the most recently created report
-4. Check that both audit_report_file_id and audit_report_summary_file_id are populated (not null/empty)
-5. Verify both contain valid Google Drive file IDs
+1. Login as admin1 (username: admin1, password: 123456)
+2. Get Ships for Admin1's Company (GET /api/ships)
+3. Find "BROTHER 36" in the list and get its correct ship_id
+4. Compare the ship_id being used in frontend (9000377f-ac3f-48d8-ba83-a80fb1a8f490) with actual ship_id from database
+5. Test with Correct Ship ID using PDF: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
+6. Verify POST /api/audit-reports/analyze works with correct ship_id (should return 200 OK, not 404)
 
 TEST SCENARIO:
-1. **Authentication**:
-   - Login: admin1 / 123456
-   - Get access token
+1. **Login as admin1**:
+   - POST /api/auth/login
+   - username: admin1
+   - password: 123456
+   - Get access token and company_id
 
-2. **Get Audit Reports for BROTHER 36**:
-   - GET /api/audit-reports?ship_id={BROTHER_36_ID}
-   - Find the most recently created report
+2. **Get Ships for Admin1's Company**:
+   - GET /api/ships
+   - This will return all ships for the logged-in user's company
+   - Find "BROTHER 36" in the list
+   - Get its correct ship_id
 
-3. **Check File IDs in Database**:
-   For the most recent audit report, verify:
-   ```json
-   {
-     "audit_report_file_id": "...",  // Should have file ID (original PDF)
-     "audit_report_summary_file_id": "..."  // Should have file ID (summary text)
-   }
-   ```
+3. **Verify Ship IDs**:
+   - Compare the ship_id being used in frontend (9000377f-ac3f-48d8-ba83-a80fb1a8f490)
+   - With the actual ship_id from database for BROTHER 36
+   - Report the discrepancy
 
-4. **Verify Both Fields Are Populated**:
-   - `audit_report_file_id` should NOT be null/empty
-   - `audit_report_summary_file_id` should NOT be null/empty
-   - Both should be Google Drive file IDs (format: long alphanumeric string)
+4. **Test with Correct Ship ID**:
+   - Use the PDF: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
+   - POST /api/audit-reports/analyze with the **CORRECT** ship_id
+   - Verify it works (should return 200 OK, not 404)
 
-5. **Log the File IDs**:
-   - Print audit_report_file_id value
-   - Print audit_report_summary_file_id value
-   - Confirm both are present
+**EXPECTED FINDINGS**:
+- Ship ID `9000377f-ac3f-48d8-ba83-a80fb1a8f490` may belong to a different ship or different company
+- The correct ship_id for BROTHER 36 should be something else (likely `bc444bc3-aea9-4491-b199-8098efcc16d2` based on earlier logs)
 
-**EXPECTED RESULTS**:
-- ✅ audit_report_file_id: populated with file ID
-- ✅ audit_report_summary_file_id: populated with file ID
-- ✅ Both fields contain valid Google Drive file IDs
-
-**FAILURE INDICATORS**:
-- ❌ audit_report_summary_file_id is null/undefined/empty
-- ❌ Only audit_report_file_id is populated, summary is missing
-
-**SUCCESS CRITERIA**:
-If audit_report_summary_file_id is populated, the backend upload is working correctly and the issue is frontend display/refresh.
+**KEY QUESTION**:
+Why is the frontend sending the wrong ship_id? Is it a state management issue or local storage issue?
 
 Test credentials: admin1/123456
-Test ship: BROTHER 36 (or any available ship)
+Test ship: BROTHER 36
+PDF URL: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
 """
 
 import requests
