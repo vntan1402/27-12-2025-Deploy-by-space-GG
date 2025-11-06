@@ -7894,39 +7894,67 @@ async def analyze_audit_report_file(
                 }
                 
                 if analysis_only_result.get('success'):
-                    # Extract AI analysis from result
+                    # Extract AI analysis from Document AI result
                     ai_analysis = analysis_only_result.get('ai_analysis', {})
-                    data = ai_analysis.get('data', {}) if isinstance(ai_analysis, dict) else {}
+                    ai_success = ai_analysis.get('success', False)
+                    summary_text = ai_analysis.get('data', {}).get('summary', '') if ai_success else ''
                     
-                    # Field name mapping: Survey Report fields → Audit Report fields
-                    # Document AI may return Survey Report field names, so we need fallback mapping
-                    audit_report_name = data.get('audit_report_name', '') or data.get('survey_report_name', '')
-                    audit_type = data.get('audit_type', '') or data.get('audit_type_extracted', '')
-                    report_form = data.get('report_form', '') or data.get('report_form_extracted', '')
-                    audit_report_no = data.get('audit_report_no', '') or data.get('survey_report_no', '')
-                    audit_date = data.get('audit_date', '') or data.get('issued_date', '')
-                    auditor_name = data.get('auditor_name', '') or data.get('surveyor_name', '')
+                    logger.info(f"🔍 Document AI success: {ai_success}")
+                    logger.info(f"📝 Document AI summary length: {len(summary_text)} chars")
                     
-                    # Update analysis_result with extracted data (with fallback mapping)
-                    analysis_result.update({
-                        'audit_report_name': audit_report_name,
-                        'audit_type': audit_type,
-                        'report_form': report_form,
-                        'audit_report_no': audit_report_no,
-                        'issued_by': data.get('issued_by', ''),
-                        'audit_date': audit_date,
-                        'ship_name': data.get('ship_name', ''),
-                        'ship_imo': data.get('ship_imo', ''),
-                        'auditor_name': auditor_name,
-                        'note': data.get('note', ''),
-                        'status': data.get('status', 'Valid'),
-                        'confidence_score': ai_analysis.get('confidence_score', 0.0),
-                        'processing_method': analysis_only_result.get('processing_method', 'clean_analysis')
-                    })
+                    # Store summary for later use
+                    analysis_result['_summary_text'] = summary_text
                     
-                    logger.info(f"   📋 Extracted: name='{audit_report_name[:50]}', type='{audit_type}', form='{report_form}'")
+                    # ✨ KEY STEP: Extract fields from summary using System AI (Gemini)
+                    # This is what was missing! Same as Survey Report processing.
+                    if summary_text and len(summary_text) > 50:
+                        logger.info("🧠 Extracting audit report fields from SUMMARY (System AI)...")
+                        
+                        ai_provider = ai_config_doc.get("provider", "google")
+                        ai_model = ai_config_doc.get("model", "gemini-2.0-flash")
+                        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+                        
+                        extracted_fields = await extract_audit_report_fields_from_summary(
+                            summary_text,
+                            ai_provider,
+                            ai_model,
+                            use_emergent_key,
+                            filename
+                        )
+                        
+                        if extracted_fields:
+                            logger.info("✅ System AI extraction from summary completed!")
+                            logger.info(f"   📋 Extracted Audit Name: '{extracted_fields.get('audit_report_name')}'")
+                            logger.info(f"   📝 Extracted Audit Type: '{extracted_fields.get('audit_type')}'")
+                            logger.info(f"   📄 Extracted Report Form: '{extracted_fields.get('report_form')}'")
+                            logger.info(f"   🔢 Extracted Audit No: '{extracted_fields.get('audit_report_no')}'")
+                            logger.info(f"   🚢 Extracted Ship Name: '{extracted_fields.get('ship_name')}'")
+                            logger.info(f"   📍 Extracted Ship IMO: '{extracted_fields.get('ship_imo')}'")
+                            
+                            # Update analysis_result with extracted fields
+                            analysis_result.update({
+                                'audit_report_name': extracted_fields.get('audit_report_name', ''),
+                                'audit_type': extracted_fields.get('audit_type', ''),
+                                'report_form': extracted_fields.get('report_form', ''),
+                                'audit_report_no': extracted_fields.get('audit_report_no', ''),
+                                'issued_by': extracted_fields.get('issued_by', ''),
+                                'audit_date': extracted_fields.get('audit_date', ''),
+                                'ship_name': extracted_fields.get('ship_name', ''),
+                                'ship_imo': extracted_fields.get('ship_imo', ''),
+                                'auditor_name': extracted_fields.get('auditor_name', ''),
+                                'note': extracted_fields.get('note', ''),
+                                'status': 'Valid',
+                                'confidence_score': 0.9,
+                                'processing_method': 'system_ai_extraction_from_summary'
+                            })
+                        else:
+                            logger.warning("⚠️ No fields extracted from summary, using fallback")
+                    else:
+                        logger.warning(f"⚠️ Summary text too short ({len(summary_text)} chars), cannot extract fields")
+                    
+                    logger.info(f"   📋 Final: name='{analysis_result.get('audit_report_name', '')[:50]}', type='{analysis_result.get('audit_type', '')}', form='{analysis_result.get('report_form', '')}'")
                 else:
-                    logger.warning(f"⚠️ Audit report analysis failed, using fallback values")
+                    logger.warning(f"⚠️ Audit report Document AI analysis failed, using fallback values")
                 
             else:
                 # Split PDF and process each chunk
