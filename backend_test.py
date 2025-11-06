@@ -816,10 +816,10 @@ class BackendAPITester:
                     self.print_result(False, "Backend logs show partial OCR processing")
                     return False
                 else:
-                    print(f"\n❌ NO OCR/REPORT FORM LOGS FOUND")
+                    print(f"\n❌ NO OCR PROCESSING LOGS FOUND")
                     print(f"   🔧 This may indicate:")
+                    print(f"      - OCR processor not available (Tesseract not installed)")
                     print(f"      - OCR processing not implemented")
-                    print(f"      - Report form extraction not working")
                     print(f"      - Logs not being generated")
                     print(f"      - Recent audit analysis hasn't been performed")
                     
@@ -828,7 +828,7 @@ class BackendAPITester:
                         for i, log_line in enumerate(audit_analysis_logs[-3:], 1):  # Show last 3
                             print(f"      {i}. {log_line}")
                     
-                    self.print_result(False, "No OCR or report form extraction logs found in backend")
+                    self.print_result(False, "No OCR processing logs found in backend")
                     return False
                     
             else:
