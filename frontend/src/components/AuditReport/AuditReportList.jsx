@@ -805,8 +805,8 @@ export const AuditReportList = ({
                 </div>
               </th>
 
-              {/* Audit Report Name */}
-              <th 
+              {/* Audit Report Name - HIDDEN */}
+              {/* <th 
                 className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
                 onClick={() => handleSort('audit_report_name')}
               >
@@ -814,7 +814,7 @@ export const AuditReportList = ({
                   <span>{language === 'vi' ? 'Tên Báo cáo Audit' : 'Audit Report Name'}</span>
                   {getSortIcon('audit_report_name')}
                 </div>
-              </th>
+              </th> */}
 
               {/* Audit Type */}
               <th 
