@@ -1,45 +1,33 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Audit Report Summary File Combined Format Testing
+Backend API Testing Script - Report Form & OCR Extraction Testing
 
-FOCUS: Test Audit Report Summary File - Combined Format (Option 3)
-OBJECTIVE: Verify that the summary file now contains both formatted summary AND raw Document AI text as per Option 3.
+FOCUS: Test Report Form extraction from filename and OCR header/footer extraction
+OBJECTIVE: Verify that Report Form extraction from filename and OCR header/footer extraction are working.
 
 CRITICAL TEST REQUIREMENTS FROM REVIEW REQUEST:
 1. **Authentication**: Login: admin1 / 123456, Get access token
-2. **Get Ships**: GET /api/ships, Find BROTHER 36 or TRUONG MINH LUCKY, Use correct ship_id (bc444bc3-aea9-4491-b199-8098efcc16d2 for BROTHER 36)
-3. **Test Audit Report Analysis**: POST /api/audit-reports/analyze, PDF: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf, ship_id: correct ship ID, bypass_validation: false
-4. **Verify Summary Content Structure**: Check that `_summary_text` contains both formatted summary AND raw Document AI text
+2. **Get Ship**: GET /api/ships, Find BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2)
+3. **Test Audit Report Analysis**: POST /api/audit-reports/analyze, ship_id: bc444bc3-aea9-4491-b199-8098efcc16d2 (BROTHER 36), PDF: User's test file, bypass_validation: false
+4. **Verify Report Form Extraction**: Check if `report_form` field is populated, Should extract from filename if AI didn't find it, Expected pattern match for "(07-23)" or similar
+5. **Verify OCR Content in Summary**: Check `_summary_text` field, Should contain sections: "AUDIT REPORT ANALYSIS SUMMARY" (formatted), "RAW DOCUMENT AI TEXT" (raw text), "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)" (OCR), Verify OCR section has header and/or footer text
+6. **Check Backend Logs**: Look for: "🔍 Starting Targeted OCR", "✅ OCR processor available", "✅ Enhanced summary with OCR", "✅ Extracted report_form from filename"
 
-EXPECTED SUMMARY STRUCTURE:
-```
-============================================================
-AUDIT REPORT ANALYSIS SUMMARY (DOCUMENT AI + SYSTEM AI)
-============================================================
+TEST PDF:
+- URL: https://customer-assets.emergentagent.com/job_shipaudit/artifacts/n15ffn23_ISM-Code%20%20Audit-Plan%20%2807-230.pdf
+- Filename pattern: "ISM-Code  Audit-Plan (07-230.pdf"
+- Expected report_form: Should extract "07-230" or similar pattern
 
-File: ...
-Ship: ...
-Analysis Date: ...
-
---- Extracted Information ---
-Audit Report Name: ...
-Audit Type: ...
-[... other fields ...]
-
-============================================================
-
-============================================================
-RAW DOCUMENT AI TEXT (Original OCR/Text Extraction)
-============================================================
-
-[Raw text content from Document AI]
-```
+EXPECTED RESULTS:
+- ✅ report_form should be populated (from AI or filename)
+- ✅ _summary_text should contain 3 sections
+- ✅ OCR section should have header/footer text
+- ✅ Backend logs show OCR processing
 
 SUCCESS CRITERIA:
-- _summary_text contains BOTH formatted fields AND raw Document AI text
-- Clear separation between two sections
-- Raw text section should contain original OCR/text extraction
-- Backend logs should show "Combined summary created: Formatted (XXX chars) + Raw (XXX chars)"
+- report_form is NOT empty
+- _summary_text contains "ADDITIONAL INFORMATION FROM HEADER/FOOTER"
+- OCR section has actual text content
 
 Test credentials: admin1/123456
 Test ship: BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2)
