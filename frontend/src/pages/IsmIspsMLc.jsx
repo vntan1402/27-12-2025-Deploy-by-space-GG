@@ -1109,8 +1109,6 @@ const IsmIspsMLc = () => {
     await new Promise(resolve => setTimeout(resolve, 500));
     
     return result;
-      };
-    }
   };
 
   // Save notes
