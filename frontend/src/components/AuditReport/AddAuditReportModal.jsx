@@ -243,6 +243,41 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
     toast.warning(language === 'vi' ? '⚠️ Không thể phân tích file. Vui lòng nhập thủ công.' : '⚠️ Could not analyze file. Please enter manually.');
   };
 
+  // Handle validation modal confirmation
+  const handleValidationConfirm = async () => {
+    setShowValidationModal(false);
+    setIsAnalyzing(true);
+    
+    try {
+      toast.info(language === 'vi' ? '🔄 Phân tích lại với xác nhận...' : '🔄 Re-analyzing with confirmation...');
+      const retryResponse = await auditReportService.analyzeFile(
+        selectedShip.id,
+        validationData.file,
+        true // Bypass validation
+      );
+      
+      const retryData = retryResponse.data || retryResponse;
+      if (retryData.success && retryData.analysis) {
+        processAnalysisSuccess(retryData.analysis, validationData.file);
+      } else {
+        processAnalysisFail();
+      }
+    } catch (error) {
+      console.error('Retry analysis error:', error);
+      processAnalysisFail();
+    } finally {
+      setIsAnalyzing(false);
+      setValidationData(null);
+    }
+  };
+
+  // Handle validation modal cancellation
+  const handleValidationCancel = () => {
+    setShowValidationModal(false);
+    setValidationData(null);
+    handleRemoveFile();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
