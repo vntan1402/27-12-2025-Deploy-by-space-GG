@@ -348,8 +348,7 @@ const ClassSurveyReport = () => {
       fileUploaded: false,
       surveyReportName: '',
       surveyReportNo: '',
-      error: null,
-      validationWarning: null  // Track ship validation mismatches
+      error: null
     };
     
     // Update status to 'processing'
