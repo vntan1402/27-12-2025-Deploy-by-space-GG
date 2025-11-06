@@ -637,7 +637,7 @@ class BackendAPITester:
                     return False
                     
         except Exception as e:
-            self.print_result(False, f"Exception during report form & OCR extraction test: {str(e)}")
+            self.print_result(False, f"Exception during Survey Report OCR extraction test: {str(e)}")
             return False
     
     def test_backend_logs_verification(self):
