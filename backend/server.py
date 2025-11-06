@@ -5591,24 +5591,27 @@ async def extract_audit_report_fields_from_summary(
                             # Pattern: "ISM-AUD-01", "FORM-A", "7.10", etc.
                             import re
                             filename_form_patterns = [
-                                r'([A-Z]{1,4}[-_][A-Z]{2,4}[-_][0-9]{1,3})',  # ISM-AUD-01, ISPS-CERT-02
-                                r'(FORM[-_][A-Z0-9]{1,3})',                    # FORM-A, FORM-1
+                                # Survey Report style patterns
+                                r'([A-Z]{1,3})\s*\(([0-9]{2}[-/][0-9]{2})\)',  # CG (02-19), VR (07-23)
+                                r'([A-Z]{1,3})\s+([0-9]{2}[-/][0-9]{2})',      # CG 02-19, VR 07-23
+                                r'([A-Z]{1,3})[-_]([0-9]{2}[-/][0-9]{2})',     # CG-02-19, VR_07-23
+                                # Audit Report style patterns  
+                                r'([A-Z]{1,4}[-_][A-Z]{2,4}[-_][0-9]{1,3})',   # ISM-AUD-01, ISPS-CERT-02
+                                r'(FORM[-_\s][A-Z0-9]{1,3})',                  # FORM-A, FORM 1, FORM_B
                                 r'([0-9]{1,2}\.[0-9]{1,2})',                   # 7.10, 12.5
-                                r'([A-Z]{1,3})\s*\(([0-9]{2}[-/][0-9]{2})\)', # CG (02-19) - like Survey Report
-                                r'([A-Z]{1,3})\s+([0-9]{2}[-/][0-9]{2})',     # CG 02-19
                             ]
                             
                             for pattern in filename_form_patterns:
-                                match = re.search(pattern, filename)
+                                match = re.search(pattern, filename, re.IGNORECASE)
                                 if match:
                                     if len(match.groups()) > 1:
                                         # Pattern with 2 groups (e.g., CG (02-19))
-                                        abbrev = match.group(1)
+                                        abbrev = match.group(1).upper()
                                         date_part = match.group(2).replace('/', '-')
                                         extracted_form = f"{abbrev} ({date_part})"
                                     else:
                                         # Pattern with 1 group
-                                        extracted_form = match.group(1)
+                                        extracted_form = match.group(1).upper()
                                     
                                     extracted_data['report_form'] = extracted_form
                                     logger.info(f"✅ Extracted report_form from filename: '{extracted_form}'")
