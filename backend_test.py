@@ -716,10 +716,10 @@ class BackendAPITester:
     # Removed unused test methods - only keeping database check functionality
     
     def run_all_tests(self):
-        """Run all Ship ID Debug tests in sequence"""
-        print(f"\n🚀 STARTING SHIP ID DEBUG TESTING")
-        print(f"🎯 Debug Ship ID Issue - Find Correct Ship for Company")
-        print(f"📄 Identify why ship_id 9000377f-ac3f-48d8-ba83-a80fb1a8f490 returns 'Ship not found' error")
+        """Run all Combined Summary Format tests in sequence"""
+        print(f"\n🚀 STARTING AUDIT REPORT COMBINED SUMMARY FORMAT TESTING")
+        print(f"🎯 Test Audit Report Summary File - Combined Format (Option 3)")
+        print(f"📄 Verify _summary_text contains both formatted summary AND raw Document AI text")
         print(f"🔗 Backend URL: {BACKEND_URL}")
         print(f"📅 Test Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         
