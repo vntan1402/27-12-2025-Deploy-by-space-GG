@@ -5747,7 +5747,61 @@ async def extract_audit_report_fields_from_pdf_directly(
                 
                 logger.info(f"   📄 Report Form (final): '{extracted_data.get('report_form')}'")
                 
-                # POST-PROCESSING 3: Standardize "issued_by" organization name
+                # POST-PROCESSING 3: Determine audit_type from available data
+                # Priority: filename > report_form > audit_report_name > AI extraction
+                # Normalize to one of: ISM, ISPS, MLC
+                audit_type = extracted_data.get('audit_type', '')
+                
+                # Check filename first (Priority 1)
+                if filename:
+                    filename_upper = filename.upper()
+                    if re.search(r'^ISM[-\s]|ISM[-\s]CODE', filename_upper):
+                        audit_type = 'ISM'
+                    elif 'ISPS' in filename_upper:
+                        audit_type = 'ISPS'
+                    elif 'MLC' in filename_upper:
+                        audit_type = 'MLC'
+                
+                # Check report_form if audit_type still empty (Priority 2)
+                if not audit_type and extracted_data.get('report_form'):
+                    report_form_upper = extracted_data['report_form'].upper()
+                    if 'ISM' in report_form_upper and 'ISPS' not in report_form_upper:
+                        audit_type = 'ISM'
+                    elif 'ISPS' in report_form_upper:
+                        audit_type = 'ISPS'
+                    elif 'MLC' in report_form_upper:
+                        audit_type = 'MLC'
+                
+                # Check audit_report_name if still empty (Priority 3)
+                if not audit_type and extracted_data.get('audit_report_name'):
+                    name_upper = extracted_data['audit_report_name'].upper()
+                    if 'ISM' in name_upper and 'ISPS' not in name_upper:
+                        audit_type = 'ISM'
+                    elif 'ISPS' in name_upper:
+                        audit_type = 'ISPS'
+                    elif 'MLC' in name_upper:
+                        audit_type = 'MLC'
+                
+                # Normalize AI extraction if exists but not standard (Priority 4)
+                if not audit_type and extracted_data.get('audit_type'):
+                    ai_type_upper = extracted_data['audit_type'].upper()
+                    if 'ISM' in ai_type_upper and 'ISPS' not in ai_type_upper:
+                        audit_type = 'ISM'
+                    elif 'ISPS' in ai_type_upper:
+                        audit_type = 'ISPS'
+                    elif 'MLC' in ai_type_upper:
+                        audit_type = 'MLC'
+                
+                # Update with normalized value
+                if audit_type:
+                    extracted_data['audit_type'] = audit_type
+                    logger.info(f"✅ Determined audit_type: '{audit_type}'")
+                else:
+                    logger.warning("⚠️ Could not determine audit_type from any source")
+                
+                logger.info(f"   📝 Audit Type (final): '{extracted_data.get('audit_type')}'")
+                
+                # POST-PROCESSING 4: Standardize "issued_by" organization name
                 if extracted_data.get('issued_by'):
                     raw_issued_by = extracted_data['issued_by']
                     standardized = standardize_issued_by_organization(raw_issued_by)
