@@ -733,132 +733,159 @@ class BackendAPITester:
             return False
     
     def test_backend_logs_verification(self):
-        """Test 5: Verify backend logs show AI processing and report form extraction messages"""
-        self.print_test_header("Test 5 - Backend Logs Verification for AI Processing and Report Form Extraction")
+        """Test 3: Verify backend logs show ship validation sequence"""
+        self.print_test_header("Test 3 - Backend Logs Verification for Ship Validation")
         
-        print(f"🔍 CHECKING BACKEND LOGS FOR AUDIT REPORT AI PROCESSING MESSAGES:")
-        print(f"   🎯 Looking for: '🤖 Extracting audit report fields from summary'")
-        print(f"   🎯 Looking for: '📤 Sending extraction prompt to gemini'")
-        print(f"   🎯 Looking for: '📄 Extracted Report Form: ...'")
-        print(f"   🎯 Looking for: '✅ Extracted report_form from filename: ...'")
-        print(f"   📋 This test checks if backend logs confirm AI processing and report_form extraction")
+        print(f"🔍 CHECKING BACKEND LOGS FOR SHIP VALIDATION MESSAGES:")
+        print(f"   🎯 Looking for: '🔍 Ship validation:'")
+        print(f"   🎯 Looking for: 'Extracted: Ship=..., IMO=...'")
+        print(f"   🎯 Looking for: 'Selected: Ship=..., IMO=...'")
+        print(f"   🎯 Looking for: 'Name Match: ... | IMO Match: ... | Overall: ...'")
+        print(f"   🎯 Looking for: '❌ Ship information does NOT match'")
+        print(f"   🎯 Looking for: '✅ Ship information validation passed'")
+        print(f"   🎯 Looking for: '⚠️ Validation bypassed by user'")
+        print(f"   📋 This test checks if backend logs confirm ship validation sequence")
         
         try:
             # Check supervisor backend logs
             import subprocess
             
             # Get recent backend logs
-            log_command = "tail -n 300 /var/log/supervisor/backend.*.log"
+            log_command = "tail -n 500 /var/log/supervisor/backend.*.log"
             result = subprocess.run(log_command, shell=True, capture_output=True, text=True, timeout=10)
             
             if result.returncode == 0:
                 log_content = result.stdout
                 print(f"📄 Retrieved {len(log_content.splitlines())} lines of backend logs")
                 
-                # Look for AI processing messages as specified in review request
-                ai_extraction_logs = []
-                gemini_prompt_logs = []
-                report_form_extracted_logs = []
-                filename_extraction_logs = []
-                audit_analysis_logs = []
+                # Look for ship validation messages as specified in review request
+                ship_validation_logs = []
+                extracted_info_logs = []
+                selected_info_logs = []
+                match_result_logs = []
+                validation_failed_logs = []
+                validation_passed_logs = []
+                validation_bypassed_logs = []
                 
                 for line in log_content.splitlines():
-                    if "🤖 Extracting audit report fields from summary" in line:
-                        ai_extraction_logs.append(line.strip())
-                    elif "📤 Sending extraction prompt to gemini" in line:
-                        gemini_prompt_logs.append(line.strip())
-                    elif "📄 Extracted Report Form:" in line:
-                        report_form_extracted_logs.append(line.strip())
-                    elif "✅ Extracted report_form from filename:" in line:
-                        filename_extraction_logs.append(line.strip())
-                    elif "audit report analysis" in line.lower() or "audit report" in line.lower():
-                        audit_analysis_logs.append(line.strip())
+                    if "🔍 Ship validation:" in line:
+                        ship_validation_logs.append(line.strip())
+                    elif "Extracted: Ship=" in line and "IMO=" in line:
+                        extracted_info_logs.append(line.strip())
+                    elif "Selected:  Ship=" in line and "IMO=" in line:
+                        selected_info_logs.append(line.strip())
+                    elif "Name Match:" in line and "IMO Match:" in line and "Overall:" in line:
+                        match_result_logs.append(line.strip())
+                    elif "❌ Ship information does NOT match" in line:
+                        validation_failed_logs.append(line.strip())
+                    elif "✅ Ship information validation passed" in line:
+                        validation_passed_logs.append(line.strip())
+                    elif "⚠️ Validation bypassed by user" in line:
+                        validation_bypassed_logs.append(line.strip())
                 
-                print(f"\n🔍 AUDIT REPORT AI PROCESSING LOG ANALYSIS:")
-                print(f"   📊 AI extraction logs found: {len(ai_extraction_logs)}")
-                print(f"   📊 Gemini prompt logs found: {len(gemini_prompt_logs)}")
-                print(f"   📊 Report form extracted logs found: {len(report_form_extracted_logs)}")
-                print(f"   📊 Filename extraction logs found: {len(filename_extraction_logs)}")
-                print(f"   📊 Audit analysis related logs found: {len(audit_analysis_logs)}")
+                print(f"\n🔍 SHIP VALIDATION LOG ANALYSIS:")
+                print(f"   📊 Ship validation start logs: {len(ship_validation_logs)}")
+                print(f"   📊 Extracted info logs: {len(extracted_info_logs)}")
+                print(f"   📊 Selected info logs: {len(selected_info_logs)}")
+                print(f"   📊 Match result logs: {len(match_result_logs)}")
+                print(f"   📊 Validation failed logs: {len(validation_failed_logs)}")
+                print(f"   📊 Validation passed logs: {len(validation_passed_logs)}")
+                print(f"   📊 Validation bypassed logs: {len(validation_bypassed_logs)}")
                 
                 # Check each type of log
-                ai_extraction_found = len(ai_extraction_logs) > 0
-                gemini_prompt_found = len(gemini_prompt_logs) > 0
-                report_form_found = len(report_form_extracted_logs) > 0
-                filename_extraction_found = len(filename_extraction_logs) > 0
+                validation_start_found = len(ship_validation_logs) > 0
+                extracted_info_found = len(extracted_info_logs) > 0
+                selected_info_found = len(selected_info_logs) > 0
+                match_results_found = len(match_result_logs) > 0
+                validation_outcome_found = len(validation_failed_logs) > 0 or len(validation_passed_logs) > 0 or len(validation_bypassed_logs) > 0
                 
-                print(f"\n📋 EXPECTED LOG MESSAGES VERIFICATION:")
-                print(f"   ✅ '🤖 Extracting audit report fields from summary': {'✅ FOUND' if ai_extraction_found else '❌ NOT FOUND'}")
-                print(f"   ✅ '📤 Sending extraction prompt to gemini': {'✅ FOUND' if gemini_prompt_found else '❌ NOT FOUND'}")
-                print(f"   ✅ '📄 Extracted Report Form: ...': {'✅ FOUND' if report_form_found else '❌ NOT FOUND'}")
-                print(f"   ✅ '✅ Extracted report_form from filename: ...': {'✅ FOUND' if filename_extraction_found else '❌ NOT FOUND'}")
+                print(f"\n📋 EXPECTED VALIDATION LOG MESSAGES:")
+                print(f"   ✅ '🔍 Ship validation:': {'✅ FOUND' if validation_start_found else '❌ NOT FOUND'}")
+                print(f"   ✅ 'Extracted: Ship=..., IMO=...': {'✅ FOUND' if extracted_info_found else '❌ NOT FOUND'}")
+                print(f"   ✅ 'Selected: Ship=..., IMO=...': {'✅ FOUND' if selected_info_found else '❌ NOT FOUND'}")
+                print(f"   ✅ 'Name Match: ... | IMO Match: ... | Overall: ...': {'✅ FOUND' if match_results_found else '❌ NOT FOUND'}")
+                print(f"   ✅ Validation outcome messages: {'✅ FOUND' if validation_outcome_found else '❌ NOT FOUND'}")
                 
                 # Show sample logs if found
-                if ai_extraction_logs:
-                    print(f"\n   📝 AI EXTRACTION LOG SAMPLE:")
-                    print(f"      {ai_extraction_logs[-1]}")
+                if ship_validation_logs:
+                    print(f"\n   📝 SHIP VALIDATION START LOG SAMPLE:")
+                    print(f"      {ship_validation_logs[-1]}")
                 
-                if gemini_prompt_logs:
-                    print(f"\n   📝 GEMINI PROMPT LOG SAMPLE:")
-                    print(f"      {gemini_prompt_logs[-1]}")
+                if extracted_info_logs:
+                    print(f"\n   📝 EXTRACTED INFO LOG SAMPLE:")
+                    print(f"      {extracted_info_logs[-1]}")
                 
-                if report_form_found:
-                    print(f"\n   📝 REPORT FORM EXTRACTED LOG SAMPLE:")
-                    print(f"      {report_form_extracted_logs[-1]}")
+                if selected_info_logs:
+                    print(f"\n   📝 SELECTED INFO LOG SAMPLE:")
+                    print(f"      {selected_info_logs[-1]}")
                 
-                if filename_extraction_found:
-                    print(f"\n   📝 FILENAME EXTRACTION LOG SAMPLE:")
-                    print(f"      {filename_extraction_logs[-1]}")
+                if match_result_logs:
+                    print(f"\n   📝 MATCH RESULT LOG SAMPLE:")
+                    print(f"      {match_result_logs[-1]}")
                 
-                # Determine extraction method
-                extraction_method = "unknown"
-                if report_form_found and ai_extraction_found:
-                    extraction_method = "AI (footer/content)"
-                elif filename_extraction_found:
-                    extraction_method = "filename pattern"
-                elif ai_extraction_found or gemini_prompt_found:
-                    extraction_method = "AI attempted"
+                if validation_failed_logs:
+                    print(f"\n   📝 VALIDATION FAILED LOG SAMPLE:")
+                    print(f"      {validation_failed_logs[-1]}")
                 
-                print(f"\n🎯 EXTRACTION METHOD ANALYSIS:")
-                print(f"   📋 Extraction method: {extraction_method}")
+                if validation_passed_logs:
+                    print(f"\n   📝 VALIDATION PASSED LOG SAMPLE:")
+                    print(f"      {validation_passed_logs[-1]}")
                 
-                # Overall validation - focus on key AI processing indicators
-                critical_logs_found = (ai_extraction_found and gemini_prompt_found) or filename_extraction_found
-                partial_logs_found = ai_extraction_found or gemini_prompt_found or report_form_found or filename_extraction_found
+                if validation_bypassed_logs:
+                    print(f"\n   📝 VALIDATION BYPASSED LOG SAMPLE:")
+                    print(f"      {validation_bypassed_logs[-1]}")
+                
+                # Determine validation behavior
+                validation_behavior = "unknown"
+                if validation_failed_logs and validation_bypassed_logs:
+                    validation_behavior = "both fail and bypass detected"
+                elif validation_failed_logs:
+                    validation_behavior = "validation failed (as expected)"
+                elif validation_bypassed_logs:
+                    validation_behavior = "validation bypassed (as expected)"
+                elif validation_passed_logs:
+                    validation_behavior = "validation passed"
+                
+                print(f"\n🎯 VALIDATION BEHAVIOR ANALYSIS:")
+                print(f"   📋 Validation behavior: {validation_behavior}")
+                
+                # Overall validation - check for complete validation sequence
+                complete_validation_sequence = (validation_start_found and extracted_info_found and 
+                                              selected_info_found and match_results_found and 
+                                              validation_outcome_found)
+                partial_validation_logs = (validation_start_found or extracted_info_found or 
+                                         selected_info_found or match_results_found or 
+                                         validation_outcome_found)
                 
                 print(f"\n🎯 BACKEND LOGS VALIDATION:")
-                print(f"   ✅ Critical AI logs found: {'✅ YES' if critical_logs_found else '❌ NO'}")
-                print(f"   ✅ Some extraction logs found: {'✅ YES' if partial_logs_found else '❌ NO'}")
-                print(f"   📋 Extraction method confirmed: {extraction_method}")
+                print(f"   ✅ Complete validation sequence: {'✅ YES' if complete_validation_sequence else '❌ NO'}")
+                print(f"   ✅ Some validation logs found: {'✅ YES' if partial_validation_logs else '❌ NO'}")
+                print(f"   📋 Validation behavior confirmed: {validation_behavior}")
                 
-                if critical_logs_found:
+                if complete_validation_sequence:
                     print(f"\n🎉 BACKEND LOGS VERIFICATION SUCCESSFUL!")
-                    print(f"   ✅ Audit Report AI processing logs confirmed")
-                    print(f"   ✅ Extraction method identified: {extraction_method}")
-                    print(f"   ✅ Backend logs show extraction process")
-                    self.print_result(True, f"Backend logs confirm extraction method: {extraction_method}")
+                    print(f"   ✅ Ship validation logs confirmed")
+                    print(f"   ✅ Complete validation sequence detected")
+                    print(f"   ✅ Backend logs show proper validation process")
+                    print(f"   ✅ Validation behavior: {validation_behavior}")
+                    self.print_result(True, f"Backend logs confirm validation sequence: {validation_behavior}")
                     return True
-                elif partial_logs_found:
+                elif partial_validation_logs:
                     print(f"\n⚠️ BACKEND LOGS PARTIALLY FOUND:")
-                    print(f"   ⚠️ Some AI processing logs present but not complete flow")
+                    print(f"   ⚠️ Some validation logs present but not complete sequence")
                     print(f"   🔧 May indicate partial implementation or processing issues")
-                    print(f"   📋 Extraction method: {extraction_method}")
-                    self.print_result(False, f"Backend logs show partial processing - Method: {extraction_method}")
+                    print(f"   📋 Validation behavior: {validation_behavior}")
+                    self.print_result(False, f"Backend logs show partial validation - Behavior: {validation_behavior}")
                     return False
                 else:
-                    print(f"\n❌ NO AI PROCESSING LOGS FOUND")
+                    print(f"\n❌ NO SHIP VALIDATION LOGS FOUND")
                     print(f"   🔧 This may indicate:")
-                    print(f"      - AI processing not implemented")
-                    print(f"      - Logs not being generated")
+                    print(f"      - Ship validation not implemented")
+                    print(f"      - Validation logs not being generated")
                     print(f"      - Recent audit analysis hasn't been performed")
-                    print(f"      - System AI configuration issues")
+                    print(f"      - Validation function not being called")
                     
-                    if audit_analysis_logs:
-                        print(f"\n   📋 RELATED AUDIT ANALYSIS LOGS FOUND:")
-                        for i, log_line in enumerate(audit_analysis_logs[-3:], 1):  # Show last 3
-                            print(f"      {i}. {log_line}")
-                    
-                    self.print_result(False, "No AI processing logs found in backend")
+                    self.print_result(False, "No ship validation logs found in backend")
                     return False
                     
             else:
