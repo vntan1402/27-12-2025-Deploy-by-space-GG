@@ -24,6 +24,10 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
   const [analyzedData, setAnalyzedData] = useState(null); // Store complete analysis result
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef(null);
+  
+  // Validation modal state
+  const [showValidationModal, setShowValidationModal] = useState(false);
+  const [validationData, setValidationData] = useState(null);
 
   const [formData, setFormData] = useState({
     survey_report_name: '',
