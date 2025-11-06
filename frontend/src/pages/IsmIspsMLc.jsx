@@ -1098,7 +1098,7 @@ const IsmIspsMLc = () => {
       result.success = true;
       setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 100 }));
       setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'completed' }));
-      setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: 'Completed' }));
+      setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: null })); // Clear sub-status on complete
 
     } catch (error) {
       console.error(`Error processing ${fileName}:`, error);
