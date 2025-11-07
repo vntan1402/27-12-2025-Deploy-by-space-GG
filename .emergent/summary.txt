@@ -1,29 +1,22 @@
 <analysis>
-The trajectory details the work of an AI engineer on an existing application, focusing on the  module, subsequent to the  module's initial development. The conversation begins with a user request to understand the Date Sign Off functionality. The AI engineer thoroughly analyzes both frontend and backend code, identifying that while bulk updates trigger automatic status and ship changes, individual Add/Edit modals do not.
-
-Upon user request, the AI implements this auto-update logic for the  field in  and , enhancing UI consistency with indicators and toasts. A critical user query then shifts focus to file movement on Google Drive when a crew member's status changes. The AI conducts a deep dive into backend file management, discovering that while endpoints for moving files exist, they are not automatically triggered by status changes and do not handle summary files.
-
-The AI proposes and receives approval for a robust backend background task solution to automatically move both original and summary files to the correct flat or hierarchical Google Drive folders based on status changes (Standby, Ship transfer, Sign On). This involves creating several helper functions (, , , ) and integrating the background task into the  update endpoint. During implementation, a bug was found where  was misidentified, which was promptly fixed.
-
-Further UI/UX improvements include converting the Ship Sign On input to a dropdown list (after fixing a  vs  field mismatch), reorganizing modal layouts into a 3-column grid, and swapping the Nationality and Passport Expiry Date fields. The most recent task involved fixing an issue where clearing Place Sign On and Date Sign Off fields in  didn't update the backend, which was traced to frontend sending  instead of  and subsequently corrected. The AI is about to summarize this last fix.
+The AI engineer's trajectory began with minor enhancements to the  module, focusing on  automation and initiating a Google Drive file management system for crew member status changes. A critical  bug, where  values prevented backend updates, was also addressed by explicitly sending . The focus then dramatically shifted to developing a new  module within the  page, mirroring the functionality of the  module. This involved extensive backend model and endpoint creation, frontend component duplication and adaptation, and a significant debugging phase to resolve numerous issues. Key problems tackled included correcting HTTP methods (POST to DELETE), fixing validation errors due to model mismatches, rectifying Ship not found and Access denied errors caused by incorrect ship/company UUID filtering, and unifying file deletion logic. The final bug addressed was a  error due to  and duplicate code in background cleanup tasks.
 </analysis>
 
 <product_requirements>
-The overarching goal is to enhance the  module and specifically the  functionality. Key requirements include:
-1.  **Date Sign Off Automation**: Implement automatic status () and ship () updates in  and  when Date Sign Off is entered, consistent with bulk update behavior.
-2.  **Google Drive File Management**: Implement a robust system to automatically move all associated crew files (passport, certificates, including both original and summary files) on Google Drive when a crew member's status changes (e.g., Sign on to Standby, Standby to Sign on, or Ship transfer). This must respect specific flat (for Standby) and hierarchical (for Ship) folder structures.
-3.  **UI/UX Improvements**:
-    *   Convert Ship Sign On input to a dynamic dropdown list, populating it with available ships.
-    *   Redesign the layout of  and  forms to display fields in a 3-column grid for better organization.
-    *   Swap the display positions of Nationality and Passport Expiry Date fields for logical grouping.
-4.  **Data Persistence Fixes**: Ensure that clearing Place Sign On and Date Sign Off fields in  correctly updates these fields to  in the backend.
+The initial goal was to enhance the  functionality by:
+1.  Automating  and  updates when  is entered in  and .
+2.  Implementing a system to automatically move crew files (passport, certificates, original, summary) on Google Drive based on status changes.
+3.  Improving UI/UX in modals: converting Ship Sign On to a dropdown, reorganizing layouts into a 3-column grid, and swapping Nationality and Passport Expiry Date fields.
+4.  Ensuring  and  fields in  correctly update to  when cleared.
+
+The primary requirement then evolved to duplicating the  module's functionality to create a new  module within the  page, including its layout, style, filters, search, column display, buttons, AI configuration, document AI integration, file upload, and background file deletion. Specific additions for  included displaying Approved By as an abbreviation and abbreviating maritime terms in Document Name with tooltips.
 </product_requirements>
 
 <key_technical_concepts>
 -   **Frontend**: React.js (state, hooks, components, modals, , ), Tailwind CSS, Conditional Rendering.
--   **Backend**: FastAPI (API, ), MongoDB (UUIDs, Pydantic, ), , Logging, Error Handling.
--   **Patterns**: Modular design, API service abstraction, background processing, declarative UI, consistent UX.
--   **External**: Google Drive (via Apps Script for file operations).
+-   **Backend**: FastAPI (API, , Pydantic models, MongoDB, UUIDs), , Logging.
+-   **External**: Google Drive (via Google Apps Script for file operations).
+-   **Patterns**: Modular design, API service abstraction, background processing, declarative UI.
 </key_technical_concepts>
 
 <code_architecture>
@@ -32,36 +25,36 @@ The application uses a React.js frontend and a FastAPI/MongoDB backend.
 
 
 -   ****:
-    -   **Importance**: Centralizes all backend API logic and houses new file movement helpers.
-    -   **Changes (this trajectory)**:
-        -   **Added helper functions**: , , , ,  (background task). These functions encapsulate the logic for detecting changes, gathering all relevant crew files (original and summary, passport and certificates), determining the correct Google Drive folder structure (flat for standby, hierarchical for ships), and executing the file moves via Apps Script.
-        -   **Modified  endpoint ()**: Now accepts  as a parameter and schedules the  background task to run asynchronously after a crew member's details are updated.
-        -   **Fixed **: Corrected an error where certificate summary files were not being collected due to using an incorrect database field name ( instead of ).
+    -   **Importance**: Centralizes all backend API logic, data models, and file movement helpers.
+    -   **Initial Changes**: Added crew file movement functions, modified  endpoint. Fixed .
+    -   **Trajectory Changes**:
+        -   **Added Models**: , , , .
+        -   **Added AI Extraction Functions**: , .
+        -   **Added API Endpoints**: Full CRUD for , including GET, POST, PUT, DELETE (single and bulk), , and .
+        -   **Fixed Bulk Delete Method**: Changed  to .
+        -   **Fixed Ship/Company Lookup**: Modified  and  endpoints to resolve  from name to UUID for comparison, and removed the  filter in the  collection lookup. Applied this fix to  endpoints as well.
+        -   **Unified File Deletion Logic**: Adapted file deletion for single and bulk operations to use  and  (for background) or direct calls (for foreground) consistent with  module.
+        -   **Resolved IndentationError**: Corrected  statement body and removed duplicate code in file cleanup functions.
 -   ****:
-    -   **Importance**: Handles interactions with Google Apps Script for file operations (upload, move).
-    -   **Changes (this trajectory)**: Read to understand folder creation/movement logic. No direct modifications, but its underlying Apps Script actions are invoked by the newly implemented background file movement.
+    -   **Importance**: Manages Google Apps Script interactions for file operations.
+    -   **Changes**: Added  and  functions for the new module.
 -   ****:
-    -   **Importance**: Modal for adding new crew members.
-    -   **Changes (this trajectory)**:
-        -   Implemented auto-update logic: When  is entered,  is automatically set to  and  to . A visual indicator and toast notification confirm this.
-        -   Rearranged layout to a 3-column grid structure.
-        -   Fixed duplicate rows and reorganized fields for better logical grouping.
-        -   Swapped the display positions of  and  fields.
+    -   **Initial Changes**: Fixed form submission to send  instead of  for empty  and  fields.
 -   ****:
-    -   **Importance**: Modal for editing existing crew members.
-    -   **Changes (this trajectory)**:
-        -   Implemented auto-update logic: Similar to ,  entry triggers automatic  and  updates, with indicator and toast.
-        -   Converted Ship Sign On input to a  dropdown, fetching available ships from the backend.
-        -   Corrected the  dropdown to use the  field of ship objects (instead of ).
-        -   Rearranged layout to a 3-column grid structure.
-        -   Swapped the display positions of  and  fields.
-        -   Modified form submission to explicitly send  (instead of ) for empty  and  fields, ensuring backend updates.
--   ****:
-    -   **Importance**: Displays the list of crew members and handles bulk actions.
-    -   **Changes (this trajectory)**: No direct code changes, but its bulk update functionality (which already had auto-logic for Date Sign Off) was analyzed, and it was confirmed that it passes  as a prop to .
--   ****:
-    -   **Importance**: Provides frontend API integration for ship-related operations.
-    -   **Changes (this trajectory)**: Its  function was utilized to fetch ship data for the new Ship Sign On dropdowns. No direct modifications to this file were noted.
+    -   **Importance**: Integrates various ISM-ISPS-MLC related components.
+    -   **Changes**: Added import for  and rendered it conditionally based on the selected submenu item ().
+-   ** (NEW)**:
+    -   **Importance**: Provides API integration functions for Approval Document operations (CRUD, upload, analyze).
+    -   **Changes**: Created, mimicking  but adapted for  endpoints.
+-   ** (NEW directory)**:
+    -   **Importance**: Houses all React components for the  module.
+    -   **Files Created/Modified**:
+        -   : Copied from , fields adapted.
+        -   : Copied from , adapted field names, fixed hardcoded  paths, added  for Approved By, and  for Document Name with tooltip.
+        -   , : Copied from , but  was modified to correctly display  and .
+        -   : Copied from , fields adapted.
+        -   : Copied from .
+        -   : Exports all components from this directory.
 </code_architecture>
 
 <pending_tasks>
@@ -70,23 +63,27 @@ The application uses a React.js frontend and a FastAPI/MongoDB backend.
 -   Certificate File Viewer.
 -   Scalability improvements.
 -   Toast notifications for Deleting files on Drive for  and .
--   Finish implementing the  component (for Crew Records) - *Note: Much work has been done on this modal, this pending task might refer to other specific features.*
 -   Verify background file deletion for crew records.
 -   Comprehensive testing of the newly migrated  module (Phase 11).
 -   Address AI configuration for , resolve lookup discrepancies, and set up a default AI config.
 -   Resolve persistent Tesseract/Poppler installation issues to enable full OCR functionality.
 -   Confirm with the user if the Issued By abbreviation logic is now working as expected (from initial ).
--   Test the implemented backend background task for file movement in various scenarios.
+-   Test the implemented backend background task for file movement in various scenarios (for Crew Records).
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer was addressing a bug reported by the user concerning the  modal. The issue was that when  and  fields were cleared (their values removed) in the frontend, these changes were not reflected in the backend database; the fields retained their previous values.
+Immediately before this summary, the AI engineer was resolving a  error in the backend, which indicated a server crash. This crash was traced to an  in  at line 12937, where an  statement () was found without a subsequent indented block, causing a syntax error upon backend restart.
 
-The AI engineer investigated the  model in  and confirmed that these fields are . Further investigation in  revealed that while some fields were explicitly converted to  if empty,  and  were being sent with  values as a result of using  logic. The core problem was identified as Pydantic's  behavior in the backend, which would ignore fields if their value was  (meaning they wouldn't be included in the update payload).
+Further investigation revealed duplicate  block code (lines 13014-13023) within the same file, contributing to the  and general code inconsistency. The problematic code was part of the file deletion logic for  (specifically within the  function or similar sections).
 
-To fix this, the AI engineer modified  to explicitly send  (instead of ) for  and  when their input fields are empty. This ensures that the backend receives an explicit  value for these fields, allowing MongoDB to correctly clear them. The change involved modifying the  object construction within the  function. After making this change, a lint check was performed.
+To fix this, the AI engineer performed the following actions:
+1.  **Corrected Indentation**: The  statement at line 12937 was corrected to have a proper indented block.
+2.  **Removed Duplicate Code**: The redundant  block code (lines 13014-13023) was removed to eliminate duplication and resolve indentation conflicts.
+
+After these modifications, the backend was restarted (backend: stopped
+backend: started). The backend logs subsequently confirmed that the server started successfully, and all  requests were now returning , indicating the  error and the underlying  had been resolved. This ensures the backend services are stable for the  module.
 </current_work>
 
 <optional_next_step>
-Summarize the successful fix for  and  not clearing.
+Re-test the  module's frontend, particularly file uploads, single/bulk deletions, and AI analysis, to confirm all integrated functionalities are working end-to-end after the backend stability fixes.
 </optional_next_step>
