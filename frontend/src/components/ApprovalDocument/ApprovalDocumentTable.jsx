@@ -142,7 +142,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(doc => 
-        doc.document_name?.toLowerCase().includes(searchLower) ||
+        doc.approval_document_name?.toLowerCase().includes(searchLower) ||
         doc.document_no?.toLowerCase().includes(searchLower) ||
         doc.approved_by?.toLowerCase().includes(searchLower)
       );
@@ -323,8 +323,8 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
 
   const handleDelete = async (document) => {
     if (window.confirm(language === 'vi' 
-      ? `Bạn có chắc muốn xóa "${document.document_name}"?`
-      : `Are you sure you want to delete "${document.document_name}"?`
+      ? `Bạn có chắc muốn xóa "${document.approval_document_name}"?`
+      : `Are you sure you want to delete "${document.approval_document_name}"?`
     )) {
       try {
         await approvalDocumentService.delete(document.id, true);
@@ -531,13 +531,13 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
       }
 
       const analysis = await analyzeResponse.json();
-      result.documentName = analysis.document_name || file.name;
+      result.documentName = analysis.approval_document_name || file.name;
       result.documentNo = analysis.document_no || '';
 
       // Step 2: Create document record
       const documentData = {
         ship_id: selectedShip.id,
-        document_name: analysis.document_name || file.name,
+        approval_document_name: analysis.approval_document_name || file.name,
         document_no: analysis.document_no || null,
         approved_by: analysis.approved_by || null,
         approved_date: analysis.approved_date || null,
@@ -763,11 +763,11 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
                 </th>
                 <th 
                   className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('document_name')}
+                  onClick={() => handleSort('approval_document_name')}
                 >
                   <div className="flex items-center justify-between">
                     <span>{language === 'vi' ? 'Tên Tài liệu' : 'Document Name'}</span>
-                    {sort.column === 'document_name' && (
+                    {sort.column === 'approval_document_name' && (
                       <span className="ml-1 text-blue-600 text-sm font-bold">
                         {sort.direction === 'asc' ? '▲' : '▼'}
                       </span>
@@ -870,7 +870,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
                     </td>
                     <td className="border border-gray-300 px-4 py-2">
                       <div className="flex items-center gap-2">
-                        <span>{document.document_name}</span>
+                        <span>{document.approval_document_name}</span>
                         {document.file_id && (
                           <span 
                             className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
