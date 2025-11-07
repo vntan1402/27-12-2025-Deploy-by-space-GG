@@ -12935,6 +12935,15 @@ async def delete_approval_document_files_background(
                         if response.status == 200:
                             result = await response.json()
                             if result.get("success"):
+                                logger.info(f"✅ [Background] Summary file deleted: {summary_file_id}")
+                                total_deleted += 1
+            except Exception as e:
+                logger.error(f"❌ [Background] Error deleting summary file {summary_file_id}: {e}")
+        
+        logger.info(f"✅ [Background] Approval document file deletion completed: {total_deleted} file(s) deleted")
+        
+    except Exception as e:
+        logger.error(f"❌ [Background] Error in approval document file deletion: {e}")
 
 
 # Bulk background file deletion helper for approval documents
