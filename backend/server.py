@@ -13011,16 +13011,6 @@ async def bulk_delete_approval_document_files_background(
     except Exception as e:
         logger.error(f"❌ [Background] Error in bulk background file deletion: {e}")
 
-                                logger.info(f"✅ [Background] Summary file deleted: {summary_file_id}")
-                                total_deleted += 1
-            except Exception as e:
-                logger.error(f"❌ [Background] Error deleting summary file {summary_file_id}: {e}")
-        
-        logger.info(f"✅ [Background] Approval document file deletion completed: {total_deleted} file(s) deleted")
-        
-    except Exception as e:
-        logger.error(f"❌ [Background] Error in approval document file deletion: {e}")
-
 
 # DELETE single approval document
 @api_router.delete("/approval-documents/{document_id}")
