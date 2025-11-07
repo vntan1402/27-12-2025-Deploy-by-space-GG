@@ -12066,14 +12066,16 @@ async def analyze_drawings_manual_file(
         if not company_uuid:
             raise HTTPException(status_code=404, detail="Company not found")
         
-        # Get ship information
-        ship = await mongo_db.find_one("ships", {
-            "id": ship_id,
-            "company": company_uuid
-        })
+        # Get ship information (check by ID only, then verify company access)
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
         
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Verify company access (support both UUID and name formats)
+        ship_company = ship.get("company", "")
+        if ship_company != company_uuid and ship_company != current_user.company:
+            raise HTTPException(status_code=403, detail="Access denied to this ship")
         
         ship_name = ship.get("name", "Unknown Ship")
         
@@ -12963,14 +12965,16 @@ async def analyze_approval_document_file(
         if not company_uuid:
             raise HTTPException(status_code=404, detail="Company not found")
         
-        # Get ship information
-        ship = await mongo_db.find_one("ships", {
-            "id": ship_id,
-            "company": company_uuid
-        })
+        # Get ship information (check by ID only, then verify company access)
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
         
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Verify company access (support both UUID and name formats)
+        ship_company = ship.get("company", "")
+        if ship_company != company_uuid and ship_company != current_user.company:
+            raise HTTPException(status_code=403, detail="Access denied to this ship")
         
         ship_name = ship.get("name", "Unknown Ship")
         
