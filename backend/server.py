@@ -27597,6 +27597,506 @@ async def upload_other_document_folder(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ================== Other Audit Document Endpoints (ISM-ISPS-MLC) ==================
+
+@api_router.get("/other-audit-documents", response_model=List[OtherAuditDocumentResponse])
+async def get_other_audit_documents(
+    ship_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Get all other audit documents for a specific ship"""
+    try:
+        logger.info(f"📋 Fetching other audit documents for ship: {ship_id}")
+        
+        other_audit_documents = await mongo_db.find_all("other_audit_documents", {"ship_id": ship_id})
+        
+        logger.info(f"✅ Found {len(other_audit_documents)} other audit documents")
+        return [OtherAuditDocumentResponse(**doc) for doc in other_audit_documents]
+        
+    except Exception as e:
+        logger.error(f"❌ Error fetching other audit documents: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/other-audit-documents", response_model=OtherAuditDocumentResponse)
+async def create_other_audit_document(
+    document: OtherAuditDocumentCreate,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Create a new other audit document (manual entry without file)"""
+    try:
+        logger.info(f"📝 Creating other audit document: {document.document_name}")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": document.ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Create document dict
+        doc_dict = {
+            "id": str(uuid.uuid4()),
+            "ship_id": document.ship_id,
+            "document_name": document.document_name,
+            "date": document.date.isoformat() if document.date else None,
+            "status": document.status or "Unknown",
+            "note": document.note,
+            "file_ids": document.file_ids or [],
+            "folder_id": document.folder_id,
+            "folder_link": document.folder_link,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": None
+        }
+        
+        # Save to MongoDB
+        await mongo_db.create("other_audit_documents", doc_dict)
+        
+        logger.info(f"✅ Other audit document created with ID: {doc_dict['id']}")
+        return OtherAuditDocumentResponse(**doc_dict)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error creating other audit document: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.put("/other-audit-documents/{document_id}", response_model=OtherAuditDocumentResponse)
+async def update_other_audit_document(
+    document_id: str,
+    document_update: OtherAuditDocumentUpdate,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Update an existing other audit document"""
+    try:
+        logger.info(f"📝 Updating other audit document: {document_id}")
+        
+        # Check if document exists
+        existing_doc = await mongo_db.find_one("other_audit_documents", {"id": document_id})
+        if not existing_doc:
+            raise HTTPException(status_code=404, detail="Other audit document not found")
+        
+        # Prepare update dict (only include non-None fields)
+        update_dict = {
+            k: v.isoformat() if isinstance(v, datetime) else v
+            for k, v in document_update.dict(exclude_unset=True).items()
+            if v is not None
+        }
+        
+        update_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        # Update in MongoDB
+        await mongo_db.update("other_audit_documents", {"id": document_id}, update_dict)
+        
+        # Fetch and return updated document
+        updated_doc = await mongo_db.find_one("other_audit_documents", {"id": document_id})
+        
+        logger.info(f"✅ Other audit document updated: {document_id}")
+        return OtherAuditDocumentResponse(**updated_doc)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error updating other audit document: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.delete("/other-audit-documents/{document_id}")
+async def delete_other_audit_document(
+    document_id: str,
+    background_tasks: BackgroundTasks,
+    background: bool = Query(False, description="Delete files in background (faster response)"),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Delete an other audit document and optionally its files from Google Drive"""
+    try:
+        logger.info(f"🗑️ Deleting other audit document: {document_id}")
+        
+        # Check if document exists
+        existing_doc = await mongo_db.find_one("other_audit_documents", {"id": document_id})
+        if not existing_doc:
+            raise HTTPException(status_code=404, detail="Other audit document not found")
+        
+        file_ids = existing_doc.get('file_ids', [])
+        folder_id = existing_doc.get('folder_id')
+        
+        # Get company_id for file deletion
+        company_uuid = await resolve_company_id(current_user)
+        
+        if background:
+            # Delete from database immediately
+            await mongo_db.delete("other_audit_documents", {"id": document_id})
+            
+            # Schedule background file deletion
+            if file_ids or folder_id:
+                background_tasks.add_task(
+                    delete_other_audit_document_files_background,
+                    document_id=document_id,
+                    file_ids=file_ids,
+                    folder_id=folder_id,
+                    company_uuid=company_uuid
+                )
+                logger.info(f"📅 Scheduled background file deletion for document: {document_id}")
+            
+            return {
+                "success": True,
+                "message": "Other audit document deleted (files being deleted in background)"
+            }
+        else:
+            # Delete files first (foreground - slower but guaranteed)
+            if file_ids or folder_id:
+                await delete_other_audit_document_files_foreground(
+                    document_id=document_id,
+                    file_ids=file_ids,
+                    folder_id=folder_id,
+                    company_uuid=company_uuid
+                )
+            
+            # Then delete from database
+            await mongo_db.delete("other_audit_documents", {"id": document_id})
+            
+            return {
+                "success": True,
+                "message": "Other audit document and files deleted successfully"
+            }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error deleting other audit document: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def delete_other_audit_document_files_background(
+    document_id: str,
+    file_ids: List[str],
+    folder_id: Optional[str],
+    company_uuid: str
+):
+    """Background task to delete other audit document files from Google Drive"""
+    try:
+        logger.info(f"🗑️ Background deletion of files for other audit document: {document_id}")
+        
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        deleted_count = 0
+        
+        # Delete individual files
+        if file_ids:
+            for file_id in file_ids:
+                try:
+                    result = await dual_manager.delete_file(file_id)
+                    if result.get('success'):
+                        deleted_count += 1
+                        logger.info(f"   ✅ Deleted file: {file_id}")
+                    else:
+                        logger.warning(f"   ⚠️ Failed to delete file: {file_id}")
+                except Exception as e:
+                    logger.error(f"   ❌ Error deleting file {file_id}: {e}")
+        
+        # Delete folder if present
+        if folder_id:
+            try:
+                result = await dual_manager.delete_file(folder_id)
+                if result.get('success'):
+                    logger.info(f"   ✅ Deleted folder: {folder_id}")
+                else:
+                    logger.warning(f"   ⚠️ Failed to delete folder: {folder_id}")
+            except Exception as e:
+                logger.error(f"   ❌ Error deleting folder {folder_id}: {e}")
+        
+        logger.info(f"✅ Background file deletion completed: {deleted_count}/{len(file_ids)} files deleted")
+        
+    except Exception as e:
+        logger.error(f"❌ Error in background file deletion: {e}")
+
+
+async def delete_other_audit_document_files_foreground(
+    document_id: str,
+    file_ids: List[str],
+    folder_id: Optional[str],
+    company_uuid: str
+):
+    """Foreground deletion of other audit document files from Google Drive"""
+    try:
+        logger.info(f"🗑️ Foreground deletion of files for other audit document: {document_id}")
+        
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        deleted_count = 0
+        
+        # Delete individual files
+        if file_ids:
+            for file_id in file_ids:
+                try:
+                    result = await dual_manager.delete_file(file_id)
+                    if result.get('success'):
+                        deleted_count += 1
+                        logger.info(f"   ✅ Deleted file: {file_id}")
+                except Exception as e:
+                    logger.error(f"   ❌ Error deleting file {file_id}: {e}")
+        
+        # Delete folder if present
+        if folder_id:
+            try:
+                result = await dual_manager.delete_file(folder_id)
+                if result.get('success'):
+                    logger.info(f"   ✅ Deleted folder: {folder_id}")
+            except Exception as e:
+                logger.error(f"   ❌ Error deleting folder {folder_id}: {e}")
+        
+        logger.info(f"✅ Foreground file deletion completed: {deleted_count}/{len(file_ids)} files")
+        
+    except Exception as e:
+        logger.error(f"❌ Error in foreground file deletion: {e}")
+        raise
+
+
+@api_router.post("/other-audit-documents/upload")
+async def upload_other_audit_document(
+    file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    document_name: Optional[str] = Form(None),
+    date: Optional[str] = Form(None),
+    status: Optional[str] = Form("Unknown"),
+    note: Optional[str] = Form(None),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Upload other audit document file to Google Drive and create record
+    Path: {Ship}/ISM-ISPS-MLC/Other Audit Document/
+    """
+    try:
+        logger.info(f"📤 Uploading other audit document file: {file.filename}")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get('name', 'Unknown')
+        
+        # Read file content
+        file_content = await file.read()
+        
+        # Get company_id from current user
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Initialize Dual Apps Script Manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # Upload file to Google Drive
+        logger.info(f"📤 Uploading file to Google Drive: {ship_name}/ISM-ISPS-MLC/Other Audit Document/{file.filename}")
+        upload_result = await dual_manager.upload_other_audit_document_file(
+            file_content=file_content,
+            filename=file.filename,
+            ship_name=ship_name
+        )
+        
+        if not upload_result or not upload_result.get('success'):
+            error_msg = upload_result.get('message', 'Unknown error') if upload_result else 'Upload failed'
+            raise HTTPException(status_code=500, detail=f"Failed to upload file to Google Drive: {error_msg}")
+        
+        file_id = upload_result.get('file_id')
+        logger.info(f"✅ File uploaded to Google Drive with ID: {file_id}")
+        
+        # Create document record
+        doc_dict = {
+            "id": str(uuid.uuid4()),
+            "ship_id": ship_id,
+            "document_name": document_name or file.filename.rsplit('.', 1)[0],
+            "date": date,
+            "status": status or "Unknown",
+            "note": note,
+            "file_ids": [file_id],
+            "folder_id": None,
+            "folder_link": None,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": None
+        }
+        
+        await mongo_db.create("other_audit_documents", doc_dict)
+        
+        logger.info(f"✅ Other audit document record created with ID: {doc_dict['id']}")
+        
+        return {
+            "success": True,
+            "message": "File uploaded and record created successfully",
+            "document_id": doc_dict['id'],
+            "file_id": file_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading other audit document: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/other-audit-documents/upload-file-only")
+async def upload_other_audit_document_file_only(
+    file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Upload other audit document file only (no database record created)
+    Used for background upload after manual record creation
+    """
+    try:
+        logger.info(f"📤 Uploading other audit document file only: {file.filename}")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get('name', 'Unknown')
+        
+        # Read file content
+        file_content = await file.read()
+        
+        # Get company_id from current user
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Initialize Dual Apps Script Manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # Upload file to Google Drive
+        logger.info(f"📤 Uploading file to Google Drive: {ship_name}/ISM-ISPS-MLC/Other Audit Document/{file.filename}")
+        upload_result = await dual_manager.upload_other_audit_document_file(
+            file_content=file_content,
+            filename=file.filename,
+            ship_name=ship_name
+        )
+        
+        if not upload_result or not upload_result.get('success'):
+            error_msg = upload_result.get('message', 'Unknown error') if upload_result else 'Upload failed'
+            raise HTTPException(status_code=500, detail=f"Failed to upload file to Google Drive: {error_msg}")
+        
+        file_id = upload_result.get('file_id')
+        logger.info(f"✅ File uploaded to Google Drive with ID: {file_id}")
+        
+        return {
+            "success": True,
+            "message": "File uploaded successfully (no record created)",
+            "file_id": file_id,
+            "filename": file.filename
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading file: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/other-audit-documents/upload-folder")
+async def upload_other_audit_document_folder(
+    files: List[UploadFile] = File(...),
+    ship_id: str = Form(...),
+    folder_name: str = Form(...),
+    date: Optional[str] = Form(None),
+    status: Optional[str] = Form("Unknown"),
+    note: Optional[str] = Form(None),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Upload a folder with multiple files to Google Drive
+    Creates a subfolder under "Other Audit Document" and uploads all files into it
+    Also creates a single record with folder_id and folder_link
+    """
+    try:
+        logger.info(f"📁 Uploading other audit document folder: {folder_name} with {len(files)} files for ship: {ship_id}")
+        
+        # Verify ship exists
+        ship = await mongo_db.find_one("ships", {"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get('name', 'Unknown')
+        
+        # Get company_id from current user
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Initialize Dual Apps Script Manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # Read all files into memory
+        files_data = []
+        for file in files:
+            file_content = await file.read()
+            # Extract only the filename, remove any folder path
+            filename = os.path.basename(file.filename)
+            files_data.append((file_content, filename))
+            logger.info(f"   📄 Read file: {filename} ({len(file_content)} bytes)")
+        
+        # Upload folder to Google Drive
+        logger.info("📤 Creating subfolder and uploading files to Google Drive...")
+        upload_result = await dual_manager.upload_other_audit_document_folder(
+            files=files_data,
+            folder_name=folder_name,
+            ship_name=ship_name
+        )
+        
+        if not upload_result or not upload_result.get('success'):
+            error_msg = upload_result.get('message', 'Unknown error') if upload_result else 'Upload failed'
+            raise HTTPException(status_code=500, detail=f"Failed to upload folder to Google Drive: {error_msg}")
+        
+        folder_id = upload_result.get('folder_id')
+        folder_link = upload_result.get('folder_link')
+        file_ids = upload_result.get('file_ids', [])
+        
+        logger.info("✅ Folder uploaded to Google Drive")
+        logger.info(f"   Folder ID: {folder_id}")
+        logger.info(f"   Folder Link: {folder_link}")
+        logger.info(f"   Files uploaded: {len(file_ids)}/{len(files)}")
+        
+        # Create document record in MongoDB
+        doc_dict = {
+            "id": str(uuid.uuid4()),
+            "ship_id": ship_id,
+            "document_name": folder_name,
+            "date": date,
+            "status": status or "Unknown",
+            "note": note,
+            "file_ids": file_ids,
+            "folder_id": folder_id,
+            "folder_link": folder_link,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": None
+        }
+        
+        await mongo_db.create("other_audit_documents", doc_dict)
+        
+        logger.info(f"✅ Other audit document folder record created with ID: {doc_dict['id']}")
+        
+        return {
+            "success": True,
+            "message": f"Folder uploaded successfully: {len(file_ids)}/{len(files)} files",
+            "document_id": doc_dict['id'],
+            "folder_id": folder_id,
+            "folder_link": folder_link,
+            "file_ids": file_ids,
+            "total_files": len(files),
+            "successful_files": len(file_ids),
+            "failed_files": upload_result.get('failed_files', [])
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading folder: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Add the router to the main app
 app.include_router(api_router)
 
