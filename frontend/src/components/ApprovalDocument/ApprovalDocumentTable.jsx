@@ -518,7 +518,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
       formData.append('bypass_validation', 'true');
 
       const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-      const analyzeResponse = await fetch(`${BACKEND_URL}/api/drawings-manuals/analyze-file`, {
+      const analyzeResponse = await fetch(`${BACKEND_URL}/api/approval-documents/analyze-file`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
