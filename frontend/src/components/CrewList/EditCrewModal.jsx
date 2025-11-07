@@ -43,7 +43,9 @@ export const EditCrewModal = ({
       try {
         setLoadingShips(true);
         const response = await shipService.getAll();
+        console.log('Ships API response:', response);
         if (response.data) {
+          console.log('Ships data:', response.data);
           setShips(response.data);
         }
       } catch (error) {
