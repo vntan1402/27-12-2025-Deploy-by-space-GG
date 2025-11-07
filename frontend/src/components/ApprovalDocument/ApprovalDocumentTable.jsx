@@ -573,7 +573,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
             summary_text: analysis._summary_text || ''
           };
 
-          const uploadResponse = await fetch(`${BACKEND_URL}/api/drawings-manuals/${documentId}/upload-files`, {
+          const uploadResponse = await fetch(`${BACKEND_URL}/api/approval-documents/${documentId}/upload-files`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`,
