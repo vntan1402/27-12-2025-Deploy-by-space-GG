@@ -12674,14 +12674,22 @@ async def update_approval_document(
 @api_router.delete("/approval-documents/bulk-delete")
 async def bulk_delete_approval_documents(
     request: BulkDeleteApprovalDocumentsRequest,
+    background: bool = Query(False, description="If true, delete DB first and return immediately, then delete files in background"),
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
     Bulk delete approval documents with optional Google Drive cleanup
+    
+    If background=True:
+      1. Delete all documents from database immediately
+      2. Return success response
+      3. Delete files from Google Drive in background
+    
+    If background=False (default):
+      1. Delete files from Google Drive first for each document
+      2. Then delete from database
     """
     try:
-        background = request.background if hasattr(request, 'background') else False
-        
         logger.info(f"🗑️ Bulk deleting {len(request.document_ids)} approval documents (background={background})")
         
         company_uuid = await resolve_company_id(current_user)
