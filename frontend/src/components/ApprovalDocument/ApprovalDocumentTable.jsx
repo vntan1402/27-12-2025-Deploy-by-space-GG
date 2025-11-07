@@ -13,7 +13,7 @@ import {
 } from '../../utils/progressHelpers';
 import { AddDrawingManualModal } from './AddApprovalDocumentModal';
 import { EditDrawingManualModal } from './EditApprovalDocumentModal';
-import { DrawingManualNotesModal } from './DrawingManualNotesModal';
+import { DrawingManualNotesModal } from './ApprovalDocumentNotesModal';
 import { BatchProcessingModal } from './BatchProcessingModal';
 import { BatchResultsModal } from './BatchResultsModal';
 
