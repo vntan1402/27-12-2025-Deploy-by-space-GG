@@ -12889,11 +12889,12 @@ async def delete_approval_document(
             await mongo_db.delete("approval_documents", {"id": document_id})
             logger.info(f"✅ Deleted approval document from DB: {document_id}")
             
-            # Cleanup Drive files in background
+            # Cleanup Drive files in background using BackgroundTasks
             if doc.get('file_id') or doc.get('summary_file_id'):
                 from dual_apps_script_manager import create_dual_apps_script_manager
                 dual_manager = create_dual_apps_script_manager(company_uuid)
-                asyncio.create_task(cleanup_approval_document_files_background(doc, dual_manager))
+                background_tasks.add_task(cleanup_approval_document_files_background_sync, doc, dual_manager)
+                logger.info(f"🗑️ Scheduled Drive cleanup for: {doc.get('approval_document_name')}")
             
             return {
                 "success": True,
