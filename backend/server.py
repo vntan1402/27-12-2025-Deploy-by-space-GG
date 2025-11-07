@@ -12528,6 +12528,366 @@ async def upload_drawings_manuals_files(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+# ============================================
+# APPROVAL DOCUMENTS ENDPOINTS
+# ============================================
+
+# GET all approval documents for a ship
+@api_router.get("/approval-documents", response_model=List[ApprovalDocumentResponse])
+async def get_approval_documents(
+    ship_id: str,
+    current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Get all approval documents for a specific ship"""
+    try:
+        logger.info(f"📋 Fetching approval documents for ship: {ship_id}")
+        
+        approval_documents = await mongo_db.find_all("approval_documents", {"ship_id": ship_id})
+        
+        logger.info(f"✅ Found {len(approval_documents)} approval documents")
+        return [ApprovalDocumentResponse(**doc) for doc in approval_documents]
+    except Exception as e:
+        logger.error(f"Error fetching approval documents: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch approval documents")
+
+
+# POST check duplicate approval document
+@api_router.post("/approval-documents/check-duplicate")
+async def check_duplicate_approval_document(
+    ship_id: str = Body(...),
+    approval_document_name: str = Body(...),
+    approval_document_no: Optional[str] = Body(None),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Check if approval document already exists (by name or number)
+    Returns: { "exists": bool, "message": str }
+    """
+    try:
+        query = {"ship_id": ship_id}
+        
+        # Check by name (case-insensitive)
+        if approval_document_name:
+            query["approval_document_name"] = {"$regex": f"^{approval_document_name}$", "$options": "i"}
+        
+        # Or check by number if provided
+        if approval_document_no:
+            query = {
+                "ship_id": ship_id,
+                "$or": [
+                    {"approval_document_name": {"$regex": f"^{approval_document_name}$", "$options": "i"}},
+                    {"approval_document_no": approval_document_no}
+                ]
+            }
+        
+        existing_doc = await mongo_db.find_one("approval_documents", query)
+        
+        if existing_doc:
+            return {
+                "exists": True,
+                "message": f"Approval document already exists: {existing_doc.get('approval_document_name')} ({existing_doc.get('approval_document_no', 'N/A')})"
+            }
+        else:
+            return {
+                "exists": False,
+                "message": "No duplicate found"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error checking duplicate approval document: {e}")
+        raise HTTPException(status_code=500, detail="Failed to check duplicate")
+
+
+# POST create new approval document
+@api_router.post("/approval-documents", response_model=ApprovalDocumentResponse)
+async def create_approval_document(
+    document_data: ApprovalDocumentCreate,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Create a new approval document record"""
+    try:
+        logger.info(f"📝 Creating approval document: {document_data.approval_document_name}")
+        
+        # Create document
+        doc_dict = document_data.dict()
+        doc_dict["id"] = str(uuid.uuid4())
+        doc_dict["created_at"] = datetime.now(timezone.utc)
+        doc_dict["updated_at"] = None
+        doc_dict["file_id"] = None
+        doc_dict["summary_file_id"] = None
+        
+        await mongo_db.create("approval_documents", doc_dict)
+        
+        logger.info(f"✅ Approval document created: {doc_dict['id']}")
+        return ApprovalDocumentResponse(**doc_dict)
+        
+    except Exception as e:
+        logger.error(f"Error creating approval document: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create approval document")
+
+
+# PUT update approval document
+@api_router.put("/approval-documents/{document_id}", response_model=ApprovalDocumentResponse)
+async def update_approval_document(
+    document_id: str,
+    document_data: ApprovalDocumentUpdate,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """Update an existing approval document"""
+    try:
+        logger.info(f"✏️ Updating approval document: {document_id}")
+        
+        # Check if document exists
+        existing_doc = await mongo_db.find_one("approval_documents", {"id": document_id})
+        if not existing_doc:
+            raise HTTPException(status_code=404, detail="Approval document not found")
+        
+        # Prepare update data
+        update_data = document_data.dict(exclude_unset=True)
+        update_data["updated_at"] = datetime.now(timezone.utc)
+        
+        # Update document
+        await mongo_db.update("approval_documents", {"id": document_id}, update_data)
+        
+        # Get updated document
+        updated_doc = await mongo_db.find_one("approval_documents", {"id": document_id})
+        
+        logger.info(f"✅ Approval document updated: {document_id}")
+        return ApprovalDocumentResponse(**updated_doc)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error updating approval document: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update approval document")
+
+
+# POST bulk delete approval documents
+@api_router.post("/approval-documents/bulk-delete")
+async def bulk_delete_approval_documents(
+    request: BulkDeleteRequest,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Bulk delete approval documents with optional Google Drive cleanup
+    """
+    try:
+        background = request.background if hasattr(request, 'background') else False
+        
+        logger.info(f"🗑️ Bulk deleting {len(request.document_ids)} approval documents (background={background})")
+        
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Initialize manager for Drive operations
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        deleted_count = 0
+        drive_deletion_count = 0
+        errors = []
+        
+        if background:
+            # Background deletion - delete from DB immediately, cleanup Drive in background
+            logger.info("🚀 Starting background deletion process...")
+            
+            for doc_id in request.document_ids:
+                try:
+                    # Get document info before deletion
+                    doc = await mongo_db.find_one("approval_documents", {"id": doc_id})
+                    if not doc:
+                        logger.warning(f"⚠️ Document {doc_id} not found")
+                        continue
+                    
+                    # Delete from database immediately
+                    await mongo_db.delete("approval_documents", {"id": doc_id})
+                    deleted_count += 1
+                    logger.info(f"✅ Deleted approval document from DB: {doc_id}")
+                    
+                    # Schedule Drive cleanup in background
+                    if doc.get('file_id') or doc.get('summary_file_id'):
+                        asyncio.create_task(cleanup_approval_document_files_background(
+                            doc, dual_manager
+                        ))
+                    
+                except Exception as e:
+                    error_msg = f"Error deleting document {doc_id}: {str(e)}"
+                    logger.error(f"❌ {error_msg}")
+                    errors.append(error_msg)
+            
+            logger.info(f"✅ Background bulk delete completed: {deleted_count} documents deleted from DB")
+            
+            return {
+                "success": True,
+                "deleted_count": deleted_count,
+                "drive_deletion_count": "processing in background",
+                "errors": errors
+            }
+            
+        else:
+            # Foreground deletion - complete deletion including Drive
+            logger.info("🔄 Starting foreground deletion process...")
+            
+            for doc_id in request.document_ids:
+                try:
+                    # Get document info
+                    doc = await mongo_db.find_one("approval_documents", {"id": doc_id})
+                    if not doc:
+                        logger.warning(f"⚠️ Document {doc_id} not found")
+                        continue
+                    
+                    # Delete from Google Drive first
+                    if doc.get('file_id') or doc.get('summary_file_id'):
+                        try:
+                            logger.info(f"🗑️ Deleting files from Google Drive for: {doc.get('approval_document_name')}")
+                            
+                            ship = await mongo_db.find_one("ships", {"id": doc.get("ship_id")})
+                            ship_name = ship.get("name") if ship else "Unknown Ship"
+                            
+                            # Delete both original and summary files
+                            if doc.get('file_id'):
+                                await dual_manager.delete_file_from_drive(doc['file_id'])
+                                drive_deletion_count += 1
+                            
+                            if doc.get('summary_file_id'):
+                                await dual_manager.delete_file_from_drive(doc['summary_file_id'])
+                                drive_deletion_count += 1
+                                
+                            logger.info(f"✅ Deleted files from Drive for document: {doc_id}")
+                            
+                        except Exception as drive_error:
+                            logger.error(f"❌ Drive deletion error for {doc_id}: {drive_error}")
+                            errors.append(f"Drive deletion failed for {doc_id}: {str(drive_error)}")
+                    
+                    # Delete from database
+                    await mongo_db.delete("approval_documents", {"id": doc_id})
+                    deleted_count += 1
+                    logger.info(f"✅ Deleted approval document: {doc_id}")
+                    
+                except Exception as e:
+                    error_msg = f"Error deleting document {doc_id}: {str(e)}"
+                    logger.error(f"❌ {error_msg}")
+                    errors.append(error_msg)
+            
+            logger.info(f"✅ Foreground bulk delete completed: {deleted_count} documents, {drive_deletion_count} files deleted")
+            
+            return {
+                "success": True,
+                "deleted_count": deleted_count,
+                "drive_deletion_count": drive_deletion_count,
+                "errors": errors
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Bulk delete error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Background task for cleaning up approval document files
+async def cleanup_approval_document_files_background(doc: dict, dual_manager):
+    """Background task to delete approval document files from Google Drive"""
+    try:
+        logger.info(f"🧹 Background cleanup for approval document: {doc.get('approval_document_name')}")
+        
+        if doc.get('file_id'):
+            await dual_manager.delete_file_from_drive(doc['file_id'])
+            logger.info(f"✅ Deleted original file from Drive: {doc['file_id']}")
+        
+        if doc.get('summary_file_id'):
+            await dual_manager.delete_file_from_drive(doc['summary_file_id'])
+            logger.info(f"✅ Deleted summary file from Drive: {doc['summary_file_id']}")
+            
+    except Exception as e:
+        logger.error(f"❌ Background cleanup error: {e}")
+
+
+# DELETE single approval document
+@api_router.delete("/approval-documents/{document_id}")
+async def delete_approval_document(
+    document_id: str,
+    background: bool = False,
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Delete a single approval document
+    If background=True, delete from DB immediately and cleanup Drive files in background
+    If background=False, complete deletion including Drive
+    """
+    try:
+        logger.info(f"🗑️ Deleting approval document: {document_id} (background={background})")
+        
+        # Get document info
+        doc = await mongo_db.find_one("approval_documents", {"id": document_id})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Approval document not found")
+        
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        if background:
+            # Background mode - delete DB immediately
+            await mongo_db.delete("approval_documents", {"id": document_id})
+            logger.info(f"✅ Deleted approval document from DB: {document_id}")
+            
+            # Cleanup Drive files in background
+            if doc.get('file_id') or doc.get('summary_file_id'):
+                from dual_apps_script_manager import create_dual_apps_script_manager
+                dual_manager = create_dual_apps_script_manager(company_uuid)
+                asyncio.create_task(cleanup_approval_document_files_background(doc, dual_manager))
+            
+            return {
+                "success": True,
+                "message": "Approval document deleted (Drive cleanup in background)",
+                "document_id": document_id
+            }
+            
+        else:
+            # Foreground mode - complete deletion
+            from dual_apps_script_manager import create_dual_apps_script_manager
+            dual_manager = create_dual_apps_script_manager(company_uuid)
+            
+            # Delete from Google Drive first
+            drive_deleted = False
+            if doc.get('file_id') or doc.get('summary_file_id'):
+                try:
+                    logger.info(f"🗑️ Deleting files from Google Drive...")
+                    
+                    if doc.get('file_id'):
+                        await dual_manager.delete_file_from_drive(doc['file_id'])
+                    
+                    if doc.get('summary_file_id'):
+                        await dual_manager.delete_file_from_drive(doc['summary_file_id'])
+                    
+                    drive_deleted = True
+                    logger.info(f"✅ Deleted files from Drive")
+                    
+                except Exception as drive_error:
+                    logger.error(f"❌ Drive deletion error: {drive_error}")
+            
+            # Delete from database
+            await mongo_db.delete("approval_documents", {"id": document_id})
+            logger.info(f"✅ Deleted approval document: {document_id}")
+            
+            return {
+                "success": True,
+                "message": "Approval document deleted successfully",
+                "document_id": document_id,
+                "drive_deleted": drive_deleted
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error deleting approval document: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 @api_router.post("/ships/{ship_id}/survey-status", response_model=ShipSurveyStatusResponse)
 async def create_ship_survey_status(ship_id: str, status_data: ShipSurveyStatusCreate, current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
     try:
