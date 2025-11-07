@@ -2041,6 +2041,49 @@ class DrawingsManualResponse(BaseModel):
         }
 
 # ============================================
+# APPROVAL DOCUMENTS PYDANTIC MODELS
+# ============================================
+class ApprovalDocumentBase(BaseModel):
+    ship_id: str
+    approval_document_name: str  # Required field
+    approval_document_no: Optional[str] = None
+    approved_by: Optional[str] = None
+    approved_date: Optional[datetime] = None
+    status: Optional[str] = "Unknown"  # Valid, Approved, Expired, Unknown
+    note: Optional[str] = None
+
+class ApprovalDocumentCreate(ApprovalDocumentBase):
+    pass
+
+class ApprovalDocumentUpdate(BaseModel):
+    approval_document_name: Optional[str] = None
+    approval_document_no: Optional[str] = None
+    approved_by: Optional[str] = None
+    approved_date: Optional[datetime] = None
+    status: Optional[str] = None
+    note: Optional[str] = None
+
+class ApprovalDocumentResponse(BaseModel):
+    id: str
+    ship_id: str
+    approval_document_name: str
+    approval_document_no: Optional[str] = None
+    approved_by: Optional[str] = None
+    approved_date: Optional[datetime] = None
+    status: str
+    note: Optional[str] = None
+    file_id: Optional[str] = None  # Google Drive file ID for original
+    summary_file_id: Optional[str] = None  # Google Drive file ID for summary
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
+
+# ============================================
 # OTHER DOCUMENTS PYDANTIC MODELS
 # ============================================
 class OtherDocumentBase(BaseModel):
