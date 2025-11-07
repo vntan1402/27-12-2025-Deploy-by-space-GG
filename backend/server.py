@@ -13113,6 +13113,121 @@ async def analyze_approval_document_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Approval Documents File Upload endpoint
+@api_router.post("/approval-documents/{document_id}/upload-files")
+async def upload_approval_document_files(
+    document_id: str,
+    file_content: str = Body(...),
+    filename: str = Body(...),
+    content_type: str = Body(...),
+    summary_text: Optional[str] = Body(None),
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+):
+    """
+    Upload approval document files to Google Drive after record creation
+    1. Decode base64 file content
+    2. Upload original file to: ShipName/ISM-ISPS-MLC/Approval Document/
+    3. Upload summary to: ShipName/ISM-ISPS-MLC/Approval Document/ (same folder)
+    4. Update document record with file IDs
+    """
+    try:
+        logger.info(f"📤 Starting file upload for approval document: {document_id}")
+        
+        # Validate document exists
+        document = await mongo_db.find_one("approval_documents", {"id": document_id})
+        if not document:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        # Get company and ship info
+        company_uuid = await resolve_company_id(current_user)
+        if not company_uuid:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        ship_id = document.get("ship_id")
+        if not ship_id:
+            raise HTTPException(status_code=400, detail="Document has no ship_id")
+        
+        ship = await mongo_db.find_one("ships", {"id": ship_id, "company": company_uuid})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get("name", "Unknown Ship")
+        
+        # Decode base64 file content
+        try:
+            import base64
+            file_bytes = base64.b64decode(file_content)
+            logger.info(f"✅ Decoded file content: {len(file_bytes)} bytes")
+        except Exception as e:
+            logger.error(f"Failed to decode base64 file content: {e}")
+            raise HTTPException(status_code=400, detail="Invalid file content encoding")
+        
+        logger.info(f"📄 Processing file: {filename} ({len(file_bytes)} bytes)")
+        
+        # Initialize Dual Apps Script Manager
+        from dual_apps_script_manager import create_dual_apps_script_manager
+        dual_manager = create_dual_apps_script_manager(company_uuid)
+        
+        # Upload files to Google Drive
+        logger.info("📤 Uploading approval document files to Drive...")
+        logger.info(f"📄 Uploading to: {ship_name}/ISM-ISPS-MLC/Approval Document/{filename}")
+        
+        upload_result = await dual_manager.upload_approval_document_file(
+            file_content=file_bytes,
+            filename=filename,
+            ship_name=ship_name,
+            summary_text=summary_text
+        )
+        
+        if not upload_result.get('success'):
+            logger.error(f"❌ File upload failed: {upload_result.get('message')}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"File upload failed: {upload_result.get('message', 'Unknown error')}"
+            )
+        
+        # Extract file IDs
+        original_file_id = upload_result.get('original_file_id')
+        summary_file_id = upload_result.get('summary_file_id')
+        
+        # Update document with file IDs
+        update_data = {}
+        if original_file_id:
+            update_data['file_id'] = original_file_id
+        if summary_file_id:
+            update_data['summary_file_id'] = summary_file_id
+        
+        if update_data:
+            update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+            await mongo_db.update("approval_documents", {"id": document_id}, update_data)
+            logger.info("✅ Document updated with file IDs")
+        
+        # Handle summary upload failure (non-critical)
+        summary_error = upload_result.get('summary_error')
+        if summary_error:
+            logger.warning(f"⚠️ Summary upload failed (non-critical): {summary_error}")
+        
+        # Get updated document
+        updated_document = await mongo_db.find_one("approval_documents", {"id": document_id})
+        
+        logger.info("✅ Approval document files uploaded successfully")
+        return {
+            "success": True,
+            "message": "Approval document files uploaded successfully",
+            "document": ApprovalDocumentResponse(**updated_document),
+            "original_file_id": original_file_id,
+            "summary_file_id": summary_file_id,
+            "summary_error": summary_error
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading approval document files: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
 
 
 @api_router.post("/ships/{ship_id}/survey-status", response_model=ShipSurveyStatusResponse)
