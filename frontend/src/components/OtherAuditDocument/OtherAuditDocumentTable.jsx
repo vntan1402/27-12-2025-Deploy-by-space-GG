@@ -810,8 +810,11 @@ const OtherAuditDocumentsTable = ({ selectedShip }) => {
                 {/* Delete */}
                 <button
                   onClick={() => {
+                    const docToDelete = contextMenu.document;
                     setContextMenu({ show: false, x: 0, y: 0, document: null });
-                    handleDelete();
+                    if (docToDelete && docToDelete.id) {
+                      handleDelete(docToDelete.id);
+                    }
                   }}
                   className="w-full px-4 py-2 text-left hover:bg-red-50 text-gray-700 hover:text-red-600 transition-all flex items-center gap-2"
                 >
