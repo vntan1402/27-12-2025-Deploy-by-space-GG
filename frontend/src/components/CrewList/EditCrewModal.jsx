@@ -322,8 +322,8 @@ export const EditCrewModal = ({
                     {language === 'vi' ? '-- Chọn tàu --' : '-- Select Ship --'}
                   </option>
                   {ships.map((ship) => (
-                    <option key={ship.id} value={ship.ship_name}>
-                      {ship.ship_name}
+                    <option key={ship.id} value={ship.name}>
+                      {ship.name}
                     </option>
                   ))}
                 </select>
