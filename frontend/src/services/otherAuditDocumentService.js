@@ -40,11 +40,18 @@ const otherAuditDocumentService = {
   },
 
   /**
-   * Delete an other document
+   * Delete an other audit document
    */
   delete: async (documentId) => {
-    const response = await api.delete(`/api/other-audit-documents/${documentId}?background=true`);
-    return response.data;
+    console.log('🗑️ Deleting other audit document:', documentId);
+    try {
+      const response = await api.delete(`/api/other-audit-documents/${documentId}?background=true`);
+      console.log('✅ Delete response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Delete error:', error);
+      throw error;
+    }
   },
 
   /**
