@@ -5,7 +5,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
-import drawingManualService from '../../services/drawingManualService';
+import approvalDocumentService from '../../services/approvalDocumentService';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 import { 
   estimateFileProcessingTime, 
@@ -104,7 +104,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
 
     try {
       setLoading(true);
-      const response = await drawingManualService.getAll(selectedShip.id);
+      const response = await approvalDocumentService.getAll(selectedShip.id);
       setDocuments(response.data || []);
     } catch (error) {
       console.error('Failed to fetch drawings & manuals:', error);
@@ -310,7 +310,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
 
   const handleChangeStatus = async (document, newStatus) => {
     try {
-      await drawingManualService.update(document.id, { status: newStatus });
+      await approvalDocumentService.update(document.id, { status: newStatus });
       toast.success(language === 'vi' ? `✅ Đã đổi trạng thái thành ${newStatus}` : `✅ Status changed to ${newStatus}`);
       await fetchDocuments();
     } catch (error) {
@@ -327,7 +327,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
       : `Are you sure you want to delete "${document.document_name}"?`
     )) {
       try {
-        await drawingManualService.delete(document.id, true);
+        await approvalDocumentService.delete(document.id, true);
 
         setSelectedDocuments(prev => {
           const newSet = new Set(prev);
@@ -398,7 +398,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
     )) {
       try {
         const documentIds = Array.from(selectedDocuments);
-        const response = await drawingManualService.bulkDelete(documentIds, true);
+        const response = await approvalDocumentService.bulkDelete(documentIds, true);
 
         toast.success(language === 'vi' 
           ? `✅ Đã xóa ${response.data.deleted_count} tài liệu` 
