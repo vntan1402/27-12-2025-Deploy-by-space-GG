@@ -2339,6 +2339,217 @@ class DualAppsScriptManager:
                 'error': str(e)
             }
     
+    # ================== Other Audit Document Upload (ISM-ISPS-MLC) ==================
+    async def upload_other_audit_document_file(
+        self,
+        file_content: bytes,
+        filename: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """
+        Upload other audit document files to Google Drive
+        Path: Shipname > ISM-ISPS-MLC > Other Audit Document
+        
+        Args:
+            file_content: File content (PDF, JPG, etc.)
+            filename: Filename
+            ship_name: Ship name for folder structure
+            
+        Returns:
+            dict: Upload results with file ID
+        """
+        try:
+            await self._load_configuration()
+            
+            logger.info(f"📤 Uploading other audit document to Google Drive: {filename}")
+            
+            # Determine content type based on file extension
+            if filename.lower().endswith('.pdf'):
+                content_type = 'application/pdf'
+            elif filename.lower().endswith(('.jpg', '.jpeg')):
+                content_type = 'image/jpeg'
+            else:
+                content_type = 'application/octet-stream'
+            
+            # Call Company Apps Script for other audit document upload
+            # Path structure: Shipname > ISM-ISPS-MLC > Other Audit Document
+            upload_result = await self._call_apps_script_for_other_audit_document_upload(
+                file_content=file_content,
+                filename=filename,
+                content_type=content_type,
+                ship_name=ship_name
+            )
+            
+            if not upload_result.get('success'):
+                logger.error(f"❌ Other audit document file upload failed")
+                return upload_result
+            
+            # Extract file ID from Apps Script response
+            file_id = upload_result.get('file_id')
+            logger.info("✅ Other audit document file uploaded successfully")
+            logger.info(f"   File ID: {file_id}")
+            logger.info(f"   Path: {upload_result.get('folder_path', 'N/A')}")
+            
+            # Return structured response
+            return {
+                'success': True,
+                'message': 'Other audit document file uploaded successfully',
+                'file_id': file_id,
+                'file_path': upload_result.get('folder_path'),
+                'upload_details': upload_result
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error uploading other audit document file: {e}")
+            return {
+                'success': False,
+                'message': f'Other audit document file upload failed: {str(e)}',
+                'error': str(e)
+            }
+
+    async def upload_other_audit_document_folder(
+        self,
+        files: List[tuple],  # List of (file_content, filename) tuples
+        folder_name: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """
+        Upload a folder of files to Google Drive
+        Path: Shipname > ISM-ISPS-MLC > Other Audit Document > folder_name
+        
+        Args:
+            files: List of (file_content, filename) tuples
+            folder_name: Name of the subfolder to create
+            ship_name: Ship name for folder structure
+            
+        Returns:
+            dict: Upload results with folder_id, folder_link, and file_ids
+        """
+        try:
+            await self._load_configuration()
+            
+            logger.info(f"📁 Uploading other audit document folder to Google Drive")
+            logger.info(f"   Folder: {folder_name}")
+            logger.info(f"   Files: {len(files)}")
+            
+            # Path: ISM-ISPS-MLC/Other Audit Document
+            parent_category_path = "ISM-ISPS-MLC/Other Audit Document"
+            category_name = folder_name
+            
+            file_ids = []
+            failed_files = []
+            folder_id = None
+            
+            # Upload all files using the same nested category path
+            for file_content, filename in files:
+                try:
+                    # Determine content type
+                    if filename.lower().endswith('.pdf'):
+                        content_type = 'application/pdf'
+                    elif filename.lower().endswith(('.jpg', '.jpeg')):
+                        content_type = 'image/jpeg'
+                    else:
+                        content_type = 'application/octet-stream'
+                    
+                    # Use existing upload_file_with_folder_creation
+                    file_result = await self._call_apps_script_for_folder_upload(
+                        file_content=file_content,
+                        filename=filename,
+                        content_type=content_type,
+                        ship_name=ship_name,
+                        parent_category_path=parent_category_path,
+                        category_name=category_name
+                    )
+                    
+                    if file_result.get('success'):
+                        file_ids.append(file_result.get('file_id'))
+                        
+                        # Extract folder_id from first successful upload
+                        if not folder_id and file_result.get('folder_id'):
+                            folder_id = file_result.get('folder_id')
+                        
+                        logger.info(f"   ✅ Uploaded: {filename}")
+                    else:
+                        failed_files.append(filename)
+                        logger.warning(f"   ⚠️ Failed to upload: {filename}")
+                        
+                except Exception as e:
+                    failed_files.append(filename)
+                    logger.error(f"   ❌ Error uploading {filename}: {e}")
+            
+            # Generate folder link from folder_id
+            folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if folder_id else None
+            
+            # Return results
+            return {
+                'success': True,
+                'message': f'Folder uploaded successfully: {len(file_ids)}/{len(files)} files',
+                'folder_id': folder_id,
+                'folder_link': folder_link,
+                'file_ids': file_ids,
+                'failed_files': failed_files,
+                'total_files': len(files),
+                'successful_files': len(file_ids)
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Error uploading other audit document folder: {e}")
+            return {
+                'success': False,
+                'message': f'Folder upload failed: {str(e)}',
+                'error': str(e)
+            }
+
+    async def _call_apps_script_for_other_audit_document_upload(
+        self,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        ship_name: str
+    ) -> Dict[str, Any]:
+        """
+        Call Company Apps Script for other audit document upload
+        Path: SHIP_NAME / ISM-ISPS-MLC / Other Audit Document / file
+        """
+        try:
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            logger.info(f"📡 Calling Apps Script for other audit document upload")
+            logger.info(f"   Ship: {ship_name}")
+            logger.info(f"   File: {filename}")
+            
+            # Encode file content to base64
+            file_base64 = base64.b64encode(file_content).decode('utf-8')
+            
+            # Prepare request payload
+            payload = {
+                "action": "upload_file_with_folder_creation",
+                "file_content": file_base64,
+                "filename": filename,
+                "content_type": content_type,
+                "ship_name": ship_name,
+                "parent_category": "ISM-ISPS-MLC",
+                "category": "Other Audit Document"
+            }
+            
+            # Call Apps Script with retries
+            response_data = await self._call_with_retry(
+                url=self.company_apps_script_url,
+                payload=payload,
+                max_retries=3
+            )
+            
+            return response_data
+            
+        except Exception as e:
+            logger.error(f"❌ Error calling Apps Script for other audit document: {e}")
+            return {
+                'success': False,
+                'message': f'Apps Script call failed: {str(e)}',
+                'error': str(e)
+            }
+    
     async def _call_apps_script_for_folder_upload(
         self,
         file_content: bytes,
