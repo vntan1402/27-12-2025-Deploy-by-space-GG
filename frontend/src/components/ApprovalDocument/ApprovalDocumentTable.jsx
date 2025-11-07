@@ -545,7 +545,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
         note: analysis.note || null
       };
 
-      const createResponse = await fetch(`${BACKEND_URL}/api/drawings-manuals`, {
+      const createResponse = await fetch(`${BACKEND_URL}/api/approval-documents`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
