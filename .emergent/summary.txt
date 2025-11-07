@@ -1,30 +1,29 @@
 <analysis>
-The AI engineer's trajectory showcases an iterative, user-driven development process focusing on enhancing the  module, particularly for  functionality. The work began by addressing a critical missing feature: ship validation for , bringing it to parity with  logic. This involved refactoring backend validation and frontend modal interactions, including multiple iterations to perfect batch upload behavior and error reporting. Subsequently, the engineer provided a detailed overview of AI extraction fields, then tackled several UI/UX improvements such as custom validation modals, expanding  options to include CICA, hiding unnecessary columns, and enriching search and filter capabilities. The final fixes addressed a database update method error and refined the Issued By abbreviation logic. Each step involved identifying the issue, proposing a solution, implementing changes across frontend and backend, testing, and confirming with the user, demonstrating a comprehensive full-stack approach.
+The trajectory details the work of an AI engineer on an existing application, focusing on the  module, subsequent to the  module's initial development. The conversation begins with a user request to understand the Date Sign Off functionality. The AI engineer thoroughly analyzes both frontend and backend code, identifying that while bulk updates trigger automatic status and ship changes, individual Add/Edit modals do not.
+
+Upon user request, the AI implements this auto-update logic for the  field in  and , enhancing UI consistency with indicators and toasts. A critical user query then shifts focus to file movement on Google Drive when a crew member's status changes. The AI conducts a deep dive into backend file management, discovering that while endpoints for moving files exist, they are not automatically triggered by status changes and do not handle summary files.
+
+The AI proposes and receives approval for a robust backend background task solution to automatically move both original and summary files to the correct flat or hierarchical Google Drive folders based on status changes (Standby, Ship transfer, Sign On). This involves creating several helper functions (, , , ) and integrating the background task into the  update endpoint. During implementation, a bug was found where  was misidentified, which was promptly fixed.
+
+Further UI/UX improvements include converting the Ship Sign On input to a dropdown list (after fixing a  vs  field mismatch), reorganizing modal layouts into a 3-column grid, and swapping the Nationality and Passport Expiry Date fields. The most recent task involved fixing an issue where clearing Place Sign On and Date Sign Off fields in  didn't update the backend, which was traced to frontend sending  instead of  and subsequently corrected. The AI is about to summarize this last fix.
 </analysis>
 
 <product_requirements>
-The primary objective is to strengthen the  module by upgrading  and establishing a robust  system with advanced AI. Key requirements include:
-1.  **Upcoming Survey Harmonization**: Standardize computation and display of upcoming survey dates.
-2.  **Date Formatting**: All  dates in modals must be .
-3.  **Audit Report Migration**: Complete porting of  functionality to .
-4.  **Component Modularity**: Refactor  for modularity with prop-based data.
-5.  **Internationalization**: Review and correct  module labels/strings.
-6.  **AI Analysis Integration**: Implement and debug AI configuration and analysis for .
-7.  **Field Renaming**: Change Audited By to Issued By across all layers.
-8.  **Feature Parity**: Upgrade  with features like Batch Processing.
-9.  **AI Extraction Enhancement**: Ensure AI extracts , , , and other critical fields, integrating direct PDF extraction.
-10. **Issued By Standardization**: Standardize extracted Issued By organization names to abbreviations, but avoid shortening existing abbreviations.
-11. **Report Form Logic Enhancement**: Apply robust filename-based and AI prompt logic for .
-12. **Audit Type Classification**: Automatically categorize audit types into ISM, ISPS, MLC, and CICA.
-13. **Ship Validation**: Implement robust ship validation (Name OR IMO) for  during analysis, matching  behavior, with expanded modal warnings and strict error handling for batch uploads.
-14. **UI Refinements**: Expand validation warning modals, hide the Audit Report Name column, enable search by  and , and add a filter dropdown for .
+The overarching goal is to enhance the  module and specifically the  functionality. Key requirements include:
+1.  **Date Sign Off Automation**: Implement automatic status () and ship () updates in  and  when Date Sign Off is entered, consistent with bulk update behavior.
+2.  **Google Drive File Management**: Implement a robust system to automatically move all associated crew files (passport, certificates, including both original and summary files) on Google Drive when a crew member's status changes (e.g., Sign on to Standby, Standby to Sign on, or Ship transfer). This must respect specific flat (for Standby) and hierarchical (for Ship) folder structures.
+3.  **UI/UX Improvements**:
+    *   Convert Ship Sign On input to a dynamic dropdown list, populating it with available ships.
+    *   Redesign the layout of  and  forms to display fields in a 3-column grid for better organization.
+    *   Swap the display positions of Nationality and Passport Expiry Date fields for logical grouping.
+4.  **Data Persistence Fixes**: Ensure that clearing Place Sign On and Date Sign Off fields in  correctly updates these fields to  in the backend.
 </product_requirements>
 
 <key_technical_concepts>
--   **Frontend**: React.js (state, hooks, components, modals, ), Tailwind CSS, Internationalization, , Context Menus, Loading Spinners.
--   **Backend**: FastAPI (API, ), MongoDB (UUIDs, Pydantic, ), .
--   **Patterns**: Modular design, error handling, API service abstraction, background processing, AI prompt engineering, Regex for data extraction.
--   **External**: Google Drive, Emergent LLM Key,  (Gemini 2.0 Flash), Document AI.
+-   **Frontend**: React.js (state, hooks, components, modals, , ), Tailwind CSS, Conditional Rendering.
+-   **Backend**: FastAPI (API, ), MongoDB (UUIDs, Pydantic, ), , Logging, Error Handling.
+-   **Patterns**: Modular design, API service abstraction, background processing, declarative UI, consistent UX.
+-   **External**: Google Drive (via Apps Script for file operations).
 </key_technical_concepts>
 
 <code_architecture>
@@ -33,57 +32,36 @@ The application uses a React.js frontend and a FastAPI/MongoDB backend.
 
 
 -   ****:
-    -   **Importance**: Centralizes all backend API logic.
-    -   **Changes**:
-        -   Integrated  (reusing ).
-        -   Refactored  endpoint.
-        -   Updated Pydantic models for .
-        -   Enhanced  extraction logic, prioritizing filename parsing and regex.
-        -   Implemented post-processing for  classification (ISM, ISPS, MLC, **CICA**).
-        -   **Crucially, added  call to  endpoint and refactored  to match Audit Report's robust ship lookup (dual lookup by UUID/company name, conditional error throwing based on ).**
-        -   Fixed  to  in  endpoint.
+    -   **Importance**: Centralizes all backend API logic and houses new file movement helpers.
+    -   **Changes (this trajectory)**:
+        -   **Added helper functions**: , , , ,  (background task). These functions encapsulate the logic for detecting changes, gathering all relevant crew files (original and summary, passport and certificates), determining the correct Google Drive folder structure (flat for standby, hierarchical for ships), and executing the file moves via Apps Script.
+        -   **Modified  endpoint ()**: Now accepts  as a parameter and schedules the  background task to run asynchronously after a crew member's details are updated.
+        -   **Fixed **: Corrected an error where certificate summary files were not being collected due to using an incorrect database field name ( instead of ).
 -   ****:
-    -   **Importance**: Contains existing Issued By abbreviation logic.
-    -   **Changes**: No direct changes, but its  mapping is now leveraged.
+    -   **Importance**: Handles interactions with Google Apps Script for file operations (upload, move).
+    -   **Changes (this trajectory)**: Read to understand folder creation/movement logic. No direct modifications, but its underlying Apps Script actions are invoked by the newly implemented background file movement.
 -   ****:
-    -   **Importance**: Main page for  module.
-    -   **Changes**:
-        -   Added  state for loading spinners.
-        -   Fixed  initialization.
-        -   Modified  for robust AI analysis response handling.
-        -   Standardized  values.
-        -   Implemented staggered batch processing.
-        -   **Refined batch upload validation logic to strictly halt processing and display errors on ship info mismatch, removing auto-retry.**
-        -   Added detailed try-catch logging for API calls.
+    -   **Importance**: Modal for adding new crew members.
+    -   **Changes (this trajectory)**:
+        -   Implemented auto-update logic: When  is entered,  is automatically set to  and  to . A visual indicator and toast notification confirm this.
+        -   Rearranged layout to a 3-column grid structure.
+        -   Fixed duplicate rows and reorganized fields for better logical grouping.
+        -   Swapped the display positions of  and  fields.
 -   ****:
-    -   **Importance**: Lists audit reports and handles UI interactions.
-    -   **Changes**: Integrated loading state for delete operations.
-    -   **Hid the Audit Report Name column (commented out header and body cell).**
-    -   **Enhanced search functionality to include  and  fields.**
-    -   **Added an Audit Type filter dropdown.**
-    -   **Modified  logic to prevent shortening existing abbreviations.**
+    -   **Importance**: Modal for editing existing crew members.
+    -   **Changes (this trajectory)**:
+        -   Implemented auto-update logic: Similar to ,  entry triggers automatic  and  updates, with indicator and toast.
+        -   Converted Ship Sign On input to a  dropdown, fetching available ships from the backend.
+        -   Corrected the  dropdown to use the  field of ship objects (instead of ).
+        -   Rearranged layout to a 3-column grid structure.
+        -   Swapped the display positions of  and  fields.
+        -   Modified form submission to explicitly send  (instead of ) for empty  and  fields, ensuring backend updates.
 -   ****:
-    -   **Importance**: Modal for adding new audit reports.
-    -   **Changes**: Replaced  with a custom  component for ship validation warnings.
-    -   **Converted Audit Type input to a select dropdown (ISM, ISPS, MLC, CICA).**
+    -   **Importance**: Displays the list of crew members and handles bulk actions.
+    -   **Changes (this trajectory)**: No direct code changes, but its bulk update functionality (which already had auto-logic for Date Sign Off) was analyzed, and it was confirmed that it passes  as a prop to .
 -   ****:
-    -   **Importance**: Modal for editing existing audit reports.
-    -   **Changes**: **Converted Audit Type input to a select dropdown (ISM, ISPS, MLC, CICA).**
--   ****:
-    -   **Importance**: Frontend service for  API calls.
-    -   **Changes**: Changed  to use .
--   ****:
-    -   **Importance**: Main page for  module.
-    -   **Changes**:
-        -   Applied loading state for delete operations.
-        -   **Refined batch upload validation logic to strictly halt processing and display errors on ship info mismatch, removing auto-retry (mirroring Audit Report).**
-        -   Added detailed try-catch logging for API calls.
--   ****:
-    -   **Importance**: Modal for adding new survey reports.
-    -   **Changes**: Replaced  with a custom  component for ship validation warnings (mirroring Audit Report).
--   ****:
-    -   **Importance**: Displays results of batch processing.
-    -   **Changes**: **Removed  display logic and added  for multi-line error messages.**
+    -   **Importance**: Provides frontend API integration for ship-related operations.
+    -   **Changes (this trajectory)**: Its  function was utilized to fetch ship data for the new Ship Sign On dropdowns. No direct modifications to this file were noted.
 </code_architecture>
 
 <pending_tasks>
@@ -92,17 +70,23 @@ The application uses a React.js frontend and a FastAPI/MongoDB backend.
 -   Certificate File Viewer.
 -   Scalability improvements.
 -   Toast notifications for Deleting files on Drive for  and .
--   Finish implementing the  component (for Crew Records).
+-   Finish implementing the  component (for Crew Records) - *Note: Much work has been done on this modal, this pending task might refer to other specific features.*
 -   Verify background file deletion for crew records.
 -   Comprehensive testing of the newly migrated  module (Phase 11).
 -   Address AI configuration for , resolve lookup discrepancies, and set up a default AI config.
 -   Resolve persistent Tesseract/Poppler installation issues to enable full OCR functionality.
+-   Confirm with the user if the Issued By abbreviation logic is now working as expected (from initial ).
+-   Test the implemented backend background task for file movement in various scenarios.
 </pending_tasks>
 
 <current_work>
-Immediately prior to this summary, the AI engineer was working on refining the Issued By abbreviation logic in the  table. The user reported that if Issued By was already an abbreviation (e.g., PMDS), the system was incorrectly shortening it further (e.g., to PMD). The engineer identified that the  function in  was cutting single-word strings to the first three characters. The engineer modified this function to first check if the string already appears to be an abbreviation (all uppercase, short) and, if so, to retain it without further shortening. If it's a longer name, the existing abbreviation logic is applied. This task has been implemented, and the frontend was restarted.
+Immediately prior to this summary, the AI engineer was addressing a bug reported by the user concerning the  modal. The issue was that when  and  fields were cleared (their values removed) in the frontend, these changes were not reflected in the backend database; the fields retained their previous values.
+
+The AI engineer investigated the  model in  and confirmed that these fields are . Further investigation in  revealed that while some fields were explicitly converted to  if empty,  and  were being sent with  values as a result of using  logic. The core problem was identified as Pydantic's  behavior in the backend, which would ignore fields if their value was  (meaning they wouldn't be included in the update payload).
+
+To fix this, the AI engineer modified  to explicitly send  (instead of ) for  and  when their input fields are empty. This ensures that the backend receives an explicit  value for these fields, allowing MongoDB to correctly clear them. The change involved modifying the  object construction within the  function. After making this change, a lint check was performed.
 </current_work>
 
 <optional_next_step>
-Confirm with the user if the Issued By abbreviation logic is now working as expected.
+Summarize the successful fix for  and  not clearing.
 </optional_next_step>

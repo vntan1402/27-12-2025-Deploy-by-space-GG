@@ -25,7 +25,7 @@ Token có thể đã expired hoặc không hợp lệ.
 ### Option 3: Test với Incognito Mode
 
 1. Mở Incognito/Private window
-2. Truy cập: https://fleet-compliance-6.preview.emergentagent.com
+2. Truy cập: https://seamanage.preview.emergentagent.com
 3. Login: `admin` / `admin123`
 4. Test connection
 
