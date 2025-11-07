@@ -531,8 +531,8 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
       }
 
       const analysis = await analyzeResponse.json();
-      result.documentName = analysis.approval_document_name || file.name;
-      result.documentNo = analysis.approval_document_no || '';
+      result.approval_document_name = analysis.approval_document_name || file.name;
+      result.approval_document_no = analysis.approval_document_no || '';
 
       // Step 2: Create document record
       const documentData = {
