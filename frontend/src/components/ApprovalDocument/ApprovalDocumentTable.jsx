@@ -926,7 +926,13 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
                       </div>
                     </td>
                     <td className="border border-gray-300 px-4 py-2 font-mono">{document.approval_document_no || '-'}</td>
-                    <td className="border border-gray-300 px-4 py-2">{document.approved_by || '-'}</td>
+                    {/* Approved By (Abbreviation with Tooltip) */}
+                    <td 
+                      className="border border-gray-300 px-4 py-2 text-sm font-semibold text-blue-700" 
+                      title={document.approved_by || '-'}
+                    >
+                      {getAbbreviation(document.approved_by)}
+                    </td>
                     <td className="border border-gray-300 px-4 py-2">{document.approved_date ? formatDateDisplay(document.approved_date) : '-'}</td>
                     <td className="border border-gray-300 px-4 py-2">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
