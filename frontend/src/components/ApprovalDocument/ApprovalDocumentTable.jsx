@@ -1,5 +1,5 @@
 /**
- * Drawings & Manuals Table Component
+ * Approval Document Table Component
  * Full-featured table with all V1 functionality
  */
 import React, { useState, useEffect } from 'react';
@@ -636,7 +636,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
         <h3 className="text-lg font-semibold text-gray-800">
           {language === 'vi' 
             ? `Danh sách Bản vẽ & Sổ tay cho ${selectedShip.name}` 
-            : `Drawings & Manuals List for ${selectedShip.name}`}
+            : `Approval Document List for ${selectedShip.name}`}
         </h3>
 
         <div className="flex gap-3">
@@ -647,7 +647,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            {language === 'vi' ? 'Thêm Bản vẽ/Sổ tay' : 'Add Drawings & Manuals'}
+            {language === 'vi' ? 'Thêm Bản vẽ/Sổ tay' : 'Add Approval Document'}
           </button>
 
           <button
@@ -874,7 +874,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
                         {document.file_id && (
                           <span 
                             className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
-                            title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Drawings & Manuals`}
+                            title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Approval Document`}
                             onClick={(e) => {
                               e.stopPropagation();
                               if (document.file_id) {
@@ -888,7 +888,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
                         {document.summary_file_id && (
                           <span 
                             className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
-                            title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Drawings & Manuals`}
+                            title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Approval Document`}
                             onClick={(e) => {
                               e.stopPropagation();
                               if (document.summary_file_id) {
