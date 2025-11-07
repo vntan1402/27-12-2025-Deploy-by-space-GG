@@ -951,7 +951,12 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
                     </td>
                     <td className="border border-gray-300 px-4 py-2">
                       <div className="flex items-center gap-2">
-                        <span>{document.approval_document_name}</span>
+                        <span 
+                          className="cursor-help" 
+                          title={document.approval_document_name}
+                        >
+                          {abbreviateMaritimeName(document.approval_document_name)}
+                        </span>
                         {document.file_id && (
                           <span 
                             className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
