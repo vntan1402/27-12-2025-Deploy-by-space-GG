@@ -2131,6 +2131,46 @@ class OtherDocumentResponse(BaseModel):
             datetime: lambda v: v.isoformat() if v else None
         }
 
+# ================== Other Audit Document Models (ISM-ISPS-MLC) ==================
+class OtherAuditDocumentBase(BaseModel):
+    ship_id: str
+    document_name: str  # Required field
+    date: Optional[datetime] = None  # Generic date field
+    status: Optional[str] = "Unknown"  # Valid, Expired, Unknown
+    note: Optional[str] = None
+
+class OtherAuditDocumentCreate(OtherAuditDocumentBase):
+    file_ids: Optional[List[str]] = None  # For folder uploads
+    folder_id: Optional[str] = None  # Google Drive folder ID (for folder uploads)
+    folder_link: Optional[str] = None  # Google Drive folder link (for folder uploads)
+
+class OtherAuditDocumentUpdate(BaseModel):
+    document_name: Optional[str] = None
+    date: Optional[datetime] = None
+    status: Optional[str] = None
+    note: Optional[str] = None
+    file_ids: Optional[List[str]] = None  # Allow updating file_ids
+    folder_id: Optional[str] = None  # Allow updating folder_id
+    folder_link: Optional[str] = None  # Allow updating folder_link
+
+class OtherAuditDocumentResponse(BaseModel):
+    id: str
+    ship_id: str
+    document_name: str
+    date: Optional[datetime] = None
+    status: str
+    note: Optional[str] = None
+    file_ids: Optional[List[str]] = None  # List of Google Drive file IDs
+    folder_id: Optional[str] = None  # Google Drive folder ID if this is a folder upload
+    folder_link: Optional[str] = None  # Google Drive folder link to open in browser
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat() if v else None
+        }
+
 # Helper function for Test Report status calculation
 def calculate_test_report_status(valid_date: Optional[datetime]) -> str:
     """
