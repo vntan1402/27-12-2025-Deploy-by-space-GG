@@ -150,6 +150,63 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
     return words.slice(0, 4).map(word => word[0]).join('').toUpperCase();
   };
 
+  // Abbreviate common maritime terms in document names
+  const abbreviateMaritimeName = (documentName) => {
+    if (!documentName) return '';
+    
+    // Map of common maritime terms to abbreviations
+    const maritimeAbbreviations = {
+      // Personnel
+      'Designated Person Ashore': 'DPA',
+      'Company Security Officer': 'CSO',
+      'Ship Security Officer': 'SSO',
+      'Master': 'Master',
+      
+      // Documents
+      'Document of Compliance': 'DOC',
+      'Safety Management Certificate': 'SMC',
+      'Continuous Synopsis Record': 'CSR',
+      'Declaration of Maritime Labour Compliance': 'DMLC',
+      'Maritime Labour Certificate': 'MLC',
+      'International Ship Security Certificate': 'ISSC',
+      
+      // Codes & Standards
+      'International Safety Management': 'ISM',
+      'International Ship and Port Facility Security': 'ISPS',
+      'Maritime Labour Convention': 'MLC',
+      'ISM Code': 'ISM',
+      'ISPS Code': 'ISPS',
+      'MLC Convention': 'MLC',
+      
+      // Common phrases
+      'Certificate': 'Cert',
+      'Certification': 'Cert',
+      'Declaration': 'Decl',
+      'Compliance': 'Compl',
+      'Management': 'Mgmt',
+      'Security': 'Sec',
+      'Safety': 'Saf',
+    };
+    
+    let abbreviated = documentName;
+    
+    // Sort by length (longest first) to avoid partial replacements
+    const sortedTerms = Object.entries(maritimeAbbreviations)
+      .sort((a, b) => b[0].length - a[0].length);
+    
+    // Replace each term (case-insensitive)
+    for (const [fullTerm, abbr] of sortedTerms) {
+      const regex = new RegExp(fullTerm, 'gi');
+      abbreviated = abbreviated.replace(regex, abbr);
+    }
+    
+    // Clean up extra spaces
+    abbreviated = abbreviated.replace(/\s+/g, ' ').trim();
+    
+    return abbreviated;
+  };
+
+
 
   // Filter and sort documents
   const getFilteredDocuments = () => {
