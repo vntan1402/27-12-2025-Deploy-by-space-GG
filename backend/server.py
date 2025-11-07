@@ -20603,8 +20603,19 @@ async def update_crew_member(
         # Update in database
         await mongo_db.update("crew_members", {"id": crew_id}, update_data)
         
-        # Get updated document
+        # Get updated document (AFTER update)
         updated_crew = await mongo_db.find_one("crew_members", {"id": crew_id})
+        
+        # 🆕 NEW: Schedule background task to move files if needed
+        logger.info(f"🔄 Scheduling background file move check for crew {crew_id}")
+        background_tasks.add_task(
+            move_crew_files_on_change,
+            crew_id=crew_id,
+            company_id=company_uuid,
+            old_crew=old_crew,         # Data BEFORE update
+            new_crew=updated_crew,     # Data AFTER update
+            mongo_db_instance=mongo_db
+        )
         
         # Log audit trail
         await log_audit_trail(
