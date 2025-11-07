@@ -229,7 +229,7 @@ async def collect_all_crew_files(crew_id: str, company_id: str, mongo_db_instanc
                     "cert_id": "cert1",
                     "file_id": "www",
                     "type": "certificate_summary",
-                    "field": "summary_file_id",
+                    "field": "crew_cert_summary_file_id",
                     "cert_name": "COC"
                 }
             ]
