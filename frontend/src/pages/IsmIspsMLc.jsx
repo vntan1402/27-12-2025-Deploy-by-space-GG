@@ -1499,14 +1499,15 @@ const IsmIspsMLc = () => {
           ) : selectedSubMenu === 'approval_document' ? (
             /* Approval Document Section */
             <ApprovalDocumentTable selectedShip={selectedShip} />
+          ) : selectedSubMenu === 'other_document' ? (
+            /* Other Audit Document Section */
+            <OtherAuditDocumentTable selectedShip={selectedShip} />
           ) : (
-            /* Placeholder for other submenus */
+            /* Placeholder for future submenus */
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">
-                {selectedSubMenu === 'other_document' && '📄'}
-              </div>
+              <div className="text-6xl mb-4">📄</div>
               <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-                {selectedSubMenu === 'other_document' && (language === 'vi' ? 'Other Audit Document' : 'Other Audit Document')}
+                {language === 'vi' ? 'Chức năng đang phát triển' : 'Feature under development'}
               </h3>
               <p className="text-gray-500">
                 {language === 'vi' 
