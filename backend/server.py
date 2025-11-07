@@ -20547,19 +20547,20 @@ async def get_crew_member(
 async def update_crew_member(
     crew_id: str,
     crew_update: CrewUpdate,
+    background_tasks: BackgroundTasks,  # 🆕 NEW: Add BackgroundTasks parameter
     current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """Update a crew member"""
     try:
         company_uuid = await resolve_company_id(current_user)
         
-        # Check if crew member exists
-        existing_crew = await mongo_db.find_one("crew_members", {
+        # Get existing crew data (BEFORE update) - renamed from existing_crew
+        old_crew = await mongo_db.find_one("crew_members", {
             "id": crew_id,
             "company_id": company_uuid
         })
         
-        if not existing_crew:
+        if not old_crew:
             raise HTTPException(status_code=404, detail="Crew member not found")
         
         # Check for passport duplication if passport is being updated
