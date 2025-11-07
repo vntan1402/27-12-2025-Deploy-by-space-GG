@@ -12072,9 +12072,26 @@ async def analyze_drawings_manual_file(
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        # Verify company access (support both UUID and name formats)
+        # Verify company access - resolve ship's company to UUID for comparison
         ship_company = ship.get("company", "")
-        if ship_company != company_uuid and ship_company != current_user.company:
+        
+        # If ship.company is a name, resolve it to UUID
+        ship_company_uuid = ship_company
+        if ship_company and not (len(ship_company) > 10 and '-' in ship_company):
+            # It's a name, resolve to UUID
+            company_doc = await mongo_db.find_one("companies", {
+                "$or": [
+                    {"name_vn": ship_company},
+                    {"name_en": ship_company},
+                    {"name": ship_company}
+                ]
+            })
+            if company_doc:
+                ship_company_uuid = company_doc.get("id")
+        
+        # Compare UUIDs
+        if ship_company_uuid != company_uuid:
+            logger.warning(f"Access denied: ship company '{ship_company_uuid}' != user company '{company_uuid}'")
             raise HTTPException(status_code=403, detail="Access denied to this ship")
         
         ship_name = ship.get("name", "Unknown Ship")
@@ -12971,9 +12988,26 @@ async def analyze_approval_document_file(
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        # Verify company access (support both UUID and name formats)
+        # Verify company access - resolve ship's company to UUID for comparison
         ship_company = ship.get("company", "")
-        if ship_company != company_uuid and ship_company != current_user.company:
+        
+        # If ship.company is a name, resolve it to UUID
+        ship_company_uuid = ship_company
+        if ship_company and not (len(ship_company) > 10 and '-' in ship_company):
+            # It's a name, resolve to UUID
+            company_doc = await mongo_db.find_one("companies", {
+                "$or": [
+                    {"name_vn": ship_company},
+                    {"name_en": ship_company},
+                    {"name": ship_company}
+                ]
+            })
+            if company_doc:
+                ship_company_uuid = company_doc.get("id")
+        
+        # Compare UUIDs
+        if ship_company_uuid != company_uuid:
+            logger.warning(f"Access denied: ship company '{ship_company_uuid}' != user company '{company_uuid}'")
             raise HTTPException(status_code=403, detail="Access denied to this ship")
         
         ship_name = ship.get("name", "Unknown Ship")
