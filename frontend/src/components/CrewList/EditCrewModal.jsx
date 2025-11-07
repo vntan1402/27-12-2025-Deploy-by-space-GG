@@ -34,6 +34,32 @@ export const EditCrewModal = ({
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [ships, setShips] = useState([]);
+  const [loadingShips, setLoadingShips] = useState(false);
+  
+  // Fetch ships on mount
+  useEffect(() => {
+    const fetchShips = async () => {
+      try {
+        setLoadingShips(true);
+        const response = await shipService.getAll();
+        if (response.data) {
+          setShips(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching ships:', error);
+        toast.error(
+          language === 'vi' 
+            ? 'Không thể tải danh sách tàu' 
+            : 'Failed to load ships list'
+        );
+      } finally {
+        setLoadingShips(false);
+      }
+    };
+    
+    fetchShips();
+  }, [language]);
   
   // Handle form submit
   const handleSubmit = async (e) => {
