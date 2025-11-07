@@ -2515,35 +2515,37 @@ class DualAppsScriptManager:
             if not self.company_apps_script_url:
                 raise ValueError("Company Apps Script URL not configured")
             
-            logger.info(f"📡 Calling Apps Script for other audit document upload")
-            logger.info(f"   Ship: {ship_name}")
-            logger.info(f"   File: {filename}")
+            logger.info(f"📡 Calling Company Apps Script for other audit document upload...")
             
-            # Encode file content to base64
+            # Encode file content
             file_base64 = base64.b64encode(file_content).decode('utf-8')
             
-            # Prepare request payload
+            # Prepare payload
             payload = {
                 "action": "upload_file_with_folder_creation",
-                "file_content": file_base64,
-                "filename": filename,
-                "content_type": content_type,
+                "parent_folder_id": self.parent_folder_id,
                 "ship_name": ship_name,
-                "parent_category": "ISM-ISPS-MLC",
-                "category": "Other Audit Document"
+                "parent_category": "ISM-ISPS-MLC",  # First level folder under ShipName
+                "category": "Other Audit Document",  # Second level folder under ISM-ISPS-MLC
+                "filename": filename,
+                "file_content": file_base64,
+                "content_type": content_type
             }
             
-            # Call Apps Script with retries
-            response_data = await self._call_with_retry(
-                url=self.company_apps_script_url,
-                payload=payload,
-                max_retries=3
-            )
+            # Call Apps Script
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    self.company_apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=300)
+                ) as response:
+                    result = await response.json()
             
-            return response_data
+            logger.info(f"✅ Company Apps Script response received")
+            return result
             
         except Exception as e:
-            logger.error(f"❌ Error calling Apps Script for other audit document: {e}")
+            logger.error(f"❌ Error calling Company Apps Script for other audit document: {e}")
             return {
                 'success': False,
                 'message': f'Apps Script call failed: {str(e)}',
