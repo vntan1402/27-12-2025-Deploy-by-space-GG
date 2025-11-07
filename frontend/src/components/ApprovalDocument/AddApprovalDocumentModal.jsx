@@ -399,7 +399,7 @@ export const AddDrawingManualModal = ({
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold text-gray-800">
-            {language === 'vi' ? '📐 Thêm Bản vẽ & Sổ tay' : '📐 Add Drawings & Manuals'}
+            {language === 'vi' ? '📐 Thêm Bản vẽ & Sổ tay' : '📐 Add Approval Document'}
           </h3>
           <button
             onClick={onClose}
