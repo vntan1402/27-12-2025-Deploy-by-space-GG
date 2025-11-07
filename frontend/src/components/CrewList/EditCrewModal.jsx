@@ -138,8 +138,8 @@ export const EditCrewModal = ({
         {/* Body */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Row 1: Full Name */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Row 1: Full Name (Vietnamese), Full Name (English), Sex */}
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Họ tên (Tiếng Việt)' : 'Full Name (Vietnamese)'} <span className="text-red-500">*</span>
@@ -163,10 +163,6 @@ export const EditCrewModal = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-            </div>
-            
-            {/* Row 2: Sex, Date of Birth */}
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Giới tính' : 'Sex'}
@@ -180,6 +176,10 @@ export const EditCrewModal = ({
                   <option value="F">F</option>
                 </select>
               </div>
+            </div>
+            
+            {/* Row 2: Date of Birth, Passport, Nationality */}
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Ngày sinh' : 'Date of Birth'} <span className="text-red-500">*</span>
@@ -192,37 +192,6 @@ export const EditCrewModal = ({
                   required
                 />
               </div>
-            </div>
-            
-            {/* Row 3: Place of Birth */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Nơi sinh (Tiếng Việt)' : 'Place of Birth (Vietnamese)'} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.place_of_birth}
-                  onChange={(e) => setFormData({...formData, place_of_birth: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Nơi sinh (Tiếng Anh)' : 'Place of Birth (English)'}
-                </label>
-                <input
-                  type="text"
-                  value={formData.place_of_birth_en}
-                  onChange={(e) => setFormData({...formData, place_of_birth_en: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-            
-            {/* Row 4: Passport, Nationality */}
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Hộ chiếu' : 'Passport'} <span className="text-red-500">*</span>
@@ -248,8 +217,31 @@ export const EditCrewModal = ({
               </div>
             </div>
             
-            {/* Row 5: Passport Expiry Date, Rank */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Row 3: Place of Birth (Vietnamese), Place of Birth (English), Passport Expiry */}
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Nơi sinh (Tiếng Việt)' : 'Place of Birth (Vietnamese)'} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.place_of_birth}
+                  onChange={(e) => setFormData({...formData, place_of_birth: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Nơi sinh (Tiếng Anh)' : 'Place of Birth (English)'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.place_of_birth_en}
+                  onChange={(e) => setFormData({...formData, place_of_birth_en: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Ngày hết hạn hộ chiếu' : 'Passport Expiry Date'}
@@ -261,6 +253,10 @@ export const EditCrewModal = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+            </div>
+            
+            {/* Row 4: Rank, Seamen Book, Status */}
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Chức vụ' : 'Rank'}
@@ -278,10 +274,6 @@ export const EditCrewModal = ({
                   ))}
                 </select>
               </div>
-            </div>
-            
-            {/* Row 6: Seamen Book, Status */}
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
@@ -309,8 +301,8 @@ export const EditCrewModal = ({
               </div>
             </div>
             
-            {/* Row 7: Ship Sign On, Place Sign On */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Row 5: Ship Sign On, Place Sign On, Date Sign On */}
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
@@ -347,10 +339,6 @@ export const EditCrewModal = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-            </div>
-            
-            {/* Row 8: Date Sign On, Date Sign Off */}
-            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
@@ -362,6 +350,10 @@ export const EditCrewModal = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
+            </div>
+            
+            {/* Row 6: Date Sign Off */}
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
