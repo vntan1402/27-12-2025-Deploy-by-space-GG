@@ -33,7 +33,7 @@ export const AddDrawingManualModal = ({
 
   const [formData, setFormData] = useState({
     approval_document_name: '',
-    document_no: '',
+    approval_document_no: '',
     approved_by: '',
     approved_date: '',
     status: 'Unknown',
@@ -46,7 +46,7 @@ export const AddDrawingManualModal = ({
       // Reset all states when modal closes
       setFormData({
         approval_document_name: '',
-        document_no: '',
+        approval_document_no: '',
         approved_by: '',
         approved_date: '',
         status: 'Unknown',
@@ -159,7 +159,7 @@ export const AddDrawingManualModal = ({
     setFileError('');
     setFormData({
       approval_document_name: '',
-      document_no: '',
+      approval_document_no: '',
       approved_by: '',
       approved_date: '',
       status: 'Unknown',
@@ -254,7 +254,7 @@ export const AddDrawingManualModal = ({
       // Auto-fill form with AI-extracted data
       setFormData({
         approval_document_name: data.approval_document_name || file.name.replace('.pdf', ''),
-        document_no: data.document_no || '',
+        approval_document_no: data.approval_document_no || '',
         approved_by: data.approved_by || '',
         approved_date: formatDateForInput(data.approved_date) || '',
         status: 'Unknown',
@@ -272,7 +272,7 @@ export const AddDrawingManualModal = ({
       // Allow manual entry even if analysis fails
       setFormData({
         approval_document_name: file.name.replace('.pdf', ''),
-        document_no: '',
+        approval_document_no: '',
         approved_by: '',
         approved_date: '',
         status: 'Unknown',
@@ -299,7 +299,7 @@ export const AddDrawingManualModal = ({
       const documentData = {
         ship_id: selectedShip.id,
         approval_document_name: formData.approval_document_name.trim(),
-        document_no: formData.document_no?.trim() || null,
+        approval_document_no: formData.approval_document_no?.trim() || null,
         approved_by: formData.approved_by?.trim() || null,
         approved_date: formData.approved_date || null,
         status: formData.status || 'Unknown',
@@ -555,8 +555,8 @@ export const AddDrawingManualModal = ({
               </label>
               <input
                 type="text"
-                name="document_no"
-                value={formData.document_no}
+                name="approval_document_no"
+                value={formData.approval_document_no}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
                 placeholder={language === 'vi' ? 'VD: GA-001-2024' : 'e.g. GA-001-2024'}
