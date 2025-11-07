@@ -32,7 +32,7 @@ export const AddDrawingManualModal = ({
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
-    document_name: '',
+    approval_document_name: '',
     document_no: '',
     approved_by: '',
     approved_date: '',
@@ -45,7 +45,7 @@ export const AddDrawingManualModal = ({
     if (!isOpen) {
       // Reset all states when modal closes
       setFormData({
-        document_name: '',
+        approval_document_name: '',
         document_no: '',
         approved_by: '',
         approved_date: '',
@@ -158,7 +158,7 @@ export const AddDrawingManualModal = ({
     setAnalyzedData(null);
     setFileError('');
     setFormData({
-      document_name: '',
+      approval_document_name: '',
       document_no: '',
       approved_by: '',
       approved_date: '',
@@ -253,7 +253,7 @@ export const AddDrawingManualModal = ({
       
       // Auto-fill form with AI-extracted data
       setFormData({
-        document_name: data.document_name || file.name.replace('.pdf', ''),
+        approval_document_name: data.approval_document_name || file.name.replace('.pdf', ''),
         document_no: data.document_no || '',
         approved_by: data.approved_by || '',
         approved_date: formatDateForInput(data.approved_date) || '',
@@ -271,7 +271,7 @@ export const AddDrawingManualModal = ({
       
       // Allow manual entry even if analysis fails
       setFormData({
-        document_name: file.name.replace('.pdf', ''),
+        approval_document_name: file.name.replace('.pdf', ''),
         document_no: '',
         approved_by: '',
         approved_date: '',
@@ -287,7 +287,7 @@ export const AddDrawingManualModal = ({
   // ========== SAVE DOCUMENT ==========
   const handleSave = async () => {
     // Validate required fields
-    if (!formData.document_name.trim()) {
+    if (!formData.approval_document_name.trim()) {
       toast.error(language === 'vi' ? 'Vui lòng nhập tên tài liệu' : 'Please enter document name');
       return;
     }
@@ -298,7 +298,7 @@ export const AddDrawingManualModal = ({
       // Create document via API
       const documentData = {
         ship_id: selectedShip.id,
-        document_name: formData.document_name.trim(),
+        approval_document_name: formData.approval_document_name.trim(),
         document_no: formData.document_no?.trim() || null,
         approved_by: formData.approved_by?.trim() || null,
         approved_date: formData.approved_date || null,
@@ -539,8 +539,8 @@ export const AddDrawingManualModal = ({
             </label>
             <input
               type="text"
-              name="document_name"
-              value={formData.document_name}
+              name="approval_document_name"
+              value={formData.approval_document_name}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
               placeholder={language === 'vi' ? 'VD: General Arrangement Plan' : 'e.g. General Arrangement Plan'}
