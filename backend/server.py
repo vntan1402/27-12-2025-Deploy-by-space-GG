@@ -20564,7 +20564,7 @@ async def update_crew_member(
             raise HTTPException(status_code=404, detail="Crew member not found")
         
         # Check for passport duplication if passport is being updated
-        if crew_update.passport and crew_update.passport != existing_crew.get("passport"):
+        if crew_update.passport and crew_update.passport != old_crew.get("passport"):
             duplicate = await mongo_db.find_one("crew_members", {
                 "company_id": company_uuid,
                 "passport": crew_update.passport,
