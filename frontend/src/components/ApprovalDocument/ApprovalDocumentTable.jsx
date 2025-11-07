@@ -960,7 +960,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
                         {document.file_id && (
                           <span 
                             className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
-                            title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Approval Document`}
+                            title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${selectedShip?.name || 'Unknown'}/ISM-ISPS-MLC/Approval Document`}
                             onClick={(e) => {
                               e.stopPropagation();
                               if (document.file_id) {
@@ -974,7 +974,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
                         {document.summary_file_id && (
                           <span 
                             className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
-                            title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Approval Document`}
+                            title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 ${selectedShip?.name || 'Unknown'}/ISM-ISPS-MLC/Approval Document`}
                             onClick={(e) => {
                               e.stopPropagation();
                               if (document.summary_file_id) {
