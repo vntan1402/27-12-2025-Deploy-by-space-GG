@@ -641,8 +641,8 @@ export const AddCrewModal = ({
             </p>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Row 1: Full Name */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Row 1: Full Name (Vietnamese), Full Name (English), Sex */}
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {language === 'vi' ? 'Họ tên (Tiếng Việt)' : 'Full Name (Vietnamese)'} <span className="text-red-500">*</span>
@@ -666,10 +666,6 @@ export const AddCrewModal = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-              </div>
-              
-              {/* Row 2: Sex, Date of Birth */}
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {language === 'vi' ? 'Giới tính' : 'Sex'}
@@ -683,6 +679,10 @@ export const AddCrewModal = ({
                     <option value="F">F</option>
                   </select>
                 </div>
+              </div>
+              
+              {/* Row 2: Date of Birth, Passport, Nationality */}
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {language === 'vi' ? 'Ngày sinh' : 'Date of Birth'} <span className="text-red-500">*</span>
@@ -695,10 +695,33 @@ export const AddCrewModal = ({
                     required
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Hộ chiếu' : 'Passport'} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.passport}
+                    onChange={(e) => setFormData({...formData, passport: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {language === 'vi' ? 'Quốc tịch' : 'Nationality'}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.nationality}
+                    onChange={(e) => setFormData({...formData, nationality: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
               
-              {/* Row 3: Place of Birth */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Row 3: Place of Birth (Vietnamese), Place of Birth (English), Passport Expiry */}
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {language === 'vi' ? 'Nơi sinh (Tiếng Việt)' : 'Place of Birth (Vietnamese)'} <span className="text-red-500">*</span>
