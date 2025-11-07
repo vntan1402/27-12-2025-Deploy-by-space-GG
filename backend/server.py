@@ -12863,6 +12863,7 @@ async def cleanup_approval_document_files_background(doc: dict, dual_manager):
 @api_router.delete("/approval-documents/{document_id}")
 async def delete_approval_document(
     document_id: str,
+    background_tasks: BackgroundTasks,
     background: bool = False,
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
