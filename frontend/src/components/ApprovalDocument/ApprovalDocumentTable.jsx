@@ -11,7 +11,7 @@ import {
   estimateFileProcessingTime, 
   startSmoothProgressForFile 
 } from '../../utils/progressHelpers';
-import { AddDrawingManualModal } from './AddApprovalDocumentModal';
+import { AddApprovalDocumentModal } from './AddApprovalDocumentModal';
 import { EditDrawingManualModal } from './EditApprovalDocumentModal';
 import { DrawingManualNotesModal } from './ApprovalDocumentNotesModal';
 import { BatchProcessingModal } from './BatchProcessingModal';
@@ -1139,7 +1139,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
       )}
 
       {/* Modals */}
-      <AddDrawingManualModal 
+      <AddApprovalDocumentModal 
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         selectedShip={selectedShip}
