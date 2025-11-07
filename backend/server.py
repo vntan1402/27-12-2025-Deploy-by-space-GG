@@ -12841,34 +12841,68 @@ async def bulk_delete_approval_documents(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Background task for cleaning up approval document files (async version)
-async def cleanup_approval_document_files_background(doc: dict, dual_manager):
-    """Background task to delete approval document files from Google Drive"""
+# Background task for cleaning up approval document files (matches drawings-manuals pattern)
+async def delete_approval_document_files_background(
+    file_id: str,
+    summary_file_id: str,
+    company_apps_script_url: str,
+    document_id: str
+):
+    """Delete approval document files from Google Drive in background (non-blocking)"""
     try:
-        logger.info(f"🧹 Background cleanup for approval document: {doc.get('approval_document_name')}")
+        logger.info(f"🧹 [Background] Starting file deletion for approval document: {document_id}")
+        total_deleted = 0
         
-        if doc.get('file_id'):
-            await dual_manager.delete_file_from_drive(doc['file_id'])
-            logger.info(f"✅ Deleted original file from Drive: {doc['file_id']}")
+        # Delete original file
+        if file_id:
+            logger.info(f"🗑️ [Background] Deleting original file: {file_id}")
+            try:
+                async with aiohttp.ClientSession() as session:
+                    payload = {
+                        "action": "delete_file",
+                        "file_id": file_id
+                    }
+                    async with session.post(
+                        company_apps_script_url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                logger.info(f"✅ [Background] Original file deleted: {file_id}")
+                                total_deleted += 1
+            except Exception as e:
+                logger.error(f"❌ [Background] Error deleting original file {file_id}: {e}")
         
-        if doc.get('summary_file_id'):
-            await dual_manager.delete_file_from_drive(doc['summary_file_id'])
-            logger.info(f"✅ Deleted summary file from Drive: {doc['summary_file_id']}")
-            
+        # Delete summary file
+        if summary_file_id:
+            logger.info(f"🗑️ [Background] Deleting summary file: {summary_file_id}")
+            try:
+                async with aiohttp.ClientSession() as session:
+                    payload = {
+                        "action": "delete_file",
+                        "file_id": summary_file_id
+                    }
+                    async with session.post(
+                        company_apps_script_url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                logger.info(f"✅ [Background] Summary file deleted: {summary_file_id}")
+                                total_deleted += 1
+            except Exception as e:
+                logger.error(f"❌ [Background] Error deleting summary file {summary_file_id}: {e}")
+        
+        logger.info(f"✅ [Background] Approval document file deletion completed: {total_deleted} file(s) deleted")
+        
     except Exception as e:
-        logger.error(f"❌ Background cleanup error: {e}")
-
-# Sync wrapper for BackgroundTasks
-def cleanup_approval_document_files_background_sync(doc: dict, dual_manager):
-    """Sync wrapper to run async cleanup in background"""
-    try:
-        import asyncio
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(cleanup_approval_document_files_background(doc, dual_manager))
-        loop.close()
-    except Exception as e:
-        logger.error(f"❌ Sync wrapper error: {e}")
+        logger.error(f"❌ [Background] Error in approval document file deletion: {e}")
 
 
 # DELETE single approval document
