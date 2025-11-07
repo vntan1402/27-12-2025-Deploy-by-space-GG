@@ -12670,10 +12670,10 @@ async def update_approval_document(
         raise HTTPException(status_code=500, detail="Failed to update approval document")
 
 
-# POST bulk delete approval documents
+# DELETE bulk delete approval documents
 @api_router.delete("/approval-documents/bulk-delete")
 async def bulk_delete_approval_documents(
-    request: BulkDeleteRequest,
+    request: BulkDeleteApprovalDocumentsRequest,
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
