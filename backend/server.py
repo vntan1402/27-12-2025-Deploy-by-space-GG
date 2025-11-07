@@ -12664,7 +12664,7 @@ async def update_approval_document(
 
 
 # POST bulk delete approval documents
-@api_router.post("/approval-documents/bulk-delete")
+@api_router.delete("/approval-documents/bulk-delete")
 async def bulk_delete_approval_documents(
     request: BulkDeleteRequest,
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
