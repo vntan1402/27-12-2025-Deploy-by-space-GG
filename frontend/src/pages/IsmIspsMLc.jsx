@@ -20,6 +20,7 @@ import {
   AuditReportNotesModal
 } from '../components/AuditReport';
 import { BatchProcessingModal, BatchResultsModal } from '../components/ClassSurveyReport';
+import { ApprovalDocumentTable } from '../components/ApprovalDocument';
 import { shipService, companyService, auditCertificateService, auditReportService } from '../services';
 import api from '../services/api';
 import { toast } from 'sonner';
