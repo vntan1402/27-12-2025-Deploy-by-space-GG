@@ -13,7 +13,7 @@ import {
 } from '../../utils/progressHelpers';
 import { AddApprovalDocumentModal } from './AddApprovalDocumentModal';
 import { EditApprovalDocumentModal } from './EditApprovalDocumentModal';
-import { DrawingManualNotesModal } from './ApprovalDocumentNotesModal';
+import { ApprovalDocumentNotesModal } from './ApprovalDocumentNotesModal';
 import { BatchProcessingModal } from './BatchProcessingModal';
 import { BatchResultsModal } from './BatchResultsModal';
 
@@ -1157,7 +1157,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
         onDocumentUpdated={fetchDocuments}
       />
 
-      <DrawingManualNotesModal 
+      <ApprovalDocumentNotesModal 
         isOpen={showNotesModal}
         onClose={() => {
           setShowNotesModal(false);
