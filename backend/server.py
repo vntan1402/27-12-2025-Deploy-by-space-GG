@@ -12894,6 +12894,73 @@ async def delete_approval_document_files_background(
                         if response.status == 200:
                             result = await response.json()
                             if result.get("success"):
+
+
+# Bulk background file deletion helper for approval documents
+async def bulk_delete_approval_document_files_background(
+    files_to_delete: list,
+    company_apps_script_url: str
+):
+    """Delete multiple approval document files from Google Drive in background (non-blocking)"""
+    try:
+        total_deleted = 0
+        
+        for file_info in files_to_delete:
+            document_id = file_info['document_id']
+            file_id = file_info['file_id']
+            summary_file_id = file_info['summary_file_id']
+            
+            # Delete original file
+            if file_id:
+                logger.info(f"🗑️ [Background] Deleting original file: {file_id}")
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        payload = {
+                            "action": "delete_file",
+                            "file_id": file_id
+                        }
+                        async with session.post(
+                            company_apps_script_url,
+                            json=payload,
+                            headers={"Content-Type": "application/json"},
+                            timeout=aiohttp.ClientTimeout(total=30)
+                        ) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                if result.get("success"):
+                                    logger.info(f"✅ [Background] Original file deleted: {file_id}")
+                                    total_deleted += 1
+                except Exception as e:
+                    logger.error(f"❌ [Background] Error deleting original file {file_id}: {e}")
+            
+            # Delete summary file
+            if summary_file_id:
+                logger.info(f"🗑️ [Background] Deleting summary file: {summary_file_id}")
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        payload = {
+                            "action": "delete_file",
+                            "file_id": summary_file_id
+                        }
+                        async with session.post(
+                            company_apps_script_url,
+                            json=payload,
+                            headers={"Content-Type": "application/json"},
+                            timeout=aiohttp.ClientTimeout(total=30)
+                        ) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                if result.get("success"):
+                                    logger.info(f"✅ [Background] Summary file deleted: {summary_file_id}")
+                                    total_deleted += 1
+                except Exception as e:
+                    logger.error(f"❌ [Background] Error deleting summary file {summary_file_id}: {e}")
+        
+        logger.info(f"✅ [Background] Bulk file deletion completed: {total_deleted} file(s) deleted from {len(files_to_delete)} document(s)")
+        
+    except Exception as e:
+        logger.error(f"❌ [Background] Error in bulk background file deletion: {e}")
+
                                 logger.info(f"✅ [Background] Summary file deleted: {summary_file_id}")
                                 total_deleted += 1
             except Exception as e:
