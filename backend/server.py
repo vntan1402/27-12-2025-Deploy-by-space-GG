@@ -12990,37 +12990,70 @@ async def delete_approval_document(
             }
             
         else:
-            # Foreground mode - complete deletion
-            from dual_apps_script_manager import create_dual_apps_script_manager
-            dual_manager = create_dual_apps_script_manager(company_uuid)
+            # FOREGROUND MODE: Delete files first, then DB (backward compatibility)
+            files_deleted = 0
             
-            # Delete from Google Drive first
-            drive_deleted = False
-            if doc.get('file_id') or doc.get('summary_file_id'):
-                try:
-                    logger.info(f"🗑️ Deleting files from Google Drive...")
-                    
-                    if doc.get('file_id'):
-                        await dual_manager.delete_file_from_drive(doc['file_id'])
-                    
-                    if doc.get('summary_file_id'):
-                        await dual_manager.delete_file_from_drive(doc['summary_file_id'])
-                    
-                    drive_deleted = True
-                    logger.info(f"✅ Deleted files from Drive")
-                    
-                except Exception as drive_error:
-                    logger.error(f"❌ Drive deletion error: {drive_error}")
+            # Delete files from Google Drive if exists
+            if company_apps_script_url and has_files:
+                # Delete original file
+                if file_id:
+                    logger.info(f"🗑️ Deleting original file from Drive: {file_id}")
+                    try:
+                        async with aiohttp.ClientSession() as session:
+                            payload = {
+                                "action": "delete_file",
+                                "file_id": file_id
+                            }
+                            async with session.post(
+                                company_apps_script_url,
+                                json=payload,
+                                headers={"Content-Type": "application/json"},
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as response:
+                                if response.status == 200:
+                                    result = await response.json()
+                                    if result.get("success"):
+                                        logger.info(f"✅ Original file deleted: {file_id}")
+                                        files_deleted += 1
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting original file {file_id}: {e}")
+                
+                # Delete summary file
+                if summary_file_id:
+                    logger.info(f"🗑️ Deleting summary file from Drive: {summary_file_id}")
+                    try:
+                        async with aiohttp.ClientSession() as session:
+                            payload = {
+                                "action": "delete_file",
+                                "file_id": summary_file_id
+                            }
+                            async with session.post(
+                                company_apps_script_url,
+                                json=payload,
+                                headers={"Content-Type": "application/json"},
+                                timeout=aiohttp.ClientTimeout(total=30)
+                            ) as response:
+                                if response.status == 200:
+                                    result = await response.json()
+                                    if result.get("success"):
+                                        logger.info(f"✅ Summary file deleted: {summary_file_id}")
+                                        files_deleted += 1
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting summary file {summary_file_id}: {e}")
             
             # Delete from database
             await mongo_db.delete("approval_documents", {"id": document_id})
-            logger.info(f"✅ Deleted approval document: {document_id}")
+            logger.info(f"✅ Approval document deleted from database: {document_id}")
+            
+            message = f"Approval document deleted successfully"
+            if files_deleted > 0:
+                message += f" ({files_deleted} file(s) deleted from Google Drive)"
             
             return {
                 "success": True,
-                "message": "Approval document deleted successfully",
+                "message": message,
                 "document_id": document_id,
-                "drive_deleted": drive_deleted
+                "files_deleted": files_deleted
             }
             
     except HTTPException:
