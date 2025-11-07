@@ -12,7 +12,7 @@ import {
   startSmoothProgressForFile 
 } from '../../utils/progressHelpers';
 import { AddDrawingManualModal } from './AddApprovalDocumentModal';
-import { EditDrawingManualModal } from './EditDrawingManualModal';
+import { EditDrawingManualModal } from './EditApprovalDocumentModal';
 import { DrawingManualNotesModal } from './DrawingManualNotesModal';
 import { BatchProcessingModal } from './BatchProcessingModal';
 import { BatchResultsModal } from './BatchResultsModal';
