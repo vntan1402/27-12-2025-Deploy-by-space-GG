@@ -127,6 +127,30 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
     }
   };
 
+  // Get abbreviation from full name (same logic as Audit Report)
+  const getAbbreviation = (fullName) => {
+    if (!fullName) return '';
+    
+    const trimmed = fullName.trim();
+    
+    // If already an abbreviation (all uppercase, no spaces or short), return as-is
+    // Examples: PMDS, DNV, LR, BV, RINA
+    if (trimmed.length <= 6 && trimmed === trimmed.toUpperCase() && !/\s/.test(trimmed)) {
+      return trimmed;
+    }
+    
+    // Otherwise, create abbreviation
+    const words = trimmed.split(/\s+/);
+    if (words.length === 1) {
+      // Single word but long (e.g., "Panama") - take first 3 chars
+      return words[0].substring(0, 3).toUpperCase();
+    }
+    
+    // Multiple words - take first letter of each (max 4 words)
+    return words.slice(0, 4).map(word => word[0]).join('').toUpperCase();
+  };
+
+
   // Filter and sort documents
   const getFilteredDocuments = () => {
     let filtered = [...documents];
