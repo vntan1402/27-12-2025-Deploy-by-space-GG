@@ -1505,7 +1505,7 @@ const IsmIspsMLc = () => {
                 {selectedSubMenu === 'other_document' && '📄'}
               </div>
               <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-                {selectedSubMenu === 'other_document' && (language === 'vi' ? 'Other Document' : 'Other Document')}
+                {selectedSubMenu === 'other_document' && (language === 'vi' ? 'Other Audit Document' : 'Other Audit Document')}
               </h3>
               <p className="text-gray-500">
                 {language === 'vi' 
