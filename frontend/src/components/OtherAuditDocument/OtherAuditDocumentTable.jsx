@@ -209,10 +209,33 @@ const OtherAuditDocumentsTable = ({ selectedShip }) => {
   // Handle context menu
   const handleContextMenu = (e, document) => {
     e.preventDefault();
+    
+    // Calculate position with boundary detection
+    const menuWidth = 250; // Approximate menu width
+    const menuHeight = 400; // Approximate menu height
+    const padding = 10;
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Adjust if menu goes beyond right edge
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - padding;
+    }
+    
+    // Adjust if menu goes beyond bottom edge
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - padding;
+    }
+    
+    // Ensure menu doesn't go beyond left or top edge
+    if (x < padding) x = padding;
+    if (y < padding) y = padding;
+    
     setContextMenu({
       show: true,
-      x: e.clientX,
-      y: e.clientY,
+      x: x,
+      y: y,
       document: document
     });
     setShowStatusSubmenu(true);
