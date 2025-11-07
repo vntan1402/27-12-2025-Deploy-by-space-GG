@@ -200,7 +200,7 @@ export const AddDrawingManualModal = ({
 
       // Call backend API
       const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-      const response = await fetch(`${BACKEND_URL}/api/drawings-manuals/analyze-file`, {
+      const response = await fetch(`${BACKEND_URL}/api/approval-documents/analyze-file`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -307,7 +307,7 @@ export const AddDrawingManualModal = ({
       };
 
       const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
-      const createResponse = await fetch(`${BACKEND_URL}/api/drawings-manuals`, {
+      const createResponse = await fetch(`${BACKEND_URL}/api/approval-documents`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -352,7 +352,7 @@ export const AddDrawingManualModal = ({
               summary_text: analyzedData._summary_text || ''
             };
 
-            const uploadResponse = await fetch(`${BACKEND_URL}/api/drawings-manuals/${documentId}/upload-files`, {
+            const uploadResponse = await fetch(`${BACKEND_URL}/api/approval-documents/${documentId}/upload-files`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
