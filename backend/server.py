@@ -12841,7 +12841,7 @@ async def bulk_delete_approval_documents(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Background task for cleaning up approval document files
+# Background task for cleaning up approval document files (async version)
 async def cleanup_approval_document_files_background(doc: dict, dual_manager):
     """Background task to delete approval document files from Google Drive"""
     try:
@@ -12857,6 +12857,18 @@ async def cleanup_approval_document_files_background(doc: dict, dual_manager):
             
     except Exception as e:
         logger.error(f"❌ Background cleanup error: {e}")
+
+# Sync wrapper for BackgroundTasks
+def cleanup_approval_document_files_background_sync(doc: dict, dual_manager):
+    """Sync wrapper to run async cleanup in background"""
+    try:
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(cleanup_approval_document_files_background(doc, dual_manager))
+        loop.close()
+    except Exception as e:
+        logger.error(f"❌ Sync wrapper error: {e}")
 
 
 # DELETE single approval document
