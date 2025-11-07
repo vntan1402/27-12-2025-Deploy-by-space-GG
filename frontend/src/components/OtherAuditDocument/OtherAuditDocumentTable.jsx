@@ -371,7 +371,25 @@ const OtherAuditDocumentsTable = ({ selectedShip }) => {
     toast.success(language === 'vi' ? 'Đã copy link vào clipboard' : 'Link copied to clipboard');
   };
 
-  // Handle delete
+  // Handle delete single document (from context menu)
+  const handleDeleteSingle = async (documentId) => {
+    const confirmMessage = language === 'vi'
+      ? 'Bạn có chắc muốn xóa tài liệu này?'
+      : 'Are you sure you want to delete this document?';
+
+    if (!window.confirm(confirmMessage)) return;
+
+    try {
+      await otherAuditDocumentService.delete(documentId);
+      toast.success(language === 'vi' ? 'Xóa thành công' : 'Document deleted successfully');
+      fetchDocuments();
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast.error(language === 'vi' ? 'Xóa thất bại' : 'Failed to delete document');
+    }
+  };
+
+  // Handle delete bulk (from top button)
   const handleDelete = async () => {
     if (selectedDocuments.size === 0) return;
 
