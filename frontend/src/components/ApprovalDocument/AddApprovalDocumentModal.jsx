@@ -14,7 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import { formatDateForInput } from '../../utils/dateHelpers';
 
-export const AddDrawingManualModal = ({ 
+export const AddApprovalDocumentModal = ({ 
   isOpen, 
   onClose, 
   selectedShip, 
