@@ -301,17 +301,17 @@ async def collect_all_crew_files(crew_id: str, company_id: str, mongo_db_instanc
             files_collection["total_files"] += 1
             logger.info(f"   ✓ Certificate original ({cert_name}): {cert.get('crew_cert_file_id')}")
         
-        # Include certificate summary file
-        if cert.get("summary_file_id"):
+        # 🔧 FIX: Include certificate summary file (correct field name)
+        if cert.get("crew_cert_summary_file_id"):
             files_collection["certificate_files"].append({
                 "cert_id": cert_id,
-                "file_id": cert.get("summary_file_id"),
+                "file_id": cert.get("crew_cert_summary_file_id"),
                 "type": "certificate_summary",
-                "field": "summary_file_id",
+                "field": "crew_cert_summary_file_id",
                 "cert_name": cert_name
             })
             files_collection["total_files"] += 1
-            logger.info(f"   ✓ Certificate summary ({cert_name}): {cert.get('summary_file_id')}")
+            logger.info(f"   ✓ Certificate summary ({cert_name}): {cert.get('crew_cert_summary_file_id')}")
     
     logger.info(f"📊 Total files collected: {files_collection['total_files']}")
     logger.info(f"   - Passport files: {len(files_collection['passport_files'])}")
