@@ -60,7 +60,7 @@ export const SUB_MENU_ITEMS = {
     { key: 'audit_certificate', name_vi: 'Audit Certificate', name_en: 'Audit Certificate' },
     { key: 'audit_report', name_vi: 'Audit Report', name_en: 'Audit Report' },
     { key: 'approval_document', name_vi: 'Approval Document', name_en: 'Approval Document' },
-    { key: 'other_document', name_vi: 'Other Document', name_en: 'Other Document' }
+    { key: 'other_document', name_vi: 'Other Audit Document', name_en: 'Other Audit Document' }
   ],
   isps: [
     { key: 'isps_list', name_vi: 'ISPS Documents', name_en: 'ISPS Documents' }
