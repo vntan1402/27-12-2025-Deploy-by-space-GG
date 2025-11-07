@@ -12909,14 +12909,20 @@ async def delete_approval_document_files_background(
 @api_router.delete("/approval-documents/{document_id}")
 async def delete_approval_document(
     document_id: str,
-    background_tasks: BackgroundTasks,
-    background: bool = False,
+    background: bool = Query(False, description="If true, delete DB first and return immediately, then delete files in background"),
     current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
 ):
     """
-    Delete a single approval document
-    If background=True, delete from DB immediately and cleanup Drive files in background
-    If background=False, complete deletion including Drive
+    Delete a single approval document with files (matches drawings-manuals pattern)
+    
+    If background=True:
+      1. Delete from database immediately
+      2. Return success response
+      3. Delete files from Google Drive in background
+    
+    If background=False:
+      1. Delete files from Google Drive first
+      2. Then delete from database
     """
     try:
         logger.info(f"🗑️ Deleting approval document: {document_id} (background={background})")
@@ -12926,25 +12932,60 @@ async def delete_approval_document(
         if not doc:
             raise HTTPException(status_code=404, detail="Approval document not found")
         
+        # Get company info for Apps Script URL
         company_uuid = await resolve_company_id(current_user)
         if not company_uuid:
             raise HTTPException(status_code=404, detail="Company not found")
         
+        # Get Apps Script URL from company_gdrive_config
+        gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        company_apps_script_url = None
+        if gdrive_config:
+            company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
+        
+        file_id = doc.get('file_id')
+        summary_file_id = doc.get('summary_file_id')
+        has_files = bool(file_id or summary_file_id)
+        
         if background:
-            # Background mode - delete DB immediately
-            await mongo_db.delete("approval_documents", {"id": document_id})
-            logger.info(f"✅ Deleted approval document from DB: {document_id}")
+            # BACKGROUND MODE: Delete DB first, then files in background
+            logger.info("🚀 Background deletion mode: Deleting from database first...")
             
-            # Cleanup Drive files in background using BackgroundTasks
-            if doc.get('file_id') or doc.get('summary_file_id'):
-                from dual_apps_script_manager import create_dual_apps_script_manager
-                dual_manager = create_dual_apps_script_manager(company_uuid)
-                background_tasks.add_task(cleanup_approval_document_files_background_sync, doc, dual_manager)
-                logger.info(f"🗑️ Scheduled Drive cleanup for: {doc.get('approval_document_name')}")
+            # Delete from database immediately
+            await mongo_db.delete("approval_documents", {"id": document_id})
+            logger.info(f"✅ Document deleted from database: {document_id}")
+            
+            # Schedule background file deletion (non-blocking)
+            if has_files and company_apps_script_url:
+                logger.info("📤 Starting background file deletion from Google Drive...")
+                logger.info(f"   File ID: {file_id}")
+                logger.info(f"   Summary File ID: {summary_file_id}")
+                
+                # Use asyncio.create_task to run in background without blocking
+                import asyncio
+                asyncio.create_task(
+                    delete_approval_document_files_background(
+                        file_id, 
+                        summary_file_id, 
+                        company_apps_script_url,
+                        document_id
+                    )
+                )
+            else:
+                if not has_files:
+                    logger.warning("⚠️ No files to delete (document has no file_id or summary_file_id)")
+                if not company_apps_script_url:
+                    logger.warning("⚠️ Apps Script URL not configured, skipping file deletion")
+            
+            # Return immediately
+            message = "Approval document deleted from database"
+            if has_files:
+                message += " (files are being deleted from Google Drive in background)"
             
             return {
                 "success": True,
-                "message": "Approval document deleted (Drive cleanup in background)",
+                "message": message,
+                "background_deletion": has_files,
                 "document_id": document_id
             }
             
