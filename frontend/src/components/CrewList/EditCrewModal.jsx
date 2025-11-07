@@ -81,16 +81,16 @@ export const EditCrewModal = ({
       // Update crew member
       const updateData = {
         ...formData,
-        // Remove empty optional fields
-        full_name_en: formData.full_name_en || undefined,
-        place_of_birth_en: formData.place_of_birth_en || undefined,
-        nationality: formData.nationality || undefined,
-        passport_expiry_date: formData.passport_expiry_date || undefined,
-        rank: formData.rank || undefined,
-        seamen_book: formData.seamen_book || undefined,
-        place_sign_on: formData.place_sign_on || undefined,
-        date_sign_on: formData.date_sign_on || undefined,
-        date_sign_off: formData.date_sign_off || undefined
+        // Convert empty strings to null for proper database update
+        full_name_en: formData.full_name_en || null,
+        place_of_birth_en: formData.place_of_birth_en || null,
+        nationality: formData.nationality || null,
+        passport_expiry_date: formData.passport_expiry_date || null,
+        rank: formData.rank || null,
+        seamen_book: formData.seamen_book || null,
+        place_sign_on: formData.place_sign_on || null,  // ✅ Changed to null
+        date_sign_on: formData.date_sign_on || null,    // ✅ Changed to null
+        date_sign_off: formData.date_sign_off || null   // ✅ Changed to null
       };
       
       await crewService.update(crew.id, updateData);
