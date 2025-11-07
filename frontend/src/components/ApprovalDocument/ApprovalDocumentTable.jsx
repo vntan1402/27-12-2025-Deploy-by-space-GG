@@ -143,7 +143,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(doc => 
         doc.approval_document_name?.toLowerCase().includes(searchLower) ||
-        doc.document_no?.toLowerCase().includes(searchLower) ||
+        doc.approval_document_no?.toLowerCase().includes(searchLower) ||
         doc.approved_by?.toLowerCase().includes(searchLower)
       );
     }
@@ -532,13 +532,13 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
 
       const analysis = await analyzeResponse.json();
       result.documentName = analysis.approval_document_name || file.name;
-      result.documentNo = analysis.document_no || '';
+      result.documentNo = analysis.approval_document_no || '';
 
       // Step 2: Create document record
       const documentData = {
         ship_id: selectedShip.id,
         approval_document_name: analysis.approval_document_name || file.name,
-        document_no: analysis.document_no || null,
+        approval_document_no: analysis.approval_document_no || null,
         approved_by: analysis.approved_by || null,
         approved_date: analysis.approved_date || null,
         status: 'Unknown',
@@ -776,11 +776,11 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
                 </th>
                 <th 
                   className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort('document_no')}
+                  onClick={() => handleSort('approval_document_no')}
                 >
                   <div className="flex items-center justify-between">
                     <span>{language === 'vi' ? 'Số Tài liệu' : 'Document No.'}</span>
-                    {sort.column === 'document_no' && (
+                    {sort.column === 'approval_document_no' && (
                       <span className="ml-1 text-blue-600 text-sm font-bold">
                         {sort.direction === 'asc' ? '▲' : '▼'}
                       </span>
@@ -901,7 +901,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
                         )}
                       </div>
                     </td>
-                    <td className="border border-gray-300 px-4 py-2 font-mono">{document.document_no || '-'}</td>
+                    <td className="border border-gray-300 px-4 py-2 font-mono">{document.approval_document_no || '-'}</td>
                     <td className="border border-gray-300 px-4 py-2">{document.approved_by || '-'}</td>
                     <td className="border border-gray-300 px-4 py-2">{document.approved_date ? formatDateDisplay(document.approved_date) : '-'}</td>
                     <td className="border border-gray-300 px-4 py-2">
