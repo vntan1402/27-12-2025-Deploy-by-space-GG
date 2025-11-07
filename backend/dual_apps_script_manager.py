@@ -2013,6 +2013,114 @@ class DualAppsScriptManager:
             }
 
 
+
+    async def upload_approval_document_file(
+        self,
+        file_content: bytes,
+        filename: str,
+        ship_name: str,
+        summary_text: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Upload approval document file (and optional summary) to Google Drive
+        Path: ShipName/ISM-ISPS-MLC/Approval Document/
+        
+        Args:
+            file_content: Approval document file content
+            filename: Original file name
+            ship_name: Ship name for folder structure
+            summary_text: Optional summary text to create summary file
+            
+        Returns:
+            dict: Upload results with file IDs
+        """
+        try:
+            # Load configuration first
+            await self._load_configuration()
+            
+            if not self.company_apps_script_url:
+                raise ValueError("Company Apps Script URL not configured")
+            
+            if not self.parent_folder_id:
+                raise ValueError("Company Google Drive Folder ID not configured")
+            
+            logger.info(f"📤 Uploading approval document file to Drive: {filename}")
+            logger.info(f"   Ship: {ship_name}")
+            logger.info(f"   Target Path: {ship_name}/ISM-ISPS-MLC/Approval Document/")
+            
+            # Upload original file to: ShipName/ISM-ISPS-MLC/Approval Document/
+            original_upload = await self._call_company_apps_script({
+                'action': 'upload_file_with_folder_creation',
+                'parent_folder_id': self.parent_folder_id,  # ROOT folder
+                'ship_name': ship_name,  # Creates/finds ShipName folder
+                'parent_category': 'ISM-ISPS-MLC',  # First level folder under ShipName
+                'category': 'Approval Document',  # Second level folder under ISM-ISPS-MLC
+                'filename': filename,
+                'file_content': base64.b64encode(file_content).decode('utf-8'),
+                'content_type': 'application/pdf'
+            })
+            
+            result = {
+                'success': False,
+                'original_file_id': None,
+                'summary_file_id': None,
+                'summary_error': None
+            }
+            
+            if original_upload.get('success'):
+                file_id = original_upload.get('file_id')
+                result['original_file_id'] = file_id
+                result['success'] = True
+                logger.info(f"✅ Approval document file uploaded successfully")
+                logger.info(f"   File ID: {file_id}")
+                logger.info(f"   Path: {original_upload.get('file_path', 'N/A')}")
+            else:
+                logger.error(f"❌ Approval document file upload failed: {original_upload.get('message')}")
+                result['message'] = f"Original file upload failed: {original_upload.get('message')}"
+                return result
+            
+            # Upload summary file if summary_text provided
+            if summary_text and summary_text.strip():
+                try:
+                    logger.info(f"📝 Uploading summary file for approval document...")
+                    summary_filename = filename.replace('.pdf', '_summary.txt')
+                    
+                    summary_upload = await self._call_company_apps_script({
+                        'action': 'upload_file_with_folder_creation',
+                        'parent_folder_id': self.parent_folder_id,
+                        'ship_name': ship_name,
+                        'parent_category': 'ISM-ISPS-MLC',
+                        'category': 'Approval Document',
+                        'filename': summary_filename,
+                        'file_content': base64.b64encode(summary_text.encode('utf-8')).decode('utf-8'),
+                        'content_type': 'text/plain'
+                    })
+                    
+                    if summary_upload.get('success'):
+                        summary_file_id = summary_upload.get('file_id')
+                        result['summary_file_id'] = summary_file_id
+                        logger.info(f"✅ Summary file uploaded successfully")
+                        logger.info(f"   Summary File ID: {summary_file_id}")
+                    else:
+                        result['summary_error'] = f"Summary upload failed: {summary_upload.get('message')}"
+                        logger.warning(f"⚠️ Summary file upload failed (non-critical): {summary_upload.get('message')}")
+                        
+                except Exception as summary_error:
+                    result['summary_error'] = str(summary_error)
+                    logger.warning(f"⚠️ Summary file upload error (non-critical): {summary_error}")
+            
+            result['message'] = 'Approval document files uploaded successfully'
+            return result
+                
+        except Exception as e:
+            logger.error(f"❌ Error uploading approval document files: {e}")
+            return {
+                'success': False,
+                'message': f'File upload failed: {str(e)}',
+                'error': str(e)
+            }
+
+
     async def upload_other_document_file(
         self,
         file_content: bytes,
