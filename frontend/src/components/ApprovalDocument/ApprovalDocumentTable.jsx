@@ -17,7 +17,7 @@ import { ApprovalDocumentNotesModal } from './ApprovalDocumentNotesModal';
 import { BatchProcessingModal } from './BatchProcessingModal';
 import { BatchResultsModal } from './BatchResultsModal';
 
-export const DrawingsManualsTable = ({ selectedShip }) => {
+export const ApprovalDocumentTable = ({ selectedShip }) => {
   const { language } = useAuth();
 
   // State
