@@ -111,10 +111,10 @@ export const BatchResultsModal = ({
                     </div>
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-sm">
-                    {result.testReportName || '-'}
+                    {result.approval_document_name || '-'}
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-sm font-mono">
-                    {result.testReportNo || '-'}
+                    {result.approval_document_no || '-'}
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-sm">
                     {result.success ? (
