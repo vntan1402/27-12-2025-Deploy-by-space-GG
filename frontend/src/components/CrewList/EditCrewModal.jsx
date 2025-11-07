@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import { crewService } from '../../services/crewService';
+import { shipService } from '../../services/shipService';
 import { RANK_OPTIONS } from '../../utils/constants';
 
 export const EditCrewModal = ({ 
