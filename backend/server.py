@@ -112,6 +112,775 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 
+# ============================================================================
+# HELPER FUNCTIONS: AUTO-MOVE FILES ON CREW STATUS/SHIP CHANGE
+# ============================================================================
+
+def detect_crew_file_move_needed(old_crew: dict, new_crew: dict) -> dict:
+    """
+    Detect if crew files need to be moved based on status/ship changes
+    
+    Args:
+        old_crew: Crew data before update
+        new_crew: Crew data after update
+        
+    Returns:
+        {
+            "move_needed": bool,
+            "move_type": "to_standby" | "to_ship" | "ship_transfer" | None,
+            "source_location": str,  # Old ship name or "Standby Crew"
+            "target_location": str,  # New ship name or "Standby Crew"
+            "reason": str
+        }
+    """
+    old_status = old_crew.get("status", "")
+    new_status = new_crew.get("status", "")
+    old_ship = old_crew.get("ship_sign_on", "")
+    new_ship = new_crew.get("ship_sign_on", "")
+    
+    # No changes
+    if old_status == new_status and old_ship == new_ship:
+        return {
+            "move_needed": False,
+            "move_type": None,
+            "source_location": old_ship,
+            "target_location": new_ship,
+            "reason": "No status or ship change"
+        }
+    
+    # Scenario 1: Changed to Standby
+    if new_status == "Standby" and old_status != "Standby":
+        return {
+            "move_needed": True,
+            "move_type": "to_standby",
+            "source_location": old_ship or "Unknown",
+            "target_location": "Standby Crew",
+            "reason": f"Status changed from '{old_status}' to 'Standby'"
+        }
+    
+    # Scenario 2: Changed from Standby to Sign on
+    if old_status == "Standby" and new_status == "Sign on" and new_ship not in ["-", "", None]:
+        return {
+            "move_needed": True,
+            "move_type": "to_ship",
+            "source_location": "Standby Crew",
+            "target_location": new_ship,
+            "reason": f"Status changed from 'Standby' to 'Sign on' on {new_ship}"
+        }
+    
+    # Scenario 3: Ship transfer (both Sign on, different ships)
+    if (new_status == "Sign on" and old_status == "Sign on" and 
+        old_ship != new_ship and 
+        new_ship not in ["-", "", None] and 
+        old_ship not in ["-", "", None]):
+        return {
+            "move_needed": True,
+            "move_type": "ship_transfer",
+            "source_location": old_ship,
+            "target_location": new_ship,
+            "reason": f"Ship transfer from '{old_ship}' to '{new_ship}'"
+        }
+    
+    # Scenario 4: Ship changed but status is Standby (rare case)
+    if new_status == "Standby" and old_ship != new_ship:
+        # Files should be in Standby Crew folder, not ship folder
+        return {
+            "move_needed": False,  # Already handled by Scenario 1
+            "move_type": None,
+            "source_location": old_ship or "Standby Crew",
+            "target_location": "Standby Crew",
+            "reason": "Status is Standby, files should be in Standby Crew folder"
+        }
+    
+    return {
+        "move_needed": False,
+        "move_type": None,
+        "source_location": old_ship or "Unknown",
+        "target_location": new_ship or "Unknown",
+        "reason": "No file move needed"
+    }
+
+
+async def collect_all_crew_files(crew_id: str, company_id: str, mongo_db_instance) -> dict:
+    """
+    Collect ALL files (original + summary) for a crew member
+    
+    Args:
+        crew_id: Crew member ID
+        company_id: Company ID
+        mongo_db_instance: MongoDB instance
+        
+    Returns:
+        {
+            "total_files": int,
+            "passport_files": [
+                {"file_id": "xxx", "type": "passport_original", "field": "passport_file_id"},
+                {"file_id": "yyy", "type": "passport_summary", "field": "summary_file_id"}
+            ],
+            "certificate_files": [
+                {
+                    "cert_id": "cert1",
+                    "file_id": "zzz",
+                    "type": "certificate_original",
+                    "field": "crew_cert_file_id",
+                    "cert_name": "COC"
+                },
+                {
+                    "cert_id": "cert1",
+                    "file_id": "www",
+                    "type": "certificate_summary",
+                    "field": "summary_file_id",
+                    "cert_name": "COC"
+                }
+            ]
+        }
+    """
+    files_collection = {
+        "total_files": 0,
+        "passport_files": [],
+        "certificate_files": []
+    }
+    
+    # Get crew data
+    crew = await mongo_db_instance.find_one("crew_members", {
+        "id": crew_id,
+        "company_id": company_id
+    })
+    
+    if not crew:
+        logger.warning(f"⚠️ Crew {crew_id} not found")
+        return files_collection
+    
+    crew_name = crew.get("full_name", "Unknown")
+    logger.info(f"📦 Collecting files for crew: {crew_name}")
+    
+    # Collect PASSPORT files (original + summary)
+    if crew.get("passport_file_id"):
+        files_collection["passport_files"].append({
+            "file_id": crew.get("passport_file_id"),
+            "type": "passport_original",
+            "field": "passport_file_id"
+        })
+        files_collection["total_files"] += 1
+        logger.info(f"   ✓ Passport original: {crew.get('passport_file_id')}")
+    
+    # Include passport summary file
+    if crew.get("summary_file_id"):
+        files_collection["passport_files"].append({
+            "file_id": crew.get("summary_file_id"),
+            "type": "passport_summary",
+            "field": "summary_file_id"
+        })
+        files_collection["total_files"] += 1
+        logger.info(f"   ✓ Passport summary: {crew.get('summary_file_id')}")
+    
+    # Collect CERTIFICATE files (original + summary for each cert)
+    certificates = await mongo_db_instance.find_all(
+        "crew_certificates",
+        {
+            "crew_id": crew_id,
+            "company_id": company_id
+        }
+    )
+    
+    logger.info(f"   📋 Found {len(certificates)} certificates")
+    
+    for cert in certificates:
+        cert_id = cert.get("id")
+        cert_name = cert.get("cert_name") or cert.get("certificate_name", "Unknown")
+        
+        # Certificate original file
+        if cert.get("crew_cert_file_id"):
+            files_collection["certificate_files"].append({
+                "cert_id": cert_id,
+                "file_id": cert.get("crew_cert_file_id"),
+                "type": "certificate_original",
+                "field": "crew_cert_file_id",
+                "cert_name": cert_name
+            })
+            files_collection["total_files"] += 1
+            logger.info(f"   ✓ Certificate original ({cert_name}): {cert.get('crew_cert_file_id')}")
+        
+        # Include certificate summary file
+        if cert.get("summary_file_id"):
+            files_collection["certificate_files"].append({
+                "cert_id": cert_id,
+                "file_id": cert.get("summary_file_id"),
+                "type": "certificate_summary",
+                "field": "summary_file_id",
+                "cert_name": cert_name
+            })
+            files_collection["total_files"] += 1
+            logger.info(f"   ✓ Certificate summary ({cert_name}): {cert.get('summary_file_id')}")
+    
+    logger.info(f"📊 Total files collected: {files_collection['total_files']}")
+    logger.info(f"   - Passport files: {len(files_collection['passport_files'])}")
+    logger.info(f"   - Certificate files: {len(files_collection['certificate_files'])}")
+    
+    return files_collection
+
+
+async def resolve_target_folders(
+    move_type: str,
+    target_location: str,
+    apps_script_url: str,
+    root_folder_id: str
+) -> dict:
+    """
+    Resolve target folder IDs based on move type
+    
+    For Standby: Returns single folder ID (flat structure)
+    For Ship: Returns passport_folder_id and certificate_folder_id (hierarchical)
+    
+    Args:
+        move_type: "to_standby" | "to_ship" | "ship_transfer"
+        target_location: Target location name
+        apps_script_url: Apps Script URL
+        root_folder_id: Root folder ID
+        
+    Returns:
+        {
+            "success": bool,
+            "structure_type": "flat" | "hierarchical",
+            "standby_folder_id": str (if flat),
+            "passport_folder_id": str (if hierarchical),
+            "certificate_folder_id": str (if hierarchical),
+            "message": str
+        }
+    """
+    
+    if move_type == "to_standby":
+        # FLAT structure: All files go to same folder
+        logger.info("🔍 Resolving Standby Crew folder (FLAT structure)...")
+        
+        company_doc_folder_id = None
+        standby_folder_id = None
+        
+        async with aiohttp.ClientSession() as session:
+            try:
+                # Step 1: Find COMPANY DOCUMENT in ROOT
+                async with session.post(
+                    apps_script_url,
+                    json={
+                        "action": "debug_folder_structure",
+                        "parent_folder_id": root_folder_id
+                    },
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        if result.get("success") and result.get("folders"):
+                            for folder in result.get("folders"):
+                                if folder.get('name', '').strip().lower() == "company document":
+                                    company_doc_folder_id = folder.get('id')
+                                    logger.info(f"✅ Found COMPANY DOCUMENT: {company_doc_folder_id}")
+                                    break
+                
+                if not company_doc_folder_id:
+                    return {
+                        "success": False,
+                        "message": "COMPANY DOCUMENT folder not found"
+                    }
+                
+                # Step 2: Find Standby Crew in COMPANY DOCUMENT
+                async with session.post(
+                    apps_script_url,
+                    json={
+                        "action": "debug_folder_structure",
+                        "parent_folder_id": company_doc_folder_id
+                    },
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        if result.get("success") and result.get("folders"):
+                            for folder in result.get("folders"):
+                                if folder.get('name', '').strip().lower() == "standby crew":
+                                    standby_folder_id = folder.get('id')
+                                    logger.info(f"✅ Found Standby Crew: {standby_folder_id}")
+                                    break
+                
+                # Step 3: Create if not found
+                if not standby_folder_id:
+                    logger.info("🆕 Creating Standby Crew folder...")
+                    dummy_content = base64.b64encode(b"Placeholder").decode('utf-8')
+                    
+                    async with session.post(
+                        apps_script_url,
+                        json={
+                            "action": "upload_file_with_folder_creation",
+                            "parent_folder_id": company_doc_folder_id,
+                            "ship_name": "",
+                            "category": "Standby Crew",
+                            "filename": ".placeholder",
+                            "file_content": dummy_content
+                        },
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as create_response:
+                        if create_response.status == 200:
+                            create_result = await create_response.json()
+                            if create_result.get("success"):
+                                standby_folder_id = create_result.get("folder_id")
+                                logger.info(f"✅ Created Standby Crew folder: {standby_folder_id}")
+                                
+                                # Delete placeholder
+                                placeholder_file_id = create_result.get("file_id")
+                                if placeholder_file_id:
+                                    try:
+                                        async with session.post(
+                                            apps_script_url,
+                                            json={
+                                                "action": "delete_file",
+                                                "file_id": placeholder_file_id,
+                                                "permanent_delete": True
+                                            },
+                                            timeout=aiohttp.ClientTimeout(total=10)
+                                        ) as delete_response:
+                                            if delete_response.status == 200:
+                                                logger.info("🗑️ Deleted placeholder file")
+                                    except Exception as delete_error:
+                                        logger.warning(f"⚠️ Could not delete placeholder: {delete_error}")
+                
+                if standby_folder_id:
+                    return {
+                        "success": True,
+                        "structure_type": "flat",
+                        "standby_folder_id": standby_folder_id,
+                        "message": "Standby Crew folder resolved"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "message": "Failed to find or create Standby Crew folder"
+                    }
+                    
+            except Exception as e:
+                logger.error(f"❌ Error resolving Standby folder: {e}")
+                return {
+                    "success": False,
+                    "message": f"Error: {str(e)}"
+                }
+    
+    elif move_type in ["to_ship", "ship_transfer"]:
+        # HIERARCHICAL structure: Different folders for passport and certificates
+        logger.info(f"🔍 Resolving Ship folders for {target_location} (HIERARCHICAL structure)...")
+        
+        ship_folder_id = None
+        crew_records_folder_id = None
+        crew_list_folder_id = None
+        crew_certificates_folder_id = None
+        
+        async with aiohttp.ClientSession() as session:
+            try:
+                # Step 1: Find Ship folder in ROOT
+                async with session.post(
+                    apps_script_url,
+                    json={
+                        "action": "debug_folder_structure",
+                        "parent_folder_id": root_folder_id
+                    },
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        if result.get("success") and result.get("folders"):
+                            for folder in result.get("folders"):
+                                if folder.get('name', '').strip().lower() == target_location.lower():
+                                    ship_folder_id = folder.get('id')
+                                    logger.info(f"✅ Found Ship folder: {ship_folder_id}")
+                                    break
+                
+                if not ship_folder_id:
+                    return {
+                        "success": False,
+                        "message": f"Ship folder '{target_location}' not found"
+                    }
+                
+                # Step 2: Find Crew Records in Ship folder
+                async with session.post(
+                    apps_script_url,
+                    json={
+                        "action": "debug_folder_structure",
+                        "parent_folder_id": ship_folder_id
+                    },
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        if result.get("success") and result.get("folders"):
+                            for folder in result.get("folders"):
+                                if folder.get('name', '').strip().lower() == "crew records":
+                                    crew_records_folder_id = folder.get('id')
+                                    logger.info(f"✅ Found Crew Records: {crew_records_folder_id}")
+                                    break
+                
+                if not crew_records_folder_id:
+                    return {
+                        "success": False,
+                        "message": "Crew Records folder not found in ship"
+                    }
+                
+                # Step 3: Find Crew List and Crew Certificates in Crew Records
+                async with session.post(
+                    apps_script_url,
+                    json={
+                        "action": "debug_folder_structure",
+                        "parent_folder_id": crew_records_folder_id
+                    },
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        if result.get("success") and result.get("folders"):
+                            for folder in result.get("folders"):
+                                folder_name = folder.get('name', '').strip().lower()
+                                if folder_name == "crew list":
+                                    crew_list_folder_id = folder.get('id')
+                                    logger.info(f"✅ Found Crew List: {crew_list_folder_id}")
+                                elif folder_name == "crew certificates":
+                                    crew_certificates_folder_id = folder.get('id')
+                                    logger.info(f"✅ Found Crew Certificates: {crew_certificates_folder_id}")
+                
+                if crew_list_folder_id and crew_certificates_folder_id:
+                    return {
+                        "success": True,
+                        "structure_type": "hierarchical",
+                        "passport_folder_id": crew_list_folder_id,
+                        "certificate_folder_id": crew_certificates_folder_id,
+                        "message": f"Ship folders resolved for {target_location}"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "message": "Crew List or Crew Certificates folder not found"
+                    }
+                    
+            except Exception as e:
+                logger.error(f"❌ Error resolving Ship folders: {e}")
+                return {
+                    "success": False,
+                    "message": f"Error: {str(e)}"
+                }
+    
+    return {
+        "success": False,
+        "message": "Unknown move type"
+    }
+
+
+async def move_files_to_target(
+    files: dict,
+    target_folders: dict,
+    apps_script_url: str
+) -> dict:
+    """
+    Move files to target folders with retry logic
+    
+    Args:
+        files: Output from collect_all_crew_files()
+        target_folders: Output from resolve_target_folders()
+        apps_script_url: Apps Script URL
+        
+    Returns:
+        {
+            "success": bool,
+            "moved_count": int,
+            "failed_count": int,
+            "errors": list
+        }
+    """
+    structure_type = target_folders.get("structure_type")
+    moved_count = 0
+    failed_count = 0
+    errors = []
+    
+    async with aiohttp.ClientSession() as session:
+        
+        if structure_type == "flat":
+            # FLAT structure: All files to same folder
+            target_folder_id = target_folders.get("standby_folder_id")
+            
+            logger.info(f"📦 Moving files to Standby Crew (FLAT structure)")
+            logger.info(f"   Target folder ID: {target_folder_id}")
+            
+            # Move all passport files
+            for file_info in files.get("passport_files", []):
+                try:
+                    file_id = file_info.get("file_id")
+                    file_type = file_info.get("type")
+                    
+                    logger.info(f"   → Moving {file_type}: {file_id}")
+                    
+                    async with session.post(
+                        apps_script_url,
+                        json={
+                            "action": "move_file",
+                            "file_id": file_id,
+                            "target_folder_id": target_folder_id
+                        },
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                moved_count += 1
+                                logger.info(f"   ✅ Moved {file_type}")
+                            else:
+                                failed_count += 1
+                                error_msg = result.get("message", "Unknown error")
+                                errors.append(f"{file_type}: {error_msg}")
+                                logger.error(f"   ❌ Failed: {error_msg}")
+                        else:
+                            failed_count += 1
+                            errors.append(f"{file_type}: HTTP {response.status}")
+                            logger.error(f"   ❌ HTTP error: {response.status}")
+                            
+                except Exception as e:
+                    failed_count += 1
+                    errors.append(f"{file_type}: {str(e)}")
+                    logger.error(f"   ❌ Exception: {e}")
+            
+            # Move all certificate files (to same folder)
+            for file_info in files.get("certificate_files", []):
+                try:
+                    file_id = file_info.get("file_id")
+                    file_type = file_info.get("type")
+                    cert_name = file_info.get("cert_name", "Unknown")
+                    
+                    logger.info(f"   → Moving {file_type} ({cert_name}): {file_id}")
+                    
+                    async with session.post(
+                        apps_script_url,
+                        json={
+                            "action": "move_file",
+                            "file_id": file_id,
+                            "target_folder_id": target_folder_id
+                        },
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                moved_count += 1
+                                logger.info(f"   ✅ Moved {file_type} ({cert_name})")
+                            else:
+                                failed_count += 1
+                                error_msg = result.get("message", "Unknown error")
+                                errors.append(f"{cert_name} {file_type}: {error_msg}")
+                                logger.error(f"   ❌ Failed: {error_msg}")
+                        else:
+                            failed_count += 1
+                            errors.append(f"{cert_name} {file_type}: HTTP {response.status}")
+                            logger.error(f"   ❌ HTTP error: {response.status}")
+                            
+                except Exception as e:
+                    failed_count += 1
+                    errors.append(f"{cert_name} {file_type}: {str(e)}")
+                    logger.error(f"   ❌ Exception: {e}")
+        
+        elif structure_type == "hierarchical":
+            # HIERARCHICAL structure: Passport to Crew List, Certificates to Crew Certificates
+            passport_folder_id = target_folders.get("passport_folder_id")
+            certificate_folder_id = target_folders.get("certificate_folder_id")
+            
+            logger.info(f"📦 Moving files to Ship (HIERARCHICAL structure)")
+            logger.info(f"   Passport folder: {passport_folder_id}")
+            logger.info(f"   Certificate folder: {certificate_folder_id}")
+            
+            # Move passport files to Crew List folder
+            for file_info in files.get("passport_files", []):
+                try:
+                    file_id = file_info.get("file_id")
+                    file_type = file_info.get("type")
+                    
+                    logger.info(f"   → Moving {file_type} to Crew List: {file_id}")
+                    
+                    async with session.post(
+                        apps_script_url,
+                        json={
+                            "action": "move_file",
+                            "file_id": file_id,
+                            "target_folder_id": passport_folder_id
+                        },
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                moved_count += 1
+                                logger.info(f"   ✅ Moved {file_type}")
+                            else:
+                                failed_count += 1
+                                error_msg = result.get("message", "Unknown error")
+                                errors.append(f"{file_type}: {error_msg}")
+                                logger.error(f"   ❌ Failed: {error_msg}")
+                        else:
+                            failed_count += 1
+                            errors.append(f"{file_type}: HTTP {response.status}")
+                            logger.error(f"   ❌ HTTP error: {response.status}")
+                            
+                except Exception as e:
+                    failed_count += 1
+                    errors.append(f"{file_type}: {str(e)}")
+                    logger.error(f"   ❌ Exception: {e}")
+            
+            # Move certificate files to Crew Certificates folder
+            for file_info in files.get("certificate_files", []):
+                try:
+                    file_id = file_info.get("file_id")
+                    file_type = file_info.get("type")
+                    cert_name = file_info.get("cert_name", "Unknown")
+                    
+                    logger.info(f"   → Moving {file_type} ({cert_name}) to Crew Certificates: {file_id}")
+                    
+                    async with session.post(
+                        apps_script_url,
+                        json={
+                            "action": "move_file",
+                            "file_id": file_id,
+                            "target_folder_id": certificate_folder_id
+                        },
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                moved_count += 1
+                                logger.info(f"   ✅ Moved {file_type} ({cert_name})")
+                            else:
+                                failed_count += 1
+                                error_msg = result.get("message", "Unknown error")
+                                errors.append(f"{cert_name} {file_type}: {error_msg}")
+                                logger.error(f"   ❌ Failed: {error_msg}")
+                        else:
+                            failed_count += 1
+                            errors.append(f"{cert_name} {file_type}: HTTP {response.status}")
+                            logger.error(f"   ❌ HTTP error: {response.status}")
+                            
+                except Exception as e:
+                    failed_count += 1
+                    errors.append(f"{cert_name} {file_type}: {str(e)}")
+                    logger.error(f"   ❌ Exception: {e}")
+    
+    return {
+        "success": failed_count == 0,
+        "moved_count": moved_count,
+        "failed_count": failed_count,
+        "errors": errors
+    }
+
+
+async def move_crew_files_on_change(
+    crew_id: str,
+    company_id: str,
+    old_crew: dict,
+    new_crew: dict,
+    mongo_db_instance
+):
+    """
+    Background task to automatically move crew files when status/ship changes
+    This runs asynchronously and does not block the API response
+    """
+    try:
+        crew_name = new_crew.get("full_name", "Unknown")
+        logger.info(f"🔄 [BACKGROUND] Checking file move for crew: {crew_name} ({crew_id})")
+        
+        # Step 1: Detect if move is needed
+        move_decision = detect_crew_file_move_needed(old_crew, new_crew)
+        
+        logger.info(f"📊 Move Decision:")
+        logger.info(f"   - Move needed: {move_decision['move_needed']}")
+        logger.info(f"   - Move type: {move_decision['move_type']}")
+        logger.info(f"   - Source: {move_decision['source_location']}")
+        logger.info(f"   - Target: {move_decision['target_location']}")
+        logger.info(f"   - Reason: {move_decision['reason']}")
+        
+        if not move_decision["move_needed"]:
+            logger.info(f"✅ No file move needed")
+            return
+        
+        # Step 2: Collect all files (original + summary)
+        logger.info(f"📦 Collecting all files (original + summary)...")
+        files = await collect_all_crew_files(crew_id, company_id, mongo_db_instance)
+        
+        if files["total_files"] == 0:
+            logger.info(f"ℹ️ No files to move")
+            return
+        
+        logger.info(f"📂 Found {files['total_files']} files to move:")
+        logger.info(f"   - Passport files: {len(files['passport_files'])}")
+        logger.info(f"   - Certificate files: {len(files['certificate_files'])}")
+        
+        # Step 3: Get Google Drive configuration
+        gdrive_config = await mongo_db_instance.find_one(
+            "company_gdrive_config",
+            {"company_id": company_id}
+        )
+        
+        if not gdrive_config:
+            logger.error(f"❌ Google Drive not configured")
+            return
+        
+        apps_script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+        root_folder_id = gdrive_config.get("folder_id")
+        
+        if not apps_script_url or not root_folder_id:
+            logger.error(f"❌ Apps Script URL or Root Folder not configured")
+            return
+        
+        # Step 4: Resolve target folders
+        logger.info(f"🔍 Resolving target folders...")
+        target_folders = await resolve_target_folders(
+            move_type=move_decision["move_type"],
+            target_location=move_decision["target_location"],
+            apps_script_url=apps_script_url,
+            root_folder_id=root_folder_id
+        )
+        
+        if not target_folders.get("success"):
+            logger.error(f"❌ Failed to resolve target folders: {target_folders.get('message')}")
+            return
+        
+        logger.info(f"✅ Target folders resolved:")
+        logger.info(f"   - Structure: {target_folders.get('structure_type')}")
+        if target_folders.get("structure_type") == "flat":
+            logger.info(f"   - Standby folder: {target_folders.get('standby_folder_id')}")
+        else:
+            logger.info(f"   - Passport folder: {target_folders.get('passport_folder_id')}")
+            logger.info(f"   - Certificate folder: {target_folders.get('certificate_folder_id')}")
+        
+        # Step 5: Move files
+        logger.info(f"📤 Starting file move operation...")
+        move_result = await move_files_to_target(
+            files=files,
+            target_folders=target_folders,
+            apps_script_url=apps_script_url
+        )
+        
+        # Step 6: Log results
+        logger.info(f"📊 File move completed:")
+        logger.info(f"   - Success: {move_result.get('success')}")
+        logger.info(f"   - Moved: {move_result.get('moved_count')}")
+        logger.info(f"   - Failed: {move_result.get('failed_count')}")
+        
+        if move_result.get("errors"):
+            logger.error(f"   - Errors: {move_result.get('errors')}")
+        
+        if move_result.get("success"):
+            logger.info(f"✅ [BACKGROUND] File move completed successfully for {crew_name}")
+        else:
+            logger.warning(f"⚠️ [BACKGROUND] File move completed with errors for {crew_name}")
+        
+    except Exception as e:
+        logger.error(f"❌ [BACKGROUND] Error in file move task: {e}")
+        logger.error(traceback.format_exc())
+
+# ============================================================================
+# END: AUTO-MOVE FILES HELPER FUNCTIONS
+# ============================================================================
+
+
+
 # Initialize Scheduler for auto-backup
 scheduler = AsyncIOScheduler()
 
