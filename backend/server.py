@@ -27853,28 +27853,64 @@ async def delete_other_audit_document_files_foreground(
     try:
         logger.info(f"🗑️ Foreground deletion of files for other audit document: {document_id}")
         
-        from dual_apps_script_manager import create_dual_apps_script_manager
-        dual_manager = create_dual_apps_script_manager(company_uuid)
+        # Get company Apps Script URL
+        company_doc = await mongo_db.find_one("company_google_drive", {"company_id": company_uuid})
+        if not company_doc or not company_doc.get('apps_script_url'):
+            logger.warning(f"⚠️ No Apps Script URL configured for company: {company_uuid}")
+            return
         
+        company_apps_script_url = company_doc['apps_script_url']
         deleted_count = 0
         
         # Delete individual files
         if file_ids:
             for file_id in file_ids:
                 try:
-                    result = await dual_manager.delete_file(file_id)
-                    if result.get('success'):
-                        deleted_count += 1
-                        logger.info(f"   ✅ Deleted file: {file_id}")
+                    async with aiohttp.ClientSession() as session:
+                        payload = {
+                            "action": "delete_file",
+                            "file_id": file_id
+                        }
+                        async with session.post(
+                            company_apps_script_url,
+                            json=payload,
+                            headers={"Content-Type": "application/json"},
+                            timeout=aiohttp.ClientTimeout(total=30)
+                        ) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                if result.get("success"):
+                                    deleted_count += 1
+                                    logger.info(f"   ✅ Deleted file: {file_id}")
+                                else:
+                                    logger.warning(f"   ⚠️ Failed to delete file: {file_id}")
+                            else:
+                                logger.warning(f"   ⚠️ Failed to delete file {file_id}: HTTP {response.status}")
                 except Exception as e:
                     logger.error(f"   ❌ Error deleting file {file_id}: {e}")
         
         # Delete folder if present
         if folder_id:
             try:
-                result = await dual_manager.delete_file(folder_id)
-                if result.get('success'):
-                    logger.info(f"   ✅ Deleted folder: {folder_id}")
+                async with aiohttp.ClientSession() as session:
+                    payload = {
+                        "action": "delete_file",
+                        "file_id": folder_id
+                    }
+                    async with session.post(
+                        company_apps_script_url,
+                        json=payload,
+                        headers={"Content-Type": "application/json"},
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            if result.get("success"):
+                                logger.info(f"   ✅ Deleted folder: {folder_id}")
+                            else:
+                                logger.warning(f"   ⚠️ Failed to delete folder: {folder_id}")
+                        else:
+                            logger.warning(f"   ⚠️ Failed to delete folder {folder_id}: HTTP {response.status}")
             except Exception as e:
                 logger.error(f"   ❌ Error deleting folder {folder_id}: {e}")
         
