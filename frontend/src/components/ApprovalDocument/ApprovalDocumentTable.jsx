@@ -11,7 +11,7 @@ import {
   estimateFileProcessingTime, 
   startSmoothProgressForFile 
 } from '../../utils/progressHelpers';
-import { AddDrawingManualModal } from './AddDrawingManualModal';
+import { AddDrawingManualModal } from './AddApprovalDocumentModal';
 import { EditDrawingManualModal } from './EditDrawingManualModal';
 import { DrawingManualNotesModal } from './DrawingManualNotesModal';
 import { BatchProcessingModal } from './BatchProcessingModal';
