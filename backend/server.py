@@ -2086,7 +2086,6 @@ class ApprovalDocumentResponse(BaseModel):
 class BulkDeleteApprovalDocumentsRequest(BaseModel):
     """Request model for bulk delete approval documents"""
     document_ids: List[str]
-    background: Optional[bool] = False
 
 
 
