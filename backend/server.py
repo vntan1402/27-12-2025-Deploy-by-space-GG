@@ -27776,13 +27776,15 @@ async def delete_other_audit_document_files_background(
     try:
         logger.info(f"🗑️ Background deletion of files for other audit document: {document_id}")
         
-        # Get company Apps Script URL
-        company_doc = await mongo_db.find_one("company_google_drive", {"company_id": company_uuid})
-        if not company_doc or not company_doc.get('apps_script_url'):
+        # Get company Apps Script URL (same as other_documents)
+        gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        company_apps_script_url = None
+        if gdrive_config:
+            company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
+        
+        if not company_apps_script_url:
             logger.warning(f"⚠️ No Apps Script URL configured for company: {company_uuid}")
             return
-        
-        company_apps_script_url = company_doc['apps_script_url']
         deleted_count = 0
         
         # Delete individual files
