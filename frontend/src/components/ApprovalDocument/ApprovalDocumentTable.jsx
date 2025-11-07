@@ -491,8 +491,8 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
       filename: file.name,
       success: false,
       documentCreated: false,
-      documentName: '',
-      documentNo: '',
+      approval_document_name: '',
+      approval_document_no: '',
       error: null
     };
 
