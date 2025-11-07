@@ -12743,9 +12743,19 @@ async def bulk_delete_approval_documents(
         drive_deletion_count = 0
         errors = []
         
+        # Get Apps Script URL from company_gdrive_config
+        gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_uuid})
+        company_apps_script_url = None
+        if gdrive_config:
+            company_apps_script_url = gdrive_config.get("company_apps_script_url") or gdrive_config.get("web_app_url")
+        
         if background:
-            # Background deletion - delete from DB immediately, cleanup Drive in background
-            logger.info("🚀 Starting background deletion process...")
+            # BACKGROUND MODE: Delete DB first, files in background
+            logger.info("🚀 Background deletion mode: Deleting from database first...")
+            
+            deleted_count = 0
+            files_to_delete = []
+            errors = []
             
             for doc_id in request.document_ids:
                 try:
@@ -12753,31 +12763,62 @@ async def bulk_delete_approval_documents(
                     doc = await mongo_db.find_one("approval_documents", {"id": doc_id})
                     if not doc:
                         logger.warning(f"⚠️ Document {doc_id} not found")
+                        errors.append(f"Document {doc_id} not found")
                         continue
                     
                     # Delete from database immediately
                     await mongo_db.delete("approval_documents", {"id": doc_id})
                     deleted_count += 1
-                    logger.info(f"✅ Deleted approval document from DB: {doc_id}")
+                    logger.info(f"✅ Document deleted from database: {doc_id}")
                     
-                    # Schedule Drive cleanup in background
+                    # Collect file info for background deletion
                     if doc.get('file_id') or doc.get('summary_file_id'):
-                        asyncio.create_task(cleanup_approval_document_files_background(
-                            doc, dual_manager
-                        ))
+                        files_to_delete.append({
+                            'document_id': doc_id,
+                            'file_id': doc.get('file_id'),
+                            'summary_file_id': doc.get('summary_file_id')
+                        })
                     
                 except Exception as e:
                     error_msg = f"Error deleting document {doc_id}: {str(e)}"
                     logger.error(f"❌ {error_msg}")
                     errors.append(error_msg)
             
-            logger.info(f"✅ Background bulk delete completed: {deleted_count} documents deleted from DB")
+            # Schedule background file deletion (non-blocking)
+            if files_to_delete and company_apps_script_url:
+                logger.info(f"📤 Starting background deletion for {len(files_to_delete)} file pairs...")
+                logger.info(f"   Apps Script URL: {company_apps_script_url[:50]}...")
+                logger.info(f"   Files to delete: {[f['document_id'][:8] for f in files_to_delete]}")
+                
+                # Use asyncio.create_task to run in background without blocking
+                import asyncio
+                asyncio.create_task(
+                    bulk_delete_approval_document_files_background(
+                        files_to_delete,
+                        company_apps_script_url
+                    )
+                )
+            else:
+                if not files_to_delete:
+                    logger.warning("⚠️ No files to delete (documents had no file_id or summary_file_id)")
+                if not company_apps_script_url:
+                    logger.warning("⚠️ Apps Script URL not configured, skipping file deletion")
+            
+            # Return immediately
+            message = f"Deleted {deleted_count} document(s) from database"
+            if files_to_delete:
+                message += f" ({len(files_to_delete)} file pairs are being deleted from Google Drive in background)"
+            if errors:
+                message += f", {len(errors)} error(s)"
             
             return {
                 "success": True,
                 "deleted_count": deleted_count,
-                "drive_deletion_count": "processing in background",
-                "errors": errors
+                "total_requested": len(request.document_ids),
+                "message": message,
+                "errors": errors if errors else None,
+                "partial_success": len(errors) > 0 and deleted_count > 0,
+                "background_deletion": len(files_to_delete) > 0
             }
             
         else:
