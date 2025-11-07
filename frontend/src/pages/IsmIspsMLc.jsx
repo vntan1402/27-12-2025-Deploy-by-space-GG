@@ -1495,15 +1495,16 @@ const IsmIspsMLc = () => {
               }}
               language={language}
             />
+          ) : selectedSubMenu === 'approval_document' ? (
+            /* Approval Document Section */
+            <ApprovalDocumentTable selectedShip={selectedShip} />
           ) : (
             /* Placeholder for other submenus */
             <div className="text-center py-12">
               <div className="text-6xl mb-4">
-                {selectedSubMenu === 'approval_document' && '✅'}
                 {selectedSubMenu === 'other_document' && '📄'}
               </div>
               <h3 className="text-2xl font-semibold text-gray-700 mb-2">
-                {selectedSubMenu === 'approval_document' && (language === 'vi' ? 'Approval Document' : 'Approval Document')}
                 {selectedSubMenu === 'other_document' && (language === 'vi' ? 'Other Document' : 'Other Document')}
               </h3>
               <p className="text-gray-500">
