@@ -635,7 +635,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-800">
           {language === 'vi' 
-            ? `Danh sách Bản vẽ & Sổ tay cho ${selectedShip.name}` 
+            ? `Danh sách Tài liệu Phê duyệt cho ${selectedShip.name}` 
             : `Approval Document List for ${selectedShip.name}`}
         </h3>
 
