@@ -745,37 +745,6 @@ export const AddCrewModal = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
-              </div>
-              
-              {/* Row 4: Passport, Nationality */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Hộ chiếu' : 'Passport'} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.passport}
-                    onChange={(e) => setFormData({...formData, passport: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {language === 'vi' ? 'Quốc t적' : 'Nationality'}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.nationality}
-                    onChange={(e) => setFormData({...formData, nationality: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-              
-              {/* Row 5: Passport Expiry Date, Rank */}
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {language === 'vi' ? 'Ngày hết hạn hộ chiếu' : 'Passport Expiry Date'}
@@ -787,6 +756,10 @@ export const AddCrewModal = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
+              </div>
+              
+              {/* Row 4: Rank, Seamen Book, Status */}
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {language === 'vi' ? 'Chức vụ' : 'Rank'}
@@ -799,10 +772,6 @@ export const AddCrewModal = ({
                     placeholder="CE, 2/E, C/O, Master..."
                   />
                 </div>
-              </div>
-              
-              {/* Row 6: Seamen Book, Status */}
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {language === 'vi' ? 'Sổ thuyền viên' : 'Seamen Book'}
@@ -830,8 +799,8 @@ export const AddCrewModal = ({
                 </div>
               </div>
               
-              {/* Row 7: Ship Sign On, Place Sign On - Hide ship when Standby */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Row 5: Ship Sign On, Place Sign On, Date Sign On */}
+              <div className="grid grid-cols-3 gap-4">
                 {formData.status !== 'Standby' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
