@@ -136,7 +136,8 @@ export const ShipDetailPanel = ({
     
     setIsRecalculating(true);
     try {
-      const result = await shipService.calculateSpecialSurveyCycle(ship.id);
+      const response = await shipService.calculateSpecialSurveyCycle(ship.id);
+      const result = response.data; // Extract data from axios response
       
       if (result.success) {
         let message = `Special Survey cycle calculated: ${result.special_survey_cycle.display}`;
