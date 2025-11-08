@@ -360,15 +360,6 @@ const AddUserModal = ({
                       🛡️ SSO (Ship Security Officer)
                     </span>
                   </div>
-                )}
-                        disabled={loading}
-                      />
-                      <span className="text-sm text-blue-900">
-                        🔐 CSO (Company Security Officer)
-                      </span>
-                    </div>
-                  </>
-                )}
                 
                 <p className="text-xs text-blue-700 mt-2">
                   {userData.role === 'viewer' 
@@ -376,8 +367,8 @@ const AddUserModal = ({
                       ? '🔒 Thuyền viên phải thuộc phòng ban "Thuyền viên tàu"' 
                       : '🔒 Crew must belong to "Ship Crew" department')
                     : (language === 'vi'
-                      ? '🔒 Sĩ quan phải thuộc phòng ban "Thuyền viên tàu". Có thể chọn thêm SSO/CSO nếu là cán bộ an ninh.'
-                      : '🔒 Ship Officers must belong to "Ship Crew" department. Can additionally select SSO/CSO if serving as security officer.')
+                      ? '🔒 Sĩ quan phải thuộc phòng ban "Thuyền viên tàu". Có thể chọn thêm SSO nếu là cán bộ an ninh tàu.'
+                      : '🔒 Ship Officers must belong to "Ship Crew" department. Can additionally select SSO if serving as Ship Security Officer.')
                   }
                 </p>
               </div>
@@ -385,7 +376,7 @@ const AddUserModal = ({
               // Normal department selection for other roles
               <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
                 <div className="grid grid-cols-2 gap-3">
-                  {departmentOptions.map(dept => {
+                  {getFilteredDepartmentOptions().map(dept => {
                     const isChecked = (userData.department || []).includes(dept.value);
                     return (
                       <label 
