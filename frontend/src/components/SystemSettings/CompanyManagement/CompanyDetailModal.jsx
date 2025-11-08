@@ -184,7 +184,7 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">
-                    {language === 'vi' ? 'Tổng nhân viên' : 'Total Users'}
+                    {language === 'vi' ? 'Nhân viên văn phòng' : 'Office Staff'}
                   </p>
                   {loading ? (
                     <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
