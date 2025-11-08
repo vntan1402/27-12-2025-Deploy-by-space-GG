@@ -6275,13 +6275,20 @@ async def bulk_delete_ship_certificates(
         
         for cert_id in cert_ids:
             try:
-                logger.info(f"🔍 Checking certificate: {cert_id}")
+                logger.info(f"🔍 Checking certificate: {cert_id} (type: {type(cert_id)})")
                 
                 # Check if certificate exists
                 cert = await mongo_db.find_one("certificates", {"id": cert_id})
                 
                 if not cert:
                     logger.warning(f"⚠️ Certificate not found: {cert_id}")
+                    logger.info(f"🔍 Trying to find any certificate with similar ID...")
+                    # Debug: Try to find what certificates exist
+                    all_certs = await mongo_db.find_all("certificates", {})
+                    logger.info(f"📊 Total certificates in DB: {len(all_certs)}")
+                    if len(all_certs) > 0:
+                        sample_cert = all_certs[0]
+                        logger.info(f"📋 Sample certificate ID from DB: {sample_cert.get('id')} (type: {type(sample_cert.get('id'))})")
                     errors.append(f"Certificate {cert_id} not found")
                     continue
                 
