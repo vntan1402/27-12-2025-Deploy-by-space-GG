@@ -30,6 +30,7 @@ const UserFilters = ({
     { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' },
     { value: 'ship_crew', label: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew' },
     { value: 'sso', label: 'SSO' },
+    { value: 'cso', label: 'CSO' },
     { value: 'dpa', label: 'DPA' },
     { value: 'supply', label: language === 'vi' ? 'Vật tư' : 'Supply' }
   ];
