@@ -26754,8 +26754,8 @@ async def multi_audit_cert_upload_for_ship(
                 
                 # Check IMO validation first
                 if extracted_imo and current_ship_imo:
-                    extracted_imo_clean = extracted_imo.replace(' ', '').upper()
-                    current_ship_imo_clean = current_ship_imo.replace(' ', '').upper()
+                    extracted_imo_clean = extracted_imo.replace(' ', '').replace('IMO', '').upper()
+                    current_ship_imo_clean = current_ship_imo.replace(' ', '').replace('IMO', '').upper()
                     
                     if extracted_imo_clean != current_ship_imo_clean:
                         # IMO mismatch - hard reject
