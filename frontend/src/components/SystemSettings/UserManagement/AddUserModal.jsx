@@ -16,9 +16,9 @@ const AddUserModal = ({
   loading,
   currentUser  // Added currentUser prop
 }) => {
-  // Lock company field to current user's company on mount (only for non-super_admin)
+  // Lock company field to current user's company on mount (only for non-super_admin and non-system_admin)
   useEffect(() => {
-    if (currentUser?.role !== 'super_admin' && currentUser?.company && !userData.company) {
+    if (currentUser?.role !== 'super_admin' && currentUser?.role !== 'system_admin' && currentUser?.company && !userData.company) {
       setUserData(prev => ({ ...prev, company: currentUser.company }));
     }
   }, [currentUser, userData.company, setUserData]);
