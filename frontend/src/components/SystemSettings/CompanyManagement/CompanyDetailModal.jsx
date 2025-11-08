@@ -7,7 +7,8 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
   const [statistics, setStatistics] = useState({
     totalShips: 0,
     totalUsers: 0,
-    activeUsers: 0
+    activeUsers: 0,
+    totalCrew: 0
   });
 
   useEffect(() => {
@@ -36,11 +37,13 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
       );
 
       const activeUsers = companyUsers.filter(user => user.is_active);
+      const crewUsers = companyUsers.filter(user => user.role === 'viewer'); // Crew = viewer role
 
       setStatistics({
         totalShips: companyShips.length,
         totalUsers: companyUsers.length,
-        activeUsers: activeUsers.length
+        activeUsers: activeUsers.length,
+        totalCrew: crewUsers.length
       });
     } catch (error) {
       console.error('Error fetching company statistics:', error);
