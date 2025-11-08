@@ -14371,9 +14371,9 @@ async def multi_cert_upload_for_ship(
                 
                 # 1. Check IMO validation first
                 if extracted_imo and current_ship_imo:
-                    # Compare IMO numbers (case-insensitive, remove spaces)
-                    extracted_imo_clean = extracted_imo.replace(' ', '').upper()
-                    current_ship_imo_clean = current_ship_imo.replace(' ', '').upper()
+                    # Compare IMO numbers (case-insensitive, remove spaces and "IMO" prefix)
+                    extracted_imo_clean = extracted_imo.replace(' ', '').replace('IMO', '').upper()
+                    current_ship_imo_clean = current_ship_imo.replace(' ', '').replace('IMO', '').upper()
                     
                     if extracted_imo_clean != current_ship_imo_clean:
                         # Different IMO numbers - skip upload with progress bar message
