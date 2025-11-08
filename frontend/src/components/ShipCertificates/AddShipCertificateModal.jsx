@@ -315,6 +315,10 @@ export const AddShipCertificateModal = ({
           }
 
           try {
+            // Update status to processing
+            setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+            setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'analyzing' }));
+            
             // Update status to uploading
             setMultiCertUploads(prev => prev.map((upload, idx) => 
               idx === i 
