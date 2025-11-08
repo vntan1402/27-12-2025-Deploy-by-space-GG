@@ -53,7 +53,7 @@ import sys
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://vesselpapers.preview.emergentagent.com/api"
+BACKEND_URL = "https://maritime-doc-manager.preview.emergentagent.com/api"
 
 # Expected categories from frontend constants.js
 EXPECTED_CATEGORIES = [
