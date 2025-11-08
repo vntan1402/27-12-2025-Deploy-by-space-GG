@@ -1804,6 +1804,20 @@ const ClassAndFlagCert = () => {
         />
       )}
 
+      {/* Delete Ship Blocked Modal */}
+      {showDeleteShipBlockedModal && deleteShipData && deleteShipBlockingItems && (
+        <DeleteShipBlockedModal
+          isOpen={showDeleteShipBlockedModal}
+          onClose={() => {
+            setShowDeleteShipBlockedModal(false);
+            setDeleteShipBlockingItems(null);
+            setDeleteShipData(null);
+          }}
+          ship={deleteShipData}
+          blockingItems={deleteShipBlockingItems}
+        />
+      )}
+
       {/* Add Ship Certificate Modal */}
       <AddShipCertificateModal
         isOpen={showAddShipCertificateModal}
