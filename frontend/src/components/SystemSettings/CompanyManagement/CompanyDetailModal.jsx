@@ -149,7 +149,7 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
           </div>
 
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Ships Count */}
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
               <div className="flex items-center gap-3">
@@ -183,6 +183,25 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
                     <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
                   ) : (
                     <p className="text-3xl font-bold text-green-700">{statistics.totalUsers}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Total Crew */}
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
+              <div className="flex items-center gap-3">
+                <div className="bg-orange-500 text-white p-3 rounded-lg">
+                  ⚓
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">
+                    {language === 'vi' ? 'Thuyền viên' : 'Crew Members'}
+                  </p>
+                  {loading ? (
+                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+                  ) : (
+                    <p className="text-3xl font-bold text-orange-700">{statistics.totalCrew}</p>
                   )}
                 </div>
               </div>
