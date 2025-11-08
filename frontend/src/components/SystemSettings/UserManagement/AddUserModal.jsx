@@ -313,7 +313,8 @@ const AddUserModal = ({
             
             {/* Special handling for Crew and Ship Officer roles */}
             {(userData.role === 'viewer' || userData.role === 'editor') ? (
-              <div className="bg-blue-50 border border-blue-300 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-300 rounded-lg p-4 space-y-3">
+                {/* Ship Crew - Always locked for both Crew and Ship Officer */}
                 <div className="flex items-center space-x-3">
                   <input
                     type="checkbox"
@@ -328,10 +329,32 @@ const AddUserModal = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </div>
+                
+                {/* SSO - Only for Ship Officers (editor role), not for Crew */}
+                {userData.role === 'editor' && (
+                  <div className="flex items-center space-x-3 border-t pt-3">
+                    <input
+                      type="checkbox"
+                      checked={(userData.department || []).includes('sso')}
+                      onChange={() => handleDepartmentChange('sso')}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                      disabled={loading}
+                    />
+                    <span className="text-sm text-blue-900">
+                      🛡️ SSO (Ship Security Officer)
+                    </span>
+                  </div>
+                )}
+                
                 <p className="text-xs text-blue-700 mt-2">
-                  {language === 'vi' 
-                    ? '🔒 Thuyền viên và Sĩ quan phải thuộc phòng ban "Thuyền viên tàu"' 
-                    : '🔒 Crew and Ship Officers must belong to "Ship Crew" department'}
+                  {userData.role === 'viewer' 
+                    ? (language === 'vi' 
+                      ? '🔒 Thuyền viên phải thuộc phòng ban "Thuyền viên tàu"' 
+                      : '🔒 Crew must belong to "Ship Crew" department')
+                    : (language === 'vi'
+                      ? '🔒 Sĩ quan phải thuộc phòng ban "Thuyền viên tàu". Có thể chọn thêm SSO nếu là cán bộ an ninh tàu.'
+                      : '🔒 Ship Officers must belong to "Ship Crew" department. Can additionally select SSO if serving as Ship Security Officer.')
+                  }
                 </p>
               </div>
             ) : (
