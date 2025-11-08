@@ -6267,6 +6267,7 @@ async def bulk_delete_ship_certificates(
         
         logger.info(f"🗑️ Bulk delete ship certificates request: {len(cert_ids)} certificate(s)")
         logger.info(f"📋 Certificate IDs: {cert_ids}")
+        logger.info(f"📋 Request object: {request.dict()}")
         
         deleted_count = 0
         gdrive_files_deleted = 0
