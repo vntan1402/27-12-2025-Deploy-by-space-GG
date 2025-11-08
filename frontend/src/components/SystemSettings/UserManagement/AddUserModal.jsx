@@ -360,6 +360,7 @@ const AddUserModal = ({
                       🛡️ SSO (Ship Security Officer)
                     </span>
                   </div>
+                )}
                 
                 <p className="text-xs text-blue-700 mt-2">
                   {userData.role === 'viewer' 
