@@ -25199,47 +25199,22 @@ def calculate_crew_certificate_status(cert_expiry) -> str:
 
 @api_router.get("/sidebar-structure")
 async def get_sidebar_structure():
-    """Get current homepage sidebar structure for Google Apps Script"""
+    """Get current homepage sidebar structure for Google Apps Script - Main Categories Only"""
     try:
-        # Define the current sidebar structure that matches the frontend
-        sidebar_structure = {
-            "Class & Flag Cert": [
-                "Certificates",
-                "Class Survey Report",
-                "Test Report", 
-                "Drawings & Manuals",
-                "Other Documents"
-            ],
-            "Crew Records": [
-                "Crew List",
-                "Crew Certificates", 
-                "Medical Records"
-            ],
-            "ISM Records": [
-                "ISM Certificate",
-                "Safety Procedures",
-                "Audit Reports"
-            ],
-            "ISPS Records": [
-                "ISPS Certificate", 
-                "Security Plan",
-                "Security Assessments"
-            ],
-            "MLC Records": [
-                "MLC Certificate",
-                "Labor Conditions",
-                "Accommodation Reports" 
-            ],
-            "Supplies": [
-                "Inventory",
-                "Purchase Orders",
-                "Spare Parts"
-            ]
-        }
+        # Define the main sidebar categories that match the frontend constants.js MAIN_CATEGORIES
+        # This returns ONLY the main categories, NOT subcategories
+        # Apps Script will use this to create folder structure: {Ship Name}/{Category}/
+        sidebar_structure = [
+            "Class & Flag Cert",
+            "Crew Records",
+            "ISM - ISPS - MLC",
+            "Safety Management System",
+            "Technical Infor",
+            "Supplies"
+        ]
         
         # Calculate statistics
         total_categories = len(sidebar_structure)
-        total_subcategories = sum(len(subcats) for subcats in sidebar_structure.values())
         
         return {
             "success": True,
@@ -25247,10 +25222,10 @@ async def get_sidebar_structure():
             "structure": sidebar_structure,
             "metadata": {
                 "total_categories": total_categories,
-                "total_subcategories": total_subcategories,
-                "structure_version": "v3.3",
+                "structure_version": "v4.0",
+                "structure_type": "main_categories_only",
                 "last_updated": datetime.now(timezone.utc).isoformat(),
-                "source": "homepage_sidebar_current"
+                "source": "homepage_sidebar_main_categories"
             }
         }
         
