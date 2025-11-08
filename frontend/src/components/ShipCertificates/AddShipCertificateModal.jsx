@@ -1153,6 +1153,30 @@ export const AddShipCertificateModal = ({
           language={language}
         />
       </div>
+
+      {/* Batch Processing Modal */}
+      <BatchProcessingModal
+        isOpen={showBatchProcessing}
+        isMinimized={isProcessingMinimized}
+        onMinimize={() => setIsProcessingMinimized(true)}
+        onRestore={() => setIsProcessingMinimized(false)}
+        progress={batchProgress}
+        fileProgressMap={fileProgressMap}
+        fileStatusMap={fileStatusMap}
+        fileSubStatusMap={fileSubStatusMap}
+        title={language === 'vi' ? '📜 Đang xử lý Ship Certificates' : '📜 Processing Ship Certificates'}
+      />
+
+      {/* Batch Results Modal */}
+      <BatchResultsModal
+        isOpen={showBatchResults}
+        onClose={() => {
+          setShowBatchResults(false);
+          setBatchResults([]);
+          setMultiCertUploads([]);
+        }}
+        results={batchResults}
+      />
     </div>
   );
 };
