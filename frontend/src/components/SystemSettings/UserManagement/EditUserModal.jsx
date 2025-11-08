@@ -73,6 +73,7 @@ const EditUserModal = ({
     { value: 'commercial', label: language === 'vi' ? 'Kinh doanh' : 'Commercial' },
     { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' },
     { value: 'ship_crew', label: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew' },
+    { value: 'sso', label: 'SSO' }, // Ship Security Officer - only for Ship Officers
     { value: 'dpa', label: 'DPA' },
     { value: 'supply', label: language === 'vi' ? 'Vật tư' : 'Supply' }
   ];
