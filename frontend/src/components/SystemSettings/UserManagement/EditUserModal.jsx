@@ -82,6 +82,32 @@ const EditUserModal = ({
    * Handle department checkbox change
    */
   const handleDepartmentChange = (deptValue) => {
+    // For Ship Officers: ship_crew is locked, but can toggle SSO
+    if (userData.role === 'editor') {
+      if (deptValue === 'ship_crew') {
+        return; // Cannot uncheck ship_crew for Ship Officers
+      }
+      // Allow toggling SSO for Ship Officers
+      const currentDepts = userData.department || [];
+      const isChecked = currentDepts.includes(deptValue);
+      
+      let newDepts;
+      if (isChecked) {
+        newDepts = currentDepts.filter(d => d !== deptValue);
+      } else {
+        newDepts = [...currentDepts, deptValue];
+      }
+      
+      setUserData(prev => ({ ...prev, department: newDepts }));
+      return;
+    }
+    
+    // For Crew: completely locked to ship_crew only
+    if (userData.role === 'viewer') {
+      return; // No changes allowed
+    }
+    
+    // For other roles: normal behavior
     const currentDepts = userData.department || [];
     const isChecked = currentDepts.includes(deptValue);
     
@@ -96,6 +122,22 @@ const EditUserModal = ({
     
     setUserData(prev => ({ ...prev, department: newDepts }));
   };
+
+  // Auto-lock department to ship_crew when role changes to Crew or Ship Officer
+  useEffect(() => {
+    if (userData.role === 'viewer') {
+      // Crew: lock to ship_crew only
+      setUserData(prev => ({ ...prev, department: ['ship_crew'] }));
+    } else if (userData.role === 'editor') {
+      // Ship Officer: ensure ship_crew is included, preserve SSO if present
+      const currentDepts = userData.department || [];
+      const hasSSO = currentDepts.includes('sso');
+      setUserData(prev => ({ 
+        ...prev, 
+        department: hasSSO ? ['ship_crew', 'sso'] : ['ship_crew']
+      }));
+    }
+  }, [userData.role]);
 
   // Check if ship_crew is selected in department
   const isShipCrewSelected = userData.department && Array.isArray(userData.department) && userData.department.includes('ship_crew');
