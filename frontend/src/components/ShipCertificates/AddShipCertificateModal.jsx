@@ -346,6 +346,9 @@ export const AddShipCertificateModal = ({
                 headers: { 'Content-Type': 'multipart/form-data' },
                 onUploadProgress: (progressEvent) => {
                   const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                  setFileProgressMap(prev => ({ ...prev, [file.name]: progress }));
+                  setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'uploading' }));
+                  
                   setMultiCertUploads(prev => prev.map((upload, idx) => 
                     idx === i 
                       ? {
