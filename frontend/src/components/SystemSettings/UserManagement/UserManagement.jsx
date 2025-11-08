@@ -14,9 +14,10 @@ import UserTable from './UserTable';
 
 /**
  * Role hierarchy (from highest to lowest)
- * super_admin > admin > manager > editor > viewer
+ * system_admin > super_admin > admin > manager > editor > viewer
  */
 const ROLE_HIERARCHY = {
+  system_admin: 6,
   super_admin: 5,
   admin: 4,
   manager: 3,
