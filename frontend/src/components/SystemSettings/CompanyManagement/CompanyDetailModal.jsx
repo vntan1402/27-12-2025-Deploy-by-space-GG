@@ -28,7 +28,7 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
         ship.company === company.name_vn
       );
 
-      // Fetch users count
+      // Fetch users count (office staff only - exclude ship_crew department)
       const usersResponse = await api.get('/api/users');
       const companyUsers = usersResponse.data.filter(user => 
         user.company === company.id || 
@@ -44,13 +44,20 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
       });
 
       const activeUsers = nonCrewUsers.filter(user => user.is_active);
-      const crewUsers = companyUsers.filter(user => user.role === 'viewer'); // Crew = viewer role
+      
+      // Fetch crew list (actual crew members from crew records)
+      const crewResponse = await api.get('/api/crew');
+      const companyCrew = crewResponse.data.filter(crew => 
+        crew.company === company.id || 
+        crew.company === company.name_en || 
+        crew.company === company.name_vn
+      );
 
       setStatistics({
         totalShips: companyShips.length,
-        totalUsers: nonCrewUsers.length, // Exclude ship_crew department users
-        activeUsers: activeUsers.length, // Active users excluding crew
-        totalCrew: crewUsers.length
+        totalUsers: nonCrewUsers.length, // Office staff only (exclude ship_crew)
+        activeUsers: activeUsers.length, // Active office staff only
+        totalCrew: companyCrew.length // Crew from Crew List
       });
     } catch (error) {
       console.error('Error fetching company statistics:', error);
