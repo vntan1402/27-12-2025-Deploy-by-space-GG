@@ -125,21 +125,40 @@ const EditUserModal = ({
     setUserData(prev => ({ ...prev, department: newDepts }));
   };
 
-  // Auto-lock department to ship_crew when role changes to Crew or Ship Officer
+  // Track if this is initial load or role change
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  // Mark initial load complete after user data is loaded
   useEffect(() => {
+    if (user && isInitialLoad) {
+      setIsInitialLoad(false);
+    }
+  }, [user, isInitialLoad]);
+
+  // Auto-lock department to ship_crew when role CHANGES (not on initial load)
+  useEffect(() => {
+    // Skip on initial load to preserve existing departments
+    if (isInitialLoad) return;
+    
     if (userData.role === 'viewer') {
       // Crew: lock to ship_crew only
       setUserData(prev => ({ ...prev, department: ['ship_crew'] }));
     } else if (userData.role === 'editor') {
-      // Ship Officer: ensure ship_crew is included, preserve SSO if present
+      // Ship Officer: ensure ship_crew is included, preserve SSO and CSO if present
       const currentDepts = userData.department || [];
       const hasSSO = currentDepts.includes('sso');
+      const hasCSO = currentDepts.includes('cso');
+      
+      let newDepts = ['ship_crew'];
+      if (hasSSO) newDepts.push('sso');
+      if (hasCSO) newDepts.push('cso');
+      
       setUserData(prev => ({ 
         ...prev, 
-        department: hasSSO ? ['ship_crew', 'sso'] : ['ship_crew']
+        department: newDepts
       }));
     }
-  }, [userData.role]);
+  }, [userData.role, isInitialLoad]);
 
   // Check if ship_crew is selected in department
   const isShipCrewSelected = userData.department && Array.isArray(userData.department) && userData.department.includes('ship_crew');
