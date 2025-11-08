@@ -15252,6 +15252,14 @@ Please extract only the fields listed above from the document.
             result["pdf_type"] = pdf_type if 'pdf_type' in locals() else "unknown"
             result["processing_notes"] = result.get("processing_notes", [])
             result["processing_notes"].append(f"Processed as {processing_method} with confidence {ocr_confidence:.2f}")
+            
+            # Debug logging for extraction results
+            logger.info(f"🔍 AI Extraction Results for {filename}:")
+            logger.info(f"   Ship Type: {result.get('ship_type')}")
+            logger.info(f"   Last Docking 1: {result.get('last_docking')}")
+            logger.info(f"   Last Docking 2: {result.get('last_docking_2')}")
+            logger.info(f"   Ship Name: {result.get('ship_name')}")
+            logger.info(f"   IMO: {result.get('imo_number')}")
         
         return result
         
