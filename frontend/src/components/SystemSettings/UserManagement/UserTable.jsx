@@ -137,9 +137,9 @@ const UserTable = ({
                   ? userItem.department.map(dept => {
                       const deptLabels = {
                         technical: language === 'vi' ? 'Kỹ thuật' : 'Technical',
-                        operations: language === 'vi' ? 'Vận hành' : 'Operations',
+                        operations: language === 'vi' ? 'Khai thác' : 'Operations',
                         safety: language === 'vi' ? 'An toàn' : 'Safety',
-                        commercial: language === 'vi' ? 'Thương mại' : 'Commercial',
+                        commercial: language === 'vi' ? 'Kinh doanh' : 'Commercial',
                         crewing: language === 'vi' ? 'Thuyền viên' : 'Crewing',
                         ship_crew: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew',
                         dpa: 'DPA',
