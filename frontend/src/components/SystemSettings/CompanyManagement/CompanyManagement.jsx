@@ -329,6 +329,18 @@ const CompanyManagement = () => {
           language={language}
         />
       )}
+
+      {/* Company Detail Modal */}
+      {showCompanyDetail && selectedCompanyForDetail && (
+        <CompanyDetailModal
+          company={selectedCompanyForDetail}
+          onClose={() => {
+            setShowCompanyDetail(false);
+            setSelectedCompanyForDetail(null);
+          }}
+          language={language}
+        />
+      )}
     </div>
   );
 };
