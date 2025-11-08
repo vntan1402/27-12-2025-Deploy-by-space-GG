@@ -1388,6 +1388,7 @@ class Department(str, Enum):
     FINANCE = "finance"
     SHIP_CREW = "ship_crew"
     SSO = "sso"  # Ship Security Officer - only for Ship Officers
+    CSO = "cso"  # Company Security Officer - only for Ship Officers
     CREWING = "crewing"
     SAFETY = "safety"
     COMMERCIAL = "commercial"
