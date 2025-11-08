@@ -23367,13 +23367,24 @@ async def analyze_certificate_file_for_crew(
             raise HTTPException(status_code=404, detail="Company not found")
         
         # Get ship information for folder structure
+        logger.info(f"🔍 Looking for ship: ship_id='{ship_id}', company='{company_uuid}'")
         ship = await mongo_db.find_one("ships", {
             "id": ship_id,
             "company": company_uuid
         })
         
         if not ship:
-            raise HTTPException(status_code=404, detail="Ship not found")
+            logger.error(f"❌ Ship not found: ship_id='{ship_id}', company='{company_uuid}'")
+            # Try to find ship by name as fallback (in case frontend sent name instead of ID)
+            ship = await mongo_db.find_one("ships", {
+                "name": ship_id,
+                "company": company_uuid
+            })
+            if ship:
+                logger.info(f"✅ Found ship by name: {ship.get('name')} (id: {ship.get('id')})")
+            else:
+                logger.error(f"❌ Ship not found by ID or name: '{ship_id}'")
+                raise HTTPException(status_code=404, detail="Ship not found")
         
         ship_name = ship.get("name", "Unknown Ship")
         
