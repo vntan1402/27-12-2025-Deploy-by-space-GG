@@ -55,7 +55,7 @@ import base64
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://nautical-docforge.preview.emergentagent.com/api"
+BACKEND_URL = "https://vessel-paperwork.preview.emergentagent.com/api"
 
 class AuditCertificateAPITester:
     def __init__(self):

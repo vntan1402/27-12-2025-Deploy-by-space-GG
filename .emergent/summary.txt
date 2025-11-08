@@ -1,22 +1,20 @@
 <analysis>
-The AI engineer's trajectory began with minor enhancements to the  module, focusing on  automation and initiating a Google Drive file management system for crew member status changes. A critical  bug, where  values prevented backend updates, was also addressed by explicitly sending . The focus then dramatically shifted to developing a new  module within the  page, mirroring the functionality of the  module. This involved extensive backend model and endpoint creation, frontend component duplication and adaptation, and a significant debugging phase to resolve numerous issues. Key problems tackled included correcting HTTP methods (POST to DELETE), fixing validation errors due to model mismatches, rectifying Ship not found and Access denied errors caused by incorrect ship/company UUID filtering, and unifying file deletion logic. The final bug addressed was a  error due to  and duplicate code in background cleanup tasks.
+The AI engineer's work in this trajectory primarily focused on two key areas. First, a new  module was developed within the  page, mirroring the  module. This involved extensive frontend component creation, backend model and endpoint implementation (CRUD, file/folder upload), and significant debugging. Key issues resolved included: correcting file upload logic to use  directly instead of a non-existent  method, fixing Google Drive file deletion by using the correct  MongoDB collection and direct  calls, and rectifying frontend context menu functionality. Second, after the module was functional, the conversation shifted to architectural improvements. The user raised concerns about the large  file, leading to a plan for gradual backend refactoring based on sidebar categories using a Strangler Fig Pattern. The process for adding new ships was also reviewed, revealing a hardcoded Google Drive folder structure within Apps Script, which the user subsequently requested to simplify by creating only a single ship-named folder in the company's root.
 </analysis>
 
 <product_requirements>
-The initial goal was to enhance the  functionality by:
-1.  Automating  and  updates when  is entered in  and .
-2.  Implementing a system to automatically move crew files (passport, certificates, original, summary) on Google Drive based on status changes.
-3.  Improving UI/UX in modals: converting Ship Sign On to a dropdown, reorganizing layouts into a 3-column grid, and swapping Nationality and Passport Expiry Date fields.
-4.  Ensuring  and  fields in  correctly update to  when cleared.
+The initial objective was to enhance  functionality by automating  and  updates based on , implementing Google Drive file management for crew status changes, improving UI/UX in modals (dropdowns, 3-column layouts, field swaps), and ensuring  updates for empty fields.
 
-The primary requirement then evolved to duplicating the  module's functionality to create a new  module within the  page, including its layout, style, filters, search, column display, buttons, AI configuration, document AI integration, file upload, and background file deletion. Specific additions for  included displaying Approved By as an abbreviation and abbreviating maritime terms in Document Name with tooltips.
+The primary requirement then evolved to duplicating the  module to create a new  module within the  page, replicating its layout, style, filters, search, column display, buttons, AI configuration, document AI integration, file upload, and background file deletion. Specific display additions included Approved By abbreviation and maritime term abbreviations with tooltips in Document Name.
+
+Subsequently, the Other Document submenu in  was renamed to Other Audit Document, and a new module was created by copying and adapting the Other Documents List table from the  page. This new  module requires its own MongoDB collection, batch processing, file/folder upload similar to Other Documents, and a Google Drive folder structure of . Further, the dynamic Google Drive folder creation upon adding a new ship is to be removed, simplifying it to only creating a single ship-named folder under the company's root.
 </product_requirements>
 
 <key_technical_concepts>
--   **Frontend**: React.js (state, hooks, components, modals, , ), Tailwind CSS, Conditional Rendering.
--   **Backend**: FastAPI (API, , Pydantic models, MongoDB, UUIDs), , Logging.
--   **External**: Google Drive (via Google Apps Script for file operations).
--   **Patterns**: Modular design, API service abstraction, background processing, declarative UI.
+-   **Frontend**: React.js (state, hooks, components, modals, , ), Tailwind CSS.
+-   **Backend**: FastAPI (API, Pydantic models, MongoDB, UUIDs, ), .
+-   **External**: Google Drive (via Google Apps Script for file/folder operations).
+-   **Patterns**: Modular design, API service abstraction, Strangler Fig Pattern (proposed refactoring).
 </key_technical_concepts>
 
 <code_architecture>
@@ -26,34 +24,35 @@ The application uses a React.js frontend and a FastAPI/MongoDB backend.
 
 -   ****:
     -   **Importance**: Centralizes all backend API logic, data models, and file movement helpers.
-    -   **Initial Changes**: Added crew file movement functions, modified  endpoint. Fixed .
-    -   **Trajectory Changes**:
-        -   **Added Models**: , , , .
-        -   **Added AI Extraction Functions**: , .
+    -   **Changes**:
+        -   **Added Models**: , , ,  to support the new module.
         -   **Added API Endpoints**: Full CRUD for , including GET, POST, PUT, DELETE (single and bulk), , and .
-        -   **Fixed Bulk Delete Method**: Changed  to .
-        -   **Fixed Ship/Company Lookup**: Modified  and  endpoints to resolve  from name to UUID for comparison, and removed the  filter in the  collection lookup. Applied this fix to  endpoints as well.
-        -   **Unified File Deletion Logic**: Adapted file deletion for single and bulk operations to use  and  (for background) or direct calls (for foreground) consistent with  module.
-        -   **Resolved IndentationError**: Corrected  statement body and removed duplicate code in file cleanup functions.
+        -   **Fixed File Deletion Logic**: Modified  and  to use direct  calls to Apps Script, mimicking  behavior.
+        -   **Fixed Google Drive Config Lookup**: Corrected the MongoDB collection lookup for Apps Script URL from  to  during file deletion for .
+        -   **Modified **: Removed fallback logic for Google Drive configuration, now explicitly raises an error if no company-specific  is found.
 -   ****:
     -   **Importance**: Manages Google Apps Script interactions for file operations.
-    -   **Changes**: Added  and  functions for the new module.
+    -   **Changes**:
+        -   Added  and  functions, along with the helper .
+        -   Corrected  to use  directly instead of a non-existent  method.
 -   ****:
-    -   **Initial Changes**: Fixed form submission to send  instead of  for empty  and  fields.
+    -   **Importance**: Defines application-wide constants, including sidebar menu items.
+    -   **Changes**: Updated the  submenu item for  to , changing its  and  to Other Audit Document.
 -   ****:
     -   **Importance**: Integrates various ISM-ISPS-MLC related components.
-    -   **Changes**: Added import for  and rendered it conditionally based on the selected submenu item ().
+    -   **Changes**: Imported  and modified the conditional rendering logic to display it when  is .
 -   ** (NEW)**:
-    -   **Importance**: Provides API integration functions for Approval Document operations (CRUD, upload, analyze).
-    -   **Changes**: Created, mimicking  but adapted for  endpoints.
+    -   **Importance**: Provides API integration functions for  operations (CRUD, upload file, upload folder).
+    -   **Changes**: Created by copying and adapting  to interact with  endpoints.
+    -   **Debugging**: Added  for delete responses for debugging.
 -   ** (NEW directory)**:
     -   **Importance**: Houses all React components for the  module.
     -   **Files Created/Modified**:
         -   : Copied from , fields adapted.
-        -   : Copied from , adapted field names, fixed hardcoded  paths, added  for Approved By, and  for Document Name with tooltip.
-        -   , : Copied from , but  was modified to correctly display  and .
         -   : Copied from , fields adapted.
         -   : Copied from .
+        -   : Copied from , adapted field names, updated API calls to .
+            -   **Context Menu Fix**: Modified context menu  call to  (a new function created to handle single item deletion from the context menu) and improved parameter passing.
         -   : Exports all components from this directory.
 </code_architecture>
 
@@ -67,23 +66,20 @@ The application uses a React.js frontend and a FastAPI/MongoDB backend.
 -   Comprehensive testing of the newly migrated  module (Phase 11).
 -   Address AI configuration for , resolve lookup discrepancies, and set up a default AI config.
 -   Resolve persistent Tesseract/Poppler installation issues to enable full OCR functionality.
--   Confirm with the user if the Issued By abbreviation logic is now working as expected (from initial ).
+-   Confirm with the user if the Issued By abbreviation logic is now working as expected.
 -   Test the implemented backend background task for file movement in various scenarios (for Crew Records).
+-   Implement the gradual backend refactoring according to sidebar categories using the Strangler Fig Pattern.
+-   Simplify the Add New Ship process to create only a single folder per ship name in the company's root Google Drive.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary, the AI engineer was resolving a  error in the backend, which indicated a server crash. This crash was traced to an  in  at line 12937, where an  statement () was found without a subsequent indented block, causing a syntax error upon backend restart.
+Immediately before this summary request, the AI engineer was discussing the dynamic Google Drive folder creation feature with the user. The user questioned how the dynamic folder structure is currently determined when a new ship is added. The AI engineer investigated this, tracing the  endpoint, , and  functions in . It was discovered that the dynamic folder structure is not actually fetched dynamically from the backend but is hardcoded within the Google Apps Script that  interacts with. The backend essentially triggers the Apps Script to create a predefined structure.
 
-Further investigation revealed duplicate  block code (lines 13014-13023) within the same file, contributing to the  and general code inconsistency. The problematic code was part of the file deletion logic for  (specifically within the  function or similar sections).
+Following this clarification, the user explicitly requested to simplify this feature: hãy kiểm tra lại toàn bộ tính năng tạo Dynamic Folder Structure. Tôi muốn bỏ tính năng này. Khi add new ship, chỉ tạo 1 folder theo Shipname trên root folder của company (Recheck the entire Dynamic Folder Structure creation feature. I want to remove this feature. When adding a new ship, only create one folder by Shipname on the root folder of the company).
 
-To fix this, the AI engineer performed the following actions:
-1.  **Corrected Indentation**: The  statement at line 12937 was corrected to have a proper indented block.
-2.  **Removed Duplicate Code**: The redundant  block code (lines 13014-13023) was removed to eliminate duplication and resolve indentation conflicts.
-
-After these modifications, the backend was restarted (backend: stopped
-backend: started). The backend logs subsequently confirmed that the server started successfully, and all  requests were now returning , indicating the  error and the underlying  had been resolved. This ensures the backend services are stable for the  module.
+The AI engineer acknowledged this request, stating Tuyệt vời! Quyết định rất hợp lý để đơn giản hóa hệ thống. Tôi sẽ kiểm tra toàn bộ và simplify logic. (Excellent! A very reasonable decision to simplify the system. I will check everything and simplify the logic.) This indicates that the current work concluded with the understanding of the existing dynamic folder creation and the acceptance of the user's request to simplify it, setting the stage for the next modification phase.
 </current_work>
 
 <optional_next_step>
-Re-test the  module's frontend, particularly file uploads, single/bulk deletions, and AI analysis, to confirm all integrated functionalities are working end-to-end after the backend stability fixes.
+Simplify the Add New Ship logic to create only a single ship-named folder in the company's root Google Drive.
 </optional_next_step>
