@@ -68,9 +68,9 @@ const EditUserModal = ({
    */
   const departmentOptions = [
     { value: 'technical', label: language === 'vi' ? 'Kỹ thuật' : 'Technical' },
-    { value: 'operations', label: language === 'vi' ? 'Vận hành' : 'Operations' },
+    { value: 'operations', label: language === 'vi' ? 'Khai thác' : 'Operations' },
     { value: 'safety', label: language === 'vi' ? 'An toàn' : 'Safety' },
-    { value: 'commercial', label: language === 'vi' ? 'Thương mại' : 'Commercial' },
+    { value: 'commercial', label: language === 'vi' ? 'Kinh doanh' : 'Commercial' },
     { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' },
     { value: 'ship_crew', label: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew' },
     { value: 'dpa', label: 'DPA' },
