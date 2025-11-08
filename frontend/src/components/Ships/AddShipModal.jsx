@@ -356,34 +356,86 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
     }
   };
 
-  // Helper function to convert last docking MM/YYYY to datetime for backend
+  // Helper function to convert last docking various formats to datetime for backend
   const formatLastDockingForBackend = (dockingStr) => {
     if (!dockingStr || dockingStr.trim() === '') return null;
     
     try {
-      // If in MM/YYYY format, convert to ISO datetime (YYYY-MM-01T00:00:00Z)
+      const trimmed = dockingStr.trim();
+      
+      // Month name mapping
+      const monthMap = {
+        'january': '01', 'jan': '01',
+        'february': '02', 'feb': '02',
+        'march': '03', 'mar': '03',
+        'april': '04', 'apr': '04',
+        'may': '05',
+        'june': '06', 'jun': '06',
+        'july': '07', 'jul': '07',
+        'august': '08', 'aug': '08',
+        'september': '09', 'sep': '09',
+        'october': '10', 'oct': '10',
+        'november': '11', 'nov': '11',
+        'december': '12', 'dec': '12'
+      };
+      
+      // Format 1: MM/YYYY (e.g., "11/2020")
       const mmYyyyPattern = /^\d{1,2}\/\d{4}$/;
-      if (typeof dockingStr === 'string' && mmYyyyPattern.test(dockingStr.trim())) {
-        const [month, year] = dockingStr.trim().split('/');
+      if (mmYyyyPattern.test(trimmed)) {
+        const [month, year] = trimmed.split('/');
         const paddedMonth = month.padStart(2, '0');
-        // Convert to ISO datetime (first day of the month)
         return `${year}-${paddedMonth}-01T00:00:00Z`;
       }
       
-      // If already in YYYY-MM-DD format, convert to ISO datetime
-      if (typeof dockingStr === 'string' && dockingStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-        return `${dockingStr}T00:00:00Z`;
+      // Format 2: DD/MM/YYYY (e.g., "28/07/2025")
+      const ddMmYyyyPattern = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
+      if (ddMmYyyyPattern.test(trimmed)) {
+        const [day, month, year] = trimmed.split('/');
+        const paddedDay = day.padStart(2, '0');
+        const paddedMonth = month.padStart(2, '0');
+        return `${year}-${paddedMonth}-${paddedDay}T00:00:00Z`;
       }
       
-      // If already in ISO datetime format, return as is
-      if (typeof dockingStr === 'string' && (dockingStr.includes('T') || dockingStr.includes('Z'))) {
-        return dockingStr;
+      // Format 3: "MMM YYYY" or "MONTH YYYY" (e.g., "JUL 2025", "July 2025")
+      const monthYearPattern = /^([a-zA-Z]+)\s+(\d{4})$/;
+      const monthYearMatch = trimmed.match(monthYearPattern);
+      if (monthYearMatch) {
+        const monthName = monthYearMatch[1].toLowerCase();
+        const year = monthYearMatch[2];
+        const monthNum = monthMap[monthName];
+        if (monthNum) {
+          return `${year}-${monthNum}-01T00:00:00Z`;
+        }
       }
       
-      // Otherwise return null for invalid format
+      // Format 4: "DD MMM YYYY" or "DD MONTH YYYY" (e.g., "28 July 2025", "9 August 2023")
+      const dayMonthYearPattern = /^(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})$/;
+      const dayMonthYearMatch = trimmed.match(dayMonthYearPattern);
+      if (dayMonthYearMatch) {
+        const day = dayMonthYearMatch[1].padStart(2, '0');
+        const monthName = dayMonthYearMatch[2].toLowerCase();
+        const year = dayMonthYearMatch[3];
+        const monthNum = monthMap[monthName];
+        if (monthNum) {
+          return `${year}-${monthNum}-${day}T00:00:00Z`;
+        }
+      }
+      
+      // Format 5: YYYY-MM-DD (e.g., "2025-07-28")
+      if (trimmed.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return `${trimmed}T00:00:00Z`;
+      }
+      
+      // Format 6: Already in ISO datetime format
+      if (trimmed.includes('T') || trimmed.includes('Z')) {
+        return trimmed;
+      }
+      
+      // If no format matched, log warning and return null
+      console.warn('Unrecognized docking date format:', dockingStr);
       return null;
     } catch (error) {
-      console.error('Last docking format error:', error);
+      console.error('Last docking format error:', error, 'for value:', dockingStr);
       return null;
     }
   };
