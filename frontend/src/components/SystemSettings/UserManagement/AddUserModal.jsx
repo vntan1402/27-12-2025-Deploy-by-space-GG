@@ -348,26 +348,19 @@ const AddUserModal = ({
                 
                 {/* SSO - Only for Ship Officers (editor role), not for Crew */}
                 {userData.role === 'editor' && (
-                  <>
-                    <div className="flex items-center space-x-3 border-t pt-3">
-                      <input
-                        type="checkbox"
-                        checked={(userData.department || []).includes('sso')}
-                        onChange={() => handleDepartmentChange('sso')}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                        disabled={loading}
-                      />
-                      <span className="text-sm text-blue-900">
-                        🛡️ SSO (Ship Security Officer)
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-3 pt-2">
-                      <input
-                        type="checkbox"
-                        checked={(userData.department || []).includes('cso')}
-                        onChange={() => handleDepartmentChange('cso')}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  <div className="flex items-center space-x-3 border-t pt-3">
+                    <input
+                      type="checkbox"
+                      checked={(userData.department || []).includes('sso')}
+                      onChange={() => handleDepartmentChange('sso')}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                      disabled={loading}
+                    />
+                    <span className="text-sm text-blue-900">
+                      🛡️ SSO (Ship Security Officer)
+                    </span>
+                  </div>
+                )}
                         disabled={loading}
                       />
                       <span className="text-sm text-blue-900">
