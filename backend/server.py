@@ -1379,6 +1379,7 @@ class UserRole(str, Enum):
     MANAGER = "manager"
     ADMIN = "admin"
     SUPER_ADMIN = "super_admin"
+    SYSTEM_ADMIN = "system_admin"  # Highest authority - system-level administration
 
 class Department(str, Enum):
     TECHNICAL = "technical"
