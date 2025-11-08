@@ -101,6 +101,7 @@ const AddUserModal = ({
    */
   const getRoleDisplayName = (role) => {
     const roleNames = {
+      system_admin: language === 'vi' ? '⚡ Quản trị hệ thống' : '⚡ System Admin',
       super_admin: language === 'vi' ? 'Siêu quản trị' : 'Super Admin',
       admin: language === 'vi' ? 'Quản trị' : 'Admin',
       manager: language === 'vi' ? 'Cán bộ công ty' : 'Company Officer',
