@@ -114,7 +114,12 @@ const CompanyTable = ({
             const expiryStatus = getExpiryStatus(company.system_expiry);
             
             return (
-              <tr key={company.id} className="hover:bg-gray-50 transition-colors">
+              <tr 
+                key={company.id} 
+                className="hover:bg-gray-50 transition-colors cursor-pointer"
+                onDoubleClick={() => onViewCompanyDetail && onViewCompanyDetail(company)}
+                title={language === 'vi' ? 'Double-click để xem chi tiết' : 'Double-click to view details'}
+              >
                 <td className="border border-gray-300 px-4 py-3">
                   {company.logo_url ? (
                     <img 
