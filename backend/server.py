@@ -5603,58 +5603,58 @@ async def delete_ship(
         company_uuid = await resolve_company_id(current_user)
         
         # Check crew members signed on this ship
-        crew_on_ship = await mongo_db.find("crew_members", {
+        crew_on_ship = await mongo_db.find_all("crew_members", {
             "company_id": company_uuid,
             "ship_sign_on": ship_name  # Crew with ship_sign_on = ship name
         })
         
         # Check certificates belonging to this ship
-        certificates = await mongo_db.find("certificates", {
+        certificates = await mongo_db.find_all("certificates", {
             "ship_id": ship_id
         })
         
         # Check survey reports belonging to this ship
-        survey_reports = await mongo_db.find("survey_reports", {
+        survey_reports = await mongo_db.find_all("survey_reports", {
             "ship_id": ship_id
         })
         
         # Check audit reports belonging to this ship
-        audit_reports = await mongo_db.find("audit_reports", {
+        audit_reports = await mongo_db.find_all("audit_reports", {
             "ship_id": ship_id
         })
         
         # Check test reports belonging to this ship
-        test_reports = await mongo_db.find("test_reports", {
+        test_reports = await mongo_db.find_all("test_reports", {
             "ship_id": ship_id
         })
         
         # Check drawings & manuals belonging to this ship
-        drawings_manuals = await mongo_db.find("drawings_manuals", {
+        drawings_manuals = await mongo_db.find_all("drawings_manuals", {
             "ship_id": ship_id
         })
         
         # Check approval documents belonging to this ship
-        approval_documents = await mongo_db.find("approval_documents", {
+        approval_documents = await mongo_db.find_all("approval_documents", {
             "ship_id": ship_id
         })
         
         # Check other documents belonging to this ship
-        other_documents = await mongo_db.find("other_documents", {
+        other_documents = await mongo_db.find_all("other_documents", {
             "ship_id": ship_id
         })
         
         # Check other audit documents belonging to this ship
-        other_audit_documents = await mongo_db.find("other_audit_documents", {
+        other_audit_documents = await mongo_db.find_all("other_audit_documents", {
             "ship_id": ship_id
         })
         
         # Check crew certificates belonging to this ship
-        crew_certificates = await mongo_db.find("crew_certificates", {
+        crew_certificates = await mongo_db.find_all("crew_certificates", {
             "ship_id": ship_id
         })
         
         # Check audit certificates belonging to this ship
-        audit_certificates = await mongo_db.find("audit_certificates", {
+        audit_certificates = await mongo_db.find_all("audit_certificates", {
             "ship_id": ship_id
         })
         
