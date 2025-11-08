@@ -305,8 +305,9 @@ const CompanyFormModal = ({
             />
           </div>
 
-          {/* Company Google Drive Configuration (Edit mode only) */}
-          {mode === 'edit' && company && onConfigureGoogleDrive && (
+          {/* Company Google Drive Configuration (Edit mode only - System Admin & Super Admin only) */}
+          {mode === 'edit' && company && onConfigureGoogleDrive && 
+           currentUser && (currentUser.role === 'system_admin' || currentUser.role === 'super_admin') && (
             <div className="border-t pt-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-3">
                 ☁️ {language === 'vi' ? 'Google Drive của công ty' : 'Company Google Drive'}
