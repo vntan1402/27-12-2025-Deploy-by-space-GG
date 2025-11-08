@@ -5599,6 +5599,116 @@ async def delete_ship(
         ship_name = existing_ship.get('name', 'Unknown Ship')
         logger.info(f"🗑️ Deleting ship: {ship_name} (ID: {ship_id})")
         
+        # ===== VALIDATION: Check if ship has crew signed on =====
+        company_uuid = await resolve_company_id(current_user)
+        
+        # Check crew members signed on this ship
+        crew_on_ship = await mongo_db.find("crew_members", {
+            "company_id": company_uuid,
+            "ship_sign_on": ship_name  # Crew with ship_sign_on = ship name
+        })
+        
+        # Check certificates belonging to this ship
+        certificates = await mongo_db.find("certificates", {
+            "ship_id": ship_id
+        })
+        
+        # Check survey reports belonging to this ship
+        survey_reports = await mongo_db.find("survey_reports", {
+            "ship_id": ship_id
+        })
+        
+        # Check audit reports belonging to this ship
+        audit_reports = await mongo_db.find("audit_reports", {
+            "ship_id": ship_id
+        })
+        
+        # Check test reports belonging to this ship
+        test_reports = await mongo_db.find("test_reports", {
+            "ship_id": ship_id
+        })
+        
+        # Check drawings & manuals belonging to this ship
+        drawings_manuals = await mongo_db.find("drawings_manuals", {
+            "ship_id": ship_id
+        })
+        
+        # Check approval documents belonging to this ship
+        approval_documents = await mongo_db.find("approval_documents", {
+            "ship_id": ship_id
+        })
+        
+        # Check other documents belonging to this ship
+        other_documents = await mongo_db.find("other_documents", {
+            "ship_id": ship_id
+        })
+        
+        # Check other audit documents belonging to this ship
+        other_audit_documents = await mongo_db.find("other_audit_documents", {
+            "ship_id": ship_id
+        })
+        
+        # Check crew certificates belonging to this ship
+        crew_certificates = await mongo_db.find("crew_certificates", {
+            "ship_id": ship_id
+        })
+        
+        # Check audit certificates belonging to this ship
+        audit_certificates = await mongo_db.find("audit_certificates", {
+            "ship_id": ship_id
+        })
+        
+        # If ship has crew or documents, prevent deletion
+        blocking_items = []
+        
+        if crew_on_ship and len(crew_on_ship) > 0:
+            crew_names = [crew.get('full_name', 'Unknown') for crew in crew_on_ship]
+            blocking_items.append({
+                "type": "crew",
+                "count": len(crew_on_ship),
+                "items": crew_names
+            })
+        
+        # Count all document types
+        document_counts = {
+            "certificates": len(certificates) if certificates else 0,
+            "survey_reports": len(survey_reports) if survey_reports else 0,
+            "audit_reports": len(audit_reports) if audit_reports else 0,
+            "test_reports": len(test_reports) if test_reports else 0,
+            "drawings_manuals": len(drawings_manuals) if drawings_manuals else 0,
+            "approval_documents": len(approval_documents) if approval_documents else 0,
+            "other_documents": len(other_documents) if other_documents else 0,
+            "other_audit_documents": len(other_audit_documents) if other_audit_documents else 0,
+            "crew_certificates": len(crew_certificates) if crew_certificates else 0,
+            "audit_certificates": len(audit_certificates) if audit_certificates else 0
+        }
+        
+        total_documents = sum(document_counts.values())
+        
+        if total_documents > 0:
+            blocking_items.append({
+                "type": "documents",
+                "count": total_documents,
+                "breakdown": document_counts
+            })
+        
+        # If there are blocking items, prevent deletion
+        if blocking_items:
+            logger.warning(f"⚠️ Cannot delete ship {ship_name}: Has {len(crew_on_ship) if crew_on_ship else 0} crew and {total_documents} documents")
+            
+            error_detail = {
+                "error": "cannot_delete_ship_with_data",
+                "message": f"Cannot delete ship '{ship_name}' because it still has crew members or documents",
+                "message_vi": f"Không thể xóa tàu '{ship_name}' vì còn thuyền viên hoặc tài liệu",
+                "ship_name": ship_name,
+                "ship_id": ship_id,
+                "blocking_items": blocking_items
+            }
+            
+            raise HTTPException(status_code=400, detail=error_detail)
+        
+        logger.info(f"✅ Ship validation passed: No crew or documents found for {ship_name}")
+        
         # Delete Google Drive folder if requested
         google_drive_deletion_result = None
         if delete_google_drive_folder:
