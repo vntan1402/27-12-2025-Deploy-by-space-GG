@@ -16385,13 +16385,14 @@ async def create_google_drive_folder_for_new_ship(ship_dict: dict, current_user)
             return {"success": False, "error": "Could not resolve company ID"}
         
         # Get company-specific Google Drive configuration with retry logic for race conditions
+        # NO FALLBACK to system config - company MUST have their own config
         gdrive_config_doc = None
         max_retries = 3
         retry_count = 0
         
         while retry_count < max_retries and not gdrive_config_doc:
             if user_company_id:
-                # Try company-specific Google Drive config first
+                # Try company-specific Google Drive config
                 gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": user_company_id})
                 logger.info(f"Company Google Drive config lookup attempt {retry_count + 1} for {user_company_id}: {'Found' if gdrive_config_doc else 'Not found'}")
                 
@@ -16401,14 +16402,12 @@ async def create_google_drive_folder_for_new_ship(ship_dict: dict, current_user)
                         logger.info(f"Retrying company config lookup in 1 second... (attempt {retry_count + 1}/{max_retries})")
                         await asyncio.sleep(1)  # Small delay to handle race conditions
         
-        # Fallback to system Google Drive config if no company config
+        # REMOVED: Fallback to system Google Drive config
+        # Company MUST have their own Google Drive configuration
         if not gdrive_config_doc:
-            gdrive_config_doc = await mongo_db.find_one("gdrive_config", {"id": "system_gdrive"})
-            logger.info(f"Using system Google Drive config: {'Found' if gdrive_config_doc else 'Not found'}")
-        
-        if not gdrive_config_doc:
-            logger.warning("No Google Drive configuration found after retries, skipping folder creation")
-            return {"success": False, "error": "No Google Drive configuration found"}
+            error_msg = "Google Drive is not configured for your company. Please contact administrator to setup Google Drive integration."
+            logger.warning(f"No company-specific Google Drive config found for company: {user_company_id}")
+            return {"success": False, "error": error_msg}
         
         # Validate configuration has required fields
         web_app_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
