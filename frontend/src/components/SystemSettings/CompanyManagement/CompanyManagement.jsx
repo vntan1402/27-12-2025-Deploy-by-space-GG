@@ -6,10 +6,12 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '../../../contexts/AuthContext';
 import { companyService } from '../../../services/companyService';
+import api from '../../../services/api';
 import CompanyTable from './CompanyTable';
 import CompanyFormModal from './CompanyFormModal';
 import CompanyGoogleDriveModal from './CompanyGoogleDriveModal';
 import CompanyDetailModal from './CompanyDetailModal';
+import BaseFeeModal from './BaseFeeModal';
 
 const CompanyManagement = () => {
   const { user: currentUser, language } = useAuth();
@@ -24,6 +26,8 @@ const CompanyManagement = () => {
   const [selectedCompanyForGDrive, setSelectedCompanyForGDrive] = useState(null);
   const [showCompanyDetail, setShowCompanyDetail] = useState(false);
   const [selectedCompanyForDetail, setSelectedCompanyForDetail] = useState(null);
+  const [showBaseFeeModal, setShowBaseFeeModal] = useState(false);
+  const [baseFee, setBaseFee] = useState(0);
 
   // Fetch companies on mount
   useEffect(() => {
