@@ -4487,22 +4487,37 @@ REQUIRED FORMATS:
 
 {dynamic_class_society_section}
 
-COMMON SHIP_TYPE STANDARDS (only use if EXACTLY matching document text):
-- General Cargo (for general cargo ships or when specific type not mentioned)
-- Bulk Carrier (ONLY if document contains exact words "Bulk Carrier")
-- Oil Tanker (ONLY if document contains "Oil Tanker" or "Crude Oil Tanker")
-- Chemical Tanker (ONLY if document contains "Chemical Tanker")
-- Container Ship (ONLY if document contains "Container Ship" or "Container Vessel")
-- Gas Carrier (ONLY if document contains "Gas Carrier" or "LPG/LNG Carrier")
-- Passenger Ship (ONLY if document contains "Passenger Ship" or "Passenger Vessel")
-- RoRo Cargo (ONLY if document contains "RoRo" or "Roll-on/Roll-off")
-- Other Cargo (for cargo ships that don't fit above categories)
+SHIP_TYPE CLASSIFICATION - MUST return EXACTLY one of these 11 values:
+1. 'General Cargo' - Default for cargo ships when specific type not mentioned or "Cargo ship other than any of the previous" is selected
+2. 'Bulk Carrier' - For ships carrying dry bulk commodities (coal, grain, ore, etc.)
+3. 'Oil Tanker' - For ships carrying crude oil or refined petroleum products
+4. 'Chemical Tanker' - For ships carrying liquid chemicals in bulk
+5. 'LPG/LNG Carrier' - For ships carrying liquefied petroleum gas or natural gas
+6. 'Container Ship' - For ships carrying containerized cargo
+7. 'Passenger Ship' - For ships carrying passengers (cruise ships, ferries)
+8. 'Ro-Ro Cargo' - For roll-on/roll-off vessels (cars, trucks, trailers)
+9. 'Fishing Vessel' - For commercial fishing boats
+10. 'Tug/Supply Vessel' - For tugboats, offshore support vessels
+11. 'Other' - For vessels that don't fit any above category
 
-IMPORTANT: If document doesn't specify exact ship type, default to "General Cargo" for cargo vessels.
-DO NOT INFER ship type from specifications like tonnage, deadweight, or cargo capacity.
-LOOK FOR SELECTED/MARKED OPTIONS in ship type sections - not just any text that appears.
-If you see a list like "Bulk Carrier / Oil Tanker / Chemical Tanker / Gas Carrier / Cargo ship other than any of the previous" without clear selection marking, default to "General Cargo".
-If "Cargo ship other than any of the previous" appears in the options, return "General Cargo".
+EXTRACTION KEYWORDS BY TYPE:
+- Bulk Carrier: "BULK CARRIER", "Bulk Ship", "Bulker"
+- Oil Tanker: "OIL TANKER", "CRUDE OIL TANKER", "Product Tanker", "Petroleum Tanker"
+- Chemical Tanker: "CHEMICAL TANKER", "Chem Tanker"
+- LPG/LNG Carrier: "LPG CARRIER", "LNG CARRIER", "GAS CARRIER", "Liquefied Gas Carrier"
+- Container Ship: "CONTAINER SHIP", "CONTAINER VESSEL", "Containership"
+- Passenger Ship: "PASSENGER SHIP", "PASSENGER VESSEL", "Cruise Ship", "Ferry"
+- Ro-Ro Cargo: "RO-RO", "RORO", "Roll-on/Roll-off"
+- Fishing Vessel: "FISHING VESSEL", "Fishing Boat", "Trawler"
+- Tug/Supply Vessel: "TUG", "TUGBOAT", "Supply Vessel", "OSV", "Offshore Support Vessel"
+
+CRITICAL RULES:
+1. Response MUST be EXACTLY one of the 11 values above - no variations
+2. If multiple ship types listed without clear selection, return 'General Cargo'
+3. If "Cargo ship other than any of the previous" is selected/marked, return 'General Cargo'
+4. DO NOT infer ship type from tonnage, deadweight, or other specifications alone
+5. LOOK FOR: Checkboxes, marked options, underlined text, circled options
+6. If uncertain, default to 'General Cargo' for cargo vessels
 """
         
         # Create JSON example with proper data types for all fields
