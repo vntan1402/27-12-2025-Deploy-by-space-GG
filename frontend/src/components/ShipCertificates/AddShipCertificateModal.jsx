@@ -495,6 +495,28 @@ export const AddShipCertificateModal = ({
         );
       }
 
+      // Prepare batch results
+      const results = allResults.map((r, idx) => ({
+        filename: r.file.name,
+        success: r.success,
+        certName: r.result?.extracted_info?.cert_name || r.result?.extracted_info?.certificate_name || '-',
+        certNo: r.result?.extracted_info?.cert_no || r.result?.extracted_info?.certificate_number || '-',
+        certificateCreated: r.success,
+        fileUploaded: r.success,
+        error: r.error || null
+      }));
+      
+      setBatchResults(results);
+      
+      // Close processing modal and show results
+      setShowBatchProcessing(false);
+      setShowBatchResults(true);
+      
+      // Refresh certificates list
+      if (onSuccess) {
+        onSuccess();
+      }
+
       // Final summary toast
       toast.success(language === 'vi'
         ? `🎉 Hoàn tất: ${successCount} thành công, ${failedCount} thất bại`
@@ -503,6 +525,10 @@ export const AddShipCertificateModal = ({
 
     } catch (error) {
       console.error('❌ Batch upload error:', error);
+      
+      // Close processing modal
+      setShowBatchProcessing(false);
+      
       toast.error(language === 'vi' 
         ? `❌ Lỗi upload: ${error.message}`
         : `❌ Upload error: ${error.message}`
