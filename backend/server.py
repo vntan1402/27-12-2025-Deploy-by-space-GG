@@ -28378,7 +28378,7 @@ async def get_base_fee(current_user: dict = Depends(get_current_user)):
 
 @api_router.put("/system-settings/base-fee")
 async def update_base_fee(
-    base_fee: float,
+    base_fee: float = Query(..., description="New base fee value"),
     current_user: dict = Depends(get_current_user)
 ):
     """
