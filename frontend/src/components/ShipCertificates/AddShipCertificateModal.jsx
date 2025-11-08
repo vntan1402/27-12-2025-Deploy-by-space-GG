@@ -409,15 +409,6 @@ export const AddShipCertificateModal = ({
         firstSuccessInfo = firstSuccess.result.extracted_info;
       }
 
-      // Show final toast
-      if (successCount > 0) {
-        toast.success(language === 'vi' 
-            ? `❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`
-            : `❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`
-          );
-        }
-      }
-
       // Update summary
       setUploadSummary({
         success: successCount,
