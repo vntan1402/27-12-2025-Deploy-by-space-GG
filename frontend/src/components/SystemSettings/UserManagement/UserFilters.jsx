@@ -29,6 +29,7 @@ const UserFilters = ({
     { value: 'commercial', label: language === 'vi' ? 'Kinh doanh' : 'Commercial' },
     { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' },
     { value: 'ship_crew', label: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew' },
+    { value: 'sso', label: 'SSO' },
     { value: 'dpa', label: 'DPA' },
     { value: 'supply', label: language === 'vi' ? 'Vật tư' : 'Supply' }
   ];
