@@ -254,6 +254,14 @@ const CompanyManagement = () => {
     setShowGoogleDriveModal(true);
   };
 
+  /**
+   * Handle open company detail modal
+   */
+  const openCompanyDetailModal = (company) => {
+    setSelectedCompanyForDetail(company);
+    setShowCompanyDetail(true);
+  };
+
   return (
     <div>
       {/* Action Button */}
