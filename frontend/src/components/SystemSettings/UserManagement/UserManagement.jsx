@@ -163,6 +163,12 @@ const UserManagement = () => {
    * @returns {Array} List of available roles
    */
   const getAvailableRoles = () => {
+    // System Admin can create all roles including system_admin
+    if (currentUser.role === 'system_admin') {
+      return ['system_admin', 'super_admin', 'admin', 'manager', 'editor', 'viewer'];
+    }
+    
+    // Super Admin can create all roles except system_admin
     if (currentUser.role === 'super_admin') {
       return ['super_admin', 'admin', 'manager', 'editor', 'viewer'];
     }
