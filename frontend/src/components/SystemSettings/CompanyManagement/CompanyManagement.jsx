@@ -29,10 +29,41 @@ const CompanyManagement = () => {
   const [showBaseFeeModal, setShowBaseFeeModal] = useState(false);
   const [baseFee, setBaseFee] = useState(0);
 
-  // Fetch companies on mount
+  // Fetch companies and base fee on mount
   useEffect(() => {
     fetchCompanies();
+    fetchBaseFee();
   }, []);
+
+  /**
+   * Fetch base fee
+   */
+  const fetchBaseFee = async () => {
+    try {
+      const response = await api.get('/api/system-settings/base-fee');
+      if (response.data && response.data.success) {
+        setBaseFee(response.data.base_fee || 0);
+      }
+    } catch (error) {
+      console.error('Failed to fetch base fee:', error);
+    }
+  };
+
+  /**
+   * Handle update base fee
+   */
+  const handleUpdateBaseFee = async (newBaseFee) => {
+    try {
+      const response = await api.put(`/api/system-settings/base-fee?base_fee=${newBaseFee}`);
+      if (response.data && response.data.success) {
+        setBaseFee(newBaseFee);
+        await fetchBaseFee(); // Refresh
+      }
+    } catch (error) {
+      console.error('Failed to update base fee:', error);
+      throw error;
+    }
+  };
 
   /**
    * Fetch all companies
