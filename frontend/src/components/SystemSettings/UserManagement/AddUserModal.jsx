@@ -81,22 +81,37 @@ const AddUserModal = ({
     { value: 'commercial', label: language === 'vi' ? 'Kinh doanh' : 'Commercial' },
     { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' },
     { value: 'ship_crew', label: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew' },
-    { value: 'sso', label: 'SSO' }, // Ship Security Officer - only visible for Ship Officers
-    { value: 'cso', label: 'CSO' }, // Company Security Officer - only visible for Ship Officers
+    { value: 'sso', label: 'SSO' }, // Ship Security Officer - only for Ship Officers
+    { value: 'cso', label: 'CSO' }, // Company Security Officer - only for Company roles
     { value: 'dpa', label: 'DPA' },
     { value: 'supply', label: language === 'vi' ? 'Vật tư' : 'Supply' }
   ];
 
   /**
+   * Get filtered department options based on role
+   */
+  const getFilteredDepartmentOptions = () => {
+    // For Company Officer (manager): exclude Ship Crew and SSO
+    if (userData.role === 'manager') {
+      return departmentOptions.filter(dept => 
+        dept.value !== 'ship_crew' && dept.value !== 'sso'
+      );
+    }
+    
+    // For other company roles (system_admin, super_admin, admin): show all
+    return departmentOptions;
+  };
+
+  /**
    * Handle department checkbox change
    */
   const handleDepartmentChange = (deptValue) => {
-    // For Ship Officers: ship_crew is locked, but can toggle SSO and CSO
+    // For Ship Officers: ship_crew is locked, but can toggle SSO only (not CSO)
     if (userData.role === 'editor') {
       if (deptValue === 'ship_crew') {
         return; // Cannot uncheck ship_crew for Ship Officers
       }
-      // Allow toggling SSO for Ship Officers
+      // Allow toggling SSO only for Ship Officers
       const currentDepts = userData.department || [];
       const isChecked = currentDepts.includes(deptValue);
       
