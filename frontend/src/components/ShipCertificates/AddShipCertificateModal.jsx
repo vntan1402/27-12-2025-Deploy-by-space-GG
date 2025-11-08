@@ -49,6 +49,16 @@ export const AddShipCertificateModal = ({
   const [isMultiCertProcessing, setIsMultiCertProcessing] = useState(false);
   const [multiCertUploads, setMultiCertUploads] = useState([]);
   const [uploadSummary, setUploadSummary] = useState({ success: 0, failed: 0, total: 0 });
+  
+  // Batch processing modal states
+  const [showBatchProcessing, setShowBatchProcessing] = useState(false);
+  const [isProcessingMinimized, setIsProcessingMinimized] = useState(false);
+  const [showBatchResults, setShowBatchResults] = useState(false);
+  const [batchResults, setBatchResults] = useState([]);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
+  const [fileProgressMap, setFileProgressMap] = useState({});
+  const [fileStatusMap, setFileStatusMap] = useState({});
+  const [fileSubStatusMap, setFileSubStatusMap] = useState({});
 
   // Single file upload state for form
   const [certificateFile, setCertificateFile] = useState(null);
