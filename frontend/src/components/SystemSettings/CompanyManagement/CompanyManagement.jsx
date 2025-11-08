@@ -287,6 +287,7 @@ const CompanyManagement = () => {
         onEditCompany={openEditModal}
         onDeleteCompany={handleDeleteCompany}
         onConfigureGoogleDrive={openGoogleDriveModal}
+        onViewCompanyDetail={openCompanyDetailModal}
       />
 
       {/* Add Company Modal */}
