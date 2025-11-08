@@ -583,7 +583,13 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-semibold text-gray-800 mb-1">
-            {language === 'vi' ? 'Chứng chỉ thuyền viên' : 'Crew Certificates'}
+            {filters.crewName && filters.crewName !== 'all' ? (
+              language === 'vi' 
+                ? `Chứng chỉ thuyền viên của ${filters.crewName}` 
+                : `Crew Certificates for ${filters.crewName}`
+            ) : (
+              language === 'vi' ? 'Chứng chỉ thuyền viên' : 'Crew Certificates'
+            )}
           </h3>
           <p className="text-sm text-gray-600">
             {language === 'vi' ? 'Quản lý chứng chỉ thuyền viên' : 'Manage crew certificates'}
