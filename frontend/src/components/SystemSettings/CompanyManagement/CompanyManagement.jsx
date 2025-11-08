@@ -299,15 +299,36 @@ const CompanyManagement = () => {
 
   return (
     <div>
-      {/* Action Button */}
+      {/* Action Buttons */}
       {canAddCompany() && (
-        <div className="mb-6">
-          <button
-            onClick={() => setShowAddCompany(true)}
-            className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg transition-all font-medium"
-          >
-            {language === 'vi' ? 'Thêm công ty mới' : 'Add New Company'}
-          </button>
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowAddCompany(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-all font-medium"
+            >
+              {language === 'vi' ? 'Thêm công ty mới' : 'Add New Company'}
+            </button>
+            
+            {(currentUser?.role === 'system_admin' || currentUser?.role === 'super_admin') && (
+              <button
+                onClick={() => setShowBaseFeeModal(true)}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg transition-all font-medium flex items-center gap-2"
+              >
+                💰 {language === 'vi' ? 'Sửa Base Fee' : 'Edit Base Fee'}
+              </button>
+            )}
+          </div>
+
+          {/* Display Current Base Fee */}
+          <div className="bg-gray-50 border border-gray-300 rounded-lg px-4 py-2">
+            <span className="text-sm text-gray-600 mr-2">
+              {language === 'vi' ? 'Base Fee hiện tại:' : 'Current Base Fee:'}
+            </span>
+            <span className="text-lg font-bold text-orange-600">
+              ${baseFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
         </div>
       )}
 
