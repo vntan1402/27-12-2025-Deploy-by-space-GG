@@ -311,8 +311,8 @@ const AddUserModal = ({
                 {language === 'vi' ? 'Công ty' : 'Company'} *
               </label>
               
-              {currentUser?.role === 'super_admin' ? (
-                // Super Admin: Can select company from dropdown
+              {(currentUser?.role === 'super_admin' || currentUser?.role === 'system_admin') ? (
+                // System Admin & Super Admin: Can select company from dropdown
                 <select
                   required
                   value={userData.company}
@@ -346,8 +346,8 @@ const AddUserModal = ({
               )}
               
               <p className="text-xs text-gray-500 mt-1">
-                {currentUser?.role === 'super_admin' 
-                  ? (language === 'vi' ? '👑 Super Admin có thể chọn công ty' : '👑 Super Admin can select company')
+                {(currentUser?.role === 'super_admin' || currentUser?.role === 'system_admin')
+                  ? (language === 'vi' ? (currentUser?.role === 'system_admin' ? '⚡ System Admin có thể chọn công ty' : '👑 Super Admin có thể chọn công ty') : (currentUser?.role === 'system_admin' ? '⚡ System Admin can select company' : '👑 Super Admin can select company'))
                   : (language === 'vi' ? '🔒 Thuộc công ty của bạn' : '🔒 Belongs to your company')
                 }
               </p>
