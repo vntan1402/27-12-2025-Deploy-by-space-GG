@@ -13,7 +13,8 @@ const CompanyTable = ({
   canDeleteCompany,
   onEditCompany,
   onDeleteCompany,
-  onConfigureGoogleDrive
+  onConfigureGoogleDrive,
+  onViewCompanyDetail
 }) => {
   /**
    * Format expiry date
