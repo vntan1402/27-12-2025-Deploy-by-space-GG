@@ -374,6 +374,10 @@ export const AddShipCertificateModal = ({
               successCount++;
               
               // Update status to completed
+              setFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
+              setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
+              setBatchProgress(prev => ({ ...prev, current: prev.current + 1 }));
+              
               setMultiCertUploads(prev => prev.map((upload, idx) => 
                 idx === i 
                   ? {
