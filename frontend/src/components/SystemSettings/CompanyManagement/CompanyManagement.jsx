@@ -397,6 +397,16 @@ const CompanyManagement = () => {
           language={language}
         />
       )}
+
+      {/* Base Fee Modal */}
+      {showBaseFeeModal && (
+        <BaseFeeModal
+          currentBaseFee={baseFee}
+          onClose={() => setShowBaseFeeModal(false)}
+          onUpdate={handleUpdateBaseFee}
+          language={language}
+        />
+      )}
     </div>
   );
 };
