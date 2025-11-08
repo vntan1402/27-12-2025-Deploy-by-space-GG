@@ -264,8 +264,8 @@ export const AddShipCertificateModal = ({
 
     // Show batch info
     toast.info(language === 'vi' 
-      ? `🚀 Bắt đầu upload ${totalFiles} file (delay 0.5s giữa các file)...`
-      : `🚀 Starting upload of ${totalFiles} files (0.5s delay between files)...`
+      ? `🚀 Bắt đầu upload ${totalFiles} chứng chỉ (delay 3s giữa các file)...`
+      : `🚀 Starting upload of ${totalFiles} certificates (3s delay between files)...`
     );
 
     let successCount = 0;
@@ -273,14 +273,14 @@ export const AddShipCertificateModal = ({
     let firstSuccessInfo = null;
 
     try {
-      // Upload files sequentially with delay (V1 pattern to avoid timeout)
-      for (let i = 0; i < fileArray.length; i++) {
-        const file = fileArray[i];
-        
-        // Delay between uploads (except for first file)
-        if (i > 0) {
-          await new Promise(resolve => setTimeout(resolve, 500)); // 0.5s delay
-        }
+      // Upload files with 3s delay (parallel processing on backend)
+      // Start uploading each file after 3s delay from previous start
+      const uploadPromises = fileArray.map((file, i) => {
+        return new Promise(async (resolve) => {
+          // Delay before starting this upload (except for first file)
+          if (i > 0) {
+            await new Promise(r => setTimeout(r, 3000 * i)); // 3s * index
+          }
 
         try {
           // Update status to uploading
