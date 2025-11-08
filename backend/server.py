@@ -5321,7 +5321,7 @@ async def get_base_fee(current_user: dict = Depends(get_current_user)):
 @api_router.put("/system-settings/base-fee")
 async def update_base_fee(
     base_fee: float = Query(..., description="New base fee value"),
-    current_user: dict = Depends(get_current_user)
+    current_user: UserResponse = Depends(get_current_user)
 ):
     """
     Update system-wide base fee
@@ -5329,10 +5329,10 @@ async def update_base_fee(
     """
     try:
         # Permission check
-        if current_user["role"] not in ["system_admin", "super_admin"]:
+        if current_user.role not in ["system_admin", "super_admin", "admin"]:
             raise HTTPException(
                 status_code=403, 
-                detail="Only System Admin and Super Admin can update base fee"
+                detail="Only System Admin, Super Admin, and Admin can update base fee"
             )
         
         # Validation
@@ -5349,14 +5349,14 @@ async def update_base_fee(
                 "$set": {
                     "setting_key": "base_fee",
                     "value": base_fee,
-                    "updated_by": current_user["id"],
+                    "updated_by": current_user.id,
                     "updated_at": datetime.now(timezone.utc).isoformat()
                 }
             },
             upsert=True
         )
         
-        logger.info(f"Base fee updated to {base_fee} by user {current_user['username']}")
+        logger.info(f"Base fee updated to {base_fee} by user {current_user.username}")
         
         return {
             "success": True,
