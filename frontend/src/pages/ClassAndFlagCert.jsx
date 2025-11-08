@@ -26,6 +26,8 @@ const ClassAndFlagCert = () => {
   const [selectedShip, setSelectedShip] = useState(null);
   const [deleteShipData, setDeleteShipData] = useState(null);
   const [isDeletingShip, setIsDeletingShip] = useState(false);
+  const [showDeleteShipBlockedModal, setShowDeleteShipBlockedModal] = useState(false);
+  const [deleteShipBlockingItems, setDeleteShipBlockingItems] = useState(null);
   const [loading, setLoading] = useState(false);
   const [companyData, setCompanyData] = useState(null);
 
