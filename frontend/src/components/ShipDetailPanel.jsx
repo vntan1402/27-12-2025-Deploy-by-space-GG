@@ -166,7 +166,8 @@ export const ShipDetailPanel = ({
     
     setIsRecalculating(true);
     try {
-      const result = await shipService.calculateAnniversaryDate(ship.id);
+      const response = await shipService.calculateAnniversaryDate(ship.id);
+      const result = response.data; // Extract data from axios response
       
       if (result.success) {
         const message = `Anniversary date calculated: ${result.anniversary_date.display}\nSource: ${result.anniversary_date.source}`;
