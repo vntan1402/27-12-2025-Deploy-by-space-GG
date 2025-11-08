@@ -36,13 +36,20 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
         user.company === company.name_vn
       );
 
-      const activeUsers = companyUsers.filter(user => user.is_active);
+      // Exclude users with ship_crew department from total users count
+      const nonCrewUsers = companyUsers.filter(user => {
+        if (!user.department) return true;
+        const departments = Array.isArray(user.department) ? user.department : [user.department];
+        return !departments.includes('ship_crew');
+      });
+
+      const activeUsers = nonCrewUsers.filter(user => user.is_active);
       const crewUsers = companyUsers.filter(user => user.role === 'viewer'); // Crew = viewer role
 
       setStatistics({
         totalShips: companyShips.length,
-        totalUsers: companyUsers.length,
-        activeUsers: activeUsers.length,
+        totalUsers: nonCrewUsers.length, // Exclude ship_crew department users
+        activeUsers: activeUsers.length, // Active users excluding crew
         totalCrew: crewUsers.length
       });
     } catch (error) {
