@@ -81,6 +81,7 @@ const AddUserModal = ({
     { value: 'commercial', label: language === 'vi' ? 'Kinh doanh' : 'Commercial' },
     { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' },
     { value: 'ship_crew', label: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew' },
+    { value: 'sso', label: 'SSO' }, // Ship Security Officer - only visible for Ship Officers
     { value: 'dpa', label: 'DPA' },
     { value: 'supply', label: language === 'vi' ? 'Vật tư' : 'Supply' }
   ];
@@ -89,8 +90,28 @@ const AddUserModal = ({
    * Handle department checkbox change
    */
   const handleDepartmentChange = (deptValue) => {
-    // Prevent changes if role is Crew or Ship Officer (locked to ship_crew)
-    if (userData.role === 'viewer' || userData.role === 'editor') {
+    // For Ship Officers: ship_crew is locked, but can toggle SSO
+    if (userData.role === 'editor') {
+      if (deptValue === 'ship_crew') {
+        return; // Cannot uncheck ship_crew for Ship Officers
+      }
+      // Allow toggling SSO for Ship Officers
+      const currentDepts = userData.department || [];
+      const isChecked = currentDepts.includes(deptValue);
+      
+      let newDepts;
+      if (isChecked) {
+        newDepts = currentDepts.filter(d => d !== deptValue);
+      } else {
+        newDepts = [...currentDepts, deptValue];
+      }
+      
+      setUserData(prev => ({ ...prev, department: newDepts }));
+      return;
+    }
+    
+    // For Crew: completely locked to ship_crew only
+    if (userData.role === 'viewer') {
       return; // No changes allowed
     }
     
