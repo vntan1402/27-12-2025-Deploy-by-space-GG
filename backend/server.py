@@ -15199,6 +15199,12 @@ async def analyze_ship_document_with_ai(file_content: bytes, filename: str, cont
         # Get dynamic ship form fields for extraction
         ship_form_fields = await get_ship_form_fields_for_extraction()
         
+        # Debug logging - check if ship_type, last_docking_2 are in prompt
+        logger.info(f"🔍 DEBUG: Checking if fields exist in prompt_section:")
+        logger.info(f"   'ship_type' in prompt: {'ship_type' in ship_form_fields['prompt_section']}")
+        logger.info(f"   'last_docking_2' in prompt: {'last_docking_2' in ship_form_fields['prompt_section']}")
+        logger.info(f"   Prompt section length: {len(ship_form_fields['prompt_section'])} chars")
+        
         # Create dynamic ship analysis prompt based on actual form fields
         ship_analysis_prompt = f"""
 Analyze this ship-related document ({filename}) and extract information for the following ship form fields:
