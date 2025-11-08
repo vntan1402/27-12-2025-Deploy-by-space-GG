@@ -82,6 +82,7 @@ const AddUserModal = ({
     { value: 'crewing', label: language === 'vi' ? 'Thuyền viên' : 'Crewing' },
     { value: 'ship_crew', label: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew' },
     { value: 'sso', label: 'SSO' }, // Ship Security Officer - only visible for Ship Officers
+    { value: 'cso', label: 'CSO' }, // Company Security Officer - only visible for Ship Officers
     { value: 'dpa', label: 'DPA' },
     { value: 'supply', label: language === 'vi' ? 'Vật tư' : 'Supply' }
   ];
@@ -90,7 +91,7 @@ const AddUserModal = ({
    * Handle department checkbox change
    */
   const handleDepartmentChange = (deptValue) => {
-    // For Ship Officers: ship_crew is locked, but can toggle SSO
+    // For Ship Officers: ship_crew is locked, but can toggle SSO and CSO
     if (userData.role === 'editor') {
       if (deptValue === 'ship_crew') {
         return; // Cannot uncheck ship_crew for Ship Officers
