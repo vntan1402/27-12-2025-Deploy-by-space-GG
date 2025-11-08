@@ -9,6 +9,7 @@ import { companyService } from '../../../services/companyService';
 import CompanyTable from './CompanyTable';
 import CompanyFormModal from './CompanyFormModal';
 import CompanyGoogleDriveModal from './CompanyGoogleDriveModal';
+import CompanyDetailModal from './CompanyDetailModal';
 
 const CompanyManagement = () => {
   const { user: currentUser, language } = useAuth();
@@ -21,6 +22,8 @@ const CompanyManagement = () => {
   const [editingCompany, setEditingCompany] = useState(null);
   const [showGoogleDriveModal, setShowGoogleDriveModal] = useState(false);
   const [selectedCompanyForGDrive, setSelectedCompanyForGDrive] = useState(null);
+  const [showCompanyDetail, setShowCompanyDetail] = useState(false);
+  const [selectedCompanyForDetail, setSelectedCompanyForDetail] = useState(null);
 
   // Fetch companies on mount
   useEffect(() => {
