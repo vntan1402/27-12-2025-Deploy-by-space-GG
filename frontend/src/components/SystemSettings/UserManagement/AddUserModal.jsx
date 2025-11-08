@@ -89,6 +89,11 @@ const AddUserModal = ({
    * Handle department checkbox change
    */
   const handleDepartmentChange = (deptValue) => {
+    // Prevent changes if role is Crew or Ship Officer (locked to ship_crew)
+    if (userData.role === 'viewer' || userData.role === 'editor') {
+      return; // No changes allowed
+    }
+    
     const currentDepts = userData.department || [];
     const isChecked = currentDepts.includes(deptValue);
     
