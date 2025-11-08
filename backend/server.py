@@ -23368,23 +23368,43 @@ async def analyze_certificate_file_for_crew(
         
         # Get ship information for folder structure
         logger.info(f"🔍 Looking for ship: ship_id='{ship_id}', company='{company_uuid}'")
+        
+        # Get company name for ship lookup (ships may be stored with company name, not UUID)
+        company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
+        company_name = company_doc.get("name") if company_doc else None
+        
+        # Try finding ship by ID with company UUID first
         ship = await mongo_db.find_one("ships", {
             "id": ship_id,
             "company": company_uuid
         })
         
+        # If not found, try with company name (legacy data)
+        if not ship and company_name:
+            logger.info(f"🔄 Trying with company name: '{company_name}'")
+            ship = await mongo_db.find_one("ships", {
+                "id": ship_id,
+                "company": company_name
+            })
+        
+        # If still not found, try by ship name as fallback
         if not ship:
-            logger.error(f"❌ Ship not found: ship_id='{ship_id}', company='{company_uuid}'")
-            # Try to find ship by name as fallback (in case frontend sent name instead of ID)
+            logger.warning(f"⚠️ Ship not found with UUID company, trying by name: '{ship_id}'")
             ship = await mongo_db.find_one("ships", {
                 "name": ship_id,
                 "company": company_uuid
             })
-            if ship:
-                logger.info(f"✅ Found ship by name: {ship.get('name')} (id: {ship.get('id')})")
-            else:
-                logger.error(f"❌ Ship not found by ID or name: '{ship_id}'")
-                raise HTTPException(status_code=404, detail="Ship not found")
+            if not ship and company_name:
+                ship = await mongo_db.find_one("ships", {
+                    "name": ship_id,
+                    "company": company_name
+                })
+        
+        if not ship:
+            logger.error(f"❌ Ship not found: ship_id='{ship_id}', company='{company_uuid}' or '{company_name}'")
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        logger.info(f"✅ Found ship: {ship.get('name')} (id: {ship.get('id')})")
         
         ship_name = ship.get("name", "Unknown Ship")
         
