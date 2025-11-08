@@ -25202,19 +25202,20 @@ async def get_sidebar_structure():
     """Get current homepage sidebar structure for Google Apps Script - Main Categories Only"""
     try:
         # Define the main sidebar categories that match the frontend constants.js MAIN_CATEGORIES
-        # This returns ONLY the main categories, NOT subcategories
-        # Apps Script will use this to create folder structure: {Ship Name}/{Category}/
-        sidebar_structure = [
-            "Class & Flag Cert",
-            "Crew Records",
-            "ISM - ISPS - MLC",
-            "Safety Management System",
-            "Technical Infor",
-            "Supplies"
-        ]
+        # Returns dictionary with empty arrays - Apps Script will create only main category folders
+        # Structure: {Ship Name}/{Category}/ (no subcategories)
+        sidebar_structure = {
+            "Class & Flag Cert": [],
+            "Crew Records": [],
+            "ISM - ISPS - MLC": [],
+            "Safety Management System": [],
+            "Technical Infor": [],
+            "Supplies": []
+        }
         
         # Calculate statistics
         total_categories = len(sidebar_structure)
+        total_subcategories = sum(len(subcats) for subcats in sidebar_structure.values())
         
         return {
             "success": True,
@@ -25222,6 +25223,7 @@ async def get_sidebar_structure():
             "structure": sidebar_structure,
             "metadata": {
                 "total_categories": total_categories,
+                "total_subcategories": total_subcategories,
                 "structure_version": "v4.0",
                 "structure_type": "main_categories_only",
                 "last_updated": datetime.now(timezone.utc).isoformat(),
