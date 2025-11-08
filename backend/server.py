@@ -5342,16 +5342,13 @@ async def update_base_fee(
         from datetime import datetime, timezone
         
         # Upsert base fee setting
-        await mongo_db.update_one(
+        await mongo_db.update(
             "system_settings",
             {"setting_key": "base_fee"},
             {
-                "$set": {
-                    "setting_key": "base_fee",
-                    "value": base_fee,
-                    "updated_by": current_user.id,
-                    "updated_at": datetime.now(timezone.utc).isoformat()
-                }
+                "setting_key": "base_fee",
+                "value": base_fee,
+                "updated_by": current_user.id
             },
             upsert=True
         )
