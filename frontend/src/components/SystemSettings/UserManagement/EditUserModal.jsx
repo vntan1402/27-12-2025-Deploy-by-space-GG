@@ -158,14 +158,13 @@ const EditUserModal = ({
       // Crew: lock to ship_crew only
       setUserData(prev => ({ ...prev, department: ['ship_crew'] }));
     } else if (userData.role === 'editor') {
-      // Ship Officer: ensure ship_crew is included, preserve SSO and CSO if present
+      // Ship Officer: ensure ship_crew is included, preserve SSO only (not CSO)
       const currentDepts = userData.department || [];
       const hasSSO = currentDepts.includes('sso');
-      const hasCSO = currentDepts.includes('cso');
       
       let newDepts = ['ship_crew'];
       if (hasSSO) newDepts.push('sso');
-      if (hasCSO) newDepts.push('cso');
+      // Note: CSO is not allowed for Ship Officers
       
       setUserData(prev => ({ 
         ...prev, 
