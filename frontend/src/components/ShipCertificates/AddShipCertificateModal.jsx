@@ -282,86 +282,102 @@ export const AddShipCertificateModal = ({
             await new Promise(r => setTimeout(r, 3000 * i)); // 3s * index
           }
 
-        try {
-          // Update status to uploading
-          setMultiCertUploads(prev => prev.map((upload, idx) => 
-            idx === i 
-              ? {
-                  ...upload,
-                  status: 'uploading',
-                  stage: language === 'vi' 
-                    ? `Đang upload... (${i + 1}/${totalFiles})`
-                    : `Uploading... (${i + 1}/${totalFiles})`
-                }
-              : upload
-          ));
-
-          // Create FormData for single file
-          const formData = new FormData();
-          formData.append('files', file);
-
-          console.log(`📤 [${i + 1}/${totalFiles}] Uploading:`, file.name);
-
-          // Upload single file
-          const response = await api.post(
-            `/api/certificates/multi-upload?ship_id=${selectedShip.id}`,
-            formData,
-            {
-              headers: { 'Content-Type': 'multipart/form-data' },
-              onUploadProgress: (progressEvent) => {
-                const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                setMultiCertUploads(prev => prev.map((upload, idx) => 
-                  idx === i 
-                    ? {
-                        ...upload,
-                        progress: progress,
-                        stage: language === 'vi' 
-                          ? `Upload ${progress}%... (${i + 1}/${totalFiles})`
-                          : `Uploading ${progress}%... (${i + 1}/${totalFiles})`
-                      }
-                    : upload
-                ));
-              }
-            }
-          );
-
-          console.log(`📥 [${i + 1}/${totalFiles}] Response:`, response.data);
-
-          // Process response
-          const results = response.data.results || [];
-          const result = results[0]; // Single file result
-
-          if (result && (result.status === 'success' || result.status === 'completed')) {
-            successCount++;
-            
-            // Update status to completed
+          try {
+            // Update status to uploading
             setMultiCertUploads(prev => prev.map((upload, idx) => 
               idx === i 
                 ? {
                     ...upload,
-                    status: 'completed',
-                    progress: 100,
-                    stage: language === 'vi' ? '✅ Hoàn thành' : '✅ Completed',
-                    extracted_info: result.extracted_info
+                    status: 'uploading',
+                    stage: language === 'vi' 
+                      ? `Đang upload... (${i + 1}/${totalFiles})`
+                      : `Uploading... (${i + 1}/${totalFiles})`
                   }
                 : upload
             ));
 
-            // Store first success for auto-fill
-            if (!firstSuccessInfo && result.extracted_info) {
-              firstSuccessInfo = result.extracted_info;
-              console.log('✅ First success with extracted_info:', firstSuccessInfo);
-            }
+            // Create FormData for single file
+            const formData = new FormData();
+            formData.append('files', file);
 
-            toast.success(language === 'vi' 
-              ? `✅ ${file.name} (${i + 1}/${totalFiles})`
-              : `✅ ${file.name} (${i + 1}/${totalFiles})`
+            console.log(`📤 [${i + 1}/${totalFiles}] Uploading:`, file.name);
+
+            // Upload single file
+            const response = await api.post(
+              `/api/certificates/multi-upload?ship_id=${selectedShip.id}`,
+              formData,
+              {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                onUploadProgress: (progressEvent) => {
+                  const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                  setMultiCertUploads(prev => prev.map((upload, idx) => 
+                    idx === i 
+                      ? {
+                          ...upload,
+                          progress: progress,
+                          stage: language === 'vi' 
+                            ? `Upload ${progress}%...`
+                            : `Uploading ${progress}%...`
+                        }
+                      : upload
+                  ));
+                }
+              }
             );
 
-          } else {
-            // Handle error or other status
+            console.log(`📥 [${i + 1}/${totalFiles}] Response:`, response.data);
+
+            // Process response
+            const results = response.data.results || [];
+            const result = results[0]; // Single file result
+
+            if (result && (result.status === 'success' || result.status === 'completed')) {
+              successCount++;
+              
+              // Update status to completed
+              setMultiCertUploads(prev => prev.map((upload, idx) => 
+                idx === i 
+                  ? {
+                      ...upload,
+                      status: 'completed',
+                      progress: 100,
+                      stage: language === 'vi' ? '✅ Hoàn thành' : '✅ Completed',
+                      extracted_info: result.extracted_info
+                    }
+                  : upload
+              ));
+
+              // Store first success for auto-fill
+              if (!firstSuccessInfo && result.extracted_info) {
+                firstSuccessInfo = result.extracted_info;
+                console.log('✅ First success with extracted_info:', firstSuccessInfo);
+              }
+
+              resolve({ success: true, result, file });
+
+            } else {
+              // Handle error or other status
+              failedCount++;
+              const errorMsg = result?.message || result?.error || 'Unknown error';
+              
+              setMultiCertUploads(prev => prev.map((upload, idx) => 
+                idx === i 
+                  ? {
+                      ...upload,
+                      status: 'error',
+                      progress: 0,
+                      stage: language === 'vi' ? '❌ Thất bại' : '❌ Failed',
+                      error: errorMsg
+                    }
+                  : upload
+              ));
+
+              resolve({ success: false, error: errorMsg, file });
+            }
+
+          } catch (fileError) {
             failedCount++;
-            const errorMsg = result?.message || result?.error || 'Unknown error';
+            console.error(`❌ [${i + 1}/${totalFiles}] Upload error:`, fileError);
             
             setMultiCertUploads(prev => prev.map((upload, idx) => 
               idx === i 
@@ -369,35 +385,33 @@ export const AddShipCertificateModal = ({
                     ...upload,
                     status: 'error',
                     progress: 0,
-                    stage: language === 'vi' ? '❌ Thất bại' : '❌ Failed',
-                    error: errorMsg
+                    stage: language === 'vi' ? '❌ Lỗi' : '❌ Error',
+                    error: fileError.response?.data?.detail || fileError.message
                   }
                 : upload
             ));
 
-            toast.error(language === 'vi' 
-              ? `❌ ${file.name}: ${errorMsg}`
-              : `❌ ${file.name}: ${errorMsg}`
-            );
+            resolve({ success: false, error: fileError.response?.data?.detail || fileError.message, file });
           }
+        });
+      });
 
-        } catch (fileError) {
-          failedCount++;
-          console.error(`❌ [${i + 1}/${totalFiles}] Upload error:`, fileError);
-          
-          setMultiCertUploads(prev => prev.map((upload, idx) => 
-            idx === i 
-              ? {
-                  ...upload,
-                  status: 'error',
-                  progress: 0,
-                  stage: language === 'vi' ? '❌ Lỗi' : '❌ Error',
-                  error: fileError.response?.data?.detail || fileError.message
-                }
-              : upload
-          ));
+      // Wait for all uploads to complete
+      const allResults = await Promise.all(uploadPromises);
+      
+      // Count final results
+      successCount = allResults.filter(r => r.success).length;
+      failedCount = allResults.filter(r => !r.success).length;
+      
+      // Get first success info for auto-fill
+      const firstSuccess = allResults.find(r => r.success && r.result?.extracted_info);
+      if (firstSuccess) {
+        firstSuccessInfo = firstSuccess.result.extracted_info;
+      }
 
-          toast.error(language === 'vi' 
+      // Show final toast
+      if (successCount > 0) {
+        toast.success(language === 'vi' 
             ? `❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`
             : `❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`
           );
