@@ -44,19 +44,19 @@ const CompanyManagement = () => {
   };
 
   /**
-   * Check if user can add company (Super Admin only)
+   * Check if user can add company (System Admin & Super Admin only)
    */
   const canAddCompany = () => {
-    return currentUser.role === 'super_admin';
+    return currentUser.role === 'system_admin' || currentUser.role === 'super_admin';
   };
 
   /**
    * Check if user can edit company
-   * - Super Admin: Can edit all companies
+   * - System Admin & Super Admin: Can edit all companies
    * - Admin: Can only edit own company
    */
   const canEditCompany = (company) => {
-    if (currentUser.role === 'super_admin') {
+    if (currentUser.role === 'system_admin' || currentUser.role === 'super_admin') {
       return true;
     }
     
@@ -71,10 +71,17 @@ const CompanyManagement = () => {
   };
 
   /**
-   * Check if user can delete company (Super Admin only)
+   * Check if user can delete company (System Admin & Super Admin only)
    */
   const canDeleteCompany = (company) => {
-    return currentUser.role === 'super_admin';
+    return currentUser.role === 'system_admin' || currentUser.role === 'super_admin';
+  };
+
+  /**
+   * Check if user can configure Google Drive (System Admin & Super Admin only)
+   */
+  const canConfigureGoogleDrive = () => {
+    return currentUser.role === 'system_admin' || currentUser.role === 'super_admin';
   };
 
   /**
