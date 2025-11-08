@@ -259,12 +259,32 @@ export const AddShipCertificateModal = ({
     const fileArray = Array.from(files);
     const totalFiles = fileArray.length;
 
+    // Initialize file status maps
+    const initialStatusMap = {};
+    const initialProgressMap = {};
+    const initialSubStatusMap = {};
+    
+    fileArray.forEach(file => {
+      initialStatusMap[file.name] = 'waiting';
+      initialProgressMap[file.name] = 0;
+      initialSubStatusMap[file.name] = '';
+    });
+    
+    setFileStatusMap(initialStatusMap);
+    setFileProgressMap(initialProgressMap);
+    setFileSubStatusMap(initialSubStatusMap);
+    setBatchProgress({ current: 0, total: totalFiles });
+    
+    // Show batch processing modal
+    setShowBatchProcessing(true);
+    setIsProcessingMinimized(false);
+
     // Initialize upload tracking with detailed status
     const initialUploads = fileArray.map((file, index) => ({
       index,
       filename: file.name,
       size: file.size,
-      status: 'pending', // pending, uploading, completed, error
+      status: 'pending',
       progress: 0,
       stage: language === 'vi' ? 'Đang chờ...' : 'Waiting...',
       extracted_info: null,
