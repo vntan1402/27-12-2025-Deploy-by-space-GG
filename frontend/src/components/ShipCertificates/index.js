@@ -8,3 +8,5 @@ export { EditShipCertificateModal } from './EditShipCertificateModal';
 export { DeleteShipCertificateModal } from './DeleteShipCertificateModal';
 export { DuplicateShipCertificateModal } from './DuplicateShipCertificateModal';
 export { ShipNameMismatchModal } from './ShipNameMismatchModal';
+export { BatchProcessingModal } from './BatchProcessingModal';
+export { BatchResultsModal } from './BatchResultsModal';
