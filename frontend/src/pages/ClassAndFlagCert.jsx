@@ -1244,7 +1244,22 @@ const ClassAndFlagCert = () => {
     } catch (error) {
       console.error('Ship deletion error:', error);
       
-      const errorMessage = error.response?.data?.detail || error.message || 'Unknown error occurred';
+      // Check if error is about crew/documents blocking deletion
+      if (error.response?.status === 400 && error.response?.data?.detail?.error === 'cannot_delete_ship_with_data') {
+        const errorDetail = error.response.data.detail;
+        
+        // Close delete confirmation modal
+        setShowDeleteShipModal(false);
+        
+        // Show blocked modal with details
+        setDeleteShipBlockingItems(errorDetail.blocking_items);
+        setShowDeleteShipBlockedModal(true);
+        
+        // Don't show generic error toast
+        return;
+      }
+      
+      const errorMessage = error.response?.data?.detail?.message || error.response?.data?.detail || error.message || 'Unknown error occurred';
       
       toast.error(language === 'vi' 
         ? `Không thể xóa tàu: ${errorMessage}`
