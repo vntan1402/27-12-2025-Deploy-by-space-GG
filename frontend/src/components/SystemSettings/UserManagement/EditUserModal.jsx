@@ -353,30 +353,84 @@ const EditUserModal = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {language === 'vi' ? 'Phòng ban' : 'Department'} *
             </label>
-            <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
-              <div className="grid grid-cols-2 gap-3">
-                {departmentOptions.map(dept => {
-                  const isChecked = (userData.department || []).includes(dept.value);
-                  return (
-                    <label 
-                      key={dept.value}
-                      className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded transition-colors"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => handleDepartmentChange(dept.value)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                        disabled={loading}
-                      />
-                      <span className="text-sm text-gray-700">{dept.label}</span>
-                    </label>
-                  );
-                })}
+            
+            {/* Special handling for Crew and Ship Officer roles */}
+            {(userData.role === 'viewer' || userData.role === 'editor') ? (
+              <div className="bg-blue-50 border border-blue-300 rounded-lg p-4 space-y-3">
+                {/* Ship Crew - Always locked for both Crew and Ship Officer */}
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    disabled={true}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded cursor-not-allowed"
+                  />
+                  <span className="text-sm font-medium text-blue-900">
+                    {language === 'vi' ? '⚓ Thuyền viên tàu' : '⚓ Ship Crew'}
+                  </span>
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                
+                {/* SSO - Only for Ship Officers (editor role), not for Crew */}
+                {userData.role === 'editor' && (
+                  <div className="flex items-center space-x-3 border-t pt-3">
+                    <input
+                      type="checkbox"
+                      checked={(userData.department || []).includes('sso')}
+                      onChange={() => handleDepartmentChange('sso')}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                      disabled={loading}
+                    />
+                    <span className="text-sm text-blue-900">
+                      🛡️ SSO (Ship Security Officer)
+                    </span>
+                  </div>
+                )}
+                
+                <p className="text-xs text-blue-700 mt-2">
+                  {userData.role === 'viewer' 
+                    ? (language === 'vi' 
+                      ? '🔒 Thuyền viên phải thuộc phòng ban "Thuyền viên tàu"' 
+                      : '🔒 Crew must belong to "Ship Crew" department')
+                    : (language === 'vi'
+                      ? '🔒 Sĩ quan phải thuộc phòng ban "Thuyền viên tàu". Có thể chọn thêm SSO nếu là cán bộ an ninh tàu.'
+                      : '🔒 Ship Officers must belong to "Ship Crew" department. Can additionally select SSO if serving as Ship Security Officer.')
+                  }
+                </p>
               </div>
-            </div>
+            ) : (
+              // Normal department selection for other roles
+              <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
+                <div className="grid grid-cols-2 gap-3">
+                  {departmentOptions.map(dept => {
+                    const isChecked = (userData.department || []).includes(dept.value);
+                    return (
+                      <label 
+                        key={dept.value}
+                        className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded transition-colors"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => handleDepartmentChange(dept.value)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                          disabled={loading}
+                        />
+                        <span className="text-sm text-gray-700">{dept.label}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            
             <p className="text-xs text-gray-500 mt-1">
-              {language === 'vi' ? '* Chọn ít nhất một phòng ban. Có thể chọn nhiều phòng ban.' : '* Select at least one department. Multiple selections allowed.'}
+              {(userData.role === 'viewer' || userData.role === 'editor')
+                ? (language === 'vi' ? '* Phòng ban được tự động chọn dựa trên vai trò' : '* Department is automatically selected based on role')
+                : (language === 'vi' ? '* Chọn ít nhất một phòng ban. Có thể chọn nhiều phòng ban.' : '* Select at least one department. Multiple selections allowed.')
+              }
             </p>
           </div>
 
