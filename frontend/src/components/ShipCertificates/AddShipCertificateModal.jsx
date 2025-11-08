@@ -9,6 +9,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import { DuplicateShipCertificateModal } from './DuplicateShipCertificateModal';
 import { ShipNameMismatchModal } from './ShipNameMismatchModal';
+import { BatchProcessingModal } from './BatchProcessingModal';
+import { BatchResultsModal } from './BatchResultsModal';
 
 export const AddShipCertificateModal = ({ 
   isOpen, 
