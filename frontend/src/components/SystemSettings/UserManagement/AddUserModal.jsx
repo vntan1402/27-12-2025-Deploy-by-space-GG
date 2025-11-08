@@ -23,6 +23,14 @@ const AddUserModal = ({
     }
   }, [currentUser, userData.company, setUserData]);
 
+  // Auto-select and lock "Ship Crew" department for Crew (viewer) and Ship Officer (editor) roles
+  useEffect(() => {
+    if (userData.role === 'viewer' || userData.role === 'editor') {
+      // Auto-select ship_crew department
+      setUserData(prev => ({ ...prev, department: ['ship_crew'] }));
+    }
+  }, [userData.role, setUserData]);
+
   // Check if ship_crew is selected in department
   const isShipCrewSelected = userData.department && Array.isArray(userData.department) && userData.department.includes('ship_crew');
 
