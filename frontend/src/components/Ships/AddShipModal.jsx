@@ -757,18 +757,29 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
                 />
               </div>
 
-              {/* Ship Type - Optional */}
+              {/* Ship Type - Optional Dropdown */}
               <div className="col-span-3">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Loại tàu' : 'Ship Type'}
                 </label>
-                <input
-                  type="text"
+                <select
                   value={shipData.ship_type}
                   onChange={(e) => setShipData(prev => ({ ...prev, ship_type: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={language === 'vi' ? 'Container, Bulk Carrier, Tanker...' : 'Container, Bulk Carrier, Tanker...'}
-                />
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                >
+                  <option value="">{language === 'vi' ? '-- Chọn loại tàu --' : '-- Select ship type --'}</option>
+                  <option value="General Cargo">{language === 'vi' ? 'Tàu hàng tổng hợp' : 'General Cargo'}</option>
+                  <option value="Bulk Carrier">{language === 'vi' ? 'Tàu chở hàng rời' : 'Bulk Carrier'}</option>
+                  <option value="Oil Tanker">{language === 'vi' ? 'Tàu chở dầu' : 'Oil Tanker'}</option>
+                  <option value="Chemical Tanker">{language === 'vi' ? 'Tàu chở hóa chất' : 'Chemical Tanker'}</option>
+                  <option value="LPG/LNG Carrier">{language === 'vi' ? 'Tàu chở khí hóa lỏng' : 'LPG/LNG Carrier'}</option>
+                  <option value="Container Ship">{language === 'vi' ? 'Tàu container' : 'Container Ship'}</option>
+                  <option value="Passenger Ship">{language === 'vi' ? 'Tàu khách' : 'Passenger Ship'}</option>
+                  <option value="Ro-Ro Cargo">{language === 'vi' ? 'Tàu Ro-Ro' : 'Ro-Ro Cargo'}</option>
+                  <option value="Fishing Vessel">{language === 'vi' ? 'Tàu đánh cá' : 'Fishing Vessel'}</option>
+                  <option value="Tug/Supply Vessel">{language === 'vi' ? 'Tàu kéo/Tiếp tế' : 'Tug/Supply Vessel'}</option>
+                  <option value="Other">{language === 'vi' ? 'Khác' : 'Other'}</option>
+                </select>
               </div>
             </div>
           </div>
