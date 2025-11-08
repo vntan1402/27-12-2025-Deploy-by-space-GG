@@ -143,6 +143,7 @@ const UserTable = ({
                         crewing: language === 'vi' ? 'Thuyền viên' : 'Crewing',
                         ship_crew: language === 'vi' ? 'Thuyền viên tàu' : 'Ship Crew',
                         sso: 'SSO',
+                        cso: 'CSO',
                         dpa: 'DPA',
                         supply: language === 'vi' ? 'Vật tư' : 'Supply'
                       };
