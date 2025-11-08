@@ -6350,7 +6350,7 @@ async def bulk_delete_ship_certificates(
                         logger.error(f"❌ Error deleting Google Drive file: {e}")
                 
                 # Delete from database
-                result = await mongo_db.delete_one("certificates", {"id": cert_id})
+                result = await mongo_db.delete("certificates", {"id": cert_id})
                 if result:
                     deleted_count += 1
                     logger.info(f"✅ Certificate deleted from database: {cert_id}")
