@@ -51,7 +51,8 @@ class MongoDatabase:
         try:
             # Users collection indexes
             await self.database.users.create_index("username", unique=True)
-            await self.database.users.create_index("email", unique=True)
+            # Sparse index on email: allows multiple null values but enforces uniqueness for non-null values
+            await self.database.users.create_index("email", unique=True, sparse=True)
             await self.database.users.create_index([("role", 1), ("is_active", 1)])
             await self.database.users.create_index("company")
             
