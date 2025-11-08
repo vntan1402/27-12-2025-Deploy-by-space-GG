@@ -403,6 +403,10 @@ export const AddShipCertificateModal = ({
               failedCount++;
               const errorMsg = result?.message || result?.error || 'Unknown error';
               
+              setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+              setFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
+              setBatchProgress(prev => ({ ...prev, current: prev.current + 1 }));
+              
               setMultiCertUploads(prev => prev.map((upload, idx) => 
                 idx === i 
                   ? {
@@ -421,6 +425,10 @@ export const AddShipCertificateModal = ({
           } catch (fileError) {
             failedCount++;
             console.error(`❌ [${i + 1}/${totalFiles}] Upload error:`, fileError);
+            
+            setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+            setFileProgressMap(prev => ({ ...prev, [file.name]: 0 }));
+            setBatchProgress(prev => ({ ...prev, current: prev.current + 1 }));
             
             setMultiCertUploads(prev => prev.map((upload, idx) => 
               idx === i 
