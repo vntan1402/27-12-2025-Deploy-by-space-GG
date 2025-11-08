@@ -302,7 +302,7 @@ const CompanyManagement = () => {
           loading={loading}
           mode="edit"
           currentUser={currentUser}
-          onConfigureGoogleDrive={openGoogleDriveModal}
+          onConfigureGoogleDrive={canConfigureGoogleDrive() ? openGoogleDriveModal : null}
         />
       )}
 
