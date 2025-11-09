@@ -433,7 +433,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '👨‍✈️',
         title: '4. Add Crew Member',
-        color: 'indigo',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Go to "Crew Records" from sidebar' },
           { step: '2', text: 'Click "➕ Add Crew Member"' },
