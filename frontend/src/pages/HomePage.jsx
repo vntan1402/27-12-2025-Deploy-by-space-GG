@@ -133,7 +133,7 @@ const HomePage = () => {
       
       {/* Company Logo Banner */}
       {companyLogo ? (
-        <div className="w-full h-96 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden mb-6 shadow-md">
+        <div className="w-full h-96 bg-white rounded-lg flex items-center justify-center overflow-hidden mb-6 shadow-md">
           <img 
             src={(() => {
               // For uploads, use /api/files prefix to route through backend
