@@ -685,8 +685,7 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
           )}
 
           {/* AI Certificate Analysis Section */}
-          {!isSoftwareExpired && (
-            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
                 <span>🤖</span>
                 {language === 'vi' ? 'Thêm tàu từ Certificate với AI Analysis' : 'Add ship from Certificate with AI Analysis'}
