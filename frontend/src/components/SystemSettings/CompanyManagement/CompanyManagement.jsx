@@ -95,10 +95,11 @@ const CompanyManagement = () => {
   };
 
   /**
-   * Check if user can add company (System Admin & Super Admin only)
+   * Check if user can add company (Super Admin only)
+   * Other users can only see their own company, not add new ones
    */
   const canAddCompany = () => {
-    return currentUser.role === 'system_admin' || currentUser.role === 'super_admin';
+    return currentUser.role === 'super_admin';
   };
 
   /**
