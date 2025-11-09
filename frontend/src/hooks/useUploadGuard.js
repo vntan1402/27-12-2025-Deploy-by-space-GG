@@ -17,14 +17,30 @@ export const useUploadGuard = () => {
     
     if (isSoftwareExpired) {
       const message = language === 'vi' 
-        ? '⚠️ Phần mềm hết hạn sử dụng! Không thể dùng tính năng AI. Vui lòng sử dụng nhập liệu bằng tay.'
-        : '⚠️ Software expired! Cannot use AI features. Please use manual entry.';
+        ? 'Phần mềm hết hạn sử dụng! Không thể dùng tính năng AI. Vui lòng sử dụng nhập liệu bằng tay.'
+        : 'Software expired! Cannot use AI features. Please use manual entry.';
       
       console.log('🚫 [useUploadGuard] Software expired! Showing toast and blocking upload');
       
       toast.error(message, { 
-        duration: 5000,
-        position: 'top-center'
+        duration: 6000,
+        position: 'top-center',
+        style: {
+          fontSize: '18px',
+          fontWeight: '600',
+          padding: '20px 30px',
+          maxWidth: '600px',
+          textAlign: 'center',
+          background: '#FEF2F2',
+          border: '2px solid #FCA5A5',
+          color: '#991B1B',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          position: 'fixed'
+        },
+        icon: '⚠️'
       });
       
       return false; // Block upload
