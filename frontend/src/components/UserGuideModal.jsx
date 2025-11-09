@@ -43,7 +43,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '🚢',
         title: '2. Thêm Tàu Mới',
-        color: 'green',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Vào trang "Ship Management" từ sidebar' },
           { step: '2', text: 'Click nút "➕ Add Ship"' },
