@@ -43,6 +43,9 @@ const HomePage = () => {
       );
       
       if (userCompany) {
+        console.log('👤 Found user company:', userCompany.name_en || userCompany.name_vn);
+        console.log('🖼️ Company logo_url:', userCompany.logo_url);
+        
         // Set company logo if available
         if (userCompany.logo_url) {
           setCompanyLogo(userCompany.logo_url);
