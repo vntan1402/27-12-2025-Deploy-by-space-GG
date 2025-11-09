@@ -101,9 +101,12 @@ const CompanyTable = ({
             <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
               Zalo
             </th>
-            <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
-              {language === 'vi' ? 'Hạn hệ thống' : 'System Expiry'}
-            </th>
+            {/* Software Expiry - Only for System Admin & Super Admin */}
+            {currentUser && (currentUser.role === 'system_admin' || currentUser.role === 'super_admin') && (
+              <th className="border border-gray-300 px-4 py-3 text-left font-semibold text-gray-700">
+                {language === 'vi' ? 'Hạn hệ thống' : 'System Expiry'}
+              </th>
+            )}
             <th className="border border-gray-300 px-4 py-3 text-center font-semibold text-gray-700">
               {language === 'vi' ? 'Thao tác' : 'Actions'}
             </th>
