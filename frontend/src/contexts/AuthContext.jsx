@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authService } from '../services/authService';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -9,6 +10,12 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [language, setLanguage] = useState(
     localStorage.getItem('language') || 'vi'
+  );
+  const [softwareExpiry, setSoftwareExpiry] = useState(
+    localStorage.getItem('software_expiry') || null
+  );
+  const [isSoftwareExpired, setIsSoftwareExpired] = useState(
+    localStorage.getItem('is_software_expired') === 'true'
   );
 
   useEffect(() => {
