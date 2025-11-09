@@ -133,8 +133,8 @@ const LoginPage = () => {
             </button>
 
             <button 
+              onClick={() => setShowRoadMapModal(true)}
               className="w-full max-w-md bg-white hover:bg-green-50 border-2 border-green-200 rounded-lg p-4 transition-all duration-200 transform hover:scale-105 hover:shadow-lg text-left group"
-              disabled
             >
               <div className="flex items-center">
                 <div className="bg-green-100 rounded-full p-3 mr-4">
