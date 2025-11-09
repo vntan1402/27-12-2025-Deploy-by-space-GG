@@ -16,7 +16,7 @@ async def migrate_expiry_field():
         print("Starting migration: system_expiry -> software_expiry")
         
         # Find all companies with system_expiry field
-        companies = await db.find("companies", {"system_expiry": {"$exists": True}})
+        companies = await db.find_all("companies", {"system_expiry": {"$exists": True}})
         
         if not companies:
             print("No companies found with system_expiry field")
