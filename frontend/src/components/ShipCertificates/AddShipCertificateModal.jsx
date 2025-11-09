@@ -770,6 +770,7 @@ export const AddShipCertificateModal = ({
           )}
 
           {/* Multi Cert Upload Section */}
+          {!isSoftwareExpired && (
           <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-blue-50">
             <div className="flex items-start justify-between mb-3">
               {/* Title and AI Model */}
