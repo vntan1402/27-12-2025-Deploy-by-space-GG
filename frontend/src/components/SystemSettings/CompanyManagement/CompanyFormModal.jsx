@@ -23,7 +23,7 @@ const CompanyFormModal = ({
     gmail: '',
     zalo: '',
     logo_url: '',
-    system_expiry: ''
+    software_expiry: ''
   });
 
   const [logoFile, setLogoFile] = useState(null);
