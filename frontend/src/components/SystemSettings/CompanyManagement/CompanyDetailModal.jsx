@@ -69,13 +69,18 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
       );
       console.log('✅ Ships with certificates:', shipsWithCertificates.length);
 
+      console.log('✅ Ships with certificates:', shipsWithCertificates.length);
+
       // Fetch users count (office staff only - exclude ship_crew department)
       const usersResponse = await api.get('/api/users');
+      console.log('👥 Total users:', usersResponse.data?.length);
+      
       const companyUsers = usersResponse.data.filter(user => 
         user.company === company.id || 
         user.company === company.name_en || 
         user.company === company.name_vn
       );
+      console.log('🏢 Company users:', companyUsers.length);
 
       // Exclude users with ship_crew department from total users count
       const nonCrewUsers = companyUsers.filter(user => {
@@ -83,25 +88,33 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
         const departments = Array.isArray(user.department) ? user.department : [user.department];
         return !departments.includes('ship_crew');
       });
+      console.log('💼 Non-crew users (office staff):', nonCrewUsers.length);
 
       const activeUsers = nonCrewUsers.filter(user => user.is_active);
+      console.log('✅ Active users:', activeUsers.length);
       
       // Fetch crew list (actual crew members from crew records)
       const crewResponse = await api.get('/api/crew');
+      console.log('⚓ Total crew records:', crewResponse.data?.length);
+      
       const companyCrew = crewResponse.data.filter(crew => 
         crew.company === company.id || 
         crew.company === company.name_en || 
         crew.company === company.name_vn
       );
+      console.log('🚢 Company crew members:', companyCrew.length);
 
-      setStatistics({
+      const finalStats = {
         totalShips: shipsWithCertificates.length, // Only count ships with at least one certificate
         totalUsers: nonCrewUsers.length, // Office staff only (exclude ship_crew)
         activeUsers: activeUsers.length, // Active office staff only
         totalCrew: companyCrew.length // Crew from Crew List
-      });
+      };
+      
+      console.log('📊 Final statistics:', finalStats);
+      setStatistics(finalStats);
     } catch (error) {
-      console.error('Error fetching company statistics:', error);
+      console.error('❌ Error fetching company statistics:', error);
       toast.error(language === 'vi' ? 'Lỗi khi tải thống kê công ty' : 'Error loading company statistics');
     } finally {
       setLoading(false);
