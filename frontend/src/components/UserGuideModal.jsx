@@ -590,7 +590,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '🎯',
         title: '9. Other Features',
-        color: 'gray',
+        color: 'blue',
         features: [
           {
             name: '🔍 Advanced Search & Filters',
