@@ -374,7 +374,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '🚢',
         title: '2. Add New Ship',
-        color: 'green',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Go to "Ship Management" from sidebar' },
           { step: '2', text: 'Click "➕ Add Ship" button' },
