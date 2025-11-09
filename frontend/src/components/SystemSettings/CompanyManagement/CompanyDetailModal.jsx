@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../../contexts/AuthContext';
 import api from '../../../services/api';
 
 const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
+  const { user: currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [statistics, setStatistics] = useState({
     totalShips: 0,
