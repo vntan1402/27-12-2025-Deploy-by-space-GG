@@ -10,7 +10,7 @@ async def migrate_expiry_field():
     
     # Initialize MongoDB connection
     mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-    db = MongoDB(mongo_url)
+    db = MongoDatabase(mongo_url)
     await db.connect()
     
     try:
