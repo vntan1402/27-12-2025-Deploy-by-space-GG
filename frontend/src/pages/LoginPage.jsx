@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import IntroductionModal from '../components/IntroductionModal';
 import RoadMapModal from '../components/RoadMapModal';
 import UserGuideModal from '../components/UserGuideModal';
+import ContactModal from '../components/ContactModal';
 
 const LoginPage = () => {
   const navigate = useNavigate();
