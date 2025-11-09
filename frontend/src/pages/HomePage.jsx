@@ -133,7 +133,7 @@ const HomePage = () => {
       
       {/* Company Logo Banner */}
       {companyLogo ? (
-        <div className="w-full h-96 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden relative mb-6 shadow-md">
+        <div className="w-full h-96 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden mb-6 shadow-md">
           <img 
             src={(() => {
               // For uploads, use /api/files prefix to route through backend
@@ -162,21 +162,6 @@ const HomePage = () => {
               console.log('✅ Logo loaded successfully');
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/50 flex items-center justify-center">
-            <div className="bg-black/50 backdrop-blur-sm text-white p-6 rounded-lg text-center">
-              <h2 className="text-3xl font-bold mb-2">
-                {language === 'vi' ? 'Chào mừng đến với' : 'Welcome to'}
-              </h2>
-              <p className="text-xl mb-3">
-                {language === 'vi' ? 'Hệ thống quản lý tàu biển' : 'Ship Management System'}
-              </p>
-              {companyName && (
-                <p className="text-2xl font-semibold text-blue-200">
-                  {companyName}
-                </p>
-              )}
-            </div>
-          </div>
         </div>
       ) : (
         <div className="w-full h-96 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center mb-6 shadow-md border border-blue-100">
