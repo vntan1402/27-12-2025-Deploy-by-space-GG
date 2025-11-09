@@ -4,7 +4,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
   if (!isOpen) return null;
 
   const [expandedSection, setExpandedSection] = useState(null);
-  const [baseFee, setBaseFee] = useState(100); // Default value
+  const [baseFee, setBaseFee] = useState(30); // Default value
 
   // Fetch base fee when modal opens
   useEffect(() => {
