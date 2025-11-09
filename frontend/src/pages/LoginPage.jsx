@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, language } = useAuth();
+  const { login, language, toggleLanguage } = useAuth();
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
