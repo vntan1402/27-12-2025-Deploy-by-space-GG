@@ -675,15 +675,15 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
 
   const getColorClasses = (color) => {
     const colors = {
-      blue: 'from-blue-500 to-blue-600',
-      green: 'from-green-500 to-green-600',
-      purple: 'from-purple-500 to-purple-600',
-      indigo: 'from-indigo-500 to-indigo-600',
-      orange: 'from-orange-500 to-orange-600',
-      pink: 'from-pink-500 to-pink-600',
-      teal: 'from-teal-500 to-teal-600',
-      red: 'from-red-500 to-red-600',
-      gray: 'from-gray-500 to-gray-600'
+      blue: 'from-blue-100 to-blue-200',
+      green: 'from-green-100 to-green-200',
+      purple: 'from-purple-100 to-purple-200',
+      indigo: 'from-indigo-100 to-indigo-200',
+      orange: 'from-orange-100 to-orange-200',
+      pink: 'from-pink-100 to-pink-200',
+      teal: 'from-teal-100 to-teal-200',
+      red: 'from-red-100 to-red-200',
+      gray: 'from-gray-100 to-gray-200'
     };
     return colors[color] || colors.blue;
   };
