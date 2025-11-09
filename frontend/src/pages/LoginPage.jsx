@@ -76,7 +76,109 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className={`bg-white rounded-lg shadow-xl p-8 w-full max-w-md transition-transform ${shake ? 'animate-shake' : ''}`}>
+      <div className="w-full max-w-7xl flex items-center justify-between gap-8">
+        
+        {/* Left Side - Information Buttons */}
+        <div className="flex-1 space-y-4 hidden lg:block">
+          <div className="mb-8">
+            <h2 className="text-4xl font-bold text-gray-800 mb-2">
+              {language === 'vi' ? 'Hệ thống quản lý tàu' : 'Ship Management System'}
+            </h2>
+            <p className="text-gray-600 text-lg">
+              {language === 'vi' ? 'Giải pháp quản lý chứng chỉ và tài liệu hàng hải toàn diện' : 'Comprehensive maritime certificate and document management solution'}
+            </p>
+          </div>
+
+          {/* Information Buttons Placeholder */}
+          <div className="space-y-3">
+            <button 
+              className="w-full max-w-md bg-white hover:bg-blue-50 border-2 border-blue-200 rounded-lg p-4 transition-all duration-200 transform hover:scale-105 hover:shadow-lg text-left group"
+              disabled
+            >
+              <div className="flex items-center">
+                <div className="bg-blue-100 rounded-full p-3 mr-4">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-lg">
+                    {language === 'vi' ? '📖 Giới thiệu' : '📖 Introduction'}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {language === 'vi' ? 'Tìm hiểu về hệ thống' : 'Learn about the system'}
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button 
+              className="w-full max-w-md bg-white hover:bg-green-50 border-2 border-green-200 rounded-lg p-4 transition-all duration-200 transform hover:scale-105 hover:shadow-lg text-left group"
+              disabled
+            >
+              <div className="flex items-center">
+                <div className="bg-green-100 rounded-full p-3 mr-4">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-lg">
+                    {language === 'vi' ? '🗺️ Road Map' : '🗺️ Road Map'}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {language === 'vi' ? 'Kế hoạch phát triển' : 'Development roadmap'}
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button 
+              className="w-full max-w-md bg-white hover:bg-purple-50 border-2 border-purple-200 rounded-lg p-4 transition-all duration-200 transform hover:scale-105 hover:shadow-lg text-left group"
+              disabled
+            >
+              <div className="flex items-center">
+                <div className="bg-purple-100 rounded-full p-3 mr-4">
+                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-lg">
+                    {language === 'vi' ? '📚 Hướng dẫn Sử dụng' : '📚 User Guide'}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {language === 'vi' ? 'Cách sử dụng hệ thống' : 'How to use the system'}
+                  </p>
+                </div>
+              </div>
+            </button>
+
+            <button 
+              className="w-full max-w-md bg-white hover:bg-orange-50 border-2 border-orange-200 rounded-lg p-4 transition-all duration-200 transform hover:scale-105 hover:shadow-lg text-left group"
+              disabled
+            >
+              <div className="flex items-center">
+                <div className="bg-orange-100 rounded-full p-3 mr-4">
+                  <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800 text-lg">
+                    {language === 'vi' ? '📞 Liên hệ' : '📞 Contact'}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    {language === 'vi' ? 'Hỗ trợ và liên hệ' : 'Support and contact'}
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        {/* Right Side - Login Form */}
+        <div className={`bg-white rounded-lg shadow-xl p-8 w-full max-w-md transition-transform ${shake ? 'animate-shake' : ''}`}>
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
