@@ -392,6 +392,13 @@ const LoginPage = () => {
           animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
         }
       `}</style>
+
+      {/* Introduction Modal */}
+      <IntroductionModal 
+        isOpen={showIntroModal}
+        onClose={() => setShowIntroModal(false)}
+        language={language}
+      />
     </div>
   );
 };
