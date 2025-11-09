@@ -419,6 +419,25 @@ export const AddApprovalDocumentModal = ({
           </button>
         </div>
 
+        {/* Software Expired Warning */}
+        {isSoftwareExpired && (
+          <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+            <div className="flex items-start">
+              <span className="text-yellow-600 text-2xl mr-3">⚠️</span>
+              <div>
+                <h4 className="font-semibold text-yellow-800 mb-1">
+                  {language === 'vi' ? 'Phần mềm hết hạn sử dụng' : 'Software Expired'}
+                </h4>
+                <p className="text-sm text-yellow-700">
+                  {language === 'vi' 
+                    ? 'Tính năng AI không khả dụng. Vui lòng sử dụng nhập liệu bằng tay.'
+                    : 'AI features are not available. Please use manual entry.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Section 1: File Upload for AI Analysis */}
         {!analyzedData && (
           <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
