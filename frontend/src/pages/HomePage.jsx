@@ -92,6 +92,20 @@ const HomePage = () => {
     alert(language === 'vi' ? 'Chức năng thêm record sẽ được triển khai trong Phase 4' : 'Add record feature will be implemented in Phase 4');
   };
 
+  // Listen for company logo update event
+  useEffect(() => {
+    const handleLogoUpdate = () => {
+      console.log('🔄 Company logo updated, refetching...');
+      fetchUserCompanyData();
+    };
+
+    window.addEventListener('companyLogoUpdated', handleLogoUpdate);
+
+    return () => {
+      window.removeEventListener('companyLogoUpdated', handleLogoUpdate);
+    };
+  }, [user, language]); // Re-create listener when user or language changes
+
   return (
     <MainLayout
       sidebar={
