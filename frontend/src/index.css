@@ -40,3 +40,21 @@ code {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Software Expired Toast - Center on screen */
+.software-expired-toast {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  z-index: 9999 !important;
+}
+
+/* Sonner toast container override for centered toast */
+[data-sonner-toast][data-type="error"].software-expired-toast {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
