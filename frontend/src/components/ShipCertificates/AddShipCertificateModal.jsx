@@ -23,6 +23,7 @@ export const AddShipCertificateModal = ({
   aiConfig
 }) => {
   const { user, language } = useAuth();
+  const { isSoftwareExpired, checkAndWarn } = useUploadGuard();
 
   // Ship selection state
   const [showShipDropdown, setShowShipDropdown] = useState(false);
