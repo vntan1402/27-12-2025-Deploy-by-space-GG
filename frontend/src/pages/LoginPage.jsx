@@ -401,6 +401,13 @@ const LoginPage = () => {
         onClose={() => setShowIntroModal(false)}
         language={language}
       />
+
+      {/* Road Map Modal */}
+      <RoadMapModal 
+        isOpen={showRoadMapModal}
+        onClose={() => setShowRoadMapModal(false)}
+        language={language}
+      />
     </div>
   );
 };
