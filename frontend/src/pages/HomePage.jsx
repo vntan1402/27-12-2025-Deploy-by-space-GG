@@ -136,7 +136,16 @@ const HomePage = () => {
         <div className="w-full h-96 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden relative mb-6 shadow-md">
           <img 
             src={(() => {
-              const logoUrl = companyLogo.startsWith('http') ? companyLogo : `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`;
+              // For uploads, use /api prefix to route through backend
+              let logoUrl;
+              if (companyLogo.startsWith('http')) {
+                logoUrl = companyLogo;
+              } else if (companyLogo.startsWith('/uploads')) {
+                // Add /api prefix for backend routing
+                logoUrl = `${process.env.REACT_APP_BACKEND_URL}/api${companyLogo}`;
+              } else {
+                logoUrl = `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`;
+              }
               console.log('🖼️ Logo URL:', logoUrl);
               console.log('🔗 Backend URL:', process.env.REACT_APP_BACKEND_URL);
               console.log('📁 Company Logo Path:', companyLogo);
