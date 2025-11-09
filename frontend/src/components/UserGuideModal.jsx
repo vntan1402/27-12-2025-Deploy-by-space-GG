@@ -130,7 +130,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '🎫',
         title: '5. Giấy Chứng Nhận Thuyền Viên',
-        color: 'orange',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Vào trang "Crew Records"' },
           { step: '2', text: 'Chọn thuyền viên từ danh sách' },
