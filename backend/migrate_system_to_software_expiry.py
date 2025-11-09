@@ -54,7 +54,7 @@ async def migrate_expiry_field():
         raise
     
     finally:
-        await db.close()
+        await db.disconnect()
 
 if __name__ == "__main__":
     asyncio.run(migrate_expiry_field())
