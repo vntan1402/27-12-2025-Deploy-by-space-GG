@@ -93,22 +93,16 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
       const activeUsers = nonCrewUsers.filter(user => user.is_active);
       console.log('✅ Active users:', activeUsers.length);
       
-      // Fetch crew list (actual crew members from crew records)
+      // Fetch crew list (backend already filters by company_id from current_user)
       const crewResponse = await api.get('/api/crew');
-      console.log('⚓ Total crew records:', crewResponse.data?.length);
-      
-      const companyCrew = crewResponse.data.filter(crew => 
-        crew.company === company.id || 
-        crew.company === company.name_en || 
-        crew.company === company.name_vn
-      );
-      console.log('🚢 Company crew members:', companyCrew.length);
+      const totalCrewCount = crewResponse.data?.length || 0;
+      console.log('⚓ Total crew members (backend filtered by company):', totalCrewCount);
 
       const finalStats = {
         totalShips: shipsWithCertificates.length, // Only count ships with at least one certificate
         totalUsers: nonCrewUsers.length, // Office staff only (exclude ship_crew)
         activeUsers: activeUsers.length, // Active office staff only
-        totalCrew: companyCrew.length // Crew from Crew List
+        totalCrew: totalCrewCount // Crew from backend (already filtered by company_id)
       };
       
       console.log('📊 Final statistics:', finalStats);
