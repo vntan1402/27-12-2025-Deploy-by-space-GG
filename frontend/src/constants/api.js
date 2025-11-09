@@ -118,7 +118,7 @@ export const API_ENDPOINTS = {
   // Companies
   COMPANIES: '/api/companies',
   COMPANY_BY_ID: (id) => `/api/companies/${id}`,
-  COMPANY_LOGO: (id) => `/api/companies/${id}/logo`,
+  COMPANY_LOGO: (id) => `/api/companies/${id}/upload-logo`,
   COMPANY_GDRIVE_CONFIG: (id) => `/api/companies/${id}/gdrive/config`,
   COMPANY_GDRIVE_CONFIGURE: (id) => `/api/companies/${id}/gdrive/configure`,
   COMPANY_GDRIVE_TEST_PROXY: (id) => `/api/companies/${id}/gdrive/configure-proxy`,
