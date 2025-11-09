@@ -101,6 +101,11 @@ export const AuthProvider = ({ children }) => {
       setToken(access_token);
       setUser(userData);
       
+      // Fetch company expiry after login
+      if (userData && userData.company) {
+        await fetchCompanyExpiry(userData.company);
+      }
+      
       return response;
     } catch (error) {
       throw error;
