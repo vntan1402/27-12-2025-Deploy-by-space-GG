@@ -3,6 +3,7 @@
  * Modal for adding/editing companies with logo upload and Google Drive config
  */
 import React, { useState, useEffect } from 'react';
+import { formatDateForInput } from '../../../utils/dateHelpers';
 
 const CompanyFormModal = ({
   company, // For edit mode
