@@ -214,73 +214,57 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Ships Count */}
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-              <div className="flex items-center gap-3">
-                <div className="bg-blue-500 text-white p-3 rounded-lg w-12 h-12">
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">
-                    {language === 'vi' ? 'Tổng số tàu' : 'Total Ships'}
-                  </p>
-                  {loading ? (
-                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
-                  ) : (
-                    <p className="text-3xl font-bold text-blue-700">{statistics.totalShips}</p>
-                  )}
-                </div>
+              <div>
+                <p className="text-sm text-gray-600">
+                  {language === 'vi' ? 'Tổng số tàu' : 'Total Ships'}
+                </p>
+                {loading ? (
+                  <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+                ) : (
+                  <p className="text-3xl font-bold text-blue-700">{statistics.totalShips}</p>
+                )}
               </div>
             </div>
 
             {/* Total Users */}
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-              <div className="flex items-center gap-3">
-                <div className="bg-green-500 text-white p-3 rounded-lg w-12 h-12">
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">
-                    {language === 'vi' ? 'Nhân viên văn phòng' : 'Office Staff'}
-                  </p>
-                  {loading ? (
-                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
-                  ) : (
-                    <p className="text-3xl font-bold text-green-700">{statistics.totalUsers}</p>
-                  )}
-                </div>
+              <div>
+                <p className="text-sm text-gray-600">
+                  {language === 'vi' ? 'Nhân viên văn phòng' : 'Office Staff'}
+                </p>
+                {loading ? (
+                  <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+                ) : (
+                  <p className="text-3xl font-bold text-green-700">{statistics.totalUsers}</p>
+                )}
               </div>
             </div>
 
             {/* Total Crew */}
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
-              <div className="flex items-center gap-3">
-                <div className="bg-orange-500 text-white p-3 rounded-lg w-12 h-12">
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">
-                    {language === 'vi' ? 'Thuyền viên' : 'Crew Members'}
-                  </p>
-                  {loading ? (
-                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
-                  ) : (
-                    <p className="text-3xl font-bold text-orange-700">{statistics.totalCrew}</p>
-                  )}
-                </div>
+              <div>
+                <p className="text-sm text-gray-600">
+                  {language === 'vi' ? 'Thuyền viên' : 'Crew Members'}
+                </p>
+                {loading ? (
+                  <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+                ) : (
+                  <p className="text-3xl font-bold text-orange-700">{statistics.totalCrew}</p>
+                )}
               </div>
             </div>
 
             {/* Active Users */}
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
-              <div className="flex items-center gap-3">
-                <div className="bg-purple-500 text-white p-3 rounded-lg w-12 h-12">
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">
-                    {language === 'vi' ? 'Đang hoạt động' : 'Active Users'}
-                  </p>
-                  {loading ? (
-                    <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
-                  ) : (
-                    <p className="text-3xl font-bold text-purple-700">{statistics.activeUsers}</p>
-                  )}
-                </div>
+              <div>
+                <p className="text-sm text-gray-600">
+                  {language === 'vi' ? 'Đang hoạt động' : 'Active Users'}
+                </p>
+                {loading ? (
+                  <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
+                ) : (
+                  <p className="text-3xl font-bold text-purple-700">{statistics.activeUsers}</p>
+                )}
               </div>
             </div>
           </div>
