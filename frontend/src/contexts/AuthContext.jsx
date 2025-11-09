@@ -135,6 +135,8 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         language,
+        softwareExpiry,
+        isSoftwareExpired,
         login,
         logout,
         toggleLanguage,
