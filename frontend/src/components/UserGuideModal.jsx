@@ -768,7 +768,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
           ]}
         ],
         formula: {
-          title: 'Fee Calculation Formula',
+          title: 'Fee Calculation Formula (Base Fee Phase 1 is 30 USD)',
           main: 'Monthly Fee = (Total Ships × Base Fee) + (Office Staff × $2) + (Crew Members × $0.5)',
           breakdown: [
             {
