@@ -362,7 +362,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       },
       {
         icon: '💰',
-        title: '10. Tính Phí Hàng Tháng',
+        title: '10. Tính Phí Hàng Tháng (Trước thuế)',
         color: 'blue',
         steps: [
           { step: '1', text: 'Đăng nhập với tài khoản có quyền Admin trở lên' },
