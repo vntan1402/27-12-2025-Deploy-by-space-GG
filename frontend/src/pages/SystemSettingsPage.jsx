@@ -58,8 +58,8 @@ const SystemSettingsPage = () => {
 
       {/* Main Content */}
       <div className="space-y-8">
-        {/* User Management - Manager, Admin, Super Admin */}
-        {(user.role === 'manager' || user.role === 'admin' || user.role === 'super_admin') && (
+        {/* User Management - Manager, Admin, Super Admin, System Admin */}
+        {(user.role === 'manager' || user.role === 'admin' || user.role === 'super_admin' || user.role === 'system_admin') && (
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">
               👥 {language === 'vi' ? 'Quản lý người dùng' : 'User Management'}
@@ -68,8 +68,8 @@ const SystemSettingsPage = () => {
           </div>
         )}
 
-        {/* Company Management - Admin, Super Admin */}
-        {(user.role === 'admin' || user.role === 'super_admin') && (
+        {/* Company Management - Admin, Super Admin, System Admin */}
+        {(user.role === 'admin' || user.role === 'super_admin' || user.role === 'system_admin') && (
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">
               🏢 {language === 'vi' ? 'Quản lý công ty' : 'Company Management'}
@@ -78,8 +78,8 @@ const SystemSettingsPage = () => {
           </div>
         )}
 
-        {/* System Google Drive - Super Admin Only */}
-        {user.role === 'super_admin' && (
+        {/* System Google Drive - Super Admin, System Admin */}
+        {(user.role === 'super_admin' || user.role === 'system_admin') && (
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">
               📁 {language === 'vi' ? 'Cấu hình Google Drive hệ thống' : 'System Google Drive Configuration'}
