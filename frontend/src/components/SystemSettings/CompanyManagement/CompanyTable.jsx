@@ -111,7 +111,7 @@ const CompanyTable = ({
         </thead>
         <tbody>
           {companies.map((company) => {
-            const expiryStatus = getExpiryStatus(company.system_expiry);
+            const expiryStatus = getExpiryStatus(company.software_expiry);
             
             return (
               <tr 
@@ -144,7 +144,7 @@ const CompanyTable = ({
                 </td>
                 <td className="border border-gray-300 px-4 py-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getExpiryBadgeClass(expiryStatus)}`}>
-                    {formatExpiry(company.system_expiry)}
+                    {formatExpiry(company.software_expiry)}
                   </span>
                 </td>
                 <td className="border border-gray-300 px-4 py-3">
