@@ -34,8 +34,9 @@ const HomePage = () => {
         return;
       }
       
-      // Find company by name (user.company is the company name)
+      // Find company by ID (UUID) or name
       const userCompany = companies.find(c => 
+        c.id === user.company ||
         c.name_vn === user.company || 
         c.name_en === user.company || 
         c.name === user.company
