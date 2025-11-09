@@ -55,21 +55,25 @@ export const CompanyInfoPanel = ({ companyData, onClose }) => {
     <div className="grid md:grid-cols-3 gap-6 mb-6">
       {/* Company Logo - Left Side (1/3 width) */}
       <div className="md:col-span-1">
-        <div className="bg-gray-200 rounded-lg p-4 h-48 flex items-center justify-center">
-          {companyData?.logo_url && companyData.logo_url !== '' ? (
+        <div className="bg-white rounded-lg p-4 h-48 flex items-center justify-center border border-gray-200">
+          {companyLogoUrl ? (
             <img 
-              src={companyData.logo_url} 
+              src={companyLogoUrl} 
               alt="Company Logo" 
               className="max-w-full max-h-40 object-contain"
               onError={(e) => {
+                console.error('❌ Failed to load company logo in CompanyInfoPanel');
                 e.target.style.display = 'none';
-                e.target.parentElement.innerHTML = '<div class="text-center"><div class="text-4xl mb-2">🏢</div><p class="font-semibold">COMPANY LOGO</p></div>';
+                e.target.parentElement.innerHTML = '<div class="text-center"><div class="text-4xl mb-2">🏢</div><p class="font-semibold text-gray-600">COMPANY LOGO</p></div>';
+              }}
+              onLoad={() => {
+                console.log('✅ Company logo loaded successfully in CompanyInfoPanel');
               }}
             />
           ) : (
             <div className="text-center">
               <div className="text-4xl mb-2">🏢</div>
-              <p className="font-semibold">COMPANY LOGO</p>
+              <p className="font-semibold text-gray-600">COMPANY LOGO</p>
             </div>
           )}
         </div>
