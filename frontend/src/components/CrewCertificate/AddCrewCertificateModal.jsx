@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUploadGuard } from '../../hooks/useUploadGuard';
 import { toast } from 'sonner';
 import api from '../../services/api';
 
