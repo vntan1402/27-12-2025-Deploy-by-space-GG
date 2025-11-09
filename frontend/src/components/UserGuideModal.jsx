@@ -488,7 +488,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '🖱️',
         title: '6. Using Context Menu',
-        color: 'pink',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Context Menu appears when:', details: [
             'Right-click on table row',
