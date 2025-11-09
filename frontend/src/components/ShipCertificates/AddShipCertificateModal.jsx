@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUploadGuard } from '../../hooks/useUploadGuard';
 import api from '../../services/api';
 import { DuplicateShipCertificateModal } from './DuplicateShipCertificateModal';
 import { ShipNameMismatchModal } from './ShipNameMismatchModal';
