@@ -259,7 +259,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '🎯',
         title: '9. Các Tính Năng Khác',
-        color: 'gray',
+        color: 'blue',
         features: [
           {
             name: '🔍 Advanced Search & Filters',
