@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUploadGuard } from '../../hooks/useUploadGuard';
 import { shipService, companyService } from '../../services';
 import api from '../../services/api';
 import { toast } from 'sonner';
 
 const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
   const { language, user } = useAuth();
+  const { isSoftwareExpired, checkAndWarn } = useUploadGuard();
   const navigate = useNavigate();
   
   // State for ship data
