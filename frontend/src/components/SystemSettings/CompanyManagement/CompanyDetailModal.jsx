@@ -215,8 +215,7 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
             {/* Ships Count */}
             <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
               <div className="flex items-center gap-3">
-                <div className="bg-blue-500 text-white p-3 rounded-lg">
-                  🚢
+                <div className="bg-blue-500 text-white p-3 rounded-lg w-12 h-12">
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">
@@ -234,8 +233,7 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
             {/* Total Users */}
             <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
               <div className="flex items-center gap-3">
-                <div className="bg-green-500 text-white p-3 rounded-lg">
-                  👥
+                <div className="bg-green-500 text-white p-3 rounded-lg w-12 h-12">
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">
@@ -253,8 +251,7 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
             {/* Total Crew */}
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
               <div className="flex items-center gap-3">
-                <div className="bg-orange-500 text-white p-3 rounded-lg">
-                  ⚓
+                <div className="bg-orange-500 text-white p-3 rounded-lg w-12 h-12">
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">
@@ -272,8 +269,7 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
             {/* Active Users */}
             <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
               <div className="flex items-center gap-3">
-                <div className="bg-purple-500 text-white p-3 rounded-lg">
-                  ✓
+                <div className="bg-purple-500 text-white p-3 rounded-lg w-12 h-12">
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">
