@@ -930,6 +930,7 @@ export const AddShipCertificateModal = ({
               </div>
             )}
           </div>
+          )}
 
           {/* Certificate Form Fields */}
           <div className="space-y-4">
