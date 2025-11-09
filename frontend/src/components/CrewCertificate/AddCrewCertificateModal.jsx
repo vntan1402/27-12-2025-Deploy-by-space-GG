@@ -258,6 +258,12 @@ const AddCrewCertificateModal = ({
   };
 
   const analyzeFile = async (file) => {
+    // Check if software is expired before AI analysis
+    if (!checkAndWarn()) {
+      setUploadedFile(null);
+      return;
+    }
+
     if (!formData.crew_id) {
       setWarningMessage(language === 'vi' 
         ? 'Vui lòng chọn thuyền viên trước khi phân tích file' 
