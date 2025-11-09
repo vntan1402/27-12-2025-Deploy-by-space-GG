@@ -191,6 +191,11 @@ const CompanyManagement = () => {
         try {
           await companyService.uploadLogo(companyId, logoFile);
           toast.success(language === 'vi' ? 'Logo đã được cập nhật!' : 'Logo updated successfully!');
+          
+          // Reload page to refresh logo in all places (HomePage, etc.)
+          setTimeout(() => {
+            window.location.reload();
+          }, 1500);
         } catch (logoError) {
           console.error('Failed to upload logo:', logoError);
           toast.warning(language === 'vi' ? 'Công ty đã được cập nhật nhưng không thể tải logo' : 'Company updated but logo upload failed');
