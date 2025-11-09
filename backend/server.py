@@ -25660,14 +25660,19 @@ async def get_class_society_mappings(
 
 @api_router.get("/audit-certificates")
 async def get_audit_certificates(
-    ship_id: str,
+    ship_id: Optional[str] = None,
     current_user: UserResponse = Depends(get_current_user)
 ):
-    """Get all audit certificates for a specific ship"""
+    """Get all audit certificates for a specific ship or all audit certificates if ship_id not provided"""
     try:
-        logger.info(f"📁 Fetching audit certificates for ship_id: {ship_id}")
+        if ship_id:
+            logger.info(f"📁 Fetching audit certificates for ship_id: {ship_id}")
+            query = {"ship_id": ship_id}
+        else:
+            logger.info(f"📁 Fetching all audit certificates")
+            query = {}
         
-        certificates = await mongo_db.find_all("audit_certificates", {"ship_id": ship_id})
+        certificates = await mongo_db.find_all("audit_certificates", query)
         
         # Enhance each certificate with abbreviation and status  
         enhanced_certificates = []
