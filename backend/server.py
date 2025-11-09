@@ -28429,10 +28429,8 @@ async def upload_other_audit_document_folder(
 # Add the router to the main app
 app.include_router(api_router)
 
-# Static files - Mount both at root and under /api for ingress routing
+# Static files
 app.mount("/uploads", StaticFiles(directory="/app/backend/uploads"), name="uploads")
-# Also mount under /api/uploads for Kubernetes ingress routing
-api_router.mount("/uploads", StaticFiles(directory="/app/backend/uploads"), name="api_uploads")
 
 # ============================================================================
 # APPLICATION EVENTS
