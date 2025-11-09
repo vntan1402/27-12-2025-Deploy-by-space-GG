@@ -5143,6 +5143,17 @@ async def update_company(company_id: str, company_data: CompanyUpdate, current_u
         logger.error(f"Error updating company: {e}")
         raise HTTPException(status_code=500, detail="Failed to update company")
 
+@api_router.get("/uploads/{folder}/{filename}")
+async def serve_uploaded_file(folder: str, filename: str):
+    """
+    Serve uploaded files through /api/uploads path for Kubernetes ingress routing
+    """
+    file_path = f"/app/backend/uploads/{folder}/{filename}"
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    return FileResponse(file_path)
+
 @api_router.post("/companies/{company_id}/upload-logo")
 async def upload_company_logo(
     company_id: str,
