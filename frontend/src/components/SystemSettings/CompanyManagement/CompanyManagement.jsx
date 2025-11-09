@@ -75,9 +75,9 @@ const CompanyManagement = () => {
       let companiesList = response.data || [];
       
       // Filter companies based on user role
-      // Only super_admin can see all companies
-      // Other users can only see their own company
-      if (currentUser.role !== 'super_admin') {
+      // Only system_admin (highest role) can see all companies
+      // Other users (super_admin, admin, manager, viewer) can only see their own company
+      if (currentUser.role !== 'system_admin') {
         companiesList = companiesList.filter(company => 
           company.id === currentUser.company || 
           company.name_en === currentUser.company || 
