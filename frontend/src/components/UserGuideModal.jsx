@@ -730,6 +730,67 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
             ]
           }
         ]
+      },
+      {
+        icon: '💰',
+        title: '10. Monthly Fee Calculation',
+        color: 'blue',
+        steps: [
+          { step: '1', text: 'Login with Admin privileges or higher' },
+          { step: '2', text: 'Go to "System Settings" → "Company Management"' },
+          { step: '3', text: 'Double-click on company row to open Company Details Modal' },
+          { step: '4', text: 'View statistics:', details: [
+            'Total Ships: Ships with certificates',
+            'Office Staff: Office employees (excluding crew)',
+            'Crew Members: Total crew count',
+            'Active Users: Currently active users'
+          ]},
+          { step: '5', text: 'Click "💰 Calculate Fee" button at top right' },
+          { step: '6', text: 'System calculates and displays:', details: [
+            'Monthly fee appears next to company name',
+            'Toast notification shows result',
+            'Detailed breakdown in console logs'
+          ]}
+        ],
+        formula: {
+          title: 'Fee Calculation Formula',
+          main: 'Monthly Fee = (Total Ships × Base Fee) + (Office Staff × $2) + (Crew Members × $0.5)',
+          breakdown: [
+            {
+              label: 'Total Ships × Base Fee',
+              example: '5 ships × $100 = $500',
+              description: 'Fee based on number of ships with certificates'
+            },
+            {
+              label: 'Office Staff × $2',
+              example: '10 staff × $2 = $20',
+              description: 'Fee based on office employees'
+            },
+            {
+              label: 'Crew Members × $0.5',
+              example: '50 crew × $0.5 = $25',
+              description: 'Fee based on crew members'
+            },
+            {
+              label: 'Total Fee',
+              example: '$500 + $20 + $25 = $545/month',
+              description: 'Total monthly fee payable'
+            }
+          ]
+        },
+        notes: [
+          '📌 Base Fee: Set by System Admin/Super Admin',
+          '📌 Only counts ships with at least 1 certificate',
+          '📌 Office Staff excludes users with "Ship Crew" department',
+          '📌 Crew Members counted from Crew Records',
+          '📌 Feature available for Admin and above'
+        ],
+        tips: [
+          '💡 Base Fee can be edited via "Edit Base Fee" button',
+          '💡 Fee calculated in real-time based on current data',
+          '💡 View detailed breakdown in browser console',
+          '💡 System Admin/Super Admin can view all company fees'
+        ]
       }
     ]
   };
