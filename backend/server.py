@@ -5147,7 +5147,7 @@ async def update_company(company_id: str, company_data: CompanyUpdate, current_u
 async def upload_company_logo(
     company_id: str,
     file: UploadFile = File(...),
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """Upload company logo and save to local storage"""
     try:
