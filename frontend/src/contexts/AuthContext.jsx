@@ -26,12 +26,49 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
+  const fetchCompanyExpiry = async (companyName) => {
+    try {
+      // Fetch companies to get software_expiry
+      const response = await api.get('/api/companies');
+      const companies = response.data;
+      
+      // Find user's company
+      const userCompany = companies.find(c => 
+        c.name_en === companyName || 
+        c.name_vn === companyName ||
+        c.name === companyName
+      );
+      
+      if (userCompany && userCompany.software_expiry) {
+        const expiryDate = new Date(userCompany.software_expiry);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset to start of day for accurate comparison
+        const isExpired = expiryDate < today;
+        
+        setSoftwareExpiry(userCompany.software_expiry);
+        setIsSoftwareExpired(isExpired);
+        
+        localStorage.setItem('software_expiry', userCompany.software_expiry);
+        localStorage.setItem('is_software_expired', isExpired.toString());
+        
+        console.log(`Software Expiry: ${userCompany.software_expiry}, Is Expired: ${isExpired}`);
+      }
+    } catch (error) {
+      console.error('Error fetching company expiry:', error);
+    }
+  };
+
   const verifyToken = async () => {
     try {
       const response = await authService.verifyToken();
       // Handle both formats: direct user object or wrapped in response
       const userData = response.data?.user || response.data;
       setUser(userData);
+      
+      // Fetch company expiry after verifying token
+      if (userData && userData.company) {
+        await fetchCompanyExpiry(userData.company);
+      }
     } catch (error) {
       console.error('Token verification failed:', error);
       // Don't logout immediately - just log the error
@@ -39,7 +76,12 @@ export const AuthProvider = ({ children }) => {
       // User data should already be in localStorage from login
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        // Also fetch company expiry
+        if (parsedUser && parsedUser.company) {
+          await fetchCompanyExpiry(parsedUser.company);
+        }
       } else {
         logout();
       }
