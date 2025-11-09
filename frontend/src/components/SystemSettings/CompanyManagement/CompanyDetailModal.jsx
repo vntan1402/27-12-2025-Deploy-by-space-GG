@@ -39,23 +39,11 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
       const shipCertificates = shipCertificatesResponse.data || [];
       console.log('📄 Total ship certificates:', shipCertificates.length);
 
-      // Fetch audit certificates
-      const auditCertificatesResponse = await api.get('/api/audit-certificates');
-      const auditCertificates = auditCertificatesResponse.data || [];
-      console.log('📋 Total audit certificates:', auditCertificates.length);
-
       // Get unique ship IDs that have at least one certificate
       const shipIdsWithCertificates = new Set();
       
       // Add ships from ship certificates
       shipCertificates.forEach(cert => {
-        if (cert.ship_id) {
-          shipIdsWithCertificates.add(cert.ship_id);
-        }
-      });
-      
-      // Add ships from audit certificates
-      auditCertificates.forEach(cert => {
         if (cert.ship_id) {
           shipIdsWithCertificates.add(cert.ship_id);
         }
