@@ -157,7 +157,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '🖱️',
         title: '6. Sử Dụng Context Menu',
-        color: 'pink',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Context Menu xuất hiện khi:', details: [
             'Right-click trên table row',
