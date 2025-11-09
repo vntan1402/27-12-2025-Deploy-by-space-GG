@@ -188,7 +188,10 @@ const HomePage = () => {
       {/* Main Content */}
       <div className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          {language === 'vi' ? 'Chào mừng đến hệ thống quản lý tàu biển' : 'Welcome to Ship Management System'}
+          {language === 'vi' 
+            ? `Chào mừng đến hệ thống quản lý tàu biển${companyName ? ' - ' + companyName : ''}`
+            : `Welcome to Ship Management System${companyName ? ' - ' + companyName : ''}`
+          }
         </h2>
         
         {/* Feature Cards */}
