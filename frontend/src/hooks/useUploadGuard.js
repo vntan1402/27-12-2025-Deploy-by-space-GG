@@ -35,12 +35,10 @@ export const useUploadGuard = () => {
           border: '2px solid #FCA5A5',
           color: '#991B1B',
           boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          position: 'fixed'
+          marginTop: '20vh'
         },
-        icon: '⚠️'
+        icon: '⚠️',
+        className: 'software-expired-toast'
       });
       
       return false; // Block upload
