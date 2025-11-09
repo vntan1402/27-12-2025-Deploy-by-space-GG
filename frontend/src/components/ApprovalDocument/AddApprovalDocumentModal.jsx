@@ -11,6 +11,7 @@
  */
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUploadGuard } from '../../hooks/useUploadGuard';
 import { toast } from 'sonner';
 import { formatDateForInput } from '../../utils/dateHelpers';
 
@@ -22,6 +23,7 @@ export const AddApprovalDocumentModal = ({
   onStartBatchProcessing 
 }) => {
   const { language } = useAuth();
+  const { isSoftwareExpired, checkAndWarn } = useUploadGuard();
   const [isSaving, setIsSaving] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState('');
