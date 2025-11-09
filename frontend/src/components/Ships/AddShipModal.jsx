@@ -137,6 +137,8 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
   // Handle PDF file upload for AI analysis
   const handlePdfFileSelect = (e) => {
     const file = e.target.files[0];
+    console.log('🔍 [AddShipModal] File selected, isSoftwareExpired:', isSoftwareExpired);
+    
     if (file) {
       if (file.type !== 'application/pdf') {
         toast.error(language === 'vi' 
@@ -154,6 +156,7 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
         return;
       }
       
+      console.log('📤 [AddShipModal] About to analyze PDF, checking expiry...');
       setPdfFile(file);
       analyzePdfWithAI(file);
     }
