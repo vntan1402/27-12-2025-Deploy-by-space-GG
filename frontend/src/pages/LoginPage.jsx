@@ -419,6 +419,13 @@ const LoginPage = () => {
         onClose={() => setShowUserGuideModal(false)}
         language={language}
       />
+
+      {/* Contact Modal */}
+      <ContactModal 
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        language={language}
+      />
     </div>
   );
 };
