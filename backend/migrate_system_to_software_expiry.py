@@ -3,7 +3,7 @@ Migration script to rename system_expiry to software_expiry in companies collect
 """
 import asyncio
 import os
-from mongodb_database import MongoDB
+from mongodb_database import MongoDatabase
 
 async def migrate_expiry_field():
     """Migrate system_expiry field to software_expiry in companies collection"""
