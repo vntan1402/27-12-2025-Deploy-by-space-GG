@@ -403,7 +403,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '📜',
         title: '3. Add Certificates & Reports',
-        color: 'purple',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Select certificate/report type from menu:', details: [
             'ISM-ISPS-MLC (Audit Certificates)',
