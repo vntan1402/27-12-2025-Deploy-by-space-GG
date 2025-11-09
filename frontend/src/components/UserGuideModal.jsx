@@ -773,7 +773,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
           breakdown: [
             {
               label: 'Total Ships × Base Fee',
-              example: '5 ships × $100 = $500',
+              example: `5 ships × $${baseFee} = $${5 * baseFee}`,
               description: 'Fee based on number of ships with certificates'
             },
             {
@@ -788,7 +788,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
             },
             {
               label: 'Total Fee',
-              example: '$500 + $20 + $25 = $545/month',
+              example: `$${5 * baseFee} + $20 + $25 = $${5 * baseFee + 20 + 25}/month`,
               description: 'Total monthly fee payable'
             }
           ]
@@ -799,12 +799,6 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
           '📌 Office Staff excludes users with "Ship Crew" department',
           '📌 Crew Members counted from Crew Records',
           '📌 Feature available for Admin and above'
-        ],
-        tips: [
-          '💡 Base Fee can be edited via "Edit Base Fee" button',
-          '💡 Fee calculated in real-time based on current data',
-          '💡 View detailed breakdown in browser console',
-          '💡 System Admin/Super Admin can view all company fees'
         ]
       }
     ]
