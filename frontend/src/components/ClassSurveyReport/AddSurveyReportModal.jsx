@@ -139,6 +139,12 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
 
   // AI Analysis with Ship Validation
   const analyzeFile = async (file) => {
+    // Check if software is expired before AI analysis
+    if (!checkAndWarn()) {
+      setUploadedFile(null);
+      return;
+    }
+
     if (!selectedShip) {
       toast.error(language === 'vi' ? 'Không có tàu được chọn' : 'No ship selected');
       return;
