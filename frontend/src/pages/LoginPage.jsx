@@ -20,6 +20,7 @@ const LoginPage = () => {
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [showRoadMapModal, setShowRoadMapModal] = useState(false);
   const [showUserGuideModal, setShowUserGuideModal] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   // Load saved credentials from localStorage
   useEffect(() => {
