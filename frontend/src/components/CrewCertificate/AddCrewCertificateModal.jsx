@@ -48,6 +48,7 @@ const AddCrewCertificateModal = ({
   allCrewList = []
 }) => {
   const { language, user } = useAuth();
+  const { isSoftwareExpired, checkAndWarn } = useUploadGuard();
   const fileInputRef = useRef(null);
   
   // State
