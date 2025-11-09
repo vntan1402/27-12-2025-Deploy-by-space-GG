@@ -554,7 +554,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '⚡',
         title: '8. Bulk Actions',
-        color: 'red',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Bulk Actions allow:', details: [
             'Delete multiple records at once',
