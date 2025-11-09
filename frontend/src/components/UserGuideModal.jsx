@@ -184,7 +184,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '📦',
         title: '7. Batch Upload - Upload Hàng Loạt',
-        color: 'teal',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Có 2 loại Batch Upload:', details: [
             'Ship Certificates Batch Upload',
