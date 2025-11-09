@@ -131,7 +131,8 @@ const CompanyManagement = () => {
   };
 
   /**
-   * Check if user can configure Google Drive (System Admin & Super Admin only)
+   * Check if user can configure Google Drive
+   * System Admin & Super Admin can configure Google Drive
    */
   const canConfigureGoogleDrive = () => {
     return currentUser.role === 'system_admin' || currentUser.role === 'super_admin';
