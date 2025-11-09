@@ -72,7 +72,20 @@ const CompanyManagement = () => {
     try {
       setLoading(true);
       const response = await companyService.getAll();
-      setCompanies(response.data || []);
+      let companiesList = response.data || [];
+      
+      // Filter companies based on user role
+      // Only super_admin can see all companies
+      // Other users can only see their own company
+      if (currentUser.role !== 'super_admin') {
+        companiesList = companiesList.filter(company => 
+          company.id === currentUser.company || 
+          company.name_en === currentUser.company || 
+          company.name_vn === currentUser.company
+        );
+      }
+      
+      setCompanies(companiesList);
     } catch (error) {
       console.error('Failed to fetch companies:', error);
       toast.error(language === 'vi' ? 'Không thể tải danh sách công ty' : 'Failed to load companies');
