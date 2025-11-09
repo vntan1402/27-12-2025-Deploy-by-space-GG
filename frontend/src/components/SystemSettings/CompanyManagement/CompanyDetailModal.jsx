@@ -20,21 +20,29 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
   const fetchCompanyStatistics = async () => {
     setLoading(true);
     try {
+      console.log('🔍 Fetching company statistics for:', company);
+      
       // Fetch ships
       const shipsResponse = await api.get('/api/ships');
+      console.log('📊 All ships:', shipsResponse.data?.length);
+      
       const companyShips = shipsResponse.data.filter(ship => 
         ship.company === company.id || 
         ship.company === company.name_en || 
         ship.company === company.name_vn
       );
+      console.log('🚢 Company ships (before certificate filter):', companyShips.length);
+      console.log('🔑 Company identifiers - ID:', company.id, 'Name EN:', company.name_en, 'Name VN:', company.name_vn);
 
       // Fetch ship certificates
       const shipCertificatesResponse = await api.get('/api/ship-certificates/all');
       const shipCertificates = shipCertificatesResponse.data || [];
+      console.log('📄 Total ship certificates:', shipCertificates.length);
 
       // Fetch audit certificates
       const auditCertificatesResponse = await api.get('/api/audit-certificates');
       const auditCertificates = auditCertificatesResponse.data || [];
+      console.log('📋 Total audit certificates:', auditCertificates.length);
 
       // Get unique ship IDs that have at least one certificate
       const shipIdsWithCertificates = new Set();
@@ -52,11 +60,14 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
           shipIdsWithCertificates.add(cert.ship_id);
         }
       });
+      
+      console.log('🎯 Unique ship IDs with certificates:', Array.from(shipIdsWithCertificates));
 
       // Count only ships that have at least one certificate
       const shipsWithCertificates = companyShips.filter(ship => 
         shipIdsWithCertificates.has(ship.id)
       );
+      console.log('✅ Ships with certificates:', shipsWithCertificates.length);
 
       // Fetch users count (office staff only - exclude ship_crew department)
       const usersResponse = await api.get('/api/users');
