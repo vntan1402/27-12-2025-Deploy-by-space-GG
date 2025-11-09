@@ -75,10 +75,11 @@ export const companyService = {
    */
   uploadLogo: async (companyId, logoFile) => {
     const formData = new FormData();
-    formData.append('logo', logoFile);
+    formData.append('file', logoFile); // Backend expects 'file', not 'logo'
     
     return api.post(API_ENDPOINTS.COMPANY_LOGO(companyId), formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000 // 60 seconds for large files
     });
   },
 
