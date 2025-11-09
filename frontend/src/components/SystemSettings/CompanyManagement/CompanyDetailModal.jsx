@@ -396,22 +396,24 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
                 <p className="text-gray-800 font-medium mt-1">{company.zalo || 'N/A'}</p>
               </div>
 
-              {/* Software Expiry */}
-              <div>
-                <label className="text-sm font-medium text-gray-600">
-                  {language === 'vi' ? 'Hạn sử dụng phần mềm' : 'Software Expiry'}
-                </label>
-                <div className="mt-1">
-                  {company.software_expiry ? (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-800">{formatDate(company.software_expiry)}</span>
-                      {getSystemExpiryBadge(company.software_expiry)}
-                    </div>
-                  ) : (
-                    <p className="text-gray-800">N/A</p>
-                  )}
+              {/* Software Expiry - Only for System Admin & Super Admin */}
+              {currentUser && (currentUser.role === 'system_admin' || currentUser.role === 'super_admin') && (
+                <div>
+                  <label className="text-sm font-medium text-gray-600">
+                    {language === 'vi' ? 'Hạn sử dụng phần mềm' : 'Software Expiry'}
+                  </label>
+                  <div className="mt-1">
+                    {company.software_expiry ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-800">{formatDate(company.software_expiry)}</span>
+                        {getSystemExpiryBadge(company.software_expiry)}
+                      </div>
+                    ) : (
+                      <p className="text-gray-800">N/A</p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Vietnamese Address */}
