@@ -718,14 +718,14 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
                 {/* Section Header - Clickable */}
                 <button
                   onClick={() => toggleSection(index)}
-                  className={`w-full p-4 flex items-center justify-between bg-gradient-to-r ${getColorClasses(section.color)} text-white hover:opacity-90 transition-all`}
+                  className={`w-full p-4 flex items-center justify-between bg-gradient-to-r ${getColorClasses(section.color)} hover:opacity-90 transition-all border-2 border-blue-300`}
                 >
                   <div className="flex items-center">
                     <span className="text-2xl mr-3">{section.icon}</span>
-                    <h3 className="text-lg font-bold text-left">{section.title}</h3>
+                    <h3 className="text-lg font-bold text-left text-gray-800">{section.title}</h3>
                   </div>
                   <svg 
-                    className={`w-5 h-5 transform transition-transform ${expandedSection === index ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 transform transition-transform text-gray-700 ${expandedSection === index ? 'rotate-180' : ''}`}
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
