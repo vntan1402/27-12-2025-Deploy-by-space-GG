@@ -26,9 +26,9 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  const fetchCompanyExpiry = async (companyName) => {
+  const fetchCompanyExpiry = async (companyIdOrName) => {
     try {
-      console.log('🔍 [AuthContext] Fetching company expiry for:', companyName);
+      console.log('🔍 [AuthContext] Fetching company expiry for:', companyIdOrName);
       
       // Fetch companies to get software_expiry
       const response = await api.get('/api/companies');
@@ -36,14 +36,15 @@ export const AuthProvider = ({ children }) => {
       
       console.log('📦 [AuthContext] Total companies fetched:', companies.length);
       
-      // Find user's company
+      // Find user's company by ID (UUID) or name
       const userCompany = companies.find(c => 
-        c.name_en === companyName || 
-        c.name_vn === companyName ||
-        c.name === companyName
+        c.id === companyIdOrName ||
+        c.name_en === companyIdOrName || 
+        c.name_vn === companyIdOrName ||
+        c.name === companyIdOrName
       );
       
-      console.log('🏢 [AuthContext] Found user company:', userCompany?.name_en || userCompany?.name_vn);
+      console.log('🏢 [AuthContext] Found user company:', userCompany?.name_en || userCompany?.name_vn || 'NOT FOUND');
       
       if (userCompany && userCompany.software_expiry) {
         const expiryDate = new Date(userCompany.software_expiry);
