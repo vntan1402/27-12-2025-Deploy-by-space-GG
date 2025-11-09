@@ -102,7 +102,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '👨‍✈️',
         title: '4. Thêm Thuyền Viên',
-        color: 'indigo',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Vào trang "Crew Records" từ sidebar' },
           { step: '2', text: 'Click nút "➕ Add Crew Member"' },
