@@ -8,6 +8,21 @@ import { useAuth } from '../contexts/AuthContext';
 
 export const CompanyInfoPanel = ({ companyData, onClose }) => {
   const { language } = useAuth();
+  
+  // Process logo URL to use /api/files endpoint
+  const getLogoUrl = (logoUrl) => {
+    if (!logoUrl) return null;
+    if (logoUrl.startsWith('http')) {
+      return logoUrl;
+    } else if (logoUrl.startsWith('/uploads/')) {
+      // Convert /uploads/folder/file to /api/files/folder/file
+      return `${process.env.REACT_APP_BACKEND_URL}/api/files${logoUrl.substring(8)}`;
+    } else {
+      return `${process.env.REACT_APP_BACKEND_URL}${logoUrl}`;
+    }
+  };
+  
+  const companyLogoUrl = getLogoUrl(companyData?.logo_url);
 
   // Format date
   const formatDate = (dateString) => {
