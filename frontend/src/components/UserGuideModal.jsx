@@ -748,7 +748,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       },
       {
         icon: '💰',
-        title: '10. Monthly Fee Calculation',
+        title: '10. Monthly Fee Calculation (Before Tax)',
         color: 'blue',
         steps: [
           { step: '1', text: 'Login with Admin privileges or higher' },
