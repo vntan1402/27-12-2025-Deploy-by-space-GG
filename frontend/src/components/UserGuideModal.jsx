@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const UserGuideModal = ({ isOpen, onClose, language }) => {
   if (!isOpen) return null;
