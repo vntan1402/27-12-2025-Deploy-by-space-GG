@@ -291,19 +291,21 @@ const CompanyFormModal = ({
             )}
           </div>
 
-          {/* System Expiry */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Ngày hết hạn phần mềm' : 'Software Expiry Date'}
-            </label>
-            <input
-              type="date"
-              value={companyData.software_expiry}
-              onChange={(e) => setCompanyData(prev => ({ ...prev, software_expiry: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-              disabled={loading}
-            />
-          </div>
+          {/* Software Expiry - Only for System Admin & Super Admin */}
+          {currentUser && (currentUser.role === 'system_admin' || currentUser.role === 'super_admin') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Ngày hết hạn phần mềm' : 'Software Expiry Date'}
+              </label>
+              <input
+                type="date"
+                value={companyData.software_expiry}
+                onChange={(e) => setCompanyData(prev => ({ ...prev, software_expiry: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                disabled={loading}
+              />
+            </div>
+          )}
 
           {/* Company Google Drive Configuration (Edit mode only - System Admin & Super Admin only) */}
           {mode === 'edit' && company && onConfigureGoogleDrive && 
