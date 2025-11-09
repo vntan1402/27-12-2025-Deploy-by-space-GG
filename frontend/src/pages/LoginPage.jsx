@@ -410,6 +410,13 @@ const LoginPage = () => {
         onClose={() => setShowRoadMapModal(false)}
         language={language}
       />
+
+      {/* User Guide Modal */}
+      <UserGuideModal 
+        isOpen={showUserGuideModal}
+        onClose={() => setShowUserGuideModal(false)}
+        language={language}
+      />
     </div>
   );
 };
