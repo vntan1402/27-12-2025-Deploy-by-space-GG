@@ -1,104 +1,88 @@
 <analysis>
-The trajectory details the work of an AI engineer on an existing maritime document management application. Key phases involved addressing critical bugs related to certificate uploads and ship deletion, enhancing AI extraction for new ship details, and implementing new features such as user role management, department filtering, and company statistics. A significant portion of the work focused on debugging and refining the AI extraction for Last Docking dates and Ship Type during new ship creation. This involved correcting API endpoint logic (from the initial assumption of a wrong endpoint to modifying the existing one), handling diverse date formats in both frontend and backend, and resolving a complex MongoDB unique index issue for user emails. Towards the end, the engineer integrated a System Admin role, customized department selections, and added Company Detail and Edit Base Fee modals, facing a persistent 404 error with the new base fee endpoints, which is the current unresolved task. The work demonstrates iterative problem-solving and close user interaction, with a focus on both functionality and data integrity.
+The AI engineer's work spanned critical bug fixes, feature enhancements, and UI/UX improvements for a maritime document management application. Key tasks included resolving a persistent 404 error for new base fee endpoints by relocating them in , refining the Total Ships calculation in  to only count ships with associated certificates (involving fixing API endpoint calls and making  optional for ), and streamlining Crew Members calculation by removing redundant frontend filtering. UI/UX changes involved removing icons and colored boxes from company statistics, implementing a monthly fee calculation feature, and restructuring the  with a new layout, language toggle, and integrating Introduction, Road Map, and User Guide modals. Throughout, user role hierarchy was refined, elevating  and equating  permissions. The current task is to refine the User Guide's Fee Calculation section, specifically by removing tips and dynamically inserting the system's base fee.
 </analysis>
 
 <product_requirements>
-The application manages maritime documents for ships and crew. Initial enhancements included  and  modules, and renaming  to  with dedicated features.
+The application is a comprehensive system for managing maritime documents for ships and crew, with a strong focus on AI-driven data extraction and automation. Key existing modules include Crew List, Approval Document, and Other Audit Documents.
 
-Recent explicit requests from the user:
-1.  **Google Drive Folder Simplification**: Create a single ship-named folder in Google Drive for new ships.
-2.  **Fix Certificate Upload Error**: Resolve certificate belongs to another ship error.
-3.  **Fix Crew Certificate Ship not found**: Address ship not found during crew certificate uploads.
-4.  **Crew Certificate Table Title**: Dynamically display Crew Certificates for [Selected Crew].
-5.  **Ship Deletion Validation**: Prevent ship deletion if associated crew or documents exist, with user feedback.
-6.  **Bulk Delete Ship Certificate Fix**: Ensure correct bulk deletion of ship certificates.
-7.  **Batch Upload Modals for Ship Certificates**: Implement processing and results modals for batch uploads with parallel processing.
-8.  **Enhanced AI Extraction for New Ship**: Improve autofill for Last Docking 1, Last Docking 2, and Ship Type during new ship creation from documents, supporting flexible date formats and dropdown for ship types. This evolved into modifying the existing  endpoint for this purpose.
-9.  **Add System Admin Role**: Introduce a new, highest-privilege user role.
-10. **Rename Departments**: Change Vietnamese labels for Operations to Khai thác and Commercial to Kinh Doanh.
-11. **Department Auto-selection/Locking**: When creating a user with Crew or Ship Officer role, auto-select and lock Ship Crew department.
-12. **Add SSO Department**: Introduce SSO department, visible and selectable only for Ship Officer after Ship Crew is selected.
-13. **Add CSO Department**: Introduce CSO department.
-14. **Filter Departments by Role**: For Company Officer, hide Ship Crew and SSO departments. For Ship Officer and Crew, hide CSO.
-15. **Company Detail Modal**: Double-click on a company row to show a modal with company info, total ships, and total non-crew users. Later modified to show total crew members from crew records.
-16. **Edit Base Fee Feature**: Add an Edit Base Fee button and modal in Company Management to update and display a system-wide base fee.
+Recent feature and fix requests from the user:
+1.  **Enhanced AI Extraction for New Ship**: Improve autofill for Last Docking 1, Last Docking 2, and Ship Type during new ship creation from documents, supporting flexible date formats and dropdown for ship types (modifying ).
+2.  **Add System Admin Role**: Introduce a new, highest-privilege user role.
+3.  **Rename Departments**: Update Vietnamese labels for Operations to Khai thác and Commercial to Kinh Doanh.
+4.  **Department Auto-selection/Locking**: For Crew or Ship Officer roles, auto-select and lock Ship Crew department.
+5.  **Add SSO and CSO Departments**: Introduce SSO and CSO departments with specific visibility rules.
+6.  **Filter Departments by Role**: Implement role-based filtering for department options.
+7.  **Company Detail Modal**: Display company info, total ships (later refined to only count ships with certificates), and total non-crew/crew users.
+8.  **Edit Base Fee Feature**: Add Edit Base Fee button and modal in Company Management, with backend endpoints for update and retrieval.
+9.  **Total Ships Counting Logic**: In Company Details, count only ships with at least one Ship Certificate or Audit Certificate.
+10. **Crew Members Calculation Logic**: Simplify by removing redundant frontend filtering as backend already filters by company.
+11. **UI Refinement - Company Details**: Remove icons and colored boxes from statistics.
+12. **Monthly Fee Calculation**: Add a Tính Phí button to Company Details, calculate , and display it.
+13. **Company Management Filtering**: Users should only see their own company (unless System Admin/Super Admin).
+14. **Role Hierarchy Update**: System Admin is the highest role, above Super Admin. Later, Super Admin permissions were made identical to System Admin.
+15. **AI Configuration Visibility**: Only accessible to Super Admin and above.
+16. **Login Page Redesign**: Move login modal right, add placeholder buttons (Introduction, Road Map, User Guide, Contact) on the left, and a language toggle.
+17. **Content Modals**: Create Introduction, Road Map, and User Guide modals with specific content and styling, integrated into the Login Page.
+18. **User Guide Tính Phí Section**: Add details on fee calculation, including dynamic base fee.
 </product_requirements>
 
 <key_technical_concepts>
--   **Frontend**: React.js (functional components, hooks, modals), Axios for API calls, Tailwind CSS for styling.
--   **Backend**: FastAPI (API, Pydantic models, Dependency Injection for authentication), MongoDB for data storage (using UUIDs, sparse unique indexes).
--   **External**: Google Drive integration (via Google Apps Script, though full integration not detailed), LLM for OCR/document analysis.
--   **Patterns**: RESTful API design, modular frontend architecture.
+-   **Frontend**: React.js (functional components, hooks, modals), Axios for API calls, Tailwind CSS for styling,  context for user management.
+-   **Backend**: FastAPI (API, Pydantic models, Dependency Injection for authentication), MongoDB for data storage (UUIDs, sparse unique indexes).
+-   **External**: Google Drive integration (via Google Apps Script, partial), LLM for OCR/document analysis.
+-   **Patterns**: RESTful API design, modular frontend architecture, role-based access control.
 </key_technical_concepts>
 
 <code_architecture>
-The application consists of a React.js frontend and a FastAPI/MongoDB backend.
+The application comprises a React.js frontend and a FastAPI/MongoDB backend.
 
 
 
 -   ****:
-    -   **Importance**: Main FastAPI application logic, API routes, data models (Pydantic), and utility functions.
+    -   **Importance**: Main FastAPI application logic, API routes, data models, and utility functions.
     -   **Changes**:
-        -   : Modified to include AI extraction for  (from a predefined list of types) and , and refined prompts for  and  to preserve date formats.
-        -   : Enhanced to parse additional date formats like  and  to correctly handle AI-extracted date strings.
-        -   **User Roles & Departments**:  and  Enums updated to include ,  (Ship Security Officer), and  (Company Security Officer).
-        -   **Base Fee Endpoints (NEW)**: Added  and  for retrieving and updating a system-wide base fee. The  endpoint was specifically modified to accept  as a  parameter.
+        -   **Base Fee Endpoints**:  and  were *moved* from after  to a correct location after  endpoints (around line 5290) to resolve 404 errors.  endpoint explicitly uses  for .
+        -   **Audit Certificate Endpoint**:  () was modified to make  to allow fetching all audit certificates if  is not provided.
+        -   **User Roles & Departments**:  model and related logic reviewed to confirm  field presence.
 -   ****:
-    -   **Importance**: Handles MongoDB connection and index creation.
-    -   **Changes**: Modified  to create a  unique index on the  field in the  collection. This fixed  for multiple users with . Includes logic to clean up existing  email values before index creation.
--   ****: Displays ship certificates. (Initial changes not detailed in trajectory, but part of context.)
--   ****: Displays crew certificates. (Initial changes not detailed in trajectory, but part of context.)
--   ****: Handles adding new crew certificates. (Initial changes not detailed in trajectory, but part of context.)
--   ****:
-    -   **Importance**: Handles adding new ships, including AI-powered autofill.
+    -   **Importance**: Displays company details and statistics.
     -   **Changes**:
-        -   Calls  for AI analysis.
-        -   : Significantly enhanced to correctly parse various string date formats (e.g., JUL 2025, 28 July 2025, July 2025) into ISO format before sending to the backend.
-        -   Ship Type field is a dropdown.
--   ****: Handles editing existing ship details. (Initial changes not detailed in trajectory, but part of context.)
--   ** (NEW)**: Informs user why a ship cannot be deleted.
--   ** (NEW)**: Displays progress during batch uploads.
--   ** (NEW)**: Displays results after batch uploads.
--   ****: Handles adding new ship certificates. (Initial changes not detailed in trajectory, but part of context.)
--   ****:
-    -   **Importance**: Displays ship details and related actions.
-    -   **Changes**: Fixed calls to  and  to correctly extract data from  (instead of the full Axios response object).
--   ****:
-    -   **Importance**: Handles adding new users and configuring their roles/departments.
-    -   **Changes**:
-        -   Updated  and  for .
-        -    updated for new roles.
-        -   **Department Logic**: Implemented  and conditional rendering to auto-select and lock Ship Crew for Crew and Ship Officer roles. Also, dynamically filters department options based on the selected role (e.g., hiding 'ship_crew' and 'sso' for 'Company Officer', hiding 'cso' for 'Ship Officer' and 'Crew').
-        -   Added  and  department options to dropdowns and display logic.
--   ****:
-    -   **Importance**: Handles editing existing user details.
-    -   **Changes**: Applied similar  and department filtering/locking logic as in . Adjusted  for department prefill to prevent overriding existing selections on initial load while still reacting to role changes. Added  and  departments and their display logic.
--   ****:
-    -   **Importance**: Displays a table of users.
-    -   **Changes**: Updated  and department column rendering to reflect , ,  roles/departments and new Vietnamese names.
--   ****:
-    -   **Importance**: Provides filtering options for users.
-    -   **Changes**: Updated department filter options to include new Vietnamese names and , .
--   ** (NEW)**:
-    -   **Importance**: Displays detailed information about a company, including statistics.
-    -   **Changes**: Created to show company details, total ships, and total *non-crew* users. Later updated to specifically fetch and display  based on actual crew records (), not just users with 'ship_crew' department.
--   ****:
-    -   **Importance**: Displays a table of companies.
-    -   **Changes**: Added  handler to table rows to open .
+        -   **Total Ships**: Logic modified to fetch  and  (after  made optional) and count only ships associated with at least one certificate.
+        -   **Crew Members**: Simplified logic to use  directly, removing redundant frontend filtering after backend was confirmed to filter by .
+        -   **UI**: Removed all emoji icons and colored background boxes from statistics cards.
+        -   **Monthly Fee**: Added  function,  state, a Tính Phí button, and display of the calculated fee next to the company name.
+        -   **Debugging**: Temporary  statements added for debugging statistics issues.
 -   ****:
     -   **Importance**: Manages company-related actions and views.
     -   **Changes**:
-        -   Added state and handlers for .
-        -   Updated  permission check to allow  and .
-        -   Added  state,  state,  and  functions.
-        -   Integrated Edit Base Fee button and  into the UI, displaying the .
+        -   **Company Filtering**:  modified to filter companies by  unless the user is  or .
+        -   **Permissions**: , ,  logic updated to align with  as the highest role (and  having equal permissions).
 -   ****:
-    -   **Importance**: Form for adding/editing company details.
-    -   **Changes**: Modified to hide the Google Drive configuration section from Admin role users.
+    -   **Importance**: Handles adding new users.
+    -   **Changes**: Updated role hierarchy logic to reflect  as the highest, with  permissions adjusted accordingly.
+-   ****:
+    -   **Importance**: Handles editing existing users.
+    -   **Changes**: Updated role hierarchy logic similarly to .
+-   ****:
+    -   **Importance**: Main System Settings page displaying various configuration sections.
+    -   **Changes**:
+        -   **AI Configuration Visibility**: Modified to display only for  or  roles.
+        -   **Section Permissions**: Other sections (User Management, Company Management, Admin Tools) updated to ensure  (and ) have full access.
+-   ****:
+    -   **Importance**: User login interface.
+    -   **Changes**:
+        -   **Layout Redesign**: Moved login modal to the right, added a left panel with placeholder buttons for Introduction, Road Map, User Guide, and Contact.
+        -   **Language Toggle**: Added a language switch (English/Vietnamese) to the top right.
+        -   **Modal Integration**: Integrated , , and  components, and enabled their respective buttons.
 -   ** (NEW)**:
-    -   **Importance**: A new modal to allow users to update the system-wide base fee.
-    -   **Changes**: Created to capture and send the new base fee to the backend.
--   ****: Exports components for Company Management. Updated to export  and .
+    -   **Importance**: Displays a detailed introduction to the system's features, especially AI capabilities, in English and Vietnamese.
+    -   **Changes**: Created from scratch with user-provided content and styling.
+-   ** (NEW)**:
+    -   **Importance**: Displays the project's roadmap with key milestones.
+    -   **Changes**: Created from scratch with user-provided content and professional styling, including a specific light blue background for sections.
+-   ** (NEW)**:
+    -   **Importance**: Provides instructions on basic system operations.
+    -   **Changes**: Created from scratch with user-provided content. Later, a Tính Phí (Fee Calculation) section was added, including the formula and notes. Styles updated for consistent light blue color.
 </code_architecture>
 
 <pending_tasks>
@@ -114,18 +98,28 @@ The application consists of a React.js frontend and a FastAPI/MongoDB backend.
 -   Confirm with the user if the Issued By abbreviation logic is now working as expected.
 -   Test the implemented backend background task for file movement in various scenarios (for Crew Records).
 -   Implement the gradual backend refactoring according to sidebar categories using the Strangler Fig Pattern.
--   Simplify the Add New Ship process to create only a single folder per ship name in the company's root Google Drive. (The  endpoint has been simplified, but the full Apps Script logic needs adjustment to match the single folder requirement).
+-   Simplify the Add New Ship process to create only a single folder per ship name in the company's root Google Drive.
 -   Update other frontend pages (besides ) to handle the .
+-   Refine the Tính Phí (Fee Calculation) section in  by removing 💡 Tips and dynamically fetching the current  for the example.
 </pending_tasks>
 
 <current_work>
-Immediately before this summary request, the AI engineer was attempting to resolve a persistent  error when fetching or updating the Edit Base Fee in the Company Management section. New backend endpoints ( and ) were introduced in  to handle this functionality, and the frontend (, ) was updated to interact with these endpoints.
+Immediately before this summary request, the AI engineer was working on enhancing the user experience on the  and .
 
-Initial debugging revealed the endpoint returning 404, leading the engineer to verify  inclusion and the  decorators. It was confirmed that authentication () was required for these endpoints. Later, the issue was narrowed down to a mismatch in parameter passing for the  request (frontend sent as query param, backend implicitly expected body param), which was fixed by explicitly adding  for  in the backend. However, even after these adjustments and multiple backend restarts, the  error persisted for both  and  requests to the base fee endpoints.
+The work involved:
+1.  **Login Page Redesign**: The login modal was moved to the right, and a left panel was introduced with placeholder buttons for Introduction, Road Map, User Guide, and Contact. A language toggle (English/Vietnamese) was also added to the top right of the page.
+2.  **Introduction, Road Map, and User Guide Modals**: New React components (, , ) were created to display static information as requested by the user, and integrated into the  via their respective buttons. The styling of these modals was updated to use a consistent light blue color for sections.
+3.  **Company Detail Enhancements**:
+    *   **Monthly Fee Calculation**: A new Tính Phí (Calculate Fee) button was added to the . Clicking this button triggers a calculation using the formula: , and the result is displayed alongside the Company Name.
+    *   **Role Hierarchy Consistency**: Permissions across the application (e.g., in , ) were adjusted to ensure  is the highest role, and  has identical permissions to .
 
-The current hypothesis is that the placement of these new endpoints in  after  might be causing them not to be registered correctly with the FastAPI application, even though the  itself is included earlier. The engineer was in the process of verifying the exact position of these endpoint definitions relative to the application's startup events.
+The very last explicit request from the user (Message 384) was to:
+1.  Remove the 💡 Tips section from the Tính Phí (Fee Calculation) description within the .
+2.  Dynamically populate the  value used in the example calculation in the  with the currently configured system base fee.
+
+The AI engineer has acknowledged this request and was about to implement it when this summary request was made.
 </current_work>
 
 <optional_next_step>
-Verify the exact placement of  endpoints in  to ensure they are registered correctly before .
+Implement the requested changes for the Tính Phí section in .
 </optional_next_step>
