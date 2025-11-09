@@ -133,10 +133,10 @@ const CompanyManagement = () => {
 
   /**
    * Check if user can configure Google Drive
-   * System Admin & Super Admin can configure Google Drive
+   * System Admin is the highest role and can configure all
    */
   const canConfigureGoogleDrive = () => {
-    return currentUser.role === 'system_admin' || currentUser.role === 'super_admin';
+    return currentUser.role === 'system_admin';
   };
 
   /**
