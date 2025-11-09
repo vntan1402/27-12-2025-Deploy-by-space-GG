@@ -72,7 +72,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '📜',
         title: '3. Thêm Giấy Chứng Nhận & Báo Cáo',
-        color: 'purple',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Chọn loại certificate/report từ menu:', details: [
             'ISM-ISPS-MLC (Audit Certificates)',
