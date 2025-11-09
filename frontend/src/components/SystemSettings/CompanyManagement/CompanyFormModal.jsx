@@ -41,7 +41,7 @@ const CompanyFormModal = ({
         gmail: company.gmail || '',
         zalo: company.zalo || '',
         logo_url: company.logo_url || '',
-        system_expiry: company.system_expiry ? new Date(company.system_expiry).toISOString().split('T')[0] : ''
+        software_expiry: company.software_expiry ? new Date(company.software_expiry).toISOString().split('T')[0] : ''
       });
       
       if (company.logo_url) {
