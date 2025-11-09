@@ -30,9 +30,8 @@ async def migrate_expiry_field():
             system_expiry_value = company.get('system_expiry')
             
             if system_expiry_value is not None:
-                # Update: rename system_expiry to software_expiry
-                update_result = await db.update_one(
-                    "companies",
+                # Update: rename system_expiry to software_expiry using direct collection access
+                result = await db.database['companies'].update_one(
                     {"id": company_id},
                     {
                         "$set": {"software_expiry": system_expiry_value},
@@ -40,11 +39,11 @@ async def migrate_expiry_field():
                     }
                 )
                 
-                if update_result:
+                if result.modified_count > 0:
                     migrated_count += 1
                     print(f"✅ Migrated company: {company.get('name_en', company.get('name_vn', company_id))}")
                 else:
-                    print(f"❌ Failed to migrate company: {company_id}")
+                    print(f"⚠️ No changes for company: {company_id} (might already be migrated)")
         
         print(f"\n✅ Migration completed successfully!")
         print(f"Total companies migrated: {migrated_count}/{len(companies)}")
