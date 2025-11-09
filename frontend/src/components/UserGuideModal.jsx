@@ -338,6 +338,67 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
             ]
           }
         ]
+      },
+      {
+        icon: '💰',
+        title: '10. Tính Phí Hàng Tháng',
+        color: 'blue',
+        steps: [
+          { step: '1', text: 'Đăng nhập với tài khoản có quyền Admin trở lên' },
+          { step: '2', text: 'Vào "System Settings" → "Company Management"' },
+          { step: '3', text: 'Double-click vào company row để mở Company Details Modal' },
+          { step: '4', text: 'Xem thông tin thống kê:', details: [
+            'Total Ships: Tổng số tàu có certificates',
+            'Office Staff: Nhân viên văn phòng (không bao gồm thuyền viên)',
+            'Crew Members: Tổng số thuyền viên',
+            'Active Users: Số users đang hoạt động'
+          ]},
+          { step: '5', text: 'Click nút "💰 Tính Phí" ở góc trên bên phải' },
+          { step: '6', text: 'Hệ thống tính toán và hiển thị:', details: [
+            'Phí hàng tháng xuất hiện bên cạnh tên công ty',
+            'Toast notification hiển thị kết quả',
+            'Breakdown chi tiết trong console logs'
+          ]}
+        ],
+        formula: {
+          title: 'Công Thức Tính Phí',
+          main: 'Phí Hàng Tháng = (Total Ships × Base Fee) + (Office Staff × $2) + (Crew Members × $0.5)',
+          breakdown: [
+            {
+              label: 'Total Ships × Base Fee',
+              example: '5 tàu × $100 = $500',
+              description: 'Phí theo số lượng tàu có certificates'
+            },
+            {
+              label: 'Office Staff × $2',
+              example: '10 nhân viên × $2 = $20',
+              description: 'Phí theo số nhân viên văn phòng'
+            },
+            {
+              label: 'Crew Members × $0.5',
+              example: '50 thuyền viên × $0.5 = $25',
+              description: 'Phí theo số thuyền viên'
+            },
+            {
+              label: 'Tổng Phí',
+              example: '$500 + $20 + $25 = $545/tháng',
+              description: 'Tổng phí hàng tháng phải thanh toán'
+            }
+          ]
+        },
+        notes: [
+          '📌 Base Fee: Được thiết lập bởi System Admin/Super Admin',
+          '📌 Chỉ tính ships có ít nhất 1 certificate',
+          '📌 Office Staff không bao gồm users có department "Ship Crew"',
+          '📌 Crew Members được đếm từ Crew Records',
+          '📌 Tính năng chỉ dành cho Admin trở lên'
+        ],
+        tips: [
+          '💡 Base Fee có thể chỉnh sửa qua nút "Edit Base Fee"',
+          '💡 Phí được tính real-time dựa trên dữ liệu hiện tại',
+          '💡 Xem breakdown chi tiết trong browser console',
+          '💡 System Admin/Super Admin có thể xem phí của tất cả companies'
+        ]
       }
     ]
   } : {
