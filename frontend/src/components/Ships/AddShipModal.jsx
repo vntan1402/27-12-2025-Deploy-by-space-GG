@@ -164,11 +164,16 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
 
   // Analyze PDF with AI
   const analyzePdfWithAI = async (file) => {
+    console.log('🤖 [AddShipModal] analyzePdfWithAI called, isSoftwareExpired:', isSoftwareExpired);
+    
     // Check if software is expired before AI analysis
     if (!checkAndWarn()) {
+      console.log('🚫 [AddShipModal] Upload blocked by checkAndWarn()');
       setPdfFile(null);
       return;
     }
+    
+    console.log('✅ [AddShipModal] Expiry check passed, proceeding with AI analysis');
 
     if (!file) {
       toast.error(language === 'vi' 
