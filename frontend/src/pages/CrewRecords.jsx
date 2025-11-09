@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { MainLayout, Sidebar, SubMenuBar, CrewListTable } from '../components';
+import { MainLayout, Sidebar, SubMenuBar } from '../components';
+import { CrewListTable } from '../components/CrewList';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { CompanyInfoPanel } from '../components/CompanyInfoPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
