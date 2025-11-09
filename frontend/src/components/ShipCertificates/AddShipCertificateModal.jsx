@@ -247,6 +247,11 @@ export const AddShipCertificateModal = ({
 
   // Handle multi cert upload with AI analysis - Sequential with delay (V1 pattern)
   const handleMultiCertUpload = async (files) => {
+    // Check if software is expired before upload
+    if (!checkAndWarn()) {
+      return;
+    }
+
     if (!selectedShip?.id) {
       toast.error(language === 'vi' 
         ? '❌ Vui lòng chọn tàu trước khi upload certificate'
