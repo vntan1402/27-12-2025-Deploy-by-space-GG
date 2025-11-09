@@ -4,11 +4,9 @@ export * from './Layout';
 // Re-export Certificate List components
 export * from './CertificateList';
 
-// Re-export Ship Certificates components
-export * from './ShipCertificates';
-
-// Re-export Crew List components
-export * from './CrewList';
-
 // Re-export CompanyInfoPanel
 export { CompanyInfoPanel } from './CompanyInfoPanel';
+
+// Note: ShipCertificates and CrewList have conflicting exports (BatchProcessingModal, BatchResultsModal)
+// Import these directly from their respective folders when needed
+// e.g., import { BatchProcessingModal } from './components/ShipCertificates';
