@@ -9,8 +9,7 @@ async def migrate_expiry_field():
     """Migrate system_expiry field to software_expiry in companies collection"""
     
     # Initialize MongoDB connection
-    mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-    db = MongoDatabase(mongo_url)
+    db = MongoDatabase()
     await db.connect()
     
     try:
