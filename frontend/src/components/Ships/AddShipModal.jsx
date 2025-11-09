@@ -728,6 +728,7 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
               )}
             </div>
           </div>
+          )}
 
           {/* Basic Information Section */}
           <div className="mb-6">
