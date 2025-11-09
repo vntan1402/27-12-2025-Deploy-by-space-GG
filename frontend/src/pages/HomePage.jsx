@@ -132,12 +132,22 @@ const HomePage = () => {
       {companyLogo ? (
         <div className="w-full h-96 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden relative mb-6 shadow-md">
           <img 
-            src={companyLogo.startsWith('http') ? companyLogo : `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`}
+            src={(() => {
+              const logoUrl = companyLogo.startsWith('http') ? companyLogo : `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`;
+              console.log('🖼️ Logo URL:', logoUrl);
+              console.log('🔗 Backend URL:', process.env.REACT_APP_BACKEND_URL);
+              console.log('📁 Company Logo Path:', companyLogo);
+              return logoUrl;
+            })()}
             alt="Company Logo"
             className="max-w-full max-h-full object-contain"
             onError={(e) => {
-              console.error('Failed to load company logo:', e);
+              console.error('❌ Failed to load company logo');
+              console.error('Image src:', e.target.src);
               e.target.style.display = 'none';
+            }}
+            onLoad={() => {
+              console.log('✅ Logo loaded successfully');
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/50 flex items-center justify-center">
