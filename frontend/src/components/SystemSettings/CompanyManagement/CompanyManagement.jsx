@@ -187,15 +187,12 @@ const CompanyManagement = () => {
       toast.success(language === 'vi' ? 'Cập nhật công ty thành công!' : 'Company updated successfully!');
       
       // Upload logo if provided
+      let logoUploaded = false;
       if (logoFile) {
         try {
           await companyService.uploadLogo(companyId, logoFile);
           toast.success(language === 'vi' ? 'Logo đã được cập nhật!' : 'Logo updated successfully!');
-          
-          // Reload page to refresh logo in all places (HomePage, etc.)
-          setTimeout(() => {
-            window.location.reload();
-          }, 1500);
+          logoUploaded = true;
         } catch (logoError) {
           console.error('Failed to upload logo:', logoError);
           toast.warning(language === 'vi' ? 'Công ty đã được cập nhật nhưng không thể tải logo' : 'Company updated but logo upload failed');
@@ -204,7 +201,12 @@ const CompanyManagement = () => {
       
       setShowEditCompany(false);
       setEditingCompany(null);
-      fetchCompanies();
+      await fetchCompanies();
+      
+      // If logo was uploaded, dispatch event to trigger refresh in HomePage
+      if (logoUploaded) {
+        window.dispatchEvent(new CustomEvent('companyLogoUpdated'));
+      }
     } catch (error) {
       console.error('Failed to update company:', error);
       const errorMessage = error.response?.data?.detail || (language === 'vi' ? 'Không thể cập nhật công ty' : 'Failed to update company');
