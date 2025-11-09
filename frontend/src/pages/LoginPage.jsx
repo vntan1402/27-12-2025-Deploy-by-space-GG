@@ -180,7 +180,7 @@ const LoginPage = () => {
 
             <button 
               className="w-full max-w-md bg-white hover:bg-orange-50 border-2 border-orange-200 rounded-lg p-4 transition-all duration-200 transform hover:scale-105 hover:shadow-lg text-left group"
-              disabled
+              onClick={() => setShowContactModal(true)}
             >
               <div className="flex items-center">
                 <div className="bg-orange-100 rounded-full p-3 mr-4">
