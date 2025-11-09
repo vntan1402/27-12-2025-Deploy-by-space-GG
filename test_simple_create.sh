@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://seafare-vault.preview.emergentagent.com/api"
+API_URL="https://nautical-records.preview.emergentagent.com/api"
 
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
   -H "Content-Type: application/json" \
