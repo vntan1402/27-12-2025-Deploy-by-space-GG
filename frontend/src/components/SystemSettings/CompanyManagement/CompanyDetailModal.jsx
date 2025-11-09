@@ -20,12 +20,42 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
   const fetchCompanyStatistics = async () => {
     setLoading(true);
     try {
-      // Fetch ships count
+      // Fetch ships
       const shipsResponse = await api.get('/api/ships');
       const companyShips = shipsResponse.data.filter(ship => 
         ship.company === company.id || 
         ship.company === company.name_en || 
         ship.company === company.name_vn
+      );
+
+      // Fetch ship certificates
+      const shipCertificatesResponse = await api.get('/api/ship-certificates/all');
+      const shipCertificates = shipCertificatesResponse.data || [];
+
+      // Fetch audit certificates
+      const auditCertificatesResponse = await api.get('/api/audit-certificates');
+      const auditCertificates = auditCertificatesResponse.data || [];
+
+      // Get unique ship IDs that have at least one certificate
+      const shipIdsWithCertificates = new Set();
+      
+      // Add ships from ship certificates
+      shipCertificates.forEach(cert => {
+        if (cert.ship_id) {
+          shipIdsWithCertificates.add(cert.ship_id);
+        }
+      });
+      
+      // Add ships from audit certificates
+      auditCertificates.forEach(cert => {
+        if (cert.ship_id) {
+          shipIdsWithCertificates.add(cert.ship_id);
+        }
+      });
+
+      // Count only ships that have at least one certificate
+      const shipsWithCertificates = companyShips.filter(ship => 
+        shipIdsWithCertificates.has(ship.id)
       );
 
       // Fetch users count (office staff only - exclude ship_crew department)
@@ -54,7 +84,7 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
       );
 
       setStatistics({
-        totalShips: companyShips.length,
+        totalShips: shipsWithCertificates.length, // Only count ships with at least one certificate
         totalUsers: nonCrewUsers.length, // Office staff only (exclude ship_crew)
         activeUsers: activeUsers.length, // Active office staff only
         totalCrew: companyCrew.length // Crew from Crew List
