@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { toast } from 'sonner';
 import IntroductionModal from '../components/IntroductionModal';
+import RoadMapModal from '../components/RoadMapModal';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [shake, setShake] = useState(false);
   const [showIntroModal, setShowIntroModal] = useState(false);
+  const [showRoadMapModal, setShowRoadMapModal] = useState(false);
 
   // Load saved credentials from localStorage
   useEffect(() => {
