@@ -156,6 +156,11 @@ export const AddAuditCertificateModal = ({
   
   // Handle multi cert upload with AI analysis
   const handleMultiCertUpload = async (files) => {
+    // Check if software is expired before upload
+    if (!checkAndWarn()) {
+      return;
+    }
+
     if (!selectedShip?.id) {
       toast.error(language === 'vi' 
         ? '❌ Vui lòng chọn tàu trước khi upload certificate'
