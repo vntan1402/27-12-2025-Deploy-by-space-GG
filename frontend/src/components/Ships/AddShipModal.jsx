@@ -161,6 +161,12 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
 
   // Analyze PDF with AI
   const analyzePdfWithAI = async (file) => {
+    // Check if software is expired before AI analysis
+    if (!checkAndWarn()) {
+      setPdfFile(null);
+      return;
+    }
+
     if (!file) {
       toast.error(language === 'vi' 
         ? '❌ Vui lòng chọn file PDF'
