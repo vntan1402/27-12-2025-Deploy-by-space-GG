@@ -387,7 +387,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
           breakdown: [
             {
               label: 'Total Ships × Base Fee',
-              example: '5 tàu × $100 = $500',
+              example: `5 tàu × $${baseFee} = $${5 * baseFee}`,
               description: 'Phí theo số lượng tàu có certificates'
             },
             {
@@ -402,7 +402,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
             },
             {
               label: 'Tổng Phí',
-              example: '$500 + $20 + $25 = $545/tháng',
+              example: `$${5 * baseFee} + $20 + $25 = $${5 * baseFee + 20 + 25}/tháng`,
               description: 'Tổng phí hàng tháng phải thanh toán'
             }
           ]
@@ -413,12 +413,6 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
           '📌 Office Staff không bao gồm users có department "Ship Crew"',
           '📌 Crew Members được đếm từ Crew Records',
           '📌 Tính năng chỉ dành cho Admin trở lên'
-        ],
-        tips: [
-          '💡 Base Fee có thể chỉnh sửa qua nút "Edit Base Fee"',
-          '💡 Phí được tính real-time dựa trên dữ liệu hiện tại',
-          '💡 Xem breakdown chi tiết trong browser console',
-          '💡 System Admin/Super Admin có thể xem phí của tất cả companies'
         ]
       }
     ]
