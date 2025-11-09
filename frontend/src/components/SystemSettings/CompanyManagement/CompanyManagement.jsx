@@ -124,11 +124,11 @@ const CompanyManagement = () => {
   };
 
   /**
-   * Check if user can delete company (Super Admin only)
-   * Other users cannot delete companies
+   * Check if user can delete company (System Admin only)
+   * System Admin is the highest role
    */
   const canDeleteCompany = (company) => {
-    return currentUser.role === 'super_admin';
+    return currentUser.role === 'system_admin';
   };
 
   /**
