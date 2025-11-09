@@ -1047,7 +1047,27 @@ export const AddAuditCertificateModal = ({
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Software Expired Warning */}
+          {isSoftwareExpired && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+              <div className="flex items-start">
+                <span className="text-yellow-600 text-2xl mr-3">⚠️</span>
+                <div>
+                  <h4 className="font-semibold text-yellow-800 mb-1">
+                    {language === 'vi' ? 'Phần mềm hết hạn sử dụng' : 'Software Expired'}
+                  </h4>
+                  <p className="text-sm text-yellow-700">
+                    {language === 'vi' 
+                      ? 'Tính năng AI không khả dụng. Vui lòng sử dụng nhập liệu bằng tay.'
+                      : 'AI features are not available. Please use manual entry.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Multi Cert Upload Section */}
+          {!isSoftwareExpired && (
           <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-blue-50">
             <div className="flex items-start justify-between mb-3">
               {/* Title and AI Model */}
