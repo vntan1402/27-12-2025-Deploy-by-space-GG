@@ -59,24 +59,35 @@ const showCenteredWarning = (message) => {
   `;
   document.head.appendChild(style);
 
-  // Auto remove after 4 seconds
-  setTimeout(() => {
+  // Track if already removed
+  let isRemoved = false;
+
+  // Remove function
+  const removeModal = () => {
+    if (isRemoved) return;
+    isRemoved = true;
+
     overlay.style.opacity = '0';
     overlay.style.transition = 'opacity 0.3s ease-out';
+    
     setTimeout(() => {
-      document.body.removeChild(overlay);
-      document.head.removeChild(style);
+      // Check if elements still exist in DOM before removing
+      if (overlay.parentNode) {
+        document.body.removeChild(overlay);
+      }
+      if (style.parentNode) {
+        document.head.removeChild(style);
+      }
     }, 300);
-  }, 4000);
+  };
+
+  // Auto remove after 4 seconds
+  const autoCloseTimer = setTimeout(removeModal, 4000);
 
   // Click to close
   overlay.addEventListener('click', () => {
-    overlay.style.opacity = '0';
-    overlay.style.transition = 'opacity 0.3s ease-out';
-    setTimeout(() => {
-      document.body.removeChild(overlay);
-      document.head.removeChild(style);
-    }, 300);
+    clearTimeout(autoCloseTimer);
+    removeModal();
   });
 };
 
