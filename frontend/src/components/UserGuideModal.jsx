@@ -461,7 +461,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '🎫',
         title: '5. Crew Certificates',
-        color: 'orange',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Go to "Crew Records"' },
           { step: '2', text: 'Select crew member from list' },
