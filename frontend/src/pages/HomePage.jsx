@@ -223,33 +223,6 @@ const HomePage = () => {
             </p>
           </div>
         </div>
-
-        {/* Phase Progress Info */}
-        <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
-          <h3 className="font-semibold text-gray-800 mb-3">
-            📊 {language === 'vi' ? 'Tiến độ phát triển Frontend V2' : 'Frontend V2 Development Progress'}
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            <span className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">
-              ✅ Phase 0: Setup
-            </span>
-            <span className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">
-              ✅ Phase 1: Utilities
-            </span>
-            <span className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">
-              ✅ Phase 2: Services
-            </span>
-            <span className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold">
-              ✅ Phase 3: Hooks
-            </span>
-            <span className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold animate-pulse">
-              🚀 Layout V1 Style Complete
-            </span>
-            <span className="px-3 py-1 bg-gray-300 text-gray-700 rounded-full text-xs font-semibold">
-              ⏳ Phase 4: Ship Management
-            </span>
-          </div>
-        </div>
       </div>
     </MainLayout>
   );
