@@ -515,7 +515,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '📦',
         title: '7. Batch Upload',
-        color: 'teal',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Two types of Batch Upload:', details: [
             'Ship Certificates Batch Upload',
