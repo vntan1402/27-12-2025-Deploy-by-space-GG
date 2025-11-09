@@ -28430,7 +28430,7 @@ async def upload_other_audit_document_folder(
 app.include_router(api_router)
 
 # Static files
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.mount("/uploads", StaticFiles(directory="/app/backend/uploads"), name="uploads")
 
 # ============================================================================
 # APPLICATION EVENTS
