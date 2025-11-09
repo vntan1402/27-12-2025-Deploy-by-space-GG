@@ -10,12 +10,65 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
     activeUsers: 0,
     totalCrew: 0
   });
+  const [baseFee, setBaseFee] = useState(0);
+  const [monthlyFee, setMonthlyFee] = useState(null);
+  const [calculatingFee, setCalculatingFee] = useState(false);
 
   useEffect(() => {
     if (company) {
       fetchCompanyStatistics();
+      fetchBaseFee();
     }
   }, [company]);
+
+  const fetchBaseFee = async () => {
+    try {
+      const response = await api.get('/api/system-settings/base-fee');
+      if (response.data && response.data.base_fee !== undefined) {
+        setBaseFee(response.data.base_fee);
+        console.log('💰 Base fee loaded:', response.data.base_fee);
+      }
+    } catch (error) {
+      console.error('Error fetching base fee:', error);
+      // Default to 0 if error
+      setBaseFee(0);
+    }
+  };
+
+  const calculateMonthlyFee = () => {
+    setCalculatingFee(true);
+    try {
+      // Monthly Fee = (Total Ships x Base Fee) + (Office Staff x 2 USD) + (Crew Members x 0.5 USD)
+      const shipsFee = statistics.totalShips * baseFee;
+      const staffFee = statistics.totalUsers * 2;
+      const crewFee = statistics.totalCrew * 0.5;
+      const total = shipsFee + staffFee + crewFee;
+      
+      setMonthlyFee(total);
+      console.log('💵 Monthly Fee Calculation:', {
+        totalShips: statistics.totalShips,
+        baseFee: baseFee,
+        shipsFee: shipsFee,
+        officeStaff: statistics.totalUsers,
+        staffFee: staffFee,
+        crewMembers: statistics.totalCrew,
+        crewFee: crewFee,
+        totalMonthlyFee: total
+      });
+      
+      toast.success(
+        language === 'vi' 
+          ? `Phí hàng tháng: $${total.toFixed(2)}` 
+          : `Monthly Fee: $${total.toFixed(2)}`,
+        { autoClose: 2000 }
+      );
+    } catch (error) {
+      console.error('Error calculating monthly fee:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi tính phí' : 'Error calculating fee');
+    } finally {
+      setCalculatingFee(false);
+    }
+  };
 
   const fetchCompanyStatistics = async () => {
     setLoading(true);
