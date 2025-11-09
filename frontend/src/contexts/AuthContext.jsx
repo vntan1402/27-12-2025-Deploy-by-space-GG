@@ -28,9 +28,13 @@ export const AuthProvider = ({ children }) => {
 
   const fetchCompanyExpiry = async (companyName) => {
     try {
+      console.log('🔍 [AuthContext] Fetching company expiry for:', companyName);
+      
       // Fetch companies to get software_expiry
       const response = await api.get('/api/companies');
       const companies = response.data;
+      
+      console.log('📦 [AuthContext] Total companies fetched:', companies.length);
       
       // Find user's company
       const userCompany = companies.find(c => 
@@ -39,11 +43,17 @@ export const AuthProvider = ({ children }) => {
         c.name === companyName
       );
       
+      console.log('🏢 [AuthContext] Found user company:', userCompany?.name_en || userCompany?.name_vn);
+      
       if (userCompany && userCompany.software_expiry) {
         const expiryDate = new Date(userCompany.software_expiry);
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Reset to start of day for accurate comparison
         const isExpired = expiryDate < today;
+        
+        console.log('📅 [AuthContext] Expiry Date:', expiryDate);
+        console.log('📅 [AuthContext] Today:', today);
+        console.log('🔴 [AuthContext] Is Expired:', isExpired);
         
         setSoftwareExpiry(userCompany.software_expiry);
         setIsSoftwareExpired(isExpired);
@@ -51,10 +61,12 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('software_expiry', userCompany.software_expiry);
         localStorage.setItem('is_software_expired', isExpired.toString());
         
-        console.log(`Software Expiry: ${userCompany.software_expiry}, Is Expired: ${isExpired}`);
+        console.log(`✅ [AuthContext] Software Expiry Status Set: ${isExpired ? 'EXPIRED' : 'ACTIVE'}`);
+      } else {
+        console.warn('⚠️ [AuthContext] No company found or no software_expiry field');
       }
     } catch (error) {
-      console.error('Error fetching company expiry:', error);
+      console.error('❌ [AuthContext] Error fetching company expiry:', error);
     }
   };
 
