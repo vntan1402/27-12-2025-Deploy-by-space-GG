@@ -382,7 +382,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
           ]}
         ],
         formula: {
-          title: 'Công Thức Tính Phí',
+          title: 'Công Thức Tính Phí (Base Fee giai đoạn 1 là 30 USD)',
           main: 'Phí Hàng Tháng = (Total Ships × Base Fee) + (Office Staff × $2) + (Crew Members × $0.5)',
           breakdown: [
             {
