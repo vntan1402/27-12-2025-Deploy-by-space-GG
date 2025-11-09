@@ -88,8 +88,8 @@ const SystemSettingsPage = () => {
           </div>
         )}
 
-        {/* AI Configuration - Admin, Super Admin */}
-        {(user.role === 'admin' || user.role === 'super_admin') && (
+        {/* AI Configuration - Super Admin, System Admin only */}
+        {(user.role === 'super_admin' || user.role === 'system_admin') && (
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">
               🤖 {language === 'vi' ? 'Cấu hình AI' : 'AI Configuration'}
