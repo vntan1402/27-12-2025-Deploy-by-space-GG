@@ -665,17 +665,37 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
 
         {/* Modal Body */}
         <form onSubmit={handleSubmit} className="p-6">
+          {/* Software Expired Warning */}
+          {isSoftwareExpired && (
+            <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+              <div className="flex items-start">
+                <span className="text-yellow-600 text-2xl mr-3">⚠️</span>
+                <div>
+                  <h4 className="font-semibold text-yellow-800 mb-1">
+                    {language === 'vi' ? 'Phần mềm hết hạn sử dụng' : 'Software Expired'}
+                  </h4>
+                  <p className="text-sm text-yellow-700">
+                    {language === 'vi' 
+                      ? 'Tính năng AI không khả dụng. Vui lòng sử dụng nhập liệu bằng tay.'
+                      : 'AI features are not available. Please use manual entry.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* AI Certificate Analysis Section */}
-          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <span>🤖</span>
-              {language === 'vi' ? 'Thêm tàu từ Certificate với AI Analysis' : 'Add ship from Certificate with AI Analysis'}
-            </h3>
-            <p className="text-sm text-gray-600 mb-3">
-              {language === 'vi' 
-                ? 'Tải lên chứng chỉ tàu (PDF) để tự động điền thông tin bằng AI'
-                : 'Upload ship certificate (PDF) to auto-fill information with AI'}
-            </p>
+          {!isSoftwareExpired && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <span>🤖</span>
+                {language === 'vi' ? 'Thêm tàu từ Certificate với AI Analysis' : 'Add ship from Certificate with AI Analysis'}
+              </h3>
+              <p className="text-sm text-gray-600 mb-3">
+                {language === 'vi' 
+                  ? 'Tải lên chứng chỉ tàu (PDF) để tự động điền thông tin bằng AI'
+                  : 'Upload ship certificate (PDF) to auto-fill information with AI'}
+              </p>
             <div className="flex items-center gap-4">
               <label className="flex-1 cursor-pointer">
                 <div className="flex items-center gap-3 px-4 py-3 bg-white border-2 border-blue-300 rounded-lg hover:bg-blue-50 hover:border-blue-400 transition-all">
