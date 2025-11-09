@@ -42,7 +42,7 @@ const CompanyFormModal = ({
         gmail: company.gmail || '',
         zalo: company.zalo || '',
         logo_url: company.logo_url || '',
-        software_expiry: company.software_expiry ? new Date(company.software_expiry).toISOString().split('T')[0] : ''
+        software_expiry: formatDateForInput(company.software_expiry || '')
       });
       
       if (company.logo_url) {
