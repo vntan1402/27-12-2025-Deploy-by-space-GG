@@ -1224,6 +1224,7 @@ export const AddAuditCertificateModal = ({
               </div>
             )}
           </div>
+          )}
           
           {/* Manual Form */}
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
