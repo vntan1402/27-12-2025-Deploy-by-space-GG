@@ -4,6 +4,27 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
   if (!isOpen) return null;
 
   const [expandedSection, setExpandedSection] = useState(null);
+  const [baseFee, setBaseFee] = useState(100); // Default value
+
+  // Fetch base fee when modal opens
+  useEffect(() => {
+    const fetchBaseFee = async () => {
+      try {
+        const api = (await import('../services/api')).default;
+        const response = await api.get('/api/system-settings/base-fee');
+        if (response.data && response.data.base_fee !== undefined) {
+          setBaseFee(response.data.base_fee);
+        }
+      } catch (error) {
+        console.error('Error fetching base fee:', error);
+        // Keep default value if error
+      }
+    };
+
+    if (isOpen) {
+      fetchBaseFee();
+    }
+  }, [isOpen]);
 
   const toggleSection = (index) => {
     setExpandedSection(expandedSection === index ? null : index);
