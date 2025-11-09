@@ -223,7 +223,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       {
         icon: '⚡',
         title: '8. Bulk Actions - Thao Tác Hàng Loạt',
-        color: 'red',
+        color: 'blue',
         steps: [
           { step: '1', text: 'Bulk Actions cho phép:', details: [
             'Xóa nhiều records cùng lúc',
