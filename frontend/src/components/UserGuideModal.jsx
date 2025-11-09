@@ -893,6 +893,41 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
                             </ul>
                           </div>
                         )}
+
+                        {/* Formula Section */}
+                        {section.formula && (
+                          <div className="mt-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4">
+                            <p className="font-bold text-green-800 mb-3 text-lg">📐 {section.formula.title}</p>
+                            <div className="bg-white rounded p-3 mb-3 border border-green-200">
+                              <p className="font-mono font-bold text-green-700 text-center">
+                                {section.formula.main}
+                              </p>
+                            </div>
+                            <div className="space-y-3">
+                              {section.formula.breakdown.map((item, idx) => (
+                                <div key={idx} className="bg-white rounded p-3 border border-green-100">
+                                  <div className="flex items-start justify-between mb-1">
+                                    <span className="font-semibold text-gray-800">{item.label}</span>
+                                    <span className="font-mono text-green-600 font-bold">{item.example}</span>
+                                  </div>
+                                  <p className="text-sm text-gray-600">{item.description}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Notes Section */}
+                        {section.notes && (
+                          <div className="mt-4 bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+                            <p className="font-semibold text-blue-800 mb-2">📋 {language === 'vi' ? 'Lưu ý' : 'Important Notes'}:</p>
+                            <ul className="space-y-1">
+                              {section.notes.map((note, noteIndex) => (
+                                <li key={noteIndex} className="text-sm text-blue-700">{note}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                     )}
 
