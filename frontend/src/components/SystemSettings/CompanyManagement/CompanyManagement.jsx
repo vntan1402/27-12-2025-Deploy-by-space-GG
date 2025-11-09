@@ -104,16 +104,17 @@ const CompanyManagement = () => {
 
   /**
    * Check if user can edit company
-   * - System Admin & Super Admin: Can edit all companies
-   * - Admin: Can only edit own company
+   * - System Admin: Can edit all companies (highest role)
+   * - Super Admin: Can edit their own company
+   * - Admin: Can edit their own company
    */
   const canEditCompany = (company) => {
-    if (currentUser.role === 'system_admin' || currentUser.role === 'super_admin') {
-      return true;
+    if (currentUser.role === 'system_admin') {
+      return true; // System Admin can edit all companies
     }
     
-    if (currentUser.role === 'admin') {
-      // Admin can only edit their own company
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      // Super Admin and Admin can only edit their own company
       return company.id === currentUser.company || 
              company.name_en === currentUser.company || 
              company.name_vn === currentUser.company;
