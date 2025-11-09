@@ -116,6 +116,10 @@ export const AuthProvider = ({ children }) => {
     authService.logout();
     setToken(null);
     setUser(null);
+    setSoftwareExpiry(null);
+    setIsSoftwareExpired(false);
+    localStorage.removeItem('software_expiry');
+    localStorage.removeItem('is_software_expired');
   };
 
   const toggleLanguage = () => {
