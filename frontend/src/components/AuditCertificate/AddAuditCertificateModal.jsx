@@ -4,6 +4,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { useUploadGuard } from '../../hooks/useUploadGuard';
 import api from '../../services/api';
 
 export const AddAuditCertificateModal = ({
@@ -15,6 +16,7 @@ export const AddAuditCertificateModal = ({
   language,
   aiConfig
 }) => {
+  const { isSoftwareExpired, checkAndWarn } = useUploadGuard();
   const [formData, setFormData] = useState({
     ship_id: selectedShip?.id || '',
     ship_name: '',  // AI sẽ fill giá trị này
