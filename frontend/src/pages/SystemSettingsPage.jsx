@@ -98,8 +98,8 @@ const SystemSettingsPage = () => {
           </div>
         )}
 
-        {/* Admin Tools - Admin, Super Admin */}
-        {(user.role === 'admin' || user.role === 'super_admin') && (
+        {/* Admin Tools - Admin, Super Admin, System Admin */}
+        {(user.role === 'admin' || user.role === 'super_admin' || user.role === 'system_admin') && (
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">
               🛠️ {language === 'vi' ? 'Công cụ Admin' : 'Admin Tools'}
