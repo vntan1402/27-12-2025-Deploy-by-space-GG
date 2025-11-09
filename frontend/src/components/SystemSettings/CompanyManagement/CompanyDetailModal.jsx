@@ -254,12 +254,26 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
               </div>
             )}
             <div className="flex-1">
-              <h3 className="text-2xl font-bold text-gray-800">
-                {language === 'vi' ? company.name_vn : company.name_en}
-              </h3>
-              <p className="text-gray-500 text-sm">
-                {language === 'vi' ? company.name_en : company.name_vn}
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800">
+                    {language === 'vi' ? company.name_vn : company.name_en}
+                  </h3>
+                  <p className="text-gray-500 text-sm">
+                    {language === 'vi' ? company.name_en : company.name_vn}
+                  </p>
+                </div>
+                {monthlyFee !== null && (
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg shadow-lg">
+                    <p className="text-xs font-medium">
+                      {language === 'vi' ? 'Phí hàng tháng' : 'Monthly Fee'}
+                    </p>
+                    <p className="text-2xl font-bold">
+                      ${monthlyFee.toFixed(2)}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
