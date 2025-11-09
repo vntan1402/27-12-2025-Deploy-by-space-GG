@@ -34,8 +34,8 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
       console.log('🚢 Company ships (before certificate filter):', companyShips.length);
       console.log('🔑 Company identifiers - ID:', company.id, 'Name EN:', company.name_en, 'Name VN:', company.name_vn);
 
-      // Fetch ship certificates
-      const shipCertificatesResponse = await api.get('/api/ship-certificates/all');
+      // Fetch ship certificates - using correct endpoint
+      const shipCertificatesResponse = await api.get('/api/certificates');
       const shipCertificates = shipCertificatesResponse.data || [];
       console.log('📄 Total ship certificates:', shipCertificates.length);
 
