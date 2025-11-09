@@ -145,11 +145,14 @@ const CompanyTable = ({
                 <td className="border border-gray-300 px-4 py-3 text-gray-700">
                   {company.zalo || '-'}
                 </td>
-                <td className="border border-gray-300 px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getExpiryBadgeClass(expiryStatus)}`}>
-                    {formatExpiry(company.software_expiry)}
-                  </span>
-                </td>
+                {/* Software Expiry - Only for System Admin & Super Admin */}
+                {currentUser && (currentUser.role === 'system_admin' || currentUser.role === 'super_admin') && (
+                  <td className="border border-gray-300 px-4 py-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getExpiryBadgeClass(expiryStatus)}`}>
+                      {formatExpiry(company.software_expiry)}
+                    </span>
+                  </td>
+                )}
                 <td className="border border-gray-300 px-4 py-3">
                   <div className="flex justify-center space-x-2">
                     <button
