@@ -361,6 +361,7 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+      </div>
 
       {/* Custom CSS for shake animation */}
       <style jsx>{`
