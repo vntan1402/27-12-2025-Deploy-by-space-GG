@@ -5110,14 +5110,14 @@ async def update_company(company_id: str, company_data: CompanyUpdate, current_u
         # Prepare update data
         update_data = company_data.dict(exclude_unset=True)
         
-        # Handle system_expiry field - convert string to datetime if needed
-        if 'system_expiry' in update_data and update_data['system_expiry']:
-            if isinstance(update_data['system_expiry'], str):
+        # Handle software_expiry field - convert string to datetime if needed
+        if 'software_expiry' in update_data and update_data['software_expiry']:
+            if isinstance(update_data['software_expiry'], str):
                 try:
-                    update_data['system_expiry'] = datetime.fromisoformat(update_data['system_expiry'].replace('Z', '+00:00'))
+                    update_data['software_expiry'] = datetime.fromisoformat(update_data['software_expiry'].replace('Z', '+00:00'))
                 except ValueError:
                     # If parsing fails, remove the field to avoid errors
-                    del update_data['system_expiry']
+                    del update_data['software_expiry']
         
         # Update legacy 'name' field for backward compatibility
         if 'name_en' in update_data or 'name_vn' in update_data:
