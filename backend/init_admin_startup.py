@@ -53,6 +53,7 @@ async def init_admin_if_needed():
             'phone': '',
             'address': '',
             'logo_url': '',
+            'tax_id': f'AUTO-{company_id[:8]}',  # Auto-generated unique tax_id
             'created_at': datetime.now(),
             'updated_at': datetime.now()
         }
