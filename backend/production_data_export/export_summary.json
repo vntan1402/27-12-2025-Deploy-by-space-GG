@@ -1,0 +1,48 @@
+{
+  "export_date": "2025-11-10T14:05:31.066624",
+  "collections": {
+    "companies": {
+      "count": 3,
+      "file": "production_data_export/companies.json"
+    },
+    "users": {
+      "count": 5,
+      "file": "production_data_export/users.json"
+    },
+    "ships": {
+      "error": "Object of type datetime is not JSON serializable"
+    },
+    "ship_certificates": {
+      "count": 0,
+      "file": "production_data_export/ship_certificates.json"
+    },
+    "crew_list": {
+      "count": 0,
+      "file": "production_data_export/crew_list.json"
+    },
+    "audit_certificates": {
+      "count": 3,
+      "file": "production_data_export/audit_certificates.json"
+    },
+    "class_survey_reports": {
+      "count": 0,
+      "file": "production_data_export/class_survey_reports.json"
+    },
+    "drawings_manuals": {
+      "count": 4,
+      "file": "production_data_export/drawings_manuals.json"
+    },
+    "test_reports": {
+      "count": 6,
+      "file": "production_data_export/test_reports.json"
+    },
+    "approval_documents": {
+      "count": 1,
+      "file": "production_data_export/approval_documents.json"
+    },
+    "system_settings": {
+      "count": 1,
+      "file": "production_data_export/system_settings.json"
+    }
+  }
+}

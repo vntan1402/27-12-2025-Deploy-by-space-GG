@@ -1,0 +1,62 @@
+[
+  {
+    "_id": "6904bded8bcc2f36ae0c5220",
+    "ship_id": "bc444bc3-aea9-4491-b199-8098efcc16d2",
+    "document_name": "Load Test Report For Deck Crane",
+    "document_no": "0411C.0525.GOT/1",
+    "approved_by": "Ta Hong Quan, Captain Of Std Shipping Company Limited M/v Brother 36",
+    "approved_date": "2025-05-10T00:00:00",
+    "status": "Unknown",
+    "note": "Crane number 1 was tested with a 30.0-tonne load at a 25-degree angle with a boom length of 26 meters, and it passed the test. There were no further observations or remarks (NIL).",
+    "id": "ec9ff300-e998-4526-b070-ecf80f1365d5",
+    "created_at": "2025-10-31T13:47:25.816819+00:00",
+    "updated_at": "2025-10-31T13:49:01.445000",
+    "file_id": "1ziJE0SnW6Pe1pMf2oOQhpc8BxxYqLb9C",
+    "summary_file_id": "1f5jHYK3ebyuPRHZUmpsA8rNZQrWevyGA"
+  },
+  {
+    "_id": "6904bdfb8bcc2f36ae0c5221",
+    "ship_id": "bc444bc3-aea9-4491-b199-8098efcc16d2",
+    "document_name": "Inclining Test Report For The M/v Brother 36",
+    "document_no": null,
+    "approved_by": "Representatives From The Class, Owner, Design Company, And Shipyard",
+    "approved_date": "2025-05-31T00:00:00",
+    "status": "Unknown",
+    "note": "Inclining test conducted by Pha Rung Shipyard Company in May 2025 to determine the ship's stability characteristics, specifically its lightweight and center of gravity.",
+    "id": "b077dd88-66fc-4b69-8002-af160373f4fe",
+    "created_at": "2025-10-31T13:47:39.302729+00:00",
+    "updated_at": "2025-10-31T13:49:06.429000",
+    "file_id": "1p3js3QL1vlMoTi5bIfW3L3uuvcfF39fu",
+    "summary_file_id": "1HBfshW8tXbeWzSsbsn7DIudlZpUeL5cU"
+  },
+  {
+    "_id": "6904bdfb8bcc2f36ae0c5222",
+    "ship_id": "bc444bc3-aea9-4491-b199-8098efcc16d2",
+    "document_name": "Inclining Test And Calculation Report",
+    "document_no": "ZXS4978V, TN-12",
+    "approved_by": "Phạm Tiến Duy",
+    "approved_date": "2025-05-31T00:00:00",
+    "status": "Unknown",
+    "note": "Inclining test performed on vessel \"Brother 36\" (IMO 8743531) after fitting a 25T x 26M crane at frame 80.",
+    "id": "cb01f7b8-3347-4ce5-a3d0-dd380cd35f37",
+    "created_at": "2025-10-31T13:47:39.773508+00:00",
+    "updated_at": "2025-10-31T13:47:53.951000",
+    "file_id": "1CRk-65Fhjiqb_QNTsVpEGD8HJEH9b_ah",
+    "summary_file_id": "1baYD19XCQM9gjl6US4jYdQZNuojCmlOb"
+  },
+  {
+    "_id": "69107a302268d8bc133fe29e",
+    "ship_id": "08e9eaf3-0b5e-47eb-9554-af84f03cc5e2",
+    "document_name": "frere",
+    "document_no": null,
+    "approved_by": null,
+    "approved_date": null,
+    "status": "Unknown",
+    "note": null,
+    "id": "88c0a423-30b8-41b3-bde3-0fcf1db7aae9",
+    "created_at": "2025-11-09T11:25:36.483435+00:00",
+    "updated_at": null,
+    "file_id": null,
+    "summary_file_id": null
+  }
+]

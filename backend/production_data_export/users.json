@@ -1,0 +1,95 @@
+[
+  {
+    "_id": "6901dab984ee623203b904a8",
+    "id": "7f192759-ec79-485b-ae66-1329ec78cc47",
+    "username": "admin1",
+    "password_hash": "$2b$12$wdq5F.4T2TqKpf85oS3FpejmrgKTPJBh6D90tyzzqVksz3UqhL8Xi",
+    "email": "admin.simple@amcsc.vn",
+    "full_name": "Admin User (Simple Login)",
+    "role": "admin",
+    "company": "0a6eaf96-0aaf-4793-89be-65d62cb7953c",
+    "department": [
+      "operations",
+      "commercial"
+    ],
+    "zalo": "0123456789",
+    "created_at": "2025-10-29T09:13:29.436000",
+    "updated_at": "2025-10-29T09:13:29.436000",
+    "is_active": true,
+    "company_id": "0a6eaf96-0aaf-4793-89be-65d62cb7953c"
+  },
+  {
+    "_id": "6901dab984ee623203b904a9",
+    "id": "23e5f4ec-60a4-4942-a1f1-67f1d291b32e",
+    "username": "admin",
+    "password_hash": "$2b$12$1dH0rMOvxawfm2nQnUhrXeJclp2PpS38XCO6nU8/8dWWSOD56afgK",
+    "email": "admin@amcsc.vn",
+    "full_name": "Super Admin",
+    "role": "super_admin",
+    "company": "0a6eaf96-0aaf-4793-89be-65d62cb7953c",
+    "department": [
+      "operations",
+      "safety",
+      "dpa"
+    ],
+    "zalo": "0123456789",
+    "created_at": "2025-10-29T09:13:29.662000",
+    "updated_at": "2025-10-29T09:13:29.662000",
+    "is_active": true
+  },
+  {
+    "_id": "6901e599e17a3169c52f26e2",
+    "username": "Sadmin",
+    "email": "vntan1402@gmail.com",
+    "full_name": "Super admin 1",
+    "role": "super_admin",
+    "department": [
+      "dpa"
+    ],
+    "company": "d54951ef-e0ed-45a6-af8e-8504ec237414",
+    "ship": "",
+    "zalo": "156465",
+    "gmail": null,
+    "is_active": true,
+    "password_hash": "$2b$12$5pzgrVT0WrRL0xHQdqwp0O62fqC7PocSYj3IEROlZwA1riGI./G8q",
+    "id": "28c7ef4b-087c-4142-b1bc-02a8a7b0db56",
+    "created_at": "2025-10-29T09:59:53.521000"
+  },
+  {
+    "_id": "6901e631e17a3169c52f26e3",
+    "username": "crew1",
+    "full_name": "Crew test 1",
+    "role": "viewer",
+    "department": [
+      "ship_crew"
+    ],
+    "company": "0a6eaf96-0aaf-4793-89be-65d62cb7953c",
+    "ship": "Standby",
+    "zalo": "15674680",
+    "gmail": null,
+    "is_active": true,
+    "password_hash": "$2b$12$0/rkJtn3qQXJo4zO6gwswu6W8X7U7wyV2xqbh3OJ4.ojz/ZL8dtaC",
+    "id": "aeafa487-a24e-4948-b4b8-0bae1a3a5d0b",
+    "created_at": "2025-10-29T10:02:25.089000",
+    "updated_at": "2025-10-29T10:14:30.138000"
+  },
+  {
+    "_id": "690f2be5af17450e88de4521",
+    "username": "C/O",
+    "full_name": "TRần Văn A",
+    "role": "editor",
+    "department": [
+      "ship_crew",
+      "sso"
+    ],
+    "company": "0a6eaf96-0aaf-4793-89be-65d62cb7953c",
+    "ship": "TEST SHIP 001",
+    "zalo": "0908767878",
+    "gmail": null,
+    "is_active": true,
+    "password_hash": "$2b$12$CwTccsKalEjEz7hdOp8RIu9UBd3Vp8OkEsvkXvWwjVM.s9yk5MBCW",
+    "id": "fdcfcb20-46d9-4ec7-8cb3-a5f61b7897fa",
+    "created_at": "2025-11-08T11:39:17.761000",
+    "updated_at": "2025-11-08T11:44:47.826000"
+  }
+]
