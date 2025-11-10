@@ -108,7 +108,7 @@ async def create_first_admin():
         "email": email,
         "full_name": full_name,
         "password": hashed_password,
-        "role": "super_admin",  # Highest permission level
+        "role": "system_admin",  # Highest permission level - can create all roles
         "department": ["technical", "operations"],
         "company": company_id,
         "ship": None,
