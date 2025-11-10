@@ -28469,8 +28469,13 @@ app.mount("/uploads", StaticFiles(directory="/app/backend/uploads"), name="uploa
 # ============================================================================
 
 @app.on_event("startup")
-async def startup_event():
+async def startup_event_main():
+    """Main application startup - Database & Scheduler"""
     await mongo_db.connect()
+    logger.info("✅ Database connected")
+    
+    # Initialize admin if needed
+    await init_admin_if_needed()
     
     # Start the scheduler for auto-backup
     scheduler.add_job(
