@@ -101,24 +101,6 @@ logger = logging.getLogger(__name__)
 # Import admin initialization
 from init_admin_startup import init_admin_if_needed
 
-# Startup event - Initialize admin if needed
-@app.on_event("startup")
-async def startup_event():
-    """
-    Application startup event
-    - Initialize admin user if no admin exists
-    """
-    logger.info("=" * 60)
-    logger.info("🚀 Application Starting...")
-    logger.info("=" * 60)
-    
-    # Check and create initial admin if needed
-    await init_admin_if_needed()
-    
-    logger.info("=" * 60)
-    logger.info("✅ Application Startup Complete")
-    logger.info("=" * 60)
-
 # Exception handler for validation errors
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
