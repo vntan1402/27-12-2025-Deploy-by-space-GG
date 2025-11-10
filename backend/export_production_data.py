@@ -46,14 +46,19 @@ async def export_all_data():
             documents = await mongo_db.find_all(collection_name, {})
             
             # Convert datetime objects to strings for JSON serialization
+            def serialize_value(value):
+                if isinstance(value, datetime):
+                    return value.isoformat()
+                elif isinstance(value, dict):
+                    return {k: serialize_value(v) for k, v in value.items()}
+                elif isinstance(value, list):
+                    return [serialize_value(item) for item in value]
+                else:
+                    return value
+            
             serializable_docs = []
             for doc in documents:
-                serializable_doc = {}
-                for key, value in doc.items():
-                    if isinstance(value, datetime):
-                        serializable_doc[key] = value.isoformat()
-                    else:
-                        serializable_doc[key] = value
+                serializable_doc = {key: serialize_value(value) for key, value in doc.items()}
                 serializable_docs.append(serializable_doc)
             
             # Save to JSON file
