@@ -90,7 +90,7 @@ async def quick_create_admin(
     print(f"Username:     {username}")
     print(f"Email:        {email}")
     print(f"Password:     {password}")
-    print(f"Role:         SUPER_ADMIN")
+    print(f"Role:         SYSTEM_ADMIN (Highest Level)")
     if company_name:
         print(f"Company:      {company_name}")
     print("=" * 60)
