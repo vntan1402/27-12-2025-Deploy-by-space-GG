@@ -72,7 +72,7 @@ async def quick_create_admin(
         "email": email,
         "full_name": full_name,
         "password": hashed_password,
-        "role": "super_admin",
+        "role": "system_admin",  # Changed to system_admin for highest permissions
         "department": ["technical", "operations"],
         "company": company_id,
         "ship": None,
