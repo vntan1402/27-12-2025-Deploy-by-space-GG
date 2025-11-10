@@ -1,5 +1,5 @@
 {
-  "export_date": "2025-11-10T14:05:31.066624",
+  "export_date": "2025-11-10T14:05:53.419802",
   "collections": {
     "companies": {
       "count": 3,
@@ -10,7 +10,8 @@
       "file": "production_data_export/users.json"
     },
     "ships": {
-      "error": "Object of type datetime is not JSON serializable"
+      "count": 4,
+      "file": "production_data_export/ships.json"
     },
     "ship_certificates": {
       "count": 0,
