@@ -79,8 +79,8 @@ const UserManagement = () => {
       const response = await userService.getAll();
       let data = response.data;
       
-      // Filter users by current user's company (except super_admin who sees all)
-      if (currentUser && currentUser.role !== 'super_admin' && currentUser.company) {
+      // Filter users by current user's company (except super_admin and system_admin who see all)
+      if (currentUser && currentUser.role !== 'super_admin' && currentUser.role !== 'system_admin' && currentUser.company) {
         data = data.filter(user => user.company === currentUser.company);
       }
       
