@@ -139,7 +139,20 @@ const HomePage = () => {
               // For uploads, use /api/files prefix to route through backend
               let logoUrl;
               if (companyLogo.startsWith('http')) {
-                logoUrl = companyLogo;
+                // Check if it's a Google Drive link and convert to direct image URL
+                if (companyLogo.includes('drive.google.com/file/d/')) {
+                  // Extract file ID from Google Drive URL
+                  const fileIdMatch = companyLogo.match(/\/d\/([^\/]+)/);
+                  if (fileIdMatch && fileIdMatch[1]) {
+                    const fileId = fileIdMatch[1];
+                    logoUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+                    console.log('🔄 Converted Google Drive URL to direct image:', logoUrl);
+                  } else {
+                    logoUrl = companyLogo;
+                  }
+                } else {
+                  logoUrl = companyLogo;
+                }
               } else if (companyLogo.startsWith('/uploads/')) {
                 // Convert /uploads/folder/file to /api/files/folder/file
                 logoUrl = `${process.env.REACT_APP_BACKEND_URL}/api/files${companyLogo.substring(8)}`;
