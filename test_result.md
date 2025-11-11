@@ -49,16 +49,8 @@
 ##
 ## test_plan:
   current_focus:
-    - "Audit Report AI Configuration Fix - Harmonized with Survey Report Pattern"
-    - "Delete Ship Feature - Google Drive Folder Deletion Fix"
-    - "Certificate Name Searchable Dropdown in Edit Modal"
-    - "Auto Move Standby Files Feature"
-    - "Standby Crew Folder Detection Enhancement"
-    - "Standby Crew Certificate File Upload Issue Investigation"
-    - "Survey Report AI Analysis Fix - Configuration Loading"
-    - "Test Report Batch Upload Debug - Chemical Suit and Co2 Files"
-  stuck_tasks: 
-    - "Document AI Passport Analysis Integration"
+    - "Admin API Endpoints for Production Admin Management"
+  stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
