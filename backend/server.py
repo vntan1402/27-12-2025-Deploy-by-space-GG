@@ -21822,7 +21822,7 @@ async def log_audit_trail(
 @api_router.post("/crew", response_model=CrewResponse)
 async def create_crew_member(
     crew_data: CrewCreate,
-    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """Create a new crew member"""
     try:
