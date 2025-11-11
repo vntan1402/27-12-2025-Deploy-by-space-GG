@@ -22051,7 +22051,7 @@ async def get_crew_members(
 @api_router.get("/crew/{crew_id}", response_model=CrewResponse)
 async def get_crew_member(
     crew_id: str,
-    current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """Get a specific crew member"""
     try:
