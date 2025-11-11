@@ -22078,7 +22078,7 @@ async def update_crew_member(
     crew_id: str,
     crew_update: CrewUpdate,
     background_tasks: BackgroundTasks,  # 🆕 NEW: Add BackgroundTasks parameter
-    current_user: UserResponse = Depends(check_permission([UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """Update a crew member"""
     try:
