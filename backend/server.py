@@ -13962,7 +13962,7 @@ async def get_ai_config(current_user: UserResponse = Depends(get_current_user)):
 @api_router.post("/ai-config")
 async def update_ai_config(
     config: AIConfig,
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """Update AI configuration"""
     try:
