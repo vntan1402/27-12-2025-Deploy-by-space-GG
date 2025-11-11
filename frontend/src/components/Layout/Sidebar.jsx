@@ -111,13 +111,26 @@ export const Sidebar = ({
 
       {/* User Guide Modal - Rendered via Portal */}
       {showUserGuide && ReactDOM.createPortal(
-        <>
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+          style={{ zIndex: 99999 }}
+          onClick={() => setShowUserGuide(false)}
+        >
           {console.log('📖 Rendering UserGuideModal via Portal')}
-          <UserGuideModal onClose={() => {
-            console.log('🔒 Closing UserGuideModal');
-            setShowUserGuide(false);
-          }} />
-        </>,
+          <div 
+            className="bg-white p-8 rounded-lg shadow-2xl max-w-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-2xl font-bold mb-4">Test Modal</h2>
+            <p>If you see this, Portal is working!</p>
+            <button
+              onClick={() => setShowUserGuide(false)}
+              className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+            >
+              Close
+            </button>
+          </div>
+        </div>,
         document.body
       )}
     </div>
