@@ -77,6 +77,7 @@ async def init_admin_if_needed():
             'email': admin_email,
             'full_name': admin_full_name,
             'password_hash': hashed_password,  # Changed from 'password' to 'password_hash' to match login endpoint
+            'password': hashed_password,  # Add 'password' field as well for compatibility
             'role': 'system_admin',
             'department': ['technical', 'operations'],
             'company': company_id,
@@ -87,7 +88,8 @@ async def init_admin_if_needed():
             'created_at': datetime.now()
         }
         
-        await db['users'].insert_one(user_data)
+        # Use mongo_db.create() instead of direct insert_one() to avoid permission issues
+        await mongo_db.create('users', user_data)
         
         logger.info("=" * 60)
         logger.info("✅ INITIAL ADMIN USER CREATED SUCCESSFULLY!")
