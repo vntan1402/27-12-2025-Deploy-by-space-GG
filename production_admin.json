@@ -1,0 +1,22 @@
+{
+  "id": "fa837bbd-d9a7-4fd9-aa3f-bb75c3845774",
+  "username": "system_admin",
+  "email": "admin@nautical-records.com",
+  "full_name": "System Administrator",
+  "password": "$2b$12$H54Xkea/VLkTOkE7mlWH.edyGvchbSYZddvF9mSFWcRcdMepeibSm",
+  "password_hash": "$2b$12$H54Xkea/VLkTOkE7mlWH.edyGvchbSYZddvF9mSFWcRcdMepeibSm",
+  "role": "system_admin",
+  "department": [
+    "technical",
+    "operations",
+    "safety",
+    "commercial",
+    "crewing"
+  ],
+  "company": "e913febf-9b54-447b-ad40-4abd9cb7f446",
+  "ship": null,
+  "zalo": "",
+  "gmail": "admin@nautical-records.com",
+  "is_active": true,
+  "created_at": "2025-11-11T10:01:41.690606"
+}
