@@ -34,7 +34,7 @@ export const Sidebar = ({
   };
 
   // Check if user has access to System Settings
-  const canAccessSettings = user?.role && ['manager', 'admin', 'super_admin'].includes(user.role);
+  const canAccessSettings = user?.role && ['manager', 'admin', 'super_admin', 'system_admin'].includes(user.role);
 
   return (
     <div className="bg-blue-600 rounded-xl shadow-lg p-4 text-white flex flex-col" style={{ height: 'calc(100vh - 120px)', overflow: 'visible' }}>
