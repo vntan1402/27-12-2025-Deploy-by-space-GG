@@ -18573,7 +18573,7 @@ async def configure_google_drive_proxy(
 @api_router.get("/companies/{company_id}/gdrive/config")
 async def get_company_gdrive_config(
     company_id: str,
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """Get Google Drive configuration for specific company"""
     try:
