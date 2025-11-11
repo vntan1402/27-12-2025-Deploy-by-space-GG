@@ -470,7 +470,7 @@ const EditUserModal = ({
 
           {/* Company and Zalo - 2 fields per row */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Company - Editable for Super Admin, Disabled for others */}
+            {/* Company - Editable for Super Admin and System Admin, Disabled for others */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Công ty' : 'Company'}
@@ -479,7 +479,7 @@ const EditUserModal = ({
                 value={userData.company}
                 onChange={(e) => setUserData(prev => ({ ...prev, company: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-                disabled={loading || currentUser?.role !== 'super_admin'}
+                disabled={loading || (currentUser?.role !== 'super_admin' && currentUser?.role !== 'system_admin')}
               >
                 <option value="">{language === 'vi' ? 'Chọn công ty' : 'Select company'}</option>
                 {companies.map(company => (
@@ -489,8 +489,8 @@ const EditUserModal = ({
                 ))}
               </select>
               <p className="text-xs text-gray-500 mt-1">
-                {currentUser?.role === 'super_admin' 
-                  ? (language === 'vi' ? '👑 Super Admin có thể đổi công ty' : '👑 Super Admin can change company')
+                {(currentUser?.role === 'super_admin' || currentUser?.role === 'system_admin')
+                  ? (language === 'vi' ? '👑 Admin có thể đổi công ty' : '👑 Admin can change company')
                   : (language === 'vi' ? '🔒 Không thể đổi công ty' : '🔒 Cannot change company')
                 }
               </p>
