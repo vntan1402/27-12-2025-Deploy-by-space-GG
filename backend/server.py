@@ -18331,7 +18331,7 @@ async def sync_to_drive(current_user: UserResponse = Depends(check_permission([U
 @api_router.post("/gdrive/sync-from-drive")
 async def sync_from_drive(
     folder_date: str = None,
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """Restore collections from Google Drive backup folder"""
     try:
