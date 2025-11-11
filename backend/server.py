@@ -18748,7 +18748,7 @@ async def create_ship_google_drive_folder(
 async def configure_company_gdrive(
     company_id: str,
     config_data: dict,
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """Configure Google Drive for specific company"""
     try:
