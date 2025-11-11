@@ -41,10 +41,10 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
   const calculateMonthlyFee = () => {
     setCalculatingFee(true);
     try {
-      // Monthly Fee = (Total Ships x Base Fee) + (Office Staff x 50,000 VND) + (Crew Members x 12,500 VND)
+      // Monthly Fee = (Total Ships x Base Fee) + (Office Staff x 0.1 x Base Fee) + (Crew Members x 0.025 x Base Fee)
       const shipsFee = statistics.totalShips * baseFee;
-      const staffFee = statistics.totalUsers * 50000;
-      const crewFee = statistics.totalCrew * 12500;
+      const staffFee = statistics.totalUsers * (0.1 * baseFee);
+      const crewFee = statistics.totalCrew * (0.025 * baseFee);
       const total = shipsFee + staffFee + crewFee;
       
       setMonthlyFee(total);
@@ -53,8 +53,10 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
         baseFee: baseFee,
         shipsFee: shipsFee,
         officeStaff: statistics.totalUsers,
+        staffRate: '0.1 × Base Fee',
         staffFee: staffFee,
         crewMembers: statistics.totalCrew,
+        crewRate: '0.025 × Base Fee',
         crewFee: crewFee,
         totalMonthlyFee: total
       });
