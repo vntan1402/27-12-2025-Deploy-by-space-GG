@@ -109,15 +109,16 @@ export const Sidebar = ({
         </button>
       </div>
 
-      {/* User Guide Modal */}
-      {showUserGuide && (
+      {/* User Guide Modal - Rendered via Portal */}
+      {showUserGuide && ReactDOM.createPortal(
         <>
-          {console.log('📖 Rendering UserGuideModal')}
+          {console.log('📖 Rendering UserGuideModal via Portal')}
           <UserGuideModal onClose={() => {
             console.log('🔒 Closing UserGuideModal');
             setShowUserGuide(false);
           }} />
-        </>
+        </>,
+        document.body
       )}
     </div>
   );
