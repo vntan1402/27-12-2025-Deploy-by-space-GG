@@ -92,18 +92,18 @@ const BaseFeeModal = ({ onClose, language = 'en', currentBaseFee, onUpdate }) =>
           {/* Base Fee Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {language === 'vi' ? 'Base Fee (USD)' : 'Base Fee (USD)'} *
+              {language === 'vi' ? 'Base Fee (VND)' : 'Base Fee (VND)'} *
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">
-                $
+                ₫
               </span>
               <input
                 type="text"
                 value={baseFee}
                 onChange={handleBaseFeeChange}
                 className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder="0.00"
+                placeholder="0"
                 required
                 disabled={loading}
               />
@@ -112,7 +112,7 @@ const BaseFeeModal = ({ onClose, language = 'en', currentBaseFee, onUpdate }) =>
               <p className="text-xs text-gray-500 mt-1">
                 {language === 'vi' ? 'Định dạng: ' : 'Formatted: '}
                 <span className="font-semibold text-gray-700">
-                  ${formatCurrency(parseFloat(baseFee))}
+                  {parseFloat(baseFee).toLocaleString('vi-VN')} ₫
                 </span>
               </p>
             )}
