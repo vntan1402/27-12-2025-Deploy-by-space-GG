@@ -2,10 +2,11 @@
  * Sidebar Component
  * Container for category menu and ship selection
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { CategoryMenu } from './CategoryMenu';
+import UserGuideModal from '../UserGuideModal';
 
 export const Sidebar = ({
   selectedCategory,
