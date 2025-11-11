@@ -40,11 +40,16 @@ async def init_admin_if_needed():
         admin_email = os.getenv('INIT_ADMIN_EMAIL', 'admin@company.com')
         admin_password = os.getenv('INIT_ADMIN_PASSWORD')
         admin_full_name = os.getenv('INIT_ADMIN_FULL_NAME', 'System Administrator')
-        company_name = os.getenv('INIT_COMPANY_NAME', 'Default Company')
+        # Note: INIT_COMPANY_NAME is no longer needed since system_admin doesn't belong to any company
         
         if not admin_password:
             logger.error("❌ INIT_ADMIN_PASSWORD not set in environment variables!")
             logger.error("   Please set INIT_ADMIN_PASSWORD in .env file")
+            logger.info("ℹ️  Required environment variables:")
+            logger.info("   - INIT_ADMIN_USERNAME (optional, default: system_admin)")
+            logger.info("   - INIT_ADMIN_PASSWORD (REQUIRED)")
+            logger.info("   - INIT_ADMIN_EMAIL (optional, default: admin@company.com)")
+            logger.info("   - INIT_ADMIN_FULL_NAME (optional, default: System Administrator)")
             # Don't disconnect - main app needs the connection
             # await mongo_db.disconnect()
             return
@@ -52,6 +57,7 @@ async def init_admin_if_needed():
         # System Admin does NOT need a company - they manage ALL companies
         # No company creation for system_admin
         logger.info("ℹ️  System Admin will not be assigned to any company (manages all companies)")
+        logger.info("ℹ️  Note: INIT_COMPANY_NAME is no longer required")
         
         # Hash password
         hashed_password = bcrypt.hashpw(admin_password.encode(), bcrypt.gensalt()).decode()
