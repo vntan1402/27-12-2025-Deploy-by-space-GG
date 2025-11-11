@@ -51,8 +51,13 @@ class MongoDatabase:
         try:
             # Users collection indexes
             await self.database.users.create_index("username", unique=True)
-            # Sparse index on email: allows multiple null values but enforces uniqueness for non-null values
-            await self.database.users.create_index("email", unique=True, sparse=True)
+            # Partial index on email: only indexes non-null emails, allows multiple null values
+            # This enforces uniqueness only for users who have an email address
+            await self.database.users.create_index(
+                "email", 
+                unique=True, 
+                partialFilterExpression={"email": {"$type": "string"}}
+            )
             await self.database.users.create_index([("role", 1), ("is_active", 1)])
             await self.database.users.create_index("company")
             
