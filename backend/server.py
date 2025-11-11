@@ -28445,6 +28445,9 @@ async def upload_other_audit_document_folder(
 # Add the router to the main app
 app.include_router(api_router)
 
+# Add admin API router (for production admin management)
+app.include_router(admin_api_router, prefix="/api", tags=["admin-management"])
+
 # Static files
 app.mount("/uploads", StaticFiles(directory="/app/backend/uploads"), name="uploads")
 
