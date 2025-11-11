@@ -49,28 +49,14 @@ async def init_admin_if_needed():
             # await mongo_db.disconnect()
             return
         
-        # Create company first
-        company_id = str(uuid.uuid4())
-        company_data = {
-            'id': company_id,
-            'name': company_name,
-            'email': admin_email,
-            'phone': '',
-            'address': '',
-            'logo_url': '',
-            'tax_id': f'AUTO-{company_id[:8]}',  # Auto-generated unique tax_id
-            'created_at': datetime.now(),
-            'updated_at': datetime.now()
-        }
-        
-        # Use mongo_db.create() instead of direct insert_one() to avoid permission issues
-        await mongo_db.create('companies', company_data)
-        logger.info(f"✅ Company created: {company_name}")
+        # System Admin does NOT need a company - they manage ALL companies
+        # No company creation for system_admin
+        logger.info("ℹ️  System Admin will not be assigned to any company (manages all companies)")
         
         # Hash password
         hashed_password = bcrypt.hashpw(admin_password.encode(), bcrypt.gensalt()).decode()
         
-        # Create system_admin user
+        # Create system_admin user WITHOUT company
         user_data = {
             'id': str(uuid.uuid4()),
             'username': admin_username,
@@ -79,8 +65,8 @@ async def init_admin_if_needed():
             'password_hash': hashed_password,  # Changed from 'password' to 'password_hash' to match login endpoint
             'password': hashed_password,  # Add 'password' field as well for compatibility
             'role': 'system_admin',
-            'department': ['technical', 'operations'],
-            'company': company_id,
+            'department': ['technical', 'operations', 'safety', 'commercial', 'crewing'],
+            'company': '',  # Empty string - System Admin is not assigned to any company
             'ship': None,
             'zalo': '',
             'gmail': admin_email,
