@@ -5105,7 +5105,7 @@ async def create_company(company_data: CompanyCreate, current_user: UserResponse
         raise HTTPException(status_code=500, detail="Failed to create company")
 
 @api_router.put("/companies/{company_id}", response_model=CompanyResponse)
-async def update_company(company_id: str, company_data: CompanyUpdate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+async def update_company(company_id: str, company_data: CompanyUpdate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))):
     try:
         # Check if company exists
         existing_company = await mongo_db.find_one("companies", {"id": company_id})
