@@ -110,7 +110,13 @@ export const Sidebar = ({
 
       {/* User Guide Modal */}
       {showUserGuide && (
-        <UserGuideModal onClose={() => setShowUserGuide(false)} />
+        <>
+          {console.log('📖 Rendering UserGuideModal')}
+          <UserGuideModal onClose={() => {
+            console.log('🔒 Closing UserGuideModal');
+            setShowUserGuide(false);
+          }} />
+        </>
       )}
     </div>
   );
