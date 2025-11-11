@@ -187,3 +187,114 @@ async def check_env_variables():
         ]),
         "username_hint": username_hint
     }
+
+
+@router.get("/admin/create-simple")
+async def create_admin_simple(secret: str = None):
+    """
+    Create admin from environment variables - GET version for easy browser access
+    Requires secret query parameter
+    """
+    try:
+        # Get secret from env
+        expected_secret = os.getenv('ADMIN_CREATION_SECRET', 'default-secret-change-me')
+        
+        # Verify secret
+        if not secret or secret != expected_secret:
+            return {
+                "success": False,
+                "error": "Invalid or missing secret parameter",
+                "usage": "Add ?secret=your-secret-key to URL"
+            }
+        
+        # Check if admin already exists
+        system_admins = await mongo_db.find_all('users', {'role': 'system_admin'})
+        super_admins = await mongo_db.find_all('users', {'role': 'super_admin'})
+        
+        if system_admins or super_admins:
+            return {
+                "success": False,
+                "message": "Admin already exists",
+                "existing_admins": len(system_admins) + len(super_admins),
+                "users": [
+                    {
+                        "username": u.get("username"),
+                        "role": u.get("role"),
+                        "email": u.get("email")
+                    }
+                    for u in (system_admins + super_admins)
+                ]
+            }
+        
+        # Get credentials from env
+        username = os.getenv('INIT_ADMIN_USERNAME', 'system_admin')
+        email = os.getenv('INIT_ADMIN_EMAIL', 'admin@company.com')
+        password = os.getenv('INIT_ADMIN_PASSWORD')
+        full_name = os.getenv('INIT_ADMIN_FULL_NAME', 'System Administrator')
+        company_name = os.getenv('INIT_COMPANY_NAME', 'Default Company')
+        
+        if not password:
+            return {
+                "success": False,
+                "error": "INIT_ADMIN_PASSWORD not set in environment variables"
+            }
+        
+        # Create company
+        company_id = str(uuid.uuid4())
+        company_data = {
+            'id': company_id,
+            'name': company_name,
+            'email': email,
+            'phone': '',
+            'address': '',
+            'logo_url': '',
+            'tax_id': f'AUTO-{company_id[:8]}',
+            'created_at': datetime.now(),
+            'updated_at': datetime.now()
+        }
+        
+        db = mongo_db.client['ship_management']
+        await db['companies'].insert_one(company_data)
+        
+        # Hash password
+        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+        
+        # Create admin
+        user_data = {
+            'id': str(uuid.uuid4()),
+            'username': username,
+            'email': email,
+            'full_name': full_name,
+            'password_hash': hashed_password,
+            'role': 'system_admin',
+            'department': ['technical', 'operations'],
+            'company': company_id,
+            'ship': None,
+            'zalo': '',
+            'gmail': email,
+            'is_active': True,
+            'created_at': datetime.now()
+        }
+        
+        await db['users'].insert_one(user_data)
+        
+        logger.info(f"✅ Admin created via GET endpoint: {username}")
+        
+        return {
+            "success": True,
+            "message": "🎉 Admin created successfully! You can now login.",
+            "credentials": {
+                "username": username,
+                "email": email,
+                "role": "system_admin",
+                "company": company_name
+            },
+            "next_step": "Go to login page and use the credentials above"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating admin via GET: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
