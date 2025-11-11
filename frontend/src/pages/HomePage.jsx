@@ -142,11 +142,13 @@ const HomePage = () => {
                 // Check if it's a Google Drive link and convert to direct image URL
                 if (companyLogo.includes('drive.google.com/file/d/')) {
                   // Extract file ID from Google Drive URL
-                  const fileIdMatch = companyLogo.match(/\/d\/([^\/]+)/);
+                  const fileIdMatch = companyLogo.match(/\/d\/([^\/\?]+)/);
                   if (fileIdMatch && fileIdMatch[1]) {
                     const fileId = fileIdMatch[1];
-                    logoUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
-                    console.log('🔄 Converted Google Drive URL to direct image:', logoUrl);
+                    // Use thumbnail API for better CORS support
+                    logoUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+                    console.log('🔄 Converted Google Drive URL to thumbnail:', logoUrl);
+                    console.log('📋 File ID:', fileId);
                   } else {
                     logoUrl = companyLogo;
                   }
