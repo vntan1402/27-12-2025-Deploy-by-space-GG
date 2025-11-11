@@ -2,7 +2,7 @@
 
 # Test script for Crew Certificates Backend APIs (Steps 1-5)
 
-API_URL="https://seafarer-hub-3.preview.emergentagent.com/api"
+API_URL="https://shipprep-suite.preview.emergentagent.com/api"
 
 echo "=========================================="
 echo "CREW CERTIFICATES BACKEND API TESTING"

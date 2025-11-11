@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://seafarer-hub-3.preview.emergentagent.com/api"
+API_URL="https://shipprep-suite.preview.emergentagent.com/api"
 
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
   -H "Content-Type: application/json" \

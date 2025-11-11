@@ -7,7 +7,7 @@ import requests
 import json
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://seafarer-hub-3.preview.emergentagent.com/api"
+BACKEND_URL = "https://shipprep-suite.preview.emergentagent.com/api"
 
 def test_nonexistent_ship():
     """Test deletion with non-existent ship name"""
