@@ -5238,7 +5238,7 @@ async def get_ship_gdrive_folder_status(ship_id: str, current_user: UserResponse
         raise HTTPException(status_code=500, detail="Failed to get folder status")
 
 @api_router.delete("/companies/{company_id}")
-async def delete_company(company_id: str, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+async def delete_company(company_id: str, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))):
     try:
         # Check if company exists
         existing_company = await mongo_db.find_one("companies", {"id": company_id})
