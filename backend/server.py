@@ -4751,16 +4751,22 @@ async def create_user(user_data: UserCreate, current_user: UserResponse = Depend
         user_dict["id"] = str(uuid.uuid4())
         user_dict["created_at"] = datetime.now(timezone.utc)
         
+        logger.info(f"📝 Creating user with data: {user_dict}")
+        
         # Create user in database
         await mongo_db.create("users", user_dict)
+        
+        logger.info(f"✅ User created successfully: {user_dict['username']}")
         
         return UserResponse(**user_dict)
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error creating user: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create user")
+        import traceback
+        logger.error(f"❌ Error creating user: {e}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
 @api_router.get("/users/filtered", response_model=List[UserResponse])
 async def get_filtered_users(
     company: Optional[str] = None,
