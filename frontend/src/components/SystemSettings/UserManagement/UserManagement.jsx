@@ -276,8 +276,8 @@ const UserManagement = () => {
       return false;
     }
 
-    // Super admin can edit all
-    if (currentUser.role === 'super_admin') {
+    // Super admin and system admin can edit all
+    if (currentUser.role === 'super_admin' || currentUser.role === 'system_admin') {
       return true;
     }
 
