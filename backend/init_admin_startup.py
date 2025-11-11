@@ -103,10 +103,7 @@ async def init_admin_if_needed():
         
     except Exception as e:
         logger.error(f"❌ Error initializing admin: {str(e)}")
-        try:
-            await mongo_db.disconnect()
-        except:
-            pass
+        # Don't disconnect on error - main app still needs the connection
 
 if __name__ == "__main__":
     # For testing
