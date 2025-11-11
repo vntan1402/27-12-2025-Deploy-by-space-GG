@@ -297,7 +297,7 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
                       {language === 'vi' ? 'Phí hàng tháng' : 'Monthly Fee'}
                     </p>
                     <p className="text-2xl font-bold">
-                      ${monthlyFee.toFixed(2)}
+                      {monthlyFee.toLocaleString('vi-VN')} ₫
                     </p>
                   </div>
                 )}
