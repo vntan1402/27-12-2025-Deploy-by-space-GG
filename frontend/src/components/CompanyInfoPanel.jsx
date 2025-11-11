@@ -13,13 +13,14 @@ export const CompanyInfoPanel = ({ companyData, onClose }) => {
   const getLogoUrl = (logoUrl) => {
     if (!logoUrl) return null;
     if (logoUrl.startsWith('http')) {
-      // Check if it's a Google Drive link and convert to direct image URL
+      // Check if it's a Google Drive link and convert to thumbnail URL
       if (logoUrl.includes('drive.google.com/file/d/')) {
         // Extract file ID from Google Drive URL
-        const fileIdMatch = logoUrl.match(/\/d\/([^\/]+)/);
+        const fileIdMatch = logoUrl.match(/\/d\/([^\/\?]+)/);
         if (fileIdMatch && fileIdMatch[1]) {
           const fileId = fileIdMatch[1];
-          return `https://drive.google.com/uc?export=view&id=${fileId}`;
+          // Use thumbnail API for better CORS support
+          return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
         }
       }
       return logoUrl;
