@@ -146,8 +146,8 @@ const UserManagement = () => {
    * @returns {boolean}
    */
   const canCreateUserWithRole = (targetRole) => {
-    // Super admin can create any role
-    if (currentUser.role === 'super_admin') {
+    // Super admin and system admin can create any role
+    if (currentUser.role === 'super_admin' || currentUser.role === 'system_admin') {
       return true;
     }
     
