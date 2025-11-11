@@ -262,9 +262,19 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
           <div className="flex items-center gap-4 border-b pb-4">
             {company.logo_url ? (
               <img 
-                src={company.logo_url} 
+                src={(() => {
+                  // Convert Google Drive URLs to direct image URLs
+                  if (company.logo_url.includes('drive.google.com/file/d/')) {
+                    return convertGoogleDriveUrl(company.logo_url);
+                  }
+                  return company.logo_url;
+                })()} 
                 alt={company.name_en}
                 className="w-20 h-20 object-contain rounded-lg border-2 border-gray-200"
+                onError={(e) => {
+                  console.error('Failed to load company logo');
+                  e.target.style.display = 'none';
+                }}
               />
             ) : (
               <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center text-3xl">
