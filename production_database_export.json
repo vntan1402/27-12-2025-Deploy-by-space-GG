@@ -1,5 +1,5 @@
 {
-  "export_date": "2025-11-11T10:20:19.839499",
+  "export_date": "2025-11-11T10:20:44.372524",
   "export_source": "local_development",
   "total_companies": 1,
   "total_users": 2,
@@ -21,4 +21,57 @@
       "updated_at": "2025-11-11T07:20:33.938000",
       "is_active": true,
       "name": "Maritime Technology Development Co., Ltd.",
-      "software_expiry": 
+      "software_expiry": "2025-11-05T00:00:00"
+    }
+  ],
+  "users": [
+    {
+      "id": "7f192759-ec79-485b-ae66-1329ec78cc47",
+      "username": "admin1",
+      "password_hash": "$2b$12$wdq5F.4T2TqKpf85oS3FpejmrgKTPJBh6D90tyzzqVksz3UqhL8Xi",
+      "email": "admin.simple@amcsc.vn",
+      "full_name": "Admin User (Demo)",
+      "role": "admin",
+      "company": "0a6eaf96-0aaf-4793-89be-65d62cb7953c",
+      "department": [
+        "operations",
+        "commercial",
+        "technical",
+        "safety"
+      ],
+      "zalo": "0123456789",
+      "created_at": "2025-10-29T09:13:29.436000",
+      "updated_at": "2025-11-11T07:35:45.930000",
+      "is_active": true,
+      "company_id": "0a6eaf96-0aaf-4793-89be-65d62cb7953c",
+      "ship": ""
+    },
+    {
+      "id": "cc269020-8634-419a-bd44-eb431ba28119",
+      "username": "system_admin",
+      "email": "vntan1402@gmail.com",
+      "full_name": "System Administrator",
+      "role": "system_admin",
+      "department": [
+        "technical",
+        "operations",
+        "safety",
+        "commercial",
+        "crewing",
+        "sso",
+        "cso",
+        "supply",
+        "dpa"
+      ],
+      "company": "",
+      "ship": "",
+      "zalo": "0989357282",
+      "gmail": "admin@yourcompany.com",
+      "is_active": true,
+      "created_at": "2025-11-10T14:53:04.590000",
+      "password_hash": "$2b$12$SaENraGS09E48JNt4C7bDuae7QTwPkgJ8752k7HlxquJgIIbK0RMu",
+      "updated_at": "2025-11-11T09:54:12.621000",
+      "password": "$2b$12$SaENraGS09E48JNt4C7bDuae7QTwPkgJ8752k7HlxquJgIIbK0RMu"
+    }
+  ]
+}
