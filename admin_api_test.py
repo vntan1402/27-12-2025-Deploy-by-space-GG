@@ -89,7 +89,7 @@ import subprocess
 from datetime import datetime
 
 # Backend URL from frontend .env
-BACKEND_URL = "https://shipprep-suite.preview.emergentagent.com/api"
+BACKEND_URL = "https://docnav-maritime.preview.emergentagent.com/api"
 
 # Admin credentials from backend .env
 ADMIN_USERNAME = "system_admin"
