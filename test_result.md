@@ -62,7 +62,7 @@
   test_all: false
   test_priority: "high_first"
 
-user_problem_statement: "Implement a validation confirmation modal for single-file uploads in Audit Certificates. When a certificate file's ship IMO/name doesn't match the selected ship, instead of showing a toast notification, display a modal with two options: Continue (adds reference note 'Giấy chứng nhận này của tàu khác, chỉ để tham khảo' to notes field and proceeds) or Cancel (stops upload without creating DB record or uploading file). Backend /api/audit-certificates/analyze-file endpoint needs to accept ship_id parameter and perform IMO validation. Frontend AddAuditCertificateModal.jsx needs validation modal component and handlers for Continue/Cancel actions."
+user_problem_statement: "Test the newly implemented Admin API endpoints for production admin management without terminal access. CONTEXT: User cannot login to production environment and there's no terminal access. We've implemented: 1. Auto-create admin on startup (init_admin_startup.py) 2. Three API endpoints for manual admin management (admin_api_helper.py). CRITICAL TESTING: Test all admin endpoints, security, environment checks, and verify the production login issue is fixed."
 
 backend:
   - task: "Audit Certificate Single-File Upload Validation - Backend"
