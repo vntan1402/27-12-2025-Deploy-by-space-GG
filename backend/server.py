@@ -18181,7 +18181,7 @@ async def sync_to_drive_proxy(current_user: UserResponse = Depends(check_permiss
         raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
 
 @api_router.post("/gdrive/sync-to-drive")
-async def sync_to_drive(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+async def sync_to_drive(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))):
     """Sync ALL collections to Google Drive with daily folder structure"""
     try:
         # Get Google Drive configuration
