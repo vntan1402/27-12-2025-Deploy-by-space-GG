@@ -5086,7 +5086,7 @@ async def get_company_by_id(company_id: str, current_user: UserResponse = Depend
         raise HTTPException(status_code=500, detail="Failed to fetch company")
 
 @api_router.post("/companies", response_model=CompanyResponse)
-async def create_company(company_data: CompanyCreate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+async def create_company(company_data: CompanyCreate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))):
     try:
         # Create company document
         company_dict = company_data.dict()
