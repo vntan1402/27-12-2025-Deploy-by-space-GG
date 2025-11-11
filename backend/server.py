@@ -100,6 +100,8 @@ logger = logging.getLogger(__name__)
 
 # Import admin initialization
 from init_admin_startup import init_admin_if_needed
+# Import admin API helper for production admin management
+from admin_api_helper import router as admin_api_router
 
 # Exception handler for validation errors
 @app.exception_handler(RequestValidationError)
