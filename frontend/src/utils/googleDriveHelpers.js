@@ -4,16 +4,17 @@
  */
 
 /**
- * Convert Google Drive view link to thumbnail/direct image link
+ * Convert Google Drive view link to direct image link via googleusercontent
  * @param {string} url - Google Drive URL
- * @param {string} size - Thumbnail size (default: 'w1000')
+ * @param {string} size - Image width (default: 'w1000')
  * @returns {string} - Direct image URL
  * 
  * @example
  * Input:  https://drive.google.com/file/d/FILE_ID/view?usp=drive_link
- * Output: https://drive.google.com/thumbnail?id=FILE_ID&sz=w1000
+ * Output: https://lh3.googleusercontent.com/d/FILE_ID=w1000
  * 
- * Note: Using thumbnail API instead of uc?export=view for better CORS support
+ * Note: Using googleusercontent.com for best CORS support and performance
+ * Sizes: w100, w200, w500, w1000, w2000, etc.
  */
 export const convertGoogleDriveUrl = (url, size = 'w1000') => {
   if (!url || typeof url !== 'string') return url;
@@ -24,8 +25,8 @@ export const convertGoogleDriveUrl = (url, size = 'w1000') => {
     const fileIdMatch = url.match(/\/d\/([^\/\?]+)/);
     if (fileIdMatch && fileIdMatch[1]) {
       const fileId = fileIdMatch[1];
-      // Use thumbnail API for better CORS support and faster loading
-      return `https://drive.google.com/thumbnail?id=${fileId}&sz=${size}`;
+      // Use googleusercontent.com for direct image access (best CORS support)
+      return `https://lh3.googleusercontent.com/d/${fileId}=${size}`;
     }
   }
   
