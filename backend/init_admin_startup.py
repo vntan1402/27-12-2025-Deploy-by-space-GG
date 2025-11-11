@@ -16,9 +16,12 @@ async def init_admin_if_needed():
     """
     Check if any admin exists. If not, create one from environment variables.
     This should run on application startup.
+    
+    Note: Assumes mongo_db is already connected by the main startup event.
     """
     try:
-        await mongo_db.connect()
+        # Don't connect here - should already be connected
+        # await mongo_db.connect()
         
         # Check if any admin users exist
         system_admins = await mongo_db.find_all('users', {'role': 'system_admin'})
