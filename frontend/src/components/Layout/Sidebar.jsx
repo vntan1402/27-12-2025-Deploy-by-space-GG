@@ -57,7 +57,11 @@ export const Sidebar = ({
       {/* User Guide Button */}
       <div className="mt-4">
         <button
-          onClick={() => setShowUserGuide(true)}
+          onClick={() => {
+            console.log('🔍 User Guide button clicked');
+            setShowUserGuide(true);
+            console.log('✅ showUserGuide state set to true');
+          }}
           className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg transition-all font-semibold flex items-center justify-center shadow-md"
         >
           <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
