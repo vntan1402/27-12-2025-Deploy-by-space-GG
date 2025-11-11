@@ -4764,7 +4764,7 @@ async def create_user(user_data: UserCreate, current_user: UserResponse = Depend
 @api_router.get("/users/filtered", response_model=List[UserResponse])
 async def get_filtered_users(
     company: Optional[str] = None,
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """Get filtered users by company"""
     try:
