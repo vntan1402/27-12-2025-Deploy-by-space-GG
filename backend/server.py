@@ -4670,7 +4670,7 @@ async def verify_token_endpoint(current_user: UserResponse = Depends(get_current
 
 # User management endpoints
 @api_router.get("/users", response_model=List[UserResponse])
-async def get_users(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+async def get_users(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))):
     try:
         users = await mongo_db.find_all("users")
         return [UserResponse(**user) for user in users]
