@@ -76,7 +76,7 @@ async def init_admin_if_needed():
             'username': admin_username,
             'email': admin_email,
             'full_name': admin_full_name,
-            'password': hashed_password,
+            'password_hash': hashed_password,  # Changed from 'password' to 'password_hash' to match login endpoint
             'role': 'system_admin',
             'department': ['technical', 'operations'],
             'company': company_id,
