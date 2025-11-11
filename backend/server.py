@@ -18090,7 +18090,7 @@ async def get_gdrive_status(current_user: UserResponse = Depends(get_current_use
         return {"status": "error", "configured": False, "message": str(e)}
 
 @api_router.post("/gdrive/sync-to-drive-proxy")
-async def sync_to_drive_proxy(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+async def sync_to_drive_proxy(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))):
     """Sync local files to Google Drive via Apps Script proxy"""
     try:
         # Get Google Drive configuration
