@@ -18011,7 +18011,7 @@ async def get_gdrive_file_download_url(
 @api_router.post("/gdrive/config")
 async def update_gdrive_config(
     config_data: dict,
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     try:
         config_dict = {
