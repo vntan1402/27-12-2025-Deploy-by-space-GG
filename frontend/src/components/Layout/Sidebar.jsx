@@ -103,6 +103,11 @@ export const Sidebar = ({
           {t.logout}
         </button>
       </div>
+
+      {/* User Guide Modal */}
+      {showUserGuide && (
+        <UserGuideModal onClose={() => setShowUserGuide(false)} />
+      )}
     </div>
   );
 };
