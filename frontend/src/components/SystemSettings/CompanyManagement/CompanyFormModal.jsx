@@ -285,9 +285,19 @@ const CompanyFormModal = ({
                   {language === 'vi' ? 'Xem trước' : 'Preview'}
                 </label>
                 <img 
-                  src={logoPreview} 
+                  src={(() => {
+                    // Convert Google Drive URLs to direct image URLs
+                    if (logoPreview.includes('drive.google.com/file/d/')) {
+                      return convertGoogleDriveUrl(logoPreview);
+                    }
+                    return logoPreview;
+                  })()} 
                   alt="Logo preview" 
                   className="w-32 h-32 object-contain border border-gray-300 rounded-lg p-2"
+                  onError={(e) => {
+                    console.error('Failed to load logo preview:', e.target.src);
+                    e.target.style.display = 'none';
+                  }}
                 />
               </div>
             )}
