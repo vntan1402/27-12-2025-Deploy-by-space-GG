@@ -1,0 +1,24 @@
+{
+  "export_date": "2025-11-11T10:20:19.839499",
+  "export_source": "local_development",
+  "total_companies": 1,
+  "total_users": 2,
+  "companies": [
+    {
+      "id": "0a6eaf96-0aaf-4793-89be-65d62cb7953c",
+      "name_vn": "Công ty TNHH MTV Phát Triển Công nghệ Hàng Hải",
+      "name_en": "Maritime Technology Development Co., Ltd.",
+      "code": "AMCSC",
+      "address_vn": "12 Nguyễn Văn Linh, Lê Chân, Hải Phòng, Việt Nam",
+      "address_en": "12 Nguyen Van Linh, Le Chan, Hai Phong, Vietnam",
+      "tax_id": "0123456789",
+      "email": "contact@amcsc.vn",
+      "phone": "+84 123 456 789",
+      "gmail": "vntan1402@gmail.com",
+      "zalo": "0989357282",
+      "logo_url": "https://drive.google.com/file/d/1m227N4Jxsx7iOVMREYOyT60F-HLuSyFR/view?usp=drive_link",
+      "created_at": "2025-10-29T08:10:20.662000",
+      "updated_at": "2025-11-11T07:20:33.938000",
+      "is_active": true,
+      "name": "Maritime Technology Development Co., Ltd.",
+      "software_expiry": 
