@@ -362,7 +362,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       },
       {
         icon: '💰',
-        title: '10. Tính Phí Hàng Tháng (Trước thuế)',
+        title: '10. Tính Phí Hàng Tháng',
         color: 'blue',
         steps: [
           { step: '1', text: 'Đăng nhập với tài khoản có quyền Admin trở lên' },
@@ -382,27 +382,27 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
           ]}
         ],
         formula: {
-          title: 'Công Thức Tính Phí (Base Fee giai đoạn 1 là 30 USD)',
-          main: 'Phí Hàng Tháng = (Total Ships × Base Fee) + (Office Staff × $2) + (Crew Members × $0.5)',
+          title: 'Công Thức Tính Phí (Base Fee giai đoạn 1 là 750,000 VND)',
+          main: 'Phí Hàng Tháng = (Total Ships × Base Fee) + (Office Staff × 0.1 × Base Fee) + (Crew Members × 0.025 × Base Fee)',
           breakdown: [
             {
               label: 'Total Ships × Base Fee',
-              example: `5 tàu × $${baseFee} = $${5 * baseFee}`,
+              example: `5 tàu × ${baseFee.toLocaleString('vi-VN')} ₫ = ${(5 * baseFee).toLocaleString('vi-VN')} ₫`,
               description: 'Phí theo số lượng tàu có certificates'
             },
             {
-              label: 'Office Staff × $2',
-              example: '10 nhân viên × $2 = $20',
-              description: 'Phí theo số nhân viên văn phòng'
+              label: 'Office Staff × 0.1 × Base Fee',
+              example: `10 nhân viên × ${(0.1 * baseFee).toLocaleString('vi-VN')} ₫ = ${(10 * 0.1 * baseFee).toLocaleString('vi-VN')} ₫`,
+              description: 'Phí theo số nhân viên văn phòng (10% Base Fee mỗi người)'
             },
             {
-              label: 'Crew Members × $0.5',
-              example: '50 thuyền viên × $0.5 = $25',
-              description: 'Phí theo số thuyền viên'
+              label: 'Crew Members × 0.025 × Base Fee',
+              example: `50 thuyền viên × ${(0.025 * baseFee).toLocaleString('vi-VN')} ₫ = ${(50 * 0.025 * baseFee).toLocaleString('vi-VN')} ₫`,
+              description: 'Phí theo số thuyền viên (2.5% Base Fee mỗi người)'
             },
             {
               label: 'Tổng Phí',
-              example: `$${5 * baseFee} + $20 + $25 = $${5 * baseFee + 20 + 25}/tháng`,
+              example: `${(5 * baseFee).toLocaleString('vi-VN')} + ${(10 * 0.1 * baseFee).toLocaleString('vi-VN')} + ${(50 * 0.025 * baseFee).toLocaleString('vi-VN')} = ${(5 * baseFee + 10 * 0.1 * baseFee + 50 * 0.025 * baseFee).toLocaleString('vi-VN')} ₫/tháng`,
               description: 'Tổng phí hàng tháng phải thanh toán'
             }
           ]
