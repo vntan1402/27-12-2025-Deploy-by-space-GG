@@ -98,7 +98,8 @@ async def init_admin_if_needed():
         logger.info("⚠️  IMPORTANT: Change the password after first login!")
         logger.info("=" * 60)
         
-        await mongo_db.disconnect()
+        # Don't disconnect here - main app still needs the connection
+        # await mongo_db.disconnect()
         
     except Exception as e:
         logger.error(f"❌ Error initializing admin: {str(e)}")
