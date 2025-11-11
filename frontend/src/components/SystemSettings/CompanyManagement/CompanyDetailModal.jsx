@@ -41,10 +41,10 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
   const calculateMonthlyFee = () => {
     setCalculatingFee(true);
     try {
-      // Monthly Fee = (Total Ships x Base Fee) + (Office Staff x 2 USD) + (Crew Members x 0.5 USD)
+      // Monthly Fee = (Total Ships x Base Fee) + (Office Staff x 50,000 VND) + (Crew Members x 12,500 VND)
       const shipsFee = statistics.totalShips * baseFee;
-      const staffFee = statistics.totalUsers * 2;
-      const crewFee = statistics.totalCrew * 0.5;
+      const staffFee = statistics.totalUsers * 50000;
+      const crewFee = statistics.totalCrew * 12500;
       const total = shipsFee + staffFee + crewFee;
       
       setMonthlyFee(total);
@@ -61,8 +61,8 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
       
       toast.success(
         language === 'vi' 
-          ? `Phí hàng tháng: $${total.toFixed(2)}` 
-          : `Monthly Fee: $${total.toFixed(2)}`,
+          ? `Phí hàng tháng: ${total.toLocaleString('vi-VN')} ₫` 
+          : `Monthly Fee: ${total.toLocaleString('vi-VN')} ₫`,
         { autoClose: 2000 }
       );
     } catch (error) {
