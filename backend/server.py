@@ -22024,7 +22024,7 @@ async def upload_passport_files_after_creation(
 async def get_crew_members(
     ship_name: Optional[str] = None,
     status: Optional[str] = None,
-    current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.VIEWER, UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """Get all crew members for the company with optional filters"""
     try:
