@@ -31,8 +31,8 @@ const AddUserModal = ({
     }
   }, [userData.role, setUserData]);
 
-  // Check if ship_crew is selected in department
-  const isShipCrewSelected = userData.department && Array.isArray(userData.department) && userData.department.includes('ship_crew');
+  // Check if role is Crew or Ship Officer (viewer or editor)
+  const shouldShowShipDropdown = userData.role === 'viewer' || userData.role === 'editor';
 
   // Filter ships by selected company
   const getFilteredShips = () => {
