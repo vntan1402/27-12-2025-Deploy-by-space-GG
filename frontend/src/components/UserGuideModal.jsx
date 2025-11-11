@@ -748,7 +748,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
       },
       {
         icon: '💰',
-        title: '10. Monthly Fee Calculation (Before Tax)',
+        title: '10. Monthly Fee Calculation',
         color: 'blue',
         steps: [
           { step: '1', text: 'Login with Admin privileges or higher' },
@@ -768,27 +768,27 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
           ]}
         ],
         formula: {
-          title: 'Fee Calculation Formula (Base Fee Phase 1 is 30 USD)',
-          main: 'Monthly Fee = (Total Ships × Base Fee) + (Office Staff × $2) + (Crew Members × $0.5)',
+          title: 'Fee Calculation Formula (Base Fee Phase 1 is 750,000 VND)',
+          main: 'Monthly Fee = (Total Ships × Base Fee) + (Office Staff × 0.1 × Base Fee) + (Crew Members × 0.025 × Base Fee)',
           breakdown: [
             {
               label: 'Total Ships × Base Fee',
-              example: `5 ships × $${baseFee} = $${5 * baseFee}`,
+              example: `5 ships × ${baseFee.toLocaleString('vi-VN')} ₫ = ${(5 * baseFee).toLocaleString('vi-VN')} ₫`,
               description: 'Fee based on number of ships with certificates'
             },
             {
-              label: 'Office Staff × $2',
-              example: '10 staff × $2 = $20',
-              description: 'Fee based on office employees'
+              label: 'Office Staff × 0.1 × Base Fee',
+              example: `10 staff × ${(0.1 * baseFee).toLocaleString('vi-VN')} ₫ = ${(10 * 0.1 * baseFee).toLocaleString('vi-VN')} ₫`,
+              description: 'Fee based on office employees (10% Base Fee per person)'
             },
             {
-              label: 'Crew Members × $0.5',
-              example: '50 crew × $0.5 = $25',
-              description: 'Fee based on crew members'
+              label: 'Crew Members × 0.025 × Base Fee',
+              example: `50 crew × ${(0.025 * baseFee).toLocaleString('vi-VN')} ₫ = ${(50 * 0.025 * baseFee).toLocaleString('vi-VN')} ₫`,
+              description: 'Fee based on crew members (2.5% Base Fee per person)'
             },
             {
               label: 'Total Fee',
-              example: `$${5 * baseFee} + $20 + $25 = $${5 * baseFee + 20 + 25}/month`,
+              example: `${(5 * baseFee).toLocaleString('vi-VN')} + ${(10 * 0.1 * baseFee).toLocaleString('vi-VN')} + ${(50 * 0.025 * baseFee).toLocaleString('vi-VN')} = ${(5 * baseFee + 10 * 0.1 * baseFee + 50 * 0.025 * baseFee).toLocaleString('vi-VN')} ₫/month`,
               description: 'Total monthly fee payable'
             }
           ]
