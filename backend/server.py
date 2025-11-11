@@ -22335,7 +22335,7 @@ async def bulk_delete_crew_members(
 async def delete_crew_member(
     crew_id: str,
     background: bool = Query(True, description="If true, delete DB first and return immediately, then delete files in background"),
-    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """Delete a crew member with files
     
