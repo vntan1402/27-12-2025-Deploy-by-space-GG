@@ -111,7 +111,14 @@ export const Sidebar = ({
 
       {/* User Guide Modal - Rendered via Portal */}
       {showUserGuide && ReactDOM.createPortal(
-        <UserGuideModal onClose={() => setShowUserGuide(false)} />,
+        <div>
+          {console.log('🚀 About to render UserGuideModal')}
+          <UserGuideModal onClose={() => {
+            console.log('🔒 Closing modal');
+            setShowUserGuide(false);
+          }} />
+          {console.log('✅ UserGuideModal rendered')}
+        </div>,
         document.body
       )}
     </div>
