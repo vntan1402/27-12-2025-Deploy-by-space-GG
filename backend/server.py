@@ -4928,7 +4928,7 @@ async def query_users(
         raise HTTPException(status_code=500, detail="Failed to fetch filtered users")
 
 @api_router.put("/users/{user_id}", response_model=UserResponse)
-async def update_user(user_id: str, user_data: UserUpdate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+async def update_user(user_id: str, user_data: UserUpdate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))):
     try:
         # Find existing user
         existing_user = await mongo_db.find_one("users", {"id": user_id})
