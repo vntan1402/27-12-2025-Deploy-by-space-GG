@@ -4928,17 +4928,28 @@ async def query_users(
         raise HTTPException(status_code=500, detail="Failed to fetch filtered users")
 
 @api_router.put("/users/{user_id}", response_model=UserResponse)
-async def update_user(user_id: str, user_data: UserUpdate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))):
+async def update_user(user_id: str, user_data: UserUpdate, current_user: UserResponse = Depends(get_current_user)):
     try:
         # Find existing user
         existing_user = await mongo_db.find_one("users", {"id": user_id})
         if not existing_user:
             raise HTTPException(status_code=404, detail="User not found")
         
+        # Check permission: user can edit themselves, or admins can edit anyone
+        is_self_edit = (user_id == current_user.id)
+        is_admin = current_user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]
+        
+        if not is_self_edit and not is_admin:
+            raise HTTPException(status_code=403, detail="Not authorized to edit this user")
+        
         # Prepare update data
         update_data = {}
         for field, value in user_data.dict(exclude_unset=True).items():
             if value is not None:
+                # Restrict role changes for self-edit
+                if field == 'role' and is_self_edit and not is_admin:
+                    continue  # Users cannot change their own role
+                    
                 if field == 'password':
                     # Hash password if provided
                     update_data['password_hash'] = bcrypt.hashpw(value.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
