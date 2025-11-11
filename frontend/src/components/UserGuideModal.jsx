@@ -382,7 +382,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
           ]}
         ],
         formula: {
-          title: 'Công Thức Tính Phí (Base Fee giai đoạn 1 là 750,000 VND)',
+          title: 'Công Thức Tính Phí (Base Fee giai đoạn 1 là 900,000 VND)',
           main: 'Phí Hàng Tháng = (Total Ships × Base Fee) + (Office Staff × 0.1 × Base Fee) + (Crew Members × 0.025 × Base Fee)',
           breakdown: [
             {
