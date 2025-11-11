@@ -9,10 +9,19 @@ import { useAuth } from '../contexts/AuthContext';
 export const CompanyInfoPanel = ({ companyData, onClose }) => {
   const { language } = useAuth();
   
-  // Process logo URL to use /api/files endpoint
+  // Process logo URL to use /api/files endpoint and convert Google Drive links
   const getLogoUrl = (logoUrl) => {
     if (!logoUrl) return null;
     if (logoUrl.startsWith('http')) {
+      // Check if it's a Google Drive link and convert to direct image URL
+      if (logoUrl.includes('drive.google.com/file/d/')) {
+        // Extract file ID from Google Drive URL
+        const fileIdMatch = logoUrl.match(/\/d\/([^\/]+)/);
+        if (fileIdMatch && fileIdMatch[1]) {
+          const fileId = fileIdMatch[1];
+          return `https://drive.google.com/uc?export=view&id=${fileId}`;
+        }
+      }
       return logoUrl;
     } else if (logoUrl.startsWith('/uploads/')) {
       // Convert /uploads/folder/file to /api/files/folder/file
