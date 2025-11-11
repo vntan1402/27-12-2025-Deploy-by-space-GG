@@ -3,6 +3,7 @@
  * Displays list of companies in table format with actions
  */
 import React from 'react';
+import { convertGoogleDriveUrl } from '../../../utils/googleDriveHelpers';
 
 const CompanyTable = ({
   companies,
