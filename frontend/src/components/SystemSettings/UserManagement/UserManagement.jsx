@@ -271,9 +271,9 @@ const UserManagement = () => {
    * @returns {boolean}
    */
   const canEditUser = (targetUser) => {
-    // Cannot edit self
+    // Users can edit themselves (own profile)
     if (targetUser.id === currentUser.id) {
-      return false;
+      return true;
     }
 
     // Super admin and system admin can edit all
