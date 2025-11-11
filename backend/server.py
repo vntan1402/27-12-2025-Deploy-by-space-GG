@@ -5024,7 +5024,7 @@ async def calculate_ship_docking_dates(ship_id: str, current_user: UserResponse 
         raise HTTPException(status_code=500, detail="Failed to calculate docking dates")
 
 @api_router.delete("/users/{user_id}")
-async def delete_user(user_id: str, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN]))):
+async def delete_user(user_id: str, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))):
     try:
         # Check if user exists
         existing_user = await mongo_db.find_one("users", {"id": user_id})
