@@ -145,9 +145,9 @@ const HomePage = () => {
                   const fileIdMatch = companyLogo.match(/\/d\/([^\/\?]+)/);
                   if (fileIdMatch && fileIdMatch[1]) {
                     const fileId = fileIdMatch[1];
-                    // Use thumbnail API for better CORS support
-                    logoUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
-                    console.log('🔄 Converted Google Drive URL to thumbnail:', logoUrl);
+                    // Use googleusercontent.com for direct image access (best CORS support)
+                    logoUrl = `https://lh3.googleusercontent.com/d/${fileId}=w1000`;
+                    console.log('🔄 Converted Google Drive URL to googleusercontent:', logoUrl);
                     console.log('📋 File ID:', fileId);
                   } else {
                     logoUrl = companyLogo;
@@ -161,7 +161,7 @@ const HomePage = () => {
               } else {
                 logoUrl = `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`;
               }
-              console.log('🖼️ Logo URL:', logoUrl);
+              console.log('🖼️ Final Logo URL:', logoUrl);
               console.log('🔗 Backend URL:', process.env.REACT_APP_BACKEND_URL);
               console.log('📁 Company Logo Path:', companyLogo);
               return logoUrl;
