@@ -16,9 +16,11 @@ export const Sidebar = ({
 }) => {
   const { language, user, logout } = useAuth();
   const navigate = useNavigate();
+  const [showUserGuide, setShowUserGuide] = useState(false);
 
   const t = {
     categoryTitle: language === 'vi' ? 'Management Categories' : 'Management Categories',
+    userGuide: language === 'vi' ? 'Hướng dẫn' : 'User Guide',
     systemSettings: language === 'vi' ? 'System Settings' : 'System Settings',
     logout: language === 'vi' ? 'LOG OUT' : 'LOG OUT'
   };
