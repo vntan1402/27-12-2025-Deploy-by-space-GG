@@ -78,13 +78,14 @@ async def init_admin_if_needed():
         await mongo_db.create('users', user_data)
         
         logger.info("=" * 60)
-        logger.info("✅ INITIAL ADMIN USER CREATED SUCCESSFULLY!")
+        logger.info("✅ INITIAL SYSTEM ADMIN CREATED SUCCESSFULLY!")
         logger.info("=" * 60)
         logger.info(f"Username:     {admin_username}")
         logger.info(f"Email:        {admin_email}")
         logger.info(f"Role:         SYSTEM_ADMIN")
-        logger.info(f"Company:      {company_name}")
+        logger.info(f"Company:      None (manages ALL companies)")
         logger.info("=" * 60)
+        logger.info("ℹ️  System Admin can view and manage all companies in the system")
         logger.info("⚠️  IMPORTANT: Change the password after first login!")
         logger.info("=" * 60)
         
