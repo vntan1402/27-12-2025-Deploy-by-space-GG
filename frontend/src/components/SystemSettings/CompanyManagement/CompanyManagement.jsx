@@ -350,7 +350,7 @@ const CompanyManagement = () => {
               {language === 'vi' ? 'Base Fee hiện tại:' : 'Current Base Fee:'}
             </span>
             <span className="text-lg font-bold text-orange-600">
-              ${baseFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {baseFee.toLocaleString('vi-VN')} ₫
             </span>
           </div>
         </div>
