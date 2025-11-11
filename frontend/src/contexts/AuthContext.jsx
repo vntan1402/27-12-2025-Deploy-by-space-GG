@@ -28,6 +28,12 @@ export const AuthProvider = ({ children }) => {
 
   const fetchCompanyExpiry = async (companyIdOrName) => {
     try {
+      // Skip company expiry check if no company (e.g., system_admin)
+      if (!companyIdOrName) {
+        console.log('ℹ️ [AuthContext] No company assigned - skipping expiry check');
+        return;
+      }
+      
       console.log('🔍 [AuthContext] Fetching company expiry for:', companyIdOrName);
       
       // Fetch companies to get software_expiry
