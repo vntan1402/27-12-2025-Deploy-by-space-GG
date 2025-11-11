@@ -265,8 +265,8 @@ const AddUserModal = ({
             </div>
           </div>
 
-          {/* Role - Full width or with Ship based on department */}
-          <div className={isShipCrewSelected ? "grid grid-cols-2 gap-4" : ""}>
+          {/* Role - Full width or with Ship based on role */}
+          <div className={shouldShowShipDropdown ? "grid grid-cols-2 gap-4" : ""}>
             {/* Role */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -287,8 +287,8 @@ const AddUserModal = ({
               </select>
             </div>
 
-            {/* Ship - Only show if ship_crew is selected in department */}
-            {isShipCrewSelected && (
+            {/* Ship - Only show if role is Crew or Ship Officer */}
+            {shouldShowShipDropdown && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Tàu' : 'Ship'}
