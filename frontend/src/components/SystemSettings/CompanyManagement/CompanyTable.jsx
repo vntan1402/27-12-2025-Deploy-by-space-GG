@@ -127,9 +127,19 @@ const CompanyTable = ({
                 <td className="border border-gray-300 px-4 py-3">
                   {company.logo_url ? (
                     <img 
-                      src={company.logo_url} 
+                      src={(() => {
+                        // Convert Google Drive URLs to direct image URLs
+                        if (company.logo_url.includes('drive.google.com/file/d/')) {
+                          return convertGoogleDriveUrl(company.logo_url);
+                        }
+                        return company.logo_url;
+                      })()} 
                       alt={company.name_en || company.name_vn} 
                       className="w-12 h-12 object-contain"
+                      onError={(e) => {
+                        console.error('Failed to load company logo in table');
+                        e.target.style.display = 'none';
+                      }}
                     />
                   ) : (
                     <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center text-gray-400 text-xs">
