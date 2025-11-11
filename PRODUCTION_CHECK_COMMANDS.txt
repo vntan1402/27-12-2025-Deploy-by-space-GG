@@ -1,0 +1,93 @@
+========================================
+LỆNH KIỂM TRA PRODUCTION - NAUTICAL RECORDS
+========================================
+
+Domain: https://nautical-records.emergent.cloud/
+
+----------------------------------------
+1. KIỂM TRA ADMIN STATUS (Chạy trong Terminal/CMD trên máy của bạn)
+----------------------------------------
+
+Mac/Linux:
+curl -X GET "https://nautical-records.emergent.cloud/api/admin/status"
+
+Windows CMD:
+curl -X GET "https://nautical-records.emergent.cloud/api/admin/status"
+
+Windows PowerShell:
+curl.exe -X GET "https://nautical-records.emergent.cloud/api/admin/status"
+
+----------------------------------------
+2. TEST LOGIN API
+----------------------------------------
+
+Mac/Linux:
+curl -X POST "https://nautical-records.emergent.cloud/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"system_admin","password":"YourSecure@Pass2024","remember_me":false}'
+
+Windows CMD:
+curl -X POST "https://nautical-records.emergent.cloud/api/auth/login" ^
+  -H "Content-Type: application/json" ^
+  -d "{\"username\":\"system_admin\",\"password\":\"YourSecure@Pass2024\",\"remember_me\":false}"
+
+Windows PowerShell:
+curl.exe -X POST "https://nautical-records.emergent.cloud/api/auth/login" `
+  -H "Content-Type: application/json" `
+  -d '{"username":"system_admin","password":"YourSecure@Pass2024","remember_me":false}'
+
+⚠️  Thay "YourSecure@Pass2024" bằng password thực tế từ Deployments panel
+
+----------------------------------------
+3. TẠO ADMIN THỦ CÔNG (Nếu cần)
+----------------------------------------
+
+Qua Browser:
+https://nautical-records.emergent.cloud/api/admin/create-simple?secret=YOUR_SECRET
+
+Qua cURL:
+curl -X POST "https://nautical-records.emergent.cloud/api/admin/create-from-env" \
+  -H "X-Admin-Secret: YOUR_SECRET"
+
+⚠️  Thay YOUR_SECRET bằng giá trị từ ADMIN_CREATION_SECRET trong env variables
+
+----------------------------------------
+KẾT QUẢ MONG ĐỢI
+----------------------------------------
+
+Admin Status - Thành công:
+{
+  "success": true,
+  "admin_exists": true,
+  "total_admins": 1,
+  "breakdown": {
+    "system_admin": 1,
+    "super_admin": 0
+  },
+  "users": [
+    {
+      "username": "system_admin",
+      "role": "system_admin",
+      "email": "admin@yourcompany.com",
+      "is_active": true
+    }
+  ]
+}
+
+Login - Thành công:
+{
+  "access_token": "eyJhbGci...",
+  "token_type": "bearer",
+  "user": {
+    "username": "system_admin",
+    "role": "system_admin",
+    "email": "admin@yourcompany.com"
+  }
+}
+
+Login - Thất bại:
+{
+  "detail": "Invalid credentials"
+}
+
+========================================
