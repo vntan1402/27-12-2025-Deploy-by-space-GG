@@ -63,8 +63,8 @@ async def init_admin_if_needed():
             'updated_at': datetime.now()
         }
         
-        db = mongo_db.client['ship_management']
-        await db['companies'].insert_one(company_data)
+        # Use mongo_db.create() instead of direct insert_one() to avoid permission issues
+        await mongo_db.create('companies', company_data)
         logger.info(f"✅ Company created: {company_name}")
         
         # Hash password
