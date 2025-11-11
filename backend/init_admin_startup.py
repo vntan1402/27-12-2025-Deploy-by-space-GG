@@ -45,7 +45,8 @@ async def init_admin_if_needed():
         if not admin_password:
             logger.error("❌ INIT_ADMIN_PASSWORD not set in environment variables!")
             logger.error("   Please set INIT_ADMIN_PASSWORD in .env file")
-            await mongo_db.disconnect()
+            # Don't disconnect - main app needs the connection
+            # await mongo_db.disconnect()
             return
         
         # Create company first
