@@ -29,7 +29,8 @@ async def init_admin_if_needed():
         
         if system_admins or super_admins:
             logger.info(f"✅ Admin users already exist ({len(system_admins)} system_admin, {len(super_admins)} super_admin)")
-            await mongo_db.disconnect()
+            # Don't disconnect - main app needs the connection
+            # await mongo_db.disconnect()
             return
         
         logger.info("🔧 No admin users found. Creating initial admin from environment variables...")
