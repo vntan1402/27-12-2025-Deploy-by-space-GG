@@ -351,19 +351,64 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
     if (!dockingStr || dockingStr === 'null' || dockingStr === 'N/A') return '';
     
     try {
+      const trimmed = String(dockingStr).trim();
+      
+      // Month name mapping
+      const monthMap = {
+        'january': '01', 'jan': '01',
+        'february': '02', 'feb': '02',
+        'march': '03', 'mar': '03',
+        'april': '04', 'apr': '04',
+        'may': '05',
+        'june': '06', 'jun': '06',
+        'july': '07', 'jul': '07',
+        'august': '08', 'aug': '08',
+        'september': '09', 'sep': '09',
+        'october': '10', 'oct': '10',
+        'november': '11', 'nov': '11',
+        'december': '12', 'dec': '12'
+      };
+      
       // If already in MM/YYYY format (month and year only), return as is
-      if (typeof dockingStr === 'string' && dockingStr.match(/^\d{1,2}\/\d{4}$/)) {
-        return dockingStr; // e.g., "03/2020" or "3/2020"
+      if (trimmed.match(/^\d{1,2}\/\d{4}$/)) {
+        return trimmed; // e.g., "03/2020" or "3/2020"
       }
       
       // If already in dd/MM/YYYY format (full date), return as is
-      if (typeof dockingStr === 'string' && dockingStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-        return dockingStr; // e.g., "12/03/2020" or "2/3/2020"
+      if (trimmed.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+        return trimmed; // e.g., "12/03/2020" or "2/3/2020"
+      }
+      
+      // Format: "MONTH DAY, YEAR" or "MONTH DD, YYYY" (e.g., "MARCH 12, 2020", "AUGUST 11, 2022")
+      const monthDayYearPattern = /^([a-zA-Z]+)\s+(\d{1,2}),?\s+(\d{4})$/;
+      const monthDayYearMatch = trimmed.match(monthDayYearPattern);
+      if (monthDayYearMatch) {
+        const monthName = monthDayYearMatch[1].toLowerCase();
+        const day = monthDayYearMatch[2].padStart(2, '0');
+        const year = monthDayYearMatch[3];
+        const monthNum = monthMap[monthName];
+        if (monthNum) {
+          // Full date available - display as dd/MM/yyyy
+          return `${day}/${monthNum}/${year}`;
+        }
+      }
+      
+      // Format: "MONTH YEAR" (e.g., "MARCH 2020")
+      const monthYearPattern = /^([a-zA-Z]+)\s+(\d{4})$/;
+      const monthYearMatch = trimmed.match(monthYearPattern);
+      if (monthYearMatch) {
+        const monthName = monthYearMatch[1].toLowerCase();
+        const year = monthYearMatch[2];
+        const monthNum = monthMap[monthName];
+        if (monthNum) {
+          // Only month and year - display as MM/yyyy
+          return `${monthNum}/${year}`;
+        }
       }
       
       // If in YYYY-MM-DD format (ISO), convert based on whether day is meaningful
-      if (typeof dockingStr === 'string' && dockingStr.includes('-')) {
-        const parts = dockingStr.split('T')[0].split('-'); // Remove time part if exists
+      if (trimmed.includes('-')) {
+        const parts = trimmed.split('T')[0].split('-'); // Remove time part if exists
         if (parts.length === 3) {
           const [year, month, day] = parts;
           
@@ -382,7 +427,8 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
         }
       }
       
-      return dockingStr;
+      // Return original if no pattern matches
+      return trimmed;
     } catch (error) {
       console.error('Docking format error:', error);
       return dockingStr;
