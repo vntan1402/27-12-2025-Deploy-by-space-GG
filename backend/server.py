@@ -4670,10 +4670,29 @@ async def verify_token_endpoint(current_user: UserResponse = Depends(get_current
 
 # User management endpoints
 @api_router.get("/users", response_model=List[UserResponse])
-async def get_users(current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))):
+async def get_users(current_user: UserResponse = Depends(get_current_user)):
+    """
+    Get users list with role-based filtering:
+    - SYSTEM_ADMIN, SUPER_ADMIN: see all users
+    - ADMIN: see users in their company
+    - MANAGER, EDITOR, VIEWER: see only themselves
+    """
     try:
         users = await mongo_db.find_all("users")
-        return [UserResponse(**user) for user in users]
+        
+        # Filter based on role
+        if current_user.role == UserRole.SYSTEM_ADMIN or current_user.role == UserRole.SUPER_ADMIN:
+            # System Admin and Super Admin see all users
+            return [UserResponse(**user) for user in users]
+        elif current_user.role == UserRole.ADMIN:
+            # Admin sees users in their company
+            filtered_users = [user for user in users if user.get('company') == current_user.company]
+            return [UserResponse(**user) for user in filtered_users]
+        else:
+            # Manager, Editor, Viewer see only themselves
+            filtered_users = [user for user in users if user.get('id') == current_user.id or user.get('username') == current_user.username]
+            return [UserResponse(**user) for user in filtered_users]
+            
     except Exception as e:
         logger.error(f"Error fetching users: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch users")
