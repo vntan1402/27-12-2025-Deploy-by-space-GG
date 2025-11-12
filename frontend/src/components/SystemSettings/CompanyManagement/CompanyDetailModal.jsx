@@ -108,11 +108,19 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
         user.company === company.name_vn
       );
 
-      // Exclude users with ship_crew department (same logic as counting)
+      // Exclude users ONLY if they ONLY have ship_crew department (same logic as counting)
       const nonCrewUsers = companyUsers.filter(user => {
-        if (!user.department) return true;
+        if (!user.department) return true; // No department → include
         const departments = Array.isArray(user.department) ? user.department : [user.department];
-        return !departments.includes('ship_crew');
+        
+        // If has ship_crew, check if they have OTHER departments
+        if (departments.includes('ship_crew')) {
+          // If ONLY ship_crew → exclude
+          // If ship_crew + other departments → include
+          return departments.length > 1;
+        }
+        
+        return true; // No ship_crew → include
       });
 
       console.log('💼 Office staff (non-crew users):', nonCrewUsers.length);
