@@ -9802,7 +9802,16 @@ async def analyze_audit_report_file(
         
         # Get company name for dual lookup (some ships have company as name, not UUID)
         company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
-        company_name = company_doc.get("name_vn") if company_doc else None
+        company_names = []
+        if company_doc:
+            if company_doc.get("name"):
+                company_names.append(company_doc.get("name"))
+            if company_doc.get("name_en"):
+                company_names.append(company_doc.get("name_en"))
+            if company_doc.get("name_vn"):
+                company_names.append(company_doc.get("name_vn"))
+        
+        logger.info(f"🏢 Company names to try: {company_names}")
         
         # Try dual lookup: first by UUID, then by company name (for legacy data)
         ship = await mongo_db.find_one("ships", {
@@ -10328,7 +10337,16 @@ async def upload_audit_report_files(
         
         # Get company name for dual lookup (legacy data support)
         company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
-        company_name = company_doc.get("name_vn") if company_doc else None
+        company_names = []
+        if company_doc:
+            if company_doc.get("name"):
+                company_names.append(company_doc.get("name"))
+            if company_doc.get("name_en"):
+                company_names.append(company_doc.get("name_en"))
+            if company_doc.get("name_vn"):
+                company_names.append(company_doc.get("name_vn"))
+        
+        logger.info(f"🏢 Company names to try: {company_names}")
         
         # Try dual lookup: UUID first, then company name
         ship = await mongo_db.find_one("ships", {"id": ship_id, "company": company_uuid})
@@ -11040,7 +11058,16 @@ async def analyze_test_report_file(
         
         # Get company name for dual lookup (some ships have company as name, not UUID)
         company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
-        company_name = company_doc.get("name_vn") if company_doc else None
+        company_names = []
+        if company_doc:
+            if company_doc.get("name"):
+                company_names.append(company_doc.get("name"))
+            if company_doc.get("name_en"):
+                company_names.append(company_doc.get("name_en"))
+            if company_doc.get("name_vn"):
+                company_names.append(company_doc.get("name_vn"))
+        
+        logger.info(f"🏢 Company names to try: {company_names}")
         
         # Try dual lookup: first by UUID, then by company name (for legacy data)
         ship = await mongo_db.find_one("ships", {
