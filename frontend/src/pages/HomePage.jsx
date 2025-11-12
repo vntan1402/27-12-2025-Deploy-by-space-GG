@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar } from '../components/Layout';
 import AddShipModal from '../components/Ships/AddShipModal';
 import { companyService } from '../services';
+import { toast } from 'react-toastify';
 
 const HomePage = () => {
   const { language, user } = useAuth();
