@@ -108,10 +108,10 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
           const companyName = language === 'vi' ? userCompany.name_vn : userCompany.name_en;
           setUserCompanyName(companyName);
           
-          // Update shipData with company name
+          // Update shipData with company UUID (not name)
           setShipData(prev => ({
             ...prev,
-            company: companyName
+            company: userCompany.id  // Use UUID instead of name
           }));
         } else {
           // Fallback to user.company if not found in list
