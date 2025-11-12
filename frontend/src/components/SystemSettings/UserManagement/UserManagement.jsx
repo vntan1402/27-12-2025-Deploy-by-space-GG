@@ -107,25 +107,64 @@ const UserManagement = () => {
   };
 
   /**
-   * Apply company filter to user list
+   * Apply all filters to user list
    */
   const applyFilters = (userList) => {
     let filtered = [...userList];
-    
-    // Apply company filter (only for super_admin)
-    if (companyFilter && currentUser?.role === 'super_admin') {
+
+    // Apply search term - search in username, full_name, email, company, ship, zalo
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(user => {
+        const username = (user.username || '').toLowerCase();
+        const fullName = (user.full_name || '').toLowerCase();
+        const email = (user.email || '').toLowerCase();
+        const zalo = (user.zalo || '').toLowerCase();
+        const ship = (user.ship || '').toLowerCase();
+        
+        // Get company name
+        const userCompany = companies.find(c => 
+          c.id === user.company || 
+          c.name_en === user.company || 
+          c.name_vn === user.company
+        );
+        const companyName = userCompany 
+          ? (language === 'vi' ? userCompany.name_vn : userCompany.name_en).toLowerCase()
+          : (user.company || '').toLowerCase();
+
+        return username.includes(searchLower) ||
+               fullName.includes(searchLower) ||
+               email.includes(searchLower) ||
+               zalo.includes(searchLower) ||
+               ship.includes(searchLower) ||
+               companyName.includes(searchLower);
+      });
+    }
+
+    // Apply company filter (for super_admin and system_admin)
+    if (companyFilter && (currentUser?.role === 'super_admin' || currentUser?.role === 'system_admin')) {
       filtered = filtered.filter(user => user.company === companyFilter);
     }
-    
+
+    // Apply role filter
+    if (roleFilter) {
+      filtered = filtered.filter(user => user.role === roleFilter);
+    }
+
+    // Apply ship filter
+    if (shipFilter) {
+      filtered = filtered.filter(user => user.ship === shipFilter);
+    }
+
     setFilteredUsers(filtered);
   };
 
-  // Re-apply filters when companyFilter changes
+  // Re-apply filters when any filter changes
   useEffect(() => {
     if (users.length > 0) {
       applyFilters(users);
     }
-  }, [companyFilter, users]);
+  }, [searchTerm, companyFilter, roleFilter, shipFilter, users, companies, language]);
 
   /**
    * Fetch companies
