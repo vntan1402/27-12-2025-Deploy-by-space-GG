@@ -8643,25 +8643,36 @@ async def analyze_survey_report_file(
         
         logger.info(f"🔍 Looking for ship with id={ship_id}, company={company_uuid}")
         
-        # Get company name for dual lookup (some ships have company as name, not UUID)
+        # Get company names for dual lookup (some ships have company as name, not UUID)
         company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
-        company_name = company_doc.get("name_vn") if company_doc else None
+        company_names = []
+        if company_doc:
+            if company_doc.get("name"):
+                company_names.append(company_doc.get("name"))
+            if company_doc.get("name_en"):
+                company_names.append(company_doc.get("name_en"))
+            if company_doc.get("name_vn"):
+                company_names.append(company_doc.get("name_vn"))
         
-        # Try dual lookup: first by UUID, then by company name (for legacy data)
+        logger.info(f"🏢 Company names to try: {company_names}")
+        
+        # Try dual lookup: first by UUID, then by company names (for legacy data)
         ship = await mongo_db.find_one("ships", {
             "id": ship_id,
             "company": company_uuid
         })
         
-        if not ship and company_name:
+        if not ship and company_names:
             # Fallback: Try finding ship by company name (legacy data compatibility)
-            logger.info(f"🔄 Ship not found with UUID, trying company name: {company_name}")
-            ship = await mongo_db.find_one("ships", {
-                "id": ship_id,
-                "company": company_name
-            })
-            if ship:
-                logger.info(f"✅ Ship found using company name: {company_name}")
+            for company_name in company_names:
+                logger.info(f"🔄 Ship not found with UUID, trying company name: {company_name}")
+                ship = await mongo_db.find_one("ships", {
+                    "id": ship_id,
+                    "company": company_name
+                })
+                if ship:
+                    logger.info(f"✅ Ship found using company name: {company_name}")
+                    break
         
         if not ship:
             # Debug: Try finding ship without company filter
