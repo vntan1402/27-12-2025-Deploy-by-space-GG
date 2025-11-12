@@ -4702,27 +4702,35 @@ async def get_users(current_user: UserResponse = Depends(get_current_user)):
 async def get_current_company(current_user: UserResponse = Depends(get_current_user)):
     """Get current user's company information"""
     try:
+        logger.info(f"📦 GET /api/company - User: {current_user.username}, Role: {current_user.role}, Company: {current_user.company}")
+        
         if not current_user.company:
+            logger.warning(f"⚠️ User {current_user.username} has no company assigned")
             raise HTTPException(status_code=404, detail="Company not found for user")
         
         # current_user.company is company_id (UUID) in V1
         company_id = current_user.company
         
         # Find company by id
+        logger.info(f"🔍 Looking for company with id: {company_id}")
         company = await mongo_db.find_one("companies", {"id": company_id})
         
         if not company:
             # Try finding by company_id field (alternative)
+            logger.info(f"🔍 Retrying with company_id field")
             company = await mongo_db.find_one("companies", {"company_id": company_id})
         
         # Count total crew members for this company
+        logger.info(f"📊 Counting crew members for company: {company_id}")
         total_crew = await mongo_db.count("crew_members", {"company_id": company_id})
         
         # Count total ships for this company
         # Ships can have company as either UUID or company name, so check both
+        logger.info(f"🚢 Counting ships for company: {company_id}")
         total_ships = await mongo_db.count("ships", {"company": company_id})
         
         if not company:
+            logger.warning(f"⚠️ Company not found in database: {company_id}")
             # Return basic info if company not in collection
             return {
                 "name": "Company",
@@ -4735,6 +4743,7 @@ async def get_current_company(current_user: UserResponse = Depends(get_current_u
                 "total_crew": total_crew
             }
         
+        logger.info(f"✅ Company found: {company.get('name', 'N/A')}")
         return {
             "name": company.get("name", "Company"),
             "address": company.get("address"),
@@ -4749,7 +4758,8 @@ async def get_current_company(current_user: UserResponse = Depends(get_current_u
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error fetching company: {e}")
+        logger.error(f"❌ Error fetching company: {e}")
+        logger.error(f"Full traceback: ", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch company information")
 
 @api_router.post("/users", response_model=UserResponse)
