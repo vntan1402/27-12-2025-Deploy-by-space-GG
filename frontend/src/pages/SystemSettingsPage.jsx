@@ -59,11 +59,14 @@ const SystemSettingsPage = () => {
 
       {/* Main Content */}
       <div className="space-y-8">
-        {/* User Management - Manager, Admin, Super Admin, System Admin */}
-        {(user.role === 'manager' || user.role === 'admin' || user.role === 'super_admin' || user.role === 'system_admin') && (
+        {/* User Management - All roles can access (viewer and editor see only themselves) */}
+        {(user.role === 'viewer' || user.role === 'editor' || user.role === 'manager' || user.role === 'admin' || user.role === 'super_admin' || user.role === 'system_admin') && (
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">
-              👥 {language === 'vi' ? 'Quản lý người dùng' : 'User Management'}
+              👥 {language === 'vi' 
+                ? (user.role === 'viewer' || user.role === 'editor' ? 'Thông tin cá nhân' : 'Quản lý người dùng')
+                : (user.role === 'viewer' || user.role === 'editor' ? 'My Profile' : 'User Management')
+              }
             </h2>
             <UserManagement />
           </div>
