@@ -79,8 +79,16 @@ const UserManagement = () => {
       const response = await userService.getAll();
       let data = response.data;
       
+      // Viewer and Editor: only see themselves
+      if (currentUser && (currentUser.role === 'viewer' || currentUser.role === 'editor')) {
+        data = data.filter(user => user.id === currentUser.id || user.username === currentUser.username);
+      }
+      // Manager: only see themselves (self-service profile update)
+      else if (currentUser && currentUser.role === 'manager') {
+        data = data.filter(user => user.id === currentUser.id || user.username === currentUser.username);
+      }
       // Filter users by current user's company (except super_admin and system_admin who see all)
-      if (currentUser && currentUser.role !== 'super_admin' && currentUser.role !== 'system_admin' && currentUser.company) {
+      else if (currentUser && currentUser.role !== 'super_admin' && currentUser.role !== 'system_admin' && currentUser.company) {
         data = data.filter(user => user.company === currentUser.company);
       }
       
