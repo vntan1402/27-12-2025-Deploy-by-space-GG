@@ -500,41 +500,129 @@ const UserManagement = () => {
         </button>
       </div>
 
-      {/* Company Filter - Only for Super Admin */}
-      {showUserList && currentUser?.role === 'super_admin' && (
-        <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-4">
-            <label className="flex items-center gap-2 font-medium text-blue-900">
-              <span className="text-xl">👑</span>
-              <span>{language === 'vi' ? 'Lọc theo công ty:' : 'Filter by Company:'}</span>
-            </label>
-            <select
-              value={companyFilter}
-              onChange={(e) => setCompanyFilter(e.target.value)}
-              className="px-4 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-            >
-              <option value="">{language === 'vi' ? '🌐 Tất cả công ty' : '🌐 All Companies'}</option>
-              {companies.map((company) => (
-                <option key={company.id} value={company.id}>
-                  {language === 'vi' ? (company.name_vn || company.name_en) : (company.name_en || company.name_vn)}
-                </option>
-              ))}
-            </select>
-            {companyFilter && (
-              <button
-                onClick={() => setCompanyFilter('')}
-                className="text-sm text-blue-600 hover:text-blue-800 underline"
-              >
-                {language === 'vi' ? 'Xóa lọc' : 'Clear filter'}
-              </button>
-            )}
-            <span className="text-sm text-blue-700">
+      {/* Search and Filters - For Super Admin and System Admin */}
+      {showUserList && (currentUser?.role === 'super_admin' || currentUser?.role === 'system_admin') && (
+        <div className="mb-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 space-y-4">
+          {/* Header with count */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🔍</span>
+              <h3 className="text-lg font-semibold text-blue-900">
+                {language === 'vi' ? 'Tìm kiếm & Lọc' : 'Search & Filter'}
+              </h3>
+            </div>
+            <span className="text-sm font-medium text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
               {language === 'vi' 
-                ? `Hiển thị ${filteredUsers.length}/${users.length} người dùng`
-                : `Showing ${filteredUsers.length}/${users.length} users`
+                ? `${filteredUsers.length}/${users.length} người dùng`
+                : `${filteredUsers.length}/${users.length} users`
               }
             </span>
           </div>
+
+          {/* Search Box */}
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder={language === 'vi' 
+                  ? '🔎 Tìm kiếm theo tên, username, email, công ty, tàu, zalo...'
+                  : '🔎 Search by name, username, email, company, ship, zalo...'
+                }
+                className="w-full px-4 py-2.5 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              />
+            </div>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all"
+                title={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Filters Row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Company Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                🏢 {language === 'vi' ? 'Công ty' : 'Company'}
+              </label>
+              <select
+                value={companyFilter}
+                onChange={(e) => setCompanyFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                <option value="">{language === 'vi' ? 'Tất cả công ty' : 'All Companies'}</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.id}>
+                    {language === 'vi' ? (company.name_vn || company.name_en) : (company.name_en || company.name_vn)}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Role Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                👤 {language === 'vi' ? 'Vai trò' : 'Role'}
+              </label>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                <option value="">{language === 'vi' ? 'Tất cả vai trò' : 'All Roles'}</option>
+                <option value="system_admin">{language === 'vi' ? 'System Admin' : 'System Admin'}</option>
+                <option value="super_admin">{language === 'vi' ? 'Super Admin' : 'Super Admin'}</option>
+                <option value="admin">{language === 'vi' ? 'Admin' : 'Admin'}</option>
+                <option value="manager">{language === 'vi' ? 'Quản lý' : 'Manager'}</option>
+                <option value="editor">{language === 'vi' ? 'Sĩ quan' : 'Ship Officer'}</option>
+                <option value="viewer">{language === 'vi' ? 'Thuyền viên' : 'Crew'}</option>
+              </select>
+            </div>
+
+            {/* Ship Filter */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                🚢 {language === 'vi' ? 'Tàu' : 'Ship'}
+              </label>
+              <select
+                value={shipFilter}
+                onChange={(e) => setShipFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+              >
+                <option value="">{language === 'vi' ? 'Tất cả tàu' : 'All Ships'}</option>
+                <option value="Standby">{language === 'vi' ? '⏸️ Standby' : '⏸️ Standby'}</option>
+                {ships.map((ship) => (
+                  <option key={ship.id} value={ship.name}>
+                    {ship.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Clear All Filters Button */}
+          {(searchTerm || companyFilter || roleFilter || shipFilter) && (
+            <div className="flex justify-end">
+              <button
+                onClick={() => {
+                  setSearchTerm('');
+                  setCompanyFilter('');
+                  setRoleFilter('');
+                  setShipFilter('');
+                }}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-all flex items-center gap-2"
+              >
+                <span>🔄</span>
+                <span>{language === 'vi' ? 'Xóa tất cả bộ lọc' : 'Clear All Filters'}</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
 
