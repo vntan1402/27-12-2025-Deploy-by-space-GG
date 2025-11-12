@@ -518,7 +518,7 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
         return `${trimmed}T00:00:00Z`;
       }
       
-      // Format 6: Already in ISO datetime format
+      // Format 7: Already in ISO datetime format
       if (trimmed.includes('T') || trimmed.includes('Z')) {
         return trimmed;
       }
