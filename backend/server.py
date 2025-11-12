@@ -5449,8 +5449,25 @@ async def get_ships(current_user: UserResponse = Depends(get_current_user)):
             # User has no company, return empty list
             return []
         
-        # Get all ships belonging to user's company
-        ships = await mongo_db.find_all("ships", {"company": current_user.company})
+        # Get user's company info to match by both UUID and name
+        company_id = current_user.company
+        company_doc = await mongo_db.find_one("companies", {"id": company_id})
+        company_name = company_doc.get("name") if company_doc else None
+        company_name_en = company_doc.get("name_en") if company_doc else None
+        company_name_vn = company_doc.get("name_vn") if company_doc else None
+        
+        # Build query to match ships by company UUID OR company name (for backward compatibility)
+        # Ships can have company as either UUID or company name string
+        query_conditions = [{"company": company_id}]
+        if company_name:
+            query_conditions.append({"company": company_name})
+        if company_name_en:
+            query_conditions.append({"company": company_name_en})
+        if company_name_vn:
+            query_conditions.append({"company": company_name_vn})
+        
+        # Use $or to match any condition
+        ships = await mongo_db.find_all("ships", {"$or": query_conditions})
         
         # FIX: Add UTC timezone to naive datetime objects for each ship
         for ship in ships:
