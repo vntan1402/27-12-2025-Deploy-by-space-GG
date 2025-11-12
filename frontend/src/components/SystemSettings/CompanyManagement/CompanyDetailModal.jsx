@@ -100,11 +100,23 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
     setLoadingDetails(true);
     try {
       const response = await api.get('/api/users');
+      
+      // Filter by company
       const companyUsers = response.data.filter(user => 
-        user.company === company.id && 
-        (user.role === 'manager' || user.role === 'admin')
+        user.company === company.id || 
+        user.company === company.name_en || 
+        user.company === company.name_vn
       );
-      setUsersList(companyUsers);
+
+      // Exclude users with ship_crew department (same logic as counting)
+      const nonCrewUsers = companyUsers.filter(user => {
+        if (!user.department) return true;
+        const departments = Array.isArray(user.department) ? user.department : [user.department];
+        return !departments.includes('ship_crew');
+      });
+
+      console.log('💼 Office staff (non-crew users):', nonCrewUsers.length);
+      setUsersList(nonCrewUsers);
       setShowUsersList(true);
     } catch (error) {
       console.error('Error fetching users:', error);
