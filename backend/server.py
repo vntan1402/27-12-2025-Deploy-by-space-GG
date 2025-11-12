@@ -21732,11 +21732,21 @@ async def test_passport_analysis_no_cache(
             logger.info(f"   Project: {apps_script_payload['project_id']}")
             logger.info(f"   Processor: {apps_script_payload['processor_id']}")
             
-            # Make request to Google Apps Script
-            analysis_response = await google_drive_manager.call_apps_script(
-                apps_script_payload, 
-                company_id=company_uuid
-            )
+            # Make request to Google Apps Script with timeout handling
+            try:
+                analysis_response = await asyncio.wait_for(
+                    google_drive_manager.call_apps_script(
+                        apps_script_payload, 
+                        company_id=company_uuid
+                    ),
+                    timeout=90.0  # 90 second timeout for Document AI processing
+                )
+            except asyncio.TimeoutError:
+                logger.error("❌ Document AI analysis timed out after 90 seconds")
+                raise HTTPException(
+                    status_code=504, 
+                    detail="Document AI analysis timed out. The file may be too large or complex. Please try a smaller file or contact support."
+                )
             
             logger.info(f"🧪 TEST: Apps Script response success: {analysis_response.get('success')}")
             logger.info(f"🧪 TEST: Apps Script response message: {analysis_response.get('message')}")
