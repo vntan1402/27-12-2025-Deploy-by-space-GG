@@ -232,13 +232,23 @@ const HomePage = () => {
             </p>
           </div>
           
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
+          <div 
+            onClick={() => {
+              toast.info(
+                language === 'vi' 
+                  ? '🚧 Sẽ được hoàn thiện trong giai đoạn sau' 
+                  : '🚧 Will be completed in a later phase',
+                { autoClose: 3000 }
+              );
+            }}
+            className="bg-green-50 border border-green-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+          >
             <h3 className="font-semibold text-green-900 mb-2 flex items-center gap-2">
-              <span className="text-2xl">👥</span>
-              {language === 'vi' ? 'Crew Records' : 'Crew Records'}
+              <span className="text-2xl">📢</span>
+              {language === 'vi' ? 'Class & Flag Technical Infor Update' : 'Class & Flag Technical Infor Update'}
             </h3>
             <p className="text-sm text-green-800">
-              {language === 'vi' ? 'Quản lý hồ sơ thuyền viên' : 'Manage crew records'}
+              {language === 'vi' ? 'Cập nhật các thông báo của Class và Flags' : 'Update technical information from Class and Flags'}
             </p>
           </div>
           
