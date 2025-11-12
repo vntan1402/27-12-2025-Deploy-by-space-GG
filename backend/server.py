@@ -20994,8 +20994,17 @@ async def analyze_passport_for_crew(
         
         if not filename:
             raise HTTPException(status_code=400, detail="No filename provided")
+        
+        # Check file size (max 10MB for passport files)
+        file_size_mb = len(file_content) / (1024 * 1024)
+        if file_size_mb > 10:
+            logger.error(f"❌ File too large: {file_size_mb:.2f}MB (max 10MB)")
+            raise HTTPException(
+                status_code=400, 
+                detail=f"File size ({file_size_mb:.2f}MB) exceeds maximum allowed size (10MB). Please compress or reduce the file size."
+            )
             
-        logger.info(f"📄 Processing passport file: {filename} ({len(file_content)} bytes)")
+        logger.info(f"📄 Processing passport file: {filename} ({len(file_content)} bytes, {file_size_mb:.2f}MB)")
         
         # Get company information
         user_company = current_user.company
