@@ -353,11 +353,18 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
 
           {/* Statistics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Ships Count */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+            {/* Ships Count - Clickable */}
+            <button
+              onClick={fetchShipsList}
+              disabled={loading || statistics.totalShips === 0}
+              className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-left"
+            >
               <div>
-                <p className="text-sm text-gray-600">
-                  {language === 'vi' ? 'Tổng số tàu' : 'Total Ships'}
+                <p className="text-sm text-gray-600 flex items-center justify-between">
+                  <span>{language === 'vi' ? 'Tổng số tàu' : 'Total Ships'}</span>
+                  {statistics.totalShips > 0 && (
+                    <span className="text-xs text-blue-600">👁️ {language === 'vi' ? 'Xem' : 'View'}</span>
+                  )}
                 </p>
                 {loading ? (
                   <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -365,13 +372,20 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
                   <p className="text-3xl font-bold text-blue-700">{statistics.totalShips}</p>
                 )}
               </div>
-            </div>
+            </button>
 
-            {/* Total Users */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+            {/* Total Users - Clickable */}
+            <button
+              onClick={fetchUsersList}
+              disabled={loading || statistics.totalUsers === 0}
+              className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed text-left"
+            >
               <div>
-                <p className="text-sm text-gray-600">
-                  {language === 'vi' ? 'Nhân viên văn phòng' : 'Office Staff'}
+                <p className="text-sm text-gray-600 flex items-center justify-between">
+                  <span>{language === 'vi' ? 'Nhân viên văn phòng' : 'Office Staff'}</span>
+                  {statistics.totalUsers > 0 && (
+                    <span className="text-xs text-green-600">👁️ {language === 'vi' ? 'Xem' : 'View'}</span>
+                  )}
                 </p>
                 {loading ? (
                   <div className="h-8 w-16 bg-gray-200 animate-pulse rounded"></div>
@@ -379,7 +393,7 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
                   <p className="text-3xl font-bold text-green-700">{statistics.totalUsers}</p>
                 )}
               </div>
-            </div>
+            </button>
 
             {/* Total Crew */}
             <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4 border border-orange-200">
