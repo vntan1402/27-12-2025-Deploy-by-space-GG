@@ -16,6 +16,13 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
   const [baseFee, setBaseFee] = useState(0);
   const [monthlyFee, setMonthlyFee] = useState(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
+  
+  // New states for detail lists
+  const [showShipsList, setShowShipsList] = useState(false);
+  const [showUsersList, setShowUsersList] = useState(false);
+  const [shipsList, setShipsList] = useState([]);
+  const [usersList, setUsersList] = useState([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   useEffect(() => {
     if (company) {
