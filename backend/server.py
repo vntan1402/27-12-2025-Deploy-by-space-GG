@@ -4955,6 +4955,10 @@ async def update_user(user_id: str, user_data: UserUpdate, current_user: UserRes
                 # Restrict role changes for self-edit
                 if field == 'role' and is_self_edit and not is_admin:
                     continue  # Users cannot change their own role
+                
+                # Restrict department changes for self-edit
+                if field == 'department' and is_self_edit and not is_admin:
+                    continue  # Users cannot change their own department
                     
                 if field == 'password':
                     # Hash password if provided
