@@ -351,15 +351,32 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
     if (!dockingStr || dockingStr === 'null' || dockingStr === 'N/A') return '';
     
     try {
-      // If already in MM/YYYY format, return as is
+      // If already in MM/YYYY format (month and year only), return as is
       if (typeof dockingStr === 'string' && dockingStr.match(/^\d{1,2}\/\d{4}$/)) {
-        return dockingStr;
+        return dockingStr; // e.g., "03/2020" or "3/2020"
       }
       
-      // If in YYYY-MM-DD format, convert to MM/YYYY
+      // If already in dd/MM/YYYY format (full date), return as is
+      if (typeof dockingStr === 'string' && dockingStr.match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
+        return dockingStr; // e.g., "12/03/2020" or "2/3/2020"
+      }
+      
+      // If in YYYY-MM-DD format (ISO), convert based on whether day is meaningful
       if (typeof dockingStr === 'string' && dockingStr.includes('-')) {
-        const parts = dockingStr.split('-');
-        if (parts.length >= 2) {
+        const parts = dockingStr.split('T')[0].split('-'); // Remove time part if exists
+        if (parts.length === 3) {
+          const [year, month, day] = parts;
+          
+          // Check if day is 01 (likely means only month/year was extracted)
+          if (day === '01') {
+            // Display as MM/YYYY (month and year only)
+            return `${month}/${year}`;
+          } else {
+            // Display as dd/MM/YYYY (full date)
+            return `${day}/${month}/${year}`;
+          }
+        } else if (parts.length === 2) {
+          // Only year and month
           const [year, month] = parts;
           return `${month}/${year}`;
         }
