@@ -45,6 +45,43 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
     }
   };
 
+  const fetchShipsList = async () => {
+    setLoadingDetails(true);
+    try {
+      const response = await api.get('/api/ships');
+      const companyShips = response.data.filter(ship => 
+        ship.company === company.id || 
+        ship.company === company.name_en || 
+        ship.company === company.name_vn
+      );
+      setShipsList(companyShips);
+      setShowShipsList(true);
+    } catch (error) {
+      console.error('Error fetching ships:', error);
+      toast.error(language === 'vi' ? 'Không thể tải danh sách tàu' : 'Failed to load ships list');
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const fetchUsersList = async () => {
+    setLoadingDetails(true);
+    try {
+      const response = await api.get('/api/users');
+      const companyUsers = response.data.filter(user => 
+        user.company === company.id && 
+        (user.role === 'manager' || user.role === 'admin')
+      );
+      setUsersList(companyUsers);
+      setShowUsersList(true);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      toast.error(language === 'vi' ? 'Không thể tải danh sách nhân viên' : 'Failed to load users list');
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
   const calculateMonthlyFee = () => {
     setCalculatingFee(true);
     try {
