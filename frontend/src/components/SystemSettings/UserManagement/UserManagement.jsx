@@ -37,8 +37,11 @@ const UserManagement = () => {
   const [showAddUser, setShowAddUser] = useState(false);
   const [loading, setLoading] = useState(false);
   
-  // Filter state (for super_admin)
+  // Filter states (for super_admin and system_admin)
+  const [searchTerm, setSearchTerm] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [shipFilter, setShipFilter] = useState('');
   
   // New user data
   // State for edit user modal
