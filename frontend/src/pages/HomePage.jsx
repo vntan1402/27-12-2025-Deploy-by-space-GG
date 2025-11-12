@@ -212,13 +212,23 @@ const HomePage = () => {
         
         {/* Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
+          <div 
+            onClick={() => {
+              toast.info(
+                language === 'vi' 
+                  ? '🚧 Sẽ được hoàn thiện trong giai đoạn sau' 
+                  : '🚧 Will be completed in a later phase',
+                { autoClose: 3000 }
+              );
+            }}
+            className="bg-blue-50 border border-blue-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+          >
             <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-              <span className="text-2xl">📜</span>
-              {language === 'vi' ? 'Class & Flag Cert' : 'Class & Flag Cert'}
+              <span className="text-2xl">⚖️</span>
+              {language === 'vi' ? 'Tìm kiếm Luật và Công ước Quốc tế' : 'Search International Laws & Conventions'}
             </h3>
             <p className="text-sm text-blue-800">
-              {language === 'vi' ? 'Quản lý chứng chỉ tàu và tổ chức phân cấp' : 'Manage ship certificates and classification'}
+              {language === 'vi' ? '✨ Với sự hỗ trợ của AI' : '✨ With AI assistance'}
             </p>
           </div>
           
