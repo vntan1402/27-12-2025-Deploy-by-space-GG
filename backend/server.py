@@ -10353,12 +10353,14 @@ async def upload_audit_report_files(
         # Try dual lookup: UUID first, then company name
         ship = await mongo_db.find_one("ships", {"id": ship_id, "company": company_uuid})
         
-        if not ship and company_name:
+        if not ship and company_names:
             # Fallback: Try with company name for legacy data
-            logger.info(f"🔄 Ship not found with UUID, trying company name: {company_name}")
-            ship = await mongo_db.find_one("ships", {"id": ship_id, "company": company_name})
-            if ship:
-                logger.info(f"✅ Ship found using company name for upload")
+            for company_name in company_names:
+                logger.info(f"🔄 Ship not found with UUID, trying company name: {company_name}")
+                ship = await mongo_db.find_one("ships", {"id": ship_id, "company": company_name})
+                if ship:
+                    logger.info(f"✅ Ship found using company name for upload")
+                    break
         
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
