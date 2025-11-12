@@ -252,13 +252,23 @@ const HomePage = () => {
             </p>
           </div>
           
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 hover:shadow-lg transition-shadow">
+          <div 
+            onClick={() => {
+              toast.info(
+                language === 'vi' 
+                  ? '🚧 Sẽ được hoàn thiện trong giai đoạn sau' 
+                  : '🚧 Will be completed in a later phase',
+                { autoClose: 3000 }
+              );
+            }}
+            className="bg-purple-50 border border-purple-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+          >
             <h3 className="font-semibold text-purple-900 mb-2 flex items-center gap-2">
-              <span className="text-2xl">⚓</span>
-              {language === 'vi' ? 'ISM/ISPS/MLC' : 'ISM/ISPS/MLC'}
+              <span className="text-2xl">🤖</span>
+              {language === 'vi' ? 'AI Tool Box' : 'AI Tool Box'}
             </h3>
             <p className="text-sm text-purple-800">
-              {language === 'vi' ? 'Quản lý hồ sơ ISM, ISPS và MLC' : 'Manage ISM, ISPS and MLC records'}
+              {language === 'vi' ? 'Các công cụ AI hỗ trợ cho ngành Hàng Hải' : 'AI tools to support the Maritime Industry'}
             </p>
           </div>
         </div>
