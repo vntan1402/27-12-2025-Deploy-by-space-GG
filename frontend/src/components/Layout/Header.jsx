@@ -27,10 +27,10 @@ export const Header = () => {
 
   return (
     <header className="bg-white shadow-lg border-b border-blue-200">
-      {/* V2 Indicator Badge - Top right corner */}
-      <div className="absolute top-2 right-2 z-50">
-        <span className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse">
-          🚀 V2 MODULAR
+      {/* Test Version Badge - Bottom right corner */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <span className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold shadow-lg">
+          Test Version
         </span>
       </div>
       
