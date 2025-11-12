@@ -8582,7 +8582,7 @@ async def analyze_survey_report_file(
     survey_report_file: UploadFile = File(...),
     ship_id: str = Form(...),
     bypass_validation: str = Form("false"),
-    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN]))
+    current_user: UserResponse = Depends(check_permission([UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))
 ):
     """
     Analyze survey report file using Google Document AI
