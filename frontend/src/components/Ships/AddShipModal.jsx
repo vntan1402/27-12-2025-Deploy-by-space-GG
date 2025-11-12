@@ -763,25 +763,31 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
                 </div>
               </div>
 
-              {/* Ship Owner */}
+              {/* Ship Owner - Input with Datalist (allows custom entry) */}
               <div className="col-span-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Chủ tàu' : 'Ship Owner'} *
                 </label>
-                <select
+                <input
+                  type="text"
                   required
+                  list="ship-owner-list"
                   value={shipData.ship_owner}
                   onChange={(e) => setShipData(prev => ({ ...prev, ship_owner: e.target.value }))}
                   disabled={isLoadingCompanies}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">{language === 'vi' ? 'Chọn chủ tàu' : 'Select ship owner'}</option>
+                  placeholder={language === 'vi' ? 'Chọn hoặc nhập tên chủ tàu' : 'Select or enter ship owner name'}
+                />
+                <datalist id="ship-owner-list">
                   {availableCompanies.map(company => (
-                    <option key={company.id} value={language === 'vi' ? company.name_vn : company.name_en}>
-                      {language === 'vi' ? company.name_vn : company.name_en}
-                    </option>
+                    <option key={company.id} value={language === 'vi' ? company.name_vn : company.name_en} />
                   ))}
-                </select>
+                </datalist>
+                <p className="text-xs text-gray-500 mt-1">
+                  {language === 'vi' 
+                    ? '💡 Chọn từ danh sách hoặc nhập tên chủ tàu mới' 
+                    : '💡 Select from list or enter new ship owner name'}
+                </p>
               </div>
 
               {/* Ship Name */}
