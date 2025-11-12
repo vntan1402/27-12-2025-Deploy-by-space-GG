@@ -429,12 +429,17 @@ const UserManagement = () => {
     <div>
       {/* Action Buttons */}
       <div className="mb-6 flex space-x-4">
-        <button
-          onClick={() => setShowAddUser(true)}
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-all font-medium"
-        >
-          {language === 'vi' ? 'Thêm người dùng' : 'Add User'}
-        </button>
+        {/* Add User button - Hidden for viewer, editor, and manager */}
+        {currentUser?.role !== 'viewer' && currentUser?.role !== 'editor' && currentUser?.role !== 'manager' && (
+          <button
+            onClick={() => setShowAddUser(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-all font-medium"
+          >
+            {language === 'vi' ? 'Thêm người dùng' : 'Add User'}
+          </button>
+        )}
+        
+        {/* User List Toggle button */}
         <button
           onClick={() => setShowUserList(!showUserList)}
           className={`px-6 py-2 rounded-lg transition-all font-medium ${
@@ -444,8 +449,11 @@ const UserManagement = () => {
           }`}
         >
           {showUserList 
-            ? (language === 'vi' ? 'Ẩn danh sách' : 'Hide List')
-            : (language === 'vi' ? 'Danh sách người dùng' : 'User List')
+            ? (language === 'vi' ? 'Ẩn' : 'Hide')
+            : (currentUser?.role === 'viewer' || currentUser?.role === 'editor' || currentUser?.role === 'manager'
+                ? (language === 'vi' ? 'Xem thông tin' : 'View Profile')
+                : (language === 'vi' ? 'Danh sách người dùng' : 'User List')
+              )
           }
         </button>
       </div>
