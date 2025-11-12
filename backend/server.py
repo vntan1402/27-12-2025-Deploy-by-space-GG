@@ -5429,8 +5429,18 @@ async def update_base_fee(
 # Ship endpoints
 @api_router.get("/ships", response_model=List[ShipResponse])
 async def get_ships(current_user: UserResponse = Depends(get_current_user)):
+    """
+    Get ships filtered by user's company.
+    All roles (including System Admin and Super Admin) only see ships from their own company.
+    """
     try:
-        ships = await mongo_db.find_all("ships")
+        # Filter ships by current user's company
+        if not current_user.company:
+            # User has no company, return empty list
+            return []
+        
+        # Get all ships belonging to user's company
+        ships = await mongo_db.find_all("ships", {"company": current_user.company})
         
         # FIX: Add UTC timezone to naive datetime objects for each ship
         for ship in ships:
