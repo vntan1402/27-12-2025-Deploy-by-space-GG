@@ -27,8 +27,9 @@ const SystemSettingsPage = () => {
       return;
     }
 
-    // Only managers, admins, super_admins, and system_admins can access settings
-    const allowedRoles = ['manager', 'admin', 'super_admin', 'system_admin'];
+    // Allow viewer, manager, admin, super_admin, and system_admin to access settings
+    // Viewer and manager can only see their own profile in user list
+    const allowedRoles = ['viewer', 'editor', 'manager', 'admin', 'super_admin', 'system_admin'];
     if (!allowedRoles.includes(user.role)) {
       toast.error(language === 'vi' ? 'Bạn không có quyền truy cập trang này' : 'You do not have permission to access this page');
       navigate('/');
