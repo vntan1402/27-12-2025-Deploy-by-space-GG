@@ -48,13 +48,45 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
   const fetchShipsList = async () => {
     setLoadingDetails(true);
     try {
-      const response = await api.get('/api/ships');
-      const companyShips = response.data.filter(ship => 
+      // Fetch ships
+      const shipsResponse = await api.get('/api/ships');
+      const companyShips = shipsResponse.data.filter(ship => 
         ship.company === company.id || 
         ship.company === company.name_en || 
         ship.company === company.name_vn
       );
-      setShipsList(companyShips);
+
+      // Fetch certificates to filter ships
+      const [shipCertificatesResponse, auditCertificatesResponse] = await Promise.all([
+        api.get('/api/certificates'),
+        api.get('/api/audit-certificates')
+      ]);
+      
+      const shipCertificates = shipCertificatesResponse.data || [];
+      const auditCertificates = auditCertificatesResponse.data || [];
+
+      // Get unique ship IDs that have at least one certificate
+      const shipIdsWithCertificates = new Set();
+      
+      shipCertificates.forEach(cert => {
+        if (cert.ship_id) {
+          shipIdsWithCertificates.add(cert.ship_id);
+        }
+      });
+      
+      auditCertificates.forEach(cert => {
+        if (cert.ship_id) {
+          shipIdsWithCertificates.add(cert.ship_id);
+        }
+      });
+
+      // Filter: Only ships that have at least one certificate
+      const shipsWithCertificates = companyShips.filter(ship => 
+        shipIdsWithCertificates.has(ship.id)
+      );
+      
+      console.log('📊 Ships with certificates:', shipsWithCertificates.length);
+      setShipsList(shipsWithCertificates);
       setShowShipsList(true);
     } catch (error) {
       console.error('Error fetching ships:', error);
