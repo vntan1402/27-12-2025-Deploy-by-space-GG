@@ -515,6 +515,162 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
           </button>
         </div>
       </div>
+
+      {/* Ships List Modal */}
+      {showShipsList && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex justify-between items-center">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <span>🚢</span>
+                <span>{language === 'vi' ? 'Danh sách tàu' : 'Ships List'}</span>
+              </h3>
+              <button
+                onClick={() => setShowShipsList(false)}
+                className="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-all"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Content */}
+            <div className="p-6 overflow-y-auto flex-1">
+              {loadingDetails ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                </div>
+              ) : shipsList.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">
+                  {language === 'vi' ? 'Không có tàu nào' : 'No ships found'}
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {shipsList.map((ship, index) => (
+                    <div
+                      key={ship.id || index}
+                      className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-bold text-blue-900">{ship.name}</p>
+                          <p className="text-sm text-gray-600">IMO: {ship.imo || 'N/A'}</p>
+                          <p className="text-xs text-gray-500">
+                            {language === 'vi' ? 'Cờ' : 'Flag'}: {ship.flag || 'N/A'}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">
+                            {language === 'vi' ? 'Kiểu tàu' : 'Type'}
+                          </p>
+                          <p className="text-sm font-medium text-blue-700">{ship.type || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Footer */}
+            <div className="bg-gray-50 px-6 py-4 border-t flex justify-between items-center">
+              <p className="text-sm text-gray-600">
+                {language === 'vi' ? `Tổng: ${shipsList.length} tàu` : `Total: ${shipsList.length} ships`}
+              </p>
+              <button
+                onClick={() => setShowShipsList(false)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all"
+              >
+                {language === 'vi' ? 'Đóng' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Users List Modal */}
+      {showUsersList && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-4 flex justify-between items-center">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <span>👥</span>
+                <span>{language === 'vi' ? 'Danh sách nhân viên' : 'Office Staff List'}</span>
+              </h3>
+              <button
+                onClick={() => setShowUsersList(false)}
+                className="text-white hover:bg-white hover:bg-opacity-20 p-2 rounded-lg transition-all"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Content */}
+            <div className="p-6 overflow-y-auto flex-1">
+              {loadingDetails ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+                </div>
+              ) : usersList.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">
+                  {language === 'vi' ? 'Không có nhân viên nào' : 'No staff found'}
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {usersList.map((user, index) => (
+                    <div
+                      key={user.id || index}
+                      className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border border-green-200 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-bold">
+                            {user.full_name?.charAt(0)?.toUpperCase() || user.username?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
+                          <div>
+                            <p className="font-bold text-green-900">{user.full_name || user.username}</p>
+                            <p className="text-sm text-gray-600">@{user.username}</p>
+                            {user.email && (
+                              <p className="text-xs text-gray-500">📧 {user.email}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500">
+                            {language === 'vi' ? 'Vai trò' : 'Role'}
+                          </p>
+                          <p className="text-sm font-medium text-green-700 capitalize">
+                            {user.role === 'manager' ? (language === 'vi' ? 'Quản lý' : 'Manager') : 
+                             user.role === 'admin' ? (language === 'vi' ? 'Admin' : 'Admin') : user.role}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Footer */}
+            <div className="bg-gray-50 px-6 py-4 border-t flex justify-between items-center">
+              <p className="text-sm text-gray-600">
+                {language === 'vi' ? `Tổng: ${usersList.length} nhân viên` : `Total: ${usersList.length} staff`}
+              </p>
+              <button
+                onClick={() => setShowUsersList(false)}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all"
+              >
+                {language === 'vi' ? 'Đóng' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
