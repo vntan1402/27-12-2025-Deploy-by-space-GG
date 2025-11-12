@@ -487,7 +487,20 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
         }
       }
       
-      // Format 4: "DD MMM YYYY" or "DD MONTH YYYY" (e.g., "28 July 2025", "9 August 2023")
+      // Format 4: "MONTH DAY, YEAR" (e.g., "MARCH 12, 2020", "AUGUST 11, 2022")
+      const monthDayYearCommaPattern = /^([a-zA-Z]+)\s+(\d{1,2}),?\s+(\d{4})$/;
+      const monthDayYearCommaMatch = trimmed.match(monthDayYearCommaPattern);
+      if (monthDayYearCommaMatch) {
+        const monthName = monthDayYearCommaMatch[1].toLowerCase();
+        const day = monthDayYearCommaMatch[2].padStart(2, '0');
+        const year = monthDayYearCommaMatch[3];
+        const monthNum = monthMap[monthName];
+        if (monthNum) {
+          return `${year}-${monthNum}-${day}T00:00:00Z`;
+        }
+      }
+      
+      // Format 5: "DD MMM YYYY" or "DD MONTH YYYY" (e.g., "28 July 2025", "9 August 2023")
       const dayMonthYearPattern = /^(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})$/;
       const dayMonthYearMatch = trimmed.match(dayMonthYearPattern);
       if (dayMonthYearMatch) {
@@ -500,7 +513,7 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
         }
       }
       
-      // Format 5: YYYY-MM-DD (e.g., "2025-07-28")
+      // Format 6: YYYY-MM-DD (e.g., "2025-07-28")
       if (trimmed.match(/^\d{4}-\d{2}-\d{2}$/)) {
         return `${trimmed}T00:00:00Z`;
       }
