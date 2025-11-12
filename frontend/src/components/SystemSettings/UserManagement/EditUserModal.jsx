@@ -415,7 +415,7 @@ const EditUserModal = ({
                       checked={(userData.department || []).includes('sso')}
                       onChange={() => handleDepartmentChange('sso')}
                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                      disabled={loading}
+                      disabled={loading || isEditingOwnRole}
                     />
                     <span className="text-sm text-blue-900">
                       🛡️ SSO (Ship Security Officer)
@@ -433,30 +433,40 @@ const EditUserModal = ({
                       : '🔒 Ship Officers must belong to "Ship Crew" department. Can additionally select SSO if serving as Ship Security Officer.')
                   }
                 </p>
+                {isEditingOwnRole && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    {language === 'vi' ? '🔒 Không thể thay đổi phòng ban của chính mình' : '🔒 Cannot change your own department'}
+                  </p>
+                )}
               </div>
             ) : (
               // Normal department selection for other roles
-              <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
+              <div className={`border rounded-lg p-4 ${isEditingOwnRole ? 'bg-gray-100 border-gray-300' : 'bg-gray-50 border-gray-300'}`}>
                 <div className="grid grid-cols-2 gap-3">
                   {getFilteredDepartmentOptions().map(dept => {
                     const isChecked = (userData.department || []).includes(dept.value);
                     return (
                       <label 
                         key={dept.value}
-                        className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded transition-colors"
+                        className={`flex items-center space-x-2 p-2 rounded transition-colors ${isEditingOwnRole ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-gray-100'}`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleDepartmentChange(dept.value)}
                           className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
-                          disabled={loading}
+                          disabled={loading || isEditingOwnRole}
                         />
-                        <span className="text-sm text-gray-700">{dept.label}</span>
+                        <span className={`text-sm ${isEditingOwnRole ? 'text-gray-500' : 'text-gray-700'}`}>{dept.label}</span>
                       </label>
                     );
                   })}
                 </div>
+                {isEditingOwnRole && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    {language === 'vi' ? '🔒 Không thể thay đổi phòng ban của chính mình' : '🔒 Cannot change your own department'}
+                  </p>
+                )}
               </div>
             )}
             
