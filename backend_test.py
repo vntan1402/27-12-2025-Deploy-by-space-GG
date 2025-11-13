@@ -685,6 +685,119 @@ class BackendAPITester:
             return False
 
     def test_create_standby_crew_certificate(self):
+        """Test Case 3: Create certificate for Standby Crew (ship_id = None)"""
+        self.print_test_header("Test Case 3 - Create Standby Crew Certificate (ship_id = None)")
+        
+        if not self.access_token or not self.standby_crew:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            crew_id = self.standby_crew.get('id')
+            crew_name = self.standby_crew.get('full_name')
+            
+            print(f"🧪 TESTING STANDBY CREW CERTIFICATE CREATION:")
+            print(f"   👤 Standby Crew: {crew_name}")
+            print(f"   🆔 Crew ID: {crew_id}")
+            print(f"   🎯 Expected: Certificate created with ship_id = None")
+            
+            # Prepare certificate data (using sample data)
+            cert_data = {
+                "crew_id": crew_id,
+                "crew_name": crew_name,
+                "cert_name": "Test Certificate",
+                "cert_no": f"TEST-{int(time.time())}",
+                "issued_by": "Test Authority",
+                "issued_date": "2024-01-01",
+                "cert_expiry": "2025-01-01",
+                "cert_type": "COC",
+                "cert_level": "Officer",
+                "endorsements": "Test endorsement"
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/crew-certificates/manual")
+            print(f"   📋 crew_id: {crew_id}")
+            print(f"   📋 cert_name: {cert_data['cert_name']}")
+            print(f"   📋 cert_no: {cert_data['cert_no']}")
+            
+            # Make the request
+            response = self.session.post(
+                f"{BACKEND_URL}/crew-certificates/manual",
+                headers=headers,
+                json=cert_data,
+                timeout=30
+            )
+            
+            print(f"📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 200:
+                try:
+                    response_data = response.json()
+                    
+                    print(f"\n🔍 STANDBY CERTIFICATE CREATION VERIFICATION:")
+                    
+                    # Check certificate data
+                    cert_id = response_data.get('id')
+                    ship_id = response_data.get('ship_id')
+                    created_crew_id = response_data.get('crew_id')
+                    
+                    print(f"   📄 Certificate ID: {cert_id}")
+                    print(f"   📄 ship_id: {ship_id}")
+                    print(f"   📄 crew_id: {created_crew_id}")
+                    
+                    # Verify ship_id is None for standby crew
+                    ship_id_is_none = ship_id is None
+                    crew_id_matches = created_crew_id == crew_id
+                    
+                    print(f"   ✅ ship_id is None: {'✅ YES' if ship_id_is_none else '❌ NO'}")
+                    print(f"   ✅ crew_id matches: {'✅ YES' if crew_id_matches else '❌ NO'}")
+                    
+                    if ship_id_is_none and crew_id_matches and cert_id:
+                        print(f"\n🎉 STANDBY CERTIFICATE CREATION SUCCESSFUL!")
+                        print(f"   ✅ Certificate created with ship_id = None")
+                        print(f"   ✅ Certificate ID: {cert_id}")
+                        print(f"   ✅ Crew ID matches: {crew_id}")
+                        
+                        # Store certificate ID for file upload test
+                        self.standby_cert_id = cert_id
+                        
+                        self.print_result(True, "Standby crew certificate created successfully with ship_id = None")
+                        return True
+                    else:
+                        print(f"\n❌ STANDBY CERTIFICATE CREATION ISSUES!")
+                        print(f"   ❌ Expected ship_id = None, got: {ship_id}")
+                        self.print_result(False, "Standby certificate creation failed - ship_id not None")
+                        return False
+                    
+                except json.JSONDecodeError:
+                    print(f"❌ Response is not valid JSON")
+                    print(f"📄 Response text: {response.text[:500]}...")
+                    self.print_result(False, "Invalid JSON response from certificate creation")
+                    return False
+                    
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Request failed with status {response.status_code}")
+                    print(f"📄 Error: {error_data}")
+                    self.print_result(False, f"Certificate creation failed with status {response.status_code}")
+                    return False
+                except:
+                    print(f"❌ Request failed with status {response.status_code}")
+                    print(f"📄 Response: {response.text[:500]}...")
+                    self.print_result(False, f"Certificate creation failed with status {response.status_code}")
+                    return False
+                    
+        except Exception as e:
+            self.print_result(False, f"Exception during standby certificate creation: {str(e)}")
+            return False
+
+    def test_create_ship_assigned_crew_certificate(self):
         """Test Case 1: Validation FAIL - Ship info mismatch should return validation error"""
         self.print_test_header("Test Case 1 - Audit Report Validation FAIL (Ship Info Mismatch)")
         
