@@ -84,7 +84,7 @@ export const crewService = {
     
     return api.post(API_ENDPOINTS.PASSPORT_ANALYZE, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 60000, // 60 seconds for file processing
+      timeout: 90000, // 90 seconds for file processing
     });
   },
 
