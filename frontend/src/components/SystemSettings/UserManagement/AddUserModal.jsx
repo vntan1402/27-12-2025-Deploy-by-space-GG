@@ -99,33 +99,9 @@ const AddUserModal = ({
 
   /**
    * Handle department checkbox change
+   * Ship Crew is now just a regular department that can be selected/deselected
    */
   const handleDepartmentChange = (deptValue) => {
-    // For Ship Officers: ship_crew is locked, but can toggle SSO only (not CSO)
-    if (userData.role === 'editor') {
-      if (deptValue === 'ship_crew') {
-        return; // Cannot uncheck ship_crew for Ship Officers
-      }
-      // Allow toggling SSO only for Ship Officers
-      const currentDepts = userData.department || [];
-      const isChecked = currentDepts.includes(deptValue);
-      
-      let newDepts;
-      if (isChecked) {
-        newDepts = currentDepts.filter(d => d !== deptValue);
-      } else {
-        newDepts = [...currentDepts, deptValue];
-      }
-      
-      setUserData(prev => ({ ...prev, department: newDepts }));
-      return;
-    }
-    
-    // For Crew: completely locked to ship_crew only
-    if (userData.role === 'viewer') {
-      return; // No changes allowed
-    }
-    
     const currentDepts = userData.department || [];
     const isChecked = currentDepts.includes(deptValue);
     
