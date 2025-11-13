@@ -255,7 +255,12 @@ const UserManagement = () => {
         delete dataToSend.email; // Don't send email field if empty
       }
       
-      await userService.create(dataToSend);
+      const response = await userService.create(dataToSend);
+      
+      // Check for email warning
+      if (response.data && response.data.warning) {
+        toast.warning(response.data.warning, { autoClose: 5000 });
+      }
       
       toast.success(language === 'vi' ? 'Thêm người dùng thành công!' : 'User added successfully!');
       
