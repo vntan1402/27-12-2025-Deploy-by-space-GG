@@ -38,8 +38,11 @@ const AddUserModal = ({
     }
   }, [userData.role]);
 
-  // Note: Ship Crew department is now always visible in the list
-  // Users can manually select/deselect it as needed
+  // Note: Department options are filtered based on role:
+  // - Crew (viewer): Only Ship Crew (auto-selected)
+  // - Ship Officer (editor): Ship Crew and SSO (Ship Crew auto-selected)
+  // - Company Officer (manager): All except Ship Crew and SSO
+  // - Admin roles: All departments
 
   // Check if role is Crew or Ship Officer (viewer or editor)
   const shouldShowShipDropdown = userData.role === 'viewer' || userData.role === 'editor';
