@@ -823,18 +823,19 @@ class BackendAPITester:
             print(f"   🆔 Expected Ship ID: {self.test_ship_id}")
             print(f"   🎯 Expected: Certificate created with ship_id = valid UUID")
             
+            # Get crew passport for required field
+            crew_passport = self.ship_assigned_crew.get('passport', 'TEST-SHIP-PASSPORT')
+            
             # Prepare certificate data (using sample data)
             cert_data = {
                 "crew_id": crew_id,
                 "crew_name": crew_name,
+                "passport": crew_passport,  # Required field
                 "cert_name": "Test Ship Certificate",
                 "cert_no": f"SHIP-TEST-{int(time.time())}",
                 "issued_by": "Test Maritime Authority",
                 "issued_date": "2024-01-01",
-                "cert_expiry": "2025-01-01",
-                "cert_type": "COC",
-                "cert_level": "Officer",
-                "endorsements": "Ship assignment test"
+                "cert_expiry": "2025-01-01"
             }
             
             print(f"📡 POST {BACKEND_URL}/crew-certificates/manual")
