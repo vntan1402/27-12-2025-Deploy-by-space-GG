@@ -23,6 +23,21 @@ const AddUserModal = ({
     }
   }, [currentUser, userData.company, setUserData]);
 
+  // Auto-select "Ship Crew" department when role changes to Crew or Ship Officer
+  useEffect(() => {
+    // For Crew (viewer): auto-select Ship Crew (only option)
+    if (userData.role === 'viewer') {
+      setUserData(prev => ({ ...prev, department: ['ship_crew'] }));
+    }
+    // For Ship Officer (editor): auto-select Ship Crew (default, SSO is optional)
+    else if (userData.role === 'editor') {
+      // Only auto-select if department is empty or doesn't include ship_crew
+      if (!userData.department || !userData.department.includes('ship_crew')) {
+        setUserData(prev => ({ ...prev, department: ['ship_crew'] }));
+      }
+    }
+  }, [userData.role]);
+
   // Note: Ship Crew department is now always visible in the list
   // Users can manually select/deselect it as needed
 
