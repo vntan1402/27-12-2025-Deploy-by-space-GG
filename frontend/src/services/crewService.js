@@ -103,7 +103,7 @@ export const crewService = {
       headers: {
         'Content-Type': 'multipart/form-data'
       },
-      timeout: 120000 // 2 minutes for AI analysis
+      timeout: 90000 // 90 seconds for AI analysis
     });
   },
   
