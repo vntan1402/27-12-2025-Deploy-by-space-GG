@@ -459,15 +459,16 @@ const AddCrewCertificateModal = ({
       return;
     }
 
-    // Auto-select "Standby" if no ship is selected
+    // Check if no ship is selected (Standby crew)
+    // Note: Backend determines ship based on crew's ship_sign_on field, not this parameter
     const shipToUse = selectedShip || { id: 'standby', name: 'Standby' };
     
     if (!selectedShip) {
       toast.info(
         language === 'vi' 
-          ? 'ℹ️ Không có tàu được chọn - sử dụng "Standby"' 
-          : 'ℹ️ No ship selected - using "Standby"',
-        { autoClose: 2000 }
+          ? 'ℹ️ Không có tàu được chọn - chứng chỉ cho thuyền viên Standby' 
+          : 'ℹ️ No ship selected - certificate for Standby crew',
+        { duration: 3000 }
       );
     }
 
