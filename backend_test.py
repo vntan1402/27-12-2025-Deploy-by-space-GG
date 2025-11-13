@@ -419,7 +419,138 @@ class BackendAPITester:
             print(f"❌ Exception loading test PDF: {str(e)}")
             return None, None
     
-    def test_audit_report_validation_fail_case(self):
+    def test_standby_crew_certificate_analyze(self):
+        """Test Case 1: Analyze certificate for Standby Crew (No Ship Assigned)"""
+        self.print_test_header("Test Case 1 - Standby Crew Certificate Analysis (No Ship ID)")
+        
+        if not self.access_token or not self.standby_crew:
+            self.print_result(False, "Missing required data from previous tests")
+            return False
+        
+        try:
+            # Download a certificate test PDF
+            pdf_content, filename = self.download_certificate_test_pdf()
+            if not pdf_content:
+                self.print_result(False, "Failed to download certificate test PDF")
+                return False
+            
+            headers = {
+                "Authorization": f"Bearer {self.access_token}"
+            }
+            
+            crew_id = self.standby_crew.get('id')
+            crew_name = self.standby_crew.get('full_name')
+            
+            print(f"🧪 TESTING STANDBY CREW CERTIFICATE ANALYSIS:")
+            print(f"   👤 Standby Crew: {crew_name}")
+            print(f"   🆔 Crew ID: {crew_id}")
+            print(f"   📄 PDF Size: {len(pdf_content):,} bytes")
+            print(f"   📄 PDF Filename: {filename}")
+            print(f"   🎯 Expected: Success without ship_id parameter")
+            
+            # Prepare multipart form data for crew certificate analysis
+            files = {
+                'cert_file': (filename, pdf_content, 'application/pdf')
+            }
+            
+            data = {
+                'crew_id': crew_id
+                # NOTE: ship_id is intentionally omitted for standby crew
+            }
+            
+            print(f"📡 POST {BACKEND_URL}/crew-certificates/analyze-file")
+            print(f"   📋 crew_id: {crew_id}")
+            print(f"   📋 ship_id: NOT PROVIDED (standby crew)")
+            print(f"   📋 filename: {filename}")
+            
+            # Make the request
+            start_time = time.time()
+            response = self.session.post(
+                f"{BACKEND_URL}/crew-certificates/analyze-file",
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=120  # 2 minutes timeout for AI analysis
+            )
+            end_time = time.time()
+            
+            response_time = end_time - start_time
+            print(f"📊 Response Status: {response.status_code}")
+            print(f"⏱️ Response Time: {response_time:.1f} seconds")
+            
+            if response.status_code == 200:
+                try:
+                    response_data = response.json()
+                    
+                    # Check if this is a successful analysis response
+                    success = response_data.get('success', False)
+                    
+                    print(f"\n🔍 STANDBY CREW ANALYSIS RESPONSE VERIFICATION:")
+                    print(f"   📄 success: {success}")
+                    
+                    if success:
+                        print(f"✅ SUCCESS: Standby crew certificate analysis completed!")
+                        
+                        # Check for analysis data
+                        analysis = response_data.get('analysis', {})
+                        has_analysis_data = bool(analysis)
+                        
+                        print(f"\n📋 ANALYSIS DATA VERIFICATION:")
+                        print(f"   📄 analysis object present: {'✅ YES' if has_analysis_data else '❌ NO'}")
+                        
+                        if has_analysis_data:
+                            # Check key analysis fields
+                            key_fields = ['cert_name', 'cert_no', 'issued_by', 'issued_date', 'expiry_date']
+                            populated_fields = []
+                            
+                            for field in key_fields:
+                                value = analysis.get(field, '')
+                                if value and str(value).strip():
+                                    populated_fields.append(field)
+                                print(f"   📄 {field}: '{value}'")
+                            
+                            print(f"   📊 Populated fields: {len(populated_fields)}/{len(key_fields)}")
+                        
+                        # Check message
+                        message = response_data.get('message', '')
+                        print(f"   📄 Message: '{message}'")
+                        
+                        # Store analysis result for later use
+                        self.standby_analysis_result = response_data
+                        
+                        self.print_result(True, "Standby crew certificate analysis successful - no ship_id required")
+                        return True
+                    else:
+                        print(f"❌ UNEXPECTED: Analysis failed")
+                        print(f"   📄 Response: {response_data}")
+                        
+                        self.print_result(False, "Standby crew certificate analysis failed")
+                        return False
+                    
+                except json.JSONDecodeError:
+                    print(f"❌ Response is not valid JSON")
+                    print(f"📄 Response text: {response.text[:500]}...")
+                    self.print_result(False, "Invalid JSON response from crew certificate analysis")
+                    return False
+                    
+            else:
+                try:
+                    error_data = response.json()
+                    print(f"❌ Request failed with status {response.status_code}")
+                    print(f"📄 Error: {error_data}")
+                    self.print_result(False, f"Crew certificate analysis failed with status {response.status_code}")
+                    return False
+                except:
+                    print(f"❌ Request failed with status {response.status_code}")
+                    print(f"📄 Response: {response.text[:500]}...")
+                    self.print_result(False, f"Crew certificate analysis failed with status {response.status_code}")
+                    return False
+                    
+        except Exception as e:
+            self.print_result(False, f"Exception during standby crew certificate analysis: {str(e)}")
+            return False
+
+    def test_ship_assigned_crew_certificate_analyze(self):
         """Test Case 1: Validation FAIL - Ship info mismatch should return validation error"""
         self.print_test_header("Test Case 1 - Audit Report Validation FAIL (Ship Info Mismatch)")
         
