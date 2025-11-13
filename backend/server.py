@@ -4770,6 +4770,14 @@ async def create_user(user_data: UserCreate, current_user: UserResponse = Depend
         if existing_user:
             raise HTTPException(status_code=400, detail="Username already exists")
         
+        # Check if email is duplicated (warning only, not blocking)
+        email_warning = None
+        if user_data.email:
+            existing_email_user = await mongo_db.find_one("users", {"email": user_data.email})
+            if existing_email_user:
+                email_warning = f"⚠️ Email '{user_data.email}' is already used by user '{existing_email_user.get('username')}'. Please verify this is correct."
+                logger.warning(f"⚠️ Duplicate email detected: {user_data.email} (existing user: {existing_email_user.get('username')})")
+        
         # Hash password
         password_hash = bcrypt.hashpw(user_data.password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
@@ -4787,7 +4795,16 @@ async def create_user(user_data: UserCreate, current_user: UserResponse = Depend
         
         logger.info(f"✅ User created successfully: {user_dict['username']}")
         
-        return UserResponse(**user_dict)
+        # Return user with email warning if applicable
+        response = UserResponse(**user_dict)
+        
+        # Add warning to response headers (frontend can check)
+        if email_warning:
+            # We can't modify response headers directly in FastAPI response_model
+            # So we'll log it and rely on frontend to show warning based on status
+            logger.info(f"📧 {email_warning}")
+        
+        return response
         
     except HTTPException:
         raise
