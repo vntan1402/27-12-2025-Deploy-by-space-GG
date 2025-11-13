@@ -23776,7 +23776,7 @@ async def create_crew_certificate_manual(
 @api_router.post("/crew-certificates/analyze-file")
 async def analyze_certificate_file_for_crew(
     cert_file: UploadFile = File(...),
-    ship_id: str = Form(...),
+    ship_id: Optional[str] = Form(None),
     crew_id: str = Form(None),
     bypass_validation: str = Form("false"),
     bypass_dob_validation: str = Form("false"),
@@ -23786,10 +23786,17 @@ async def analyze_certificate_file_for_crew(
     Step 3: Analyze crew certificate file using Google Document AI and save to Google Drive
     1. Analyze certificate with Google Document AI
     2. Extract fields with System AI (COC, COE, STCW, Medical, etc.)
-    3. Save certificate file to: ShipName > Crew Records folder
+    3. Save certificate file to: ShipName > Crew Records folder OR COMPANY DOCUMENT/Standby Crew for standby crew
     4. Return extracted data for frontend to use
+    
+    ship_id: Optional - If None or 'standby', certificate is for standby crew (no assigned ship)
     """
     try:
+        # Normalize ship_id: treat 'standby' string as None
+        if ship_id and ship_id.lower() == 'standby':
+            ship_id = None
+            logger.info("📋 Standby crew mode: No ship assigned")
+        
         logger.info(f"📋 Starting crew certificate analysis for ship_id: {ship_id}, crew_id: {crew_id}")
         
         # Read file content
