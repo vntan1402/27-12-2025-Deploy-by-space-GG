@@ -23860,14 +23860,12 @@ async def analyze_certificate_file_for_crew(
         if not ship and ship_id == "standby":
             logger.info(f"✅ Using Standby mode for crew without assigned ship")
             ship_name = "Standby"
-            is_standby = True
         elif not ship:
             logger.error(f"❌ Ship not found: ship_id='{ship_id}', company='{company_uuid}' or '{company_name}'")
             raise HTTPException(status_code=404, detail="Ship not found")
         else:
             logger.info(f"✅ Found ship: {ship.get('name')} (id: {ship.get('id')})")
             ship_name = ship.get("name", "Unknown Ship")
-            is_standby = False
         
         # Get crew information (optional)
         crew_name = "Unknown"
