@@ -53,7 +53,7 @@ const UserManagement = () => {
     email: '',
     password: '',
     full_name: '',
-    role: 'viewer',
+    role: '',  // No default role - user must select
     department: [],  // Changed to array
     company: '',
     ship: '',
