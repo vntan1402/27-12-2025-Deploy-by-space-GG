@@ -86,6 +86,18 @@ const AddUserModal = ({
    * Get filtered department options based on role
    */
   const getFilteredDepartmentOptions = () => {
+    // For Crew (viewer): only show Ship Crew
+    if (userData.role === 'viewer') {
+      return departmentOptions.filter(dept => dept.value === 'ship_crew');
+    }
+    
+    // For Ship Officer (editor): show Ship Crew and SSO
+    if (userData.role === 'editor') {
+      return departmentOptions.filter(dept => 
+        dept.value === 'ship_crew' || dept.value === 'sso'
+      );
+    }
+    
     // For Company Officer (manager): exclude Ship Crew and SSO
     if (userData.role === 'manager') {
       return departmentOptions.filter(dept => 
