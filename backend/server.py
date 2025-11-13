@@ -4762,7 +4762,7 @@ async def get_current_company(current_user: UserResponse = Depends(get_current_u
         logger.error(f"Full traceback: ", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch company information")
 
-@api_router.post("/users", response_model=UserResponse)
+@api_router.post("/users")
 async def create_user(user_data: UserCreate, current_user: UserResponse = Depends(check_permission([UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]))):
     try:
         # Check if username already exists
