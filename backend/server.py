@@ -23814,63 +23814,65 @@ async def analyze_certificate_file_for_crew(
         if not company_uuid:
             raise HTTPException(status_code=404, detail="Company not found")
         
-        # Get ship information for folder structure
-        logger.info(f"🔍 Looking for ship: ship_id='{ship_id}', company='{company_uuid}'")
-        
-        # Get company names for ship lookup (ships may be stored with company name, not UUID)
-        company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
-        company_names = []
-        if company_doc:
-            if company_doc.get("name"):
-                company_names.append(company_doc.get("name"))
-            if company_doc.get("name_en"):
-                company_names.append(company_doc.get("name_en"))
-            if company_doc.get("name_vn"):
-                company_names.append(company_doc.get("name_vn"))
-        
-        logger.info(f"🏢 Company names to try: {company_names}")
-        
-        # Try finding ship by ID with company UUID first
-        ship = await mongo_db.find_one("ships", {
-            "id": ship_id,
-            "company": company_uuid
-        })
-        
-        # If not found, try with company names (legacy data)
-        if not ship and company_names:
-            for company_name in company_names:
-                logger.info(f"🔄 Trying with company name: '{company_name}'")
-                ship = await mongo_db.find_one("ships", {
-                    "id": ship_id,
-                    "company": company_name
-                })
-                if ship:
-                    break
-        
-        # If still not found, try by ship name as fallback
-        if not ship:
-            logger.warning(f"⚠️ Ship not found with UUID company, trying by name: '{ship_id}'")
+        # Handle standby crew (no ship assigned)
+        if not ship_id:
+            logger.info("📍 Standby crew: No ship assigned, certificate will go to COMPANY DOCUMENT/Standby Crew")
+            ship_name = None  # Will trigger standby mode in upload
+            ship = None
+        else:
+            # Get ship information for folder structure
+            logger.info(f"🔍 Looking for ship: ship_id='{ship_id}', company='{company_uuid}'")
+            
+            # Get company names for ship lookup (ships may be stored with company name, not UUID)
+            company_doc = await mongo_db.find_one("companies", {"id": company_uuid})
+            company_names = []
+            if company_doc:
+                if company_doc.get("name"):
+                    company_names.append(company_doc.get("name"))
+                if company_doc.get("name_en"):
+                    company_names.append(company_doc.get("name_en"))
+                if company_doc.get("name_vn"):
+                    company_names.append(company_doc.get("name_vn"))
+            
+            logger.info(f"🏢 Company names to try: {company_names}")
+            
+            # Try finding ship by ID with company UUID first
             ship = await mongo_db.find_one("ships", {
-                "name": ship_id,
+                "id": ship_id,
                 "company": company_uuid
             })
+            
+            # If not found, try with company names (legacy data)
             if not ship and company_names:
                 for company_name in company_names:
+                    logger.info(f"🔄 Trying with company name: '{company_name}'")
                     ship = await mongo_db.find_one("ships", {
-                        "name": ship_id,
+                        "id": ship_id,
                         "company": company_name
                     })
                     if ship:
                         break
-        
-        # Handle "standby" case - crew without assigned ship
-        if not ship and ship_id == "standby":
-            logger.info(f"✅ Using Standby mode for crew without assigned ship")
-            ship_name = "Standby"
-        elif not ship:
-            logger.error(f"❌ Ship not found: ship_id='{ship_id}', company='{company_uuid}' or '{company_name}'")
-            raise HTTPException(status_code=404, detail="Ship not found")
-        else:
+            
+            # If still not found, try by ship name as fallback
+            if not ship:
+                logger.warning(f"⚠️ Ship not found with UUID company, trying by name: '{ship_id}'")
+                ship = await mongo_db.find_one("ships", {
+                    "name": ship_id,
+                    "company": company_uuid
+                })
+                if not ship and company_names:
+                    for company_name in company_names:
+                        ship = await mongo_db.find_one("ships", {
+                            "name": ship_id,
+                            "company": company_name
+                        })
+                        if ship:
+                            break
+            
+            if not ship:
+                logger.error(f"❌ Ship not found: ship_id='{ship_id}', company='{company_uuid}'")
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
             logger.info(f"✅ Found ship: {ship.get('name')} (id: {ship.get('id')})")
             ship_name = ship.get("name", "Unknown Ship")
         
