@@ -706,18 +706,19 @@ class BackendAPITester:
             print(f"   🆔 Crew ID: {crew_id}")
             print(f"   🎯 Expected: Certificate created with ship_id = None")
             
+            # Get crew passport for required field
+            crew_passport = self.standby_crew.get('passport', 'TEST-PASSPORT')
+            
             # Prepare certificate data (using sample data)
             cert_data = {
                 "crew_id": crew_id,
                 "crew_name": crew_name,
+                "passport": crew_passport,  # Required field
                 "cert_name": "Test Certificate",
                 "cert_no": f"TEST-{int(time.time())}",
                 "issued_by": "Test Authority",
                 "issued_date": "2024-01-01",
-                "cert_expiry": "2025-01-01",
-                "cert_type": "COC",
-                "cert_level": "Officer",
-                "endorsements": "Test endorsement"
+                "cert_expiry": "2025-01-01"
             }
             
             print(f"📡 POST {BACKEND_URL}/crew-certificates/manual")
