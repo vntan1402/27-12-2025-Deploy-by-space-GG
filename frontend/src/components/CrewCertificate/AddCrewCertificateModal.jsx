@@ -272,12 +272,16 @@ const AddCrewCertificateModal = ({
       return;
     }
 
+    // Auto-select "Standby" if no ship is selected
+    const shipToUse = selectedShip || { id: 'standby', name: 'Standby' };
+    
     if (!selectedShip) {
-      setWarningMessage(language === 'vi' 
-        ? 'Vui lòng chọn tàu trước khi phân tích file' 
-        : 'Please select ship before analyzing file');
-      setShowWarningModal(true);
-      return;
+      toast.info(
+        language === 'vi' 
+          ? 'ℹ️ Không có tàu được chọn - sử dụng "Standby"' 
+          : 'ℹ️ No ship selected - using "Standby"',
+        { autoClose: 2000 }
+      );
     }
 
     try {
@@ -286,7 +290,7 @@ const AddCrewCertificateModal = ({
 
       const formDataToSend = new FormData();
       formDataToSend.append('cert_file', file);
-      formDataToSend.append('ship_id', selectedShip.id);
+      formDataToSend.append('ship_id', shipToUse.id);
       formDataToSend.append('crew_id', formData.crew_id);
       formDataToSend.append('bypass_validation', 'false');
       formDataToSend.append('bypass_dob_validation', 'false');
