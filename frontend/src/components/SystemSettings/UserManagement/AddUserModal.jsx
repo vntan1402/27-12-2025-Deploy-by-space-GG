@@ -23,13 +23,8 @@ const AddUserModal = ({
     }
   }, [currentUser, userData.company, setUserData]);
 
-  // Auto-select and lock "Ship Crew" department for Crew (viewer) and Ship Officer (editor) roles
-  useEffect(() => {
-    if (userData.role === 'viewer' || userData.role === 'editor') {
-      // Auto-select ship_crew department
-      setUserData(prev => ({ ...prev, department: ['ship_crew'] }));
-    }
-  }, [userData.role, setUserData]);
+  // Note: Ship Crew department is now always visible in the list
+  // Users can manually select/deselect it as needed
 
   // Check if role is Crew or Ship Officer (viewer or editor)
   const shouldShowShipDropdown = userData.role === 'viewer' || userData.role === 'editor';
