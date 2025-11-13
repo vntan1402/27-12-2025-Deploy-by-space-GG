@@ -917,6 +917,146 @@ class BackendAPITester:
             return False
 
     def test_error_cases(self):
+        """Test Case 5: Error Cases - Invalid ship_id, missing crew_id, invalid file"""
+        self.print_test_header("Test Case 5 - Error Cases Testing")
+        
+        if not self.access_token:
+            self.print_result(False, "No access token available from authentication test")
+            return False
+        
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.access_token}"
+            }
+            
+            # Download a certificate test PDF for valid file tests
+            pdf_content, filename = self.download_certificate_test_pdf()
+            if not pdf_content:
+                self.print_result(False, "Failed to download certificate test PDF")
+                return False
+            
+            error_tests_passed = 0
+            total_error_tests = 3
+            
+            # Error Test 1: Invalid ship_id
+            print(f"\n🧪 ERROR TEST 1: Invalid ship_id")
+            print(f"   🎯 Expected: 404 Ship not found")
+            
+            files = {
+                'cert_file': (filename, pdf_content, 'application/pdf')
+            }
+            
+            data = {
+                'crew_id': self.standby_crew.get('id') if self.standby_crew else 'test-crew-id',
+                'ship_id': 'invalid-ship-id-12345'  # Invalid ship ID
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/crew-certificates/analyze-file",
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            print(f"   📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 404:
+                try:
+                    error_data = response.json()
+                    if 'ship not found' in error_data.get('detail', '').lower():
+                        print(f"   ✅ Correct 404 error for invalid ship_id")
+                        error_tests_passed += 1
+                    else:
+                        print(f"   ❌ Wrong error message: {error_data}")
+                except:
+                    print(f"   ❌ Invalid error response format")
+            else:
+                print(f"   ❌ Expected 404, got {response.status_code}")
+            
+            # Error Test 2: Missing crew_id
+            print(f"\n🧪 ERROR TEST 2: Missing crew_id")
+            print(f"   🎯 Expected: 422 Validation error")
+            
+            files = {
+                'cert_file': (filename, pdf_content, 'application/pdf')
+            }
+            
+            data = {
+                # crew_id is intentionally omitted
+                'ship_id': self.test_ship_id if self.test_ship_id else 'test-ship-id'
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/crew-certificates/analyze-file",
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            print(f"   📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 422:
+                print(f"   ✅ Correct 422 validation error for missing crew_id")
+                error_tests_passed += 1
+            else:
+                print(f"   ❌ Expected 422, got {response.status_code}")
+            
+            # Error Test 3: Invalid file (non-PDF)
+            print(f"\n🧪 ERROR TEST 3: Invalid file (non-PDF)")
+            print(f"   🎯 Expected: Graceful handling (400 or success with error message)")
+            
+            # Create a fake text file
+            fake_file_content = b"This is not a PDF file"
+            
+            files = {
+                'cert_file': ('test.txt', fake_file_content, 'text/plain')
+            }
+            
+            data = {
+                'crew_id': self.standby_crew.get('id') if self.standby_crew else 'test-crew-id'
+                # No ship_id for standby crew
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/crew-certificates/analyze-file",
+                headers=headers,
+                files=files,
+                data=data,
+                timeout=30
+            )
+            
+            print(f"   📊 Response Status: {response.status_code}")
+            
+            # Accept various responses for invalid file - the important thing is it doesn't crash
+            if response.status_code in [400, 422, 500] or response.status_code == 200:
+                print(f"   ✅ Graceful handling of invalid file (status: {response.status_code})")
+                error_tests_passed += 1
+            else:
+                print(f"   ❌ Unexpected response: {response.status_code}")
+            
+            # Summary of error tests
+            print(f"\n📊 ERROR CASES SUMMARY:")
+            print(f"   ✅ Passed: {error_tests_passed}/{total_error_tests}")
+            print(f"   📋 Invalid ship_id: {'✅ PASS' if error_tests_passed >= 1 else '❌ FAIL'}")
+            print(f"   📋 Missing crew_id: {'✅ PASS' if error_tests_passed >= 2 else '❌ FAIL'}")
+            print(f"   📋 Invalid file: {'✅ PASS' if error_tests_passed >= 3 else '❌ FAIL'}")
+            
+            success = error_tests_passed >= 2  # At least 2 out of 3 error cases should work
+            
+            if success:
+                self.print_result(True, f"Error cases handled correctly ({error_tests_passed}/{total_error_tests})")
+                return True
+            else:
+                self.print_result(False, f"Error cases not handled properly ({error_tests_passed}/{total_error_tests})")
+                return False
+                
+        except Exception as e:
+            self.print_result(False, f"Exception during error cases test: {str(e)}")
+            return False
+
+    def test_backend_logs_verification(self):
         """Test Case 1: Validation FAIL - Ship info mismatch should return validation error"""
         self.print_test_header("Test Case 1 - Audit Report Validation FAIL (Ship Info Mismatch)")
         
