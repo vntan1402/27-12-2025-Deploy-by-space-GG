@@ -56,8 +56,11 @@ class BackendAPITester:
         self.user_data = None
         self.company_id = None
         self.ships_list = None  # List of ships for testing
-        self.test_ship_id = None  # Target ship for audit report testing
+        self.test_ship_id = None  # Target ship for crew certificate testing
         self.test_ship_data = None
+        self.crew_list = None  # List of crew members for testing
+        self.standby_crew = None  # Standby crew member (ship_sign_on = "-")
+        self.ship_assigned_crew = None  # Ship-assigned crew member
         
     def print_test_header(self, test_name):
         print(f"\n{'='*60}")
