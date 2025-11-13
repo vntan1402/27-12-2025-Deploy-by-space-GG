@@ -4796,15 +4796,12 @@ async def create_user(user_data: UserCreate, current_user: UserResponse = Depend
         logger.info(f"✅ User created successfully: {user_dict['username']}")
         
         # Return user with email warning if applicable
-        response = UserResponse(**user_dict)
+        response_data = {
+            "user": user_dict,
+            "warning": email_warning
+        }
         
-        # Add warning to response headers (frontend can check)
-        if email_warning:
-            # We can't modify response headers directly in FastAPI response_model
-            # So we'll log it and rely on frontend to show warning based on status
-            logger.info(f"📧 {email_warning}")
-        
-        return response
+        return response_data
         
     except HTTPException:
         raise
