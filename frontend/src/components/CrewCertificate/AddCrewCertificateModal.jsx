@@ -457,11 +457,16 @@ const AddCrewCertificateModal = ({
       return;
     }
 
+    // Auto-select "Standby" if no ship is selected
+    const shipToUse = selectedShip || { id: 'standby', name: 'Standby' };
+    
     if (!selectedShip) {
-      toast.error(language === 'vi' 
-        ? '❌ Vui lòng chọn tàu' 
-        : '❌ Please select a ship');
-      return;
+      toast.info(
+        language === 'vi' 
+          ? 'ℹ️ Không có tàu được chọn - sử dụng "Standby"' 
+          : 'ℹ️ No ship selected - using "Standby"',
+        { autoClose: 2000 }
+      );
     }
 
     // Check duplicate
@@ -497,7 +502,7 @@ const AddCrewCertificateModal = ({
         note: formData.note || ''
       };
 
-      const response = await api.post(`/api/crew-certificates/manual?ship_id=${selectedShip.id}`, certData);
+      const response = await api.post(`/api/crew-certificates/manual?ship_id=${shipToUse.id}`, certData);
       
       const createdCert = response.data;
 
