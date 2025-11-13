@@ -1523,18 +1523,16 @@ class BackendAPITester:
             return False
 
     def test_backend_logs_verification(self):
-        """Test 3: Verify backend logs show ship validation sequence"""
-        self.print_test_header("Test 3 - Backend Logs Verification for Ship Validation")
+        """Test Case 6: Verify backend logs show crew certificate processing"""
+        self.print_test_header("Test Case 6 - Backend Logs Verification for Crew Certificate Processing")
         
-        print(f"🔍 CHECKING BACKEND LOGS FOR SHIP VALIDATION MESSAGES:")
-        print(f"   🎯 Looking for: '🔍 Ship validation:'")
-        print(f"   🎯 Looking for: 'Extracted: Ship=..., IMO=...'")
-        print(f"   🎯 Looking for: 'Selected: Ship=..., IMO=...'")
-        print(f"   🎯 Looking for: 'Name Match: ... | IMO Match: ... | Overall: ...'")
-        print(f"   🎯 Looking for: '❌ Ship information does NOT match'")
-        print(f"   🎯 Looking for: '✅ Ship information validation passed'")
-        print(f"   🎯 Looking for: '⚠️ Validation bypassed by user'")
-        print(f"   📋 This test checks if backend logs confirm ship validation sequence")
+        print(f"🔍 CHECKING BACKEND LOGS FOR CREW CERTIFICATE MESSAGES:")
+        print(f"   🎯 Looking for: 'Standby crew mode'")
+        print(f"   🎯 Looking for: 'Starting crew certificate analysis'")
+        print(f"   🎯 Looking for: 'COMPANY DOCUMENT/Standby Crew'")
+        print(f"   🎯 Looking for: 'Crew Records'")
+        print(f"   🎯 Looking for: 'ship_id: None'")
+        print(f"   📋 This test checks if backend logs confirm crew certificate processing")
         
         try:
             # Check supervisor backend logs
@@ -1548,134 +1546,85 @@ class BackendAPITester:
                 log_content = result.stdout
                 print(f"📄 Retrieved {len(log_content.splitlines())} lines of backend logs")
                 
-                # Look for ship validation messages as specified in review request
-                ship_validation_logs = []
-                extracted_info_logs = []
-                selected_info_logs = []
-                match_result_logs = []
-                validation_failed_logs = []
-                validation_passed_logs = []
-                validation_bypassed_logs = []
+                # Look for crew certificate processing messages
+                standby_crew_logs = []
+                certificate_analysis_logs = []
+                standby_folder_logs = []
+                crew_records_logs = []
+                ship_id_none_logs = []
                 
                 for line in log_content.splitlines():
-                    if "🔍 Ship validation:" in line:
-                        ship_validation_logs.append(line.strip())
-                    elif "Extracted: Ship=" in line and "IMO=" in line:
-                        extracted_info_logs.append(line.strip())
-                    elif "Selected:  Ship=" in line and "IMO=" in line:
-                        selected_info_logs.append(line.strip())
-                    elif "Name Match:" in line and "IMO Match:" in line and "Overall:" in line:
-                        match_result_logs.append(line.strip())
-                    elif "❌ Ship information does NOT match" in line:
-                        validation_failed_logs.append(line.strip())
-                    elif "✅ Ship information validation passed" in line:
-                        validation_passed_logs.append(line.strip())
-                    elif "⚠️ Validation bypassed by user" in line:
-                        validation_bypassed_logs.append(line.strip())
+                    if "standby crew mode" in line.lower() or "standby crew:" in line.lower():
+                        standby_crew_logs.append(line.strip())
+                    elif "starting crew certificate analysis" in line.lower():
+                        certificate_analysis_logs.append(line.strip())
+                    elif "company document/standby crew" in line.lower():
+                        standby_folder_logs.append(line.strip())
+                    elif "crew records" in line.lower():
+                        crew_records_logs.append(line.strip())
+                    elif "ship_id: none" in line.lower() or "ship_id=none" in line.lower():
+                        ship_id_none_logs.append(line.strip())
                 
-                print(f"\n🔍 SHIP VALIDATION LOG ANALYSIS:")
-                print(f"   📊 Ship validation start logs: {len(ship_validation_logs)}")
-                print(f"   📊 Extracted info logs: {len(extracted_info_logs)}")
-                print(f"   📊 Selected info logs: {len(selected_info_logs)}")
-                print(f"   📊 Match result logs: {len(match_result_logs)}")
-                print(f"   📊 Validation failed logs: {len(validation_failed_logs)}")
-                print(f"   📊 Validation passed logs: {len(validation_passed_logs)}")
-                print(f"   📊 Validation bypassed logs: {len(validation_bypassed_logs)}")
+                print(f"\n🔍 CREW CERTIFICATE LOG ANALYSIS:")
+                print(f"   📊 Standby crew mode logs: {len(standby_crew_logs)}")
+                print(f"   📊 Certificate analysis logs: {len(certificate_analysis_logs)}")
+                print(f"   📊 Standby folder logs: {len(standby_folder_logs)}")
+                print(f"   📊 Crew records logs: {len(crew_records_logs)}")
+                print(f"   📊 Ship ID None logs: {len(ship_id_none_logs)}")
                 
                 # Check each type of log
-                validation_start_found = len(ship_validation_logs) > 0
-                extracted_info_found = len(extracted_info_logs) > 0
-                selected_info_found = len(selected_info_logs) > 0
-                match_results_found = len(match_result_logs) > 0
-                validation_outcome_found = len(validation_failed_logs) > 0 or len(validation_passed_logs) > 0 or len(validation_bypassed_logs) > 0
+                standby_mode_found = len(standby_crew_logs) > 0
+                analysis_found = len(certificate_analysis_logs) > 0
+                standby_folder_found = len(standby_folder_logs) > 0
+                crew_records_found = len(crew_records_logs) > 0
+                ship_id_none_found = len(ship_id_none_logs) > 0
                 
-                print(f"\n📋 EXPECTED VALIDATION LOG MESSAGES:")
-                print(f"   ✅ '🔍 Ship validation:': {'✅ FOUND' if validation_start_found else '❌ NOT FOUND'}")
-                print(f"   ✅ 'Extracted: Ship=..., IMO=...': {'✅ FOUND' if extracted_info_found else '❌ NOT FOUND'}")
-                print(f"   ✅ 'Selected: Ship=..., IMO=...': {'✅ FOUND' if selected_info_found else '❌ NOT FOUND'}")
-                print(f"   ✅ 'Name Match: ... | IMO Match: ... | Overall: ...': {'✅ FOUND' if match_results_found else '❌ NOT FOUND'}")
-                print(f"   ✅ Validation outcome messages: {'✅ FOUND' if validation_outcome_found else '❌ NOT FOUND'}")
+                print(f"\n📋 EXPECTED CREW CERTIFICATE LOG MESSAGES:")
+                print(f"   ✅ 'Standby crew mode': {'✅ FOUND' if standby_mode_found else '❌ NOT FOUND'}")
+                print(f"   ✅ 'Certificate analysis': {'✅ FOUND' if analysis_found else '❌ NOT FOUND'}")
+                print(f"   ✅ 'Standby folder': {'✅ FOUND' if standby_folder_found else '❌ NOT FOUND'}")
+                print(f"   ✅ 'Crew records': {'✅ FOUND' if crew_records_found else '❌ NOT FOUND'}")
+                print(f"   ✅ 'ship_id: None': {'✅ FOUND' if ship_id_none_found else '❌ NOT FOUND'}")
                 
                 # Show sample logs if found
-                if ship_validation_logs:
-                    print(f"\n   📝 SHIP VALIDATION START LOG SAMPLE:")
-                    print(f"      {ship_validation_logs[-1]}")
+                if standby_crew_logs:
+                    print(f"\n   📝 STANDBY CREW MODE LOG SAMPLE:")
+                    print(f"      {standby_crew_logs[-1]}")
                 
-                if extracted_info_logs:
-                    print(f"\n   📝 EXTRACTED INFO LOG SAMPLE:")
-                    print(f"      {extracted_info_logs[-1]}")
+                if certificate_analysis_logs:
+                    print(f"\n   📝 CERTIFICATE ANALYSIS LOG SAMPLE:")
+                    print(f"      {certificate_analysis_logs[-1]}")
                 
-                if selected_info_logs:
-                    print(f"\n   📝 SELECTED INFO LOG SAMPLE:")
-                    print(f"      {selected_info_logs[-1]}")
+                if standby_folder_logs:
+                    print(f"\n   📝 STANDBY FOLDER LOG SAMPLE:")
+                    print(f"      {standby_folder_logs[-1]}")
                 
-                if match_result_logs:
-                    print(f"\n   📝 MATCH RESULT LOG SAMPLE:")
-                    print(f"      {match_result_logs[-1]}")
+                if ship_id_none_logs:
+                    print(f"\n   📝 SHIP ID NONE LOG SAMPLE:")
+                    print(f"      {ship_id_none_logs[-1]}")
                 
-                if validation_failed_logs:
-                    print(f"\n   📝 VALIDATION FAILED LOG SAMPLE:")
-                    print(f"      {validation_failed_logs[-1]}")
-                
-                if validation_passed_logs:
-                    print(f"\n   📝 VALIDATION PASSED LOG SAMPLE:")
-                    print(f"      {validation_passed_logs[-1]}")
-                
-                if validation_bypassed_logs:
-                    print(f"\n   📝 VALIDATION BYPASSED LOG SAMPLE:")
-                    print(f"      {validation_bypassed_logs[-1]}")
-                
-                # Determine validation behavior
-                validation_behavior = "unknown"
-                if validation_failed_logs and validation_bypassed_logs:
-                    validation_behavior = "both fail and bypass detected"
-                elif validation_failed_logs:
-                    validation_behavior = "validation failed (as expected)"
-                elif validation_bypassed_logs:
-                    validation_behavior = "validation bypassed (as expected)"
-                elif validation_passed_logs:
-                    validation_behavior = "validation passed"
-                
-                print(f"\n🎯 VALIDATION BEHAVIOR ANALYSIS:")
-                print(f"   📋 Validation behavior: {validation_behavior}")
-                
-                # Overall validation - check for complete validation sequence
-                complete_validation_sequence = (validation_start_found and extracted_info_found and 
-                                              selected_info_found and match_results_found and 
-                                              validation_outcome_found)
-                partial_validation_logs = (validation_start_found or extracted_info_found or 
-                                         selected_info_found or match_results_found or 
-                                         validation_outcome_found)
+                # Overall validation - check for crew certificate processing logs
+                crew_cert_logs_found = (standby_mode_found or analysis_found or 
+                                       standby_folder_found or crew_records_found or 
+                                       ship_id_none_found)
                 
                 print(f"\n🎯 BACKEND LOGS VALIDATION:")
-                print(f"   ✅ Complete validation sequence: {'✅ YES' if complete_validation_sequence else '❌ NO'}")
-                print(f"   ✅ Some validation logs found: {'✅ YES' if partial_validation_logs else '❌ NO'}")
-                print(f"   📋 Validation behavior confirmed: {validation_behavior}")
+                print(f"   ✅ Crew certificate logs found: {'✅ YES' if crew_cert_logs_found else '❌ NO'}")
                 
-                if complete_validation_sequence:
+                if crew_cert_logs_found:
                     print(f"\n🎉 BACKEND LOGS VERIFICATION SUCCESSFUL!")
-                    print(f"   ✅ Ship validation logs confirmed")
-                    print(f"   ✅ Complete validation sequence detected")
-                    print(f"   ✅ Backend logs show proper validation process")
-                    print(f"   ✅ Validation behavior: {validation_behavior}")
-                    self.print_result(True, f"Backend logs confirm validation sequence: {validation_behavior}")
+                    print(f"   ✅ Crew certificate processing logs confirmed")
+                    print(f"   ✅ Backend logs show proper certificate handling")
+                    self.print_result(True, "Backend logs confirm crew certificate processing")
                     return True
-                elif partial_validation_logs:
-                    print(f"\n⚠️ BACKEND LOGS PARTIALLY FOUND:")
-                    print(f"   ⚠️ Some validation logs present but not complete sequence")
-                    print(f"   🔧 May indicate partial implementation or processing issues")
-                    print(f"   📋 Validation behavior: {validation_behavior}")
-                    self.print_result(False, f"Backend logs show partial validation - Behavior: {validation_behavior}")
-                    return False
                 else:
-                    print(f"\n❌ NO SHIP VALIDATION LOGS FOUND")
+                    print(f"\n❌ NO CREW CERTIFICATE LOGS FOUND")
                     print(f"   🔧 This may indicate:")
-                    print(f"      - Ship validation not implemented")
-                    print(f"      - Validation logs not being generated")
-                    print(f"      - Recent audit analysis hasn't been performed")
-                    print(f"      - Validation function not being called")
+                    print(f"      - Crew certificate processing not implemented")
+                    print(f"      - Processing logs not being generated")
+                    print(f"      - Recent certificate analysis hasn't been performed")
                     
-                    self.print_result(False, "No ship validation logs found in backend")
+                    self.print_result(False, "No crew certificate processing logs found in backend")
                     return False
                     
             else:
