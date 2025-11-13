@@ -1,28 +1,42 @@
 #!/usr/bin/env python3
 """
-Backend API Testing Script - Audit Report Ship Validation Testing
+Backend API Testing Script - Standby Crew Certificate Upload Feature Testing
 
-FOCUS: Test Audit Report ship validation implementation to verify it matches Survey Report behavior exactly
-OBJECTIVE: Verify the `/api/audit-reports/analyze` endpoint includes robust ship validation using `validate_ship_info_match()` function
+FOCUS: Test the newly implemented Standby Crew Certificate Upload feature with optional ship selection
+OBJECTIVE: Verify crew certificates can be uploaded WITHOUT selecting a ship for "Standby" crew members
 
 CRITICAL TEST REQUIREMENTS FROM REVIEW REQUEST:
-1. **Setup & Authentication**: Login: admin1/123456, Get company_id (should be AMCSC), Get test ship: BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2, IMO: 8743531)
-2. **Test Case 1: Validation PASS (matching ship info)**: Use 'ISM-Code Audit-Plan (07-230.pdf' which contains ship_name='TRUONG MINH LUCKY' which should NOT match BROTHER 36, expect validation error with success=false, validation_error=true
-3. **Test Case 2: Bypass Validation (bypass_validation=true)**: Same PDF, should return success=true with analysis data (validation bypassed)
-4. **Test Case 3: Validation Error Response Structure**: Verify response contains success: false, validation_error: true, validation_details, message, extracted/expected ship info, split_info
-5. **Backend Logs Verification**: Look for validation logs: "🔍 Ship validation:", "Extracted: Ship='...', IMO='...'", "Selected: Ship='...', IMO='...'", "Name Match: ... | IMO Match: ... | Overall: ...", validation results
-6. **Compare with Survey Report**: Validation logic should be identical to Survey Report's validation
+**SCENARIO A: Standby Crew (No Ship Assigned)**
+1. Login with admin1/123456
+2. Get company ID and crew list
+3. Select a crew member with ship_sign_on = "-" (Standby)
+4. POST /api/crew-certificates/analyze-file WITHOUT ship_id parameter
+5. Verify analyze response: success = true, analysis object contains extracted certificate data
+6. Create certificate using /api/crew-certificates/manual with ship_id = None (null)
+7. Upload files using /api/crew-certificates/{cert_id}/upload-files to "COMPANY DOCUMENT/Standby Crew"
+
+**SCENARIO B: Ship-Assigned Crew (With Ship)**
+1. Select a crew member with ship_sign_on = "BROTHER 36" or similar
+2. POST /api/crew-certificates/analyze-file WITH ship_id parameter
+3. Verify analyze response succeeds
+4. Create certificate using /api/crew-certificates/manual with ship_id = <valid ship UUID>
+5. Upload files to "{ShipName}/Crew Records/Crew Certificates"
+
+**ERROR CASES TO TEST:**
+- Analyze with invalid ship_id (should return 404 Ship not found)
+- Analyze without crew_id (should fail validation)
+- Analyze with invalid/non-PDF file (should handle gracefully)
 
 SUCCESS CRITERIA:
-- ✅ Validation fails when ship info doesn't match (without bypass)
-- ✅ Validation is bypassed when bypass_validation=true
-- ✅ Response structure matches expected format with validation_details
-- ✅ Backend logs show proper validation sequence
-- ✅ Validation logic matches Survey Report exactly
+✅ Analyze endpoint accepts requests WITHOUT ship_id parameter
+✅ Analyze endpoint with no ship_id logs "Standby crew" mode
+✅ Certificate created with ship_id=None for standby crew
+✅ Certificate created with valid ship_id for ship-assigned crew
+✅ Files uploaded to correct folders based on ship_id value
+✅ Backend logs show appropriate messages for both scenarios
+✅ No 422 validation errors when ship_id is omitted
 
 Test credentials: admin1/123456
-Test ship: BROTHER 36 (ID: bc444bc3-aea9-4491-b199-8098efcc16d2, IMO: 8743531)
-Test PDF: 'ISM-Code Audit-Plan (07-230.pdf' (contains TRUONG MINH LUCKY)
 """
 
 import requests
