@@ -79,7 +79,7 @@ export const companyService = {
     
     return api.post(API_ENDPOINTS.COMPANY_LOGO(companyId), formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 60000 // 60 seconds for large files
+      timeout: 90000 // 90 seconds for large files
     });
   },
 
