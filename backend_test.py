@@ -372,16 +372,16 @@ class BackendAPITester:
     
     # Ship ID verification test removed - not relevant for ship validation testing
     
-    def download_audit_plan_test_pdf(self):
-        """Helper: Load a local test PDF file for validation testing"""
+    def download_certificate_test_pdf(self):
+        """Helper: Load a local test PDF file for certificate testing"""
         try:
-            # Use a local PDF file for testing - try larger files that might contain ship information
+            # Use a local PDF file for testing - prefer certificate files
             test_pdf_files = [
-                "/app/CU (02-19).pdf",  # Large PDF, likely contains ship info
-                "/app/CCM_02-19.pdf",   # Large PDF, likely contains ship info
-                "/app/Co2.pdf",         # Medium PDF, might contain ship info
-                "/app/MINH_ANH_09_certificate.pdf",  # Certificate, might contain ship info
-                "/app/PASS_PORT_Tran_Trong_Toan.pdf", # Passport, might contain ship info
+                "/app/MINH_ANH_09_certificate.pdf",  # Certificate file
+                "/app/CU (02-19).pdf",  # Large PDF
+                "/app/CCM_02-19.pdf",   # Large PDF
+                "/app/Co2.pdf",         # Medium PDF
+                "/app/PASS_PORT_Tran_Trong_Toan.pdf", # Passport
                 "/app/test_passport.pdf"  # Small PDF, fallback
             ]
             
@@ -396,12 +396,11 @@ class BackendAPITester:
                         print(f"✅ Local PDF loaded successfully")
                         print(f"📄 File size: {len(pdf_content):,} bytes")
                         print(f"📄 File path: {pdf_path}")
-                        print(f"🚢 Note: This PDF likely contains different ship name than BROTHER 36")
                         
                         # Validate it's a PDF
                         if pdf_content.startswith(b'%PDF'):
                             print(f"✅ PDF validation successful")
-                            return pdf_content
+                            return pdf_content, os.path.basename(pdf_path)
                         else:
                             print(f"❌ File is not a valid PDF, trying next file...")
                             continue
@@ -414,11 +413,11 @@ class BackendAPITester:
                     continue
             
             print(f"❌ No valid PDF files found for testing")
-            return None
+            return None, None
                 
         except Exception as e:
             print(f"❌ Exception loading test PDF: {str(e)}")
-            return None
+            return None, None
     
     def test_audit_report_validation_fail_case(self):
         """Test Case 1: Validation FAIL - Ship info mismatch should return validation error"""
