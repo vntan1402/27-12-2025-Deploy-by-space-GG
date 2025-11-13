@@ -1765,15 +1765,15 @@ class BackendAPITester:
 
 
 if __name__ == "__main__":
-    """Main execution - run Audit Report Ship Validation tests"""
+    """Main execution - run Standby Crew Certificate Upload tests"""
     tester = BackendAPITester()
     success = tester.run_all_tests()
     
     if success:
-        print(f"\n🎉 ALL TESTS PASSED - AUDIT REPORT SHIP VALIDATION VERIFIED SUCCESSFULLY")
-        print(f"🎯 CONCLUSION: Audit Report ship validation matches Survey Report behavior exactly")
+        print(f"\n🎉 ALL TESTS PASSED - STANDBY CREW CERTIFICATE UPLOAD VERIFIED SUCCESSFULLY")
+        print(f"🎯 CONCLUSION: Standby Crew Certificate Upload feature is working correctly")
         sys.exit(0)
     else:
         print(f"\n❌ SOME TESTS FAILED - REVIEW RESULTS ABOVE")
-        print(f"🎯 CONCLUSION: Ship validation implementation needs investigation")
+        print(f"🎯 CONCLUSION: Standby crew certificate implementation needs investigation")
         sys.exit(1)
