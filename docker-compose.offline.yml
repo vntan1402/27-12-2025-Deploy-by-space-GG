@@ -1,0 +1,248 @@
+version: '3.8'
+
+# ============================================
+# Ship Management Offline Mode
+# Complete stack for offline operation
+# ============================================
+
+services:
+  # ==========================================
+  # MongoDB - Local Database
+  # ==========================================
+  mongodb:
+    image: mongo:7.0
+    container_name: ship_management_mongodb_offline
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      # Persistent storage - data sẽ lưu ở thư mục này
+      - ./data/mongodb:/data/db
+      # MongoDB configuration
+      - ./config/mongod.conf:/etc/mongod.conf:ro
+    environment:
+      # MongoDB credentials
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: SecurePass123!@#
+      # Database name
+      MONGO_INITDB_DATABASE: company_offline
+    command: 
+      - mongod
+      - --quiet
+      - --bind_ip_all
+      - --wiredTigerCacheSizeGB
+      - "1"  # Limit cache to 1GB for resource efficiency
+    networks:
+      - ship_network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    labels:
+      com.shipmanagement.service: "database"
+      com.shipmanagement.mode: "offline"
+
+  # ==========================================
+  # Backend - FastAPI Application
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ship_management_backend_offline
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    volumes:
+      # Application code (for development)
+      - ./backend:/app
+      # Uploaded files storage
+      - ./data/uploads:/app/uploads
+      # Company logos
+      - ./data/logos:/app/uploads/company_logos
+      # Logs
+      - ./logs/backend:/app/logs
+    environment:
+      # ===== OFFLINE MODE CONFIGURATION =====
+      OFFLINE_MODE: "true"
+      OFFLINE_DB_NAME: "company_offline"
+      
+      # ===== DATABASE CONNECTION =====
+      MONGO_URL: "mongodb://admin:SecurePass123!@#@mongodb:27017"
+      DB_NAME: "company_offline"
+      
+      # ===== SECURITY =====
+      SECRET_KEY: "change-this-to-random-secure-key-in-production"
+      ALGORITHM: "HS256"
+      ACCESS_TOKEN_EXPIRE_MINUTES: 43200  # 30 days for offline mode
+      
+      # ===== FEATURES CONFIGURATION =====
+      # Disable cloud features when offline
+      GOOGLE_DRIVE_ENABLED: "false"
+      GOOGLE_APPS_SCRIPT_ENABLED: "false"
+      EMERGENT_AI_ENABLED: "false"
+      
+      # ===== SYSTEM SETTINGS =====
+      DEBUG: "false"
+      LOG_LEVEL: "INFO"
+      WORKERS: "1"
+      
+      # ===== PORTS =====
+      BACKEND_PORT: "8001"
+      
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - ship_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      com.shipmanagement.service: "backend"
+      com.shipmanagement.mode: "offline"
+    command: >
+      uvicorn server:app 
+      --host 0.0.0.0 
+      --port 8001 
+      --log-level info
+      --access-log
+      --reload
+
+  # ==========================================
+  # Frontend - React Application
+  # ==========================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ship_management_frontend_offline
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Application code (for development)
+      - ./frontend:/app
+      # Node modules (exclude from sync)
+      - /app/node_modules
+      # Logs
+      - ./logs/frontend:/app/logs
+    environment:
+      # ===== BACKEND CONNECTION =====
+      REACT_APP_BACKEND_URL: "http://localhost:8001"
+      
+      # ===== OFFLINE MODE =====
+      REACT_APP_OFFLINE_MODE: "true"
+      
+      # ===== FEATURES =====
+      REACT_APP_ENABLE_GOOGLE_DRIVE: "false"
+      REACT_APP_ENABLE_AI: "false"
+      
+      # ===== DEVELOPMENT =====
+      CHOKIDAR_USEPOLLING: "true"  # For file watching in Docker
+      WDS_SOCKET_PORT: "0"          # For hot reload
+      
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - ship_network
+    stdin_open: true
+    tty: true
+    labels:
+      com.shipmanagement.service: "frontend"
+      com.shipmanagement.mode: "offline"
+    command: npm start
+
+  # ==========================================
+  # Backup Service (Optional)
+  # Automated daily backups
+  # ==========================================
+  backup:
+    image: mongo:7.0
+    container_name: ship_management_backup_offline
+    restart: unless-stopped
+    volumes:
+      - ./data/mongodb:/data/db:ro          # Source data (read-only)
+      - ./backups:/backups                   # Backup destination
+      - ./scripts/backup.sh:/backup.sh:ro   # Backup script
+    environment:
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_USER: admin
+      MONGO_PASS: "SecurePass123!@#"
+      MONGO_DB: company_offline
+      BACKUP_INTERVAL: "86400"  # 24 hours in seconds
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - ship_network
+    labels:
+      com.shipmanagement.service: "backup"
+      com.shipmanagement.mode: "offline"
+    entrypoint: /bin/sh
+    command: -c "while true; do sleep $${BACKUP_INTERVAL}; /backup.sh; done"
+
+  # ==========================================
+  # Nginx (Optional)
+  # Reverse proxy for production deployment
+  # ==========================================
+  nginx:
+    image: nginx:alpine
+    container_name: ship_management_nginx_offline
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./data/ssl:/etc/nginx/ssl:ro  # SSL certificates (if needed)
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - ship_network
+    labels:
+      com.shipmanagement.service: "proxy"
+      com.shipmanagement.mode: "offline"
+    profiles:
+      - production  # Only start in production profile
+
+# ==========================================
+# Networks
+# ==========================================
+networks:
+  ship_network:
+    driver: bridge
+    name: ship_management_offline_network
+
+# ==========================================
+# Volumes (Alternative to bind mounts)
+# ==========================================
+volumes:
+  mongodb_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/mongodb
+  
+  uploads_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/uploads
+  
+  backups_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./backups
