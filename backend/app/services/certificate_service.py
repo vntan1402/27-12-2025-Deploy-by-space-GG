@@ -361,9 +361,24 @@ class CertificateService:
                 )
                 
                 # Set provider and model correctly
-                if provider == "google":
-                    llm_chat = llm_chat.with_model("gemini", model)
+                # Map provider to emergentintegrations format
+                if provider == "google" or provider == "gemini":
+                    # For Google/Gemini models with Emergent key
+                    # Use standard model names that Emergent supports
+                    if "2.0" in model or "flash" in model:
+                        actual_model = "gemini-1.5-flash"  # Fallback to stable version
+                    elif "pro" in model:
+                        actual_model = "gemini-1.5-pro"
+                    else:
+                        actual_model = model
+                    llm_chat = llm_chat.with_model("gemini", actual_model)
+                    logger.info(f"🔄 Using Gemini model: {actual_model}")
+                elif provider == "openai":
+                    llm_chat = llm_chat.with_model("openai", model)
+                elif provider == "anthropic":
+                    llm_chat = llm_chat.with_model("anthropic", model)
                 else:
+                    # Default fallback
                     llm_chat = llm_chat.with_model(provider, model)
                 
                 # Call AI
