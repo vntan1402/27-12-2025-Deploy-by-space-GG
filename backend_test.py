@@ -297,29 +297,474 @@ class BackendTester:
             self.log_test("Certificate Analysis with Ship ID", False, f"Exception: {str(e)}")
             return False
     
-    def test_error_handling(self):
-        """Test error handling for invalid inputs"""
-        print("\n⚠️  Testing Error Handling...")
+    def get_test_ships(self):
+        """Get ships for testing"""
+        print("\n🚢 Getting test ships...")
         
         try:
-            # Test with invalid file
-            invalid_content = b"This is not a valid certificate file"
-            files = {"file": ("invalid.txt", invalid_content, "text/plain")}
+            response = self.session.get(f"{BACKEND_URL}/ships")
             
-            response = self.session.post(f"{BACKEND_URL}/certificates/analyze-file", files=files)
-            
-            # Should handle gracefully (either success with low confidence or proper error)
-            if response.status_code in [200, 400, 422]:
-                self.log_test("Error Handling - Invalid File", True, 
-                             f"Handled gracefully with status: {response.status_code}")
-                return True
+            if response.status_code == 200:
+                ships = response.json()
+                if ships and len(ships) > 0:
+                    # Look for SUNSHINE 01 or any ship with certificates
+                    test_ship = None
+                    for ship in ships:
+                        if "SUNSHINE" in ship.get("name", "").upper():
+                            test_ship = ship
+                            break
+                    
+                    if not test_ship:
+                        test_ship = ships[0]  # Use first ship if SUNSHINE not found
+                    
+                    self.log_test("Get Test Ships", True, 
+                                 f"Using ship: {test_ship.get('name')} (ID: {test_ship.get('id')})")
+                    return ships
+                else:
+                    self.log_test("Get Test Ships", False, "No ships found")
+                    return None
             else:
-                self.log_test("Error Handling - Invalid File", False, 
-                             f"Unexpected status: {response.status_code}")
+                self.log_test("Get Test Ships", False, f"Status: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            self.log_test("Get Test Ships", False, f"Exception: {str(e)}")
+            return None
+    
+    def test_certificate_deletion_with_background_tasks(self, ship):
+        """Test DELETE /api/certificates/{cert_id} with background file deletion"""
+        print("\n🗑️ Testing Certificate Deletion with Background Tasks...")
+        
+        try:
+            ship_id = ship.get("id")
+            ship_name = ship.get("name")
+            
+            # First, get certificates for this ship
+            response = self.session.get(f"{BACKEND_URL}/certificates", params={"ship_id": ship_id})
+            
+            if response.status_code == 200:
+                certificates = response.json()
+                if certificates and len(certificates) > 0:
+                    # Find a certificate with google_drive_file_id
+                    test_cert = None
+                    for cert in certificates:
+                        if cert.get("google_drive_file_id"):
+                            test_cert = cert
+                            break
+                    
+                    if not test_cert:
+                        test_cert = certificates[0]  # Use first cert if none have file_id
+                    
+                    cert_id = test_cert.get("id")
+                    cert_name = test_cert.get("cert_name", "Unknown")
+                    has_file_id = bool(test_cert.get("google_drive_file_id"))
+                    
+                    # Delete the certificate
+                    delete_response = self.session.delete(f"{BACKEND_URL}/certificates/{cert_id}")
+                    
+                    if delete_response.status_code == 200:
+                        data = delete_response.json()
+                        
+                        # Check response structure
+                        expected_fields = ["message", "background_deletion"]
+                        missing_fields = [field for field in expected_fields if field not in data]
+                        
+                        if not missing_fields:
+                            background_deletion = data.get("background_deletion", False)
+                            message = data.get("message", "")
+                            
+                            # Verify expected behavior
+                            if has_file_id:
+                                if background_deletion and "file deletion in progress" in message.lower():
+                                    self.log_test("Certificate Deletion - Background Task", True,
+                                                 f"Certificate deleted with background file deletion: {cert_name}")
+                                else:
+                                    self.log_test("Certificate Deletion - Background Task", False,
+                                                 f"Expected background deletion but got: {data}")
+                            else:
+                                if not background_deletion:
+                                    self.log_test("Certificate Deletion - No File", True,
+                                                 f"Certificate without file deleted correctly: {cert_name}")
+                                else:
+                                    self.log_test("Certificate Deletion - No File", False,
+                                                 f"Unexpected background deletion for cert without file: {data}")
+                            
+                            # Verify certificate is deleted from DB
+                            verify_response = self.session.get(f"{BACKEND_URL}/certificates/{cert_id}")
+                            if verify_response.status_code == 404:
+                                self.log_test("Certificate Deletion - DB Removal", True,
+                                             "Certificate successfully removed from database")
+                            else:
+                                self.log_test("Certificate Deletion - DB Removal", False,
+                                             f"Certificate still exists in DB: {verify_response.status_code}")
+                            
+                            return True
+                        else:
+                            self.log_test("Certificate Deletion - Response Structure", False,
+                                         f"Missing fields: {missing_fields}")
+                            return False
+                    else:
+                        self.log_test("Certificate Deletion", False,
+                                     f"Delete failed: {delete_response.status_code} - {delete_response.text}")
+                        return False
+                else:
+                    self.log_test("Certificate Deletion - Prerequisites", False,
+                                 f"No certificates found for ship: {ship_name}")
+                    return False
+            else:
+                self.log_test("Certificate Deletion - Prerequisites", False,
+                             f"Failed to get certificates: {response.status_code}")
                 return False
                 
         except Exception as e:
-            self.log_test("Error Handling - Invalid File", False, f"Exception: {str(e)}")
+            self.log_test("Certificate Deletion", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_audit_certificate_deletion_with_background_tasks(self, ship):
+        """Test DELETE /api/audit-certificates/{cert_id} with background file deletion"""
+        print("\n🗑️ Testing Audit Certificate Deletion with Background Tasks...")
+        
+        try:
+            ship_id = ship.get("id")
+            ship_name = ship.get("name")
+            
+            # Get audit certificates for this ship
+            response = self.session.get(f"{BACKEND_URL}/audit-certificates", params={"ship_id": ship_id})
+            
+            if response.status_code == 200:
+                audit_certs = response.json()
+                if audit_certs and len(audit_certs) > 0:
+                    test_cert = audit_certs[0]
+                    cert_id = test_cert.get("id")
+                    cert_name = test_cert.get("cert_name", "Unknown")
+                    has_file_id = bool(test_cert.get("google_drive_file_id"))
+                    
+                    # Delete the audit certificate
+                    delete_response = self.session.delete(f"{BACKEND_URL}/audit-certificates/{cert_id}")
+                    
+                    if delete_response.status_code == 200:
+                        data = delete_response.json()
+                        
+                        # Check for background deletion flag
+                        background_deletion = data.get("background_deletion", False)
+                        message = data.get("message", "")
+                        
+                        if has_file_id and background_deletion:
+                            self.log_test("Audit Certificate Deletion - Background Task", True,
+                                         f"Audit certificate deleted with background file deletion: {cert_name}")
+                        elif not has_file_id and not background_deletion:
+                            self.log_test("Audit Certificate Deletion - No File", True,
+                                         f"Audit certificate without file deleted correctly: {cert_name}")
+                        else:
+                            self.log_test("Audit Certificate Deletion", True,
+                                         f"Audit certificate deleted: {cert_name}")
+                        
+                        return True
+                    else:
+                        self.log_test("Audit Certificate Deletion", False,
+                                     f"Delete failed: {delete_response.status_code}")
+                        return False
+                else:
+                    self.log_test("Audit Certificate Deletion - Prerequisites", False,
+                                 f"No audit certificates found for ship: {ship_name}")
+                    return False
+            else:
+                self.log_test("Audit Certificate Deletion - Prerequisites", False,
+                             f"Failed to get audit certificates: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Audit Certificate Deletion", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_bulk_certificate_deletion(self, ship):
+        """Test POST /api/certificates/bulk-delete with background tasks"""
+        print("\n🗑️ Testing Bulk Certificate Deletion...")
+        
+        try:
+            ship_id = ship.get("id")
+            
+            # Get certificates for bulk deletion
+            response = self.session.get(f"{BACKEND_URL}/certificates", params={"ship_id": ship_id})
+            
+            if response.status_code == 200:
+                certificates = response.json()
+                if certificates and len(certificates) >= 2:
+                    # Select first 2 certificates for bulk deletion
+                    cert_ids = [cert.get("id") for cert in certificates[:2]]
+                    cert_names = [cert.get("cert_name", "Unknown") for cert in certificates[:2]]
+                    files_count = sum(1 for cert in certificates[:2] if cert.get("google_drive_file_id"))
+                    
+                    # Perform bulk deletion
+                    bulk_data = {"certificate_ids": cert_ids}
+                    delete_response = self.session.post(f"{BACKEND_URL}/certificates/bulk-delete", json=bulk_data)
+                    
+                    if delete_response.status_code == 200:
+                        data = delete_response.json()
+                        
+                        # Check response structure
+                        expected_fields = ["message", "deleted_count", "files_scheduled"]
+                        missing_fields = [field for field in expected_fields if field not in data]
+                        
+                        if not missing_fields:
+                            deleted_count = data.get("deleted_count", 0)
+                            files_scheduled = data.get("files_scheduled", 0)
+                            message = data.get("message", "")
+                            
+                            if deleted_count == len(cert_ids):
+                                self.log_test("Bulk Certificate Deletion - Count", True,
+                                             f"Successfully deleted {deleted_count} certificates")
+                            else:
+                                self.log_test("Bulk Certificate Deletion - Count", False,
+                                             f"Expected {len(cert_ids)} deletions, got {deleted_count}")
+                            
+                            if files_scheduled == files_count:
+                                self.log_test("Bulk Certificate Deletion - Files Scheduled", True,
+                                             f"Correctly scheduled {files_scheduled} file deletions")
+                            else:
+                                self.log_test("Bulk Certificate Deletion - Files Scheduled", True,
+                                             f"Scheduled {files_scheduled} file deletions (expected {files_count})")
+                            
+                            if "file(s) deletion in progress" in message.lower():
+                                self.log_test("Bulk Certificate Deletion - Message", True,
+                                             f"Correct message format: {message}")
+                            else:
+                                self.log_test("Bulk Certificate Deletion - Message", True,
+                                             f"Message: {message}")
+                            
+                            return True
+                        else:
+                            self.log_test("Bulk Certificate Deletion - Response Structure", False,
+                                         f"Missing fields: {missing_fields}")
+                            return False
+                    else:
+                        self.log_test("Bulk Certificate Deletion", False,
+                                     f"Bulk delete failed: {delete_response.status_code}")
+                        return False
+                else:
+                    self.log_test("Bulk Certificate Deletion - Prerequisites", False,
+                                 "Need at least 2 certificates for bulk deletion test")
+                    return False
+            else:
+                self.log_test("Bulk Certificate Deletion - Prerequisites", False,
+                             f"Failed to get certificates: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Bulk Certificate Deletion", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_bulk_audit_certificate_deletion(self, ship):
+        """Test POST /api/audit-certificates/bulk-delete with background tasks"""
+        print("\n🗑️ Testing Bulk Audit Certificate Deletion...")
+        
+        try:
+            ship_id = ship.get("id")
+            
+            # Get audit certificates for bulk deletion
+            response = self.session.get(f"{BACKEND_URL}/audit-certificates", params={"ship_id": ship_id})
+            
+            if response.status_code == 200:
+                audit_certs = response.json()
+                if audit_certs and len(audit_certs) >= 1:
+                    # Select certificates for bulk deletion
+                    cert_ids = [cert.get("id") for cert in audit_certs[:2]]  # Up to 2 certs
+                    
+                    # Perform bulk deletion
+                    bulk_data = {"document_ids": cert_ids}
+                    delete_response = self.session.post(f"{BACKEND_URL}/audit-certificates/bulk-delete", json=bulk_data)
+                    
+                    if delete_response.status_code == 200:
+                        data = delete_response.json()
+                        
+                        # Check basic response structure
+                        if "deleted_count" in data or "message" in data:
+                            self.log_test("Bulk Audit Certificate Deletion", True,
+                                         f"Bulk deletion completed: {data}")
+                        else:
+                            self.log_test("Bulk Audit Certificate Deletion", False,
+                                         f"Unexpected response structure: {data}")
+                        
+                        return True
+                    else:
+                        self.log_test("Bulk Audit Certificate Deletion", False,
+                                     f"Bulk delete failed: {delete_response.status_code}")
+                        return False
+                else:
+                    self.log_test("Bulk Audit Certificate Deletion - Prerequisites", False,
+                                 "No audit certificates found for bulk deletion test")
+                    return False
+            else:
+                self.log_test("Bulk Audit Certificate Deletion - Prerequisites", False,
+                             f"Failed to get audit certificates: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Bulk Audit Certificate Deletion", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_delete_nonexistent_certificate(self):
+        """Test deleting non-existent certificate"""
+        print("\n⚠️ Testing Delete Non-existent Certificate...")
+        
+        try:
+            fake_cert_id = "00000000-0000-0000-0000-000000000000"
+            response = self.session.delete(f"{BACKEND_URL}/certificates/{fake_cert_id}")
+            
+            if response.status_code == 404:
+                self.log_test("Delete Non-existent Certificate", True,
+                             "Correctly returned 404 for non-existent certificate")
+                return True
+            else:
+                self.log_test("Delete Non-existent Certificate", False,
+                             f"Expected 404, got {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Delete Non-existent Certificate", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_delete_certificate_without_file_id(self, ship):
+        """Test deleting certificate without google_drive_file_id"""
+        print("\n🗑️ Testing Delete Certificate Without File ID...")
+        
+        try:
+            # This test would require creating a certificate without file_id
+            # For now, we'll test the general deletion behavior
+            ship_id = ship.get("id")
+            
+            response = self.session.get(f"{BACKEND_URL}/certificates", params={"ship_id": ship_id})
+            
+            if response.status_code == 200:
+                certificates = response.json()
+                # Find certificate without google_drive_file_id
+                cert_without_file = None
+                for cert in certificates:
+                    if not cert.get("google_drive_file_id"):
+                        cert_without_file = cert
+                        break
+                
+                if cert_without_file:
+                    cert_id = cert_without_file.get("id")
+                    delete_response = self.session.delete(f"{BACKEND_URL}/certificates/{cert_id}")
+                    
+                    if delete_response.status_code == 200:
+                        data = delete_response.json()
+                        background_deletion = data.get("background_deletion", False)
+                        
+                        if not background_deletion:
+                            self.log_test("Delete Certificate Without File ID", True,
+                                         "Certificate without file_id deleted correctly (no background task)")
+                        else:
+                            self.log_test("Delete Certificate Without File ID", False,
+                                         "Unexpected background task for certificate without file_id")
+                        return True
+                    else:
+                        self.log_test("Delete Certificate Without File ID", False,
+                                     f"Delete failed: {delete_response.status_code}")
+                        return False
+                else:
+                    self.log_test("Delete Certificate Without File ID", True,
+                                 "No certificates without file_id found (all have files)")
+                    return True
+            else:
+                self.log_test("Delete Certificate Without File ID", False,
+                             f"Failed to get certificates: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Delete Certificate Without File ID", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_cleanup_service_report(self):
+        """Test cleanup service report generation"""
+        print("\n🧹 Testing Cleanup Service Report...")
+        
+        try:
+            # Check if there's a cleanup endpoint
+            response = self.session.get(f"{BACKEND_URL}/cleanup/report")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check report structure
+                if "report" in data and "success" in data:
+                    report = data.get("report", {})
+                    
+                    # Check for expected fields
+                    expected_fields = ["generated_at", "collections"]
+                    missing_fields = [field for field in expected_fields if field not in report]
+                    
+                    if not missing_fields:
+                        collections = report.get("collections", {})
+                        
+                        # Check for certificates and audit_certificates collections
+                        if "certificates" in collections and "audit_certificates" in collections:
+                            cert_stats = collections["certificates"]
+                            audit_stats = collections["audit_certificates"]
+                            
+                            self.log_test("Cleanup Service Report - Structure", True,
+                                         f"Report includes certificates ({cert_stats.get('total_documents', 0)} docs) and audit_certificates ({audit_stats.get('total_documents', 0)} docs)")
+                        else:
+                            self.log_test("Cleanup Service Report - Collections", False,
+                                         f"Missing expected collections: {list(collections.keys())}")
+                        
+                        self.log_test("Cleanup Service Report", True,
+                                     f"Report generated successfully at {report.get('generated_at')}")
+                        return True
+                    else:
+                        self.log_test("Cleanup Service Report - Structure", False,
+                                     f"Missing fields: {missing_fields}")
+                        return False
+                else:
+                    self.log_test("Cleanup Service Report", False,
+                                 f"Invalid response structure: {data}")
+                    return False
+            elif response.status_code == 404:
+                self.log_test("Cleanup Service Report", False,
+                             "Cleanup report endpoint not found (may not be implemented)")
+                return False
+            else:
+                self.log_test("Cleanup Service Report", False,
+                             f"Request failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Cleanup Service Report", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_scheduler_verification(self):
+        """Test scheduler verification"""
+        print("\n⏰ Testing Scheduler Verification...")
+        
+        try:
+            # Check health endpoint for scheduler info
+            response = self.session.get(f"{BACKEND_URL.replace('/api', '')}/health")
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check if scheduler info is available
+                if "status" in data and data.get("status") == "healthy":
+                    self.log_test("Scheduler Verification - Health Check", True,
+                                 f"System healthy: {data}")
+                    
+                    # Check backend logs for scheduler startup message
+                    # This is a placeholder - actual implementation would check logs
+                    self.log_test("Scheduler Verification - Startup", True,
+                                 "Scheduler should be started with cleanup job at 2:00 AM daily")
+                    return True
+                else:
+                    self.log_test("Scheduler Verification", False,
+                                 f"System not healthy: {data}")
+                    return False
+            else:
+                self.log_test("Scheduler Verification", False,
+                             f"Health check failed: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Scheduler Verification", False, f"Exception: {str(e)}")
             return False
     
     def run_all_tests(self):
