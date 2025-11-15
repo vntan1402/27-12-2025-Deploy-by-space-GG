@@ -23,6 +23,13 @@ from app.models.ship import (
     ShipUpdate,
     ShipResponse
 )
+from app.models.certificate import (
+    CertificateBase,
+    CertificateCreate,
+    CertificateUpdate,
+    CertificateResponse,
+    BulkDeleteRequest
+)
 
 __all__ = [
     "UserRole",
