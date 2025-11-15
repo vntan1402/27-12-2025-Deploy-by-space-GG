@@ -8,6 +8,7 @@ from app.models.audit_certificate import AuditCertificateCreate, AuditCertificat
 from app.models.user import UserResponse
 from app.db.mongodb import mongo_db
 from app.utils.certificate_abbreviation import generate_certificate_abbreviation
+from app.utils.issued_by_abbreviation import generate_organization_abbreviation
 
 logger = logging.getLogger(__name__)
 
