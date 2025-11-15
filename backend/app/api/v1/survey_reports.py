@@ -16,14 +16,14 @@ def check_editor_permission(current_user: UserResponse = Depends(get_current_use
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     return current_user
 
-@router.get("", response_model=List[DocumentResponse])
-async def get_documents(
+@router.get("", response_model=List[SurveyReportResponse])
+async def get_survey_reports(
     ship_id: Optional[str] = Query(None),
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Get Survey Reports, optionally filtered by ship_id"""
     try:
-        return await service.get_documents(ship_id, current_user)
+        return await SurveyReportService.get_survey_reports(ship_id, current_user)
     except Exception as e:
         logger.error(f"❌ Error fetching Survey Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Survey Reports")
