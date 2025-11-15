@@ -801,7 +801,7 @@ class BackendTester:
         
         # Run Error Handling tests
         self.test_delete_nonexistent_certificate()
-        self.test_delete_certificate_without_file_id(ships[0])
+        self.test_delete_certificate_without_file_id(test_ship)
         
         # Run Cleanup Service tests
         self.test_cleanup_service_report()
