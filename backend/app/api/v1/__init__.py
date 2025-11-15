@@ -60,3 +60,12 @@ async def get_ship_certificates_alias(ship_id: str, current_user = Depends(get_c
 # AI Config compatibility route removed - now handled by /api/ai-config router
 
 __all__ = ["api_router"]
+
+@api_router.post("/analyze-ship-certificate")
+async def analyze_ship_certificate(
+    file: UploadFile = File(...),
+    current_user = Depends(get_current_user)
+):
+    """Analyze ship certificate for Add Ship feature - Frontend compatibility"""
+    return await certificates.analyze_certificate_file(file=file, ship_id=None, current_user=current_user)
+
