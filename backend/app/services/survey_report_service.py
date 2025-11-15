@@ -27,14 +27,28 @@ class SurveyReportService:
         # Handle backward compatibility
         result = []
         for report in reports:
+            # Map old field names if present
             if not report.get("survey_report_name") and report.get("doc_name"):
                 report["survey_report_name"] = report.get("doc_name")
             
             if not report.get("survey_report_no") and report.get("doc_no"):
                 report["survey_report_no"] = report.get("doc_no")
             
+            if not report.get("issued_date") and report.get("issue_date"):
+                report["issued_date"] = report.get("issue_date")
+            
+            if not report.get("issued_by") and report.get("issued_by"):
+                report["issued_by"] = report.get("issued_by")
+            
+            if not report.get("note") and report.get("notes"):
+                report["note"] = report.get("notes")
+            
+            # Set defaults
             if not report.get("survey_report_name"):
                 report["survey_report_name"] = "Untitled Survey Report"
+            
+            if not report.get("status"):
+                report["status"] = "Valid"
             
             result.append(SurveyReportResponse(**report))
         
