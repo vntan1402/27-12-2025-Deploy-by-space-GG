@@ -82,6 +82,11 @@ async def startup_event():
 async def shutdown_event():
     """Cleanup on shutdown"""
     try:
+        # Shutdown scheduler
+        scheduler.shutdown()
+        logger.info("✅ Scheduler shut down")
+        
+        # Disconnect database
         await mongo_db.disconnect()
         logger.info("✅ Database disconnected")
     except Exception as e:
