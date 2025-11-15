@@ -464,31 +464,9 @@ export const TestReportList = ({
   const handleNoteMouseEnter = (e, note) => {
     const rect = e.target.getBoundingClientRect();
     const tooltipWidth = 300;
-    const tooltipHeight = 200; // max height
+    const tooltipHeight = 200;
     
-    // Calculate position with viewport bounds checking
-    let x = rect.left;
-    let y = rect.bottom + 5;
-    
-    // Check if tooltip would overflow right edge
-    if (x + tooltipWidth > window.innerWidth) {
-      x = window.innerWidth - tooltipWidth - 10; // 10px padding from edge
-    }
-    
-    // Check if tooltip would overflow left edge
-    if (x < 10) {
-      x = 10;
-    }
-    
-    // Check if tooltip would overflow bottom edge
-    if (y + tooltipHeight > window.innerHeight) {
-      y = rect.top - tooltipHeight - 5; // Show above element
-    }
-    
-    // Check if tooltip would overflow top edge (after moving above)
-    if (y < 10) {
-      y = 10;
-    }
+    const { x, y } = calculateTooltipPosition(rect, tooltipWidth, tooltipHeight);
     
     setNoteTooltip({
       show: true,
