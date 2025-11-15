@@ -55,7 +55,10 @@ Extract and return ONLY a valid JSON object with ALL of the following fields:
 CRITICAL EXTRACTION RULES:
 1. **Ship Type**: If you see a list format like "Type of ship 2)\\nBulk carrier\\nOil tanker", the FIRST item (right after 'Type of ship') is the selected type. Map text to exact format: 'Bulk carrier' → 'Bulk Carrier', 'Oil tanker' → 'Oil Tanker', etc.
 
-2. **Docking Dates**: Search for phrase "the last two inspections of the outside of the ship's bottom took place on [DATE_A] and [DATE_B]". Extract DATE_A for last_docking, DATE_B for last_docking_2. PRESERVE ORIGINAL FORMAT - do NOT convert.
+2. **Docking Dates**: Search for phrase "the last two inspections of the outside of the ship's bottom took place on [DATE_A] and [DATE_B]". Extract DATE_A for last_docking, DATE_B for last_docking_2. NORMALIZE FORMAT:
+   - If full date (e.g., "28 July 2025", "July 28, 2025"): Convert to dd/MM/yyyy (e.g., "28/07/2025")
+   - If only month/year (e.g., "JUL 2025", "July 2025"): Convert to MM/yyyy (e.g., "07/2025")
+   - Month names: January=01, February=02, March=03, April=04, May=05, June=06, July=07, August=08, September=09, October=10, November=11, December=12
 
 3. **Built Year**: PRIORITY ORDER: (1) Extract year from delivery_date if available, (2) Look for "Year Built", "Built Year". Return 4-digit year only.
 
