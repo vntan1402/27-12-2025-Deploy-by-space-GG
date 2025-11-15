@@ -144,3 +144,4 @@ pdf2image==1.17.0
 pillow==11.3.0
 pytesseract==0.3.13
 apscheduler
+pydantic-settings>=2.0.0
