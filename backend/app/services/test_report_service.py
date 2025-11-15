@@ -118,6 +118,10 @@ class TestReportService:
         
         await mongo_db.create(TestReportService.collection_name, report_dict)
         
+        # Map notes → note for frontend response (frontend expects 'note' field)
+        if report_dict.get("notes") and not report_dict.get("note"):
+            report_dict["note"] = report_dict.get("notes")
+        
         logger.info(f"✅ Test Report created: {report_dict['test_report_name']}")
         
         return TestReportResponse(**report_dict)
