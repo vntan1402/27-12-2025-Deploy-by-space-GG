@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from app.api.v1 import (
     auth, users, companies, ships, certificates, crew, crew_certificates,
     survey_reports, test_reports, drawings_manuals, other_documents,
-    ism_documents, isps_documents, mlc_documents, supply_documents
+    ism_documents, isps_documents, mlc_documents, supply_documents, ai_config
 )
 from app.core.security import get_current_user
 
@@ -26,6 +26,9 @@ api_router.include_router(ism_documents.router, prefix="/ism-documents", tags=["
 api_router.include_router(isps_documents.router, prefix="/isps-documents", tags=["isps-documents"])
 api_router.include_router(mlc_documents.router, prefix="/mlc-documents", tags=["mlc-documents"])
 api_router.include_router(supply_documents.router, prefix="/supply-documents", tags=["supply-documents"])
+
+# AI Configuration router
+api_router.include_router(ai_config.router, prefix="/ai-config", tags=["ai-config"])
 
 # IMPORTANT: Frontend compatibility routes
 # Frontend calls various endpoints differently than our clean architecture
