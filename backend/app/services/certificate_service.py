@@ -3,7 +3,7 @@ import logging
 import os
 from typing import List, Optional
 from datetime import datetime, timezone
-from fastapi import HTTPException, UploadFile
+from fastapi import HTTPException, UploadFile, BackgroundTasks
 
 from app.models.certificate import (
     CertificateCreate, 
@@ -18,6 +18,7 @@ from app.utils.pdf_processor import PDFProcessor
 from app.utils.ai_helper import AIHelper
 from app.utils.certificate_abbreviation import generate_certificate_abbreviation
 from app.utils.issued_by_abbreviation import generate_organization_abbreviation
+from app.utils.background_tasks import delete_file_background
 
 logger = logging.getLogger(__name__)
 
