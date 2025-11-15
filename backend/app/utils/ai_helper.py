@@ -159,6 +159,7 @@ EXAMPLE OUTPUT FORMAT:
                 
                 # Certificate fields
                 "cert_name": data.get("cert_name"),
+                "cert_abbreviation": data.get("cert_abbreviation"),
                 "cert_type": data.get("cert_type"),
                 "cert_no": data.get("cert_no"),
                 "issue_date": data.get("issue_date"),
