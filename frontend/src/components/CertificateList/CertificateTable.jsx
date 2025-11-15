@@ -294,7 +294,7 @@ export const CertificateTable = ({
                     {cert.google_drive_file_id && (
                       <span
                         className="text-green-500 text-xs cursor-pointer hover:text-green-600"
-                        title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert`}
+                        title={language === 'vi' ? 'File gốc' : 'Original file'}
                         onClick={(e) => {
                           e.stopPropagation();
                           window.open(`https://drive.google.com/file/d/${cert.google_drive_file_id}/view`, '_blank');
