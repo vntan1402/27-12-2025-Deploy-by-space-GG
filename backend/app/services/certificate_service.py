@@ -215,4 +215,29 @@ class CertificateService:
                 # Step 6: Calculate confidence score
                 confidence = AIHelper.calculate_confidence_score(validated_data, len(text))
                 
-                logger.info(f"✅ Certificate analyzed successfully (confidence: {confidence:.2f})\")\n                \n                return {\n                    \"success\": True,\n                    \"message\": \"Certificate analyzed successfully\",\n                    \"analysis\": validated_data,\n                    \"confidence\": confidence,\n                    \"text_length\": len(text)\n                }\n                \n            except Exception as ai_error:\n                logger.error(f\"❌ AI analysis error: {ai_error}\")\n                # Return partial analysis with text\n                return {\n                    \"success\": False,\n                    \"message\": f\"AI analysis failed: {str(ai_error)}\",\n                    \"analysis\": None,\n                    \"text_content\": text[:500] + \"...\" if len(text) > 500 else text\n                }\n        \n        except Exception as e:\n            logger.error(f\"❌ Certificate analysis error: {e}\")\n            raise HTTPException(\n                status_code=500,\n                detail=f\"Failed to analyze certificate: {str(e)}\"\n            )
+                logger.info(f"✅ Certificate analyzed successfully (confidence: {confidence:.2f})")
+                
+                return {
+                    "success": True,
+                    "message": "Certificate analyzed successfully",
+                    "analysis": validated_data,
+                    "confidence": confidence,
+                    "text_length": len(text)
+                }
+                
+            except Exception as ai_error:
+                logger.error(f"❌ AI analysis error: {ai_error}")
+                # Return partial analysis with text
+                return {
+                    "success": False,
+                    "message": f"AI analysis failed: {str(ai_error)}",
+                    "analysis": None,
+                    "text_content": text[:500] + "..." if len(text) > 500 else text
+                }
+        
+        except Exception as e:
+            logger.error(f"❌ Certificate analysis error: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to analyze certificate: {str(e)}"
+            )
