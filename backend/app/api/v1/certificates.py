@@ -87,13 +87,14 @@ async def update_certificate(
 @router.delete("/{cert_id}")
 async def delete_certificate(
     cert_id: str,
+    background_tasks: BackgroundTasks,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
-    Delete certificate (Editor+ role required)
+    Delete certificate with background Google Drive file deletion (Editor+ role required)
     """
     try:
-        return await CertificateService.delete_certificate(cert_id, current_user)
+        return await CertificateService.delete_certificate(cert_id, current_user, background_tasks)
     except HTTPException:
         raise
     except Exception as e:
