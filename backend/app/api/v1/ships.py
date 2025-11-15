@@ -217,6 +217,116 @@ async def delete_ship(
         logger.error(f"❌ Error deleting ship: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete ship")
 
+
+@router.post("/{ship_id}/update-next-survey")
+async def update_ship_next_survey(
+    ship_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Update Next Survey and Next Survey Type for all certificates of a ship
+    based on IMO regulations and 5-year survey cycle
+    Migrated from backend-v1
+    """
+    from app.services.survey_calculation_service import SurveyCalculationService
+    from app.db.mongodb import mongo_db
+    
+    try:
+        # Get ship data
+        ship_data = await mongo_db.database.ships.find_one({"id": ship_id})
+        if not ship_data:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Get all certificates for the ship
+        certificates = await mongo_db.database.certificates.find({"ship_id": ship_id}).to_list(length=1000)
+        if not certificates:
+            return {
+                "success": True,
+                "message": "No certificates found for this ship",
+                "updated_count": 0,
+                "results": []
+            }
+        
+        updated_count = 0
+        results = []
+        
+        for cert in certificates:
+            # Skip certificates that are excluded from auto-update
+            if cert.get('exclude_from_auto_update', False):
+                logger.info(f"⏭️ Skipping certificate {cert.get('id')} - excluded from auto-update")
+                continue
+            
+            # Calculate next survey info
+            survey_info = SurveyCalculationService.calculate_next_survey_info(cert, ship_data)
+            
+            # Prepare update data
+            update_data = {}
+            
+            if survey_info['next_survey']:
+                # Store next_survey as ISO datetime for compatibility
+                if survey_info.get('raw_date'):
+                    try:
+                        # Parse dd/MM/yyyy format and convert to ISO datetime
+                        from datetime import datetime
+                        parsed_date = datetime.strptime(survey_info['raw_date'], '%d/%m/%Y')
+                        update_data['next_survey'] = parsed_date.isoformat()
+                    except:
+                        update_data['next_survey'] = None
+                else:
+                    update_data['next_survey'] = None
+                    
+                update_data['next_survey_display'] = survey_info['next_survey']  # Store display format with window
+            else:
+                update_data['next_survey'] = None
+                update_data['next_survey_display'] = None
+                
+            if survey_info['next_survey_type']:
+                update_data['next_survey_type'] = survey_info['next_survey_type']
+            else:
+                update_data['next_survey_type'] = None
+            
+            # Update certificate if there are changes
+            current_next_survey = cert.get('next_survey')
+            current_next_survey_type = cert.get('next_survey_type')
+            
+            if (update_data.get('next_survey') != current_next_survey or 
+                update_data.get('next_survey_type') != current_next_survey_type):
+                
+                await mongo_db.database.certificates.update_one(
+                    {"id": cert['id']},
+                    {"$set": update_data}
+                )
+                updated_count += 1
+                
+                results.append({
+                    'cert_id': cert['id'],
+                    'cert_name': cert.get('cert_name', 'Unknown'),
+                    'cert_type': cert.get('cert_type', 'Unknown'),
+                    'old_next_survey': current_next_survey,
+                    'new_next_survey': update_data.get('next_survey_display'),
+                    'old_next_survey_type': current_next_survey_type,
+                    'new_next_survey_type': update_data.get('next_survey_type'),
+                    'reasoning': survey_info['reasoning']
+                })
+        
+        logger.info(f"✅ Updated next survey info for {updated_count} certificates in ship {ship_id}")
+        
+        return {
+            "success": True,
+            "message": f"Updated next survey information for {updated_count} certificates",
+            "ship_id": ship_id,
+            "ship_name": ship_data.get('name', 'Unknown'),
+            "updated_count": updated_count,
+            "total_certificates": len(certificates),
+            "results": results[:10]  # Show first 10 results
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error updating next survey: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update next survey: {str(e)}")
+
 @router.post("/{ship_id}/calculate-anniversary-date")
 async def calculate_anniversary_date(
     ship_id: str,
