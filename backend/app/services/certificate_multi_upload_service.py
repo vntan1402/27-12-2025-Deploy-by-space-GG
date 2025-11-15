@@ -36,7 +36,7 @@ class CertificateMultiUploadService:
         This is the main orchestrator migrated from backend-v1
         """
         try:
-            db = await get_database()
+            db = await get_db()
             
             # Step 1: Verify ship exists
             ship = await db.ships.find_one({"id": ship_id})
