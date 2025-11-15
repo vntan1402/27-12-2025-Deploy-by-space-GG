@@ -13,7 +13,7 @@ from fastapi import UploadFile, HTTPException, BackgroundTasks
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.models.user import UserResponse, UserRole
-from app.db.mongodb import get_db
+from app.db.mongodb import mongo_db
 from app.services.ai_config_service import AIConfigService
 from app.repositories.ship_repository import ShipRepository
 from app.repositories.certificate_repository import CertificateRepository
