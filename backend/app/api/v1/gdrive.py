@@ -142,6 +142,44 @@ async def sync_from_gdrive(
         logger.error(f"❌ Error syncing from GDrive: {e}")
         raise HTTPException(status_code=500, detail="Failed to sync from Google Drive")
 
+@router.get("/file/{file_id}/view")
+async def get_gdrive_file_view_url(
+    file_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get Google Drive file view URL for opening in new window
+    Returns a direct Google Drive view URL
+    """
+    try:
+        return await GDriveService.get_file_view_url(file_id, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error getting GDrive file view URL: {e}")
+        # Final fallback to standard Google Drive view URL
+        view_url = f"https://drive.google.com/file/d/{file_id}/view"
+        return {"success": True, "view_url": view_url}
+
+@router.get("/file/{file_id}/download")
+async def get_gdrive_file_download_url(
+    file_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get Google Drive file download URL
+    Returns a direct download URL for the file
+    """
+    try:
+        return await GDriveService.get_file_download_url(file_id, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error getting GDrive file download URL: {e}")
+        # Final fallback to standard Google Drive download URL
+        download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+        return {"success": True, "download_url": download_url}
+
 # OAuth endpoints placeholder (for future implementation)
 @router.post("/oauth/authorize")
 async def oauth_authorize(
