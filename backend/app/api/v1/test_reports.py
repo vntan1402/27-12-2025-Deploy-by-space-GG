@@ -56,15 +56,15 @@ async def create_test_report(
         logger.error(f"❌ Error creating Test Report: {e}")
         raise HTTPException(status_code=500, detail="Failed to create Test Report")
 
-@router.put("/{doc_id}", response_model=DocumentResponse)
-async def update_document(
+@router.put("/{doc_id}", response_model=TestReportResponse)
+async def update_test_report(
     doc_id: str,
-    doc_data: DocumentUpdate,
+    report_data: TestReportUpdate,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Update Test Report (Editor+ role required)"""
     try:
-        return await service.update_document(doc_id, doc_data, current_user)
+        return await TestReportService.update_test_report(doc_id, report_data, current_user)
     except HTTPException:
         raise
     except Exception as e:
