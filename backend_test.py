@@ -81,7 +81,7 @@ class BackendTester:
                 data = response.json()
                 
                 # Check required fields
-                required_fields = ["provider", "model", "api_key_configured"]
+                required_fields = ["provider", "model", "use_emergent_key"]
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if not missing_fields:
@@ -89,10 +89,10 @@ class BackendTester:
                                  f"Provider: {data.get('provider')}, Model: {data.get('model')}")
                     
                     # Check if using EMERGENT_LLM_KEY
-                    if data.get("api_key_configured"):
-                        self.log_test("AI Config GET - API Key", True, "API key is configured")
+                    if data.get("use_emergent_key"):
+                        self.log_test("AI Config GET - API Key", True, "Using EMERGENT_LLM_KEY")
                     else:
-                        self.log_test("AI Config GET - API Key", False, "API key not configured")
+                        self.log_test("AI Config GET - API Key", False, "Not using EMERGENT_LLM_KEY")
                     
                     return data
                 else:
