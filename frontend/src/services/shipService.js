@@ -52,10 +52,12 @@ export const shipService = {
   /**
    * Delete ship
    * @param {string} shipId - Ship ID
+   * @param {boolean} deleteGoogleDriveFolder - If true, also delete Google Drive folder structure
    * @returns {Promise} Delete result
    */
-  delete: async (shipId) => {
-    return api.delete(API_ENDPOINTS.SHIP_BY_ID(shipId));
+  delete: async (shipId, deleteGoogleDriveFolder = false) => {
+    const params = deleteGoogleDriveFolder ? { delete_google_drive_folder: true } : {};
+    return api.delete(API_ENDPOINTS.SHIP_BY_ID(shipId), { params });
   },
 
   /**
