@@ -35,8 +35,21 @@ class DocumentUpdate(BaseModel):
     file_name: Optional[str] = None
     file_size: Optional[int] = None
 
-class DocumentResponse(DocumentBase):
+class DocumentResponse(BaseModel):
     id: str
+    ship_id: str
+    doc_name: Optional[str] = None  # Optional for backward compatibility
+    doc_no: Optional[str] = None
+    issued_by: Optional[str] = None
+    issue_date: Optional[Union[str, datetime]] = None
+    valid_date: Optional[Union[str, datetime]] = None
+    category: Optional[str] = None  # Optional for backward compatibility
+    file_uploaded: bool = False
+    file_name: Optional[str] = None
+    file_size: Optional[int] = None
+    notes: Optional[str] = None
+    google_drive_file_id: Optional[str] = None
+    google_drive_folder_path: Optional[str] = None
     created_at: datetime
 
 class BulkDeleteDocumentRequest(BaseModel):
