@@ -18,6 +18,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import otherDocumentService from '../../services/otherDocumentService';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import { calculateContextMenuPosition } from '../../utils/positionHelpers';
 import AddOtherDocumentModal from './AddOtherDocumentModal';
 import EditOtherDocumentModal from './EditOtherDocumentModal';
 import OtherDocumentNotesModal from './OtherDocumentNotesModal';
