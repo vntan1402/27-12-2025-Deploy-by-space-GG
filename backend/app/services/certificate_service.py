@@ -407,6 +407,7 @@ class CertificateService:
                 response_text = ai_response
                 
                 logger.info(f"✅ AI response received: {len(response_text)} characters")
+                logger.info(f"🔍 AI Response Preview: {response_text[:500]}")
                 
                 # Step 4: Parse AI response
                 cert_data = AIHelper.parse_ai_response(response_text)
