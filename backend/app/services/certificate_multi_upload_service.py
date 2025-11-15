@@ -359,7 +359,7 @@ class CertificateMultiUploadService:
             return user_company
         else:
             # Find company by name
-            db = await get_db()
+            db = mongo_db.database
             company_doc = (
                 await db.companies.find_one({"name_vn": user_company}) or
                 await db.companies.find_one({"name_en": user_company}) or
