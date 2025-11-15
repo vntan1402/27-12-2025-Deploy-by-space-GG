@@ -146,12 +146,20 @@ async def create_google_drive_folder_for_new_ship(
         # Create ship folder structure using Apps Script
         logger.info(f"📁 Creating Google Drive folder structure for ship: {ship_name}")
         
+        # Get backend API URL for dynamic structure fetching
+        import os
+        backend_api_url = os.environ.get('BACKEND_API_URL', 'https://python-cleanarch.preview.emergentagent.com')
+        
         payload = {
             "action": "create_complete_ship_structure",
             "parent_folder_id": folder_id,
             "ship_name": ship_name,
-            "ship_id": ship_dict.get('id')
+            "ship_id": ship_dict.get('id'),
+            "company_id": company_id,  # For dynamic structure
+            "backend_api_url": backend_api_url  # Apps Script will call this to get categories
         }
+        
+        logger.info(f"Payload for Apps Script: {payload}")
         
         # Call Apps Script
         async with aiohttp.ClientSession() as session:
