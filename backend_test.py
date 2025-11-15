@@ -795,9 +795,9 @@ class BackendTester:
         
         # Run Async Deletion tests
         self.test_certificate_deletion_with_background_tasks(test_ship)
-        self.test_audit_certificate_deletion_with_background_tasks(ships[0])
-        self.test_bulk_certificate_deletion(ships[0])
-        self.test_bulk_audit_certificate_deletion(ships[0])
+        self.test_audit_certificate_deletion_with_background_tasks(test_ship)
+        self.test_bulk_certificate_deletion(test_ship)
+        self.test_bulk_audit_certificate_deletion(test_ship)
         
         # Run Error Handling tests
         self.test_delete_nonexistent_certificate()
