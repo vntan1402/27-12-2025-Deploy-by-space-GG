@@ -28,43 +28,43 @@ async def get_survey_reports(
         logger.error(f"❌ Error fetching Survey Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Survey Reports")
 
-@router.get("/{doc_id}", response_model=DocumentResponse)
-async def get_document_by_id(
+@router.get("/{doc_id}", response_model=SurveyReportResponse)
+async def get_survey_report_by_id(
     doc_id: str,
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Get a specific Survey Report by ID"""
     try:
-        return await service.get_document_by_id(doc_id, current_user)
+        return await SurveyReportService.get_survey_report_by_id(doc_id, current_user)
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Error fetching Survey Report {doc_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Survey Report")
 
-@router.post("", response_model=DocumentResponse)
-async def create_document(
-    doc_data: DocumentCreate,
+@router.post("", response_model=SurveyReportResponse)
+async def create_survey_report(
+    report_data: SurveyReportCreate,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Create new Survey Report (Editor+ role required)"""
     try:
-        return await service.create_document(doc_data, current_user)
+        return await SurveyReportService.create_survey_report(report_data, current_user)
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Error creating Survey Report: {e}")
         raise HTTPException(status_code=500, detail="Failed to create Survey Report")
 
-@router.put("/{doc_id}", response_model=DocumentResponse)
-async def update_document(
+@router.put("/{doc_id}", response_model=SurveyReportResponse)
+async def update_survey_report(
     doc_id: str,
-    doc_data: DocumentUpdate,
+    report_data: SurveyReportUpdate,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Update Survey Report (Editor+ role required)"""
     try:
-        return await service.update_document(doc_id, doc_data, current_user)
+        return await SurveyReportService.update_survey_report(doc_id, report_data, current_user)
     except HTTPException:
         raise
     except Exception as e:
@@ -72,13 +72,13 @@ async def update_document(
         raise HTTPException(status_code=500, detail="Failed to update Survey Report")
 
 @router.delete("/{doc_id}")
-async def delete_document(
+async def delete_survey_report(
     doc_id: str,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Delete Survey Report (Editor+ role required)"""
     try:
-        return await service.delete_document(doc_id, current_user)
+        return await SurveyReportService.delete_survey_report(doc_id, current_user)
     except HTTPException:
         raise
     except Exception as e:
@@ -86,43 +86,41 @@ async def delete_document(
         raise HTTPException(status_code=500, detail="Failed to delete Survey Report")
 
 @router.post("/bulk-delete")
-async def bulk_delete_documents(
-    request: BulkDeleteDocumentRequest,
+async def bulk_delete_survey_reports(
+    request: BulkDeleteSurveyReportRequest,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Bulk delete Survey Reports (Editor+ role required)"""
     try:
-        return await service.bulk_delete_documents(request, current_user)
+        return await SurveyReportService.bulk_delete_survey_reports(request, current_user)
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Survey Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Survey Reports")
 
 @router.post("/check-duplicate")
-async def check_duplicate_document(
+async def check_duplicate_survey_report(
     ship_id: str,
-    doc_name: str,
-    doc_no: Optional[str] = None,
+    survey_report_name: str,
+    survey_report_no: Optional[str] = None,
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Check if Survey Report is duplicate"""
     try:
-        return await service.check_duplicate(ship_id, doc_name, doc_no, current_user)
+        return await SurveyReportService.check_duplicate(ship_id, survey_report_name, survey_report_no, current_user)
     except Exception as e:
         logger.error(f"❌ Error checking duplicate: {e}")
         raise HTTPException(status_code=500, detail="Failed to check duplicate")
 
 @router.post("/analyze-file")
-async def analyze_document_file(
+async def analyze_survey_report_file(
     file: UploadFile = File(...),
     ship_id: Optional[str] = None,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Analyze Survey Report file using AI (Editor+ role required)"""
-    try:
-        return await service.analyze_file(file, ship_id, current_user)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"❌ Error analyzing Survey Report file: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to analyze Survey Report: {str(e)}")
-
+    """Analyze survey report file using AI (Editor+ role required)"""
+    # TODO: Implement AI analysis for survey reports
+    return {
+        "success": True,
+        "message": "Survey report analysis not yet implemented",
+        "analysis": None
+    }

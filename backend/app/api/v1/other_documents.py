@@ -2,16 +2,13 @@ import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 
-from app.models.document import DocumentCreate, DocumentUpdate, DocumentResponse, BulkDeleteDocumentRequest
+from app.models.other_doc import OtherDocumentCreate, OtherDocumentUpdate, OtherDocumentResponse, BulkDeleteOtherDocumentRequest
 from app.models.user import UserResponse, UserRole
-from app.services.document_service import GenericDocumentService
+from app.services.other_doc_service import OtherDocumentService
 from app.core.security import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-# Initialize service for this document type
-service = GenericDocumentService("other_documents", "Other Document")
 
 def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has editor or higher permission"""
@@ -19,55 +16,55 @@ def check_editor_permission(current_user: UserResponse = Depends(get_current_use
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     return current_user
 
-@router.get("", response_model=List[DocumentResponse])
-async def get_documents(
+@router.get("", response_model=List[OtherDocumentResponse])
+async def get_other_documents(
     ship_id: Optional[str] = Query(None),
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Get Other Documents, optionally filtered by ship_id"""
     try:
-        return await service.get_documents(ship_id, current_user)
+        return await OtherDocumentService.get_other_documents(ship_id, current_user)
     except Exception as e:
         logger.error(f"❌ Error fetching Other Documents: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Other Documents")
 
-@router.get("/{doc_id}", response_model=DocumentResponse)
-async def get_document_by_id(
+@router.get("/{doc_id}", response_model=OtherDocumentResponse)
+async def get_other_document_by_id(
     doc_id: str,
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Get a specific Other Document by ID"""
     try:
-        return await service.get_document_by_id(doc_id, current_user)
+        return await OtherDocumentService.get_other_document_by_id(doc_id, current_user)
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Error fetching Other Document {doc_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Other Document")
 
-@router.post("", response_model=DocumentResponse)
-async def create_document(
-    doc_data: DocumentCreate,
+@router.post("", response_model=OtherDocumentResponse)
+async def create_other_document(
+    doc_data: OtherDocumentCreate,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Create new Other Document (Editor+ role required)"""
     try:
-        return await service.create_document(doc_data, current_user)
+        return await OtherDocumentService.create_other_document(doc_data, current_user)
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Error creating Other Document: {e}")
         raise HTTPException(status_code=500, detail="Failed to create Other Document")
 
-@router.put("/{doc_id}", response_model=DocumentResponse)
-async def update_document(
+@router.put("/{doc_id}", response_model=OtherDocumentResponse)
+async def update_other_document(
     doc_id: str,
-    doc_data: DocumentUpdate,
+    doc_data: OtherDocumentUpdate,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Update Other Document (Editor+ role required)"""
     try:
-        return await service.update_document(doc_id, doc_data, current_user)
+        return await OtherDocumentService.update_other_document(doc_id, doc_data, current_user)
     except HTTPException:
         raise
     except Exception as e:
@@ -75,13 +72,13 @@ async def update_document(
         raise HTTPException(status_code=500, detail="Failed to update Other Document")
 
 @router.delete("/{doc_id}")
-async def delete_document(
+async def delete_other_document(
     doc_id: str,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Delete Other Document (Editor+ role required)"""
     try:
-        return await service.delete_document(doc_id, current_user)
+        return await OtherDocumentService.delete_other_document(doc_id, current_user)
     except HTTPException:
         raise
     except Exception as e:
@@ -89,28 +86,41 @@ async def delete_document(
         raise HTTPException(status_code=500, detail="Failed to delete Other Document")
 
 @router.post("/bulk-delete")
-async def bulk_delete_documents(
-    request: BulkDeleteDocumentRequest,
+async def bulk_delete_other_documents(
+    request: BulkDeleteOtherDocumentRequest,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Bulk delete Other Documents (Editor+ role required)"""
     try:
-        return await service.bulk_delete_documents(request, current_user)
+        return await OtherDocumentService.bulk_delete_other_documents(request, current_user)
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Other Documents: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Other Documents")
 
 @router.post("/check-duplicate")
-async def check_duplicate_document(
+async def check_duplicate_other_document(
     ship_id: str,
-    doc_name: str,
-    doc_no: Optional[str] = None,
+    document_name: str,
+    document_no: Optional[str] = None,
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Check if Other Document is duplicate"""
     try:
-        return await service.check_duplicate(ship_id, doc_name, doc_no, current_user)
+        return await OtherDocumentService.check_duplicate(ship_id, document_name, document_no, current_user)
     except Exception as e:
         logger.error(f"❌ Error checking duplicate: {e}")
         raise HTTPException(status_code=500, detail="Failed to check duplicate")
 
+@router.post("/analyze-file")
+async def analyze_other_document_file(
+    file: UploadFile = File(...),
+    ship_id: Optional[str] = None,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """Analyze other document file using AI (Editor+ role required)"""
+    # TODO: Implement AI analysis for other documents
+    return {
+        "success": True,
+        "message": "Other document analysis not yet implemented",
+        "analysis": None
+    }

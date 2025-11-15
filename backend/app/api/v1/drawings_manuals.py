@@ -2,16 +2,13 @@ import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 
-from app.models.document import DocumentCreate, DocumentUpdate, DocumentResponse, BulkDeleteDocumentRequest
+from app.models.drawing_manual import DrawingManualCreate, DrawingManualUpdate, DrawingManualResponse, BulkDeleteDrawingManualRequest
 from app.models.user import UserResponse, UserRole
-from app.services.document_service import GenericDocumentService
+from app.services.drawing_manual_service import DrawingManualService
 from app.core.security import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-# Initialize service for this document type
-service = GenericDocumentService("drawings_manuals", "Drawing/Manual")
 
 def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has editor or higher permission"""
@@ -19,55 +16,55 @@ def check_editor_permission(current_user: UserResponse = Depends(get_current_use
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     return current_user
 
-@router.get("", response_model=List[DocumentResponse])
-async def get_documents(
+@router.get("", response_model=List[DrawingManualResponse])
+async def get_drawings_manuals(
     ship_id: Optional[str] = Query(None),
     current_user: UserResponse = Depends(get_current_user)
 ):
-    """Get Drawing/Manuals, optionally filtered by ship_id"""
+    """Get Drawings & Manuals, optionally filtered by ship_id"""
     try:
-        return await service.get_documents(ship_id, current_user)
+        return await DrawingManualService.get_drawings_manuals(ship_id, current_user)
     except Exception as e:
-        logger.error(f"❌ Error fetching Drawing/Manuals: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch Drawing/Manuals")
+        logger.error(f"❌ Error fetching Drawings & Manuals: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch Drawings & Manuals")
 
-@router.get("/{doc_id}", response_model=DocumentResponse)
-async def get_document_by_id(
+@router.get("/{doc_id}", response_model=DrawingManualResponse)
+async def get_drawing_manual_by_id(
     doc_id: str,
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Get a specific Drawing/Manual by ID"""
     try:
-        return await service.get_document_by_id(doc_id, current_user)
+        return await DrawingManualService.get_drawing_manual_by_id(doc_id, current_user)
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Error fetching Drawing/Manual {doc_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Drawing/Manual")
 
-@router.post("", response_model=DocumentResponse)
-async def create_document(
-    doc_data: DocumentCreate,
+@router.post("", response_model=DrawingManualResponse)
+async def create_drawing_manual(
+    doc_data: DrawingManualCreate,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Create new Drawing/Manual (Editor+ role required)"""
     try:
-        return await service.create_document(doc_data, current_user)
+        return await DrawingManualService.create_drawing_manual(doc_data, current_user)
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Error creating Drawing/Manual: {e}")
         raise HTTPException(status_code=500, detail="Failed to create Drawing/Manual")
 
-@router.put("/{doc_id}", response_model=DocumentResponse)
-async def update_document(
+@router.put("/{doc_id}", response_model=DrawingManualResponse)
+async def update_drawing_manual(
     doc_id: str,
-    doc_data: DocumentUpdate,
+    doc_data: DrawingManualUpdate,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Update Drawing/Manual (Editor+ role required)"""
     try:
-        return await service.update_document(doc_id, doc_data, current_user)
+        return await DrawingManualService.update_drawing_manual(doc_id, doc_data, current_user)
     except HTTPException:
         raise
     except Exception as e:
@@ -75,13 +72,13 @@ async def update_document(
         raise HTTPException(status_code=500, detail="Failed to update Drawing/Manual")
 
 @router.delete("/{doc_id}")
-async def delete_document(
+async def delete_drawing_manual(
     doc_id: str,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Delete Drawing/Manual (Editor+ role required)"""
     try:
-        return await service.delete_document(doc_id, current_user)
+        return await DrawingManualService.delete_drawing_manual(doc_id, current_user)
     except HTTPException:
         raise
     except Exception as e:
@@ -89,28 +86,41 @@ async def delete_document(
         raise HTTPException(status_code=500, detail="Failed to delete Drawing/Manual")
 
 @router.post("/bulk-delete")
-async def bulk_delete_documents(
-    request: BulkDeleteDocumentRequest,
+async def bulk_delete_drawings_manuals(
+    request: BulkDeleteDrawingManualRequest,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Bulk delete Drawing/Manuals (Editor+ role required)"""
+    """Bulk delete Drawings & Manuals (Editor+ role required)"""
     try:
-        return await service.bulk_delete_documents(request, current_user)
+        return await DrawingManualService.bulk_delete_drawings_manuals(request, current_user)
     except Exception as e:
-        logger.error(f"❌ Error bulk deleting Drawing/Manuals: {e}")
-        raise HTTPException(status_code=500, detail="Failed to bulk delete Drawing/Manuals")
+        logger.error(f"❌ Error bulk deleting Drawings & Manuals: {e}")
+        raise HTTPException(status_code=500, detail="Failed to bulk delete Drawings & Manuals")
 
 @router.post("/check-duplicate")
-async def check_duplicate_document(
+async def check_duplicate_drawing_manual(
     ship_id: str,
-    doc_name: str,
-    doc_no: Optional[str] = None,
+    document_name: str,
+    document_no: Optional[str] = None,
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Check if Drawing/Manual is duplicate"""
     try:
-        return await service.check_duplicate(ship_id, doc_name, doc_no, current_user)
+        return await DrawingManualService.check_duplicate(ship_id, document_name, document_no, current_user)
     except Exception as e:
         logger.error(f"❌ Error checking duplicate: {e}")
         raise HTTPException(status_code=500, detail="Failed to check duplicate")
 
+@router.post("/analyze-file")
+async def analyze_drawing_manual_file(
+    file: UploadFile = File(...),
+    ship_id: Optional[str] = None,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """Analyze drawing/manual file using AI (Editor+ role required)"""
+    # TODO: Implement AI analysis for drawings/manuals
+    return {
+        "success": True,
+        "message": "Drawing/Manual analysis not yet implemented",
+        "analysis": None
+    }
