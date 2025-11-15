@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { testReportService } from '../../services';
 import { toast } from 'sonner';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import { calculateTooltipPosition, calculateContextMenuPosition } from '../../utils/positionHelpers';
 
 export const TestReportList = ({ 
   selectedShip, 
