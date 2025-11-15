@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import approvalDocumentService from '../../services/approvalDocumentService';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import { calculateTooltipPosition, calculateContextMenuPosition } from '../../utils/positionHelpers';
 import { 
   estimateFileProcessingTime, 
   startSmoothProgressForFile 
