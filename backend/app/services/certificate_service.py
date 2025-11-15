@@ -37,6 +37,11 @@ class CertificateService:
             # Generate certificate abbreviation if not present
             if not cert.get("cert_abbreviation") and cert.get("cert_name"):
                 cert["cert_abbreviation"] = await generate_certificate_abbreviation(cert.get("cert_name"))
+            
+            # Generate organization abbreviation for issued_by if not present
+            if not cert.get("issued_by_abbreviation") and cert.get("issued_by"):
+                cert["issued_by_abbreviation"] = generate_organization_abbreviation(cert.get("issued_by"))
+            
             enhanced_certs.append(CertificateResponse(**cert))
         
         return enhanced_certs
