@@ -21,6 +21,21 @@ def check_editor_permission(current_user: UserResponse = Depends(get_current_use
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     return current_user
 
+@router.get("/all", response_model=List[CrewCertificateResponse])
+async def get_all_crew_certificates(
+    crew_id: Optional[str] = Query(None),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get ALL crew certificates for the company (no ship filter)
+    Includes both ship-assigned and Standby crew certificates
+    """
+    try:
+        return await CrewCertificateService.get_all_crew_certificates(crew_id, current_user)
+    except Exception as e:
+        logger.error(f"❌ Error fetching all crew certificates: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch all crew certificates")
+
 @router.get("", response_model=List[CrewCertificateResponse])
 async def get_crew_certificates(
     crew_id: Optional[str] = Query(None),
