@@ -1,54 +1,60 @@
 <analysis>
-The trajectory chronicles a series of development and maintenance tasks on a maritime document management application. The work began with implementing a Standby Crew feature, allowing crew certificates to be uploaded without being assigned to a specific ship. The engineer analyzed the existing frontend and backend code, discovering that much of the required logic was already in place. They made minor, precise adjustments to the backend API and frontend modal to fully enable this functionality, confirming the fix with the testing agent.
+The trajectory details a comprehensive backend refactoring for a maritime document management application. The user, communicating primarily in Vietnamese, initiated this task to address the unmaintainable state of a single, 28,000-line  file.
 
-Next, responding to a user request in Vietnamese, the engineer implemented role-based UI changes in the Add New User modal. This involved modifying a React component () to filter the Department dropdown based on the selected user role and auto-select a default value, improving the user experience for administrators.
+My predecessor's work began with a thorough analysis of the existing monolithic backend. In response to the user's request, a Clean Architecture was proposed. The user then suggested a safer, more robust migration strategy: renaming the existing  to  to serve as a live backup and building the new, modular backend in a fresh  directory. This Safe Parallel Migration approach was adopted and meticulously planned, with detailed markdown files for the overall plan, endpoint checklists, and progress tracking.
 
-Following this, the user initiated a deep architectural discussion about database structure, data isolation per company, and implementing an offline mode. The engineer did not implement this but instead acted as a consultant, producing detailed analysis documents and proof-of-concept scripts explaining the current multi-tenant architecture and proposing a comprehensive offline solution using Electron and Docker.
+The migration was executed in distinct, tested phases:
+1.  **Infrastructure Setup:** Creating the new directory structure and configuration.
+2.  **Core Modules:** Migrating critical modules like Authentication, User, and Company management.
+3.  **Feature Modules:** Incrementally migrating Ship, Certificate, and Crew management.
+4.  **Batch Migration:** Systematically migrating 8 other document types using a scripted approach.
 
-Finally, the user requested a major codebase cleanup. The engineer systematically identified, backed up, and deleted old test files, archived extensive markdown documentation, trimmed a large log file (), and consolidated utility scripts. This culminated in the analysis and deletion of an entire legacy frontend folder (), freeing up over 500MB and significantly improving the codebase's organization and maintainability.
+During the process, I debugged and resolved frontend integration issues by adding compatibility API routes to the new backend, ensuring the UI remained functional. I also addressed data-related problems by seeding the database with sample data for testing. The migration of complex business logic, like ship survey calculations, was completed, while the AI analysis feature was explicitly deferred and documented for future work at the user's request. The last action was initiating a final check to identify any remaining un-migrated endpoints.
 
-The user's primary language shifted to Vietnamese mid-trajectory. The next agent must respond in Vietnamese.
+The user's primary language is Vietnamese. The next agent must respond in Vietnamese.
 </analysis>
 
 <product_requirements>
-The application is a maritime document management platform. Development has focused on enhancing flexibility, improving user experience, and maintaining codebase health.
+The primary requirement was to refactor the application's monolithic FastAPI backend into a scalable and maintainable Clean Architecture. The existing backend, contained in a single 28,000-line  file, was hindering development and bug fixing.
 
-**Implemented Features:**
+The objective was to improve code organization, separation of concerns, testability, and team collaboration.
 
-1.  **Standby Crew Certificate Uploads:** Users can now upload crew certificates for Standby crew members who are not assigned to a specific ship. This was achieved by making the Ship selection optional in the UI and ensuring the backend correctly handles a  or absent , storing the associated files in a company-level Standby Crew folder.
+The agreed-upon implementation strategy, proposed by the user and refined by the AI engineer, was a Safe Parallel Migration. This involved:
+1.  Renaming the current  folder to  to act as an immediate, functional rollback point.
+2.  Creating a new  folder with a modular structure (separating API routes, services, repositories, and models).
+3.  Incrementally migrating all functionality (endpoints, business logic, database queries) from  to the new structure, module by module.
+4.  Ensuring the existing React frontend remains compatible throughout the migration by adding alias routes where necessary.
 
-2.  **Role-Based Department Selection:** In the Add New User modal, the Department dropdown is now dynamically filtered based on the selected Role. For Crew and Ship Officer roles, the department list is restricted, and Ship Crew is automatically selected to streamline user creation.
-
-3.  **Codebase Cleanup:** A comprehensive cleanup was performed to improve maintainability. This involved deleting ~14 obsolete test scripts, archiving over 40 old documentation files, consolidating 7 utility scripts into a structured  directory, and removing a 520MB legacy  directory.
-
-**Discussed (Not Implemented):**
-
-1.  **Offline-Capable Architecture:** The user wants the ability for each company to export its data and run the application offline. Analysis was performed, and a potential solution involving an Electron-based desktop app packaging the frontend, backend, and a local MongoDB instance via Docker was proposed.
+The migration is nearly complete, with all major CRUD operations and key business logic for users, companies, ships, crew, and all document types successfully ported to the new architecture.
 </product_requirements>
 
 <key_technical_concepts>
-- **Frontend**: React.js (Hooks, ), Tailwind CSS.
-- **Backend**: FastAPI (Python), Pydantic.
-- **Database**: MongoDB (Multi-tenant architecture with data separated by ).
-- **Architecture**: REST API, Monorepo.
-- **Maintenance**: Bash scripting for automated file analysis and cleanup.
-- **Proposed Concepts**: Offline application architecture using **Electron** and **Docker Compose** to package the entire stack (React, FastAPI, MongoDB) for local deployment.
+- **Backend Framework**: FastAPI (Python)
+- **Data Validation**: Pydantic
+- **Database**: MongoDB
+- **Architectural Shift**: From a Monolithic architecture to a multi-layer Clean Architecture (API, Services, Repositories).
+- **Refactoring Strategy**: Safe Parallel Migration (Backup and Build).
+- **Process Management**: Supervisor
+- **Automation**: Bash scripting for setup and Python scripting for batch code generation ().
+- **Frontend-Backend Contract**: API endpoint definitions stored in .
 </key_technical_concepts>
 
 <code_architecture>
-The application is a monorepo containing a FastAPI backend and a React frontend. A major cleanup was recently performed, resulting in a more organized structure.
+The project has transitioned from a monolithic backend to a layered architecture, while preserving the old version for safety.
 
-**Post-Cleanup Directory Structure:**
+**High-Level Directory Structure:**
 .
 ├── 2_CO_DUC_PP.pdf
 ├── 3_2O_THUONG_PP.pdf
 ├── ADD_CREW_PROCESS_V1.md
+├── AI_ANALYSIS_TODO.md
 ├── ALTERNATIVE_ADMIN_CREATION_NO_TERMINAL.md
 ├── APPS_SCRIPT_FIX_CODE.js
 ├── APPS_SCRIPT_MANIFEST_WITH_PROPER_SCOPES.json
 ├── APPS_SCRIPT_TEST_FUNCTIONS.js
 ├── APPS_SCRIPT_V3_FILES_INDEX.md
 ├── APPS_SCRIPT_V3_FINAL_UPDATE.md
+├── BACKEND_MIGRATION_PLAN.md
 ├── BAO_MAT_V3_TOM_TAT.md
 ├── BASIC_APPS_SCRIPT_STEP1.js
 ├── BWM-CHECK_LIST_11-23.pdf
@@ -73,6 +79,8 @@ The application is a monorepo containing a FastAPI backend and a React frontend.
 ├── DEBUGGING_GUIDE_API_KEY.md
 ├── DEFAULT_ANNOTATION_FALLBACK_IMPLEMENTATION.md
 ├── DOCUMENT_AI_SYSTEM_AI_V2_PATTERN.md
+├── ENDPOINT_CHECKLIST.md
+├── FRONTEND_API_USAGE.md
 ├── FRONTEND_V1_DELETION_ANALYSIS.md
 ├── GDRIVE_PERMISSION_UPDATE.md
 ├── GOOGLE_APPS_SCRIPT_SYSTEM_GDRIVE.js
@@ -84,6 +92,8 @@ The application is a monorepo containing a FastAPI backend and a React frontend.
 ├── MARITIME_DOCUMENTS_AI_SCRIPT.js
 ├── MARITIME_V3_COMPATIBLE.js
 ├── METHOD_1_IMPLEMENTATION_COMPLETE.md
+├── MIGRATION_PROGRESS.md
+├── MIGRATION_QUICK_START.md
 ├── MINH_ANH_09_certificate.pdf
 ├── MODAL_OPEN_CONDITIONS.md
 ├── MONGODB_DETAILED_INFO.md
@@ -109,6 +119,131 @@ The application is a monorepo containing a FastAPI backend and a React frontend.
 ├── __pycache__
 │   └── backend_test.cpython-311.pyc
 ├── backend
+│   ├── app
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-311.pyc
+│   │   │   └── main.cpython-311.pyc
+│   │   ├── api
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   └── __init__.cpython-311.pyc
+│   │   │   └── v1
+│   │   │       ├── __init__.py
+│   │   │       ├── __pycache__
+│   │   │       │   ├── __init__.cpython-311.pyc
+│   │   │       │   ├── auth.cpython-311.pyc
+│   │   │       │   ├── certificates.cpython-311.pyc
+│   │   │       │   ├── companies.cpython-311.pyc
+│   │   │       │   ├── crew.cpython-311.pyc
+│   │   │       │   ├── crew_certificates.cpython-311.pyc
+│   │   │       │   ├── drawings_manuals.cpython-311.pyc
+│   │   │       │   ├── ism_documents.cpython-311.pyc
+│   │   │       │   ├── isps_documents.cpython-311.pyc
+│   │   │       │   ├── mlc_documents.cpython-311.pyc
+│   │   │       │   ├── other_documents.cpython-311.pyc
+│   │   │       │   ├── ships.cpython-311.pyc
+│   │   │       │   ├── supply_documents.cpython-311.pyc
+│   │   │       │   ├── survey_reports.cpython-311.pyc
+│   │   │       │   ├── test_reports.cpython-311.pyc
+│   │   │       │   └── users.cpython-311.pyc
+│   │   │       ├── auth.py
+│   │   │       ├── certificates.py
+│   │   │       ├── companies.py
+│   │   │       ├── crew.py
+│   │   │       ├── crew_certificates.py
+│   │   │       ├── drawings_manuals.py
+│   │   │       ├── ism_documents.py
+│   │   │       ├── isps_documents.py
+│   │   │       ├── mlc_documents.py
+│   │   │       ├── other_documents.py
+│   │   │       ├── ships.py
+│   │   │       ├── supply_documents.py
+│   │   │       ├── survey_reports.py
+│   │   │       ├── test_reports.py
+│   │   │       └── users.py
+│   │   ├── core
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-311.pyc
+│   │   │   │   ├── config.cpython-311.pyc
+│   │   │   │   └── security.cpython-311.pyc
+│   │   │   ├── config.py
+│   │   │   └── security.py
+│   │   ├── db
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-311.pyc
+│   │   │   │   └── mongodb.cpython-311.pyc
+│   │   │   └── mongodb.py
+│   │   ├── main.py
+│   │   ├── models
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-311.pyc
+│   │   │   │   ├── certificate.cpython-311.pyc
+│   │   │   │   ├── company.cpython-311.pyc
+│   │   │   │   ├── crew.cpython-311.pyc
+│   │   │   │   ├── crew_certificate.cpython-311.pyc
+│   │   │   │   ├── document.cpython-311.pyc
+│   │   │   │   ├── ship.cpython-311.pyc
+│   │   │   │   └── user.cpython-311.pyc
+│   │   │   ├── certificate.py
+│   │   │   ├── company.py
+│   │   │   ├── crew.py
+│   │   │   ├── crew_certificate.py
+│   │   │   ├── document.py
+│   │   │   ├── ship.py
+│   │   │   └── user.py
+│   │   ├── repositories
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-311.pyc
+│   │   │   │   ├── certificate_repository.cpython-311.pyc
+│   │   │   │   ├── company_repository.cpython-311.pyc
+│   │   │   │   ├── crew_certificate_repository.cpython-311.pyc
+│   │   │   │   ├── crew_repository.cpython-311.pyc
+│   │   │   │   ├── ship_repository.cpython-311.pyc
+│   │   │   │   └── user_repository.cpython-311.pyc
+│   │   │   ├── certificate_repository.py
+│   │   │   ├── company_repository.py
+│   │   │   ├── crew_certificate_repository.py
+│   │   │   ├── crew_repository.py
+│   │   │   ├── ship_repository.py
+│   │   │   └── user_repository.py
+│   │   ├── services
+│   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-311.pyc
+│   │   │   │   ├── certificate_service.cpython-311.pyc
+│   │   │   │   ├── company_service.cpython-311.pyc
+│   │   │   │   ├── crew_certificate_service.cpython-311.pyc
+│   │   │   │   ├── crew_service.cpython-311.pyc
+│   │   │   │   ├── document_service.cpython-311.pyc
+│   │   │   │   ├── ship_service.cpython-311.pyc
+│   │   │   │   └── user_service.cpython-311.pyc
+│   │   │   ├── certificate_service.py
+│   │   │   ├── company_service.py
+│   │   │   ├── crew_certificate_service.py
+│   │   │   ├── crew_service.py
+│   │   │   ├── document_service.py
+│   │   │   ├── ship_service.py
+│   │   │   └── user_service.py
+│   │   └── utils
+│   │       ├── __init__.py
+│   │       ├── __pycache__
+│   │       │   ├── __init__.cpython-311.pyc
+│   │       │   └── ship_calculations.cpython-311.pyc
+│   │       ├── document_factory.py
+│   │       └── ship_calculations.py
+│   ├── create_document_routes.py
+│   ├── migrations
+│   ├── requirements.txt
+│   ├── scripts
+│   ├── test_infrastructure.py
+│   ├── tests
+│   └── update_supervisor.sh
+├── backend-v1
 │   ├── __pycache__
 │   │   ├── admin_api_helper.cpython-311.pyc
 │   │   ├── document_name_normalization.cpython-311.pyc
@@ -204,6 +339,7 @@ The application is a monorepo containing a FastAPI backend and a React frontend.
 │       ├── logo_462a6211-44e6-47fc-9826-b166b2f36f54.png
 │       ├── logo_95710989-837b-47a1-ab7b-a9816e62586d.png
 │       └── logo_eee55398-9756-4a58-86e7-227c3c139ae3.png
+├── check_missing_endpoints.py
 ├── cleanup_executor.sh
 ├── debug_cert_fields.sh
 ├── docker-compose.offline.yml
@@ -50083,56 +50219,70 @@ The application is a monorepo containing a FastAPI backend and a React frontend.
 ├── test_survey_report.txt
 ├── tests
 │   └── __init__.py
+├── uploads
 ├── verify_fix.sh
 └── yarn.lock
 
-4635 directories, 45411 files
+4658 directories, 45521 files
 
-- ****
-    - **Importance**: The main FastAPI application file, defining all API endpoints and business logic.
-    - **Changes**: Minor edits were made to the  endpoint. The  parameter was made optional (), and logic was added to handle cases where  is  or an empty string, ensuring standby crew uploads are correctly processed.
-
-- ****
-    - **Importance**: The React component for uploading crew certificates.
-    - **Changes**: The  function was modified. When Standby is selected (i.e.,  is null), the API call to  is now made with  set to  in the form data, aligning with the backend changes.
-
-- ****
-    - **Importance**: The React component for creating new users.
-    - **Changes**: Significant logic was added to support role-based department filtering.
-        - The  function was modified to return only Ship Crew for the Crew role and SSO or Ship Crew for the Ship Officer role.
-        - A  hook was added to monitor changes to the  field. If the role is set to Crew or Ship Officer, it automatically sets the department form value to Ship Crew.
-
-- ****
-    - **Importance**: A temporary bash script created and executed to perform a major codebase cleanup.
-    - **Changes**: This script was created to automate the backup, deletion, and organization of numerous old test files, documentation files, and utility scripts, and to trim the  file. It has served its purpose and is part of the work history.
+**Key Files & Changes:**
 
 - ** (Directory)**
-    - **Importance**: A 520MB legacy directory containing an old version of the frontend.
-    - **Changes**: After analysis confirmed it was obsolete and unused, this entire directory was **deleted** to clean up the project and free significant space.
+  - **Importance**: This is a complete, untouched backup of the original monolithic backend. It serves as a reference for business logic and as an instant rollback target if the new backend fails.
+  - **Changes**: Renamed from  to . It is no longer actively running.
+
+- ** (Directory)**
+  - **Importance**: This is the new, active backend, built with a clean, modular architecture.
+  - **Changes**: Created from scratch. It contains a structured set of folders and files that separate concerns. The  configuration has been updated to run this new backend via .
+
+- ****
+  - **Importance**: The new entry point for the FastAPI application. It initializes the app and includes the API routers from the  directory.
+  - **Changes**: Newly created. It also includes compatibility routes (e.g., , ) that redirect to the new correct endpoints, ensuring the old frontend works without changes.
+
+- ** (Directory)**
+  - **Importance**: This directory contains separate files for each group of API endpoints (e.g., , , , ). This breaks up the 179+ endpoints from the original .
+  - **Changes**: Newly created, with dozens of files containing the migrated API route logic.
+
+- ** &  (Directories)**
+  - **Importance**: These directories implement the separation of concerns.  holds the business logic, and  handles direct database interactions, making the code more testable and maintainable.
+  - **Changes**: Newly created, containing the migrated business and data access logic.
+
+- ** & **
+  - **Importance**: These documentation files were critical for the migration.  lists all API endpoints called by the frontend, and  tracks the migration progress for each one.
+  - **Changes**: Created during the planning phase and used throughout the migration.
+
+- ****
+  - **Importance**: Explicitly documents the AI-powered certificate analysis feature that was deferred at the user's request.
+  - **Changes**: Created to ensure this pending task is not forgotten after the migration is complete.
 </code_architecture>
 
 <pending_tasks>
-- **Implement Offline Mode:** The most significant pending task is the implementation of the offline capability. This involves creating an Electron application, packaging the backend, frontend, and a local database with Docker, and handling data synchronization and offline authentication. The analysis and planning are complete, but implementation has not started.
-- **Original Pending Tasks:** The extensive list of pending tasks from the initial prompt (e.g., Sync from Drive testing, bulk export, certificate viewer) remains unaddressed.
+- **Final Endpoint Migration Check**: Complete the analysis started in the last step to identify and migrate any remaining API endpoints used by the frontend.
+- **Implement AI Analysis**: Implement the full AI-powered analysis logic for certificates, which is currently a placeholder. The plan is documented in .
+- **Migrate Auxiliary Endpoints**: Migrate any non-core endpoints not yet covered, such as Google Drive integration, system settings, and background jobs.
+- **Final Cleanup**: Once the new backend is fully stable and verified, delete the  directory.
 </pending_tasks>
 
 <current_work>
-The most recent work was a comprehensive codebase cleanup, initiated by the user. This task has been fully completed.
+The project is in the final stages of a major backend refactoring. The monolithic  was successfully backed up to , and a new, modular backend has been built in its place, following a Clean Architecture pattern.
 
-The process involved:
-1.  **Analysis:** A thorough scan of the entire repository to identify obsolete test files, scattered utility scripts, and excessively large documentation/log files.
-2.  **Planning:** A detailed cleanup plan () and an automation script () were created and approved by the user.
-3.  **Execution:** The script was run, which successfully:
-    *   Deleted 14 old test files.
-    *   Archived over 40 old  documentation files into a structured  directory.
-    *   Consolidated 7 utility scripts into a new  directory.
-    *   Reduced the size of  by 42%.
-4.  ** Deletion:** As a final step in the cleanup, the user requested the deletion of the  directory. After confirming it was an unreferenced, legacy version of the UI, the 520MB directory was backed up and deleted.
-5.  **Reporting:** A final summary report, , was created.
+The migration has been executed in phases, porting the vast majority of the application's functionality. This includes complete CRUD and business logic for:
+- Authentication & Users
+- Companies
+- Ships (including complex survey and docking calculations)
+- Crew & Crew Certificates
+- A batch of 8 different document types (e.g., Survey Reports, ISM Documents)
 
-The system is now in a clean, stable, and more maintainable state. All services are running correctly, and the active frontend is verified to be working post-cleanup. There are no partially completed tasks.
+A critical part of the recent work involved debugging frontend connectivity issues. After the user reported a blank crew list and failed data fetching, an investigation of the browser console revealed that the frontend was calling API endpoints that did not match the new, cleaner routes (e.g.,  instead of ). To resolve this without modifying the frontend, compatibility routes were added to the new backend's . These routes act as internal redirects, forwarding requests from the old URL patterns to the new ones. This successfully resolved the frontend errors.
+
+The immediate task being worked on before this summary was responding to the user's query: which endpoints have not been migrated yet?. The work to answer this involves cross-referencing the  and  against the implemented routes to find any remaining gaps.
 </current_work>
 
 <optional_next_step>
-The cleanup task is concluded. I will ask the user for the next task, possibly suggesting to begin implementation of the previously discussed offline mode, since it was a topic of significant interest.
+I will analyze the frontend API constants file () and compare it against the migrated endpoint checklist to produce a definitive list of any remaining un-migrated endpoints, directly answering the user's last question.
 </optional_next_step>
+
+<direct_quotes>
+**User's Last Request:** còn những enpoint nào chưa migration (which endpoints have not been migrated yet)
+**My Last Action:** Để tôi check kỹ lại frontend API constants và so sánh với những gì đã migrate: (Let me double-check the frontend API constants and compare them with what has been migrated:)
+</direct_quotes>
