@@ -72,13 +72,13 @@ async def update_test_report(
         raise HTTPException(status_code=500, detail="Failed to update Test Report")
 
 @router.delete("/{doc_id}")
-async def delete_document(
+async def delete_test_report(
     doc_id: str,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Delete Test Report (Editor+ role required)"""
     try:
-        return await service.delete_document(doc_id, current_user)
+        return await TestReportService.delete_test_report(doc_id, current_user)
     except HTTPException:
         raise
     except Exception as e:
