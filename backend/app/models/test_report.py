@@ -27,11 +27,13 @@ class TestReportCreate(TestReportBase):
 
 class TestReportUpdate(BaseModel):
     test_report_name: Optional[str] = None
+    report_form: Optional[str] = None
     test_sample: Optional[str] = None
     test_report_no: Optional[str] = None
     issued_by: Optional[str] = None
-    issue_date: Optional[Union[str, datetime]] = None
+    issued_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None
+    status: Optional[str] = None
     notes: Optional[str] = None
     file_uploaded: Optional[bool] = None
     file_name: Optional[str] = None
