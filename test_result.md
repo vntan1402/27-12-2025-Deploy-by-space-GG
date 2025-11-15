@@ -33,6 +33,23 @@
 
 ## 🗂️ TESTING RESULTS
 
+### Missing Routes Migration from backend-v1
+
+**Status:** ⏳ IN PROGRESS
+**Date:** 2025-01-17
+
+**Routes Added:**
+- ✅ `GET /api/system-settings/base-fee` - Get system base fee
+- ✅ `PUT /api/system-settings/base-fee` - Update system base fee  
+- ✅ `POST /api/companies/{company_id}/gdrive/delete-ship-folder` - Delete ship folder from Google Drive
+
+**Remaining Work:**
+- Backend-v1 has 179 routes total
+- Need systematic migration plan for remaining routes
+- Prioritize based on frontend usage
+
+---
+
 ### Async Google Drive File Deletion System
 
 **Status:** ✅ TESTED & WORKING
