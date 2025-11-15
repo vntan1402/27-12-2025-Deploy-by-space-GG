@@ -243,10 +243,10 @@ class CertificateMultiUploadService:
             }
         
         # IMO and Ship Name Validation
-        extracted_imo = analysis_result.get('imo_number', '').strip()
-        extracted_ship_name = analysis_result.get('ship_name', '').strip()
-        current_ship_imo = ship.get('imo', '').strip()
-        current_ship_name = ship.get('name', '').strip()
+        extracted_imo = (analysis_result.get('imo_number') or '').strip()
+        extracted_ship_name = (analysis_result.get('ship_name') or '').strip()
+        current_ship_imo = (ship.get('imo') or '').strip()
+        current_ship_name = (ship.get('name') or '').strip()
         validation_note = None
         progress_message = None
         
