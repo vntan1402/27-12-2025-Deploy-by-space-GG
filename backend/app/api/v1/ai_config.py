@@ -61,3 +61,36 @@ async def create_or_update_ai_config(
     except Exception as e:
         logger.error(f"❌ Error updating AI config: {e}")
         raise HTTPException(status_code=500, detail="Failed to update AI configuration")
+
+@router.post("/test-document-ai")
+async def test_document_ai_connection(
+    test_config: dict,
+    current_user: UserResponse = Depends(check_admin_permission)
+):
+    """
+    Test Google Document AI connection (Admin+ role required)
+    """
+    try:
+        project_id = test_config.get("project_id")
+        location = test_config.get("location", "us")
+        processor_id = test_config.get("processor_id")
+        
+        if not project_id or not processor_id:
+            raise HTTPException(status_code=400, detail="Project ID and Processor ID are required")
+            
+        logger.info(f"🧪 Testing Document AI connection: Project={project_id}, Processor={processor_id}")
+        
+        # For now, return a mock success response
+        # TODO: Implement actual Document AI testing via Apps Script
+        return {
+            "success": True,
+            "message": "Document AI test endpoint available (implementation pending)",
+            "processor_name": "Test Processor",
+            "processor_type": "OCR_PROCESSOR"
+        }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Document AI test error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to test Document AI connection")
