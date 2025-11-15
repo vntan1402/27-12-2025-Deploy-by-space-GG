@@ -188,13 +188,8 @@ class CertificateService:
                 # Call AI
                 ai_response = await llm_chat.send_message(UserMessage(text=prompt))
                 
-                # Extract response text
-                if hasattr(ai_response, 'choices') and len(ai_response.choices) > 0:
-                    response_text = ai_response.choices[0].message.content
-                elif isinstance(ai_response, dict) and 'choices' in ai_response:
-                    response_text = ai_response['choices'][0]['message']['content']
-                else:
-                    response_text = str(ai_response)
+                # Extract response text (ai_response is already the text content)
+                response_text = ai_response
                 
                 logger.info(f"✅ AI response received: {len(response_text)} characters")
                 
