@@ -765,29 +765,57 @@ Example output:
                 analysis_result.get("next_survey")
             )
             
-            # Build certificate document
+            # Get cert_abbreviation with priority: User mappings → AI → Auto-generation
+            from app.utils.certificate_abbreviation import generate_certificate_abbreviation
+            cert_name = analysis_result.get("cert_name", "Unknown Certificate")
+            
+            # TODO: Implement get_user_defined_abbreviation when needed
+            # For now, use AI extraction or auto-generation
+            cert_abbreviation = analysis_result.get('cert_abbreviation')
+            if not cert_abbreviation:
+                cert_abbreviation = await generate_certificate_abbreviation(cert_name)
+                logger.info(f"⚙️ Generated abbreviation: '{cert_name}' → '{cert_abbreviation}'")
+            else:
+                logger.info(f"🤖 Using AI extracted abbreviation: '{cert_abbreviation}'")
+            
+            # Get ship info for additional fields
+            ship = await db.ships.find_one({"id": ship_id})
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            
+            # Build certificate document (match backend-v1 fields)
             cert_doc = {
                 "id": cert_id,
                 "ship_id": ship_id,
-                "cert_name": analysis_result.get("cert_name", ""),
-                "cert_no": analysis_result.get("cert_no", ""),
+                "ship_name": ship_name,
+                "extracted_ship_name": analysis_result.get("ship_name"),  # Ship name from certificate
+                "cert_name": cert_name,
+                "cert_abbreviation": cert_abbreviation,
+                "cert_no": analysis_result.get("cert_no", "Unknown"),
                 "cert_type": analysis_result.get("cert_type", "Full Term"),
                 "issue_date": issue_date_iso,
                 "valid_date": valid_date_iso,
                 "last_endorse": last_endorse_iso,
                 "next_survey": next_survey_iso,
-                "next_survey_type": analysis_result.get("next_survey_type", ""),
-                "issued_by": analysis_result.get("issued_by", ""),
-                "notes": validation_note if validation_note else analysis_result.get("notes", ""),
+                "next_survey_type": analysis_result.get("next_survey_type"),
+                "issued_by": analysis_result.get("issued_by"),
+                "notes": validation_note if validation_note else analysis_result.get("notes"),
                 "category": "certificates",
                 "sensitivity_level": "internal",
-                "created_by": current_user.email,
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "file_name": analysis_result.get("filename"),  # Original filename
+                "file_uploaded": upload_result.get("success", False),
                 "google_drive_file_id": upload_result.get("file_id"),
                 "google_drive_file_url": upload_result.get("file_url"),
-                "file_path": upload_result.get("file_path")
+                "google_drive_folder_path": upload_result.get("folder_path"),
+                "file_path": upload_result.get("file_path"),
+                "text_content": analysis_result.get("text_content"),  # For future re-analysis
+                "created_by": current_user.email,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
             }
+            
+            # Remove None values but preserve important fields
+            preserved_fields = ['extracted_ship_name', 'text_content', 'notes']
+            cert_doc = {k: v for k, v in cert_doc.items() if v is not None or k in preserved_fields}
             
             # Insert into database
             await db.certificates.insert_one(cert_doc)
