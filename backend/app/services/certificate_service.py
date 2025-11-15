@@ -277,7 +277,7 @@ class CertificateService:
             "success": True,
             "message": message,
             "deleted_count": deleted_count,
-            "files_deleted": files_deleted,
+            "files_scheduled": files_scheduled,
             "errors": errors if errors else None,
             "partial_success": len(errors) > 0 and deleted_count > 0
         }
