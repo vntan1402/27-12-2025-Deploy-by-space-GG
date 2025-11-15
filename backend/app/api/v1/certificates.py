@@ -104,13 +104,14 @@ async def delete_certificate(
 @router.post("/bulk-delete")
 async def bulk_delete_certificates(
     request: BulkDeleteRequest,
+    background_tasks: BackgroundTasks,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
-    Bulk delete certificates (Editor+ role required)
+    Bulk delete certificates with background file deletion (Editor+ role required)
     """
     try:
-        return await CertificateService.bulk_delete_certificates(request, current_user)
+        return await CertificateService.bulk_delete_certificates(request, current_user, background_tasks)
     except Exception as e:
         logger.error(f"❌ Error bulk deleting certificates: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete certificates")
