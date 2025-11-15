@@ -317,10 +317,27 @@ class CertificateService:
             
             if not text or len(text) < 50:
                 logger.warning("⚠️ Insufficient text extracted from PDF")
+                # Return fallback data for manual input
+                fallback_data = {
+                    "ship_name": "",
+                    "imo_number": "",
+                    "flag": "",
+                    "class_society": "",
+                    "gross_tonnage": "",
+                    "deadweight": "",
+                    "built_year": "",
+                    "ship_owner": "",
+                    "delivery_date": "",
+                    "ship_type": "",
+                    "confidence": 0.0,
+                    "processing_notes": [f"Could not extract text from {file.filename}. Manual input required."],
+                    "error": "Text extraction failed"
+                }
                 return {
-                    "success": False,
-                    "message": "Could not extract sufficient text from PDF. The document may be an image or heavily formatted.",
-                    "analysis": None
+                    "success": True,
+                    "message": "Could not extract text from PDF - please enter ship information manually",
+                    "analysis": fallback_data,
+                    "confidence": 0.0
                 }
             
             logger.info(f"✅ Extracted {len(text)} characters from PDF")
