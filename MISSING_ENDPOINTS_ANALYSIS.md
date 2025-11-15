@@ -228,10 +228,11 @@ GDRIVE_UPLOAD: '/api/gdrive/upload'
 5. ✅ Replace mock data với real AI analysis
 6. ⏳ Test với real certificates (NEXT)
 
-### PHASE 1C: Logo & File Uploads (15-20 min)
-1. Ship logo upload endpoint
-2. Company logo upload endpoint
-3. Certificate file operations
+### PHASE 1C: Logo & File Uploads (15-20 min) ✅ COMPLETED
+1. ✅ Ship logo upload endpoint (POST/GET /api/ships/{id}/logo)
+2. ✅ Company logo upload endpoint (POST /api/companies/{id}/upload-logo)
+3. ✅ Certificate file operations (POST /api/certificates/{id}/upload-files, GET /api/certificates/{id}/file-link)
+4. ✅ Crew certificate file operations (POST /api/crew-certificates/{id}/upload-files, GET /api/crew-certificates/{id}/file-link)
 
 ### PHASE 2: Auxiliary Features (30-45 min)
 1. Passport analysis
