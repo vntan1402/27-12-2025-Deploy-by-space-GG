@@ -90,6 +90,18 @@ class SurveyReportService:
         report_dict["id"] = str(uuid.uuid4())
         report_dict["created_at"] = datetime.now(timezone.utc)
         
+        # Normalize issued_by to abbreviation
+        if report_dict.get("issued_by"):
+            from app.utils.issued_by_abbreviation import normalize_issued_by
+            try:
+                original_issued_by = report_dict["issued_by"]
+                normalized_issued_by = normalize_issued_by(original_issued_by)
+                report_dict["issued_by"] = normalized_issued_by
+                if normalized_issued_by != original_issued_by:
+                    logger.info(f"✅ Normalized Issued By: '{original_issued_by}' → '{normalized_issued_by}'")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not normalize issued_by: {e}")
+        
         await mongo_db.create(SurveyReportService.collection_name, report_dict)
         
         logger.info(f"✅ Survey Report created: {report_dict['survey_report_name']}")
