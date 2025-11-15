@@ -34,9 +34,20 @@ class TestReportService:
             if not report.get("test_report_no") and report.get("doc_no"):
                 report["test_report_no"] = report.get("doc_no")
             
+            # Map issue_date to issued_date for backward compatibility
+            if not report.get("issued_date") and report.get("issue_date"):
+                report["issued_date"] = report.get("issue_date")
+            
+            # Map notes to notes for backward compatibility
+            if not report.get("notes") and report.get("note"):
+                report["notes"] = report.get("note")
+            
             # Set defaults if still missing
             if not report.get("test_report_name"):
                 report["test_report_name"] = "Untitled Test Report"
+            
+            if not report.get("status"):
+                report["status"] = "Valid"
             
             result.append(TestReportResponse(**report))
         
