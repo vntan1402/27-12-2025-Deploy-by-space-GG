@@ -42,14 +42,14 @@ async def get_test_report_by_id(
         logger.error(f"❌ Error fetching Test Report {doc_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Test Report")
 
-@router.post("", response_model=DocumentResponse)
-async def create_document(
-    doc_data: DocumentCreate,
+@router.post("", response_model=TestReportResponse)
+async def create_test_report(
+    report_data: TestReportCreate,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Create new Test Report (Editor+ role required)"""
     try:
-        return await service.create_document(doc_data, current_user)
+        return await TestReportService.create_test_report(report_data, current_user)
     except HTTPException:
         raise
     except Exception as e:
