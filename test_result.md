@@ -33,6 +33,29 @@
 
 ## 🗂️ TESTING RESULTS
 
+### Async Google Drive File Deletion System
+
+**Status:** ⏳ PENDING TESTING
+**Date:** 2025-01-17
+**Testing Agent:** deep_testing_backend_v2
+
+**Test Coverage Planned:**
+- Certificate deletion with background file removal ⏳
+- Audit certificate deletion with background file removal ⏳
+- Bulk deletion with background tasks ⏳
+- Retry mechanism on Drive API failure ⏳
+- Cleanup job scheduled execution ⏳
+- Error handling and logging ⏳
+
+**Implementation Details:**
+- Background deletion with tenacity retry (3 attempts, exponential backoff)
+- APScheduler cleanup job running daily at 2:00 AM
+- Only delete orphan files > 7 days old (safety threshold)
+- Updated services: CertificateService, AuditCertificateService
+- Updated routes: /api/certificates, /api/audit-certificates
+
+---
+
 ### Standby Crew Certificate Upload Feature
 
 **Status:** ✅ TESTED & WORKING
