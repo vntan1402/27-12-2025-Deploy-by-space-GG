@@ -39,6 +39,15 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
   const [showBatchResults, setShowBatchResults] = useState(false);
   const [batchResults, setBatchResults] = useState([]);
   
+  // Note tooltip state
+  const [noteTooltip, setNoteTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    width: 300,
+    content: ''
+  });
+  
   // Filters
   const [filters, setFilters] = useState({
     shipSignOn: 'all',
