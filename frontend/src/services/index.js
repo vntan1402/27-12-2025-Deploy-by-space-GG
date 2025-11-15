@@ -32,10 +32,9 @@ export * from './testReportService';
 export * from './drawingsService';
 export * from './otherDocsService';
 
-// ISM/ISPS/MLC
-export * from './ismService';
-export * from './ispsService';
-export * from './mlcService';
+// ISM/ISPS/MLC - Services removed (not used)
+// Frontend uses auditReportService for audit reports
+// and auditCertificateService for audit certificates
 
 // Users
 export * from './userService';
