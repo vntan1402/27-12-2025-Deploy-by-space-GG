@@ -28,14 +28,14 @@ async def get_test_reports(
         logger.error(f"❌ Error fetching Test Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Test Reports")
 
-@router.get("/{doc_id}", response_model=DocumentResponse)
-async def get_document_by_id(
+@router.get("/{doc_id}", response_model=TestReportResponse)
+async def get_test_report_by_id(
     doc_id: str,
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Get a specific Test Report by ID"""
     try:
-        return await service.get_document_by_id(doc_id, current_user)
+        return await TestReportService.get_test_report_by_id(doc_id, current_user)
     except HTTPException:
         raise
     except Exception as e:
