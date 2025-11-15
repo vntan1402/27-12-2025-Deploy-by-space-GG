@@ -1,5 +1,6 @@
 import uuid
 import logging
+import os
 from typing import List, Optional
 from datetime import datetime, timezone
 from fastapi import HTTPException, UploadFile
@@ -13,6 +14,8 @@ from app.models.certificate import (
 from app.models.user import UserResponse
 from app.repositories.certificate_repository import CertificateRepository
 from app.repositories.ship_repository import ShipRepository
+from app.utils.pdf_processor import PDFProcessor
+from app.utils.ai_helper import AIHelper
 
 logger = logging.getLogger(__name__)
 
