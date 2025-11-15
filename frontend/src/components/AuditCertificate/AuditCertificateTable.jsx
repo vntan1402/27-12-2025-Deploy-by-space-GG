@@ -283,6 +283,7 @@ export const AuditCertificateTable = ({
                 <td 
                   className="border border-gray-300 px-4 py-2"
                   title={cert.cert_name}
+                  style={{ cursor: 'help' }}
                 >
                   <div className="flex items-center gap-2">
                     {/* Certificate Name/Abbreviation */}
