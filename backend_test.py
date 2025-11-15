@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for AI Configuration & Certificate Analysis
-Tests the newly implemented AI Configuration and Real Certificate Analysis features.
+Backend Testing Script for Async Google Drive File Deletion System
+Tests the newly implemented async file deletion with retry mechanism and cleanup job.
 """
 
 import requests
 import json
 import os
 import sys
+import time
+import asyncio
 from pathlib import Path
 
 # Configuration
