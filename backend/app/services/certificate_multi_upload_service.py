@@ -463,6 +463,7 @@ CRITICAL: You MUST extract and return a JSON object with ALL these fields.
   "text_content": "{text[:500][:500]}",
   
   "cert_name": "Full certificate name (e.g., 'Cargo Ship Safety Construction Certificate', 'Load Line Certificate')",
+  "cert_abbreviation": "Certificate abbreviation if visible (e.g., 'CSSC', 'LLC', 'IOPP'). Look for abbreviated forms near the title or in headers.",
   "cert_no": "Certificate number (alphanumeric)",
   "cert_type": "Full Term or Short Term or Interim",
   "issue_date": "Issue date in DD/MM/YYYY format (e.g., 15/01/2023)",
