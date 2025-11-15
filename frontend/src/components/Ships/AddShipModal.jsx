@@ -240,6 +240,12 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
           keel_laid: formatDateForInput(analysisData.keel_laid) || '',
           ship_owner: analysisData.ship_owner || '',
           
+          // Ship Dimensions (newly added)
+          length_overall: analysisData.length_overall ? String(analysisData.length_overall) : '',
+          breadth: analysisData.breadth ? String(analysisData.breadth) : '',
+          depth: analysisData.depth ? String(analysisData.depth) : '',
+          place_of_build: analysisData.place_of_build || '',
+          
           // Docking Information
           last_docking: formatLastDockingForDisplay(analysisData.last_docking) || '',
           last_docking_2: formatLastDockingForDisplay(analysisData.last_docking_2) || '', 
