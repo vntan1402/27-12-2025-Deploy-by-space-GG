@@ -185,10 +185,16 @@ EXAMPLE OUTPUT FORMAT:
         for field in ["cert_name", "cert_no", "issue_date", "valid_date"]:
             validated[field] = data.get(field)
         
-        # Optional fields
+        # Optional fields - ALL ship and certificate fields
         for field in ["cert_type", "last_endorse", "issued_by", "ship_name", 
                      "imo_number", "flag", "class_society", "built_year",
-                     "gross_tonnage", "deadweight"]:
+                     "gross_tonnage", "deadweight",
+                     # Ship-specific fields
+                     "ship_type", "ship_owner", "delivery_date", "keel_laid",
+                     "place_of_build", "length_overall", "breadth", "depth",
+                     # Docking and survey fields
+                     "last_docking", "last_docking_2", "next_docking",
+                     "special_survey_from_date", "special_survey_to_date"]:
             value = data.get(field)
             validated[field] = value if value and str(value).lower() not in ["null", "none", ""] else None
         
