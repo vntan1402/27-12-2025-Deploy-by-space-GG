@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 # Configuration
-BACKEND_URL = "https://maritime-docs-2.preview.emergentagent.com/api"
+BACKEND_URL = "https://python-cleanarch.preview.emergentagent.com/api"
 TEST_USERNAME = "admin1"
 TEST_PASSWORD = "123456"
 
