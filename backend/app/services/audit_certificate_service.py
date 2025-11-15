@@ -27,7 +27,7 @@ class AuditCertificateService:
         
         certs = await mongo_db.find_all(AuditCertificateService.collection_name, filters)
         
-        # Handle backward compatibility
+        # Handle backward compatibility and enhance with abbreviations
         result = []
         for cert in certs:
             if not cert.get("cert_name") and cert.get("doc_name"):
@@ -44,6 +44,10 @@ class AuditCertificateService:
             
             if not cert.get("status"):
                 cert["status"] = "Valid"
+            
+            # Generate certificate abbreviation if not present
+            if not cert.get("cert_abbreviation") and cert.get("cert_name"):
+                cert["cert_abbreviation"] = await generate_certificate_abbreviation(cert.get("cert_name"))
             
             result.append(AuditCertificateResponse(**cert))
         
