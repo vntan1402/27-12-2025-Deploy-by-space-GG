@@ -33,6 +33,9 @@ api_router.include_router(ai_config.router, prefix="/ai-config", tags=["ai-confi
 # Utilities router
 api_router.include_router(utilities.router, prefix="/utilities", tags=["utilities"])
 
+# Google Drive router
+api_router.include_router(gdrive.router, prefix="/gdrive", tags=["google-drive"])
+
 # IMPORTANT: Frontend compatibility routes
 # Frontend calls various endpoints differently than our clean architecture
 # We create aliases here for backward compatibility
