@@ -30,7 +30,15 @@ class CertificateService:
         
         # TODO: Add access control based on user's company
         
-        return [CertificateResponse(**cert) for cert in certificates]
+        # Enhance certificates with abbreviations
+        enhanced_certs = []
+        for cert in certificates:
+            # Generate certificate abbreviation if not present
+            if not cert.get("cert_abbreviation") and cert.get("cert_name"):
+                cert["cert_abbreviation"] = await generate_certificate_abbreviation(cert.get("cert_name"))
+            enhanced_certs.append(CertificateResponse(**cert))
+        
+        return enhanced_certs
     
     @staticmethod
     async def get_certificate_by_id(cert_id: str, current_user: UserResponse) -> CertificateResponse:
