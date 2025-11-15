@@ -74,6 +74,30 @@ CRITICAL EXTRACTION RULES:
 6. **If field not found**: Use null (not empty string)
 
 Return ONLY the JSON object, no markdown code blocks, no explanation.
+
+EXAMPLE OUTPUT FORMAT:
+{{
+  "ship_name": "M.V. SUNSHINE EXPRESS",
+  "imo_number": "9876543",
+  "flag": "PANAMA",
+  "class_society": "Lloyd's Register",
+  "built_year": "2019",
+  "ship_owner": "ABC Shipping Co., Ltd.",
+  "ship_type": "Bulk Carrier",
+  "gross_tonnage": "25000",
+  "deadweight": "45000",
+  "length_overall": "180",
+  "breadth": "32",
+  "depth": "18",
+  "keel_laid": "MAY 04, 2018",
+  "delivery_date": "JANUARY 15, 2019",
+  "place_of_build": "Hyundai Heavy Industries",
+  "last_docking": "28/07/2025",
+  "last_docking_2": "09/08/2023",
+  "next_docking": "07/2027",
+  "special_survey_from_date": "15/01/2024",
+  "special_survey_to_date": "15/01/2029"
+}}
 """
         return prompt
     
