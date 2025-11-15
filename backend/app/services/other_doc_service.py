@@ -30,11 +30,17 @@ class OtherDocumentService:
             if not doc.get("document_name") and doc.get("doc_name"):
                 doc["document_name"] = doc.get("doc_name")
             
-            if not doc.get("document_no") and doc.get("doc_no"):
-                doc["document_no"] = doc.get("doc_no")
+            if not doc.get("date") and doc.get("issue_date"):
+                doc["date"] = doc.get("issue_date")
+            
+            if not doc.get("note") and doc.get("notes"):
+                doc["note"] = doc.get("notes")
             
             if not doc.get("document_name"):
                 doc["document_name"] = "Untitled Document"
+            
+            if not doc.get("status"):
+                doc["status"] = "Unknown"
             
             result.append(OtherDocumentResponse(**doc))
         
