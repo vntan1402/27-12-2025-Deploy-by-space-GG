@@ -96,6 +96,11 @@ class CertificateService:
             cert_dict["cert_abbreviation"] = await generate_certificate_abbreviation(cert_dict.get("cert_name"))
             logger.info(f"✅ Generated cert abbreviation: '{cert_dict['cert_name']}' → '{cert_dict['cert_abbreviation']}'")
         
+        # Generate organization abbreviation for issued_by
+        if cert_dict.get("issued_by"):
+            cert_dict["issued_by_abbreviation"] = generate_organization_abbreviation(cert_dict.get("issued_by"))
+            logger.info(f"✅ Generated issued_by abbreviation: '{cert_dict['issued_by']}' → '{cert_dict['issued_by_abbreviation']}'")
+        
         await CertificateRepository.create(cert_dict)
         
         logger.info(f"✅ Certificate created: {cert_dict['cert_name']}")
