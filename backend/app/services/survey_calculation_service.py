@@ -12,6 +12,110 @@ class SurveyCalculationService:
     """Service for calculating Next Survey dates based on IMO regulations"""
     
     @staticmethod
+    def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
+        """
+        Calculate Next Survey and Next Survey Type for Audit Certificates (ISM/ISPS/MLC)
+        
+        Logic:
+        1. Interim: Next Survey = Valid Date - 3M, Type = "Initial"
+        2. Short Term: Next Survey = N/A, Type = N/A
+        3. Full Term:
+           - If has Last Endorse: Next Survey = Valid Date - 3M, Type = "Renewal"
+           - If no Last Endorse: Next Survey = Valid Date - 2 years, Type = "Intermediate"
+        4. Special documents (DMLC I, DMLC II, SSP): Next Survey = N/A, Type = N/A
+        """
+        try:
+            from dateutil.relativedelta import relativedelta
+            
+            # Extract certificate information
+            cert_name = (certificate_data.get('cert_name') or '').upper()
+            cert_type = (certificate_data.get('cert_type') or '').upper()
+            valid_date = certificate_data.get('valid_date')
+            last_endorse = certificate_data.get('last_endorse')
+            current_date = datetime.now(timezone.utc)
+            
+            # Parse valid_date
+            valid_dt = SurveyCalculationService._parse_date(valid_date)
+            
+            # Rule: No valid date = no Next Survey
+            if not valid_dt:
+                return {
+                    'next_survey': None,
+                    'next_survey_type': None,
+                    'reasoning': 'No valid date available'
+                }
+            
+            # Rule 4: Special documents (DMLC I, DMLC II, SSP) = N/A
+            special_docs = ['DMLC I', 'DMLC II', 'DMLC PART I', 'DMLC PART II', 'SSP', 'SHIP SECURITY PLAN']
+            if any(doc in cert_name for doc in special_docs):
+                return {
+                    'next_survey': None,
+                    'next_survey_type': None,
+                    'reasoning': f'{cert_name} does not require Next Survey calculation'
+                }
+            
+            # Rule 2: Short Term = N/A
+            if 'SHORT' in cert_type or 'SHORT TERM' in cert_type:
+                return {
+                    'next_survey': None,
+                    'next_survey_type': None,
+                    'reasoning': 'Short Term certificates do not require Next Survey'
+                }
+            
+            # Rule 1: Interim = Valid Date - 3M, Type = "Initial"
+            if 'INTERIM' in cert_type:
+                next_survey_date = valid_dt - relativedelta(months=3)
+                return {
+                    'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
+                    'next_survey_type': 'Initial',
+                    'reasoning': 'Interim certificate: Next Survey = Valid Date - 3 months',
+                    'raw_date': next_survey_date.strftime('%d/%m/%Y'),
+                    'window_months': 3
+                }
+            
+            # Rule 3: Full Term certificates
+            if 'FULL' in cert_type or 'FULL TERM' in cert_type or cert_type == 'FULL TERM':
+                # Parse last_endorse if exists
+                last_endorse_dt = SurveyCalculationService._parse_date(last_endorse)
+                
+                # Priority 1: Check Last Endorse
+                if last_endorse_dt:
+                    # Has Last Endorse → Renewal
+                    next_survey_date = valid_dt - relativedelta(months=3)
+                    return {
+                        'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
+                        'next_survey_type': 'Renewal',
+                        'reasoning': 'Full Term with Last Endorse: Next Survey = Valid Date - 3 months (Renewal)',
+                        'raw_date': next_survey_date.strftime('%d/%m/%Y'),
+                        'window_months': 3
+                    }
+                else:
+                    # No Last Endorse → Intermediate
+                    intermediate_date = valid_dt - relativedelta(years=2)
+                    return {
+                        'next_survey': intermediate_date.strftime('%d/%m/%Y') + ' (±3M)',
+                        'next_survey_type': 'Intermediate',
+                        'reasoning': 'Full Term without Last Endorse: Next Survey = Valid Date - 2 years (Intermediate)',
+                        'raw_date': intermediate_date.strftime('%d/%m/%Y'),
+                        'window_months': 3
+                    }
+            
+            # Default: Cannot determine
+            return {
+                'next_survey': None,
+                'next_survey_type': None,
+                'reasoning': f'Cannot determine Next Survey for cert_type: {cert_type}'
+            }
+            
+        except Exception as e:
+            logger.error(f"Error calculating audit certificate next survey: {e}")
+            return {
+                'next_survey': None,
+                'next_survey_type': None,
+                'reasoning': f'Error in calculation: {str(e)}'
+            }
+    
+    @staticmethod
     def _parse_date(date_value: Any) -> Optional[datetime]:
         """Parse date from various formats"""
         if not date_value:
