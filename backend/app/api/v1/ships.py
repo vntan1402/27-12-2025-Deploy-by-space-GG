@@ -269,7 +269,7 @@ async def update_ship_next_survey(
                         # Parse dd/MM/yyyy format and convert to ISO datetime
                         from datetime import datetime
                         parsed_date = datetime.strptime(survey_info['raw_date'], '%d/%m/%Y')
-                        update_data['next_survey'] = parsed_date.isoformat()
+                        update_data['next_survey'] = parsed_date.isoformat() + 'Z'  # Add Z for UTC (backend-v1 format)
                     except:
                         update_data['next_survey'] = None
                 else:
