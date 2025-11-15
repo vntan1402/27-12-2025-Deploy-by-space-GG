@@ -91,6 +91,11 @@ class TestReportService:
         report_dict["id"] = str(uuid.uuid4())
         report_dict["created_at"] = datetime.now(timezone.utc)
         
+        # Handle note/notes field - frontend sends 'note', backend stores 'notes'
+        if "note" in report_dict and report_dict["note"] is not None:
+            report_dict["notes"] = report_dict.pop("note")
+            logger.debug(f"Mapped 'note' to 'notes' field")
+        
         # Normalize issued_by to abbreviation
         if report_dict.get("issued_by"):
             from app.utils.issued_by_abbreviation import normalize_issued_by
