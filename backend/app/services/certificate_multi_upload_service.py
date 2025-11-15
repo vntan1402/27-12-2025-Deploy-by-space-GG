@@ -13,8 +13,10 @@ from fastapi import UploadFile, HTTPException, BackgroundTasks
 from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.models.user import UserResponse, UserRole
-from app.core.database import get_database
+from app.db.mongodb import get_db
 from app.services.ai_config_service import AIConfigService
+from app.repositories.ship_repository import ShipRepository
+from app.repositories.certificate_repository import CertificateRepository
 
 logger = logging.getLogger(__name__)
 
