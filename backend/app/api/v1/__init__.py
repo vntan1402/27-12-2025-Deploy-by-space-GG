@@ -20,6 +20,7 @@ api_router.include_router(crew.router, prefix="/crew", tags=["crew"])
 api_router.include_router(crew_certificates.router, prefix="/crew-certificates", tags=["crew-certificates"])
 api_router.include_router(system_settings.router, prefix="/system-settings", tags=["system-settings"])
 api_router.include_router(ships_analysis.router, prefix="", tags=["ships-analysis"])
+api_router.include_router(sidebar.router, prefix="", tags=["sidebar"])
 
 # Document type routers
 api_router.include_router(survey_reports.router, prefix="/survey-reports", tags=["survey-reports"])
