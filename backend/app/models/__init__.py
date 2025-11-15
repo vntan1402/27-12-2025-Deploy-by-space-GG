@@ -8,6 +8,12 @@ from app.models.user import (
     LoginRequest,
     LoginResponse
 )
+from app.models.company import (
+    CompanyBase,
+    CompanyCreate,
+    CompanyUpdate,
+    CompanyResponse
+)
 
 __all__ = [
     "UserRole",
@@ -17,5 +23,9 @@ __all__ = [
     "UserUpdate",
     "UserResponse",
     "LoginRequest",
-    "LoginResponse"
+    "LoginResponse",
+    "CompanyBase",
+    "CompanyCreate",
+    "CompanyUpdate",
+    "CompanyResponse"
 ]
