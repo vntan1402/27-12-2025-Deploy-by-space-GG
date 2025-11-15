@@ -423,8 +423,13 @@ class CertificateMultiUploadService:
             # Call AI
             ai_response = await llm_chat.send_message(UserMessage(text=prompt))
             
+            logger.info(f"📥 AI Response for {filename}: {ai_response[:500]}")
+            
             # Parse response
             cert_data = AIHelper.parse_ai_response(ai_response)
+            
+            logger.info(f"📊 Parsed cert_data keys: {list(cert_data.keys()) if cert_data else 'None'}")
+            logger.info(f"📊 Category value: {cert_data.get('category') if cert_data else 'None'}")
             
             if not cert_data:
                 return {"category": "unknown", "confidence": 0.0}
