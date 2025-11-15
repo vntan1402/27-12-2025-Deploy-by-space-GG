@@ -320,16 +320,22 @@ async def get_upcoming_surveys(
                     date_str = date_match.group(1)
                     next_survey_date = datetime.strptime(date_str, '%d/%m/%Y').date()
                 
-                # Determine window (default ±3 months)
-                window_months = 3
-                if '(-3M)' in next_survey_str or '(-3M' in next_survey_str:
-                    # Special Survey: only before
-                    window_open = next_survey_date - timedelta(days=90)
+                # Determine window based on annotation
+                from dateutil.relativedelta import relativedelta
+                
+                if '(±3M)' in next_survey_str or '(+3M)' in next_survey_str or '(+-3M)' in next_survey_str:
+                    # Window: Next Survey ± 3M
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date + relativedelta(months=3)
+                elif '(-3M)' in next_survey_str:
+                    # Window: Next Survey - 3M → Next Survey (only before)
+                    window_open = next_survey_date - relativedelta(months=3)
                     window_close = next_survey_date
                 else:
-                    # Annual/Intermediate: ±3M
-                    window_open = next_survey_date - timedelta(days=90)
-                    window_close = next_survey_date + timedelta(days=90)
+                    # No annotation found - DEFAULT to (-3M) for safety (backend-v1 logic)
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date
+                    logger.debug(f"Certificate {cert.get('id')} has no annotation - using default (-3M) window")
                 
                 # Check if current date is WITHIN window (backend-v1 logic)
                 if not (window_open <= current_date <= window_close):
