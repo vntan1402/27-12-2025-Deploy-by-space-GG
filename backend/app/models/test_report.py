@@ -34,7 +34,8 @@ class TestReportUpdate(BaseModel):
     issued_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None
     status: Optional[str] = None
-    notes: Optional[str] = None
+    note: Optional[str] = None  # Frontend sends 'note' (singular)
+    notes: Optional[str] = None  # Backend stores 'notes' (plural) for backward compatibility
     file_uploaded: Optional[bool] = None
     file_name: Optional[str] = None
     file_size: Optional[int] = None
