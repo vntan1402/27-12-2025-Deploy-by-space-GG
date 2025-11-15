@@ -210,10 +210,13 @@ const OtherDocumentsTable = ({ selectedShip }) => {
   // Handle context menu
   const handleContextMenu = (e, document) => {
     e.preventDefault();
+    
+    const { x, y } = calculateContextMenuPosition(e, 200, 350);
+    
     setContextMenu({
       show: true,
-      x: e.clientX,
-      y: e.clientY,
+      x: x,
+      y: y,
       document: document
     });
     setShowStatusSubmenu(true);
