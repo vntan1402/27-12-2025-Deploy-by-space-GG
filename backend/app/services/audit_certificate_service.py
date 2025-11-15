@@ -180,17 +180,55 @@ class AuditCertificateService:
         return AuditCertificateResponse(**updated_cert)
     
     @staticmethod
-    async def delete_audit_certificate(cert_id: str, current_user: UserResponse) -> dict:
-        """Delete audit certificate"""
+    async def delete_audit_certificate(
+        cert_id: str, 
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
+        """Delete audit certificate and schedule Google Drive file deletion"""
         cert = await mongo_db.find_one(AuditCertificateService.collection_name, {"id": cert_id})
         if not cert:
             raise HTTPException(status_code=404, detail="Audit Certificate not found")
         
+        # Extract file info before deleting
+        google_drive_file_id = cert.get("google_drive_file_id")
+        cert_name = cert.get("cert_name", "Unknown")
+        
+        # Delete from database immediately
         await mongo_db.delete(AuditCertificateService.collection_name, {"id": cert_id})
+        logger.info(f"✅ Audit Certificate deleted from DB: {cert_id} ({cert_name})")
         
-        logger.info(f"✅ Audit Certificate deleted: {cert_id}")
+        # Schedule Google Drive file deletion in background
+        if google_drive_file_id and background_tasks:
+            ship_id = cert.get("ship_id")
+            if ship_id:
+                from app.repositories.ship_repository import ShipRepository
+                ship = await ShipRepository.find_by_id(ship_id)
+                if ship:
+                    company_id = ship.get("company")
+                    if company_id:
+                        from app.services.gdrive_service import GDriveService
+                        background_tasks.add_task(
+                            delete_file_background,
+                            google_drive_file_id,
+                            company_id,
+                            "audit_certificate",
+                            cert_name,
+                            GDriveService
+                        )
+                        logger.info(f"📋 Scheduled background deletion for audit certificate file: {google_drive_file_id}")
+                        
+                        return {
+                            "success": True,
+                            "message": "Audit Certificate deleted successfully. File deletion in progress...",
+                            "background_deletion": True
+                        }
         
-        return {"message": "Audit Certificate deleted successfully"}
+        return {
+            "success": True,
+            "message": "Audit Certificate deleted successfully",
+            "background_deletion": False
+        }
     
     @staticmethod
     async def bulk_delete_audit_certificates(request: BulkDeleteAuditCertificateRequest, current_user: UserResponse) -> dict:
