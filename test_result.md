@@ -33,6 +33,51 @@
 
 ## 🗂️ TESTING RESULTS
 
+### Ship Deletion with Google Drive Integration Fix
+
+**Status:** ✅ FIXED (Pending User Testing)
+**Date:** 2025-01-15
+**Files:** 
+- `/app/frontend/src/services/shipService.js`
+- `/app/frontend/src/pages/CrewRecords.jsx`
+
+**Issue:**
+- Khi xóa tàu với option "xóa cả folder Google Drive", frontend gọi 2 API riêng biệt:
+  1. `shipService.delete(shipId)` - xóa tàu trong database
+  2. `/api/companies/{companyId}/gdrive/delete-ship-folder` - xóa folder GDrive
+- Nếu bước 2 gặp lỗi, hiển thị: "Đã xóa dữ liệu tàu nhưng có lỗi khi xóa folder Google Drive"
+- Logic phức tạp với async IIFE và error handling không tối ưu
+
+**Root Cause:**
+- Backend đã có sẵn endpoint `DELETE /api/ships/{ship_id}?delete_google_drive_folder=true` xử lý cả 2 operations
+- Frontend không sử dụng endpoint này mà tự implement logic riêng
+- Dẫn đến duplicate code và error handling không consistent
+
+**Fix Implemented:**
+1. **shipService.js:** Cập nhật method `delete()` để hỗ trợ parameter `deleteGoogleDriveFolder`
+   - `delete: async (shipId, deleteGoogleDriveFolder = false)`
+   - Pass parameter qua query params: `?delete_google_drive_folder=true`
+2. **CrewRecords.jsx:** Đơn giản hóa `handleDeleteShip()`
+   - Gọi 1 API duy nhất: `await shipService.delete(shipId, deleteWithGDrive)`
+   - Backend xử lý cả database và GDrive deletion
+   - Parse response để hiển thị status chính xác cho user
+   - Better error messages with details từ backend
+
+**Benefits:**
+- ✅ Single API call thay vì 2 calls riêng biệt
+- ✅ Backend xử lý logic phức tạp, frontend chỉ hiển thị kết quả
+- ✅ Error handling consistent và dễ debug
+- ✅ Giảm code complexity ở frontend
+- ✅ Response rõ ràng hơn: database_deletion status + google_drive_deletion status
+
+**Needs Testing:**
+- Test xóa tàu WITHOUT Google Drive deletion option → Should work as before
+- Test xóa tàu WITH Google Drive deletion option → Should show clear success/warning messages
+- Test khi Google Drive config missing → Should show appropriate warning message
+- Verify error messages hiển thị đúng context
+
+---
+
 ### Last Docking 1 & 2 Date Display Fix in Edit Ship Modal
 
 **Status:** ✅ FIXED (Pending User Testing)
