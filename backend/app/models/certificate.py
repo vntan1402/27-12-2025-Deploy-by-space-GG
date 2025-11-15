@@ -5,6 +5,7 @@ from datetime import datetime
 class CertificateBase(BaseModel):
     ship_id: str
     cert_name: str
+    cert_abbreviation: Optional[str] = None  # Certificate abbreviation
     cert_type: Optional[str] = None  # Full Term, Interim, Provisional, Short term, Conditional, Other
     cert_no: Optional[str] = None
     issue_date: Optional[datetime] = None
