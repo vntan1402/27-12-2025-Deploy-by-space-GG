@@ -203,3 +203,112 @@ async def delete_ship_folder_from_gdrive(
     except Exception as e:
         logger.error(f"❌ Error deleting ship folder from Google Drive: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to delete ship folder: {str(e)}")
+
+@router.get("/{company_id}/gdrive/config")
+async def get_company_gdrive_config(
+    company_id: str,
+    current_user: UserResponse = Depends(check_admin_permission)
+):
+    """
+    Get Google Drive configuration for specific company (Admin only)
+    """
+    try:
+        from app.db.mongodb import mongo_db
+        
+        # Check if company exists
+        company = await CompanyService.get_company_by_id(company_id, current_user)
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Get company-specific Google Drive config
+        config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+        
+        if config:
+            return {
+                "success": True,
+                "config": {
+                    "web_app_url": config.get("web_app_url", ""),
+                    "folder_id": config.get("folder_id", ""),
+                    "auth_method": config.get("auth_method", "apps_script"),
+                    "service_account_email": config.get("service_account_email", ""),
+                    "project_id": config.get("project_id", "")
+                },
+                "company_name": company.name_en if hasattr(company, 'name_en') else "Unknown"
+            }
+        else:
+            # Return empty config for new setup
+            return {
+                "success": True,
+                "config": {
+                    "web_app_url": "",
+                    "folder_id": "",
+                    "auth_method": "apps_script",
+                    "service_account_email": "",
+                    "project_id": ""
+                },
+                "company_name": company.name_en if hasattr(company, 'name_en') else "Unknown"
+            }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error fetching company Google Drive config: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch configuration")
+
+@router.post("/{company_id}/gdrive/configure-proxy")
+async def configure_company_gdrive_proxy(
+    company_id: str,
+    config_data: dict,
+    current_user: UserResponse = Depends(check_admin_permission)
+):
+    """
+    Configure company Google Drive (Admin only) - Frontend compatibility
+    """
+    try:
+        from app.db.mongodb import mongo_db
+        
+        # Check if company exists
+        company = await CompanyService.get_company_by_id(company_id, current_user)
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        # Extract configuration data
+        web_app_url = config_data.get("web_app_url", "")
+        folder_id = config_data.get("folder_id", "")
+        auth_method = config_data.get("auth_method", "apps_script")
+        
+        if not web_app_url or not folder_id:
+            raise HTTPException(status_code=400, detail="web_app_url and folder_id are required")
+        
+        # Upsert company Google Drive config
+        from datetime import datetime, timezone
+        config_doc = {
+            "company_id": company_id,
+            "web_app_url": web_app_url,
+            "folder_id": folder_id,
+            "auth_method": auth_method,
+            "service_account_email": config_data.get("service_account_email", ""),
+            "project_id": config_data.get("project_id", ""),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": current_user.id
+        }
+        
+        await mongo_db.update(
+            "company_gdrive_config",
+            {"company_id": company_id},
+            config_doc,
+            upsert=True
+        )
+        
+        logger.info(f"✅ Google Drive config updated for company {company_id}")
+        
+        return {
+            "success": True,
+            "message": "Google Drive configuration saved successfully"
+        }
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error configuring company Google Drive: {e}")
+        raise HTTPException(status_code=500, detail="Failed to configure Google Drive")
