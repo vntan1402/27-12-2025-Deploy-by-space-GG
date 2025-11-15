@@ -324,7 +324,7 @@ class BackendTester:
     
     def run_all_tests(self):
         """Run all tests"""
-        print("🧪 Starting Backend Testing for AI Configuration & Certificate Analysis")
+        print("🧪 Starting Backend Testing for Async Google Drive File Deletion System")
         print("=" * 80)
         
         # Authentication is required for all tests
@@ -332,16 +332,27 @@ class BackendTester:
             print("\n❌ Authentication failed. Cannot proceed with tests.")
             return False
         
-        # Run AI Configuration tests
-        self.test_ai_config_get()
-        self.test_ai_config_update()
+        # Get test data
+        ships = self.get_test_ships()
+        if not ships:
+            print("\n❌ No ships found for testing. Cannot proceed.")
+            return False
         
-        # Run Certificate Analysis tests
-        self.test_certificate_analyze_file()
-        self.test_certificate_analyze_with_ship_id()
+        # Run Async Deletion tests
+        self.test_certificate_deletion_with_background_tasks(ships[0])
+        self.test_audit_certificate_deletion_with_background_tasks(ships[0])
+        self.test_bulk_certificate_deletion(ships[0])
+        self.test_bulk_audit_certificate_deletion(ships[0])
         
         # Run Error Handling tests
-        self.test_error_handling()
+        self.test_delete_nonexistent_certificate()
+        self.test_delete_certificate_without_file_id(ships[0])
+        
+        # Run Cleanup Service tests
+        self.test_cleanup_service_report()
+        
+        # Run Scheduler tests
+        self.test_scheduler_verification()
         
         # Print summary
         self.print_summary()
