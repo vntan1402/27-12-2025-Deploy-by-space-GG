@@ -7,6 +7,7 @@ class AuditCertificateBase(BaseModel):
     ship_id: str
     cert_name: str
     cert_type: Optional[str] = None  # ISM, ISPS, MLC, etc.
+    cert_abbreviation: Optional[str] = None  # Certificate abbreviation
     cert_no: Optional[str] = None
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None
