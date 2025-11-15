@@ -282,11 +282,28 @@ export const CertificateTable = ({
                   </div>
                 </td>
                 <td 
-                  className="border border-gray-300 px-4 py-2 font-mono font-bold text-blue-600"
+                  className="border border-gray-300 px-4 py-2"
                   title={cert.cert_name}
-                  style={{ cursor: 'help' }}
                 >
-                  {cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A'}
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-blue-600" style={{ cursor: 'help' }}>
+                      {cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A'}
+                    </span>
+                    
+                    {/* Original File Icon (📄 green) */}
+                    {cert.google_drive_file_id && (
+                      <span
+                        className="text-green-500 text-xs cursor-pointer hover:text-green-600"
+                        title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`https://drive.google.com/file/d/${cert.google_drive_file_id}/view`, '_blank');
+                        }}
+                      >
+                        📄
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
                   <span className={`px-2 py-1 rounded text-xs font-medium ${
