@@ -245,6 +245,145 @@ async def get_certificate_file_link(
         raise HTTPException(status_code=500, detail="Failed to get file link")
 
 
+
+@router.get("/upcoming-surveys")
+async def get_upcoming_surveys(
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get upcoming surveys with annotation-based window logic
+    Simplified version migrated from backend-v1
+    """
+    from datetime import datetime, timedelta
+    from app.db.mongodb import mongo_db
+    import re
+    
+    try:
+        user_company = current_user.company
+        logger.info(f"🔍 Checking upcoming surveys for company: {user_company}")
+        
+        # Get company record
+        company_record = await mongo_db.database.companies.find_one({"id": user_company})
+        company_name = None
+        if company_record:
+            company_name = company_record.get('name_en') or company_record.get('name_vn')
+        
+        # Get all ships by company ID or name
+        ships_query = {"$or": [{"company": user_company}]}
+        if company_name:
+            ships_query["$or"].append({"company": company_name})
+        
+        ships = await mongo_db.database.ships.find(ships_query).to_list(length=1000)
+        ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
+        
+        logger.info(f"🚢 Found {len(ships)} ships for company")
+        
+        if not ship_ids:
+            return {
+                "upcoming_surveys": [],
+                "total_count": 0,
+                "company": user_company,
+                "check_date": datetime.now().date().isoformat()
+            }
+        
+        # Get all certificates from these ships
+        all_certificates = await mongo_db.database.certificates.find(
+            {"ship_id": {"$in": ship_ids}}
+        ).to_list(length=10000)
+        
+        logger.info(f"📄 Found {len(all_certificates)} total certificates to check")
+        
+        current_date = datetime.now().date()
+        upcoming_surveys = []
+        
+        for cert in all_certificates:
+            try:
+                # Get Next Survey Display field
+                next_survey_display = cert.get('next_survey_display') or cert.get('next_survey')
+                
+                if not next_survey_display:
+                    continue
+                
+                # Parse date (dd/mm/yyyy format or ISO)
+                next_survey_str = str(next_survey_display)
+                date_match = re.search(r'(\d{2}/\d{2}/\d{4})', next_survey_str)
+                
+                if not date_match:
+                    # Try ISO format
+                    date_match_alt = re.search(r'(\d{4}-\d{2}-\d{2})', next_survey_str)
+                    if date_match_alt:
+                        date_str = date_match_alt.group(1)
+                        next_survey_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                    else:
+                        continue
+                else:
+                    date_str = date_match.group(1)
+                    next_survey_date = datetime.strptime(date_str, '%d/%m/%Y').date()
+                
+                # Determine window (default ±3 months)
+                window_months = 3
+                if '(-3M)' in next_survey_str or '(-3M' in next_survey_str:
+                    # Special Survey: only before
+                    window_open = next_survey_date - timedelta(days=90)
+                    window_close = next_survey_date
+                else:
+                    # Annual/Intermediate: ±3M
+                    window_open = next_survey_date - timedelta(days=90)
+                    window_close = next_survey_date + timedelta(days=90)
+                
+                # Check if survey is upcoming (within window or past due)
+                days_until_window_close = (window_close - current_date).days
+                
+                if days_until_window_close < 0:
+                    status = "overdue"
+                elif days_until_window_close <= 30:
+                    status = "critical"
+                elif days_until_window_close <= 90:
+                    status = "upcoming"
+                else:
+                    continue  # Not upcoming yet
+                
+                # Get ship info
+                ship = next((s for s in ships if s.get('id') == cert.get('ship_id')), None)
+                
+                upcoming_surveys.append({
+                    "cert_id": cert.get("id"),
+                    "cert_name": cert.get("cert_name"),
+                    "cert_type": cert.get("cert_type"),
+                    "cert_no": cert.get("cert_no"),
+                    "ship_id": cert.get("ship_id"),
+                    "ship_name": ship.get("name") if ship else "Unknown",
+                    "next_survey": next_survey_str,
+                    "next_survey_date": next_survey_date.isoformat(),
+                    "next_survey_type": cert.get("next_survey_type"),
+                    "window_open": window_open.isoformat(),
+                    "window_close": window_close.isoformat(),
+                    "days_until_window_close": days_until_window_close,
+                    "status": status
+                })
+                
+            except Exception as e:
+                logger.warning(f"Error processing certificate {cert.get('id')}: {e}")
+                continue
+        
+        # Sort by days_until_window_close (most urgent first)
+        upcoming_surveys.sort(key=lambda x: x["days_until_window_close"])
+        
+        logger.info(f"✅ Found {len(upcoming_surveys)} upcoming surveys")
+        
+        return {
+            "upcoming_surveys": upcoming_surveys,
+            "total_count": len(upcoming_surveys),
+            "company": user_company,
+            "company_name": company_name,
+            "check_date": current_date.isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error checking upcoming surveys: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to check upcoming surveys: {str(e)}")
+
+
 @router.post("/multi-upload")
 async def multi_certificate_upload(
     ship_id: str = Query(..., description="Ship ID for certificate upload"),
