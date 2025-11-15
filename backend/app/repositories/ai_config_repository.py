@@ -66,13 +66,13 @@ class AIConfigRepository:
             update_dict["updated_at"] = datetime.utcnow()
             update_dict["updated_by"] = user_id
             
-            result = await mongo_db.update_one(
+            success = await mongo_db.update(
                 AIConfigRepository.collection_name,
                 {"company": company},
-                {"$set": update_dict}
+                update_dict
             )
             
-            if result.modified_count > 0:
+            if success:
                 return await AIConfigRepository.get_by_company(company)
             return None
         except Exception as e:
