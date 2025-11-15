@@ -3,7 +3,7 @@ from app.api.v1 import (
     auth, users, companies, ships, certificates, crew, crew_certificates,
     survey_reports, test_reports, drawings_manuals, other_documents,
     supply_documents, ai_config, utilities, gdrive, audit_reports,
-    audit_certificates, approval_documents, other_audit_documents
+    audit_certificates, approval_documents, other_audit_documents, system_settings
 )
 from app.core.security import get_current_user
 
@@ -17,6 +17,7 @@ api_router.include_router(ships.router, prefix="/ships", tags=["ships"])
 api_router.include_router(certificates.router, prefix="/certificates", tags=["certificates"])
 api_router.include_router(crew.router, prefix="/crew", tags=["crew"])
 api_router.include_router(crew_certificates.router, prefix="/crew-certificates", tags=["crew-certificates"])
+api_router.include_router(system_settings.router, prefix="/system-settings", tags=["system-settings"])
 
 # Document type routers
 api_router.include_router(survey_reports.router, prefix="/survey-reports", tags=["survey-reports"])
