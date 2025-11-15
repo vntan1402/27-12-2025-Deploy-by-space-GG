@@ -173,20 +173,20 @@ class CertificateService:
                     raise HTTPException(status_code=500, detail="AI key not configured")
                 
                 # Import emergentintegrations
-                from emergentintegrations import chat_completion
+                from emergentintegrations.llm.chat import LlmChat, UserMessage
                 
                 # Create prompt
                 prompt = AIHelper.create_certificate_analysis_prompt(text, ship_id)
                 
+                # Initialize LLM chat
+                llm_chat = LlmChat(
+                    api_key=emergent_key,
+                    session_id="cert_analysis",
+                    system_message="You are an AI assistant that analyzes maritime certificates."
+                ).with_model(provider, model)
+                
                 # Call AI
-                ai_response = await chat_completion(
-                    messages=[{
-                        "role": "user",
-                        "content": prompt
-                    }],
-                    model=model,
-                    api_key=emergent_key
-                )
+                ai_response = await llm_chat.send_message(UserMessage(text=prompt))
                 
                 # Extract response text
                 if hasattr(ai_response, 'choices') and len(ai_response.choices) > 0:
