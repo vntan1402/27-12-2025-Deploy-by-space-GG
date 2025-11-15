@@ -98,15 +98,15 @@ async def bulk_delete_test_reports(
         raise HTTPException(status_code=500, detail="Failed to bulk delete Test Reports")
 
 @router.post("/check-duplicate")
-async def check_duplicate_document(
+async def check_duplicate_test_report(
     ship_id: str,
-    doc_name: str,
-    doc_no: Optional[str] = None,
+    test_report_name: str,
+    test_report_no: Optional[str] = None,
     current_user: UserResponse = Depends(get_current_user)
 ):
     """Check if Test Report is duplicate"""
     try:
-        return await service.check_duplicate(ship_id, doc_name, doc_no, current_user)
+        return await TestReportService.check_duplicate(ship_id, test_report_name, test_report_no, current_user)
     except Exception as e:
         logger.error(f"❌ Error checking duplicate: {e}")
         raise HTTPException(status_code=500, detail="Failed to check duplicate")
