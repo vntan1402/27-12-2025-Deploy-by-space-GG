@@ -164,7 +164,8 @@ class TestReportService:
             try:
                 await TestReportService.delete_test_report(report_id, current_user)
                 deleted_count += 1
-            except:
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to delete test report {report_id}: {e}")
                 continue
         
         logger.info(f"✅ Bulk deleted {deleted_count} test reports")
