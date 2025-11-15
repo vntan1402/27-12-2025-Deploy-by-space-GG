@@ -119,7 +119,7 @@ class CertificateService:
     
     @staticmethod
     async def analyze_certificate_file(file: UploadFile, ship_id: Optional[str], current_user: UserResponse) -> dict:
-        """Analyze certificate file using AI (simplified version)"""
+        """Analyze certificate file using AI with EMERGENT_LLM_KEY"""
         # Validate file type
         if file.content_type != "application/pdf":
             raise HTTPException(status_code=400, detail="Only PDF files are allowed")
@@ -135,19 +135,84 @@ class CertificateService:
         
         logger.info(f"📄 Analyzing certificate file: {file.filename} ({len(file_content)} bytes)")
         
-        # TODO: Implement actual AI analysis using EMERGENT_LLM_KEY
-        # For now, return mock data
-        
-        return {
-            "success": True,
-            "message": "Certificate analyzed successfully (mock data)",
-            "analysis": {
-                "cert_name": "SAFETY MANAGEMENT CERTIFICATE",
-                "cert_type": "Full Term",
-                "cert_no": "SMC-2024-001",
-                "issue_date": "15/01/2024",
-                "valid_date": "15/01/2029",
-                "issued_by": "DNV GL",
-                "ship_name": "MV Test Ship"
-            }
-        }
+        try:
+            # Step 1: Extract text from PDF
+            logger.info("🔄 Extracting text from PDF...")
+            text = await PDFProcessor.process_pdf(file_content, use_ocr_fallback=True)
+            
+            if not text or len(text) < 50:
+                logger.warning("⚠️ Insufficient text extracted from PDF")
+                return {
+                    "success": False,
+                    "message": "Could not extract sufficient text from PDF. The document may be an image or heavily formatted.",
+                    "analysis": None
+                }
+            
+            logger.info(f"✅ Extracted {len(text)} characters from PDF")
+            
+            # Step 2: Get AI configuration
+            from app.services.ai_config_service import AIConfigService
+            try:
+                ai_config = await AIConfigService.get_ai_config(current_user)
+                provider = ai_config.provider
+                model = ai_config.model
+                logger.info(f"🤖 Using AI: {provider} / {model}")
+            except Exception as e:
+                logger.warning(f"Could not get AI config, using defaults: {e}")
+                provider = "google"
+                model = "gemini-2.0-flash"
+            
+            # Step 3: Call AI for analysis
+            logger.info("🤖 Calling AI for certificate analysis...")
+            
+            try:
+                # Get EMERGENT_LLM_KEY
+                emergent_key = os.getenv("EMERGENT_LLM_KEY", "sk-emergent-eEe35Fb1b449940199")
+                
+                if not emergent_key:
+                    raise HTTPException(status_code=500, detail="AI key not configured")
+                
+                # Import emergentintegrations
+                from emergentintegrations import chat_completion
+                
+                # Create prompt
+                prompt = AIHelper.create_certificate_analysis_prompt(text, ship_id)
+                
+                # Call AI
+                ai_response = await chat_completion(
+                    messages=[{
+                        "role": "user",
+                        "content": prompt
+                    }],
+                    model=model,
+                    api_key=emergent_key
+                )
+                
+                # Extract response text
+                if hasattr(ai_response, 'choices') and len(ai_response.choices) > 0:
+                    response_text = ai_response.choices[0].message.content
+                elif isinstance(ai_response, dict) and 'choices' in ai_response:
+                    response_text = ai_response['choices'][0]['message']['content']
+                else:
+                    response_text = str(ai_response)
+                
+                logger.info(f"✅ AI response received: {len(response_text)} characters")
+                
+                # Step 4: Parse AI response
+                cert_data = AIHelper.parse_ai_response(response_text)
+                
+                if not cert_data:
+                    logger.error("❌ Failed to parse AI response")
+                    return {
+                        "success": False,
+                        "message": "AI analysis failed - could not parse response",
+                        "analysis": None
+                    }
+                
+                # Step 5: Validate and clean data
+                validated_data = AIHelper.validate_certificate_data(cert_data)
+                
+                # Step 6: Calculate confidence score
+                confidence = AIHelper.calculate_confidence_score(validated_data, len(text))
+                
+                logger.info(f"✅ Certificate analyzed successfully (confidence: {confidence:.2f})\")\n                \n                return {\n                    \"success\": True,\n                    \"message\": \"Certificate analyzed successfully\",\n                    \"analysis\": validated_data,\n                    \"confidence\": confidence,\n                    \"text_length\": len(text)\n                }\n                \n            except Exception as ai_error:\n                logger.error(f\"❌ AI analysis error: {ai_error}\")\n                # Return partial analysis with text\n                return {\n                    \"success\": False,\n                    \"message\": f\"AI analysis failed: {str(ai_error)}\",\n                    \"analysis\": None,\n                    \"text_content\": text[:500] + \"...\" if len(text) > 500 else text\n                }\n        \n        except Exception as e:\n            logger.error(f\"❌ Certificate analysis error: {e}\")\n            raise HTTPException(\n                status_code=500,\n                detail=f\"Failed to analyze certificate: {str(e)}\"\n            )
