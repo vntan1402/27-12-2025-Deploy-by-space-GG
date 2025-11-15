@@ -268,6 +268,9 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
         const filledFields = Object.keys(processedData).filter(key => 
           processedData[key] && processedData[key].trim()
         ).length;
+        
+        console.log('📊 [AddShipModal] Processed data:', processedData);
+        console.log('📊 [AddShipModal] Filled fields count:', filledFields);
 
         if (filledFields === 0) {
           toast.warning(language === 'vi' 
@@ -282,6 +285,8 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
           ...prev,
           ...processedData
         }));
+        
+        console.log('✅ [AddShipModal] Ship data updated with', filledFields, 'fields');
         
         // Show success message
         toast.success(language === 'vi' 
