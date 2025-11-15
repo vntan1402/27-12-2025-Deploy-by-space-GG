@@ -399,17 +399,28 @@ async def get_upcoming_surveys(
                 logger.warning(f"Error processing certificate {cert.get('id')}: {e}")
                 continue
         
-        # Sort by days_until_window_close (most urgent first)
-        upcoming_surveys.sort(key=lambda x: x["days_until_window_close"])
+        # Sort by next_survey_date (soonest first) - backend-v1 logic
+        upcoming_surveys.sort(key=lambda x: x.get("next_survey_date") or "9999-12-31")
         
-        logger.info(f"✅ Found {len(upcoming_surveys)} upcoming surveys")
+        logger.info(f"✅ Found {len(upcoming_surveys)} certificates with upcoming surveys")
         
         return {
             "upcoming_surveys": upcoming_surveys,
             "total_count": len(upcoming_surveys),
             "company": user_company,
             "company_name": company_name,
-            "check_date": current_date.isoformat()
+            "check_date": current_date.isoformat(),
+            "logic_info": {
+                "description": "Ship Certificate survey windows based on Next Survey annotation",
+                "window_rules": {
+                    "±3M": "Window: Next Survey Date ± 3 months",
+                    "-3M": "Window: Next Survey Date - 3 months → Next Survey Date (only before)",
+                    "default": "No annotation → use -3M window",
+                    "Due Soon": "window_open < current_date < (window_close - 30 days)",
+                    "Critical": "≤ 30 days to window_close",
+                    "Overdue": "Past window_close"
+                }
+            }
         }
         
     except Exception as e:
