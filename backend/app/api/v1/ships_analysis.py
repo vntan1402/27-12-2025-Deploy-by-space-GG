@@ -16,11 +16,16 @@ async def analyze_ship_certificate_endpoint(
     Analyze ship certificate PDF to extract ship information
     """
     try:
+        logger.info(f"📄 Starting ship certificate analysis for: {file.filename}")
+        
         # Use certificate analysis service (it's generic enough for ship certs)
         result = await CertificateService.analyze_certificate_file(file, None, current_user)
         
+        logger.info(f"✅ Analysis service returned: {type(result)}")
+        
         # Ensure we always return the expected format
-        if not result:
+        if result is None:
+            logger.warning("⚠️ Analysis returned None")
             return {
                 "success": False,
                 "analysis": None,
@@ -29,18 +34,28 @@ async def analyze_ship_certificate_endpoint(
         
         # If result doesn't have success field, wrap it
         if "success" not in result:
+            logger.info("🔄 Wrapping result with success field")
             return {
                 "success": True,
                 "analysis": result,
                 "message": "Ship certificate analyzed successfully"
             }
         
+        logger.info(f"📤 Returning result with success={result.get('success')}")
         return result
         
-    except HTTPException:
-        raise
+    except HTTPException as http_exc:
+        logger.error(f"❌ HTTP Exception: {http_exc.detail}")
+        # Convert HTTPException to structured response
+        return {
+            "success": False,
+            "analysis": None,
+            "message": f"Error: {http_exc.detail}"
+        }
     except Exception as e:
         logger.error(f"❌ Ship certificate analysis error: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
         # Always return structured response, never null
         return {
             "success": False,
