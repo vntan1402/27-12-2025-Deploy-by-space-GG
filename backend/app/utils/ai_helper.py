@@ -22,36 +22,50 @@ class AIHelper:
             str: Formatted prompt for AI
         """
         prompt = f"""
-You are a maritime document expert. Analyze the following ship certificate and extract key information.
+Analyze this maritime ship certificate document and extract ALL ship information.
 
 Certificate Text:
 {text}
 
-Please extract and return ONLY a valid JSON object with the following fields:
+Extract and return ONLY a valid JSON object with ALL of the following fields:
+
 {{
-  "cert_name": "Full certificate name/title (e.g., CARGO SHIP SAFETY CONSTRUCTION CERTIFICATE)",
-  "cert_type": "Certificate type: Full Term, Interim, Provisional, Short Term, or null if not found",
-  "cert_no": "Certificate number",
-  "issue_date": "Issue date in DD/MM/YYYY format",
-  "valid_date": "Valid until/expiry date in DD/MM/YYYY format",
-  "last_endorse": "Last endorsement date in DD/MM/YYYY format or null",
-  "issued_by": "Issuing authority/organization",
-  "ship_name": "Ship name from certificate",
-  "imo_number": "IMO number (7 digits) or null",
-  "flag": "Flag state/country or null",
-  "class_society": "Classification society or null",
-  "built_year": "Year built (YYYY format) or null",
-  "gross_tonnage": "Gross tonnage (numeric value) or null",
-  "deadweight": "Deadweight tonnage (numeric value) or null"
+  "ship_name": "Full name of the vessel (look for 'NAME OF SHIP', 'Ship Name', 'Vessel Name', 'M.V.', 'S.S.')",
+  "imo_number": "IMO number (7 digits, may start with 8 or 9)",
+  "flag": "Flag state/country (look for 'Port of Registry', 'Flag', 'Flag State', 'Government of')",
+  "class_society": "Classification society or issuing authority FULL NAME (not abbreviation)",
+  "built_year": "Year built (4-digit number, extract from delivery date if available)",
+  "ship_owner": "Ship owner/registered owner name",
+  "ship_type": "Vessel type - MUST be ONE OF: 'General Cargo', 'Bulk Carrier', 'Oil Tanker', 'Chemical Tanker', 'LPG/LNG Carrier', 'Container Ship', 'Passenger Ship', 'Ro-Ro Cargo', 'Fishing Vessel', 'Tug/Supply Vessel', 'Other'",
+  "gross_tonnage": "Gross tonnage (numeric only, no units)",
+  "deadweight": "Deadweight tonnage (numeric only, no units)",
+  "length_overall": "Length overall (LOA) in meters (numeric only)",
+  "breadth": "Breadth/width in meters (numeric only)",
+  "depth": "Depth in meters (numeric only)",
+  "keel_laid": "Date keel was laid - EXACT FORMAT from document (e.g., 'MAY 04, 2018' or '04/05/2018')",
+  "delivery_date": "Date of delivery - EXACT FORMAT from document (e.g., 'JANUARY 15, 2019' or '15/01/2019')",
+  "place_of_build": "Shipyard/place where ship was built",
+  "last_docking": "Most recent dry docking date - EXTRACT EXACTLY AS WRITTEN (e.g., '28 July 2025' or 'JUL 2025')",
+  "last_docking_2": "Second most recent dry docking date - EXTRACT EXACTLY AS WRITTEN",
+  "next_docking": "Next docking due date - EXTRACT EXACTLY AS WRITTEN",
+  "special_survey_from_date": "Special survey period start date in DD/MM/YYYY format",
+  "special_survey_to_date": "Special survey period end date in DD/MM/YYYY format"
 }}
 
-IMPORTANT:
-- Return ONLY the JSON object, no additional text or explanation
-- Use DD/MM/YYYY format for all dates
-- If a field is not found or unclear, use null
-- For cert_type, identify if it's Full Term, Interim, Provisional, or Short Term
-- Extract numeric values without units for tonnage fields
-- IMO number should be exactly 7 digits
+CRITICAL EXTRACTION RULES:
+1. **Ship Type**: If you see a list format like "Type of ship 2)\\nBulk carrier\\nOil tanker", the FIRST item (right after 'Type of ship') is the selected type. Map text to exact format: 'Bulk carrier' → 'Bulk Carrier', 'Oil tanker' → 'Oil Tanker', etc.
+
+2. **Docking Dates**: Search for phrase "the last two inspections of the outside of the ship's bottom took place on [DATE_A] and [DATE_B]". Extract DATE_A for last_docking, DATE_B for last_docking_2. PRESERVE ORIGINAL FORMAT - do NOT convert.
+
+3. **Built Year**: PRIORITY ORDER: (1) Extract year from delivery_date if available, (2) Look for "Year Built", "Built Year". Return 4-digit year only.
+
+4. **Dates Format**: For keel_laid and delivery_date, preserve EXACT format from document. For special survey dates, use DD/MM/YYYY format.
+
+5. **Tonnage/Dimensions**: Extract numeric values ONLY, no units like "MT", "m", "tonnes".
+
+6. **If field not found**: Use null (not empty string)
+
+Return ONLY the JSON object, no markdown code blocks, no explanation.
 """
         return prompt
     
