@@ -322,6 +322,101 @@ async def update_ship_next_survey(
         }
         
     except HTTPException:
+
+
+@router.post("/{ship_id}/audit-certificates/update-next-survey")
+async def update_ship_audit_certificates_next_survey(
+    ship_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Calculate and update Next Survey for all audit certificates of a ship
+    Migrated from backend-v1
+    """
+    from app.services.survey_calculation_service import SurveyCalculationService
+    from app.db.mongodb import mongo_db
+    from datetime import datetime, timezone
+    
+    try:
+        # Get ship data
+        ship_data = await mongo_db.database.ships.find_one({"id": ship_id})
+        if not ship_data:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Get all audit certificates for the ship
+        certificates = await mongo_db.database.audit_certificates.find({"ship_id": ship_id}).to_list(length=1000)
+        if not certificates:
+            return {
+                "success": True,
+                "message": "No audit certificates found for this ship",
+                "updated_count": 0,
+                "results": []
+            }
+        
+        updated_count = 0
+        results = []
+        
+        for cert in certificates:
+            # Calculate next survey
+            survey_info = SurveyCalculationService.calculate_audit_certificate_next_survey(cert)
+            
+            # Prepare update data
+            update_data = {}
+            
+            if survey_info['next_survey']:
+                if survey_info.get('raw_date'):
+                    try:
+                        parsed_date = datetime.strptime(survey_info['raw_date'], '%d/%m/%Y')
+                        update_data['next_survey'] = parsed_date.isoformat()
+                    except Exception as e:
+                        logger.warning(f"Failed to parse date {survey_info['raw_date']}: {e}")
+                        update_data['next_survey'] = None
+                else:
+                    update_data['next_survey'] = None
+                    
+                update_data['next_survey_display'] = survey_info['next_survey']
+            else:
+                update_data['next_survey'] = None
+                update_data['next_survey_display'] = None
+                
+            if survey_info['next_survey_type']:
+                update_data['next_survey_type'] = survey_info['next_survey_type']
+            else:
+                update_data['next_survey_type'] = None
+            
+            # Update certificate if there are changes
+            if update_data:
+                update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+                await mongo_db.database.audit_certificates.update_one(
+                    {"id": cert["id"]},
+                    {"$set": update_data}
+                )
+                updated_count += 1
+            
+            results.append({
+                "cert_id": cert["id"],
+                "cert_name": cert.get("cert_name", "Unknown"),
+                "cert_type": cert.get("cert_type", "Unknown"),
+                "next_survey": survey_info['next_survey'],
+                "next_survey_type": survey_info['next_survey_type'],
+                "updated": bool(update_data)
+            })
+        
+        logger.info(f"✅ Updated next survey for {updated_count} audit certificates")
+        
+        return {
+            "success": True,
+            "message": f"Updated next survey for {updated_count} audit certificates",
+            "updated_count": updated_count,
+            "results": results
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error updating audit certificates next survey: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update audit certificates: {str(e)}")
+
         raise
     except Exception as e:
         logger.error(f"❌ Error updating next survey: {e}")
