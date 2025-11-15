@@ -300,35 +300,15 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
     const rect = e.target.getBoundingClientRect();
     const TOOLTIP_WIDTH = 300;
     const TOOLTIP_MAX_HEIGHT = 200;
-    const TOOLTIP_OFFSET = 10;
-
-    let x = rect.right + TOOLTIP_OFFSET;
-    let y = rect.top;
-
-    const spaceOnRight = window.innerWidth - rect.right;
-    const spaceOnLeft = rect.left;
-
-    if (spaceOnRight < TOOLTIP_WIDTH + 20 && spaceOnLeft > TOOLTIP_WIDTH + 20) {
-      x = rect.left - TOOLTIP_WIDTH - TOOLTIP_OFFSET;
-    }
-
-    if (x < 10) x = 10;
-    if (x + TOOLTIP_WIDTH > window.innerWidth - 10) {
-      x = window.innerWidth - TOOLTIP_WIDTH - 10;
-    }
-
-    const showBelow = (y + TOOLTIP_MAX_HEIGHT > window.innerHeight) && (y - rect.height - TOOLTIP_MAX_HEIGHT > 0);
-
-    if (showBelow) {
-      y = rect.top - TOOLTIP_MAX_HEIGHT - TOOLTIP_OFFSET;
-    }
+    
+    const { x, y } = calculateTooltipPosition(rect, TOOLTIP_WIDTH, TOOLTIP_MAX_HEIGHT);
 
     setNoteTooltip({
       show: true,
       x: x,
       y: y,
       content: note,
-      showBelow: showBelow,
+      showBelow: false,
       width: TOOLTIP_WIDTH
     });
   };
