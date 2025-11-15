@@ -147,3 +147,98 @@ async def analyze_crew_certificate_file(
     except Exception as e:
         logger.error(f"❌ Error analyzing crew certificate file: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to analyze crew certificate: {str(e)}")
+
+
+@router.post("/{cert_id}/upload-files")
+async def upload_crew_certificate_files(
+    cert_id: str,
+    files: List[UploadFile] = File(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload multiple files for a crew certificate (Editor+ role required)
+    """
+    try:
+        import os
+        from pathlib import Path
+        
+        # Verify certificate exists
+        cert = await CrewCertificateService.get_crew_certificate_by_id(cert_id, current_user)
+        if not cert:
+            raise HTTPException(status_code=404, detail="Crew certificate not found")
+        
+        # Create upload directory
+        upload_dir = Path(f"/app/uploads/crew-certificates/{cert_id}")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        uploaded_files = []
+        for file in files:
+            # Save file
+            file_path = upload_dir / file.filename
+            content = await file.read()
+            with open(file_path, "wb") as f:
+                f.write(content)
+            
+            uploaded_files.append({
+                "filename": file.filename,
+                "path": f"/uploads/crew-certificates/{cert_id}/{file.filename}",
+                "size": len(content)
+            })
+        
+        logger.info(f"✅ Uploaded {len(uploaded_files)} files for crew certificate {cert_id}")
+        
+        return {
+            "message": f"Successfully uploaded {len(uploaded_files)} files",
+            "files": uploaded_files
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading crew certificate files: {e}")
+        raise HTTPException(status_code=500, detail="Failed to upload files")
+
+@router.get("/{cert_id}/file-link")
+async def get_crew_certificate_file_link(
+    cert_id: str,
+    filename: Optional[str] = Query(None),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get file download link for crew certificate
+    """
+    try:
+        import os
+        from pathlib import Path
+        
+        # Verify certificate exists
+        cert = await CrewCertificateService.get_crew_certificate_by_id(cert_id, current_user)
+        if not cert:
+            raise HTTPException(status_code=404, detail="Crew certificate not found")
+        
+        # Get file path
+        if filename:
+            file_path = f"/uploads/crew-certificates/{cert_id}/{filename}"
+        else:
+            # Return first file if no filename specified
+            cert_dir = Path(f"/app/uploads/crew-certificates/{cert_id}")
+            if cert_dir.exists():
+                files = list(cert_dir.iterdir())
+                if files:
+                    file_path = f"/uploads/crew-certificates/{cert_id}/{files[0].name}"
+                else:
+                    raise HTTPException(status_code=404, detail="No files found for certificate")
+            else:
+                raise HTTPException(status_code=404, detail="No files found for certificate")
+        
+        # Check if file exists
+        if not os.path.exists(f"/app{file_path}"):
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        return {
+            "file_url": file_path
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error getting crew certificate file link: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get file link")
