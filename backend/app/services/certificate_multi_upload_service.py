@@ -683,23 +683,57 @@ Example output:
     
     @staticmethod
     def _parse_date_to_iso(date_str: Optional[str]) -> Optional[str]:
-        """Parse date string (DD/MM/YYYY) to ISO format (YYYY-MM-DD)"""
-        if not date_str or not isinstance(date_str, str):
+        """
+        Parse date string to ISO format (YYYY-MM-DD)
+        Handles multiple formats from backend-v1
+        """
+        if not date_str or not isinstance(date_str, str) or date_str.lower() in ['null', 'none', 'n/a', '']:
             return None
         
+        import re
+        from datetime import datetime
+        
         try:
-            # Try DD/MM/YYYY format
-            if '/' in date_str:
-                parts = date_str.split('/')
-                if len(parts) == 3:
-                    day, month, year = parts
-                    return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+            date_str_clean = str(date_str).strip()
             
-            # Try YYYY-MM-DD format (already ISO)
-            if '-' in date_str and len(date_str) >= 10:
-                return date_str[:10]
+            # Handle "DD MONTH YYYY" formats (e.g., "28 July 2025", "9 Aug 2023")
+            if re.match(r'^\d{1,2}\s+\w+\s+\d{4}$', date_str_clean):
+                for fmt in ['%d %B %Y', '%d %b %Y']:
+                    try:
+                        parsed = datetime.strptime(date_str_clean, fmt)
+                        return parsed.strftime('%Y-%m-%d')
+                    except ValueError:
+                        continue
             
+            # Handle "MONTH YYYY" formats (e.g., "NOV 2020", "July 2025")
+            if re.match(r'^\w{3,4}\.?\s+\d{4}$', date_str_clean):
+                for fmt in ['%b %Y', '%b. %Y', '%B %Y']:
+                    try:
+                        parsed = datetime.strptime(date_str_clean, fmt)
+                        return parsed.strftime('%Y-%m-%d')
+                    except ValueError:
+                        continue
+            
+            # Try standard formats
+            date_formats = [
+                '%Y-%m-%d',      # 2025-11-07 (ISO)
+                '%d/%m/%Y',      # 07/11/2025 (DD/MM/YYYY)
+                '%m/%d/%Y',      # 11/07/2025 (MM/DD/YYYY)
+                '%d-%m-%Y',      # 07-11-2025
+                '%Y/%m/%d',      # 2025/11/07
+                '%m/%Y',         # 11/2025 (Month/Year only)
+            ]
+            
+            for fmt in date_formats:
+                try:
+                    parsed = datetime.strptime(date_str_clean, fmt)
+                    return parsed.strftime('%Y-%m-%d')
+                except ValueError:
+                    continue
+            
+            logger.warning(f"Could not parse date: {date_str}")
             return None
+            
         except Exception as e:
             logger.warning(f"Failed to parse date '{date_str}': {e}")
             return None
