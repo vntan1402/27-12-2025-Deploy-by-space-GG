@@ -8,11 +8,13 @@ from datetime import datetime
 class TestReportBase(BaseModel):
     ship_id: str
     test_report_name: str
+    report_form: Optional[str] = None  # Report Form field (e.g., "Bunker Analysis", "Water Test")
     test_sample: Optional[str] = None
     test_report_no: Optional[str] = None
     issued_by: Optional[str] = None
-    issue_date: Optional[Union[str, datetime]] = None
+    issued_date: Optional[Union[str, datetime]] = None  # Renamed from issue_date for consistency
     valid_date: Optional[Union[str, datetime]] = None
+    status: Optional[str] = "Valid"  # Valid, Expired soon, Critical, Expired
     file_uploaded: bool = False
     file_name: Optional[str] = None
     file_size: Optional[int] = None
