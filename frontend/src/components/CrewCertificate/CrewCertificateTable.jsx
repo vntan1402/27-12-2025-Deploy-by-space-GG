@@ -196,6 +196,27 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     }
   };
 
+  // Note tooltip handlers
+  const handleNoteMouseEnter = (e, note) => {
+    const rect = e.target.getBoundingClientRect();
+    const tooltipWidth = 300;
+    const tooltipHeight = 200;
+    
+    const { x, y } = calculateTooltipPosition(rect, tooltipWidth, tooltipHeight);
+    
+    setNoteTooltip({
+      show: true,
+      x: x,
+      y: y,
+      width: tooltipWidth,
+      content: note
+    });
+  };
+
+  const handleNoteMouseLeave = () => {
+    setNoteTooltip({ show: false, x: 0, y: 0, width: 300, content: '' });
+  };
+
   const handleAutoRename = async (certIds) => {
     try {
       const ids = Array.isArray(certIds) ? certIds : [certIds];
