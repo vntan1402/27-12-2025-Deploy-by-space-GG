@@ -234,10 +234,10 @@ GDRIVE_UPLOAD: '/api/gdrive/upload'
 3. ✅ Certificate file operations (POST /api/certificates/{id}/upload-files, GET /api/certificates/{id}/file-link)
 4. ✅ Crew certificate file operations (POST /api/crew-certificates/{id}/upload-files, GET /api/crew-certificates/{id}/file-link)
 
-### PHASE 2: Auxiliary Features (30-45 min)
-1. Passport analysis
-2. Crew file operations
-3. Ship certificate analysis endpoint
+### PHASE 2: Auxiliary Features (30-45 min) ✅ COMPLETED
+1. ✅ Passport analysis (POST /api/passport/analyze-file)
+2. ✅ Crew file operations (POST /api/crew/move-standby-files)
+3. ✅ Ship certificate analysis endpoint (POST /api/analyze-ship-certificate)
 
 ### PHASE 3: Google Drive (Optional - 60+ min)
 - Complex integration
