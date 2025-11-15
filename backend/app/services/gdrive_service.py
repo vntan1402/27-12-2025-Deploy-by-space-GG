@@ -486,3 +486,70 @@ class GDriveService:
             # Final fallback
             download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
             return {"success": True, "download_url": download_url}
+    
+    @staticmethod
+    async def delete_file(file_id: str, company_id: str, permanent_delete: bool = False) -> Dict[str, Any]:
+        """
+        Delete file from Google Drive
+        
+        Args:
+            file_id: Google Drive file ID
+            company_id: Company ID for config lookup
+            permanent_delete: If True, permanently delete. If False, move to trash.
+            
+        Returns:
+            dict with success status and message
+        """
+        try:
+            if not file_id:
+                return {"success": False, "message": "No file ID provided"}
+            
+            if not company_id:
+                return {"success": False, "message": "No company ID provided"}
+            
+            logger.info(f"🗑️ Attempting to delete file {file_id} from Google Drive")
+            
+            # Get company Google Drive configuration
+            config = await GDriveConfigRepository.get_by_company(company_id)
+            
+            if not config:
+                logger.warning("⚠️ No Google Drive configuration found for company")
+                return {"success": False, "message": "No Google Drive configuration found"}
+            
+            # Determine auth method and script URL
+            auth_method = config.get("auth_method", "apps_script")
+            script_url = config.get("web_app_url") or config.get("apps_script_url")
+            
+            if auth_method == "apps_script" and script_url:
+                try:
+                    # Call Apps Script to delete file
+                    payload = {
+                        "action": "delete_file",
+                        "file_id": file_id,
+                        "permanent_delete": permanent_delete
+                    }
+                    
+                    response = requests.post(script_url, json=payload, timeout=30)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        if result.get("success"):
+                            logger.info(f"✅ File {file_id} deleted from Google Drive successfully")
+                            return {"success": True, "message": "File deleted successfully"}
+                        else:
+                            logger.warning(f"⚠️ Google Drive file deletion warning: {result.get('message')}")
+                            return {"success": False, "message": result.get("message", "Unknown error")}
+                    else:
+                        logger.warning(f"⚠️ Failed to delete file from Google Drive: HTTP {response.status_code}")
+                        return {"success": False, "message": f"HTTP {response.status_code}"}
+                        
+                except Exception as e:
+                    logger.warning(f"⚠️ Google Drive deletion failed: {str(e)}")
+                    return {"success": False, "message": str(e)}
+            else:
+                logger.warning("⚠️ No Apps Script URL configured for Google Drive deletion")
+                return {"success": False, "message": "No Apps Script URL configured"}
+                
+        except Exception as e:
+            logger.error(f"Error deleting Google Drive file: {e}")
+            return {"success": False, "message": str(e)}
