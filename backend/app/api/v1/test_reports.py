@@ -2,16 +2,13 @@ import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
 
-from app.models.document import DocumentCreate, DocumentUpdate, DocumentResponse, BulkDeleteDocumentRequest
+from app.models.test_report import TestReportCreate, TestReportUpdate, TestReportResponse, BulkDeleteTestReportRequest
 from app.models.user import UserResponse, UserRole
-from app.services.document_service import GenericDocumentService
+from app.services.test_report_service import TestReportService
 from app.core.security import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-# Initialize service for this document type
-service = GenericDocumentService("test_reports", "Test Report")
 
 def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has editor or higher permission"""
