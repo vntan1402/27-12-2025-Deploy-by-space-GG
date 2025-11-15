@@ -42,6 +42,10 @@ class TestReportService:
             if not report.get("notes") and report.get("note"):
                 report["notes"] = report.get("note")
             
+            # Map notes → note for frontend (frontend expects 'note' field)
+            if report.get("notes") and not report.get("note"):
+                report["note"] = report.get("notes")
+            
             # Set defaults if still missing
             if not report.get("test_report_name"):
                 report["test_report_name"] = "Untitled Test Report"
