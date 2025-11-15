@@ -117,3 +117,116 @@ class ShipService:
         logger.info(f"✅ Ship deleted: {ship_id}")
         
         return {"message": "Ship deleted successfully"}
+    
+    @staticmethod
+    async def calculate_anniversary_date(ship_id: str, current_user: UserResponse) -> dict:
+        """Calculate anniversary date from certificates"""
+        # Check if ship exists
+        ship = await ShipRepository.find_by_id(ship_id)
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Calculate anniversary date
+        calculated_anniversary = await calculate_anniversary_date_from_certificates(ship_id)
+        
+        if not calculated_anniversary:
+            return {
+                "success": False,
+                "message": "No Full Term certificates with valid dates found",
+                "anniversary_date": None
+            }
+        
+        # Update ship
+        update_data = {"anniversary_date": calculated_anniversary.dict()}
+        await ShipRepository.update(ship_id, update_data)
+        
+        logger.info(f"✅ Anniversary date calculated for ship {ship_id}")
+        
+        return {
+            "success": True,
+            "message": f"Anniversary date calculated from {calculated_anniversary.source_certificate_type}",
+            "anniversary_date": {
+                "day": calculated_anniversary.day,
+                "month": calculated_anniversary.month,
+                "source": calculated_anniversary.source_certificate_type,
+                "display": format_anniversary_date_display(calculated_anniversary)
+            }
+        }
+    
+    @staticmethod
+    async def calculate_special_survey_cycle(ship_id: str, current_user: UserResponse) -> dict:
+        """Calculate special survey cycle from certificates"""
+        # Check if ship exists
+        ship = await ShipRepository.find_by_id(ship_id)
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Calculate cycle
+        calculated_cycle = await calculate_special_survey_cycle_from_certificates(ship_id)
+        
+        if not calculated_cycle:
+            return {
+                "success": False,
+                "message": "No Full Term Class certificates found",
+                "special_survey_cycle": None
+            }
+        
+        # Update ship
+        update_data = {"special_survey_cycle": calculated_cycle.dict()}
+        await ShipRepository.update(ship_id, update_data)
+        
+        from_str = calculated_cycle.from_date.strftime('%d/%m/%Y')
+        to_str = calculated_cycle.to_date.strftime('%d/%m/%Y')
+        
+        logger.info(f"✅ Special Survey cycle calculated for ship {ship_id}")
+        
+        return {
+            "success": True,
+            "message": f"Special Survey cycle calculated from {calculated_cycle.cycle_type}",
+            "special_survey_cycle": {
+                "from_date": from_str,
+                "to_date": to_str,
+                "cycle_type": calculated_cycle.cycle_type,
+                "intermediate_required": calculated_cycle.intermediate_required,
+                "display": f"{from_str} - {to_str}"
+            }
+        }
+    
+    @staticmethod
+    async def calculate_next_docking_date(ship_id: str, current_user: UserResponse) -> dict:
+        """Calculate next docking date"""
+        # Check if ship exists
+        ship = await ShipRepository.find_by_id(ship_id)
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        last_docking = ship.get('last_docking')
+        if not last_docking:
+            return {
+                "success": False,
+                "message": "No last docking date available",
+                "next_docking": None
+            }
+        
+        # Calculate next docking
+        next_docking = await calculate_next_docking(ship_id, last_docking)
+        
+        if not next_docking:
+            return {
+                "success": False,
+                "message": "Failed to calculate next docking",
+                "next_docking": None
+            }
+        
+        # Update ship
+        update_data = {"next_docking": next_docking}
+        await ShipRepository.update(ship_id, update_data)
+        
+        logger.info(f"✅ Next docking calculated for ship {ship_id}")
+        
+        return {
+            "success": True,
+            "message": "Next docking date calculated",
+            "next_docking": next_docking.strftime('%d/%m/%Y'),
+            "last_docking": last_docking.strftime('%d/%m/%Y') if isinstance(last_docking, datetime) else last_docking
+        }
