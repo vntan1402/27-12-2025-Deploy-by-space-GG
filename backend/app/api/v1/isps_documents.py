@@ -1,116 +1,52 @@
+"""ISPS Documents - Wrapper for Audit Reports with audit_type=ISPS"""
 import logging
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.models.document import DocumentCreate, DocumentUpdate, DocumentResponse, BulkDeleteDocumentRequest
-from app.models.user import UserResponse, UserRole
-from app.services.document_service import GenericDocumentService
+from app.models.audit_report import AuditReportResponse, BulkDeleteAuditReportRequest
+from app.models.user import UserResponse
+from app.services.audit_report_service import AuditReportService
 from app.core.security import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
-# Initialize service for this document type
-service = GenericDocumentService("isps_documents", "ISPS Document")
+# ISPS Documents are Audit Reports with audit_type="ISPS"
 
-def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):
-    """Check if user has editor or higher permission"""
-    if current_user.role not in [UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
-    return current_user
-
-@router.get("", response_model=List[DocumentResponse])
-async def get_documents(
+@router.get("", response_model=List[AuditReportResponse])
+async def get_isps_documents(
     ship_id: Optional[str] = Query(None),
     current_user: UserResponse = Depends(get_current_user)
 ):
-    """Get ISPS Documents, optionally filtered by ship_id"""
+    """Get ISPS Documents (Audit Reports with type=ISPS)"""
     try:
-        return await service.get_documents(ship_id, current_user)
+        return await AuditReportService.get_audit_reports(ship_id, "ISPS", current_user)
     except Exception as e:
         logger.error(f"❌ Error fetching ISPS Documents: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch ISPS Documents")
 
-@router.get("/{doc_id}", response_model=DocumentResponse)
-async def get_document_by_id(
+@router.get("/{doc_id}", response_model=AuditReportResponse)
+async def get_isps_document_by_id(
     doc_id: str,
     current_user: UserResponse = Depends(get_current_user)
 ):
-    """Get a specific ISPS Document by ID"""
+    """Get ISPS Document by ID"""
     try:
-        return await service.get_document_by_id(doc_id, current_user)
+        return await AuditReportService.get_audit_report_by_id(doc_id, current_user)
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Error fetching ISPS Document {doc_id}: {e}")
+        logger.error(f"❌ Error fetching ISPS Document: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch ISPS Document")
 
-@router.post("", response_model=DocumentResponse)
-async def create_document(
-    doc_data: DocumentCreate,
-    current_user: UserResponse = Depends(check_editor_permission)
-):
-    """Create new ISPS Document (Editor+ role required)"""
-    try:
-        return await service.create_document(doc_data, current_user)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"❌ Error creating ISPS Document: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create ISPS Document")
-
-@router.put("/{doc_id}", response_model=DocumentResponse)
-async def update_document(
-    doc_id: str,
-    doc_data: DocumentUpdate,
-    current_user: UserResponse = Depends(check_editor_permission)
-):
-    """Update ISPS Document (Editor+ role required)"""
-    try:
-        return await service.update_document(doc_id, doc_data, current_user)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"❌ Error updating ISPS Document: {e}")
-        raise HTTPException(status_code=500, detail="Failed to update ISPS Document")
-
-@router.delete("/{doc_id}")
-async def delete_document(
-    doc_id: str,
-    current_user: UserResponse = Depends(check_editor_permission)
-):
-    """Delete ISPS Document (Editor+ role required)"""
-    try:
-        return await service.delete_document(doc_id, current_user)
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"❌ Error deleting ISPS Document: {e}")
-        raise HTTPException(status_code=500, detail="Failed to delete ISPS Document")
-
 @router.post("/bulk-delete")
-async def bulk_delete_documents(
-    request: BulkDeleteDocumentRequest,
-    current_user: UserResponse = Depends(check_editor_permission)
+async def bulk_delete_isps_documents(
+    request: BulkDeleteAuditReportRequest,
+    current_user: UserResponse = Depends(get_current_user)
 ):
-    """Bulk delete ISPS Documents (Editor+ role required)"""
+    """Bulk delete ISPS Documents"""
     try:
-        return await service.bulk_delete_documents(request, current_user)
+        return await AuditReportService.bulk_delete_audit_reports(request, current_user)
     except Exception as e:
         logger.error(f"❌ Error bulk deleting ISPS Documents: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete ISPS Documents")
-
-@router.post("/check-duplicate")
-async def check_duplicate_document(
-    ship_id: str,
-    doc_name: str,
-    doc_no: Optional[str] = None,
-    current_user: UserResponse = Depends(get_current_user)
-):
-    """Check if ISPS Document is duplicate"""
-    try:
-        return await service.check_duplicate(ship_id, doc_name, doc_no, current_user)
-    except Exception as e:
-        logger.error(f"❌ Error checking duplicate: {e}")
-        raise HTTPException(status_code=500, detail="Failed to check duplicate")
-
