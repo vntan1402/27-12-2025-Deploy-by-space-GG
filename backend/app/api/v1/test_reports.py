@@ -86,13 +86,13 @@ async def delete_test_report(
         raise HTTPException(status_code=500, detail="Failed to delete Test Report")
 
 @router.post("/bulk-delete")
-async def bulk_delete_documents(
-    request: BulkDeleteDocumentRequest,
+async def bulk_delete_test_reports(
+    request: BulkDeleteTestReportRequest,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Bulk delete Test Reports (Editor+ role required)"""
     try:
-        return await service.bulk_delete_documents(request, current_user)
+        return await TestReportService.bulk_delete_test_reports(request, current_user)
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Test Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Test Reports")
