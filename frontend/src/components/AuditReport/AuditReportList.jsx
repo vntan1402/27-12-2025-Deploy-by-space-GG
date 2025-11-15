@@ -10,6 +10,7 @@ import { AddAuditReportModal } from './AddAuditReportModal';
 import { EditAuditReportModal } from './EditAuditReportModal';
 import { AuditReportNotesModal } from './AuditReportNotesModal';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import { calculateTooltipPosition, calculateContextMenuPosition } from '../../utils/positionHelpers';
 
 export const AuditReportList = ({ 
   selectedShip, 
