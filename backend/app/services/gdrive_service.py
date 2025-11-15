@@ -370,3 +370,119 @@ class GDriveService:
         except Exception as e:
             logger.error(f"Error syncing from GDrive: {e}")
             raise HTTPException(status_code=500, detail=f"Failed to sync from Google Drive: {str(e)}")
+    
+    @staticmethod
+    async def get_file_view_url(file_id: str, current_user: UserResponse) -> Dict[str, Any]:
+        """Get Google Drive file view URL for opening in new window"""
+        try:
+            if not current_user.company:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+            
+            # Get company-specific Google Drive configuration
+            config = await GDriveConfigRepository.get_by_company(current_user.company)
+            
+            if not config:
+                # Fallback to standard Google Drive view URL
+                view_url = f"https://drive.google.com/file/d/{file_id}/view"
+                return {"success": True, "view_url": view_url}
+            
+            # Determine auth method and script URL
+            auth_method = config.get("auth_method", "apps_script")
+            script_url = config.get("web_app_url") or config.get("apps_script_url")
+            
+            if auth_method == "apps_script" and script_url:
+                try:
+                    # Get file view URL from Apps Script
+                    payload = {
+                        "action": "get_file_view_url",
+                        "file_id": file_id
+                    }
+                    
+                    logger.info(f"Requesting file view URL from Apps Script for file: {file_id}")
+                    response = requests.post(script_url, json=payload, timeout=30)
+                    response.raise_for_status()
+                    
+                    result = response.json()
+                    
+                    if result.get("success") and result.get("view_url"):
+                        return {"success": True, "view_url": result.get("view_url")}
+                    else:
+                        # Fallback to standard Google Drive view URL
+                        view_url = f"https://drive.google.com/file/d/{file_id}/view"
+                        return {"success": True, "view_url": view_url}
+                        
+                except Exception as e:
+                    logger.error(f"Apps Script file view URL failed: {e}")
+                    # Fallback to standard Google Drive view URL
+                    view_url = f"https://drive.google.com/file/d/{file_id}/view"
+                    return {"success": True, "view_url": view_url}
+            else:
+                # Fallback to standard Google Drive view URL
+                view_url = f"https://drive.google.com/file/d/{file_id}/view"
+                return {"success": True, "view_url": view_url}
+                
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error getting Google Drive file view URL: {e}")
+            # Final fallback
+            view_url = f"https://drive.google.com/file/d/{file_id}/view"
+            return {"success": True, "view_url": view_url}
+    
+    @staticmethod
+    async def get_file_download_url(file_id: str, current_user: UserResponse) -> Dict[str, Any]:
+        """Get Google Drive file download URL"""
+        try:
+            if not current_user.company:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+            
+            # Get company-specific Google Drive configuration
+            config = await GDriveConfigRepository.get_by_company(current_user.company)
+            
+            if not config:
+                # Fallback to standard Google Drive download URL
+                download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+                return {"success": True, "download_url": download_url}
+            
+            # Determine auth method and script URL
+            auth_method = config.get("auth_method", "apps_script")
+            script_url = config.get("web_app_url") or config.get("apps_script_url")
+            
+            if auth_method == "apps_script" and script_url:
+                try:
+                    # Get file download URL from Apps Script
+                    payload = {
+                        "action": "get_file_download_url",
+                        "file_id": file_id
+                    }
+                    
+                    logger.info(f"Requesting file download URL from Apps Script for file: {file_id}")
+                    response = requests.post(script_url, json=payload, timeout=30)
+                    response.raise_for_status()
+                    
+                    result = response.json()
+                    
+                    if result.get("success") and result.get("download_url"):
+                        return {"success": True, "download_url": result.get("download_url")}
+                    else:
+                        # Fallback to standard Google Drive download URL
+                        download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+                        return {"success": True, "download_url": download_url}
+                        
+                except Exception as e:
+                    logger.error(f"Apps Script file download URL failed: {e}")
+                    # Fallback to standard Google Drive download URL
+                    download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+                    return {"success": True, "download_url": download_url}
+            else:
+                # Fallback to standard Google Drive download URL
+                download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+                return {"success": True, "download_url": download_url}
+                
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error getting Google Drive file download URL: {e}")
+            # Final fallback
+            download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+            return {"success": True, "download_url": download_url}
