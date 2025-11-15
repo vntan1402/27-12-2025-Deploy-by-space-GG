@@ -16,6 +16,7 @@ from app.repositories.certificate_repository import CertificateRepository
 from app.repositories.ship_repository import ShipRepository
 from app.utils.pdf_processor import PDFProcessor
 from app.utils.ai_helper import AIHelper
+from app.utils.certificate_abbreviation import generate_certificate_abbreviation
 
 logger = logging.getLogger(__name__)
 
