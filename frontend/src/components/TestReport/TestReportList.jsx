@@ -212,27 +212,7 @@ export const TestReportList = ({
   const handleContextMenu = (e, report) => {
     e.preventDefault();
     
-    // Estimate context menu dimensions
-    const menuWidth = 200; // Approximate width
-    const menuHeight = 250; // Approximate height (depends on items)
-    
-    // Calculate position with viewport bounds checking
-    let x = e.clientX;
-    let y = e.clientY;
-    
-    // Check if menu would overflow right edge
-    if (x + menuWidth > window.innerWidth) {
-      x = window.innerWidth - menuWidth - 10; // 10px padding from edge
-    }
-    
-    // Check if menu would overflow bottom edge
-    if (y + menuHeight > window.innerHeight) {
-      y = window.innerHeight - menuHeight - 10; // 10px padding from edge
-    }
-    
-    // Ensure minimum distance from edges
-    x = Math.max(10, x);
-    y = Math.max(10, y);
+    const { x, y } = calculateContextMenuPosition(e, 200, 250);
     
     setContextMenu({
       show: true,
