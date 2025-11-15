@@ -1,14 +1,20 @@
 import logging
-from typing import List
+import asyncio
+from typing import List, Set
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 
 from app.models.ship import ShipCreate, ShipUpdate, ShipResponse
 from app.models.user import UserResponse, UserRole
 from app.services.ship_service import ShipService
 from app.core.security import get_current_user
+from app.utils.gdrive_folder_helper import create_google_drive_folder_background
+from app.db.mongodb import mongo_db
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+# Track background tasks to prevent garbage collection
+background_tasks: Set[asyncio.Task] = set()
 
 def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has editor or higher permission"""
