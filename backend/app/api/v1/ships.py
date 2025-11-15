@@ -55,10 +55,32 @@ async def create_ship(
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
-    Create new ship (Editor+ role required)
+    Create new ship with automatic Google Drive folder creation (Editor+ role required)
     """
     try:
-        return await ShipService.create_ship(ship_data, current_user)
+        # Create ship in database
+        ship_response = await ShipService.create_ship(ship_data, current_user)
+        ship_dict = ship_response.dict()
+        
+        # Start Google Drive folder creation in background
+        logger.info(f"🚀 Scheduling Google Drive folder creation for ship: {ship_dict['name']}")
+        
+        task = asyncio.create_task(
+            create_google_drive_folder_background(
+                ship_dict,
+                current_user,
+                mongo_db
+            )
+        )
+        
+        # Add to tracking set to prevent garbage collection
+        background_tasks.add(task)
+        task.add_done_callback(background_tasks.discard)
+        
+        logger.info(f"✅ Ship created: {ship_dict['name']} (Google Drive folder creation in progress)")
+        
+        return ship_response
+        
     except HTTPException:
         raise
     except Exception as e:
