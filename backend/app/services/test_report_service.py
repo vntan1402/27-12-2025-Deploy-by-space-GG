@@ -94,7 +94,7 @@ class TestReportService:
         # Handle note/notes field - frontend sends 'note', backend stores 'notes'
         if "note" in report_dict and report_dict["note"] is not None:
             report_dict["notes"] = report_dict.pop("note")
-            logger.debug(f"Mapped 'note' to 'notes' field")
+            logger.debug("Mapped 'note' to 'notes' field")
         
         # Normalize issued_by to abbreviation
         if report_dict.get("issued_by"):
