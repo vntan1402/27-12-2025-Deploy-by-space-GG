@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.api.v1 import auth, users, companies, ships, certificates
+from app.api.v1 import auth, users, companies, ships, certificates, crew
 from app.core.security import get_current_user
 
 api_router = APIRouter()
@@ -10,6 +10,7 @@ api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(companies.router, prefix="/companies", tags=["companies"])
 api_router.include_router(ships.router, prefix="/ships", tags=["ships"])
 api_router.include_router(certificates.router, prefix="/certificates", tags=["certificates"])
+api_router.include_router(crew.router, prefix="/crew", tags=["crew"])
 
 # IMPORTANT: Frontend compatibility routes
 # Frontend calls various endpoints differently than our clean architecture
