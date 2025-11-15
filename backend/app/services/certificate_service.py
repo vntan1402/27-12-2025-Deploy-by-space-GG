@@ -183,7 +183,13 @@ class CertificateService:
                     api_key=emergent_key,
                     session_id="cert_analysis",
                     system_message="You are an AI assistant that analyzes maritime certificates."
-                ).with_model(provider, model)
+                )
+                
+                # Set provider and model correctly
+                if provider == "google":
+                    llm_chat = llm_chat.with_model("gemini", model)
+                else:
+                    llm_chat = llm_chat.with_model(provider, model)
                 
                 # Call AI
                 ai_response = await llm_chat.send_message(UserMessage(text=prompt))
