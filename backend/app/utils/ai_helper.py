@@ -90,22 +90,44 @@ Return ONLY the JSON object, no markdown code blocks, no explanation.
                 # If no JSON found, try to parse the whole response
                 data = json.loads(response_text)
             
-            # Clean and validate data
+            # Clean and validate data - include ALL ship fields
             cleaned_data = {
+                # Ship identification
+                "ship_name": data.get("ship_name"),
+                "imo_number": data.get("imo_number"),
+                "flag": data.get("flag"),
+                "class_society": data.get("class_society"),
+                "ship_owner": data.get("ship_owner"),
+                "ship_type": data.get("ship_type"),
+                
+                # Ship specifications
+                "built_year": data.get("built_year"),
+                "gross_tonnage": data.get("gross_tonnage"),
+                "deadweight": data.get("deadweight"),
+                "length_overall": data.get("length_overall"),
+                "breadth": data.get("breadth"),
+                "depth": data.get("depth"),
+                
+                # Build/construction dates
+                "keel_laid": data.get("keel_laid"),
+                "delivery_date": data.get("delivery_date"),
+                "place_of_build": data.get("place_of_build"),
+                
+                # Docking and survey dates
+                "last_docking": data.get("last_docking"),
+                "last_docking_2": data.get("last_docking_2"),
+                "next_docking": data.get("next_docking"),
+                "special_survey_from_date": data.get("special_survey_from_date"),
+                "special_survey_to_date": data.get("special_survey_to_date"),
+                
+                # Legacy certificate fields (for backward compatibility)
                 "cert_name": data.get("cert_name"),
                 "cert_type": data.get("cert_type"),
                 "cert_no": data.get("cert_no"),
                 "issue_date": data.get("issue_date"),
                 "valid_date": data.get("valid_date"),
                 "last_endorse": data.get("last_endorse"),
-                "issued_by": data.get("issued_by"),
-                "ship_name": data.get("ship_name"),
-                "imo_number": data.get("imo_number"),
-                "flag": data.get("flag"),
-                "class_society": data.get("class_society"),
-                "built_year": data.get("built_year"),
-                "gross_tonnage": data.get("gross_tonnage"),
-                "deadweight": data.get("deadweight")
+                "issued_by": data.get("issued_by")
             }
             
             return cleaned_data
