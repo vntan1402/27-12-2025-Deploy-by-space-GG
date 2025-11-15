@@ -1,6 +1,6 @@
 import logging
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 
 from app.models.ship import ShipCreate, ShipUpdate, ShipResponse
 from app.models.user import UserResponse, UserRole
