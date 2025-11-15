@@ -33,6 +33,38 @@
 
 ## 🗂️ TESTING RESULTS
 
+### Last Docking 1 & 2 Date Display Fix in Edit Ship Modal
+
+**Status:** ✅ FIXED (Pending User Testing)
+**Date:** 2025-01-15
+**File:** `/app/frontend/src/components/Ships/EditShipModal.jsx`
+
+**Issue:** 
+- Database lưu Last Docking 1 & 2 với đầy đủ ngày/tháng/năm (ví dụ: "2022-11-01T00:00:00")
+- Khi mở Edit Ship modal, chỉ hiển thị tháng/năm (ví dụ: "11/2022") - bị mất phần ngày
+- User yêu cầu hiển thị đầy đủ ngày/tháng/năm như đã lưu trong database
+
+**Root Cause:**
+- Hàm `formatLastDockingFromBackend()` (dòng 144-165) chuyển đổi ISO datetime sang định dạng MM/YYYY
+- Logic này cắt bỏ phần ngày: `const [year, month] = datePart.split('-'); return `${month}/${year}``
+- Input fields sử dụng `type="text"` với placeholder "11/2020" chỉ cho phép nhập tháng/năm
+
+**Fix Implemented:**
+1. **Load Data (dòng 65-66):** Thay đổi từ `formatLastDockingFromBackend()` → `formatDateFromBackend()` để giữ định dạng YYYY-MM-DD đầy đủ
+2. **Submit Data (dòng 250-251):** Thay đổi từ `formatLastDockingForBackend()` → `convertDateInputToUTC()` để xử lý date input chuẩn
+3. **Input Type (dòng 648, 661):** Thay đổi từ `type="text"` → `type="date"` để hiển thị date picker đầy đủ ngày/tháng/năm
+
+**Expected Behavior After Fix:**
+- Database: "2022-11-01T00:00:00" → Display: "2022-11-01" (đầy đủ ngày/tháng/năm)
+- Date picker cho phép chọn ngày cụ thể thay vì chỉ tháng/năm
+- Last Docking 1 & 2 hoạt động nhất quán với các trường ngày khác (Next Docking, Last Special Survey, etc.)
+
+**Needs Testing:**
+- User verification: Mở Edit Ship modal và kiểm tra Last Docking 1 & 2 hiển thị đầy đủ ngày/tháng/năm
+- Update test: Thử cập nhật Last Docking 1 & 2 và verify data được lưu đúng vào database
+
+---
+
 ### Missing Routes Migration from backend-v1
 
 **Status:** ⏳ IN PROGRESS
