@@ -585,36 +585,10 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     if (!note) return;
     
     const rect = e.target.getBoundingClientRect();
-    const tooltipWidth = 320; // max-w-xs is approximately 320px (20rem)
-    const tooltipHeight = 150; // approximate height for padding
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const padding = 10; // minimum distance from edge
+    const tooltipWidth = 320;
+    const tooltipHeight = 150;
     
-    // Calculate initial position (using viewport coordinates for position: fixed)
-    let x = rect.left;
-    let y = rect.bottom + 5;
-    
-    // Check if tooltip would overflow on the right
-    if (x + tooltipWidth > viewportWidth - padding) {
-      // Align to right edge of viewport with padding
-      x = viewportWidth - tooltipWidth - padding;
-    }
-    
-    // Ensure it doesn't go off left edge
-    if (x < padding) {
-      x = padding;
-    }
-    
-    // Check if tooltip would overflow on the bottom
-    if (y + tooltipHeight > viewportHeight - padding) {
-      // Position above the element instead
-      y = rect.top - tooltipHeight - 5;
-      // If still overflows top, position within viewport
-      if (y < padding) {
-        y = padding;
-      }
-    }
+    const { x, y } = calculateTooltipPosition(rect, tooltipWidth, tooltipHeight);
     
     setNoteTooltip({
       show: true,
