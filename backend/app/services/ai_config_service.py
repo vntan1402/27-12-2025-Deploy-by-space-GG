@@ -53,14 +53,9 @@ class AIConfigService:
             if not current_user.company:
                 raise HTTPException(status_code=400, detail="User has no company assigned")
             
-            # Validate provider and model
-            if config_data.provider:
-                valid_providers = ["openai", "google", "anthropic"]
-                if config_data.provider not in valid_providers:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=f"Invalid provider. Must be one of: {', '.join(valid_providers)}"
-                    )
+            # Note: Provider validation removed for flexibility
+            # Backend-v1 accepts any provider value
+            # Common providers: openai, google, anthropic, but others may be added
             
             # Check if config exists
             existing_config = await AIConfigRepository.get_by_company(current_user.company)
