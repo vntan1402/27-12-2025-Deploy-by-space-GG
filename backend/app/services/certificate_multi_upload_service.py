@@ -798,7 +798,7 @@ Example output:
                 "cert_name": cert_name,
                 "cert_abbreviation": cert_abbreviation,
                 "cert_no": analysis_result.get("cert_no", "Unknown"),
-                "cert_type": analysis_result.get("cert_type", "Full Term"),
+                "cert_type": cert_type,
                 "issue_date": issue_date_iso,
                 "valid_date": valid_date_iso,
                 "last_endorse": last_endorse_iso,
