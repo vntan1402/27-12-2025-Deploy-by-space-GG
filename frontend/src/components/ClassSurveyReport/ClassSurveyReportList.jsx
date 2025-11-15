@@ -213,10 +213,13 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
   // Context menu handlers
   const handleContextMenu = (e, report) => {
     e.preventDefault();
+    
+    const { x, y } = calculateContextMenuPosition(e, 200, 250);
+    
     setContextMenu({
       show: true,
-      x: e.clientX,
-      y: e.clientY,
+      x: x,
+      y: y,
       report
     });
   };
