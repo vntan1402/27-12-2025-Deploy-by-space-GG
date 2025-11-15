@@ -447,33 +447,55 @@ class CertificateMultiUploadService:
     def _create_certificate_extraction_prompt(text: str) -> str:
         """Create prompt for certificate extraction with classification"""
         return f"""
-Analyze this maritime document and extract certificate information.
+Analyze this maritime ship certificate document and extract information.
 
 Document Text:
-{text[:8000]}
+{text[:10000]}
 
-Extract and return ONLY a valid JSON object with these fields:
+CRITICAL: You MUST extract and return a JSON object with ALL these fields.
 
 {{
-  "category": "certificates or other (MUST be 'certificates' if this is a ship certificate)",
-  "cert_name": "Certificate name",
-  "cert_no": "Certificate number",
-  "issue_date": "Issue date (DD/MM/YYYY format)",
-  "valid_date": "Valid until date (DD/MM/YYYY format)",
-  "last_endorse": "Last endorsement date (DD/MM/YYYY format)",
-  "issued_by": "Issuing authority",
-  "ship_name": "Ship name from certificate",
-  "imo_number": "IMO number (7 digits)",
-  "confidence": "high/medium/low",
-  "text_content": "First 500 chars of extracted text"
+  "category": "certificates (MUST be 'certificates' if this contains ship certificate information - look for keywords: Certificate, SOLAS, MARPOL, Classification Society, IMO, Ship Safety)",
+  "confidence": "high or medium or low",
+  "text_content": "{text[:500][:500]}",
+  
+  "cert_name": "Full certificate name (e.g., 'Cargo Ship Safety Construction Certificate', 'Load Line Certificate')",
+  "cert_no": "Certificate number (alphanumeric)",
+  "cert_type": "Full Term or Short Term or Interim",
+  "issue_date": "Issue date in DD/MM/YYYY format (e.g., 15/01/2023)",
+  "valid_date": "Valid until date in DD/MM/YYYY format",
+  "last_endorse": "Last endorsement date in DD/MM/YYYY format",
+  "issued_by": "Full name of issuing authority (e.g., 'Lloyd\\'s Register', 'Panama Maritime Authority')",
+  
+  "ship_name": "Ship name (look for 'NAME OF SHIP', 'Ship Name', 'Vessel Name', 'M.V.', 'M/V')",
+  "imo_number": "IMO number - 7 digits starting with 8 or 9 (look for 'IMO No', 'IMO Number', 'IMO:')",
+  "flag": "Flag state (look for 'Flag', 'Port of Registry', 'Government of')",
+  "class_society": "Classification society full name (e.g., 'Lloyd\\'s Register', 'DNV GL', 'American Bureau of Shipping')",
+  "ship_owner": "Ship owner / registered owner name",
+  "ship_type": "ONE OF: General Cargo, Bulk Carrier, Oil Tanker, Chemical Tanker, LPG/LNG Carrier, Container Ship, Passenger Ship, Ro-Ro Cargo, Fishing Vessel, Tug/Supply Vessel, Other",
+  "gross_tonnage": "Gross tonnage (numeric only, no units)",
+  "deadweight": "Deadweight (numeric only, no units)"
 }}
 
-CLASSIFICATION RULES:
-- If document contains "Certificate" + maritime context → category = "certificates"
-- If document has IMO number + certificate keywords → category = "certificates"
-- Otherwise → category = "other"
+CLASSIFICATION RULES - MUST classify as "certificates" if:
+✓ Document contains "Certificate" word
+✓ Has IMO number
+✓ Has ship name + issuing authority
+✓ Has validity dates
+✓ Mentions SOLAS, MARPOL, or maritime safety regulations
+✓ Issued by Classification Society or Maritime Authority
 
-Return ONLY the JSON, no markdown blocks.
+EXTRACTION RULES:
+1. For dates: Convert to DD/MM/YYYY format (e.g., "15 January 2023" → "15/01/2023")
+2. For ship_type: Pick ONE from the list that matches
+3. For numbers: Extract digits only (e.g., "25,000 MT" → "25000")
+4. If field not found: Use null (not empty string)
+5. confidence: "high" if 5+ fields extracted, "medium" if 3-4 fields, "low" if <3 fields
+
+Return ONLY the JSON object, no markdown blocks, no explanation.
+
+Example output:
+{{"category":"certificates","confidence":"high","cert_name":"Cargo Ship Safety Construction Certificate","cert_no":"CSSC-12345","issue_date":"15/01/2023","valid_date":"14/01/2028","issued_by":"Lloyd's Register","ship_name":"M.V. OCEAN STAR","imo_number":"9123456","text_content":"....."}}
 """
     
     @staticmethod
