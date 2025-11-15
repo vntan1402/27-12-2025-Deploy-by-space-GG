@@ -4,9 +4,15 @@ from typing import List
 from datetime import datetime, timezone
 from fastapi import HTTPException
 
-from app.models.ship import ShipCreate, ShipUpdate, ShipResponse
+from app.models.ship import ShipCreate, ShipUpdate, ShipResponse, AnniversaryDate
 from app.models.user import UserResponse, UserRole
 from app.repositories.ship_repository import ShipRepository
+from app.utils.ship_calculations import (
+    calculate_anniversary_date_from_certificates,
+    calculate_special_survey_cycle_from_certificates,
+    calculate_next_docking,
+    format_anniversary_date_display
+)
 
 logger = logging.getLogger(__name__)
 
