@@ -231,21 +231,40 @@ class AuditCertificateService:
         }
     
     @staticmethod
-    async def bulk_delete_audit_certificates(request: BulkDeleteAuditCertificateRequest, current_user: UserResponse) -> dict:
-        """Bulk delete audit certificates"""
+    async def bulk_delete_audit_certificates(
+        request: BulkDeleteAuditCertificateRequest, 
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
+        """Bulk delete audit certificates and schedule file deletions"""
         deleted_count = 0
+        files_scheduled = 0
+        
         for cert_id in request.document_ids:
             try:
-                await AuditCertificateService.delete_audit_certificate(cert_id, current_user)
+                result = await AuditCertificateService.delete_audit_certificate(
+                    cert_id, 
+                    current_user, 
+                    background_tasks
+                )
                 deleted_count += 1
-            except:
+                if result.get("background_deletion"):
+                    files_scheduled += 1
+            except Exception as e:
+                logger.error(f"Error deleting audit certificate {cert_id}: {e}")
                 continue
         
-        logger.info(f"✅ Bulk deleted {deleted_count} audit certificates")
+        message = f"Deleted {deleted_count} audit certificate(s)"
+        if files_scheduled > 0:
+            message += f". {files_scheduled} file(s) deletion in progress..."
+        
+        logger.info(f"✅ Bulk delete complete: {deleted_count} audit certificates, {files_scheduled} files scheduled")
         
         return {
-            "message": f"Successfully deleted {deleted_count} audit certificates",
-            "deleted_count": deleted_count
+            "success": True,
+            "message": message,
+            "deleted_count": deleted_count,
+            "files_scheduled": files_scheduled
         }
     
     @staticmethod
