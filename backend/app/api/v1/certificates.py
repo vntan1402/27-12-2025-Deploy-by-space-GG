@@ -331,17 +331,31 @@ async def get_upcoming_surveys(
                     window_open = next_survey_date - timedelta(days=90)
                     window_close = next_survey_date + timedelta(days=90)
                 
-                # Check if survey is upcoming (within window or past due)
-                days_until_window_close = (window_close - current_date).days
+                # Check if current date is WITHIN window (backend-v1 logic)
+                if not (window_open <= current_date <= window_close):
+                    continue  # Not within window yet
                 
-                if days_until_window_close < 0:
+                # Calculate status
+                days_until_window_close = (window_close - current_date).days
+                days_until_survey = (next_survey_date - current_date).days
+                
+                # Status logic (unified with backend-v1)
+                is_overdue = current_date > window_close
+                is_critical = 0 <= days_until_window_close <= 30
+                
+                # Due Soon: within window but > 30 days to close
+                window_close_minus_30_date = window_close - timedelta(days=30)
+                is_due_soon = window_open < current_date < window_close_minus_30_date
+                
+                # Determine primary status
+                if is_overdue:
                     status = "overdue"
-                elif days_until_window_close <= 30:
+                elif is_critical:
                     status = "critical"
-                elif days_until_window_close <= 90:
-                    status = "upcoming"
+                elif is_due_soon:
+                    status = "due_soon"
                 else:
-                    continue  # Not upcoming yet
+                    status = "within_window"
                 
                 # Get ship info
                 ship = next((s for s in ships if s.get('id') == cert.get('ship_id')), None)
