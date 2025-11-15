@@ -1,48 +1,40 @@
 <analysis>
-The trajectory details a comprehensive backend refactoring for a maritime document management application. The user, communicating primarily in Vietnamese, initiated this task to address the unmaintainable state of a single, 28,000-line  file.
+The trajectory details the final, intensive phases of a major backend refactoring for a maritime document management application. The initial goal was to migrate a monolithic 28,000-line  to a modular Clean Architecture. The work, guided by a user communicating in Vietnamese, quickly evolved from simple migration to a feature-parity and bug-fixing effort.
 
-My predecessor's work began with a thorough analysis of the existing monolithic backend. In response to the user's request, a Clean Architecture was proposed. The user then suggested a safer, more robust migration strategy: renaming the existing  to  to serve as a live backup and building the new, modular backend in a fresh  directory. This Safe Parallel Migration approach was adopted and meticulously planned, with detailed markdown files for the overall plan, endpoint checklists, and progress tracking.
+The process was highly iterative. I, as the AI engineer, first implemented the core AI analysis feature, replacing mock data with a real LLM integration via . Subsequent user feedback drove the rest of the work. The user identified missing utility functions (), which were then migrated. A comprehensive frontend analysis, requested by the user, revealed missing Google Drive integration, which was then implemented.
 
-The migration was executed in distinct, tested phases:
-1.  **Infrastructure Setup:** Creating the new directory structure and configuration.
-2.  **Core Modules:** Migrating critical modules like Authentication, User, and Company management.
-3.  **Feature Modules:** Incrementally migrating Ship, Certificate, and Crew management.
-4.  **Batch Migration:** Systematically migrating 8 other document types using a scripted approach.
-
-During the process, I debugged and resolved frontend integration issues by adding compatibility API routes to the new backend, ensuring the UI remained functional. I also addressed data-related problems by seeding the database with sample data for testing. The migration of complex business logic, like ship survey calculations, was completed, while the AI analysis feature was explicitly deferred and documented for future work at the user's request. The last action was initiating a final check to identify any remaining un-migrated endpoints.
+A series of critical bug fixes followed. A 500 error on the Other Documents page was traced to Pydantic validation failures on legacy database entries; this was fixed by making model fields optional. A similar issue with Test Reports led to a significant architectural decision: abandoning generic document models in favor of specific, dedicated Pydantic models and services for each document type (, , etc.) to match the frontend's expected data schema. This pattern was then applied to multiple document categories. Finally, based on user input, the ISM/ISPS/MLC document handling was refactored to match 's unified  structure, and the automatic normalization of the  field was implemented.
 
 The user's primary language is Vietnamese. The next agent must respond in Vietnamese.
 </analysis>
 
 <product_requirements>
-The primary requirement was to refactor the application's monolithic FastAPI backend into a scalable and maintainable Clean Architecture. The existing backend, contained in a single 28,000-line  file, was hindering development and bug fixing.
+The primary goal is to complete the full-featured migration of a monolithic FastAPI backend () to a new, maintainable Clean Architecture (). The initial requirement to simply refactor the structure has expanded to ensure full feature parity and bug-free operation with the existing frontend.
 
-The objective was to improve code organization, separation of concerns, testability, and team collaboration.
-
-The agreed-upon implementation strategy, proposed by the user and refined by the AI engineer, was a Safe Parallel Migration. This involved:
-1.  Renaming the current  folder to  to act as an immediate, functional rollback point.
-2.  Creating a new  folder with a modular structure (separating API routes, services, repositories, and models).
-3.  Incrementally migrating all functionality (endpoints, business logic, database queries) from  to the new structure, module by module.
-4.  Ensuring the existing React frontend remains compatible throughout the migration by adding alias routes where necessary.
-
-The migration is nearly complete, with all major CRUD operations and key business logic for users, companies, ships, crew, and all document types successfully ported to the new architecture.
+**Key Requirements Implemented:**
+1.  **Complete Backend Migration:** All core functionalities (Auth, Users, Ships, Crew, Documents) migrated from a single  to a modular structure (API, Services, Repositories).
+2.  **AI Feature Implementation:** A placeholder AI analysis function was replaced with a real, production-ready implementation using  to process certificate files.
+3.  **Feature Parity with :**
+    *   Migrated auxiliary utility scripts for data normalization (, ).
+    *   Migrated Google Drive integration endpoints required by the frontend.
+    *   Refactored data models (e.g., Test Reports, Survey Reports, Audit Reports) to be specific, not generic, mirroring the  schemas to fix frontend data display issues.
+    *   Unified ISM/ISPS/MLC documents into a single  collection and endpoint, matching 's logic.
+    *   Implemented automatic normalization for the  field on certificate creation/update.
 </product_requirements>
 
 <key_technical_concepts>
-- **Backend Framework**: FastAPI (Python)
-- **Data Validation**: Pydantic
-- **Database**: MongoDB
-- **Architectural Shift**: From a Monolithic architecture to a multi-layer Clean Architecture (API, Services, Repositories).
-- **Refactoring Strategy**: Safe Parallel Migration (Backup and Build).
-- **Process Management**: Supervisor
-- **Automation**: Bash scripting for setup and Python scripting for batch code generation ().
-- **Frontend-Backend Contract**: API endpoint definitions stored in .
+- **Backend Framework:** FastAPI
+- **Architecture:** Monolithic to Clean Architecture (API, Services, Repositories)
+- **Database:** MongoDB
+- **Data Validation:** Pydantic (with a shift from generic to specific models per document type)
+- **AI Integration:**  library for LLM-based analysis
+- **Refactoring Strategy:** Safe Parallel Migration (Backup and Build), iterative feature-parity matching based on user feedback and  analysis.
+- **Frontend-Backend Contract:** Resolving mismatches between frontend expectations and new backend schemas.
 </key_technical_concepts>
 
 <code_architecture>
-The project has transitioned from a monolithic backend to a layered architecture, while preserving the old version for safety.
+The project is structured with the new modular backend running alongside the backed-up monolithic version.
 
-**High-Level Directory Structure:**
 .
 ├── 2_CO_DUC_PP.pdf
 ├── 3_2O_THUONG_PP.pdf
@@ -55,6 +47,7 @@ The project has transitioned from a monolithic backend to a layered architecture
 ├── APPS_SCRIPT_V3_FILES_INDEX.md
 ├── APPS_SCRIPT_V3_FINAL_UPDATE.md
 ├── BACKEND_MIGRATION_PLAN.md
+├── BACKEND_V1_FILES_ANALYSIS.md
 ├── BAO_MAT_V3_TOM_TAT.md
 ├── BASIC_APPS_SCRIPT_STEP1.js
 ├── BWM-CHECK_LIST_11-23.pdf
@@ -87,14 +80,17 @@ The project has transitioned from a monolithic backend to a layered architecture
 ├── GOOGLE_APPS_SCRIPT_SYSTEM_GDRIVE_V2_WITH_API_KEY.js
 ├── GOOGLE_APPS_SCRIPT_V3.1_GET_SUPPORT.js
 ├── GOOGLE_APPS_SCRIPT_V3_SECURE.js
+├── GOOGLE_DRIVE_MIGRATION_COMPLETE.md
 ├── Ho_chieu_pho_thong.jpg
 ├── IMPORT_INSTRUCTIONS_FOR_SUPPORT.md
 ├── MARITIME_DOCUMENTS_AI_SCRIPT.js
 ├── MARITIME_V3_COMPATIBLE.js
 ├── METHOD_1_IMPLEMENTATION_COMPLETE.md
+├── MIGRATION_COMPLETE_SUMMARY.md
 ├── MIGRATION_PROGRESS.md
 ├── MIGRATION_QUICK_START.md
 ├── MINH_ANH_09_certificate.pdf
+├── MISSING_ENDPOINTS_ANALYSIS.md
 ├── MODAL_OPEN_CONDITIONS.md
 ├── MONGODB_DETAILED_INFO.md
 ├── MONGODB_SUMMARY.md
@@ -114,6 +110,8 @@ The project has transitioned from a monolithic backend to a layered architecture
 ├── Standby
 ├── TERMINAL_ACCESS_VA_GIAI_PHAP_THAY_THE.md
 ├── TESTED_PRODUCTION_SCRIPT.md
+├── UPDATE_ENDPOINTS_SUMMARY.md
+├── UTILITY_FUNCTIONS_MIGRATED.md
 ├── VIDEO_GUIDE_CREATE_SYSTEM_ADMIN.md
 ├── WORKING_APPS_SCRIPT.js
 ├── __pycache__
@@ -132,36 +130,47 @@ The project has transitioned from a monolithic backend to a layered architecture
 │   │   │       ├── __init__.py
 │   │   │       ├── __pycache__
 │   │   │       │   ├── __init__.cpython-311.pyc
+│   │   │       │   ├── ai_config.cpython-311.pyc
+│   │   │       │   ├── approval_documents.cpython-311.pyc
+│   │   │       │   ├── audit_certificates.cpython-311.pyc
+│   │   │       │   ├── audit_reports.cpython-311.pyc
 │   │   │       │   ├── auth.cpython-311.pyc
 │   │   │       │   ├── certificates.cpython-311.pyc
 │   │   │       │   ├── companies.cpython-311.pyc
 │   │   │       │   ├── crew.cpython-311.pyc
 │   │   │       │   ├── crew_certificates.cpython-311.pyc
 │   │   │       │   ├── drawings_manuals.cpython-311.pyc
+│   │   │       │   ├── gdrive.cpython-311.pyc
 │   │   │       │   ├── ism_documents.cpython-311.pyc
 │   │   │       │   ├── isps_documents.cpython-311.pyc
 │   │   │       │   ├── mlc_documents.cpython-311.pyc
+│   │   │       │   ├── other_audit_documents.cpython-311.pyc
 │   │   │       │   ├── other_documents.cpython-311.pyc
 │   │   │       │   ├── ships.cpython-311.pyc
 │   │   │       │   ├── supply_documents.cpython-311.pyc
 │   │   │       │   ├── survey_reports.cpython-311.pyc
 │   │   │       │   ├── test_reports.cpython-311.pyc
-│   │   │       │   └── users.cpython-311.pyc
+│   │   │       │   ├── users.cpython-311.pyc
+│   │   │       │   └── utilities.cpython-311.pyc
+│   │   │       ├── ai_config.py
+│   │   │       ├── approval_documents.py
+│   │   │       ├── audit_certificates.py
+│   │   │       ├── audit_reports.py
 │   │   │       ├── auth.py
 │   │   │       ├── certificates.py
 │   │   │       ├── companies.py
 │   │   │       ├── crew.py
 │   │   │       ├── crew_certificates.py
 │   │   │       ├── drawings_manuals.py
-│   │   │       ├── ism_documents.py
-│   │   │       ├── isps_documents.py
-│   │   │       ├── mlc_documents.py
+│   │   │       ├── gdrive.py
+│   │   │       ├── other_audit_documents.py
 │   │   │       ├── other_documents.py
 │   │   │       ├── ships.py
 │   │   │       ├── supply_documents.py
 │   │   │       ├── survey_reports.py
 │   │   │       ├── test_reports.py
-│   │   │       └── users.py
+│   │   │       ├── users.py
+│   │   │       └── utilities.py
 │   │   ├── core
 │   │   │   ├── __init__.py
 │   │   │   ├── __pycache__
@@ -181,60 +190,112 @@ The project has transitioned from a monolithic backend to a layered architecture
 │   │   │   ├── __init__.py
 │   │   │   ├── __pycache__
 │   │   │   │   ├── __init__.cpython-311.pyc
+│   │   │   │   ├── ai_config.cpython-311.pyc
+│   │   │   │   ├── approval_document.cpython-311.pyc
+│   │   │   │   ├── audit_certificate.cpython-311.pyc
+│   │   │   │   ├── audit_report.cpython-311.pyc
 │   │   │   │   ├── certificate.cpython-311.pyc
 │   │   │   │   ├── company.cpython-311.pyc
 │   │   │   │   ├── crew.cpython-311.pyc
 │   │   │   │   ├── crew_certificate.cpython-311.pyc
 │   │   │   │   ├── document.cpython-311.pyc
+│   │   │   │   ├── drawing_manual.cpython-311.pyc
+│   │   │   │   ├── gdrive_config.cpython-311.pyc
+│   │   │   │   ├── other_audit_document.cpython-311.pyc
+│   │   │   │   ├── other_doc.cpython-311.pyc
 │   │   │   │   ├── ship.cpython-311.pyc
+│   │   │   │   ├── survey_report.cpython-311.pyc
+│   │   │   │   ├── test_report.cpython-311.pyc
 │   │   │   │   └── user.cpython-311.pyc
+│   │   │   ├── ai_config.py
+│   │   │   ├── approval_document.py
+│   │   │   ├── audit_certificate.py
+│   │   │   ├── audit_report.py
 │   │   │   ├── certificate.py
 │   │   │   ├── company.py
 │   │   │   ├── crew.py
 │   │   │   ├── crew_certificate.py
 │   │   │   ├── document.py
+│   │   │   ├── drawing_manual.py
+│   │   │   ├── gdrive_config.py
+│   │   │   ├── other_audit_document.py
+│   │   │   ├── other_doc.py
 │   │   │   ├── ship.py
+│   │   │   ├── survey_report.py
+│   │   │   ├── test_report.py
 │   │   │   └── user.py
 │   │   ├── repositories
 │   │   │   ├── __init__.py
 │   │   │   ├── __pycache__
 │   │   │   │   ├── __init__.cpython-311.pyc
+│   │   │   │   ├── ai_config_repository.cpython-311.pyc
 │   │   │   │   ├── certificate_repository.cpython-311.pyc
 │   │   │   │   ├── company_repository.cpython-311.pyc
 │   │   │   │   ├── crew_certificate_repository.cpython-311.pyc
 │   │   │   │   ├── crew_repository.cpython-311.pyc
+│   │   │   │   ├── gdrive_config_repository.cpython-311.pyc
 │   │   │   │   ├── ship_repository.cpython-311.pyc
 │   │   │   │   └── user_repository.cpython-311.pyc
+│   │   │   ├── ai_config_repository.py
 │   │   │   ├── certificate_repository.py
 │   │   │   ├── company_repository.py
 │   │   │   ├── crew_certificate_repository.py
 │   │   │   ├── crew_repository.py
+│   │   │   ├── gdrive_config_repository.py
 │   │   │   ├── ship_repository.py
 │   │   │   └── user_repository.py
 │   │   ├── services
 │   │   │   ├── __init__.py
 │   │   │   ├── __pycache__
 │   │   │   │   ├── __init__.cpython-311.pyc
+│   │   │   │   ├── ai_config_service.cpython-311.pyc
+│   │   │   │   ├── approval_document_service.cpython-311.pyc
+│   │   │   │   ├── audit_certificate_service.cpython-311.pyc
+│   │   │   │   ├── audit_report_service.cpython-311.pyc
 │   │   │   │   ├── certificate_service.cpython-311.pyc
 │   │   │   │   ├── company_service.cpython-311.pyc
 │   │   │   │   ├── crew_certificate_service.cpython-311.pyc
 │   │   │   │   ├── crew_service.cpython-311.pyc
 │   │   │   │   ├── document_service.cpython-311.pyc
+│   │   │   │   ├── drawing_manual_service.cpython-311.pyc
+│   │   │   │   ├── gdrive_service.cpython-311.pyc
+│   │   │   │   ├── other_audit_document_service.cpython-311.pyc
+│   │   │   │   ├── other_doc_service.cpython-311.pyc
 │   │   │   │   ├── ship_service.cpython-311.pyc
+│   │   │   │   ├── survey_report_service.cpython-311.pyc
+│   │   │   │   ├── test_report_service.cpython-311.pyc
 │   │   │   │   └── user_service.cpython-311.pyc
+│   │   │   ├── ai_config_service.py
+│   │   │   ├── approval_document_service.py
+│   │   │   ├── audit_certificate_service.py
+│   │   │   ├── audit_report_service.py
 │   │   │   ├── certificate_service.py
 │   │   │   ├── company_service.py
 │   │   │   ├── crew_certificate_service.py
 │   │   │   ├── crew_service.py
 │   │   │   ├── document_service.py
+│   │   │   ├── drawing_manual_service.py
+│   │   │   ├── gdrive_service.py
+│   │   │   ├── other_audit_document_service.py
+│   │   │   ├── other_doc_service.py
 │   │   │   ├── ship_service.py
+│   │   │   ├── survey_report_service.py
+│   │   │   ├── test_report_service.py
 │   │   │   └── user_service.py
 │   │   └── utils
 │   │       ├── __init__.py
 │   │       ├── __pycache__
 │   │       │   ├── __init__.cpython-311.pyc
+│   │       │   ├── ai_helper.cpython-311.pyc
+│   │       │   ├── document_name_normalization.cpython-311.pyc
+│   │       │   ├── issued_by_abbreviation.cpython-311.pyc
+│   │       │   ├── pdf_processor.cpython-311.pyc
 │   │       │   └── ship_calculations.cpython-311.pyc
+│   │       ├── ai_helper.py
 │   │       ├── document_factory.py
+│   │       ├── document_name_normalization.py
+│   │       ├── issued_by_abbreviation.py
+│   │       ├── pdf_processor.py
 │   │       └── ship_calculations.py
 │   ├── create_document_routes.py
 │   ├── migrations
@@ -339,6 +400,7 @@ The project has transitioned from a monolithic backend to a layered architecture
 │       ├── logo_462a6211-44e6-47fc-9826-b166b2f36f54.png
 │       ├── logo_95710989-837b-47a1-ab7b-a9816e62586d.png
 │       └── logo_eee55398-9756-4a58-86e7-227c3c139ae3.png
+├── backend_test.py
 ├── check_missing_endpoints.py
 ├── cleanup_executor.sh
 ├── debug_cert_fields.sh
@@ -50160,9 +50222,6 @@ The project has transitioned from a monolithic backend to a layered architecture
 │   │   │   ├── drawingsService.js
 │   │   │   ├── gdriveService.js
 │   │   │   ├── index.js
-│   │   │   ├── ismService.js
-│   │   │   ├── ispsService.js
-│   │   │   ├── mlcService.js
 │   │   │   ├── otherAuditDocumentService.js
 │   │   │   ├── otherDocsService.js
 │   │   │   ├── otherDocumentService.js
@@ -50205,6 +50264,7 @@ The project has transitioned from a monolithic backend to a layered architecture
 │       ├── debug_company_mismatch.py
 │       └── debug_upcoming_surveys.py
 ├── test_certificate.txt
+├── test_certificate_analysis.txt
 ├── test_coc_certificate.pdf
 ├── test_crew_certificates_backend.sh
 ├── test_gmdss_certificate.pdf
@@ -50223,66 +50283,60 @@ The project has transitioned from a monolithic backend to a layered architecture
 ├── verify_fix.sh
 └── yarn.lock
 
-4658 directories, 45521 files
+4658 directories, 45589 files
 
-**Key Files & Changes:**
+**Key Files & Directories Modified:**
 
-- ** (Directory)**
-  - **Importance**: This is a complete, untouched backup of the original monolithic backend. It serves as a reference for business logic and as an instant rollback target if the new backend fails.
-  - **Changes**: Renamed from  to . It is no longer actively running.
+-   ****: This directory saw the most significant changes.
+    -   **Summary:** It started with a generic  model. To fix data incompatibilities, it was expanded with numerous specific models, each mirroring a  schema.
+    -   **Changes:**
+        -   : The  model was edited to make fields like  and  optional to ensure backward compatibility with old database entries.
+        -   **New Files:** , , , , , , ,  were all created to define specific schemas, fixing major frontend display bugs.
 
-- ** (Directory)**
-  - **Importance**: This is the new, active backend, built with a clean, modular architecture.
-  - **Changes**: Created from scratch. It contains a structured set of folders and files that separate concerns. The  configuration has been updated to run this new backend via .
+-   ****: This directory was updated in lockstep with the models.
+    -   **Summary:** Contains the business logic. For each new specific model, a corresponding service was created. Existing services were enhanced.
+    -   **Changes:**
+        -   : Updated to replace mock data with real AI analysis logic from  and to add automatic  normalization on create/update operations.
+        -   : The  method was modified to provide default values for missing fields from old database records.
+        -   **New Files:** , , , and many others were created to handle logic for the new specific models.
 
-- ****
-  - **Importance**: The new entry point for the FastAPI application. It initializes the app and includes the API routers from the  directory.
-  - **Changes**: Newly created. It also includes compatibility routes (e.g., , ) that redirect to the new correct endpoints, ensuring the old frontend works without changes.
+-   ****: Contains the API route definitions.
+    -   **Summary:** This layer was refactored to use the new specific services and models. Some endpoints were consolidated, and others were cleaned up.
+    -   **Changes:**
+        -   , , , etc., were heavily modified or recreated to use their new dedicated services and models instead of the generic .
+        -   : Created as a unified endpoint for ISM/ISPS/MLC.
+        -   , , : These files were deleted after confirming the frontend uses the unified .
+        -   : Updated multiple times to register new routers (e.g., , , ) and remove obsolete ones.
 
-- ** (Directory)**
-  - **Importance**: This directory contains separate files for each group of API endpoints (e.g., , , , ). This breaks up the 179+ endpoints from the original .
-  - **Changes**: Newly created, with dozens of files containing the migrated API route logic.
+-   ****: Home for helper functions.
+    -   **Summary:** Populated with new and migrated utilities to support core services.
+    -   **Changes:**
+        -   **New Files:**  and  were created to support the AI analysis feature.
+        -   **Migrated Files:**  and  were copied from  and integrated.
 
-- ** &  (Directories)**
-  - **Importance**: These directories implement the separation of concerns.  holds the business logic, and  handles direct database interactions, making the code more testable and maintainable.
-  - **Changes**: Newly created, containing the migrated business and data access logic.
-
-- ** & **
-  - **Importance**: These documentation files were critical for the migration.  lists all API endpoints called by the frontend, and  tracks the migration progress for each one.
-  - **Changes**: Created during the planning phase and used throughout the migration.
-
-- ****
-  - **Importance**: Explicitly documents the AI-powered certificate analysis feature that was deferred at the user's request.
-  - **Changes**: Created to ensure this pending task is not forgotten after the migration is complete.
+-   ****:
+    -   **Summary:** This directory was analyzed to understand frontend API usage and then cleaned up.
+    -   **Changes:** , , and  were deleted after verifying they were unused. The  was updated to remove the corresponding exports.
 </code_architecture>
 
 <pending_tasks>
-- **Final Endpoint Migration Check**: Complete the analysis started in the last step to identify and migrate any remaining API endpoints used by the frontend.
-- **Implement AI Analysis**: Implement the full AI-powered analysis logic for certificates, which is currently a placeholder. The plan is documented in .
-- **Migrate Auxiliary Endpoints**: Migrate any non-core endpoints not yet covered, such as Google Drive integration, system settings, and background jobs.
-- **Final Cleanup**: Once the new backend is fully stable and verified, delete the  directory.
+- **Implement Cert. Name Normalization:** Investigate and implement the automatic mapping/normalization for  in the new backend, as it was done in .
+- **Complete  Normalization:** Apply the  logic to other relevant services that have an  field, such as  and .
+- **Final Code Cleanup:** Once all features are verified, perform a final cleanup, which may include removing the now-obsolete generic  if it is no longer used by any endpoint.
 </pending_tasks>
 
 <current_work>
-The project is in the final stages of a major backend refactoring. The monolithic  was successfully backed up to , and a new, modular backend has been built in its place, following a Clean Architecture pattern.
+The work cycle immediately preceding this summary focused on achieving feature parity with 's data normalization capabilities. The user pointed out that in the old system, the Issued By column in the UI displayed standardized abbreviations (e.g., NK, ABS) instead of full names.
 
-The migration has been executed in phases, porting the vast majority of the application's functionality. This includes complete CRUD and business logic for:
-- Authentication & Users
-- Companies
-- Ships (including complex survey and docking calculations)
-- Crew & Crew Certificates
-- A batch of 8 different document types (e.g., Survey Reports, ISM Documents)
+**Investigation:**
+I examined  and confirmed the existence of a utility function,  in , which handled this logic. I also found that this function was called during certificate creation and updates to directly modify the  field before saving it to the database.
 
-A critical part of the recent work involved debugging frontend connectivity issues. After the user reported a blank crew list and failed data fetching, an investigation of the browser console revealed that the frontend was calling API endpoints that did not match the new, cleaner routes (e.g.,  instead of ). To resolve this without modifying the frontend, compatibility routes were added to the new backend's . These routes act as internal redirects, forwarding requests from the old URL patterns to the new ones. This successfully resolved the frontend errors.
+**Implementation:**
+The  utility had already been migrated to the new backend at . The final step was to integrate it. I modified the  and  methods within . In both methods, after receiving the certificate data and just before writing to the database, I added a call to  and updated the data dictionary with the normalized value.
 
-The immediate task being worked on before this summary was responding to the user's query: which endpoints have not been migrated yet?. The work to answer this involves cross-referencing the  and  against the implemented routes to find any remaining gaps.
+The work concluded with a plan to apply this same normalization logic to other services that handle documents with an  field, such as  and , to ensure consistent behavior across the application. The very last user request was to perform a similar investigation for the  field.
 </current_work>
 
 <optional_next_step>
-I will analyze the frontend API constants file () and compare it against the migrated endpoint checklist to produce a definitive list of any remaining un-migrated endpoints, directly answering the user's last question.
+Check  to see how  is normalized/mapped, and then implement the same logic in the new  and other relevant services.
 </optional_next_step>
-
-<direct_quotes>
-**User's Last Request:** còn những enpoint nào chưa migration (which endpoints have not been migrated yet)
-**My Last Action:** Để tôi check kỹ lại frontend API constants và so sánh với những gì đã migrate: (Let me double-check the frontend API constants and compare them with what has been migrated:)
-</direct_quotes>
