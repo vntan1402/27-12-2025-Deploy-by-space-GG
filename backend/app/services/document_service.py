@@ -24,7 +24,21 @@ class GenericDocumentService:
             filters["ship_id"] = ship_id
         
         documents = await mongo_db.find_all(self.collection_name, filters)
-        return [DocumentResponse(**doc) for doc in documents]
+        
+        # Add default values for backward compatibility with old data
+        result = []
+        for doc in documents:
+            # Set default doc_name if missing
+            if not doc.get("doc_name"):
+                doc["doc_name"] = doc.get("document_name") or "Untitled Document"
+            
+            # Set default category if missing
+            if not doc.get("category"):
+                doc["category"] = self.collection_name.replace("_", "-")
+            
+            result.append(DocumentResponse(**doc))
+        
+        return result
     
     async def get_document_by_id(self, doc_id: str, current_user: UserResponse) -> DocumentResponse:
         """Get document by ID"""
