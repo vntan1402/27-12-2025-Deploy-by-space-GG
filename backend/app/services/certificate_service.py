@@ -266,12 +266,12 @@ class CertificateService:
                 logger.error(f"❌ Error deleting certificate {cert_id}: {e}")
         
         message = f"Deleted {deleted_count} certificate(s)"
-        if files_deleted > 0:
-            message += f", {files_deleted} file(s) deleted from Google Drive"
+        if files_scheduled > 0:
+            message += f". {files_scheduled} file(s) deletion in progress..."
         if errors:
             message += f", {len(errors)} error(s)"
         
-        logger.info(f"✅ Bulk delete complete: {deleted_count} certificates, {files_deleted} files")
+        logger.info(f"✅ Bulk delete complete: {deleted_count} certificates, {files_scheduled} files scheduled for deletion")
         
         return {
             "success": True,
