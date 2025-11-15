@@ -14,6 +14,15 @@ from app.models.company import (
     CompanyUpdate,
     CompanyResponse
 )
+from app.models.ship import (
+    SpecialSurveyCycle,
+    AnniversaryDate,
+    DryDockCycle,
+    ShipBase,
+    ShipCreate,
+    ShipUpdate,
+    ShipResponse
+)
 
 __all__ = [
     "UserRole",
@@ -27,5 +36,12 @@ __all__ = [
     "CompanyBase",
     "CompanyCreate",
     "CompanyUpdate",
-    "CompanyResponse"
+    "CompanyResponse",
+    "SpecialSurveyCycle",
+    "AnniversaryDate",
+    "DryDockCycle",
+    "ShipBase",
+    "ShipCreate",
+    "ShipUpdate",
+    "ShipResponse"
 ]
