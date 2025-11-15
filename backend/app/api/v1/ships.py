@@ -139,3 +139,89 @@ async def calculate_next_docking(
     except Exception as e:
         logger.error(f"❌ Error calculating next docking: {e}")
         raise HTTPException(status_code=500, detail="Failed to calculate next docking")
+
+@router.post("/{ship_id}/logo")
+async def upload_ship_logo(
+    ship_id: str,
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload ship logo (Editor+ role required)
+    """
+    try:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="Only image files are allowed")
+        
+        # Validate file size (5MB limit)
+        if file.size and file.size > 5 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="File too large. Maximum size is 5MB")
+        
+        # Verify ship exists
+        ship = await ShipService.get_ship_by_id(ship_id, current_user)
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Create uploads directory
+        import os
+        from pathlib import Path
+        
+        upload_dir = Path(f"/app/uploads/ships/{ship_id}")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Determine file extension
+        ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+        file_path = upload_dir / f"logo.{ext}"
+        
+        # Save file
+        content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+        
+        # Update ship with logo path
+        logo_url = f"/uploads/ships/{ship_id}/logo.{ext}"
+        await ShipService.update_ship(
+            ship_id,
+            {"logo": logo_url},
+            current_user
+        )
+        
+        logger.info(f"✅ Ship logo uploaded: {ship_id}")
+        
+        return {
+            "message": "Logo uploaded successfully",
+            "logo_url": logo_url
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading ship logo: {e}")
+        raise HTTPException(status_code=500, detail="Failed to upload logo")
+
+@router.get("/{ship_id}/logo")
+async def get_ship_logo(
+    ship_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get ship logo URL
+    """
+    try:
+        ship = await ShipService.get_ship_by_id(ship_id, current_user)
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        logo_url = ship.logo if hasattr(ship, 'logo') else None
+        
+        if not logo_url:
+            raise HTTPException(status_code=404, detail="Ship has no logo")
+        
+        return {
+            "logo_url": logo_url
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error getting ship logo: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get logo")
