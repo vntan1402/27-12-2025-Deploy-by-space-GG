@@ -84,6 +84,18 @@ class CertificateService:
         # Prepare update data
         update_data = cert_data.dict(exclude_unset=True)
         
+        # Normalize issued_by to abbreviation if it's being updated
+        if update_data.get("issued_by"):
+            from app.utils.issued_by_abbreviation import normalize_issued_by
+            try:
+                original_issued_by = update_data["issued_by"]
+                normalized_issued_by = normalize_issued_by(original_issued_by)
+                update_data["issued_by"] = normalized_issued_by
+                if normalized_issued_by != original_issued_by:
+                    logger.info(f"✅ Normalized Issued By: '{original_issued_by}' → '{normalized_issued_by}'")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not normalize issued_by: {e}")
+        
         if update_data:
             await CertificateRepository.update(cert_id, update_data)
         
