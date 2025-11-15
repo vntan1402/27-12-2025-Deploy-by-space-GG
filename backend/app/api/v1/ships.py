@@ -107,13 +107,110 @@ async def update_ship(
 @router.delete("/{ship_id}")
 async def delete_ship(
     ship_id: str,
+    delete_google_drive_folder: bool = False,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
-    Delete ship (Editor+ role required)
+    Delete ship with optional Google Drive folder deletion (Editor+ role required)
+    
+    Args:
+        ship_id: Ship ID to delete
+        delete_google_drive_folder: If True, also delete Google Drive folder structure (default: False)
+        current_user: Current authenticated user
     """
     try:
-        return await ShipService.delete_ship(ship_id, current_user)
+        import aiohttp
+        
+        # Get ship info before deletion
+        from app.repositories.ship_repository import ShipRepository
+        ship = await ShipRepository.find_by_id(ship_id)
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get('name', 'Unknown Ship')
+        company_id = ship.get('company')
+        
+        logger.info(f"🗑️ Deleting ship: {ship_name} (ID: {ship_id}, delete_gdrive: {delete_google_drive_folder})")
+        
+        # Delete ship from database
+        result = await ShipService.delete_ship(ship_id, current_user)
+        
+        # Prepare response
+        response = {
+            "message": f"Ship '{ship_name}' deleted successfully",
+            "ship_id": ship_id,
+            "ship_name": ship_name,
+            "database_deletion": "success",
+            "google_drive_deletion_requested": delete_google_drive_folder
+        }
+        
+        # Delete Google Drive folder if requested
+        if delete_google_drive_folder and company_id:
+            try:
+                logger.info(f"📁 Attempting to delete Google Drive folder for ship: {ship_name}")
+                
+                # Get company Google Drive config
+                gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+                
+                if not gdrive_config:
+                    logger.warning(f"⚠️ No Google Drive configuration found for company {company_id}")
+                    response["google_drive_deletion"] = {
+                        "success": False,
+                        "message": "Google Drive integration not configured for this company"
+                    }
+                else:
+                    # Get Apps Script URL
+                    web_app_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+                    folder_id = gdrive_config.get("folder_id") or gdrive_config.get("main_folder_id")
+                    
+                    if not web_app_url or not folder_id:
+                        response["google_drive_deletion"] = {
+                            "success": False,
+                            "message": "Incomplete Google Drive configuration"
+                        }
+                    else:
+                        # Call Apps Script to delete folder
+                        payload = {
+                            "action": "delete_complete_ship_structure",
+                            "parent_folder_id": folder_id,
+                            "ship_name": ship_name,
+                            "permanent_delete": False  # Move to trash by default for safety
+                        }
+                        
+                        async with aiohttp.ClientSession() as session:
+                            async with session.post(
+                                web_app_url,
+                                json=payload,
+                                timeout=aiohttp.ClientTimeout(total=60)
+                            ) as gdrive_response:
+                                if gdrive_response.status == 200:
+                                    gdrive_result = await gdrive_response.json()
+                                    response["google_drive_deletion"] = gdrive_result
+                                    
+                                    if gdrive_result.get("success"):
+                                        logger.info(f"✅ Google Drive folder deleted successfully for ship: {ship_name}")
+                                    else:
+                                        logger.warning(f"⚠️ Google Drive deletion reported failure: {gdrive_result.get('message')}")
+                                else:
+                                    response["google_drive_deletion"] = {
+                                        "success": False,
+                                        "message": f"Apps Script request failed with status {gdrive_response.status}"
+                                    }
+                        
+            except Exception as gdrive_error:
+                logger.error(f"❌ Error during Google Drive folder deletion: {str(gdrive_error)}")
+                response["google_drive_deletion"] = {
+                    "success": False,
+                    "message": f"Google Drive deletion failed: {str(gdrive_error)}"
+                }
+        elif delete_google_drive_folder and not company_id:
+            response["google_drive_deletion"] = {
+                "success": False,
+                "message": "Could not resolve company ID for Google Drive deletion"
+            }
+        
+        return response
+        
     except HTTPException:
         raise
     except Exception as e:
