@@ -1,0 +1,7 @@
+CERTIFICATE OF COMPETENCY
+Ship Name: TEST SHIP 01
+IMO Number: 1234567
+Certificate Number: TEST-COC-2025-001
+Issue Date: January 15, 2025
+Valid Date: January 15, 2028
+Issued By: Test Maritime Authority
