@@ -2,13 +2,14 @@ import uuid
 import logging
 from typing import List, Optional
 from datetime import datetime, timezone
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 
 from app.models.audit_certificate import AuditCertificateCreate, AuditCertificateUpdate, AuditCertificateResponse, BulkDeleteAuditCertificateRequest
 from app.models.user import UserResponse
 from app.db.mongodb import mongo_db
 from app.utils.certificate_abbreviation import generate_certificate_abbreviation
 from app.utils.issued_by_abbreviation import generate_organization_abbreviation
+from app.utils.background_tasks import delete_file_background
 
 logger = logging.getLogger(__name__)
 
