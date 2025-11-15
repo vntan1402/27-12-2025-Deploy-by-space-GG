@@ -196,11 +196,11 @@ backend/
 ## 📊 OVERALL STATISTICS
 
 **Total Endpoints to Migrate:** ~110
-**Completed:** 14
+**Completed:** 39
 **In Progress:** 0
-**Remaining:** ~96
+**Remaining:** ~71
 
-**Progress:** 13% (Auth + Users + Companies complete)
+**Progress:** 35% (Core modules complete - Auth, Users, Companies, Ships, Certificates, Crew)
 
 **Estimated Time Remaining:**
 - Phase 2-3: 1 day (Auth + Users)
