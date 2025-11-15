@@ -153,6 +153,11 @@ class AuditCertificateService:
             update_data["cert_abbreviation"] = await generate_certificate_abbreviation(update_data.get("cert_name"))
             logger.info(f"✅ Regenerated cert abbreviation: '{update_data['cert_name']}' → '{update_data['cert_abbreviation']}'")
         
+        # Regenerate organization abbreviation if issued_by is being updated
+        if update_data.get("issued_by"):
+            update_data["issued_by_abbreviation"] = generate_organization_abbreviation(update_data.get("issued_by"))
+            logger.info(f"✅ Regenerated issued_by abbreviation: '{update_data['issued_by']}' → '{update_data['issued_by_abbreviation']}'")
+        
         if update_data:
             await mongo_db.update(AuditCertificateService.collection_name, {"id": cert_id}, update_data)
         
@@ -164,6 +169,10 @@ class AuditCertificateService:
         # Generate certificate abbreviation if not present
         if not updated_cert.get("cert_abbreviation") and updated_cert.get("cert_name"):
             updated_cert["cert_abbreviation"] = await generate_certificate_abbreviation(updated_cert.get("cert_name"))
+        
+        # Generate organization abbreviation if not present
+        if not updated_cert.get("issued_by_abbreviation") and updated_cert.get("issued_by"):
+            updated_cert["issued_by_abbreviation"] = generate_organization_abbreviation(updated_cert.get("issued_by"))
         
         logger.info(f"✅ Audit Certificate updated: {cert_id}")
         
