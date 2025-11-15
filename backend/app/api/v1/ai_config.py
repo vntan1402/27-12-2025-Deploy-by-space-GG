@@ -45,3 +45,19 @@ async def update_ai_config(
     except Exception as e:
         logger.error(f"❌ Error updating AI config: {e}")
         raise HTTPException(status_code=500, detail="Failed to update AI configuration")
+
+@router.post("", response_model=AIConfigResponse)
+async def create_or_update_ai_config(
+    config_data: AIConfigUpdate,
+    current_user: UserResponse = Depends(check_admin_permission)
+):
+    """
+    Create or update AI configuration (Admin+ role required) - Frontend compatibility
+    """
+    try:
+        return await AIConfigService.update_ai_config(config_data, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error updating AI config: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update AI configuration")
