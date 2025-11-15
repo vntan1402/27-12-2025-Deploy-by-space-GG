@@ -106,6 +106,198 @@ async def bulk_delete_crew(
         logger.error(f"❌ Error bulk deleting crew: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete crew members")
 
-# TODO: Add additional crew endpoints
-# - POST /crew/move-standby-files
-# - POST /passport/analyze-file
+@router.post("/move-standby-files")
+async def move_standby_files(
+    crew_id: str,
+    from_ship_id: Optional[str] = None,
+    to_ship_id: Optional[str] = None,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Move crew files between ships or to/from standby (Editor+ role required)
+    """
+    try:
+        import os
+        import shutil
+        from pathlib import Path
+        
+        # Verify crew exists
+        crew = await CrewService.get_crew_by_id(crew_id, current_user)
+        if not crew:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        # Determine source and destination paths
+        if from_ship_id:
+            source_dir = Path(f"/app/uploads/ships/{from_ship_id}/crew/{crew_id}")
+        else:
+            source_dir = Path(f"/app/uploads/standby-crew/{crew_id}")
+        
+        if to_ship_id:
+            dest_dir = Path(f"/app/uploads/ships/{to_ship_id}/crew/{crew_id}")
+        else:
+            dest_dir = Path(f"/app/uploads/standby-crew/{crew_id}")
+        
+        # Check if source exists
+        if not source_dir.exists():
+            logger.warning(f"Source directory does not exist: {source_dir}")
+            return {
+                "message": "No files to move",
+                "moved_count": 0
+            }
+        
+        # Create destination directory
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Move files
+        moved_count = 0
+        for file_path in source_dir.iterdir():
+            if file_path.is_file():
+                dest_file = dest_dir / file_path.name
+                shutil.move(str(file_path), str(dest_file))
+                moved_count += 1
+        
+        # Remove empty source directory
+        if source_dir.exists() and not list(source_dir.iterdir()):
+            source_dir.rmdir()
+        
+        logger.info(f"✅ Moved {moved_count} files for crew {crew_id}")
+        
+        return {
+            "message": f"Successfully moved {moved_count} files",
+            "moved_count": moved_count,
+            "from_path": str(source_dir),
+            "to_path": str(dest_dir)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error moving crew files: {e}")
+        raise HTTPException(status_code=500, detail="Failed to move crew files")
+
+@router.post("/analyze-passport")
+async def analyze_passport_file(
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Analyze passport file using AI (Editor+ role required)
+    """
+    try:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith("image/"):
+            if file.content_type != "application/pdf":
+                raise HTTPException(status_code=400, detail="Only image or PDF files are allowed")
+        
+        # Validate file size (10MB limit)
+        if file.size and file.size > 10 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB")
+        
+        # Read file content
+        file_content = await file.read()
+        if not file_content:
+            raise HTTPException(status_code=400, detail="Empty file received")
+        
+        logger.info(f"📄 Analyzing passport file: {file.filename} ({len(file_content)} bytes)")
+        
+        # Extract text from file
+        from app.utils.pdf_processor import PDFProcessor
+        from app.utils.ai_helper import AIHelper
+        
+        if file.content_type == "application/pdf":
+            text = await PDFProcessor.process_pdf(file_content, use_ocr_fallback=True)
+        else:
+            # For images, use OCR directly
+            import pytesseract
+            from PIL import Image
+            import io
+            image = Image.open(io.BytesIO(file_content))
+            text = pytesseract.image_to_string(image, lang='eng')
+        
+        if not text or len(text) < 20:
+            return {
+                "success": False,
+                "message": "Could not extract sufficient text from passport",
+                "analysis": None
+            }
+        
+        logger.info(f"✅ Extracted {len(text)} characters from passport")
+        
+        # Get AI configuration and analyze
+        from app.services.ai_config_service import AIConfigService
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        import os
+        
+        try:
+            ai_config = await AIConfigService.get_ai_config(current_user)
+            provider = ai_config.provider
+            model = ai_config.model
+        except:
+            provider = "google"
+            model = "gemini-2.0-flash"
+        
+        # Get EMERGENT_LLM_KEY
+        emergent_key = os.getenv("EMERGENT_LLM_KEY", "sk-emergent-eEe35Fb1b449940199")
+        
+        # Create AI prompt for passport
+        prompt = f"""
+You are an AI assistant that analyzes passport documents. Extract key information from the following text.
+
+Passport Text:
+{text}
+
+Please extract and return ONLY a valid JSON object with the following fields:
+{{
+  "full_name": "Full name from passport",
+  "passport_no": "Passport number",
+  "nationality": "Nationality/Country",
+  "date_of_birth": "Date of birth in DD/MM/YYYY format",
+  "issue_date": "Issue date in DD/MM/YYYY format",
+  "expiry_date": "Expiry date in DD/MM/YYYY format",
+  "place_of_birth": "Place of birth or null",
+  "sex": "M or F or null"
+}}
+
+IMPORTANT:
+- Return ONLY the JSON object, no additional text
+- Use DD/MM/YYYY format for all dates
+- If a field is not found, use null
+"""
+        
+        # Initialize LLM
+        llm_chat = LlmChat(
+            api_key=emergent_key,
+            session_id="passport_analysis",
+            system_message="You are an AI assistant that analyzes passport documents."
+        )
+        
+        if provider == "google":
+            llm_chat = llm_chat.with_model("gemini", model)
+        else:
+            llm_chat = llm_chat.with_model(provider, model)
+        
+        # Call AI
+        ai_response = await llm_chat.send_message(UserMessage(text=prompt))
+        
+        # Parse response
+        passport_data = AIHelper.parse_ai_response(ai_response)
+        
+        if not passport_data:
+            return {
+                "success": False,
+                "message": "AI analysis failed - could not parse response",
+                "analysis": None
+            }
+        
+        logger.info("✅ Passport analyzed successfully")
+        
+        return {
+            "success": True,
+            "message": "Passport analyzed successfully",
+            "analysis": passport_data
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Passport analysis error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to analyze passport: {str(e)}")
