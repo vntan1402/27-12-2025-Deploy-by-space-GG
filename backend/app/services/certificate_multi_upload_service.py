@@ -682,6 +682,29 @@ Example output:
             }
     
     @staticmethod
+    def _parse_date_to_iso(date_str: Optional[str]) -> Optional[str]:
+        """Parse date string (DD/MM/YYYY) to ISO format (YYYY-MM-DD)"""
+        if not date_str or not isinstance(date_str, str):
+            return None
+        
+        try:
+            # Try DD/MM/YYYY format
+            if '/' in date_str:
+                parts = date_str.split('/')
+                if len(parts) == 3:
+                    day, month, year = parts
+                    return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+            
+            # Try YYYY-MM-DD format (already ISO)
+            if '-' in date_str and len(date_str) >= 10:
+                return date_str[:10]
+            
+            return None
+        except Exception as e:
+            logger.warning(f"Failed to parse date '{date_str}': {e}")
+            return None
+    
+    @staticmethod
     async def _create_certificate_from_analysis(
         analysis_result: Dict[str, Any],
         upload_result: Dict[str, Any],
@@ -694,6 +717,20 @@ Example output:
         try:
             cert_id = str(uuid.uuid4())
             
+            # Parse dates to ISO format
+            issue_date_iso = CertificateMultiUploadService._parse_date_to_iso(
+                analysis_result.get("issue_date")
+            )
+            valid_date_iso = CertificateMultiUploadService._parse_date_to_iso(
+                analysis_result.get("valid_date")
+            )
+            last_endorse_iso = CertificateMultiUploadService._parse_date_to_iso(
+                analysis_result.get("last_endorse")
+            )
+            next_survey_iso = CertificateMultiUploadService._parse_date_to_iso(
+                analysis_result.get("next_survey")
+            )
+            
             # Build certificate document
             cert_doc = {
                 "id": cert_id,
@@ -701,10 +738,10 @@ Example output:
                 "cert_name": analysis_result.get("cert_name", ""),
                 "cert_no": analysis_result.get("cert_no", ""),
                 "cert_type": analysis_result.get("cert_type", "Full Term"),
-                "issue_date": analysis_result.get("issue_date", ""),
-                "valid_date": analysis_result.get("valid_date", ""),
-                "last_endorse": analysis_result.get("last_endorse", ""),
-                "next_survey": analysis_result.get("next_survey", ""),
+                "issue_date": issue_date_iso,
+                "valid_date": valid_date_iso,
+                "last_endorse": last_endorse_iso,
+                "next_survey": next_survey_iso,
                 "next_survey_type": analysis_result.get("next_survey_type", ""),
                 "issued_by": analysis_result.get("issued_by", ""),
                 "notes": validation_note if validation_note else analysis_result.get("notes", ""),
