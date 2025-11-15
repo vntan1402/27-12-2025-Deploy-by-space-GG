@@ -39,6 +39,15 @@ api_router.include_router(gdrive.router, prefix="/gdrive", tags=["google-drive"]
 # Audit Reports router (unified ISM/ISPS/MLC)
 api_router.include_router(audit_reports.router, prefix="/audit-reports", tags=["audit-reports"])
 
+# Audit Certificates router (ISM/ISPS/MLC certificates)
+api_router.include_router(audit_certificates.router, prefix="/audit-certificates", tags=["audit-certificates"])
+
+# Approval Documents router
+api_router.include_router(approval_documents.router, prefix="/approval-documents", tags=["approval-documents"])
+
+# Other Audit Documents router
+api_router.include_router(other_audit_documents.router, prefix="/other-audit-documents", tags=["other-audit-documents"])
+
 # IMPORTANT: Frontend compatibility routes
 # Frontend calls various endpoints differently than our clean architecture
 # We create aliases here for backward compatibility
