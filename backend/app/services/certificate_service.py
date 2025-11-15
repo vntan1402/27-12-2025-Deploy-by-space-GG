@@ -159,18 +159,26 @@ class CertificateService:
         return CertificateResponse(**updated_cert)
     
     @staticmethod
-    async def delete_certificate(cert_id: str, current_user: UserResponse) -> dict:
-        """Delete certificate and associated Google Drive file"""
+    async def delete_certificate(
+        cert_id: str, 
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
+        """Delete certificate and schedule Google Drive file deletion in background"""
         cert = await CertificateRepository.find_by_id(cert_id)
         if not cert:
             raise HTTPException(status_code=404, detail="Certificate not found")
         
         # Extract file info before deleting from DB
         google_drive_file_id = cert.get("google_drive_file_id")
-        gdrive_file_deleted = False
+        cert_name = cert.get("cert_name", "Unknown")
         
-        # Delete from Google Drive if file ID exists
-        if google_drive_file_id:
+        # Delete certificate from database immediately
+        await CertificateRepository.delete(cert_id)
+        logger.info(f"✅ Certificate deleted from DB: {cert_id} ({cert_name})")
+        
+        # Schedule Google Drive file deletion in background if file exists
+        if google_drive_file_id and background_tasks:
             # Get ship to find company_id
             ship_id = cert.get("ship_id")
             if ship_id:
@@ -179,29 +187,30 @@ class CertificateService:
                     company_id = ship.get("company")
                     if company_id:
                         from app.services.gdrive_service import GDriveService
-                        try:
-                            result = await GDriveService.delete_file(
-                                file_id=google_drive_file_id,
-                                company_id=company_id,
-                                permanent_delete=False  # Move to trash by default
-                            )
-                            gdrive_file_deleted = result.get("success", False)
-                            if gdrive_file_deleted:
-                                logger.info(f"✅ Google Drive file deleted: {google_drive_file_id}")
-                            else:
-                                logger.warning(f"⚠️ Failed to delete Google Drive file: {result.get('message')}")
-                        except Exception as e:
-                            logger.warning(f"⚠️ Google Drive deletion error (continuing): {e}")
-        
-        # Delete certificate from database
-        await CertificateRepository.delete(cert_id)
-        
-        logger.info(f"✅ Certificate deleted: {cert_id}")
+                        
+                        # Schedule background deletion with retry
+                        background_tasks.add_task(
+                            delete_file_background,
+                            google_drive_file_id,
+                            company_id,
+                            "certificate",
+                            cert_name,
+                            GDriveService
+                        )
+                        logger.info(f"📋 Scheduled background deletion for certificate file: {google_drive_file_id}")
+                        
+                        return {
+                            "success": True,
+                            "message": "Certificate deleted successfully. File deletion in progress...",
+                            "certificate_id": cert_id,
+                            "background_deletion": True
+                        }
         
         return {
+            "success": True,
             "message": "Certificate deleted successfully",
             "certificate_id": cert_id,
-            "gdrive_file_deleted": gdrive_file_deleted
+            "background_deletion": False
         }
     
     @staticmethod
