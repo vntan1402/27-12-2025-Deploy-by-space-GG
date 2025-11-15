@@ -47,6 +47,13 @@ class GenericDocumentService:
         if not doc:
             raise HTTPException(status_code=404, detail=f"{self.doc_type_name} not found")
         
+        # Add default values for backward compatibility
+        if not doc.get("doc_name"):
+            doc["doc_name"] = doc.get("document_name") or "Untitled Document"
+        
+        if not doc.get("category"):
+            doc["category"] = self.collection_name.replace("_", "-")
+        
         return DocumentResponse(**doc)
     
     async def create_document(self, doc_data: DocumentCreate, current_user: UserResponse) -> DocumentResponse:
