@@ -67,5 +67,14 @@ async def analyze_ship_certificate(
     current_user = Depends(get_current_user)
 ):
     """Analyze ship certificate for Add Ship feature - Frontend compatibility"""
+
+@api_router.post("/passport/analyze-file")
+async def analyze_passport_file(
+    file: UploadFile = File(...),
+    current_user = Depends(get_current_user)
+):
+    """Analyze passport file - Frontend compatibility"""
+    return await crew.analyze_passport_file(file=file, current_user=current_user)
+
     return await certificates.analyze_certificate_file(file=file, ship_id=None, current_user=current_user)
 
