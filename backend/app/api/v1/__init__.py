@@ -3,7 +3,8 @@ from app.api.v1 import (
     auth, users, companies, ships, certificates, crew, crew_certificates,
     survey_reports, test_reports, drawings_manuals, other_documents,
     supply_documents, ai_config, utilities, gdrive, audit_reports,
-    audit_certificates, approval_documents, other_audit_documents, system_settings
+    audit_certificates, approval_documents, other_audit_documents, system_settings,
+    ships_analysis
 )
 from app.core.security import get_current_user
 
