@@ -57,13 +57,6 @@ async def get_ship_certificates_alias(ship_id: str, current_user = Depends(get_c
     """Get certificates for a ship - Frontend compatibility"""
     return await certificates.get_certificates(ship_id=ship_id, current_user=current_user)
 
-@api_router.get("/ai-config")
-async def get_ai_config(current_user = Depends(get_current_user)):
-    """Get AI configuration - Placeholder for frontend compatibility"""
-    return {
-        "provider": "openai",
-        "model": "gpt-4",
-        "use_emergent_key": True
-    }
+# AI Config compatibility route removed - now handled by /api/ai-config router
 
 __all__ = ["api_router"]
