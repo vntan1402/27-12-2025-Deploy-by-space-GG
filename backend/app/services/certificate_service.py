@@ -205,14 +205,63 @@ class CertificateService:
     
     @staticmethod
     async def bulk_delete_certificates(request: BulkDeleteRequest, current_user: UserResponse) -> dict:
-        """Bulk delete certificates"""
-        deleted_count = await CertificateRepository.bulk_delete(request.certificate_ids)
+        """Bulk delete certificates including Google Drive files"""
+        from app.services.gdrive_service import GDriveService
         
-        logger.info(f"✅ Bulk deleted {deleted_count} certificates")
+        deleted_count = 0
+        files_deleted = 0
+        errors = []
+        
+        for cert_id in request.certificate_ids:
+            try:
+                cert = await CertificateRepository.find_by_id(cert_id)
+                if not cert:
+                    errors.append(f"Certificate {cert_id} not found")
+                    continue
+                
+                # Try to delete Google Drive file if exists
+                google_drive_file_id = cert.get("google_drive_file_id")
+                if google_drive_file_id:
+                    ship_id = cert.get("ship_id")
+                    if ship_id:
+                        ship = await ShipRepository.find_by_id(ship_id)
+                        if ship:
+                            company_id = ship.get("company")
+                            if company_id:
+                                try:
+                                    result = await GDriveService.delete_file(
+                                        file_id=google_drive_file_id,
+                                        company_id=company_id,
+                                        permanent_delete=False
+                                    )
+                                    if result.get("success"):
+                                        files_deleted += 1
+                                except Exception as e:
+                                    logger.warning(f"⚠️ Failed to delete file {google_drive_file_id}: {e}")
+                
+                # Delete from database
+                await CertificateRepository.delete(cert_id)
+                deleted_count += 1
+                
+            except Exception as e:
+                errors.append(f"Error deleting certificate {cert_id}: {str(e)}")
+                logger.error(f"❌ Error deleting certificate {cert_id}: {e}")
+        
+        message = f"Deleted {deleted_count} certificate(s)"
+        if files_deleted > 0:
+            message += f", {files_deleted} file(s) deleted from Google Drive"
+        if errors:
+            message += f", {len(errors)} error(s)"
+        
+        logger.info(f"✅ Bulk delete complete: {deleted_count} certificates, {files_deleted} files")
         
         return {
-            "message": f"Successfully deleted {deleted_count} certificates",
-            "deleted_count": deleted_count
+            "success": True,
+            "message": message,
+            "deleted_count": deleted_count,
+            "files_deleted": files_deleted,
+            "errors": errors if errors else None,
+            "partial_success": len(errors) > 0 and deleted_count > 0
         }
     
     @staticmethod
