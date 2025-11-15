@@ -20,6 +20,33 @@ class CrewCertificateService:
     """Business logic for crew certificate management"""
     
     @staticmethod
+    async def get_all_crew_certificates(
+        crew_id: Optional[str],
+        current_user: UserResponse
+    ) -> List[CrewCertificateResponse]:
+        """
+        Get ALL crew certificates for the company (no ship filter)
+        Includes both ship-assigned and Standby crew certificates
+        """
+        filters = {}
+        
+        # Add company filter - required for all users except system admin
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
+            if not current_user.company:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+            filters["company_id"] = current_user.company
+        
+        # Add crew_id filter if provided
+        if crew_id:
+            filters["crew_id"] = crew_id
+        
+        certificates = await CrewCertificateRepository.find_all(filters)
+        
+        logger.info(f"📋 Retrieved {len(certificates)} crew certificates for company (all ships + standby)")
+        
+        return [CrewCertificateResponse(**cert) for cert in certificates]
+    
+    @staticmethod
     async def get_crew_certificates(
         crew_id: Optional[str], 
         company_id: Optional[str],
