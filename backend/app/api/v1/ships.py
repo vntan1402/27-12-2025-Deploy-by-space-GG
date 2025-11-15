@@ -92,7 +92,50 @@ async def delete_ship(
         logger.error(f"❌ Error deleting ship: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete ship")
 
-# TODO: Add calculation endpoints
-# - POST /ships/{ship_id}/calculate-anniversary-date
-# - POST /ships/{ship_id}/calculate-next-docking
-# - POST /ships/{ship_id}/calculate-special-survey-cycle
+@router.post("/{ship_id}/calculate-anniversary-date")
+async def calculate_anniversary_date(
+    ship_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Calculate anniversary date from Full Term certificates (Editor+ role required)
+    """
+    try:
+        return await ShipService.calculate_anniversary_date(ship_id, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error calculating anniversary date: {e}")
+        raise HTTPException(status_code=500, detail="Failed to calculate anniversary date")
+
+@router.post("/{ship_id}/calculate-special-survey-cycle")
+async def calculate_special_survey_cycle(
+    ship_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Calculate special survey cycle from Full Term Class certificates (Editor+ role required)
+    """
+    try:
+        return await ShipService.calculate_special_survey_cycle(ship_id, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error calculating special survey cycle: {e}")
+        raise HTTPException(status_code=500, detail="Failed to calculate special survey cycle")
+
+@router.post("/{ship_id}/calculate-next-docking")
+async def calculate_next_docking(
+    ship_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Calculate next docking date from last docking (Editor+ role required)
+    """
+    try:
+        return await ShipService.calculate_next_docking_date(ship_id, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error calculating next docking: {e}")
+        raise HTTPException(status_code=500, detail="Failed to calculate next docking")
