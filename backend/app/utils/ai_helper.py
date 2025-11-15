@@ -124,6 +124,11 @@ EXAMPLE OUTPUT FORMAT:
             
             # Clean and validate data - include ALL ship fields
             cleaned_data = {
+                # Classification
+                "category": data.get("category"),
+                "confidence": data.get("confidence"),
+                "text_content": data.get("text_content"),
+                
                 # Ship identification
                 "ship_name": data.get("ship_name"),
                 "imo_number": data.get("imo_number"),
@@ -152,7 +157,7 @@ EXAMPLE OUTPUT FORMAT:
                 "special_survey_from_date": data.get("special_survey_from_date"),
                 "special_survey_to_date": data.get("special_survey_to_date"),
                 
-                # Legacy certificate fields (for backward compatibility)
+                # Certificate fields
                 "cert_name": data.get("cert_name"),
                 "cert_type": data.get("cert_type"),
                 "cert_no": data.get("cert_no"),
