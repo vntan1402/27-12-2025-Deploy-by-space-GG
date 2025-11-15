@@ -39,7 +39,13 @@
 **Date:** 2025-01-15
 **Files:** 
 - `/app/frontend/src/services/shipService.js`
+- `/app/frontend/src/pages/ClassSurveyReport.jsx`
+- `/app/frontend/src/pages/ClassAndFlagCert.jsx`
+- `/app/frontend/src/pages/DrawingsManuals.jsx`
+- `/app/frontend/src/pages/CrewCertificate.jsx`
 - `/app/frontend/src/pages/CrewRecords.jsx`
+- `/app/frontend/src/pages/TestReport.jsx`
+- `/app/frontend/src/pages/OtherDocuments.jsx`
 
 **Issue:**
 - Khi xóa tàu với option "xóa cả folder Google Drive", frontend gọi 2 API riêng biệt:
