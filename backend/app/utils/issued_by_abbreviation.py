@@ -103,6 +103,137 @@ COMPANY_ABBREVIATIONS = {
 }
 
 
+def generate_organization_abbreviation(org_name: str) -> str:
+    """
+    Generate organization abbreviation for display purposes
+    This is different from normalize_issued_by which standardizes the stored value.
+    
+    Args:
+        org_name: Organization name (can be full name or abbreviation)
+        
+    Returns:
+        Display abbreviation (e.g., "PMDS", "DNV", "LR")
+        
+    Examples:
+        "Panama Maritime Documentation Services" → "PMDS"
+        "DNV" → "DNV" (already abbreviated)
+        "American Bureau of Shipping" → "ABS"
+    """
+    if not org_name:
+        return ""
+    
+    # Clean and normalize
+    org_name_stripped = org_name.strip()
+    org_name_upper = org_name_stripped.upper()
+    
+    # Check if value is already an abbreviation (3-5 uppercase letters)
+    if re.match(r'^[A-Z]{3,5}$', org_name_stripped):
+        logger.debug(f"✅ Detected manual abbreviation: '{org_name_stripped}'")
+        return org_name_stripped
+    
+    # Exact mappings for well-known maritime organizations
+    exact_mappings = {
+        # Panama Maritime Organizations
+        'PANAMA MARITIME DOCUMENTATION SERVICES': 'PMDS',
+        'PANAMA MARITIME DOCUMENTATION SERVICES INC': 'PMDS',
+        'PANAMA MARITIME AUTHORITY': 'PMA',
+        
+        # Major Classification Societies (IACS Members)
+        'DET NORSKE VERITAS': 'DNV',
+        'DNV GL': 'DNV',
+        'AMERICAN BUREAU OF SHIPPING': 'ABS',
+        "LLOYD'S REGISTER": 'LR',
+        'LLOYDS REGISTER': 'LR',
+        "LLOYD'S REGISTER OF SHIPPING": 'LR',
+        'BUREAU VERITAS': 'BV',
+        'CHINA CLASSIFICATION SOCIETY': 'CCS',
+        'NIPPON KAIJI KYOKAI': 'ClassNK',
+        'CLASS NK': 'ClassNK',
+        'KOREAN REGISTER OF SHIPPING': 'KR',
+        'REGISTRO ITALIANO NAVALE': 'RINA',
+        'RUSSIAN MARITIME REGISTER OF SHIPPING': 'RS',
+        'CROATIAN REGISTER OF SHIPPING': 'CRS',
+        'POLISH REGISTER OF SHIPPING': 'PRS',
+        'TURKISH LLOYD': 'TL',
+        'INDIAN REGISTER OF SHIPPING': 'IRClass',
+        
+        # Other Flag State Authorities
+        'LIBERIA MARITIME AUTHORITY': 'LISCR',
+        'MARSHALL ISLANDS MARITIME AUTHORITY': 'MIMA',
+        'SINGAPORE MARITIME AND PORT AUTHORITY': 'MPA',
+        'MALAYSIA MARINE DEPARTMENT': 'MMD',
+        'HONG KONG MARINE DEPARTMENT': 'MARDEP',
+        
+        # Government Maritime Administrations
+        'MARITIME SAFETY ADMINISTRATION': 'MSA',
+        'COAST GUARD': 'CG',
+        'PORT STATE CONTROL': 'PSC',
+        'INTERNATIONAL MARITIME ORGANIZATION': 'IMO',
+    }
+    
+    # Check for exact matches first
+    for full_name, abbreviation in exact_mappings.items():
+        if full_name in org_name_upper:
+            return abbreviation
+    
+    # Pattern-based matching for common variations
+    if 'PANAMA MARITIME' in org_name_upper and 'DOCUMENTATION' in org_name_upper:
+        return 'PMDS'
+    elif 'PANAMA MARITIME' in org_name_upper and 'AUTHORITY' in org_name_upper:
+        return 'PMA'
+    elif 'DNV' in org_name_upper and ('GL' in org_name_upper or 'VERITAS' in org_name_upper):
+        return 'DNV'
+    elif 'AMERICAN BUREAU' in org_name_upper and 'SHIPPING' in org_name_upper:
+        return 'ABS'
+    elif 'LLOYD' in org_name_upper and 'REGISTER' in org_name_upper:
+        return 'LR'
+    elif 'BUREAU VERITAS' in org_name_upper:
+        return 'BV'
+    elif 'CHINA CLASSIFICATION' in org_name_upper:
+        return 'CCS'
+    elif 'NIPPON KAIJI' in org_name_upper or 'CLASS NK' in org_name_upper:
+        return 'ClassNK'
+    elif 'KOREAN REGISTER' in org_name_upper:
+        return 'KR'
+    elif 'RINA' in org_name_upper and ('ITALIANO' in org_name_upper or 'NAVALE' in org_name_upper):
+        return 'RINA'
+    elif 'RUSSIAN MARITIME' in org_name_upper or 'RMRS' in org_name_upper:
+        return 'RS'
+    elif 'LIBERIA' in org_name_upper and 'MARITIME' in org_name_upper:
+        return 'LISCR'
+    elif 'MARSHALL ISLANDS' in org_name_upper:
+        return 'MIMA'
+    
+    # Fallback: Generate abbreviation from significant words
+    common_org_words = {
+        'the', 'of', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were',
+        'inc', 'ltd', 'llc', 'corp', 'corporation', 'company', 'co', 'limited', 'services',
+        'international', 'group', 'holdings', 'management', 'administration', 'department'
+    }
+    
+    # Clean the name and split into words
+    words = re.findall(r'\b[A-Za-z]+\b', org_name_upper)
+    
+    # Filter out common words but keep important maritime terms
+    significant_words = []
+    for word in words:
+        word_lower = word.lower()
+        if word_lower not in common_org_words:
+            significant_words.append(word)
+        elif word_lower in ['authority', 'maritime', 'classification', 'society', 'register', 'bureau', 'class']:
+            # Keep important maritime organization words
+            significant_words.append(word)
+    
+    # Handle special cases for empty result
+    if not significant_words:
+        significant_words = words[:3]  # Take first 3 words as fallback
+    
+    # Generate abbreviation by taking first letter of each significant word
+    abbreviation = ''.join([word[0] for word in significant_words[:4]])  # Max 4 letters for organizations
+    
+    return abbreviation if abbreviation else org_name[:4].upper()
+
+
 def normalize_issued_by(issued_by: str) -> str:
     """
     Normalize issued_by company name to standard abbreviation
