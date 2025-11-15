@@ -189,6 +189,9 @@ class CertificateMultiUploadService:
             file_content, file.filename, file.content_type, ai_config
         )
         
+        # Add filename to analysis result for later use
+        analysis_result['filename'] = file.filename
+        
         logger.info(f"🔍 AI Analysis for {file.filename}:")
         logger.info(f"   Category: {analysis_result.get('category')}")
         
