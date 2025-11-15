@@ -40,6 +40,7 @@ class AuditCertificateResponse(BaseModel):
     ship_id: str
     cert_name: Optional[str] = None
     cert_type: Optional[str] = None
+    cert_abbreviation: Optional[str] = None  # Certificate abbreviation
     cert_no: Optional[str] = None
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None
