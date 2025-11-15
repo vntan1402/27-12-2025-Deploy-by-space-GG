@@ -380,13 +380,12 @@ class CertificateMultiUploadService:
         Analyze document using AI - simplified version focusing on certificate extraction
         Uses the same logic as certificate_service.py
         """
-        from app.services.certificate_service import CertificateService
-        from app.utils.pdf_extractor import PDFExtractor
+        from app.utils.pdf_processor import PDFProcessor
         
         try:
             # Extract text from PDF
             if content_type == "application/pdf":
-                text = PDFExtractor.extract_text_from_bytes(file_content)
+                text, is_scanned = PDFProcessor.extract_text_from_pdf(file_content)
                 if not text or len(text.strip()) < 50:
                     logger.warning(f"Insufficient text from {filename}")
                     return {"category": "unknown", "confidence": 0.0}
