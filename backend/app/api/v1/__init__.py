@@ -37,6 +37,9 @@ api_router.include_router(utilities.router, prefix="/utilities", tags=["utilitie
 # Google Drive router
 api_router.include_router(gdrive.router, prefix="/gdrive", tags=["google-drive"])
 
+# Audit Reports router (unified ISM/ISPS/MLC)
+api_router.include_router(audit_reports.router, prefix="/audit-reports", tags=["audit-reports"])
+
 # IMPORTANT: Frontend compatibility routes
 # Frontend calls various endpoints differently than our clean architecture
 # We create aliases here for backward compatibility
