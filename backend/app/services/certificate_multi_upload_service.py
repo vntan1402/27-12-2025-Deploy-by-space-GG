@@ -465,7 +465,7 @@ CRITICAL: You MUST extract and return a JSON object with ALL these fields.
   "cert_name": "Full certificate name (e.g., 'Cargo Ship Safety Construction Certificate', 'Load Line Certificate')",
   "cert_abbreviation": "Certificate abbreviation if visible (e.g., 'CSSC', 'LLC', 'IOPP'). Look for abbreviated forms near the title or in headers.",
   "cert_no": "Certificate number (alphanumeric)",
-  "cert_type": "Full Term or Short Term or Interim",
+  "cert_type": "Certificate type - MUST be EXACTLY ONE of these 6 options: 'Full Term', 'Interim', 'Provisional', 'Short term', 'Conditional', 'Other'. Look for keywords: 'Full Term' (standard long-validity certificate), 'Interim' (temporary/between surveys), 'Provisional' (pending full certification), 'Short term' (limited validity), 'Conditional' (with conditions), 'Other' (if none match). Default to 'Full Term' if not explicitly stated.",
   "issue_date": "Issue date in DD/MM/YYYY format (e.g., 15/01/2023)",
   "valid_date": "Valid until date in DD/MM/YYYY format",
   "last_endorse": "Last endorsement date in DD/MM/YYYY format",
