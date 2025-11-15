@@ -106,11 +106,6 @@ async def test_document_ai(
     """Test Document AI connection - Frontend compatibility"""
     return await ai_config.test_document_ai_connection(test_config=test_config, current_user=current_user)
 
-@api_router.post("/analyze-ship-certificate")
-async def analyze_ship_certificate(
-    file: UploadFile = File(...),
-    current_user = Depends(get_current_user)
-):
-    """Analyze ship certificate PDF - Frontend compatibility"""
-    return await certificates.analyze_certificate_file(file=file, ship_id=None, current_user=current_user)
+# Ship certificate analysis is handled by ships_analysis router
+# Registered below in include_router section
 
