@@ -412,6 +412,9 @@ class CertificateService:
                 # Step 4: Parse AI response
                 cert_data = AIHelper.parse_ai_response(response_text)
                 
+                logger.info(f"🔍 Parsed fields count: {len(cert_data) if cert_data else 0}")
+                logger.info(f"🔍 Parsed fields: {list(cert_data.keys()) if cert_data else []}")
+                
                 if not cert_data:
                     logger.error("❌ Failed to parse AI response")
                     return {
