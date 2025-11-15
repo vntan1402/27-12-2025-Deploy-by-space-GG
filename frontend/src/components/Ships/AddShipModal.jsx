@@ -309,9 +309,53 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
     if (!dateStr || dateStr === 'null' || dateStr === 'N/A') return '';
     
     try {
+      const trimmed = String(dateStr).trim();
+      
+      // Month name mapping
+      const monthMap = {
+        'january': '01', 'jan': '01',
+        'february': '02', 'feb': '02',
+        'march': '03', 'mar': '03',
+        'april': '04', 'apr': '04',
+        'may': '05',
+        'june': '06', 'jun': '06',
+        'july': '07', 'jul': '07',
+        'august': '08', 'aug': '08',
+        'september': '09', 'sep': '09',
+        'october': '10', 'oct': '10',
+        'november': '11', 'nov': '11',
+        'december': '12', 'dec': '12'
+      };
+      
+      // Handle "DD Month YYYY" format (e.g., "14 September 2010", "2 February 2010")
+      const dayMonthYearPattern = /^(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})$/;
+      const dayMonthYearMatch = trimmed.match(dayMonthYearPattern);
+      if (dayMonthYearMatch) {
+        const day = dayMonthYearMatch[1].padStart(2, '0');
+        const monthName = dayMonthYearMatch[2].toLowerCase();
+        const year = dayMonthYearMatch[3];
+        const monthNum = monthMap[monthName];
+        if (monthNum) {
+          return `${year}-${monthNum}-${day}`; // YYYY-MM-DD for input
+        }
+      }
+      
+      // Handle "Month DD, YYYY" format (e.g., "September 14, 2010")
+      const monthDayYearPattern = /^([a-zA-Z]+)\s+(\d{1,2}),?\s+(\d{4})$/;
+      const monthDayYearMatch = trimmed.match(monthDayYearPattern);
+      if (monthDayYearMatch) {
+        const monthName = monthDayYearMatch[1].toLowerCase();
+        const day = monthDayYearMatch[2].padStart(2, '0');
+        const year = monthDayYearMatch[3];
+        const monthNum = monthMap[monthName];
+        if (monthNum) {
+          return `${year}-${monthNum}-${day}`;
+        }
+      }
+      
       // Handle DD/MM/YYYY format
-      if (typeof dateStr === 'string' && dateStr.includes('/')) {
-        const parts = dateStr.split('/');
+      if (trimmed.includes('/')) {
+        const parts = trimmed.split('/');
         if (parts.length === 3) {
           const [day, month, year] = parts;
           return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
@@ -319,8 +363,8 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
       }
       
       // Handle ISO format (YYYY-MM-DD)
-      if (typeof dateStr === 'string' && dateStr.includes('-')) {
-        return dateStr.split('T')[0]; // Remove time component if exists
+      if (trimmed.includes('-')) {
+        return trimmed.split('T')[0]; // Remove time component if exists
       }
       
       return '';
