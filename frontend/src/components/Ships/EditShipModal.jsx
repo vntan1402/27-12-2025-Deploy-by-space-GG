@@ -62,8 +62,8 @@ const EditShipModal = ({ isOpen, onClose, ship, onShipUpdated, onDeleteShip }) =
         ship_owner: ship.ship_owner || '',
         company: ship.company || user?.company || '',
         // Docking information
-        last_docking: formatLastDockingFromBackend(ship.last_docking) || '',
-        last_docking_2: formatLastDockingFromBackend(ship.last_docking_2) || '',
+        last_docking: formatDateFromBackend(ship.last_docking) || '',
+        last_docking_2: formatDateFromBackend(ship.last_docking_2) || '',
         next_docking: formatDateFromBackend(ship.next_docking) || '',
         // Survey information
         last_special_survey: formatDateFromBackend(ship.last_special_survey) || '',
