@@ -126,7 +126,7 @@ class TestReportService:
         # Handle note/notes field - frontend sends 'note', backend stores 'notes'
         if "note" in update_data:
             update_data["notes"] = update_data.pop("note")
-            logger.debug(f"Mapped 'note' to 'notes' field")
+            logger.debug("Mapped 'note' to 'notes' field")
         
         # Normalize issued_by to abbreviation if it's being updated
         if update_data.get("issued_by"):
