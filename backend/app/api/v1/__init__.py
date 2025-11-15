@@ -97,3 +97,11 @@ async def analyze_passport_file(
 
     return await certificates.analyze_certificate_file(file=file, ship_id=None, current_user=current_user)
 
+@api_router.post("/test-document-ai")
+async def test_document_ai(
+    test_config: dict,
+    current_user = Depends(get_current_user)
+):
+    """Test Document AI connection - Frontend compatibility"""
+    return await ai_config.test_document_ai_connection(test_config=test_config, current_user=current_user)
+
