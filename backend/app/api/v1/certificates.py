@@ -360,20 +360,33 @@ async def get_upcoming_surveys(
                 # Get ship info
                 ship = next((s for s in ships if s.get('id') == cert.get('ship_id')), None)
                 
+                # Get cert abbreviation
+                cert_abbreviation = cert.get('cert_abbreviation') or cert.get('abbreviation', '')
+                cert_name_display = f"{cert.get('cert_name', '')} ({cert_abbreviation})" if cert_abbreviation else cert.get('cert_name', '')
+                
                 upcoming_surveys.append({
-                    "cert_id": cert.get("id"),
-                    "cert_name": cert.get("cert_name"),
-                    "cert_type": cert.get("cert_type"),
-                    "cert_no": cert.get("cert_no"),
+                    "certificate_id": cert.get("id"),
                     "ship_id": cert.get("ship_id"),
                     "ship_name": ship.get("name") if ship else "Unknown",
+                    "cert_name": cert.get("cert_name"),
+                    "cert_abbreviation": cert_abbreviation,
+                    "cert_name_display": cert_name_display,
+                    "cert_type": cert.get("cert_type"),
+                    "cert_no": cert.get("cert_no"),
                     "next_survey": next_survey_str,
                     "next_survey_date": next_survey_date.isoformat(),
                     "next_survey_type": cert.get("next_survey_type"),
+                    "last_endorse": cert.get("last_endorse"),
+                    "status": cert.get("status"),  # Certificate status (Active/Expired/etc)
+                    "days_until_survey": days_until_survey,
+                    "days_until_window_close": days_until_window_close,
+                    "is_overdue": is_overdue,
+                    "is_due_soon": is_due_soon,
+                    "is_critical": is_critical,
+                    "is_within_window": True,
                     "window_open": window_open.isoformat(),
                     "window_close": window_close.isoformat(),
-                    "days_until_window_close": days_until_window_close,
-                    "status": status
+                    "window_type": "±3M" if '(±3M)' in next_survey_str else "-3M"
                 })
                 
             except Exception as e:
