@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://python-cleanarch.preview.emergentagent.com/api"
+API_URL="https://gdrive-ship-portal.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \

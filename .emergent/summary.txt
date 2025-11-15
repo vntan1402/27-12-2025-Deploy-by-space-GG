@@ -1,40 +1,32 @@
 <analysis>
-The trajectory details the final, intensive phases of a major backend refactoring for a maritime document management application. The initial goal was to migrate a monolithic 28,000-line  to a modular Clean Architecture. The work, guided by a user communicating in Vietnamese, quickly evolved from simple migration to a feature-parity and bug-fixing effort.
+The trajectory chronicles an extensive and iterative development process, primarily focused on migrating a monolithic Python backend () to a new Clean Architecture implementation. The work began with a user request to implement asynchronous Google Drive file deletion. This involved setting up FastAPI , using  for retries, and  for a scheduled cleanup job.
 
-The process was highly iterative. I, as the AI engineer, first implemented the core AI analysis feature, replacing mock data with a real LLM integration via . Subsequent user feedback drove the rest of the work. The user identified missing utility functions (), which were then migrated. A comprehensive frontend analysis, requested by the user, revealed missing Google Drive integration, which was then implemented.
+Upon completing this, a series of critical 404 errors surfaced, revealing that the new backend was missing a significant number of API routes present in the monolith. The task then pivoted to a large-scale, reactive migration effort. The engineer, guided by user-reported errors and console logs, progressively identified and ported missing routes for AI configuration, system settings, and Google Drive management.
 
-A series of critical bug fixes followed. A 500 error on the Other Documents page was traced to Pydantic validation failures on legacy database entries; this was fixed by making model fields optional. A similar issue with Test Reports led to a significant architectural decision: abandoning generic document models in favor of specific, dedicated Pydantic models and services for each document type (, , etc.) to match the frontend's expected data schema. This pattern was then applied to multiple document categories. Finally, based on user input, the ISM/ISPS/MLC document handling was refactored to match 's unified  structure, and the automatic normalization of the  field was implemented.
-
-The user's primary language is Vietnamese. The next agent must respond in Vietnamese.
+A substantial portion of the work was dedicated to debugging a complex AI-powered PDF analysis feature for auto-filling ship data. This involved an in-depth compare and replicate workflow with , leading to major overhauls of the AI prompt, fixing data validation logic, correcting LLM model name errors, and implementing fallback mechanisms. The final major feature implemented was the dynamic creation and deletion of Google Drive folder structures for ship records, again by migrating logic from . The conversation is conducted in Vietnamese. The next agent must respond in Vietnamese.
 </analysis>
 
 <product_requirements>
-The primary goal is to complete the full-featured migration of a monolithic FastAPI backend () to a new, maintainable Clean Architecture (). The initial requirement to simply refactor the structure has expanded to ensure full feature parity and bug-free operation with the existing frontend.
+The primary objective is to complete a full-featured migration of a legacy monolithic FastAPI backend () to a new, modular Clean Architecture backend (), ensuring 100% feature and bug parity with the existing React frontend.
 
-**Key Requirements Implemented:**
-1.  **Complete Backend Migration:** All core functionalities (Auth, Users, Ships, Crew, Documents) migrated from a single  to a modular structure (API, Services, Repositories).
-2.  **AI Feature Implementation:** A placeholder AI analysis function was replaced with a real, production-ready implementation using  to process certificate files.
-3.  **Feature Parity with :**
-    *   Migrated auxiliary utility scripts for data normalization (, ).
-    *   Migrated Google Drive integration endpoints required by the frontend.
-    *   Refactored data models (e.g., Test Reports, Survey Reports, Audit Reports) to be specific, not generic, mirroring the  schemas to fix frontend data display issues.
-    *   Unified ISM/ISPS/MLC documents into a single  collection and endpoint, matching 's logic.
-    *   Implemented automatic normalization for the  field on certificate creation/update.
+**Completed Features:**
+1.  **Asynchronous Deletion:** Implemented a system-wide asynchronous process for deleting Google Drive files when their corresponding database records are deleted. This includes a retry mechanism for failed API calls and a daily scheduled job to clean up any orphaned files left on Google Drive.
+2.  **API Route Migration:** Ported numerous critical API endpoints from  to the new  to resolve widespread 404 errors on the frontend. This included routes for system settings, AI configuration, and extensive Google Drive folder management.
+3.  **AI-Powered PDF Analysis:** Replicated and debugged a complex feature where users can upload a ship certificate PDF, and an AI model analyzes it to auto-fill a form. This involved extensive prompt engineering to match 's extraction capabilities, fixing data validation logic, and adding robust error handling and fallbacks.
+4.  **Dynamic GDrive Folder Management:** Implemented the logic to automatically create a dynamic, multi-level folder structure in Google Drive upon the creation of a new Ship record and to delete this structure when the ship is deleted.
 </product_requirements>
 
 <key_technical_concepts>
-- **Backend Framework:** FastAPI
-- **Architecture:** Monolithic to Clean Architecture (API, Services, Repositories)
-- **Database:** MongoDB
-- **Data Validation:** Pydantic (with a shift from generic to specific models per document type)
-- **AI Integration:**  library for LLM-based analysis
-- **Refactoring Strategy:** Safe Parallel Migration (Backup and Build), iterative feature-parity matching based on user feedback and  analysis.
-- **Frontend-Backend Contract:** Resolving mismatches between frontend expectations and new backend schemas.
+- **Backend:** FastAPI, Python, Pydantic, Clean Architecture (Services, Repositories).
+- **Asynchronicity:** FastAPI ,  for scheduled jobs,  for retries.
+- **Database:** MongoDB.
+- **Frontend:** React.
+- **Integrations:** Google Drive API, Emergent Integrations for LLM calls (e.g., Google Gemini).
+- **Development Strategy:** Compare and Replicate - analyzing the legacy  to ensure feature parity in the new system.
 </key_technical_concepts>
 
 <code_architecture>
-The project is structured with the new modular backend running alongside the backed-up monolithic version.
-
+The project consists of a new  being developed alongside the legacy , which serves as a reference.
 .
 ├── 2_CO_DUC_PP.pdf
 ├── 3_2O_THUONG_PP.pdf
@@ -147,8 +139,11 @@ The project is structured with the new modular backend running alongside the bac
 │   │   │       │   ├── other_audit_documents.cpython-311.pyc
 │   │   │       │   ├── other_documents.cpython-311.pyc
 │   │   │       │   ├── ships.cpython-311.pyc
+│   │   │       │   ├── ships_analysis.cpython-311.pyc
+│   │   │       │   ├── sidebar.cpython-311.pyc
 │   │   │       │   ├── supply_documents.cpython-311.pyc
 │   │   │       │   ├── survey_reports.cpython-311.pyc
+│   │   │       │   ├── system_settings.cpython-311.pyc
 │   │   │       │   ├── test_reports.cpython-311.pyc
 │   │   │       │   ├── users.cpython-311.pyc
 │   │   │       │   └── utilities.cpython-311.pyc
@@ -166,8 +161,11 @@ The project is structured with the new modular backend running alongside the bac
 │   │   │       ├── other_audit_documents.py
 │   │   │       ├── other_documents.py
 │   │   │       ├── ships.py
+│   │   │       ├── ships_analysis.py
+│   │   │       ├── sidebar.py
 │   │   │       ├── supply_documents.py
 │   │   │       ├── survey_reports.py
+│   │   │       ├── system_settings.py
 │   │   │       ├── test_reports.py
 │   │   │       ├── users.py
 │   │   │       └── utilities.py
@@ -253,6 +251,7 @@ The project is structured with the new modular backend running alongside the bac
 │   │   │   │   ├── audit_certificate_service.cpython-311.pyc
 │   │   │   │   ├── audit_report_service.cpython-311.pyc
 │   │   │   │   ├── certificate_service.cpython-311.pyc
+│   │   │   │   ├── cleanup_service.cpython-311.pyc
 │   │   │   │   ├── company_service.cpython-311.pyc
 │   │   │   │   ├── crew_certificate_service.cpython-311.pyc
 │   │   │   │   ├── crew_service.cpython-311.pyc
@@ -270,6 +269,7 @@ The project is structured with the new modular backend running alongside the bac
 │   │   │   ├── audit_certificate_service.py
 │   │   │   ├── audit_report_service.py
 │   │   │   ├── certificate_service.py
+│   │   │   ├── cleanup_service.py
 │   │   │   ├── company_service.py
 │   │   │   ├── crew_certificate_service.py
 │   │   │   ├── crew_service.py
@@ -287,13 +287,19 @@ The project is structured with the new modular backend running alongside the bac
 │   │       ├── __pycache__
 │   │       │   ├── __init__.cpython-311.pyc
 │   │       │   ├── ai_helper.cpython-311.pyc
+│   │       │   ├── background_tasks.cpython-311.pyc
+│   │       │   ├── certificate_abbreviation.cpython-311.pyc
 │   │       │   ├── document_name_normalization.cpython-311.pyc
+│   │       │   ├── gdrive_folder_helper.cpython-311.pyc
 │   │       │   ├── issued_by_abbreviation.cpython-311.pyc
 │   │       │   ├── pdf_processor.cpython-311.pyc
 │   │       │   └── ship_calculations.cpython-311.pyc
 │   │       ├── ai_helper.py
+│   │       ├── background_tasks.py
+│   │       ├── certificate_abbreviation.py
 │   │       ├── document_factory.py
 │   │       ├── document_name_normalization.py
+│   │       ├── gdrive_folder_helper.py
 │   │       ├── issued_by_abbreviation.py
 │   │       ├── pdf_processor.py
 │   │       └── ship_calculations.py
@@ -50236,6 +50242,7 @@ The project is structured with the new modular backend running alongside the bac
 │   │       ├── dateHelpers.js
 │   │       ├── googleDriveHelpers.js
 │   │       ├── index.js
+│   │       ├── positionHelpers.js
 │   │       ├── progressHelpers.js
 │   │       ├── shipHelpers.js
 │   │       ├── textHelpers.js
@@ -50283,60 +50290,44 @@ The project is structured with the new modular backend running alongside the bac
 ├── verify_fix.sh
 └── yarn.lock
 
-4658 directories, 45589 files
+4658 directories, 45604 files
 
-**Key Files & Directories Modified:**
+- ** & **
+  - **Importance:** These files contain the core logic for the AI-powered PDF analysis.
+  - **Changes:** The prompt in  was completely rewritten to include over 20 fields, an example JSON output, and specific date formatting rules to match . The validation logic was also updated to include all new fields.  was modified to handle different AI providers (emergent) and to implement a fallback mechanism when AI analysis fails.
 
--   ****: This directory saw the most significant changes.
-    -   **Summary:** It started with a generic  model. To fix data incompatibilities, it was expanded with numerous specific models, each mirroring a  schema.
-    -   **Changes:**
-        -   : The  model was edited to make fields like  and  optional to ensure backward compatibility with old database entries.
-        -   **New Files:** , , , , , , ,  were all created to define specific schemas, fixing major frontend display bugs.
+- ** & **
+  - **Importance:** Manage the creation and deletion of Ship records.
+  - **Changes:** The  endpoint was updated to add a background task that creates a dynamic folder structure on Google Drive. The  endpoint was updated to accept a boolean parameter and trigger the deletion of the corresponding Google Drive folder.
 
--   ****: This directory was updated in lockstep with the models.
-    -   **Summary:** Contains the business logic. For each new specific model, a corresponding service was created. Existing services were enhanced.
-    -   **Changes:**
-        -   : Updated to replace mock data with real AI analysis logic from  and to add automatic  normalization on create/update operations.
-        -   : The  method was modified to provide default values for missing fields from old database records.
-        -   **New Files:** , , , and many others were created to handle logic for the new specific models.
+- **, **
+  - **Importance:** These new files implement the dynamic Google Drive folder creation.
+  - **Changes:**  exposes an endpoint () that returns the dynamic folder structure.  contains the function that calls the Google Apps Script, passing it the necessary info to query the new sidebar endpoint and create the correct folders.
 
--   ****: Contains the API route definitions.
-    -   **Summary:** This layer was refactored to use the new specific services and models. Some endpoints were consolidated, and others were cleaned up.
-    -   **Changes:**
-        -   , , , etc., were heavily modified or recreated to use their new dedicated services and models instead of the generic .
-        -   : Created as a unified endpoint for ISM/ISPS/MLC.
-        -   , , : These files were deleted after confirming the frontend uses the unified .
-        -   : Updated multiple times to register new routers (e.g., , , ) and remove obsolete ones.
+- ** & **
+    - **Importance:** Contain business logic for certificate management.
+    - **Changes:** The  and  methods were refactored to use  for deleting associated Google Drive files asynchronously, removing the previous synchronous implementation.
 
--   ****: Home for helper functions.
-    -   **Summary:** Populated with new and migrated utilities to support core services.
-    -   **Changes:**
-        -   **New Files:**  and  were created to support the AI analysis feature.
-        -   **Migrated Files:**  and  were copied from  and integrated.
-
--   ****:
-    -   **Summary:** This directory was analyzed to understand frontend API usage and then cleaned up.
-    -   **Changes:** , , and  were deleted after verifying they were unused. The  was updated to remove the corresponding exports.
+- ****
+  - **Importance:** The frontend component responsible for the Add Ship functionality, including the PDF analysis feature.
+  - **Changes:** This file was analyzed multiple times. A date formatting function  was updated to handle more string formats (e.g., 14 September 2010). Additional logging was added to debug why auto-filled data was not appearing. Missing fields were added to the  object.
 </code_architecture>
 
 <pending_tasks>
-- **Implement Cert. Name Normalization:** Investigate and implement the automatic mapping/normalization for  in the new backend, as it was done in .
-- **Complete  Normalization:** Apply the  logic to other relevant services that have an  field, such as  and .
-- **Final Code Cleanup:** Once all features are verified, perform a final cleanup, which may include removing the now-obsolete generic  if it is no longer used by any endpoint.
+- **Complete Full Route Migration:** The new backend is still missing a large number of the 179 routes present in . A full migration is required for complete feature parity.
+- **Resolve GDrive Config Issue:** During testing, background tasks failed due to a No Google Drive configuration found error. While ignored for the task, this indicates a potential environmental or configuration setup issue that needs to be addressed for the feature to work in all contexts.
 </pending_tasks>
 
 <current_work>
-The work cycle immediately preceding this summary focused on achieving feature parity with 's data normalization capabilities. The user pointed out that in the old system, the Issued By column in the UI displayed standardized abbreviations (e.g., NK, ABS) instead of full names.
+The most recent task is a direct request from the user to fix a UI display issue. The user reported that the  and  date fields in the Add Ship modal are being automatically reformatted, and they want the dates to be displayed exactly as they are stored in the database.
 
-**Investigation:**
-I examined  and confirmed the existence of a utility function,  in , which handled this logic. I also found that this function was called during certificate creation and updates to directly modify the  field before saving it to the database.
-
-**Implementation:**
-The  utility had already been migrated to the new backend at . The final step was to integrate it. I modified the  and  methods within . In both methods, after receiving the certificate data and just before writing to the database, I added a call to  and updated the data dictionary with the normalized value.
-
-The work concluded with a plan to apply this same normalization logic to other services that handle documents with an  field, such as  and , to ensure consistent behavior across the application. The very last user request was to perform a similar investigation for the  field.
+The previous engineer identified that the  component contains date formatting logic, specifically in functions like  and . An earlier fix attempted to make  more robust to handle different date string formats from the AI, but this new request implies that for these specific fields, no formatting should be applied at all. The work stopped just before modifying the frontend code to address this new requirement.
 </current_work>
 
 <optional_next_step>
-Check  to see how  is normalized/mapped, and then implement the same logic in the new  and other relevant services.
+Modify the  component to prevent the reformatting of  and  date fields, ensuring they display the raw string value received from the backend API.
 </optional_next_step>
+
+<direct_quotes>
+**User's Request:** Last Docking 1 và Last Docking 2 hãy hiển thị đúng định dạng ngày tháng lưu trong DB, không tự đổi fomat (Translation: For Last Docking 1 and Last Docking 2, please display the correct date format as saved in the DB, do not automatically change the format.)
+</direct_quotes>
