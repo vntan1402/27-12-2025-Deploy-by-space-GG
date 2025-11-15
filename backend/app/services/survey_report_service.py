@@ -62,14 +62,24 @@ class SurveyReportService:
         if not report:
             raise HTTPException(status_code=404, detail="Survey Report not found")
         
+        # Backward compatibility
         if not report.get("survey_report_name") and report.get("doc_name"):
             report["survey_report_name"] = report.get("doc_name")
         
         if not report.get("survey_report_no") and report.get("doc_no"):
             report["survey_report_no"] = report.get("doc_no")
         
+        if not report.get("issued_date") and report.get("issue_date"):
+            report["issued_date"] = report.get("issue_date")
+        
+        if not report.get("note") and report.get("notes"):
+            report["note"] = report.get("notes")
+        
         if not report.get("survey_report_name"):
             report["survey_report_name"] = "Untitled Survey Report"
+        
+        if not report.get("status"):
+            report["status"] = "Valid"
         
         return SurveyReportResponse(**report)
     
