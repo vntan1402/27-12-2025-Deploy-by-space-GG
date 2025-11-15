@@ -770,8 +770,11 @@ Example output:
             )
             
             # Get cert_abbreviation with priority: User mappings → AI → Auto-generation
-            from app.utils.certificate_abbreviation import generate_certificate_abbreviation
+            from app.utils.certificate_abbreviation import generate_certificate_abbreviation, validate_certificate_type
             cert_name = analysis_result.get("cert_name", "Unknown Certificate")
+            
+            # Validate and normalize cert_type
+            cert_type = validate_certificate_type(analysis_result.get("cert_type", "Full Term"))
             
             # TODO: Implement get_user_defined_abbreviation when needed
             # For now, use AI extraction or auto-generation
