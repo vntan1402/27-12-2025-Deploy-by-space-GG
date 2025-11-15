@@ -118,6 +118,11 @@ class TestReportService:
         
         update_data = report_data.dict(exclude_unset=True)
         
+        # Handle note/notes field - frontend sends 'note', backend stores 'notes'
+        if "note" in update_data:
+            update_data["notes"] = update_data.pop("note")
+            logger.debug(f"Mapped 'note' to 'notes' field")
+        
         # Normalize issued_by to abbreviation if it's being updated
         if update_data.get("issued_by"):
             from app.utils.issued_by_abbreviation import normalize_issued_by
