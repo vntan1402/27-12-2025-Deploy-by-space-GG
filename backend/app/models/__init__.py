@@ -37,6 +37,13 @@ from app.models.crew import (
     CrewResponse,
     BulkDeleteCrewRequest
 )
+from app.models.crew_certificate import (
+    CrewCertificateBase,
+    CrewCertificateCreate,
+    CrewCertificateUpdate,
+    CrewCertificateResponse,
+    BulkDeleteCrewCertificateRequest
+)
 
 __all__ = [
     "UserRole",
