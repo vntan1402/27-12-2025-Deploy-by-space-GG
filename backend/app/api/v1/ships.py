@@ -322,7 +322,10 @@ async def update_ship_next_survey(
         }
         
     except HTTPException:
-
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error updating next survey: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update next survey: {str(e)}")
 
 @router.post("/{ship_id}/audit-certificates/update-next-survey")
 async def update_ship_audit_certificates_next_survey(
