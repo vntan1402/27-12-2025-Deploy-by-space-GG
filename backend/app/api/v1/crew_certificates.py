@@ -133,20 +133,6 @@ async def delete_crew_certificate(
         logger.error(f"❌ Error deleting crew certificate: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete crew certificate")
 
-@router.post("/bulk-delete")
-async def bulk_delete_crew_certificates(
-    request: BulkDeleteCrewCertificateRequest,
-    current_user: UserResponse = Depends(check_editor_permission)
-):
-    """
-    Bulk delete crew certificates (Editor+ role required)
-    """
-    try:
-        return await CrewCertificateService.bulk_delete_crew_certificates(request, current_user)
-    except Exception as e:
-        logger.error(f"❌ Error bulk deleting crew certificates: {e}")
-        raise HTTPException(status_code=500, detail="Failed to bulk delete crew certificates")
-
 @router.post("/check-duplicate")
 async def check_duplicate_crew_certificate(
     crew_id: str,
