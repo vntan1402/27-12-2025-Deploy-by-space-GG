@@ -10,6 +10,7 @@ import { AddSurveyReportModal } from './AddSurveyReportModal';
 import { EditSurveyReportModal } from './EditSurveyReportModal';
 import { SurveyReportNotesModal } from './SurveyReportNotesModal';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import { calculateTooltipPosition, calculateContextMenuPosition } from '../../utils/positionHelpers';
 
 export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) => {
   const { language } = useAuth();
