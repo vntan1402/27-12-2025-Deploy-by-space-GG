@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File
 from app.api.v1 import (
     auth, users, companies, ships, certificates, crew, crew_certificates,
     survey_reports, test_reports, drawings_manuals, other_documents,
