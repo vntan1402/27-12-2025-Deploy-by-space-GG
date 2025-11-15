@@ -645,11 +645,10 @@ const EditShipModal = ({ isOpen, onClose, ship, onShipUpdated, onDeleteShip }) =
                   {language === 'vi' ? 'Last Docking 1' : 'Last Docking 1'}
                 </label>
                 <input
-                  type="text"
+                  type="date"
                   value={shipData.last_docking}
                   onChange={(e) => setShipData(prev => ({ ...prev, last_docking: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="11/2020"
                 />
               </div>
 
@@ -659,11 +658,10 @@ const EditShipModal = ({ isOpen, onClose, ship, onShipUpdated, onDeleteShip }) =
                   {language === 'vi' ? 'Last Docking 2' : 'Last Docking 2'}
                 </label>
                 <input
-                  type="text"
+                  type="date"
                   value={shipData.last_docking_2}
                   onChange={(e) => setShipData(prev => ({ ...prev, last_docking_2: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="08/2021"
                 />
               </div>
 
