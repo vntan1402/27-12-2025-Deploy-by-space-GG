@@ -75,11 +75,12 @@ async def update_audit_certificate(
 @router.delete("/{cert_id}")
 async def delete_audit_certificate(
     cert_id: str,
+    background_tasks: BackgroundTasks,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Delete Audit Certificate (Editor+ role required)"""
+    """Delete Audit Certificate with background file deletion (Editor+ role required)"""
     try:
-        return await AuditCertificateService.delete_audit_certificate(cert_id, current_user)
+        return await AuditCertificateService.delete_audit_certificate(cert_id, current_user, background_tasks)
     except HTTPException:
         raise
     except Exception as e:
@@ -89,11 +90,12 @@ async def delete_audit_certificate(
 @router.post("/bulk-delete")
 async def bulk_delete_audit_certificates(
     request: BulkDeleteAuditCertificateRequest,
+    background_tasks: BackgroundTasks,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Bulk delete Audit Certificates (Editor+ role required)"""
+    """Bulk delete Audit Certificates with background file deletion (Editor+ role required)"""
     try:
-        return await AuditCertificateService.bulk_delete_audit_certificates(request, current_user)
+        return await AuditCertificateService.bulk_delete_audit_certificates(request, current_user, background_tasks)
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Audit Certificates: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Audit Certificates")
