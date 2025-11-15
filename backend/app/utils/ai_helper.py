@@ -45,9 +45,9 @@ Extract and return ONLY a valid JSON object with ALL of the following fields:
   "keel_laid": "Date keel was laid - EXACT FORMAT from document (e.g., 'MAY 04, 2018' or '04/05/2018')",
   "delivery_date": "Date of delivery - EXACT FORMAT from document (e.g., 'JANUARY 15, 2019' or '15/01/2019')",
   "place_of_build": "Shipyard/place where ship was built",
-  "last_docking": "Most recent dry docking date - EXTRACT EXACTLY AS WRITTEN (e.g., '28 July 2025' or 'JUL 2025')",
-  "last_docking_2": "Second most recent dry docking date - EXTRACT EXACTLY AS WRITTEN",
-  "next_docking": "Next docking due date - EXTRACT EXACTLY AS WRITTEN",
+  "last_docking": "Most recent dry docking date - FORMAT: dd/MM/yyyy if full date available (e.g., '28/07/2025'), OR MM/yyyy if only month/year (e.g., '07/2025')",
+  "last_docking_2": "Second most recent dry docking date - FORMAT: dd/MM/yyyy if full date available, OR MM/yyyy if only month/year",
+  "next_docking": "Next docking due date - FORMAT: dd/MM/yyyy if full date available, OR MM/yyyy if only month/year",
   "special_survey_from_date": "Special survey period start date in DD/MM/YYYY format",
   "special_survey_to_date": "Special survey period end date in DD/MM/YYYY format"
 }}
