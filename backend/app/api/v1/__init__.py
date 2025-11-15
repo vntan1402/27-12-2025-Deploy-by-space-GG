@@ -22,9 +22,8 @@ api_router.include_router(survey_reports.router, prefix="/survey-reports", tags=
 api_router.include_router(test_reports.router, prefix="/test-reports", tags=["test-reports"])
 api_router.include_router(drawings_manuals.router, prefix="/drawings-manuals", tags=["drawings-manuals"])
 api_router.include_router(other_documents.router, prefix="/other-documents", tags=["other-documents"])
-api_router.include_router(ism_documents.router, prefix="/ism-documents", tags=["ism-documents"])
-api_router.include_router(isps_documents.router, prefix="/isps-documents", tags=["isps-documents"])
-api_router.include_router(mlc_documents.router, prefix="/mlc-documents", tags=["mlc-documents"])
+# ISM/ISPS/MLC endpoints removed - not used by frontend
+# Frontend uses unified /api/audit-reports endpoint instead
 api_router.include_router(supply_documents.router, prefix="/supply-documents", tags=["supply-documents"])
 
 # AI Configuration router
