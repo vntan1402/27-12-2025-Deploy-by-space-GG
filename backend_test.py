@@ -783,8 +783,18 @@ class BackendTester:
             print("\n❌ No ships found for testing. Cannot proceed.")
             return False
         
+        # Find ship with certificates (prefer BROTHER 36)
+        test_ship = None
+        for ship in ships:
+            if "BROTHER" in ship.get("name", "").upper():
+                test_ship = ship
+                break
+        
+        if not test_ship:
+            test_ship = ships[0]  # Fallback to first ship
+        
         # Run Async Deletion tests
-        self.test_certificate_deletion_with_background_tasks(ships[0])
+        self.test_certificate_deletion_with_background_tasks(test_ship)
         self.test_audit_certificate_deletion_with_background_tasks(ships[0])
         self.test_bulk_certificate_deletion(ships[0])
         self.test_bulk_audit_certificate_deletion(ships[0])
