@@ -74,5 +74,10 @@ __all__ = [
     "CrewCreate",
     "CrewUpdate",
     "CrewResponse",
-    "BulkDeleteCrewRequest"
+    "BulkDeleteCrewRequest",
+    "CrewCertificateBase",
+    "CrewCertificateCreate",
+    "CrewCertificateUpdate",
+    "CrewCertificateResponse",
+    "BulkDeleteCrewCertificateRequest"
 ]
