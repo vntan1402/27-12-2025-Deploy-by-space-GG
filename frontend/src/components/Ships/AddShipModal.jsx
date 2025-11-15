@@ -226,6 +226,8 @@ const AddShipModal = ({ isOpen, onClose, onShipCreated }) => {
         }
         
         // Auto-fill ship data with extracted information
+        console.log('🔍 [AddShipModal] Raw AI analysis data:', analysisData);
+        
         const processedData = {
           // Basic Information
           name: analysisData.ship_name || '', 
