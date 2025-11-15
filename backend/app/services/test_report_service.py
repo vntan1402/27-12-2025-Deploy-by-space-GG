@@ -157,6 +157,10 @@ class TestReportService:
         if not updated_report.get("test_report_name") and updated_report.get("doc_name"):
             updated_report["test_report_name"] = updated_report.get("doc_name")
         
+        # Map notes → note for frontend (frontend expects 'note' field)
+        if updated_report.get("notes") and not updated_report.get("note"):
+            updated_report["note"] = updated_report.get("notes")
+        
         logger.info(f"✅ Test Report updated: {report_id}")
         
         return TestReportResponse(**updated_report)
