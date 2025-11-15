@@ -62,7 +62,12 @@ CRITICAL EXTRACTION RULES:
 
 3. **Built Year**: PRIORITY ORDER: (1) Extract year from delivery_date if available, (2) Look for "Year Built", "Built Year". Return 4-digit year only.
 
-4. **Dates Format**: For keel_laid and delivery_date, preserve EXACT format from document. For special survey dates, use DD/MM/YYYY format.
+4. **Dates Format**: 
+   - For keel_laid and delivery_date: preserve EXACT format from document
+   - For special survey dates: use dd/MM/yyyy format
+   - For docking dates (last_docking, last_docking_2, next_docking): 
+     * Full date → dd/MM/yyyy (e.g., "28/07/2025")
+     * Month/year only → MM/yyyy (e.g., "07/2025")
 
 5. **Tonnage/Dimensions**: Extract numeric values ONLY, no units like "MT", "m", "tonnes".
 
