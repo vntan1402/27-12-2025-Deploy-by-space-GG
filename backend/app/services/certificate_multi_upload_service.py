@@ -583,11 +583,11 @@ Example output:
     ) -> List[Dict[str, Any]]:
         """Check for duplicate certificates based on key fields"""
         
-        cert_name = analysis_result.get('cert_name', '').strip()
-        cert_no = analysis_result.get('cert_no', '').strip()
-        issue_date = analysis_result.get('issue_date', '').strip()
-        valid_date = analysis_result.get('valid_date', '').strip()
-        last_endorse = analysis_result.get('last_endorse', '').strip()
+        cert_name = (analysis_result.get('cert_name') or '').strip()
+        cert_no = (analysis_result.get('cert_no') or '').strip()
+        issue_date = (analysis_result.get('issue_date') or '').strip()
+        valid_date = (analysis_result.get('valid_date') or '').strip()
+        last_endorse = (analysis_result.get('last_endorse') or '').strip()
         
         if not cert_name and not cert_no:
             return []
