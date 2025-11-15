@@ -253,47 +253,37 @@ async def multi_certificate_upload(
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
-    Upload multiple certificate files with AI analysis
-    Migrated from backend-v1 for feature parity
-    """
-    logger.info(f"📤 Multi-upload started: {len(files)} files for ship {ship_id}")
+    Upload multiple certificate files with AI analysis and Google Drive integration
     
-    # Import from backend-v1 logic via direct file import
-    # This is a temporary migration strategy to ensure 100% feature parity
-    import sys
-    sys.path.insert(0, '/app/backend-v1')
+    This endpoint processes multiple certificate files in a single request:
+    1. AI analysis for information extraction
+    2. Quality check and classification
+    3. IMO/ship name validation
+    4. Duplicate detection
+    5. Google Drive upload
+    6. Certificate record creation
+    
+    Returns detailed results for each file including success/error status
+    """
+    from app.services.certificate_multi_upload_service import CertificateMultiUploadService
     
     try:
-        from server import (
-            multi_cert_upload_for_ship as v1_multi_upload,
-            mongo_db as v1_mongo_db
+        logger.info(f"📤 Multi-upload started: {len(files)} files for ship {ship_id}")
+        
+        # Delegate to service
+        result = await CertificateMultiUploadService.process_multi_upload(
+            ship_id=ship_id,
+            files=files,
+            current_user=current_user,
+            background_tasks=background_tasks
         )
-        
-        # Call backend-v1 function directly with adapted parameters
-        # Convert current_user to v1 format
-        class V1UserAdapter:
-            def __init__(self, user):
-                self.id = user.id
-                self.email = user.email
-                self.role = user.role
-                self.company = user.company
-                self.company_id = getattr(user, 'company_id', user.company)
-        
-        v1_user = V1UserAdapter(current_user)
-        
-        # Call v1 endpoint logic
-        result = await v1_multi_upload(ship_id=ship_id, files=files, current_user=v1_user)
         
         logger.info(f"✅ Multi-upload completed: {result.get('summary', {})}")
         return result
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Multi-upload error: {e}")
-        import traceback
-        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
-    finally:
-        # Clean up sys.path
-        if '/app/backend-v1' in sys.path:
-            sys.path.remove('/app/backend-v1')
 
