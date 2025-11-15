@@ -328,8 +328,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
   const handleContextMenu = (e, document) => {
     e.preventDefault();
 
-    const x = Math.min(e.clientX, window.innerWidth - 220);
-    const y = Math.min(e.clientY, window.innerHeight - 400);
+    const { x, y } = calculateContextMenuPosition(e, 220, 400);
 
     setContextMenu({
       show: true,
