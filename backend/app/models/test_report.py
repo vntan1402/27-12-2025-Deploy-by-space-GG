@@ -43,17 +43,21 @@ class TestReportResponse(BaseModel):
     id: str
     ship_id: str
     test_report_name: Optional[str] = None  # Optional for old data
+    report_form: Optional[str] = None
     test_sample: Optional[str] = None
     test_report_no: Optional[str] = None
     issued_by: Optional[str] = None
-    issue_date: Optional[Union[str, datetime]] = None
+    issued_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None
+    status: Optional[str] = "Valid"
     file_uploaded: bool = False
     file_name: Optional[str] = None
     file_size: Optional[int] = None
     notes: Optional[str] = None
     google_drive_file_id: Optional[str] = None
     google_drive_folder_path: Optional[str] = None
+    test_report_file_id: Optional[str] = None  # For backward compatibility
+    test_report_summary_file_id: Optional[str] = None  # For backward compatibility
     created_at: datetime
 
 class BulkDeleteTestReportRequest(BaseModel):
