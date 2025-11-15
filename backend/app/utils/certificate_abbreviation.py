@@ -37,6 +37,45 @@ async def get_user_defined_abbreviation(cert_name: str) -> Optional[str]:
         return None
 
 
+def validate_certificate_type(cert_type: str) -> str:
+    """
+    Validate and normalize certificate type to one of the 6 allowed types
+    Migrated from backend-v1
+    """
+    if not cert_type:
+        return "Full Term"
+    
+    # Allowed certificate types (case insensitive)
+    allowed_types = {
+        "full term": "Full Term",
+        "interim": "Interim", 
+        "provisional": "Provisional",
+        "short term": "Short term",
+        "conditional": "Conditional",
+        "other": "Other"
+    }
+    
+    # Normalize input
+    normalized = cert_type.lower().strip()
+    
+    # Direct match
+    if normalized in allowed_types:
+        return allowed_types[normalized]
+    
+    # Partial match for common variations
+    if "full" in normalized or "term" in normalized:
+        return "Full Term"
+    elif "interim" in normalized or "temporary" in normalized:
+        return "Interim"
+    elif "provisional" in normalized:
+        return "Provisional"  
+    elif "short" in normalized:
+        return "Short term"
+    elif "conditional" in normalized:
+        return "Conditional"
+    else:
+        return "Other"
+
 async def generate_certificate_abbreviation(cert_name: str) -> str:
     """
     Generate certificate abbreviation from certificate name
