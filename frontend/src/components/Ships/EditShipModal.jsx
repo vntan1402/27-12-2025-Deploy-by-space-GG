@@ -246,9 +246,9 @@ const EditShipModal = ({ isOpen, onClose, ship, onShipUpdated, onDeleteShip }) =
         keel_laid: convertDateInputToUTC(shipData.keel_laid),
         ship_owner: shipData.ship_owner.trim(),
         company: shipData.company.trim(),
-        // Docking information - convert MM/YYYY format to ISO datetime
-        last_docking: formatLastDockingForBackend(shipData.last_docking),
-        last_docking_2: formatLastDockingForBackend(shipData.last_docking_2),
+        // Docking information - convert YYYY-MM-DD format to ISO datetime
+        last_docking: convertDateInputToUTC(shipData.last_docking),
+        last_docking_2: convertDateInputToUTC(shipData.last_docking_2),
         next_docking: convertDateInputToUTC(shipData.next_docking),
         // Survey information - convert to ISO datetime
         last_special_survey: convertDateInputToUTC(shipData.last_special_survey),
