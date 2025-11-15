@@ -954,10 +954,18 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
                          cert.status || '-'}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200">
-                      <div className="max-w-xs truncate" title={cert.note}>
-                        {cert.note || '-'}
-                      </div>
+                    <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 text-center">
+                      {cert.note ? (
+                        <span
+                          className="text-red-600 cursor-help text-lg font-bold"
+                          onMouseEnter={(e) => handleNoteMouseEnter(e, cert.note)}
+                          onMouseLeave={handleNoteMouseLeave}
+                        >
+                          *
+                        </span>
+                      ) : (
+                        '-'
+                      )}
                     </td>
                   </tr>
                 ))
