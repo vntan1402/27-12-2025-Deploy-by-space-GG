@@ -35,6 +35,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Cleanup job function
+async def scheduled_cleanup_job():
+    """Scheduled job to generate cleanup reports"""
+    try:
+        logger.info("🧹 Running scheduled cleanup job...")
+        result = await CleanupService.generate_cleanup_report()
+        if result.get("success"):
+            logger.info("✅ Cleanup job completed successfully")
+            logger.info(f"📊 Report: {result.get('report')}")
+        else:
+            logger.error(f"❌ Cleanup job failed: {result.get('error')}")
+    except Exception as e:
+        logger.error(f"❌ Cleanup job error: {e}")
+
 # Startup event
 @app.on_event("startup")
 async def startup_event():
@@ -46,8 +60,17 @@ async def startup_event():
         await mongo_db.connect()
         logger.info("✅ Database connected")
         
-        # TODO: Initialize admin if needed
-        # TODO: Setup schedulers
+        # Setup scheduled jobs
+        # Run cleanup job daily at 2:00 AM
+        scheduler.add_job(
+            scheduled_cleanup_job,
+            CronTrigger(hour=2, minute=0),
+            id="cleanup_job",
+            name="Daily Cleanup Report",
+            replace_existing=True
+        )
+        scheduler.start()
+        logger.info("✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily")
         
         logger.info(f"✅ {settings.PROJECT_NAME} v{settings.VERSION} is ready!")
     except Exception as e:
