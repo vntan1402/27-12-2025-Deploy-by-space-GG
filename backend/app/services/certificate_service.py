@@ -418,12 +418,33 @@ class CertificateService:
                 
             except Exception as ai_error:
                 logger.error(f"❌ AI analysis error: {ai_error}")
-                # Return partial analysis with text
+                # Return fallback data - empty fields for manual input (like backend-v1)
+                fallback_data = {
+                    "ship_name": "",
+                    "imo_number": "",
+                    "flag": "",
+                    "class_society": "",
+                    "gross_tonnage": "",
+                    "deadweight": "",
+                    "built_year": "",
+                    "ship_owner": "",
+                    "delivery_date": "",
+                    "ship_type": "",
+                    "last_docking": "",
+                    "last_docking_2": "",
+                    "next_docking": "",
+                    "special_survey_from_date": "",
+                    "special_survey_to_date": "",
+                    "confidence": 0.0,
+                    "processing_notes": [f"AI analysis failed for {file.filename}. Manual input required."],
+                    "error": f"AI analysis failed: {str(ai_error)}"
+                }
+                
                 return {
-                    "success": False,
-                    "message": f"AI analysis failed: {str(ai_error)}",
-                    "analysis": None,
-                    "text_content": text[:500] + "..." if len(text) > 500 else text
+                    "success": True,  # Return success=True to allow manual input (backend-v1 behavior)
+                    "message": "Auto-fill failed - please enter ship information manually",
+                    "analysis": fallback_data,
+                    "confidence": 0.0
                 }
         
         except Exception as e:
