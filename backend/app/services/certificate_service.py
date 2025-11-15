@@ -114,11 +114,20 @@ class CertificateService:
             except Exception as e:
                 logger.warning(f"⚠️ Could not normalize issued_by: {e}")
         
+        # Regenerate certificate abbreviation if cert_name is being updated
+        if update_data.get("cert_name") and not update_data.get("cert_abbreviation"):
+            update_data["cert_abbreviation"] = await generate_certificate_abbreviation(update_data.get("cert_name"))
+            logger.info(f"✅ Regenerated cert abbreviation: '{update_data['cert_name']}' → '{update_data['cert_abbreviation']}'")
+        
         if update_data:
             await CertificateRepository.update(cert_id, update_data)
         
         # Get updated certificate
         updated_cert = await CertificateRepository.find_by_id(cert_id)
+        
+        # Generate certificate abbreviation if not present
+        if not updated_cert.get("cert_abbreviation") and updated_cert.get("cert_name"):
+            updated_cert["cert_abbreviation"] = await generate_certificate_abbreviation(updated_cert.get("cert_name"))
         
         logger.info(f"✅ Certificate updated: {cert_id}")
         
