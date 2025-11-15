@@ -81,6 +81,18 @@ class AuditCertificateService:
         cert_dict["id"] = str(uuid.uuid4())
         cert_dict["created_at"] = datetime.now(timezone.utc)
         
+        # Normalize issued_by to abbreviation
+        if cert_dict.get("issued_by"):
+            from app.utils.issued_by_abbreviation import normalize_issued_by
+            try:
+                original_issued_by = cert_dict["issued_by"]
+                normalized_issued_by = normalize_issued_by(original_issued_by)
+                cert_dict["issued_by"] = normalized_issued_by
+                if normalized_issued_by != original_issued_by:
+                    logger.info(f"✅ Normalized Issued By: '{original_issued_by}' → '{normalized_issued_by}'")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not normalize issued_by: {e}")
+        
         await mongo_db.create(AuditCertificateService.collection_name, cert_dict)
         
         logger.info(f"✅ Audit Certificate created: {cert_dict['cert_name']} ({cert_data.cert_type})")
