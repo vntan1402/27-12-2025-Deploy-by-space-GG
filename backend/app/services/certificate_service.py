@@ -383,15 +383,17 @@ class CertificateService:
                 # Check if model is Gemini (regardless of provider value)
                 if "gemini" in model.lower() or provider.lower() in ["google", "gemini", "emergent"]:
                     # For Gemini models with Emergent key
-                    # Use standard model names that Emergent supports
-                    if "2.0" in model or "flash" in model.lower():
-                        actual_model = "gemini-1.5-flash"  # Fallback to stable version
-                    elif "pro" in model.lower():
-                        actual_model = "gemini-1.5-pro"
-                    else:
-                        actual_model = model
+                    # Try to use model as-is first, let emergentintegrations handle it
+                    actual_model = model
+                    
+                    # Only map if it's a problematic version
+                    if "1.5-pro" in model or "1.5-flash" in model:
+                        # These specific versions may not work, try without version
+                        actual_model = "gemini-flash"
+                        logger.warning(f"⚠️ Mapping {model} to {actual_model}")
+                    
                     llm_chat = llm_chat.with_model("gemini", actual_model)
-                    logger.info(f"🔄 Using Gemini model: {actual_model} (provider was: {provider})")
+                    logger.info(f"🔄 Using Gemini model: {actual_model} (original: {model}, provider: {provider})")
                 elif provider.lower() == "openai" or "gpt" in model.lower():
                     llm_chat = llm_chat.with_model("openai", model)
                     logger.info(f"🔄 Using OpenAI model: {model}")
