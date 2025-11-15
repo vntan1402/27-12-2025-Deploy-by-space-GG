@@ -255,6 +255,89 @@ async def get_company_gdrive_config(
         logger.error(f"❌ Error fetching company Google Drive config: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch configuration")
 
+@router.post("/{company_id}/gdrive/configure")
+async def configure_company_gdrive(
+    company_id: str,
+    config_data: dict,
+    current_user: UserResponse = Depends(check_admin_permission)
+):
+    """
+    Configure company Google Drive with connection test (Admin only)
+    """
+    try:
+        from app.db.mongodb import mongo_db
+        import requests
+        from datetime import datetime, timezone
+        
+        # Check if company exists
+        company = await CompanyService.get_company_by_id(company_id, current_user)
+        if not company:
+            raise HTTPException(status_code=404, detail="Company not found")
+        
+        web_app_url = config_data.get("web_app_url")
+        folder_id = config_data.get("folder_id")
+        
+        if not web_app_url or not folder_id:
+            raise HTTPException(status_code=400, detail="web_app_url and folder_id are required")
+        
+        # Test the configuration first
+        test_payload = {
+            "action": "test_connection",
+            "folder_id": folder_id
+        }
+        
+        try:
+            response = requests.post(web_app_url, json=test_payload, timeout=30)
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                if result.get("success"):
+                    # Save configuration to database
+                    config_update = {
+                        "company_id": company_id,
+                        "web_app_url": web_app_url,
+                        "folder_id": folder_id,
+                        "auth_method": config_data.get("auth_method", "apps_script"),
+                        "service_account_email": config_data.get("service_account_email", ""),
+                        "project_id": config_data.get("project_id", ""),
+                        "last_tested": datetime.now(timezone.utc).isoformat(),
+                        "test_result": "success",
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }
+                    
+                    await mongo_db.update(
+                        "company_gdrive_config",
+                        {"company_id": company_id},
+                        config_update,
+                        upsert=True
+                    )
+                    
+                    logger.info(f"✅ Google Drive configured for company {company_id}")
+                    
+                    return {
+                        "success": True,
+                        "message": "Google Drive configured successfully!",
+                        "folder_name": result.get("folder_name", "Unknown"),
+                        "test_result": "PASSED",
+                        "configuration_saved": True
+                    }
+                else:
+                    raise HTTPException(status_code=400, detail=f"Connection test failed: {result.get('message', 'Unknown error')}")
+            else:
+                raise HTTPException(status_code=400, detail="Failed to connect to Apps Script")
+                
+        except requests.Timeout:
+            raise HTTPException(status_code=504, detail="Apps Script request timeout")
+        except requests.RequestException as e:
+            raise HTTPException(status_code=400, detail=f"Connection error: {str(e)}")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error configuring company Google Drive: {e}")
+        raise HTTPException(status_code=500, detail="Failed to configure Google Drive")
+
 @router.post("/{company_id}/gdrive/configure-proxy")
 async def configure_company_gdrive_proxy(
     company_id: str,
@@ -262,10 +345,11 @@ async def configure_company_gdrive_proxy(
     current_user: UserResponse = Depends(check_admin_permission)
 ):
     """
-    Configure company Google Drive (Admin only) - Frontend compatibility
+    Configure company Google Drive without test (Admin only) - Quick save
     """
     try:
         from app.db.mongodb import mongo_db
+        from datetime import datetime, timezone
         
         # Check if company exists
         company = await CompanyService.get_company_by_id(company_id, current_user)
@@ -281,7 +365,6 @@ async def configure_company_gdrive_proxy(
             raise HTTPException(status_code=400, detail="web_app_url and folder_id are required")
         
         # Upsert company Google Drive config
-        from datetime import datetime, timezone
         config_doc = {
             "company_id": company_id,
             "web_app_url": web_app_url,
