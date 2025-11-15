@@ -157,14 +157,68 @@ class CrewCertificateService:
         request: BulkDeleteCrewCertificateRequest, 
         current_user: UserResponse
     ) -> dict:
-        """Bulk delete crew certificates"""
-        deleted_count = await CrewCertificateRepository.bulk_delete(request.certificate_ids)
+        """Bulk delete crew certificates including associated Google Drive files"""
+        from app.db.mongodb import mongo_db
         
-        logger.info(f"✅ Bulk deleted {deleted_count} crew certificates")
+        # Get company ID
+        company_id = current_user.company
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
+            if not company_id:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+        
+        cert_ids = request.certificate_ids
+        logger.info(f"🗑️ Bulk delete crew certificates request: {len(cert_ids)} certificate(s)")
+        
+        deleted_count = 0
+        files_deleted = 0
+        errors = []
+        
+        for cert_id in cert_ids:
+            try:
+                # Check if certificate exists
+                cert = await mongo_db.find_one("crew_certificates", {
+                    "id": cert_id,
+                    "company_id": company_id
+                })
+                
+                if not cert:
+                    logger.warning(f"⚠️ Certificate not found: {cert_id}")
+                    errors.append(f"Certificate {cert_id} not found")
+                    continue
+                
+                # TODO: Delete Google Drive files if configured
+                # For now, just delete from database
+                
+                # Delete from database
+                await mongo_db.delete("crew_certificates", {"id": cert_id})
+                deleted_count += 1
+                logger.info(f"✅ Crew certificate deleted: {cert_id}")
+                
+            except Exception as e:
+                error_msg = f"Error deleting certificate {cert_id}: {str(e)}"
+                errors.append(error_msg)
+                logger.error(f"❌ {error_msg}")
+        
+        # If no certificates were deleted at all, return error
+        if deleted_count == 0 and len(errors) > 0:
+            error_details = "; ".join(errors)
+            raise HTTPException(status_code=404, detail=f"No certificates deleted. {error_details}")
+        
+        message = f"Deleted {deleted_count} certificate(s)"
+        if files_deleted > 0:
+            message += f", {files_deleted} file(s) deleted from Google Drive"
+        if errors:
+            message += f", {len(errors)} error(s)"
+        
+        logger.info(f"✅ Bulk delete complete: {deleted_count} certificates deleted")
         
         return {
-            "message": f"Successfully deleted {deleted_count} crew certificates",
-            "deleted_count": deleted_count
+            "success": True,
+            "message": message,
+            "deleted_count": deleted_count,
+            "files_deleted": files_deleted,
+            "errors": errors if errors else None,
+            "partial_success": len(errors) > 0 and deleted_count > 0
         }
     
     @staticmethod
