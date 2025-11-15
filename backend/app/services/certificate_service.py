@@ -379,24 +379,29 @@ class CertificateService:
                 
                 # Set provider and model correctly
                 # Map provider to emergentintegrations format
-                if provider == "google" or provider == "gemini":
-                    # For Google/Gemini models with Emergent key
+                
+                # Check if model is Gemini (regardless of provider value)
+                if "gemini" in model.lower() or provider.lower() in ["google", "gemini", "emergent"]:
+                    # For Gemini models with Emergent key
                     # Use standard model names that Emergent supports
-                    if "2.0" in model or "flash" in model:
+                    if "2.0" in model or "flash" in model.lower():
                         actual_model = "gemini-1.5-flash"  # Fallback to stable version
-                    elif "pro" in model:
+                    elif "pro" in model.lower():
                         actual_model = "gemini-1.5-pro"
                     else:
                         actual_model = model
                     llm_chat = llm_chat.with_model("gemini", actual_model)
-                    logger.info(f"🔄 Using Gemini model: {actual_model}")
-                elif provider == "openai":
+                    logger.info(f"🔄 Using Gemini model: {actual_model} (provider was: {provider})")
+                elif provider.lower() == "openai" or "gpt" in model.lower():
                     llm_chat = llm_chat.with_model("openai", model)
-                elif provider == "anthropic":
+                    logger.info(f"🔄 Using OpenAI model: {model}")
+                elif provider.lower() == "anthropic" or "claude" in model.lower():
                     llm_chat = llm_chat.with_model("anthropic", model)
+                    logger.info(f"🔄 Using Anthropic model: {model}")
                 else:
-                    # Default fallback
-                    llm_chat = llm_chat.with_model(provider, model)
+                    # Default: try to use as-is
+                    logger.warning(f"⚠️ Unknown provider: {provider}, trying model as-is: {model}")
+                    llm_chat = llm_chat.with_model("gemini", "gemini-1.5-flash")  # Safe fallback
                 
                 # Call AI
                 ai_response = await llm_chat.send_message(UserMessage(text=prompt))
