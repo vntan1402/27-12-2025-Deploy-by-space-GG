@@ -214,12 +214,16 @@ class CertificateService:
         }
     
     @staticmethod
-    async def bulk_delete_certificates(request: BulkDeleteRequest, current_user: UserResponse) -> dict:
-        """Bulk delete certificates including Google Drive files"""
+    async def bulk_delete_certificates(
+        request: BulkDeleteRequest, 
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
+        """Bulk delete certificates and schedule Google Drive files deletion in background"""
         from app.services.gdrive_service import GDriveService
         
         deleted_count = 0
-        files_deleted = 0
+        files_scheduled = 0
         errors = []
         
         for cert_id in request.certificate_ids:
@@ -229,29 +233,33 @@ class CertificateService:
                     errors.append(f"Certificate {cert_id} not found")
                     continue
                 
-                # Try to delete Google Drive file if exists
+                # Extract file info before deletion
                 google_drive_file_id = cert.get("google_drive_file_id")
-                if google_drive_file_id:
+                cert_name = cert.get("cert_name", "Unknown")
+                
+                # Delete from database immediately
+                await CertificateRepository.delete(cert_id)
+                deleted_count += 1
+                logger.info(f"✅ Certificate deleted from DB: {cert_id} ({cert_name})")
+                
+                # Schedule Google Drive file deletion in background
+                if google_drive_file_id and background_tasks:
                     ship_id = cert.get("ship_id")
                     if ship_id:
                         ship = await ShipRepository.find_by_id(ship_id)
                         if ship:
                             company_id = ship.get("company")
                             if company_id:
-                                try:
-                                    result = await GDriveService.delete_file(
-                                        file_id=google_drive_file_id,
-                                        company_id=company_id,
-                                        permanent_delete=False
-                                    )
-                                    if result.get("success"):
-                                        files_deleted += 1
-                                except Exception as e:
-                                    logger.warning(f"⚠️ Failed to delete file {google_drive_file_id}: {e}")
-                
-                # Delete from database
-                await CertificateRepository.delete(cert_id)
-                deleted_count += 1
+                                background_tasks.add_task(
+                                    delete_file_background,
+                                    google_drive_file_id,
+                                    company_id,
+                                    "certificate",
+                                    cert_name,
+                                    GDriveService
+                                )
+                                files_scheduled += 1
+                                logger.info(f"📋 Scheduled background deletion for file: {google_drive_file_id}")
                 
             except Exception as e:
                 errors.append(f"Error deleting certificate {cert_id}: {str(e)}")
