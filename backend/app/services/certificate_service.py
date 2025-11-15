@@ -352,7 +352,7 @@ class CertificateService:
             except Exception as e:
                 logger.warning(f"Could not get AI config, using defaults: {e}")
                 provider = "google"
-                model = "gemini-1.5-flash"  # Use stable supported version
+                model = "gemini-2.0-flash-exp"  # Match backend-v1 default
             
             # Step 3: Call AI for analysis
             logger.info("🤖 Calling AI for certificate analysis...")
