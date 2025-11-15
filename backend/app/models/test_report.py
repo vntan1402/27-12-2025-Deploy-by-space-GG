@@ -18,7 +18,8 @@ class TestReportBase(BaseModel):
     file_uploaded: bool = False
     file_name: Optional[str] = None
     file_size: Optional[int] = None
-    notes: Optional[str] = None
+    note: Optional[str] = None  # Frontend sends 'note' (singular)
+    notes: Optional[str] = None  # Backend stores 'notes' (plural) for backward compatibility
     google_drive_file_id: Optional[str] = None
     google_drive_folder_path: Optional[str] = None
 
