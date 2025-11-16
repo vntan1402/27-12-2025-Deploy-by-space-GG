@@ -75,11 +75,7 @@ async def extract_survey_report_fields_from_summary(
                 chat = chat.with_model("gemini", actual_model)
                 logger.warning(f"⚠️ Unknown provider: {ai_provider}, defaulting to Gemini with model: {actual_model}")
             
-            response = await chat.send_message_async(
-                messages=[UserMessage(content=prompt)],
-                temperature=0.0,
-                max_tokens=2000
-            )
+            response = await chat.send_message(UserMessage(text=prompt))
             
             if response:
                 # LlmChat returns content directly
