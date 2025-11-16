@@ -161,7 +161,11 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
         false // Don't bypass validation initially
       );
       
+      console.log('🔍 Raw response from backend:', response);
       const data = response.data || response;
+      console.log('📦 Extracted data:', data);
+      console.log('✅ data.success:', data.success);
+      console.log('📋 data.analysis:', data.analysis);
       
       // Check for validation error (ship mismatch)
       if (data.validation_error) {
