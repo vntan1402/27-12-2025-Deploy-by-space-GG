@@ -975,6 +975,26 @@ const ClassAndFlagCert = () => {
 
   // Handle show auto rename dialog
   const handleShowAutoRenameDialog = () => {
+    // Determine which certificates to rename BEFORE clearing contextMenu
+    let certsToRename = [];
+    
+    if (selectedCertificates.size > 0) {
+      // Use selected certificates if any are checked
+      certsToRename = Array.from(selectedCertificates);
+    } else if (contextMenu && contextMenu.certificate && contextMenu.certificate.id) {
+      // Use the right-clicked certificate if no checkboxes are selected
+      certsToRename = [contextMenu.certificate.id];
+    }
+    
+    if (certsToRename.length === 0) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn ít nhất một chứng chỉ để đổi tên!' : 'Please select at least one certificate to rename!');
+      return;
+    }
+    
+    // Save certificates to rename in state
+    setCertificatesToAutoRename(certsToRename);
+    
+    // Open dialog
     setShowAutoRenameDialog(true);
     setContextMenu(null);
   };
