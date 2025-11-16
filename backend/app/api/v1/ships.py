@@ -452,7 +452,7 @@ async def calculate_ship_next_docking(
         if special_survey_cycle and isinstance(special_survey_cycle, dict):
             to_date_value = special_survey_cycle.get('to_date')
             if to_date_value:
-                special_survey_to_date = SurveyCalculationService._parse_date(to_date_value)
+                special_survey_to_date = parse_date(to_date_value)
         
         # Get ship age and class
         ship_age = None
