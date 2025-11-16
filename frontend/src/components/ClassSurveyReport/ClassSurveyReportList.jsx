@@ -955,12 +955,12 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                     {report.issued_date ? formatDateDisplay(report.issued_date) : '-'}
                   </td>
 
-                  {/* Issued By (Abbreviation with Tooltip) */}
+                  {/* Issued By (Already normalized by backend) */}
                   <td 
                     className="border border-gray-300 px-4 py-2 text-sm font-semibold text-blue-700" 
                     title={report.issued_by || '-'}
                   >
-                    {getAbbreviation(report.issued_by)}
+                    {report.issued_by || '-'}
                   </td>
 
                   {/* Status Badge */}
