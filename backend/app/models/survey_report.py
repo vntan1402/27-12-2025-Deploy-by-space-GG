@@ -38,8 +38,8 @@ class SurveyReportResponse(BaseModel):
     status: Optional[str] = "Valid"
     note: Optional[str] = None
     surveyor_name: Optional[str] = None
-    file_id: Optional[str] = None
-    summary_file_id: Optional[str] = None
+    survey_report_file_id: Optional[str] = None  # Fixed: match DB field name
+    survey_report_summary_file_id: Optional[str] = None  # Fixed: match DB field name
     created_at: datetime
 
 class BulkDeleteSurveyReportRequest(BaseModel):
