@@ -4,6 +4,7 @@ Handles Google Document AI integration
 """
 import logging
 import aiohttp
+import asyncio
 import base64
 from typing import Dict, Any
 
