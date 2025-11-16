@@ -124,6 +124,13 @@ class CertificateService:
         logger.info(f"🔍 DEBUG - update_data after exclude_unset: {update_data}")
         logger.info(f"🔍 DEBUG - next_survey in update_data: {update_data.get('next_survey')}")
         
+        # CRITICAL FIX: If next_survey is being updated, clear next_survey_display to force recalculation
+        # next_survey_display contains formatted date with annotation (±3M) calculated by backend logic
+        # When user manually updates next_survey, we must clear the cached display value
+        if "next_survey" in update_data:
+            update_data["next_survey_display"] = None
+            logger.info(f"🔄 Clearing next_survey_display due to next_survey update")
+        
         # Normalize issued_by to abbreviation if it's being updated
         if update_data.get("issued_by"):
             from app.utils.issued_by_abbreviation import normalize_issued_by
