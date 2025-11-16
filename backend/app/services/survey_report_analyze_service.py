@@ -610,7 +610,11 @@ class SurveyReportAnalyzeService:
                 logger.info(f"✅ OCR processor available - extracting from {source}...")
                 
                 # Extract from first page (page 0)
-                ocr_result = ocr_processor.extract_from_pdf(pdf_content, page_num=0)
+                ocr_result = ocr_processor.extract_from_pdf(
+                    pdf_content, 
+                    page_num=0,
+                    report_no_field='survey_report_no'
+                )
                 
                 if ocr_result.get('ocr_success'):
                     logger.info("✅ Targeted OCR completed successfully")
