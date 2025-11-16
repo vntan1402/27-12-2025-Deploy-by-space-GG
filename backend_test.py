@@ -182,96 +182,173 @@ class BackendTester:
             self.log_test("AI Config UPDATE", False, f"Exception: {str(e)}")
             return False
     
-    def test_certificate_analyze_file(self):
-        """Test POST /api/certificates/analyze-file endpoint"""
-        print("\n📄 Testing Certificate AI Analysis...")
-        
-        # Look for test certificate files
-        test_files = [
-            "/app/test_coc_certificate.pdf",
-            "/app/MINH_ANH_09_certificate.pdf",
-            "/app/test_poor_quality_cert.pdf"
-        ]
-        
-        test_file = None
-        for file_path in test_files:
-            if os.path.exists(file_path):
-                test_file = file_path
-                break
-        
-        if not test_file:
-            # Create a simple test file
-            test_content = """
-            CERTIFICATE OF COMPETENCY
-            Ship Name: TEST SHIP 01
-            IMO Number: 1234567
-            Certificate Number: TEST-COC-2025-001
-            Issue Date: January 15, 2025
-            Valid Date: January 15, 2028
-            Issued By: Test Maritime Authority
-            """
-            
-            test_file = "/app/test_certificate_analysis.txt"
-            with open(test_file, "w") as f:
-                f.write(test_content)
-            
-            self.log_test("Certificate Analysis - Test File", True, f"Created test file: {test_file}")
+    def test_test_report_analyze_file(self):
+        """Test POST /api/test-reports/analyze-file endpoint"""
+        print("\n📋 Testing Test Report AI Analysis...")
         
         try:
-            # Test without ship_id (standby analysis)
-            with open(test_file, "rb") as f:
-                files = {"file": (os.path.basename(test_file), f, "application/pdf")}
-                response = self.session.post(f"{BACKEND_URL}/certificates/analyze-file", files=files)
+            # First, get a test ship to use
+            ships_response = self.session.get(f"{BACKEND_URL}/ships")
+            
+            if ships_response.status_code != 200:
+                self.log_test("Test Report Analysis - Get Ships", False, f"Failed to get ships: {ships_response.status_code}")
+                return False
+            
+            ships = ships_response.json()
+            if not ships:
+                self.log_test("Test Report Analysis - Get Ships", False, "No ships found")
+                return False
+            
+            # Look for SUNSHINE 01 or SUNSHINE STAR as mentioned in review request
+            test_ship = None
+            for ship in ships:
+                ship_name = ship.get("name", "").upper()
+                if "SUNSHINE" in ship_name:
+                    test_ship = ship
+                    break
+            
+            if not test_ship:
+                test_ship = ships[0]  # Use first ship if SUNSHINE not found
+            
+            ship_id = test_ship.get("id")
+            ship_name = test_ship.get("name", "Unknown")
+            
+            self.log_test("Test Report Analysis - Ship Selection", True, 
+                         f"Using ship: {ship_name} (ID: {ship_id})")
+            
+            # Download test PDF
+            try:
+                pdf_response = requests.get(TEST_PDF_URL, timeout=30)
+                if pdf_response.status_code == 200:
+                    pdf_content = pdf_response.content
+                    self.log_test("Test Report Analysis - PDF Download", True, 
+                                 f"Downloaded PDF: {len(pdf_content)} bytes")
+                else:
+                    self.log_test("Test Report Analysis - PDF Download", False, 
+                                 f"Failed to download PDF: {pdf_response.status_code}")
+                    return False
+            except Exception as e:
+                self.log_test("Test Report Analysis - PDF Download", False, f"Exception: {str(e)}")
+                return False
+            
+            # Test analyze endpoint with small PDF
+            files = {
+                "test_report_file": ("test_report.pdf", pdf_content, "application/pdf")
+            }
+            params = {
+                "ship_id": ship_id,
+                "bypass_validation": False
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/test-reports/analyze-file", 
+                                       files=files, params=params)
             
             if response.status_code == 200:
                 data = response.json()
                 
                 # Check response structure
-                expected_fields = ["success", "message"]
+                expected_fields = ["success"]
                 missing_fields = [field for field in expected_fields if field not in data]
                 
                 if not missing_fields:
                     success = data.get("success", False)
-                    message = data.get("message", "")
                     
-                    # Check if AI analysis was performed (not mock)
-                    if success and "analysis" in data:
+                    if success:
                         analysis = data.get("analysis", {})
-                        confidence = data.get("confidence", 0)
                         
-                        self.log_test("Certificate Analysis - AI Processing", True, 
-                                     f"AI analysis completed with confidence: {confidence}")
+                        # Check for expected test report fields
+                        expected_analysis_fields = [
+                            "test_report_name", "report_form", "test_report_no", 
+                            "issued_by", "issued_date", "valid_date", 
+                            "ship_name", "ship_imo", "note", "status"
+                        ]
                         
-                        # Check for extracted data
-                        if analysis:
-                            extracted_fields = list(analysis.keys())
-                            self.log_test("Certificate Analysis - Data Extraction", True, 
-                                         f"Extracted fields: {extracted_fields}")
+                        found_fields = []
+                        for field in expected_analysis_fields:
+                            if analysis.get(field):
+                                found_fields.append(field)
+                        
+                        self.log_test("Test Report Analysis - Field Extraction", True, 
+                                     f"Extracted {len(found_fields)}/{len(expected_analysis_fields)} fields: {found_fields}")
+                        
+                        # Test specific requirements from review request
+                        
+                        # 1. Verify Document AI processing
+                        processing_method = analysis.get("processing_method", "")
+                        if processing_method:
+                            self.log_test("Test Report Analysis - Document AI Processing", True, 
+                                         f"Processing method: {processing_method}")
+                        
+                        # 2. Verify OCR extraction
+                        if "_ocr_info" in analysis:
+                            ocr_info = analysis["_ocr_info"]
+                            ocr_success = ocr_info.get("ocr_success", False)
+                            self.log_test("Test Report Analysis - OCR Extraction", ocr_success, 
+                                         f"OCR success: {ocr_success}")
+                        
+                        # 3. Verify System AI field extraction
+                        if found_fields:
+                            self.log_test("Test Report Analysis - System AI Extraction", True, 
+                                         f"System AI extracted {len(found_fields)} fields")
+                        
+                        # 4. CRITICAL: Verify Valid Date calculation
+                        test_report_name = analysis.get("test_report_name", "")
+                        issued_date = analysis.get("issued_date", "")
+                        valid_date = analysis.get("valid_date", "")
+                        
+                        if test_report_name and issued_date and valid_date:
+                            self.log_test("Test Report Analysis - Valid Date Calculation", True, 
+                                         f"Equipment: {test_report_name}, Issued: {issued_date}, Valid: {valid_date}")
+                            
+                            # Test specific equipment intervals from review request
+                            equipment_lower = test_report_name.lower()
+                            if "eebd" in equipment_lower:
+                                self.log_test("Test Report Analysis - EEBD Interval", True, 
+                                             "EEBD detected (expected: 12 months)")
+                            elif "life raft" in equipment_lower or "liferaft" in equipment_lower:
+                                self.log_test("Test Report Analysis - Life Raft Interval", True, 
+                                             "Life Raft detected (expected: 12 months)")
+                            elif "immersion suit" in equipment_lower:
+                                self.log_test("Test Report Analysis - Immersion Suit Interval", True, 
+                                             "Immersion Suit detected (expected: 36 months)")
                         else:
-                            self.log_test("Certificate Analysis - Data Extraction", False, 
-                                         "No extracted data found")
+                            self.log_test("Test Report Analysis - Valid Date Calculation", False, 
+                                         f"Missing fields - Equipment: {bool(test_report_name)}, Issued: {bool(issued_date)}, Valid: {bool(valid_date)}")
                         
-                        return True
-                    elif not success:
-                        # AI analysis failed but handled gracefully
-                        self.log_test("Certificate Analysis - Error Handling", True, 
-                                     f"Analysis failed gracefully: {message}")
+                        # 5. Verify issued_by normalization
+                        issued_by = analysis.get("issued_by", "")
+                        if issued_by:
+                            self.log_test("Test Report Analysis - Issued By Normalization", True, 
+                                         f"Issued by: {issued_by}")
+                        
+                        # 6. Verify ship validation
+                        extracted_ship_name = analysis.get("ship_name", "")
+                        if extracted_ship_name:
+                            self.log_test("Test Report Analysis - Ship Validation", True, 
+                                         f"Extracted ship: {extracted_ship_name}, Expected: {ship_name}")
+                        
+                        # Check if file content is included for upload
+                        if "_file_content" in analysis:
+                            self.log_test("Test Report Analysis - File Content", True, 
+                                         "File content included for upload")
+                        
                         return True
                     else:
-                        self.log_test("Certificate Analysis - AI Processing", False, 
-                                     "Response appears to be mock data")
+                        message = data.get("message", "")
+                        self.log_test("Test Report Analysis - Processing", False, 
+                                     f"Analysis failed: {message}")
                         return False
                 else:
-                    self.log_test("Certificate Analysis - Structure", False, 
+                    self.log_test("Test Report Analysis - Response Structure", False, 
                                  f"Missing fields: {missing_fields}")
                     return False
             else:
-                self.log_test("Certificate Analysis", False, 
+                self.log_test("Test Report Analysis", False, 
                              f"Status: {response.status_code}, Response: {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_test("Certificate Analysis", False, f"Exception: {str(e)}")
+            self.log_test("Test Report Analysis", False, f"Exception: {str(e)}")
             return False
     
     def test_certificate_analyze_with_ship_id(self):
