@@ -218,3 +218,153 @@ class TestReportService:
             "is_duplicate": existing is not None,
             "existing_id": existing.get("id") if existing else None
         }
+    
+    @staticmethod
+    async def upload_files(
+        report_id: str,
+        file_content: str,
+        filename: str,
+        content_type: str,
+        summary_text: Optional[str],
+        current_user: UserResponse
+    ) -> dict:
+        """
+        Upload test report files to Google Drive
+        
+        Port from backend-v1/server.py line 11646-11756
+        
+        Args:
+            report_id: Test report ID
+            file_content: Base64 encoded file content
+            filename: Original filename
+            content_type: File content type
+            summary_text: Summary text (optional)
+            current_user: Current user
+        
+        Returns:
+            Upload result with file IDs
+        """
+        try:
+            logger.info(f"📤 Starting file upload for test report: {report_id}")
+            
+            # Validate report exists
+            report = await mongo_db.find_one(TestReportService.collection_name, {"id": report_id})
+            if not report:
+                raise HTTPException(status_code=404, detail="Test report not found")
+            
+            # Get ship info
+            ship_id = report.get("ship_id")
+            if not ship_id:
+                raise HTTPException(status_code=400, detail="Test report has no ship_id")
+            
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            ship_name = ship.get("name", "Unknown Ship")
+            
+            # Decode base64 file content
+            import base64
+            try:
+                file_bytes = base64.b64decode(file_content)
+                logger.info(f"✅ Decoded file content: {len(file_bytes)} bytes")
+            except Exception as e:
+                logger.error(f"Failed to decode base64 file content: {e}")
+                raise HTTPException(status_code=400, detail="Invalid file content encoding")
+            
+            # Get company UUID
+            company_uuid = current_user.company
+            if not company_uuid:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+            
+            # Upload to Google Drive via GDriveService
+            from app.services.gdrive_service import GDriveService
+            
+            # Upload original file to: ShipName/Class & Flag Cert/Test Report/
+            logger.info(f"📤 Uploading test report to: {ship_name}/Class & Flag Cert/Test Report/{filename}")
+            
+            upload_result = await GDriveService.upload_file(
+                file_content=file_bytes,
+                filename=filename,
+                path=f"{ship_name}/Class & Flag Cert/Test Report",
+                current_user=current_user
+            )
+            
+            if not upload_result.get('success'):
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to upload test report file: {upload_result.get('message', 'Unknown error')}"
+                )
+            
+            test_report_file_id = upload_result.get('file_id')
+            
+            # Upload summary file if provided
+            test_report_summary_file_id = None
+            summary_error = None
+            
+            if summary_text and summary_text.strip():
+                try:
+                    # Create summary filename
+                    base_name = filename.rsplit('.', 1)[0] if '.' in filename else filename
+                    summary_filename = f"{base_name}_Summary.txt"
+                    
+                    logger.info(f"📤 Uploading summary to: SUMMARY/Class & Flag Document/{summary_filename}")
+                    
+                    # Convert summary text to bytes
+                    summary_bytes = summary_text.encode('utf-8')
+                    
+                    summary_upload = await GDriveService.upload_file(
+                        file_content=summary_bytes,
+                        filename=summary_filename,
+                        path="SUMMARY/Class & Flag Document",
+                        current_user=current_user
+                    )
+                    
+                    if summary_upload.get('success'):
+                        test_report_summary_file_id = summary_upload.get('file_id')
+                        logger.info(f"✅ Summary uploaded: {test_report_summary_file_id}")
+                    else:
+                        summary_error = summary_upload.get('message', 'Unknown error')
+                        logger.warning(f"⚠️ Summary upload failed (non-critical): {summary_error}")
+                        
+                except Exception as summary_exc:
+                    summary_error = str(summary_exc)
+                    logger.warning(f"⚠️ Summary upload failed (non-critical): {summary_error}")
+            
+            # Update test report record with file IDs
+            update_data = {
+                "updated_at": datetime.now(timezone.utc)
+            }
+            
+            if test_report_file_id:
+                update_data["test_report_file_id"] = test_report_file_id
+            
+            if test_report_summary_file_id:
+                update_data["test_report_summary_file_id"] = test_report_summary_file_id
+            
+            await mongo_db.update(TestReportService.collection_name, {"id": report_id}, update_data)
+            logger.info("✅ Test report updated with file IDs")
+            
+            # Get updated report
+            updated_report = await mongo_db.find_one(TestReportService.collection_name, {"id": report_id})
+            
+            logger.info("✅ Test report files uploaded successfully")
+            
+            return {
+                "success": True,
+                "message": "Test report files uploaded successfully",
+                "test_report_file_id": test_report_file_id,
+                "test_report_summary_file_id": test_report_summary_file_id,
+                "summary_error": summary_error
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading test report files: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to upload test report files: {str(e)}"
+            )
