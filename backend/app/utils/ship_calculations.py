@@ -89,7 +89,7 @@ async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Opti
             valid_date = datetime.fromisoformat(valid_date.replace('Z', '+00:00'))
         
         # Special Survey cycle is typically 5 years
-        cycle = SpecialSurveyCycle(
+        cycle = eSpecialSurveyCycl(
             from_date=issue_date,
             to_date=valid_date,
             intermediate_required=True,
