@@ -152,7 +152,7 @@ async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Opti
 async def calculate_next_docking(ship_id: str, last_docking: Optional[datetime]) -> Optional[datetime]:
     """
     Calculate next docking date based on last docking
-    Typically 2.5 years from last docking
+    UPDATED 2025: 36 months from last docking (extended from old 30 months)
     """
     try:
         if not last_docking:
@@ -162,10 +162,10 @@ async def calculate_next_docking(ship_id: str, last_docking: Optional[datetime])
         if isinstance(last_docking, str):
             last_docking = datetime.fromisoformat(last_docking.replace('Z', '+00:00'))
         
-        # Next docking is typically 2.5 years (30 months) from last docking
-        next_docking = last_docking + relativedelta(months=30)
+        # Next docking: 36 months (3 years) from last docking - ENHANCED LOGIC 2025
+        next_docking = last_docking + relativedelta(months=36)
         
-        logger.info(f"✅ Calculated next docking for ship {ship_id}: {next_docking}")
+        logger.info(f"✅ Calculated next docking for ship {ship_id}: {next_docking} (Last Docking + 36 months)")
         return next_docking
         
     except Exception as e:
