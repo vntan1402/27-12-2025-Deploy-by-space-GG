@@ -61,12 +61,14 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     content: ''
   });
 
-  // Fetch survey reports when ship is selected
+  // Fetch survey reports and certificates when ship is selected
   useEffect(() => {
     if (selectedShip) {
       fetchSurveyReports();
+      fetchCertificates();
     } else {
       setSurveyReports([]);
+      setCertificates([]);
     }
   }, [selectedShip]);
 
