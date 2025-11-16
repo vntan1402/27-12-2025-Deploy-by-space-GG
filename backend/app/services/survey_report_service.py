@@ -189,3 +189,148 @@ class SurveyReportService:
             "is_duplicate": existing is not None,
             "existing_id": existing.get("id") if existing else None
         }
+
+    
+    @staticmethod
+    async def upload_files(
+        report_id: str,
+        file_content: str,
+        filename: str,
+        content_type: str,
+        summary_text: str,
+        current_user: UserResponse
+    ) -> dict:
+        """
+        Upload survey report files to Google Drive
+        
+        Process:
+        1. Validate report exists
+        2. Decode base64 file content
+        3. Upload original to ship folder
+        4. Upload summary to SUMMARY folder
+        5. Update record with file IDs
+        """
+        import base64
+        from app.services.gdrive_service import GDriveService
+        from app.repositories.ship_repository import ShipRepository
+        
+        logger.info(f"📤 Starting file upload for survey report: {report_id}")
+        
+        # Validate report exists
+        report = await mongo_db.find_one(SurveyReportService.collection_name, {"id": report_id})
+        if not report:
+            raise HTTPException(status_code=404, detail="Survey report not found")
+        
+        # Get ship info
+        ship_id = report.get("ship_id")
+        if not ship_id:
+            raise HTTPException(status_code=400, detail="Survey report has no ship_id")
+        
+        ship = await ShipRepository.find_by_id(ship_id)
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_name = ship.get("name", "Unknown Ship")
+        survey_report_name = report.get("survey_report_name", "Survey Report")
+        
+        # Decode base64 file content
+        try:
+            file_bytes = base64.b64decode(file_content)
+            logger.info(f"✅ Decoded file content: {len(file_bytes)} bytes")
+        except Exception as e:
+            logger.error(f"Failed to decode base64 file content: {e}")
+            raise HTTPException(status_code=400, detail="Invalid file content encoding")
+        
+        upload_results = {}
+        
+        # Upload 1: Original file to ShipName/Class & Flag Cert/Class Survey Report/
+        logger.info(f"📄 Uploading original file to: {ship_name}/Class & Flag Cert/Class Survey Report/{filename}")
+        
+        try:
+            # Build folder path
+            folder_path = f"{ship_name}/Class & Flag Cert/Class Survey Report"
+            
+            original_upload = await GDriveService.upload_file(
+                file_content=file_bytes,
+                filename=filename,
+                content_type=content_type,
+                folder_path=folder_path,
+                company_id=current_user.company
+            )
+            
+            if not original_upload.get('success'):
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to upload survey report file: {original_upload.get('message')}"
+                )
+            
+            survey_report_file_id = original_upload.get('file_id')
+            upload_results['original'] = original_upload
+            logger.info(f"✅ Original file uploaded: {survey_report_file_id}")
+            
+        except HTTPException:
+            raise
+        except Exception as upload_error:
+            logger.error(f"❌ Error uploading original file: {upload_error}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to upload survey report file: {str(upload_error)}"
+            )
+        
+        # Upload 2: Summary file to SUMMARY/Class & Flag Document/
+        survey_report_summary_file_id = None
+        if summary_text and summary_text.strip():
+            base_name = filename.rsplit('.', 1)[0]
+            summary_filename = f"{base_name}_Summary.txt"
+            
+            logger.info(f"📋 Uploading summary file to: SUMMARY/Class & Flag Document/{summary_filename}")
+            
+            try:
+                # Convert summary text to bytes
+                summary_bytes = summary_text.encode('utf-8')
+                
+                # Build summary folder path
+                summary_folder_path = "SUMMARY/Class & Flag Document"
+                
+                summary_upload = await GDriveService.upload_file(
+                    file_content=summary_bytes,
+                    filename=summary_filename,
+                    content_type="text/plain",
+                    folder_path=summary_folder_path,
+                    company_id=current_user.company
+                )
+                
+                if summary_upload.get('success'):
+                    survey_report_summary_file_id = summary_upload.get('file_id')
+                    upload_results['summary'] = summary_upload
+                    logger.info(f"✅ Summary file uploaded: {survey_report_summary_file_id}")
+                else:
+                    logger.warning(f"⚠️ Summary file upload failed (non-critical): {summary_upload.get('message')}")
+                    
+            except Exception as summary_error:
+                logger.warning(f"⚠️ Summary upload failed (non-critical): {summary_error}")
+        
+        # Update survey report record with file IDs
+        update_data = {
+            "survey_report_file_id": survey_report_file_id,
+            "updated_at": datetime.now(timezone.utc)
+        }
+        
+        if survey_report_summary_file_id:
+            update_data["survey_report_summary_file_id"] = survey_report_summary_file_id
+        
+        await mongo_db.update(
+            SurveyReportService.collection_name,
+            {"id": report_id},
+            update_data
+        )
+        logger.info("✅ Survey report record updated with file IDs")
+        
+        return {
+            "success": True,
+            "survey_report_file_id": survey_report_file_id,
+            "survey_report_summary_file_id": survey_report_summary_file_id,
+            "message": "Survey report files uploaded successfully",
+            "upload_results": upload_results
+        }
+
