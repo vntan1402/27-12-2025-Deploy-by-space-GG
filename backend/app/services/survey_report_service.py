@@ -2,11 +2,12 @@ import uuid
 import logging
 from typing import List, Optional
 from datetime import datetime, timezone
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 
 from app.models.survey_report import SurveyReportCreate, SurveyReportUpdate, SurveyReportResponse, BulkDeleteSurveyReportRequest
 from app.models.user import UserResponse
 from app.db.mongodb import mongo_db
+from app.repositories.ship_repository import ShipRepository
 
 logger = logging.getLogger(__name__)
 
