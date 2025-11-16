@@ -118,6 +118,12 @@ class CertificateService:
         # Prepare update data
         update_data = cert_data.dict(exclude_unset=True)
         
+        # DEBUG: Log what data we're receiving
+        logger.info(f"🔍 DEBUG - Updating certificate {cert_id}")
+        logger.info(f"🔍 DEBUG - Raw cert_data: {cert_data}")
+        logger.info(f"🔍 DEBUG - update_data after exclude_unset: {update_data}")
+        logger.info(f"🔍 DEBUG - next_survey in update_data: {update_data.get('next_survey')}")
+        
         # Normalize issued_by to abbreviation if it's being updated
         if update_data.get("issued_by"):
             from app.utils.issued_by_abbreviation import normalize_issued_by
