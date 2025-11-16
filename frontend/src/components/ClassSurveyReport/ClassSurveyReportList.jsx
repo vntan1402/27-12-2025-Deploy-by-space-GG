@@ -17,6 +17,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
 
   // State
   const [surveyReports, setSurveyReports] = useState([]);
+  const [certificates, setCertificates] = useState([]); // NEW: For calculating survey report expiry
   const [loading, setLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
