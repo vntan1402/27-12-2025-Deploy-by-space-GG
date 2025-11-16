@@ -112,17 +112,51 @@ async def check_duplicate_test_report(
         raise HTTPException(status_code=500, detail="Failed to check duplicate")
 
 @router.post("/analyze-file")
-async def analyze_document_file(
-    file: UploadFile = File(...),
-    ship_id: Optional[str] = None,
+async def analyze_test_report_file(
+    test_report_file: UploadFile = File(...),
+    ship_id: str = Query(...),
+    bypass_validation: bool = Query(False),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Analyze Test Report file using AI (Editor+ role required)"""
+    """
+    Analyze Test Report file using AI (Editor+ role required)
+    
+    Process:
+    1. Validate PDF file
+    2. Split if > 15 pages
+    3. Process with Document AI + OCR
+    4. Extract fields with System AI
+    5. Calculate Valid Date based on equipment type
+    6. Normalize issued_by
+    7. Validate ship info
+    8. Return analysis + file content (base64) for later upload
+    
+    Args:
+        test_report_file: PDF file to analyze
+        ship_id: Ship ID to validate against
+        bypass_validation: Skip ship name/IMO validation if True
+        current_user: Current authenticated user
+    
+    Returns:
+        Analysis result with extracted fields + file content
+    """
     try:
-        return await service.analyze_file(file, ship_id, current_user)
+        from app.services.test_report_analyze_service import TestReportAnalyzeService
+        
+        result = await TestReportAnalyzeService.analyze_file(
+            file=test_report_file,
+            ship_id=ship_id,
+            bypass_validation=bypass_validation,
+            current_user=current_user
+        )
+        
+        return result
+        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Error analyzing Test Report file: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to analyze Test Report: {str(e)}")
+        logger.error(f"❌ Error analyzing test report file: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to analyze test report: {str(e)}")
 
