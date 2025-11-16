@@ -334,27 +334,72 @@ def create_enhanced_merged_summary(
     chunk_results: List[Dict],
     merged_data: Dict,
     original_filename: str,
-    total_pages: int
+    total_pages: int,
+    document_type: str = 'survey_report'
 ) -> str:
     """
     Create a well-formatted merged summary document
+    
+    Generic function supporting multiple document types.
     
     Args:
         chunk_results: List of chunk processing results
         merged_data: Merged analysis data
         original_filename: Original PDF filename
         total_pages: Total page count
+        document_type: Type of document ('survey_report', 'test_report', etc.)
         
     Returns:
         Formatted summary text
     """
     from datetime import datetime
     
+    # Define label mappings per document type
+    LABEL_MAPPINGS = {
+        'survey_report': {
+            'title': 'SURVEY REPORT ANALYSIS - MERGED SUMMARY',
+            'name_label': 'Survey Report Name',
+            'name_field': 'survey_report_name',
+            'no_label': 'Report Number',
+            'no_field': 'survey_report_no',
+            'additional': [
+                ('Surveyor Name', 'surveyor_name')
+            ]
+        },
+        'test_report': {
+            'title': 'TEST REPORT ANALYSIS - MERGED SUMMARY',
+            'name_label': 'Test Report Name',
+            'name_field': 'test_report_name',
+            'no_label': 'Test Report Number',
+            'no_field': 'test_report_no',
+            'additional': [
+                ('Valid Date', 'valid_date')
+            ]
+        },
+        'audit_report': {
+            'title': 'AUDIT REPORT ANALYSIS - MERGED SUMMARY',
+            'name_label': 'Audit Report Name',
+            'name_field': 'audit_report_name',
+            'no_label': 'Report Number',
+            'no_field': 'audit_report_no',
+            'additional': [
+                ('Auditor Name', 'auditor_name')
+            ]
+        }
+    }
+    
+    # Validate and get mapping
+    if document_type not in LABEL_MAPPINGS:
+        logger.warning(f"⚠️ Unsupported document_type for summary: {document_type}, using 'survey_report'")
+        document_type = 'survey_report'
+    
+    mapping = LABEL_MAPPINGS[document_type]
+    
     summary_lines = []
     
-    # Header
+    # Header (dynamic title)
     summary_lines.append("=" * 80)
-    summary_lines.append("SURVEY REPORT ANALYSIS - MERGED SUMMARY")
+    summary_lines.append(mapping['title'])
     summary_lines.append("=" * 80)
     summary_lines.append("")
     
@@ -365,19 +410,25 @@ def create_enhanced_merged_summary(
     summary_lines.append(f"Total Pages: {total_pages}")
     summary_lines.append(f"Processing Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}")
     summary_lines.append(f"Processing Method: Split PDF + Batch Processing")
+    summary_lines.append(f"Document Type: {document_type}")
     summary_lines.append(f"Total Chunks: {len(chunk_results)}")
     summary_lines.append(f"Successful Chunks: {len([cr for cr in chunk_results if cr.get('success')])}")
     summary_lines.append(f"Failed Chunks: {len([cr for cr in chunk_results if not cr.get('success')])}")
     summary_lines.append("")
     
-    # Merged extraction results
+    # Merged extraction results (dynamic labels)
     summary_lines.append("EXTRACTED INFORMATION (MERGED):")
     summary_lines.append("-" * 80)
-    summary_lines.append(f"Survey Report Name: {merged_data.get('survey_report_name', 'N/A')}")
-    summary_lines.append(f"Report Number: {merged_data.get('survey_report_no', 'N/A')}")
+    summary_lines.append(f"{mapping['name_label']}: {merged_data.get(mapping['name_field'], 'N/A')}")
+    summary_lines.append(f"{mapping['no_label']}: {merged_data.get(mapping['no_field'], 'N/A')}")
     summary_lines.append(f"Issued By: {merged_data.get('issued_by', 'N/A')}")
     summary_lines.append(f"Issued Date: {merged_data.get('issued_date', 'N/A')}")
-    summary_lines.append(f"Surveyor Name: {merged_data.get('surveyor_name', 'N/A')}")
+    
+    # Add document-specific fields
+    for label, field in mapping.get('additional', []):
+        if merged_data.get(field):
+            summary_lines.append(f"{label}: {merged_data[field]}")
+    
     summary_lines.append(f"Status: {merged_data.get('status', 'Valid')}")
     
     if merged_data.get('note'):
