@@ -228,7 +228,7 @@ async def update_ship_next_survey(
     based on IMO regulations and 5-year survey cycle
     Migrated from backend-v1
     """
-    from app.services.survey_calculation_service import SurveyCalculationService
+    from app.utils.ship_calculations import calculate_next_survey_info, parse_date
     from app.db.mongodb import mongo_db
     
     try:
@@ -336,7 +336,7 @@ async def update_ship_audit_certificates_next_survey(
     Calculate and update Next Survey for all audit certificates of a ship
     Migrated from backend-v1
     """
-    from app.services.survey_calculation_service import SurveyCalculationService
+    from app.utils.ship_calculations import calculate_next_survey_info, parse_date
     from app.db.mongodb import mongo_db
     from datetime import datetime, timezone
     
@@ -431,7 +431,7 @@ async def calculate_ship_next_docking(
     
     Migrated from backend-v1
     """
-    from app.services.survey_calculation_service import SurveyCalculationService
+    from app.utils.ship_calculations import calculate_next_survey_info, parse_date
     from app.db.mongodb import mongo_db
     from datetime import datetime, timezone
     
