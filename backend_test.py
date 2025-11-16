@@ -51,7 +51,7 @@ class BackendTester:
         print("\n🔐 Testing Authentication...")
         
         try:
-            # Login
+            # Login with admin1@gmail.com / 123456 as per review request
             login_data = {
                 "username": TEST_USERNAME,
                 "password": TEST_PASSWORD
