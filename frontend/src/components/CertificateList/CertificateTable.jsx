@@ -417,7 +417,7 @@ export const CertificateTable = ({
                 <td 
                   className="border border-gray-300 px-4 py-2 text-center"
                 >
-                  {cert.has_notes ? (
+                  {(cert.has_notes || (cert.notes && cert.notes.trim())) ? (
                     <span 
                       className="text-red-600 font-bold cursor-pointer text-lg hover:text-red-700"
                       onMouseEnter={(e) => handleNoteMouseEnter(e, cert.notes)}
