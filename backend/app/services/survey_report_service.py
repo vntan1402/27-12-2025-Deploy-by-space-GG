@@ -142,17 +142,70 @@ class SurveyReportService:
         return SurveyReportResponse(**updated_report)
     
     @staticmethod
-    async def delete_survey_report(report_id: str, current_user: UserResponse) -> dict:
-        """Delete survey report"""
+    async def delete_survey_report(
+        report_id: str, 
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
+        """Delete survey report and schedule Google Drive file deletion in background"""
+        from app.utils.background_tasks import delete_file_background
+        from app.services.gdrive_service import GDriveService
+        
         report = await mongo_db.find_one(SurveyReportService.collection_name, {"id": report_id})
         if not report:
             raise HTTPException(status_code=404, detail="Survey Report not found")
         
+        # Extract file info before deleting from DB
+        survey_report_file_id = report.get("survey_report_file_id")
+        survey_report_summary_file_id = report.get("survey_report_summary_file_id")
+        survey_report_name = report.get("survey_report_name", "Unknown")
+        
+        # Delete from database immediately
         await mongo_db.delete(SurveyReportService.collection_name, {"id": report_id})
+        logger.info(f"✅ Survey Report deleted from DB: {report_id} ({survey_report_name})")
         
-        logger.info(f"✅ Survey Report deleted: {report_id}")
+        # Schedule Google Drive file deletions in background if files exist
+        files_to_delete = []
         
-        return {"message": "Survey Report deleted successfully"}
+        if survey_report_file_id:
+            files_to_delete.append(("original", survey_report_file_id))
+        
+        if survey_report_summary_file_id:
+            files_to_delete.append(("summary", survey_report_summary_file_id))
+        
+        if files_to_delete and background_tasks:
+            # Get ship to find company_id
+            ship_id = report.get("ship_id")
+            if ship_id:
+                ship = await ShipRepository.find_by_id(ship_id)
+                if ship:
+                    company_id = ship.get("company")
+                    if company_id:
+                        for file_type, file_id in files_to_delete:
+                            background_tasks.add_task(
+                                delete_file_background,
+                                file_id,
+                                company_id,
+                                "survey_report",
+                                f"{survey_report_name} ({file_type})",
+                                GDriveService
+                            )
+                            logger.info(f"📋 Scheduled background deletion for {file_type} file: {file_id}")
+                        
+                        return {
+                            "success": True,
+                            "message": "Survey Report deleted successfully. File deletion in progress...",
+                            "report_id": report_id,
+                            "background_deletion": True,
+                            "files_scheduled": len(files_to_delete)
+                        }
+        
+        return {
+            "success": True,
+            "message": "Survey Report deleted successfully",
+            "report_id": report_id,
+            "background_deletion": False
+        }
     
     @staticmethod
     async def bulk_delete_survey_reports(request: BulkDeleteSurveyReportRequest, current_user: UserResponse) -> dict:
