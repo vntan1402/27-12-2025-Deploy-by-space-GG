@@ -29,7 +29,7 @@ from datetime import datetime
 
 # Configuration
 BACKEND_URL = "https://navmaster-1.preview.emergentagent.com/api"
-TEST_USERNAME = "admin1"  # Try with username format first
+TEST_USERNAME = "admin1@gmail.com"  # Use email format as per review request
 TEST_PASSWORD = "123456"
 PDF_URL = "https://customer-assets.emergentagent.com/job_75aa79c8-ba52-4762-a517-d6f75c7d2704/artifacts/ip1fsm86_CG%20%2802-19%29.pdf"
 
