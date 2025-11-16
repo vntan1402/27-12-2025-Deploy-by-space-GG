@@ -114,10 +114,10 @@ async def check_duplicate_test_report(
 @router.post("/{report_id}/upload-files")
 async def upload_test_report_files(
     report_id: str,
-    file_content: str,
-    filename: str,
-    content_type: str,
-    summary_text: Optional[str] = None,
+    file_content: str = Body(...),
+    filename: str = Body(...),
+    content_type: str = Body(...),
+    summary_text: Optional[str] = Body(None),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
@@ -141,8 +141,6 @@ async def upload_test_report_files(
         Upload result with file IDs
     """
     try:
-        from fastapi import Body
-        
         result = await TestReportService.upload_files(
             report_id=report_id,
             file_content=file_content,
