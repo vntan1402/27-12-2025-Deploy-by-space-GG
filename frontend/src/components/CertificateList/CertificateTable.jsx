@@ -80,7 +80,10 @@ export const CertificateTable = ({
     // Parse next_survey to get window_close
     const nextSurvey = cert.next_survey_display || cert.next_survey;
     
-    if (!nextSurvey) {
+    // Treat "N/A" as no next_survey (common for Interim certificates)
+    const hasValidNextSurvey = nextSurvey && nextSurvey !== 'N/A' && nextSurvey !== 'n/a';
+    
+    if (!hasValidNextSurvey) {
       // Fallback to valid_date if no next_survey
       if (!cert.valid_date) return 'Unknown';
       
@@ -101,7 +104,24 @@ export const CertificateTable = ({
     
     // Parse Next Survey date and annotation
     const match = nextSurvey.match(/(\d{2}\/\d{2}\/\d{4})/);
-    if (!match) return 'Unknown';
+    if (!match) {
+      // Cannot parse date, fallback to valid_date
+      if (!cert.valid_date) return 'Unknown';
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const validDate = new Date(cert.valid_date);
+      validDate.setHours(0, 0, 0, 0);
+      
+      if (validDate < today) return 'Expired';
+      
+      const diffTime = validDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays <= 30) return 'Due Soon';
+      return 'Valid';
+    }
     
     const [day, month, year] = match[1].split('/');
     const nextSurveyDate = new Date(year, month - 1, day);
