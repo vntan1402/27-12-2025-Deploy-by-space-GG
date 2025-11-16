@@ -1427,7 +1427,7 @@ class BackendTester:
 
     def run_all_tests(self):
         """Run all tests"""
-        print("🧪 Starting Backend Testing for Auto-Rename Certificate File Endpoint")
+        print("🧪 Starting Backend Testing Suite - Survey Report Analysis Focus")
         print("=" * 80)
         
         # Authentication is required for all tests
@@ -1435,7 +1435,10 @@ class BackendTester:
             print("\n❌ Authentication failed. Cannot proceed with tests.")
             return False
         
-        # Run Auto-Rename Certificate File tests
+        # Survey Report Analysis Test (Primary Focus - Review Request)
+        self.test_survey_report_analysis_endpoint()
+        
+        # Additional tests for comprehensive coverage
         self.test_auto_rename_certificate_file()
         self.test_auto_rename_error_cases()
         self.test_certificate_abbreviation_priority()
