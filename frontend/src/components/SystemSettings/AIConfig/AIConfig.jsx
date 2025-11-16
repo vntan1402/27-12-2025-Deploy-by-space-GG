@@ -27,6 +27,11 @@ const AIConfig = ({ user }) => {
   const fetchAIConfig = async () => {
     try {
       const data = await aiConfigService.getConfig();
+      
+      // DEBUG: Log raw API response
+      console.log('🔍 [AIConfig] Raw API response:', data);
+      console.log('🔍 [AIConfig] document_ai field:', data.document_ai);
+      
       setAiConfig({
         provider: data.provider || 'google',
         model: data.model || 'gemini-2.0-flash',
@@ -39,6 +44,13 @@ const AIConfig = ({ user }) => {
           processor_id: '',
           apps_script_url: ''
         }
+      });
+      
+      // DEBUG: Log processed config
+      console.log('✅ [AIConfig] Processed config with document_ai:', {
+        has_document_ai: !!data.document_ai,
+        enabled: data.document_ai?.enabled,
+        project_id: data.document_ai?.project_id
       });
     } catch (error) {
       console.error('Failed to fetch AI config:', error);
