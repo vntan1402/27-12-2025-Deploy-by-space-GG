@@ -267,9 +267,9 @@ class SurveyReportAnalyzeService:
         total_pages: int
     ) -> Dict[str, Any]:
         """Process a single PDF (≤15 pages)"""
+        from app.utils.document_ai_helper import analyze_survey_report_with_document_ai
         
-        # TODO: Implement Document AI call
-        # For now, return basic structure with OCR attempt
+        logger.info(f"🔄 Processing single PDF: {filename} ({total_pages} pages)")
         
         analysis_result['_split_info'] = {
             'was_split': False,
@@ -277,24 +277,89 @@ class SurveyReportAnalyzeService:
             'chunks_count': 1
         }
         
-        # Try Targeted OCR
-        ocr_metadata = await SurveyReportAnalyzeService._perform_targeted_ocr(
-            file_content,
-            "single_pdf"
+        # Step 1: Call Document AI
+        doc_ai_result = await analyze_survey_report_with_document_ai(
+            file_content=file_content,
+            filename=filename,
+            content_type=content_type,
+            document_ai_config=document_ai_config
         )
         
-        analysis_result['_ocr_info'] = ocr_metadata
-        
-        # Try to extract report_form from filename
-        filename_form = extract_report_form_from_filename(filename)
-        if filename_form:
-            analysis_result['report_form'] = filename_form
-            logger.info(f"✅ Extracted report_form from filename: '{filename_form}'")
-        
-        # For now, return with placeholder summary
-        # In full implementation, this would call Document AI
-        analysis_result['_summary_text'] = "Analysis placeholder - Document AI integration needed"
-        analysis_result['processing_method'] = "partial_implementation"
+        if not doc_ai_result.get('success'):
+            logger.warning(f"⚠️ Document AI failed: {doc_ai_result.get('message')}")
+            analysis_result['processing_method'] = "document_ai_failed"
+            analysis_result['_summary_text'] = ""
+        else:
+            summary_text = doc_ai_result.get('data', {}).get('summary', '')
+            logger.info(f"✅ Document AI summary: {len(summary_text)} chars")
+            
+            # Step 2: Perform Targeted OCR
+            ocr_metadata = await SurveyReportAnalyzeService._perform_targeted_ocr(
+                file_content,
+                "single_pdf"
+            )
+            analysis_result['_ocr_info'] = ocr_metadata
+            
+            # Step 3: Merge OCR into summary if available
+            enhanced_summary = summary_text
+            
+            if ocr_metadata.get('ocr_success') and ocr_metadata.get('ocr_text_merged'):
+                # Get OCR text from processor
+                try:
+                    from app.utils.targeted_ocr import get_ocr_processor
+                    ocr_processor = get_ocr_processor()
+                    ocr_result = ocr_processor.extract_from_pdf(file_content, page_num=0)
+                    
+                    if ocr_result.get('ocr_success'):
+                        header_text = ocr_result.get('header_text', '').strip()
+                        footer_text = ocr_result.get('footer_text', '').strip()
+                        
+                        if header_text or footer_text:
+                            ocr_section = "\n\n" + "="*60 + "\n"
+                            ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
+                            ocr_section += "="*60 + "\n\n"
+                            
+                            if header_text:
+                                ocr_section += "=== HEADER TEXT ===\n" + header_text + "\n\n"
+                            if footer_text:
+                                ocr_section += "=== FOOTER TEXT ===\n" + footer_text + "\n\n"
+                            
+                            enhanced_summary = summary_text + ocr_section
+                            logger.info(f"✅ Enhanced summary with OCR: {len(enhanced_summary)} chars")
+                except Exception as ocr_error:
+                    logger.warning(f"⚠️ Failed to merge OCR: {ocr_error}")
+            
+            # Step 4: Extract fields with System AI
+            logger.info("🧠 Extracting fields with System AI...")
+            
+            ai_provider = ai_config_doc.get("provider", "google")
+            ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
+            use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+            
+            extracted_fields = await extract_survey_report_fields_from_summary(
+                enhanced_summary,
+                ai_provider,
+                ai_model,
+                use_emergent_key,
+                filename
+            )
+            
+            if extracted_fields:
+                logger.info("✅ System AI extraction completed")
+                analysis_result.update(extracted_fields)
+                analysis_result['processing_method'] = "full_analysis"
+            else:
+                logger.warning("⚠️ System AI extraction returned no fields")
+                analysis_result['processing_method'] = "document_ai_only"
+            
+            # Try to extract report_form from filename if not found
+            if not analysis_result.get('report_form'):
+                filename_form = extract_report_form_from_filename(filename)
+                if filename_form:
+                    analysis_result['report_form'] = filename_form
+                    logger.info(f"✅ Extracted report_form from filename: '{filename_form}'")
+            
+            analysis_result['_summary_text'] = enhanced_summary
         
         return analysis_result
     
