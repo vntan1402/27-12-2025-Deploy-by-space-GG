@@ -43,4 +43,4 @@ class SurveyReportResponse(BaseModel):
     created_at: datetime
 
 class BulkDeleteSurveyReportRequest(BaseModel):
-    document_ids: List[str]
+    report_ids: List[str]
