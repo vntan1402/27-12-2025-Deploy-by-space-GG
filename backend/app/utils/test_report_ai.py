@@ -237,9 +237,9 @@ async def extract_test_report_fields_from_summary(
         if use_emergent_key and ai_provider in ["google", "emergent"]:
             try:
                 from emergentintegrations.llm.chat import LlmChat, UserMessage
-                from app.utils.emergent_key import get_emergent_llm_key
+                import os
                 
-                emergent_key = get_emergent_llm_key()
+                emergent_key = os.getenv("EMERGENT_LLM_KEY")
                 chat = LlmChat(
                     api_key=emergent_key,
                     session_id=f"test_report_extraction_{int(time.time())}",
