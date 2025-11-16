@@ -1,6 +1,6 @@
 import logging
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Form, Body
 
 from app.models.survey_report import SurveyReportCreate, SurveyReportUpdate, SurveyReportResponse, BulkDeleteSurveyReportRequest
 from app.models.user import UserResponse, UserRole
