@@ -114,6 +114,7 @@ export const CertificateActionButtons = ({
             : (language === 'vi' ? 'Refresh' : 'Refresh')
           }
         </button>
+      </div>
     </div>
   );
 };
