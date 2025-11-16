@@ -1,32 +1,32 @@
 <analysis>
-The trajectory chronicles an extensive and iterative development process, primarily focused on migrating a monolithic Python backend () to a new Clean Architecture implementation. The work began with a user request to implement asynchronous Google Drive file deletion. This involved setting up FastAPI , using  for retries, and  for a scheduled cleanup job.
+The trajectory details an extensive, reactive development process focused on migrating a legacy Python backend () to a new Clean Architecture . The work was primarily driven by user-reported issues and a compare and replicate methodology.
 
-Upon completing this, a series of critical 404 errors surfaced, revealing that the new backend was missing a significant number of API routes present in the monolith. The task then pivoted to a large-scale, reactive migration effort. The engineer, guided by user-reported errors and console logs, progressively identified and ported missing routes for AI configuration, system settings, and Google Drive management.
+The process began with fixing a UI date formatting bug in the React frontend. This was followed by a more complex issue: an error during ship deletion. The engineer refactored the frontend to use a single, unified backend endpoint with a boolean flag for GDrive folder deletion, applying this fix across seven different pages.
 
-A substantial portion of the work was dedicated to debugging a complex AI-powered PDF analysis feature for auto-filling ship data. This involved an in-depth compare and replicate workflow with , leading to major overhauls of the AI prompt, fixing data validation logic, correcting LLM model name errors, and implementing fallback mechanisms. The final major feature implemented was the dynamic creation and deletion of Google Drive folder structures for ship records, again by migrating logic from . The conversation is conducted in Vietnamese. The next agent must respond in Vietnamese.
+A major phase involved migrating the complex multi-certificate upload feature (), which was causing 405 errors. This was a significant undertaking, involving creating a new service, debugging  errors, fixing Pydantic date validation issues, improving AI prompts, and correcting module import paths.
+
+Subsequently, the user reported errors with Next Survey and Upcoming Survey features, which were traced to missing backend endpoints. The engineer migrated several complex business logic functions from  for calculating survey dates, docking dates, and special survey cycles, consolidating them into . The final task was debugging a  error for the  endpoint, which was resolved by correcting the route order in FastAPI. The conversation is in Vietnamese; the next agent must respond in Vietnamese.
 </analysis>
-
 <product_requirements>
-The primary objective is to complete a full-featured migration of a legacy monolithic FastAPI backend () to a new, modular Clean Architecture backend (), ensuring 100% feature and bug parity with the existing React frontend.
+The primary objective is to migrate a legacy monolithic FastAPI application () to a new, modular Clean Architecture backend (), ensuring full feature parity and resolving bugs reported by the user on the existing React frontend.
 
-**Completed Features:**
-1.  **Asynchronous Deletion:** Implemented a system-wide asynchronous process for deleting Google Drive files when their corresponding database records are deleted. This includes a retry mechanism for failed API calls and a daily scheduled job to clean up any orphaned files left on Google Drive.
-2.  **API Route Migration:** Ported numerous critical API endpoints from  to the new  to resolve widespread 404 errors on the frontend. This included routes for system settings, AI configuration, and extensive Google Drive folder management.
-3.  **AI-Powered PDF Analysis:** Replicated and debugged a complex feature where users can upload a ship certificate PDF, and an AI model analyzes it to auto-fill a form. This involved extensive prompt engineering to match 's extraction capabilities, fixing data validation logic, and adding robust error handling and fallbacks.
-4.  **Dynamic GDrive Folder Management:** Implemented the logic to automatically create a dynamic, multi-level folder structure in Google Drive upon the creation of a new Ship record and to delete this structure when the ship is deleted.
+**Key Features & Fixes Implemented:**
+1.  **UI Date Formatting:** Fixed an issue in the  where  dates were being incorrectly reformatted. The dates are now displayed exactly as they are stored in the database.
+2.  **Unified Ship Deletion:** Refactored a fragmented ship deletion process. Previously, frontend logic made separate calls to delete a ship record and its Google Drive folder. This was consolidated into a single backend API call (), and the fix was propagated across 7 frontend pages.
+3.  **Certificate Multi-Upload Migration:** A critical and complex endpoint () was migrated from . This involved replicating logic for AI-powered PDF analysis, data validation, duplicate checking, and GDrive file handling.
+4.  **Survey & Docking Calculation Logic:** Migrated several crucial business logic endpoints and functions from  to calculate , , and  dates based on complex rules, certificate data, and anniversary dates.
 </product_requirements>
-
 <key_technical_concepts>
 - **Backend:** FastAPI, Python, Pydantic, Clean Architecture (Services, Repositories).
-- **Asynchronicity:** FastAPI ,  for scheduled jobs,  for retries.
+- **Frontend:** React.js.
 - **Database:** MongoDB.
-- **Frontend:** React.
-- **Integrations:** Google Drive API, Emergent Integrations for LLM calls (e.g., Google Gemini).
-- **Development Strategy:** Compare and Replicate - analyzing the legacy  to ensure feature parity in the new system.
+- **Development Strategy:** Compare and Replicate - analyzing the legacy  to understand and migrate complex business logic to the new modular structure.
+- **API Routing:** Debugging and fixing FastAPI route ordering conflicts to resolve 404 errors.
+- **Code Consolidation:** Refactoring duplicated logic into a single, authoritative module ().
 </key_technical_concepts>
-
 <code_architecture>
-The project consists of a new  being developed alongside the legacy , which serves as a reference.
+The project architecture involves a new modular backend being built alongside a monolithic legacy backend, which serves as a reference.
+
 .
 ├── 2_CO_DUC_PP.pdf
 ├── 3_2O_THUONG_PP.pdf
@@ -143,6 +143,7 @@ The project consists of a new  being developed alongside the legacy , which serv
 │   │   │       │   ├── sidebar.cpython-311.pyc
 │   │   │       │   ├── supply_documents.cpython-311.pyc
 │   │   │       │   ├── survey_reports.cpython-311.pyc
+│   │   │       │   ├── system.cpython-311.pyc
 │   │   │       │   ├── system_settings.cpython-311.pyc
 │   │   │       │   ├── test_reports.cpython-311.pyc
 │   │   │       │   ├── users.cpython-311.pyc
@@ -165,6 +166,7 @@ The project consists of a new  being developed alongside the legacy , which serv
 │   │   │       ├── sidebar.py
 │   │   │       ├── supply_documents.py
 │   │   │       ├── survey_reports.py
+│   │   │       ├── system.py
 │   │   │       ├── system_settings.py
 │   │   │       ├── test_reports.py
 │   │   │       ├── users.py
@@ -250,6 +252,7 @@ The project consists of a new  being developed alongside the legacy , which serv
 │   │   │   │   ├── approval_document_service.cpython-311.pyc
 │   │   │   │   ├── audit_certificate_service.cpython-311.pyc
 │   │   │   │   ├── audit_report_service.cpython-311.pyc
+│   │   │   │   ├── certificate_multi_upload_service.cpython-311.pyc
 │   │   │   │   ├── certificate_service.cpython-311.pyc
 │   │   │   │   ├── cleanup_service.cpython-311.pyc
 │   │   │   │   ├── company_service.cpython-311.pyc
@@ -261,6 +264,7 @@ The project consists of a new  being developed alongside the legacy , which serv
 │   │   │   │   ├── other_audit_document_service.cpython-311.pyc
 │   │   │   │   ├── other_doc_service.cpython-311.pyc
 │   │   │   │   ├── ship_service.cpython-311.pyc
+│   │   │   │   ├── survey_calculation_service.cpython-311.pyc
 │   │   │   │   ├── survey_report_service.cpython-311.pyc
 │   │   │   │   ├── test_report_service.cpython-311.pyc
 │   │   │   │   └── user_service.cpython-311.pyc
@@ -268,6 +272,7 @@ The project consists of a new  being developed alongside the legacy , which serv
 │   │   │   ├── approval_document_service.py
 │   │   │   ├── audit_certificate_service.py
 │   │   │   ├── audit_report_service.py
+│   │   │   ├── certificate_multi_upload_service.py
 │   │   │   ├── certificate_service.py
 │   │   │   ├── cleanup_service.py
 │   │   │   ├── company_service.py
@@ -291,6 +296,7 @@ The project consists of a new  being developed alongside the legacy , which serv
 │   │       │   ├── certificate_abbreviation.cpython-311.pyc
 │   │       │   ├── document_name_normalization.cpython-311.pyc
 │   │       │   ├── gdrive_folder_helper.cpython-311.pyc
+│   │       │   ├── gdrive_helper.cpython-311.pyc
 │   │       │   ├── issued_by_abbreviation.cpython-311.pyc
 │   │       │   ├── pdf_processor.cpython-311.pyc
 │   │       │   └── ship_calculations.cpython-311.pyc
@@ -300,10 +306,12 @@ The project consists of a new  being developed alongside the legacy , which serv
 │   │       ├── document_factory.py
 │   │       ├── document_name_normalization.py
 │   │       ├── gdrive_folder_helper.py
+│   │       ├── gdrive_helper.py
 │   │       ├── issued_by_abbreviation.py
 │   │       ├── pdf_processor.py
 │   │       └── ship_calculations.py
 │   ├── create_document_routes.py
+│   ├── data
 │   ├── migrations
 │   ├── requirements.txt
 │   ├── scripts
@@ -50290,44 +50298,37 @@ The project consists of a new  being developed alongside the legacy , which serv
 ├── verify_fix.sh
 └── yarn.lock
 
-4658 directories, 45604 files
+4659 directories, 45611 files
 
-- ** & **
-  - **Importance:** These files contain the core logic for the AI-powered PDF analysis.
-  - **Changes:** The prompt in  was completely rewritten to include over 20 fields, an example JSON output, and specific date formatting rules to match . The validation logic was also updated to include all new fields.  was modified to handle different AI providers (emergent) and to implement a fallback mechanism when AI analysis fails.
+**File Highlights:**
 
-- ** & **
-  - **Importance:** Manage the creation and deletion of Ship records.
-  - **Changes:** The  endpoint was updated to add a background task that creates a dynamic folder structure on Google Drive. The  endpoint was updated to accept a boolean parameter and trigger the deletion of the corresponding Google Drive folder.
+-   ****
+    -   **Importance:** Handles all certificate-related API routes.
+    -   **Summary of Changes:** The most critical change was fixing a FastAPI routing conflict by moving the  route definition before the dynamic  route. This resolved a persistent 404 error. The  endpoint was also added to enable the certificate upload feature.
 
-- **, **
-  - **Importance:** These new files implement the dynamic Google Drive folder creation.
-  - **Changes:**  exposes an endpoint () that returns the dynamic folder structure.  contains the function that calls the Google Apps Script, passing it the necessary info to query the new sidebar endpoint and create the correct folders.
+-   ****
+    -   **Importance:** Centralizes all complex business logic for ship survey and docking date calculations.
+    -   **Summary of Changes:** This file became the single source of truth for maritime calculations. Logic from the legacy  and a temporary  was consolidated here. This includes functions to calculate the Special Survey cycle, next docking date, and upcoming surveys, ensuring logic is not duplicated.
 
-- ** & **
-    - **Importance:** Contain business logic for certificate management.
-    - **Changes:** The  and  methods were refactored to use  for deleting associated Google Drive files asynchronously, removing the previous synchronous implementation.
+-   ** (7 files)**
+    -   **Importance:** These pages contain the UI and logic for managing different aspects of a ship's data.
+    -   **Summary of Changes:** The  function was refactored across all seven files (, , etc.) to use a new, unified call to , passing a boolean to control the deletion of the associated Google Drive folder. This fixed a bug and streamlined the deletion process.
 
-- ****
-  - **Importance:** The frontend component responsible for the Add Ship functionality, including the PDF analysis feature.
-  - **Changes:** This file was analyzed multiple times. A date formatting function  was updated to handle more string formats (e.g., 14 September 2010). Additional logging was added to debug why auto-filled data was not appearing. Missing fields were added to the  object.
+-   ****
+    -   **Importance:** This legacy monolithic file was the primary reference for the entire migration effort.
+    -   **Summary of Changes:** This file was read-only. It was extensively analyzed to understand the original implementation of certificate uploads, AI analysis, survey calculations, and other business rules before they were ported to the new backend.
 </code_architecture>
-
 <pending_tasks>
-- **Complete Full Route Migration:** The new backend is still missing a large number of the 179 routes present in . A full migration is required for complete feature parity.
-- **Resolve GDrive Config Issue:** During testing, background tasks failed due to a No Google Drive configuration found error. While ignored for the task, this indicates a potential environmental or configuration setup issue that needs to be addressed for the feature to work in all contexts.
+- **Complete Full Route Migration:** The new backend is still missing many of the original 179 routes from . A full migration is necessary to achieve 100% feature parity and prevent future 404 errors.
+- **Address GDrive Config Issue:** An earlier No Google Drive configuration found error was noted. This needs investigation to ensure asynchronous background tasks for GDrive operations are robust.
 </pending_tasks>
-
 <current_work>
-The most recent task is a direct request from the user to fix a UI display issue. The user reported that the  and  date fields in the Add Ship modal are being automatically reformatted, and they want the dates to be displayed exactly as they are stored in the database.
+The most recent task was to diagnose and fix a 404 Not Found error for the  endpoint, which the user reported as Error checking upcoming surveys. The  endpoint was working, but the  endpoint was failing despite being present in the code.
 
-The previous engineer identified that the  component contains date formatting logic, specifically in functions like  and . An earlier fix attempted to make  more robust to handle different date string formats from the AI, but this new request implies that for these specific fields, no formatting should be applied at all. The work stopped just before modifying the frontend code to address this new requirement.
+The previous engineer correctly deduced that the issue was not a missing endpoint but a **routing order conflict** within FastAPI. In the file , the specific route  was defined *after* the dynamic, general-purpose route . Because FastAPI evaluates routes sequentially, it was incorrectly interpreting upcoming-surveys as a value for , leading to a Certificate not found message internally and a 404 error to the client.
+
+The fix involved editing  to move the  route definition *before* the  route, ensuring the specific route is matched first. The backend was about to be reloaded to apply this fix.
 </current_work>
-
 <optional_next_step>
-Modify the  component to prevent the reformatting of  and  date fields, ensuring they display the raw string value received from the backend API.
+Perfect! The routing has been corrected. The backend will now auto-reload. Please refresh the frontend and verify if the Upcoming Surveys feature now works correctly.
 </optional_next_step>
-
-<direct_quotes>
-**User's Request:** Last Docking 1 và Last Docking 2 hãy hiển thị đúng định dạng ngày tháng lưu trong DB, không tự đổi fomat (Translation: For Last Docking 1 and Last Docking 2, please display the correct date format as saved in the DB, do not automatically change the format.)
-</direct_quotes>
