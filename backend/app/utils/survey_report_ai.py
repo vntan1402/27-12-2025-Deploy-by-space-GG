@@ -49,12 +49,31 @@ async def extract_survey_report_fields_from_summary(
                 logger.error("EMERGENT_LLM_KEY not configured")
                 return {}
             
-            # Use LlmChat with google provider
+            # Use LlmChat with correct initialization pattern
             chat = LlmChat(
                 api_key=emergent_key,
-                provider="google",
-                model=ai_model or "gemini-2.0-flash-exp"
+                session_id="survey_report_analysis",
+                system_message="You are an AI assistant specialized in maritime survey report information extraction."
             )
+            
+            # Set provider and model correctly
+            actual_model = ai_model or "gemini-2.0-flash-exp"
+            
+            # Check if model is Gemini (regardless of provider value)
+            if "gemini" in actual_model.lower() or ai_provider.lower() in ["google", "gemini", "emergent"]:
+                # For Gemini models with Emergent key
+                chat = chat.with_model("gemini", actual_model)
+                logger.info(f"🔄 Using Gemini model: {actual_model} (provider: {ai_provider})")
+            elif ai_provider.lower() == "openai" or "gpt" in actual_model.lower():
+                chat = chat.with_model("openai", actual_model)
+                logger.info(f"🔄 Using OpenAI model: {actual_model}")
+            elif ai_provider.lower() == "anthropic" or "claude" in actual_model.lower():
+                chat = chat.with_model("anthropic", actual_model)
+                logger.info(f"🔄 Using Anthropic model: {actual_model}")
+            else:
+                # Default: try Gemini
+                chat = chat.with_model("gemini", actual_model)
+                logger.warning(f"⚠️ Unknown provider: {ai_provider}, defaulting to Gemini with model: {actual_model}")
             
             response = await chat.send_message_async(
                 messages=[UserMessage(content=prompt)],
