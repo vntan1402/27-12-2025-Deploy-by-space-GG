@@ -102,6 +102,13 @@ class CertificateService:
             cert_dict["issued_by_abbreviation"] = generate_organization_abbreviation(cert_dict.get("issued_by"))
             logger.info(f"✅ Generated issued_by abbreviation: '{cert_dict['issued_by']}' → '{cert_dict['issued_by_abbreviation']}'")
         
+        # BUSINESS RULE: Interim certificates don't have next survey
+        if cert_dict.get("cert_type") == "Interim":
+            cert_dict["next_survey"] = None
+            cert_dict["next_survey_display"] = "N/A"
+            cert_dict["next_survey_type"] = "N/A"
+            logger.info("✅ Set next_survey to N/A for Interim certificate")
+        
         await CertificateRepository.create(cert_dict)
         
         logger.info(f"✅ Certificate created: {cert_dict['cert_name']}")
