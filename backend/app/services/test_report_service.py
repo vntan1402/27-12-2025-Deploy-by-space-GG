@@ -116,6 +116,29 @@ class TestReportService:
             except Exception as e:
                 logger.warning(f"⚠️ Could not normalize issued_by: {e}")
         
+        # Calculate valid_date if not provided but test_report_name and issued_date are available
+        if (not report_dict.get("valid_date") and 
+            report_dict.get("test_report_name") and 
+            report_dict.get("issued_date") and 
+            report_dict.get("ship_id")):
+            
+            try:
+                from app.utils.test_report_valid_date_calculator import calculate_valid_date
+                
+                calculated_valid_date = await calculate_valid_date(
+                    test_report_name=report_dict["test_report_name"],
+                    issued_date=report_dict["issued_date"],
+                    ship_id=report_dict["ship_id"],
+                    mongo_db=mongo_db
+                )
+                
+                if calculated_valid_date:
+                    report_dict["valid_date"] = f"{calculated_valid_date}T00:00:00.000Z"
+                    logger.info(f"✅ Auto-calculated Valid Date: {calculated_valid_date}")
+                    
+            except Exception as e:
+                logger.warning(f"⚠️ Could not auto-calculate valid_date: {e}")
+        
         await mongo_db.create(TestReportService.collection_name, report_dict)
         
         # Map notes → note for frontend response (frontend expects 'note' field)
