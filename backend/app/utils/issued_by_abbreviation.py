@@ -118,6 +118,7 @@ def generate_organization_abbreviation(org_name: str) -> str:
         "Panama Maritime Documentation Services" → "PMDS"
         "DNV" → "DNV" (already abbreviated)
         "American Bureau of Shipping" → "ABS"
+        "NK" → "NK" (already abbreviated, 2 letters)
     """
     if not org_name:
         return ""
@@ -125,9 +126,17 @@ def generate_organization_abbreviation(org_name: str) -> str:
     # Clean and normalize
     org_name_stripped = org_name.strip()
     org_name_upper = org_name_stripped.upper()
+    org_name_lower = org_name_stripped.lower()
     
-    # Check if value is already an abbreviation (3-5 uppercase letters)
-    if re.match(r'^[A-Z]{3,5}$', org_name_stripped):
+    # PRIORITY 1: Check if already in mapping (handles "nk" → "NK", "dnv" → "DNV", etc.)
+    if org_name_lower in COMPANY_ABBREVIATIONS:
+        abbreviation = COMPANY_ABBREVIATIONS[org_name_lower]
+        logger.debug(f"✅ Found in mapping: '{org_name_stripped}' → '{abbreviation}'")
+        return abbreviation
+    
+    # PRIORITY 2: Check if value is already an abbreviation (2-8 uppercase letters)
+    # This handles user input like "NK", "DNV", "ABS", "PMDS" that aren't in lowercase mapping
+    if re.match(r'^[A-Z]{2,8}$', org_name_stripped):
         logger.debug(f"✅ Detected manual abbreviation: '{org_name_stripped}'")
         return org_name_stripped
     
