@@ -1,0 +1,382 @@
+"""
+Survey Report Analysis Service
+Handles AI-powered analysis of survey report PDFs
+"""
+import logging
+import base64
+import traceback
+from typing import Dict, Any, Optional
+from fastapi import HTTPException, UploadFile
+
+from app.db.mongodb import mongo_db
+from app.models.user import UserResponse
+from app.utils.pdf_splitter import PDFSplitter
+from app.utils.survey_report_ai import extract_survey_report_fields_from_summary, extract_report_form_from_filename
+
+logger = logging.getLogger(__name__)
+
+
+class SurveyReportAnalyzeService:
+    """Service for analyzing survey report files"""
+    
+    @staticmethod
+    async def analyze_file(
+        file: UploadFile,
+        ship_id: str,
+        bypass_validation: bool,
+        current_user: UserResponse
+    ) -> Dict[str, Any]:
+        """
+        Analyze survey report file using Google Document AI
+        
+        Process:
+        1. Validate PDF file
+        2. Check if PDF needs splitting (>15 pages)
+        3. Process with Document AI
+        4. Perform Targeted OCR on first page
+        5. Extract fields with System AI
+        6. Validate ship name/IMO
+        7. Return analysis data + file content (base64) for later upload
+        
+        Args:
+            file: PDF file uploaded
+            ship_id: Ship ID to validate against
+            bypass_validation: Skip ship validation if True
+            current_user: Current authenticated user
+        
+        Returns:
+            Dict with success status and analysis data
+        """
+        try:
+            logger.info(f"📋 Starting survey report analysis for ship_id: {ship_id}")
+            
+            # Read file content
+            file_content = await file.read()
+            filename = file.filename
+            
+            # Validate file input
+            if not filename:
+                raise HTTPException(status_code=400, detail="No filename provided")
+            
+            if not file_content or len(file_content) == 0:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Empty file provided. Please upload a valid PDF file."
+                )
+            
+            # Validate file type
+            if not filename.lower().endswith('.pdf'):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid file type. Only PDF files are supported."
+                )
+            
+            # Check PDF magic bytes
+            if not file_content.startswith(b'%PDF'):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Invalid PDF file format."
+                )
+            
+            logger.info(f"📄 Processing survey report file: {filename} ({len(file_content)} bytes)")
+            
+            # Check if PDF needs splitting
+            splitter = PDFSplitter(max_pages_per_chunk=12)
+            
+            try:
+                total_pages = splitter.get_page_count(file_content)
+                needs_split = splitter.needs_splitting(file_content)
+                logger.info(f"📊 PDF Analysis: {total_pages} pages, Split needed: {needs_split}")
+            except ValueError as e:
+                logger.error(f"❌ Invalid PDF file: {e}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid or corrupted PDF file: {str(e)}"
+                )
+            except Exception as e:
+                logger.warning(f"⚠️ Could not detect page count: {e}")
+                total_pages = 0
+                needs_split = False
+            
+            # Get ship information
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            
+            if not ship and not bypass_validation:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            ship_imo = ship.get("imo", "") if ship else ""
+            
+            # Get AI configuration
+            ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+            if not ai_config_doc:
+                raise HTTPException(
+                    status_code=404,
+                    detail="AI configuration not found. Please configure AI in System Settings."
+                )
+            
+            document_ai_config = ai_config_doc.get("document_ai", {})
+            
+            if not document_ai_config.get("enabled", False):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Google Document AI is not enabled in System Settings"
+                )
+            
+            # Validate Document AI config
+            if not all([
+                document_ai_config.get("project_id"),
+                document_ai_config.get("processor_id")
+            ]):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Incomplete Google Document AI configuration."
+                )
+            
+            logger.info("🤖 Analyzing survey report with AI...")
+            
+            # Initialize analysis result
+            analysis_result = {
+                "survey_report_name": "",
+                "report_form": "",
+                "survey_report_no": "",
+                "issued_by": "",
+                "issued_date": "",
+                "ship_name": "",
+                "ship_imo": "",
+                "surveyor_name": "",
+                "note": "",
+                "status": "Valid",
+                "confidence_score": 0.0,
+                "processing_method": "clean_analysis"
+            }
+            
+            # Store file content for later upload
+            analysis_result['_file_content'] = base64.b64encode(file_content).decode('utf-8')
+            analysis_result['_filename'] = filename
+            analysis_result['_content_type'] = file.content_type or 'application/octet-stream'
+            analysis_result['_ship_name'] = ship_name
+            analysis_result['_summary_text'] = ''
+            
+            try:
+                # Process PDF based on size
+                if not needs_split:
+                    # Small PDF - process entire document
+                    logger.info(f"🔄 Processing single PDF: {filename}")
+                    analysis_result = await SurveyReportAnalyzeService._process_single_pdf(
+                        file_content,
+                        filename,
+                        file.content_type or 'application/octet-stream',
+                        document_ai_config,
+                        ai_config_doc,
+                        analysis_result,
+                        total_pages
+                    )
+                else:
+                    # Large PDF - split and process chunks
+                    logger.info(f"🔪 Splitting PDF ({total_pages} pages) into chunks...")
+                    analysis_result = await SurveyReportAnalyzeService._process_large_pdf(
+                        file_content,
+                        filename,
+                        splitter,
+                        document_ai_config,
+                        ai_config_doc,
+                        analysis_result,
+                        total_pages
+                    )
+                
+                # Validate ship name/IMO if not bypassed
+                if not bypass_validation:
+                    extracted_ship_name = analysis_result.get('ship_name', '').strip()
+                    extracted_ship_imo = analysis_result.get('ship_imo', '').strip()
+                    
+                    # Simple validation - check if ship name contains expected name or IMO matches
+                    ship_name_match = False
+                    ship_imo_match = False
+                    
+                    if extracted_ship_name and ship_name:
+                        # Simple contains check (case-insensitive)
+                        ship_name_match = (
+                            ship_name.lower() in extracted_ship_name.lower() or
+                            extracted_ship_name.lower() in ship_name.lower()
+                        )
+                    
+                    if extracted_ship_imo and ship_imo:
+                        ship_imo_match = extracted_ship_imo == ship_imo
+                    
+                    # If neither matches, return validation error
+                    if not ship_name_match and not ship_imo_match and extracted_ship_name:
+                        logger.warning(
+                            f"⚠️ Ship validation mismatch: "
+                            f"Expected '{ship_name}' (IMO: {ship_imo}), "
+                            f"Found '{extracted_ship_name}' (IMO: {extracted_ship_imo})"
+                        )
+                        
+                        return {
+                            "success": False,
+                            "validation_error": True,
+                            "extracted_ship_name": extracted_ship_name,
+                            "extracted_ship_imo": extracted_ship_imo,
+                            "expected_ship_name": ship_name,
+                            "expected_ship_imo": ship_imo,
+                            "message": "Ship name or IMO mismatch. Please confirm or select correct ship."
+                        }
+                
+                # Success - return analysis
+                logger.info("✅ Survey report analysis completed successfully")
+                return {
+                    "success": True,
+                    "analysis": analysis_result
+                }
+                
+            except Exception as e:
+                logger.error(f"❌ Error during AI analysis: {e}")
+                logger.error(f"Traceback: {traceback.format_exc()}")
+                
+                # Return partial result with file content (allows manual entry)
+                return {
+                    "success": False,
+                    "message": "AI analysis failed. Please enter details manually.",
+                    "analysis": {
+                        "_file_content": analysis_result.get('_file_content'),
+                        "_filename": filename,
+                        "_content_type": file.content_type or 'application/octet-stream',
+                        "_ship_name": ship_name,
+                        "_summary_text": ""
+                    }
+                }
+        
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Failed to analyze survey report: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to analyze survey report: {str(e)}"
+            )
+    
+    @staticmethod
+    async def _process_single_pdf(
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        document_ai_config: Dict,
+        ai_config_doc: Dict,
+        analysis_result: Dict,
+        total_pages: int
+    ) -> Dict[str, Any]:
+        """Process a single PDF (≤15 pages)"""
+        
+        # TODO: Implement Document AI call
+        # For now, return basic structure with OCR attempt
+        
+        analysis_result['_split_info'] = {
+            'was_split': False,
+            'total_pages': total_pages,
+            'chunks_count': 1
+        }
+        
+        # Try Targeted OCR
+        ocr_metadata = await SurveyReportAnalyzeService._perform_targeted_ocr(
+            file_content,
+            "single_pdf"
+        )
+        
+        analysis_result['_ocr_info'] = ocr_metadata
+        
+        # Try to extract report_form from filename
+        filename_form = extract_report_form_from_filename(filename)
+        if filename_form:
+            analysis_result['report_form'] = filename_form
+            logger.info(f"✅ Extracted report_form from filename: '{filename_form}'")
+        
+        # For now, return with placeholder summary
+        # In full implementation, this would call Document AI
+        analysis_result['_summary_text'] = "Analysis placeholder - Document AI integration needed"
+        analysis_result['processing_method'] = "partial_implementation"
+        
+        return analysis_result
+    
+    @staticmethod
+    async def _process_large_pdf(
+        file_content: bytes,
+        filename: str,
+        splitter: PDFSplitter,
+        document_ai_config: Dict,
+        ai_config_doc: Dict,
+        analysis_result: Dict,
+        total_pages: int
+    ) -> Dict[str, Any]:
+        """Process a large PDF (>15 pages) by splitting into chunks"""
+        
+        chunks = splitter.split_pdf(file_content, filename)
+        logger.info(f"📦 Created {len(chunks)} chunks")
+        
+        analysis_result['_split_info'] = {
+            'was_split': True,
+            'total_pages': total_pages,
+            'chunks_count': len(chunks)
+        }
+        
+        # Try Targeted OCR on first chunk
+        if chunks:
+            ocr_metadata = await SurveyReportAnalyzeService._perform_targeted_ocr(
+                chunks[0]['content'],
+                "first_chunk"
+            )
+            analysis_result['_ocr_info'] = ocr_metadata
+        
+        # For now, return with placeholder
+        # In full implementation, this would process all chunks
+        analysis_result['_summary_text'] = f"Large PDF placeholder - {len(chunks)} chunks"
+        analysis_result['processing_method'] = "partial_implementation"
+        
+        return analysis_result
+    
+    @staticmethod
+    async def _perform_targeted_ocr(pdf_content: bytes, source: str) -> Dict[str, Any]:
+        """Perform Targeted OCR to extract header/footer text"""
+        
+        ocr_metadata = {
+            'ocr_attempted': False,
+            'ocr_success': False,
+            'ocr_text_merged': False,
+            'header_text_length': 0,
+            'footer_text_length': 0,
+            'note': f'OCR attempted on {source}'
+        }
+        
+        try:
+            from app.utils.targeted_ocr import get_ocr_processor
+            
+            ocr_processor = get_ocr_processor()
+            ocr_metadata['ocr_attempted'] = True
+            
+            if ocr_processor.is_available():
+                logger.info(f"✅ OCR processor available - extracting from {source}...")
+                
+                # Extract from first page (page 0)
+                ocr_result = ocr_processor.extract_from_pdf(pdf_content, page_num=0)
+                
+                if ocr_result.get('ocr_success'):
+                    logger.info("✅ Targeted OCR completed successfully")
+                    
+                    header_text = ocr_result.get('header_text', '').strip()
+                    footer_text = ocr_result.get('footer_text', '').strip()
+                    
+                    ocr_metadata['ocr_success'] = True
+                    ocr_metadata['header_text_length'] = len(header_text)
+                    ocr_metadata['footer_text_length'] = len(footer_text)
+                    
+                    if header_text or footer_text:
+                        ocr_metadata['ocr_text_merged'] = True
+                else:
+                    logger.warning("⚠️ OCR extraction returned no results")
+            else:
+                logger.warning("⚠️ OCR processor not available (Tesseract not installed)")
+        except Exception as ocr_error:
+            logger.error(f"❌ Error during OCR extraction: {ocr_error}")
+            ocr_metadata['ocr_error'] = str(ocr_error)
+        
+        return ocr_metadata
