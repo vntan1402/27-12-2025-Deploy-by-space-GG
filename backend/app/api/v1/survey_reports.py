@@ -130,10 +130,10 @@ async def analyze_survey_report_file(
 @router.post("/{report_id}/upload-files")
 async def upload_survey_report_files(
     report_id: str,
-    file_content: str,
-    filename: str,
-    content_type: str,
-    summary_text: str,
+    file_content: str = Body(...),
+    filename: str = Body(...),
+    content_type: str = Body(...),
+    summary_text: str = Body(...),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
