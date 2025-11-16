@@ -144,6 +144,18 @@ class CertificateService:
             update_data["next_survey_display"] = None
             logger.info(f"🔄 Cleared next_survey_display (next_survey was cleared)")
         
+        # CRITICAL FIX: Auto-set has_notes flag when notes field is updated
+        # This ensures the "*" indicator appears in the table when notes are saved
+        if "notes" in update_data:
+            if update_data["notes"] and update_data["notes"].strip():
+                # Notes has content - set flag to True
+                update_data["has_notes"] = True
+                logger.info(f"✅ Set has_notes = True (notes provided)")
+            else:
+                # Notes is empty or None - set flag to False
+                update_data["has_notes"] = False
+                logger.info(f"✅ Set has_notes = False (notes cleared)")
+        
         # Normalize issued_by to abbreviation if it's being updated
         if update_data.get("issued_by"):
             from app.utils.issued_by_abbreviation import normalize_issued_by
