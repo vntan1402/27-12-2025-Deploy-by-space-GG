@@ -58,45 +58,91 @@ async def calculate_anniversary_date_from_certificates(ship_id: str) -> Optional
 async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Optional[SpecialSurveyCycle]:
     """
     Calculate Special Survey cycle from Full Term Class certificates
-    Follows IMO 5-year cycle standards
+    Following IMO/Classification Society standards (SOLAS, MARPOL, HSSC)
+    
+    UPDATED LOGIC (Backend-V1 compliant):
+    - Filter Full Term certificates only
+    - Filter Class certificates using comprehensive keywords
+    - To Date = Latest valid_date (current cycle endpoint)
+    - From Date = To Date - 5 years (IMO 5-year standard)
     """
     try:
         certificates = await CertificateRepository.find_all(ship_id=ship_id)
         
-        # Filter Full Term Class certificates
-        class_certs = [
-            cert for cert in certificates
-            if cert.get('cert_type') == 'Full Term' 
-            and 'CLASS' in cert.get('cert_name', '').upper()
-            and cert.get('issue_date') and cert.get('valid_date')
+        # Filter Full Term Class certificates (comprehensive keywords from backend-v1)
+        class_keywords = [
+            'class', 'classification', 'safety construction', 'safety equipment',
+            'safety radio', 'cargo ship safety', 'passenger ship safety'
         ]
         
-        if not class_certs:
+        full_term_class_certs = []
+        for cert in certificates:
+            cert_type = (cert.get('cert_type') or '').strip()
+            cert_name = (cert.get('cert_name') or '').lower()
+            
+            # Only Full Term certificates
+            if cert_type != 'Full Term':
+                continue
+            
+            # Check if it's a Class certificate
+            is_class_cert = any(keyword in cert_name for keyword in class_keywords)
+            
+            if is_class_cert and cert.get('valid_date'):
+                full_term_class_certs.append(cert)
+        
+        if not full_term_class_certs:
             logger.info(f"No Full Term Class certificates found for ship {ship_id}")
             return None
         
-        # Get the latest certificate
-        class_certs.sort(key=lambda x: x.get('valid_date'), reverse=True)
-        source_cert = class_certs[0]
+        # Find certificate with latest valid_date (current cycle endpoint)
+        latest_cert = None
+        latest_date = None
         
-        # Parse dates
-        issue_date = source_cert.get('issue_date')
-        valid_date = source_cert.get('valid_date')
+        for cert in full_term_class_certs:
+            valid_date_str = cert.get('valid_date')
+            if valid_date_str:
+                if isinstance(valid_date_str, str):
+                    valid_date = datetime.fromisoformat(valid_date_str.replace('Z', '+00:00'))
+                else:
+                    valid_date = valid_date_str
+                
+                if latest_date is None or valid_date > latest_date:
+                    latest_date = valid_date
+                    latest_cert = cert
         
-        if isinstance(issue_date, str):
-            issue_date = datetime.fromisoformat(issue_date.replace('Z', '+00:00'))
-        if isinstance(valid_date, str):
-            valid_date = datetime.fromisoformat(valid_date.replace('Z', '+00:00'))
+        if not latest_cert or not latest_date:
+            logger.info(f"No valid certificate dates found for Special Survey cycle")
+            return None
         
-        # Special Survey cycle is typically 5 years
-        cycle = eSpecialSurveyCycl(
-            from_date=issue_date,
-            to_date=valid_date,
-            intermediate_required=True,
-            cycle_type=source_cert.get('cert_name', 'Class Certificate')
+        # Calculate Special Survey Cycle: IMO 5-year standard
+        to_date = latest_date  # End of current 5-year cycle
+        
+        # From Date: same day/month, 5 years earlier (BACKEND-V1 LOGIC)
+        try:
+            from_date = to_date.replace(year=to_date.year - 5)
+        except ValueError:
+            # Handle leap year edge case (Feb 29th)
+            from_date = to_date.replace(year=to_date.year - 5, month=2, day=28)
+        
+        # Determine cycle type
+        cert_name = latest_cert.get('cert_name', 'Class Certificate')
+        cycle_type = "Class Survey Cycle"
+        
+        if "safety construction" in cert_name.lower():
+            cycle_type = "SOLAS Safety Construction Survey Cycle"
+        elif "safety equipment" in cert_name.lower():
+            cycle_type = "SOLAS Safety Equipment Survey Cycle"
+        elif "safety radio" in cert_name.lower():
+            cycle_type = "SOLAS Safety Radio Survey Cycle"
+        
+        cycle = SpecialSurveyCycle(
+            from_date=from_date,
+            to_date=to_date,
+            intermediate_required=True,  # IMO requirement
+            cycle_type=cycle_type
         )
         
-        logger.info(f"✅ Calculated Special Survey cycle for ship {ship_id}")
+        logger.info(f"✅ Calculated Special Survey cycle for ship {ship_id}: {from_date.strftime('%d/%m/%Y')} - {to_date.strftime('%d/%m/%Y')} from {cert_name}")
         return cycle
         
     except Exception as e:
