@@ -28,6 +28,29 @@ export const CertificateTable = ({
     width: 300,
     content: ''
   });
+  // ========== NOTE TOOLTIP HANDLERS ==========
+  const handleNoteMouseEnter = (e, note) => {
+    if (!note) return;
+    
+    const rect = e.target.getBoundingClientRect();
+    const tooltipWidth = 300;
+    const tooltipHeight = 200;
+    
+    const { x, y } = calculateTooltipPosition(rect, tooltipWidth, tooltipHeight);
+    
+    setNoteTooltip({
+      show: true,
+      x: x,
+      y: y,
+      width: tooltipWidth,
+      content: note
+    });
+  };
+
+  const handleNoteMouseLeave = () => {
+    setNoteTooltip({ show: false, x: 0, y: 0, width: 300, content: '' });
+  };
+
   // Get sort icon for column
   const getSortIcon = (column) => {
     if (sortConfig.column !== column) {
