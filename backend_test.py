@@ -3,6 +3,12 @@
 Backend Testing Script for Survey Report Analysis
 Tests the Survey Report Analysis functionality after poppler and tesseract installation.
 Focus: Testing AI analysis with CG (02-19).pdf file to verify OCR improvements.
+
+Review Request: Final Test - Survey Report Analysis với tất cả fixes
+- Test endpoint after Poppler installed
+- Test endpoint after Tesseract installed  
+- Test 'emergent' provider support added
+- Verify extracted fields - expect MORE fields now
 """
 
 import requests
@@ -16,8 +22,9 @@ from datetime import datetime
 
 # Configuration
 BACKEND_URL = "https://navmaster-1.preview.emergentagent.com/api"
-TEST_USERNAME = "admin1"
+TEST_USERNAME = "admin1@gmail.com"
 TEST_PASSWORD = "123456"
+PDF_URL = "https://customer-assets.emergentagent.com/job_75aa79c8-ba52-4762-a517-d6f75c7d2704/artifacts/ip1fsm86_CG%20%2802-19%29.pdf"
 
 class BackendTester:
     def __init__(self):
