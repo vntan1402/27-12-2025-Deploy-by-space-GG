@@ -479,7 +479,8 @@ class SurveyReportAnalyzeService:
             chunk_results=chunk_results,
             merged_data=temp_merged_data,
             original_filename=filename,
-            total_pages=total_pages
+            total_pages=total_pages,
+            document_type='survey_report'
         )
         
         logger.info(f"📄 Merged summary created: {len(merged_summary)} chars")
