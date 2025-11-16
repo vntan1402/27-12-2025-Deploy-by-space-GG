@@ -359,6 +359,25 @@ class SurveyReportAnalyzeService:
             
             if extracted_fields:
                 logger.info("✅ System AI extraction completed")
+                
+                # Normalize issued_by to standard abbreviation
+                if extracted_fields.get('issued_by'):
+                    try:
+                        from app.utils.issued_by_abbreviation import normalize_issued_by
+                        
+                        original_issued_by = extracted_fields['issued_by']
+                        normalized_issued_by = normalize_issued_by(original_issued_by)
+                        
+                        if normalized_issued_by != original_issued_by:
+                            extracted_fields['issued_by'] = normalized_issued_by
+                            logger.info(f"✅ Normalized Issued By: '{original_issued_by}' → '{normalized_issued_by}'")
+                        else:
+                            logger.info(f"ℹ️ Issued By kept as: '{original_issued_by}'")
+                            
+                    except Exception as norm_error:
+                        logger.error(f"❌ Error normalizing issued_by: {norm_error}")
+                        # Keep original value if normalization fails
+                
                 analysis_result.update(extracted_fields)
                 analysis_result['processing_method'] = "full_analysis"
             else:
