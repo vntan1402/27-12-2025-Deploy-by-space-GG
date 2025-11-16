@@ -124,12 +124,25 @@ class CertificateService:
         logger.info(f"🔍 DEBUG - update_data after exclude_unset: {update_data}")
         logger.info(f"🔍 DEBUG - next_survey in update_data: {update_data.get('next_survey')}")
         
-        # CRITICAL FIX: If next_survey is being updated, clear next_survey_display to force recalculation
-        # next_survey_display contains formatted date with annotation (±3M) calculated by backend logic
-        # When user manually updates next_survey, we must clear the cached display value
-        if "next_survey" in update_data:
+        # CRITICAL FIX: If next_survey is being updated, update next_survey_display to match
+        # next_survey_display is the formatted display value shown in tables (with ±3M annotation)
+        # When user manually updates next_survey, we must sync next_survey_display
+        if "next_survey" in update_data and update_data["next_survey"]:
+            from datetime import datetime
+            # Format: dd/mm/yyyy (±3M) - preserve existing annotation if any, or add default
+            next_survey_date = update_data["next_survey"]
+            if isinstance(next_survey_date, datetime):
+                formatted_date = next_survey_date.strftime("%d/%m/%Y")
+                # Add default annotation (±3M) for Full Term certificates
+                if cert.get("cert_type") == "Full Term":
+                    update_data["next_survey_display"] = f"{formatted_date} (±3M)"
+                else:
+                    update_data["next_survey_display"] = formatted_date
+                logger.info(f"🔄 Updated next_survey_display to: {update_data['next_survey_display']}")
+        elif "next_survey" in update_data and not update_data["next_survey"]:
+            # If next_survey is cleared, also clear next_survey_display
             update_data["next_survey_display"] = None
-            logger.info(f"🔄 Clearing next_survey_display due to next_survey update")
+            logger.info(f"🔄 Cleared next_survey_display (next_survey was cleared)")
         
         # Normalize issued_by to abbreviation if it's being updated
         if update_data.get("issued_by"):
