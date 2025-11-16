@@ -39,7 +39,7 @@ async def extract_survey_report_fields_from_summary(
         prompt = create_survey_report_extraction_prompt(summary_text, filename)
         
         # Call AI based on provider
-        if ai_provider == "google":
+        if ai_provider in ["google", "emergent"]:
             from emergentintegrations import get_text_generation_google
             
             response = await get_text_generation_google(
