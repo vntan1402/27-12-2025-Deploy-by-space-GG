@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class GDriveConfigRepository:
     """Repository for Google Drive Configuration operations"""
     
-    collection_name = "gdrive_config"
+    collection_name = "company_gdrive_config"
     
     @staticmethod
     async def get_by_company(company: str) -> Optional[dict]:
@@ -19,7 +19,7 @@ class GDriveConfigRepository:
         try:
             config = await mongo_db.find_one(
                 GDriveConfigRepository.collection_name,
-                {"company": company}
+                {"company_id": company}
             )
             return config
         except Exception as e:
