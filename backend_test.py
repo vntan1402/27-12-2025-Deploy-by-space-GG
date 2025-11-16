@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Survey Report Analysis - Final Test #2
-Tests the Survey Report Analysis functionality after LlmChat fix.
-Focus: Testing AI analysis with CG (02-19).pdf file to verify System AI extraction.
+Backend Testing Script for Complete Survey Report Flow - Analysis + Upload
 
-Review Request: Final Test #2 - Survey Report Analysis với LlmChat fix
-- Test analyze endpoint: POST /api/survey-reports/analyze-file
-- Use any ship ID with bypass_validation = "true"
-- Check extracted fields: Count how many fields have values
-- Check if we have MORE than 2 fields now (previous test only had 2)
-- Check backend logs for: No import errors, "✅ Survey report fields extracted successfully"
-- Processing method should be "full_analysis" or similar (not "document_ai_only")
+Tests the complete end-to-end Survey Report flow as requested:
+1. Login with admin1@gmail.com / 123456
+2. Download PDF from specified URL
+3. Test Analysis Endpoint (POST /api/survey-reports/analyze-file)
+4. Create Survey Report (POST /api/survey-reports)
+5. Test Upload Endpoint (POST /api/survey-reports/{report_id}/upload-files)
+6. Verify Database Update (GET /api/survey-reports/{report_id})
 
 Success Criteria:
-- NO import errors
-- At least 4-5 fields populated
-- Processing method indicates successful System AI extraction
+- ✅ Analysis returns file content
+- ✅ Report created successfully
+- ✅ Upload returns file IDs (not None)
+- ✅ Database record updated with file IDs
+- ✅ No "File uploaded: None" in logs
 """
 
 import requests
