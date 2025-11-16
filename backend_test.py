@@ -1272,6 +1272,159 @@ class BackendTester:
             self.log_test("Abbreviation Priority", False, f"Exception: {str(e)}")
             return False
 
+    def test_survey_report_analysis_endpoint(self):
+        """Test Survey Report Analysis Endpoint End-to-End with real PDF file"""
+        print("\n📊 Testing Survey Report Analysis Endpoint End-to-End...")
+        
+        try:
+            # Step 1: Download the PDF file from URL
+            pdf_url = "https://customer-assets.emergentagent.com/job_75aa79c8-ba52-4762-a517-d6f75c7d2704/artifacts/ip1fsm86_CG%20%2802-19%29.pdf"
+            
+            print(f"📥 Downloading PDF from: {pdf_url}")
+            
+            import requests
+            pdf_response = requests.get(pdf_url, timeout=30)
+            
+            if pdf_response.status_code == 200:
+                pdf_content = pdf_response.content
+                pdf_size = len(pdf_content)
+                self.log_test("Survey Analysis - PDF Download", True, 
+                             f"Downloaded PDF successfully ({pdf_size:,} bytes)")
+                
+                # Save PDF to temporary file
+                pdf_filename = "CG_02-19.pdf"
+                pdf_path = f"/app/{pdf_filename}"
+                with open(pdf_path, "wb") as f:
+                    f.write(pdf_content)
+                
+                self.log_test("Survey Analysis - PDF Save", True, 
+                             f"Saved PDF to {pdf_path}")
+            else:
+                self.log_test("Survey Analysis - PDF Download", False, 
+                             f"Failed to download PDF: {pdf_response.status_code}")
+                return False
+            
+            # Step 2: Get a ship from database
+            ships_response = self.session.get(f"{BACKEND_URL}/ships")
+            
+            if ships_response.status_code == 200:
+                ships = ships_response.json()
+                if ships and len(ships) > 0:
+                    test_ship = ships[0]
+                    ship_id = test_ship.get("id")
+                    ship_name = test_ship.get("name", "Unknown")
+                    
+                    self.log_test("Survey Analysis - Ship Selection", True, 
+                                 f"Using ship: {ship_name} (ID: {ship_id})")
+                else:
+                    self.log_test("Survey Analysis - Ship Selection", False, "No ships found")
+                    return False
+            else:
+                self.log_test("Survey Analysis - Ship Selection", False, 
+                             f"Failed to get ships: {ships_response.status_code}")
+                return False
+            
+            # Step 3: Test analyze endpoint
+            print(f"🔍 Testing analyze endpoint with ship_id: {ship_id}")
+            
+            with open(pdf_path, "rb") as f:
+                files = {
+                    "survey_report_file": (pdf_filename, f, "application/pdf")
+                }
+                data = {
+                    "ship_id": ship_id,
+                    "bypass_validation": "true"
+                }
+                
+                analyze_response = self.session.post(
+                    f"{BACKEND_URL}/survey-reports/analyze-file",
+                    files=files,
+                    data=data
+                )
+            
+            # Step 4: Verify response
+            if analyze_response.status_code == 200:
+                response_data = analyze_response.json()
+                
+                # Check basic response structure
+                if response_data.get("success"):
+                    self.log_test("Survey Analysis - Endpoint Response", True, 
+                                 "Endpoint returned success=true")
+                    
+                    # Check if analysis object exists
+                    analysis = response_data.get("analysis")
+                    if analysis:
+                        self.log_test("Survey Analysis - Analysis Object", True, 
+                                     "Analysis object exists in response")
+                        
+                        # Check all expected analysis fields
+                        expected_fields = [
+                            "survey_report_name",
+                            "report_form", 
+                            "survey_report_no",
+                            "issued_by",
+                            "issued_date",
+                            "ship_name",
+                            "ship_imo",
+                            "surveyor_name",
+                            "note",
+                            "status"
+                        ]
+                        
+                        populated_fields = []
+                        empty_fields = []
+                        
+                        for field in expected_fields:
+                            field_value = analysis.get(field)
+                            if field_value and str(field_value).strip() and field_value != "null":
+                                populated_fields.append(f"{field}: {field_value}")
+                            else:
+                                empty_fields.append(field)
+                        
+                        # Log populated fields
+                        if populated_fields:
+                            self.log_test("Survey Analysis - Populated Fields", True, 
+                                         f"Found {len(populated_fields)} populated fields")
+                            for field_info in populated_fields:
+                                print(f"   ✅ {field_info}")
+                        
+                        # Log empty fields
+                        if empty_fields:
+                            self.log_test("Survey Analysis - Empty Fields", True, 
+                                         f"Empty fields: {', '.join(empty_fields)}")
+                        
+                        # Check success criteria
+                        if len(populated_fields) >= 3:  # At least some fields populated
+                            self.log_test("Survey Analysis - Success Criteria", True, 
+                                         f"Analysis contains meaningful data ({len(populated_fields)}/10 fields populated)")
+                        else:
+                            self.log_test("Survey Analysis - Success Criteria", False, 
+                                         f"Too few fields populated ({len(populated_fields)}/10)")
+                        
+                        # Log complete analysis object for debugging
+                        print(f"\n📋 Complete Analysis Object:")
+                        for field in expected_fields:
+                            value = analysis.get(field, "null")
+                            print(f"   {field}: {value}")
+                        
+                        return True
+                    else:
+                        self.log_test("Survey Analysis - Analysis Object", False, 
+                                     "Analysis object missing from response")
+                        return False
+                else:
+                    self.log_test("Survey Analysis - Endpoint Response", False, 
+                                 f"Response success=false: {response_data.get('message', 'No message')}")
+                    return False
+            else:
+                self.log_test("Survey Analysis - Endpoint Call", False, 
+                             f"Status: {analyze_response.status_code}, Response: {analyze_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Survey Analysis - Exception", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all tests"""
         print("🧪 Starting Backend Testing for Auto-Rename Certificate File Endpoint")
