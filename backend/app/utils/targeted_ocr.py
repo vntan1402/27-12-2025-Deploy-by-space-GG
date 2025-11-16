@@ -80,28 +80,48 @@ class TargetedOCRProcessor:
         """Check if OCR is available"""
         return TESSERACT_AVAILABLE and PDF2IMAGE_AVAILABLE
     
-    def extract_from_pdf(self, pdf_content: bytes, page_num: int = 0) -> Dict[str, Optional[str]]:
+    def extract_from_pdf(
+        self, 
+        pdf_content: bytes, 
+        page_num: int = 0,
+        report_no_field: str = 'survey_report_no'
+    ) -> Dict[str, Optional[str]]:
         """
-        Extract report_form and survey_report_no from PDF header/footer
+        Extract report_form and report_no from PDF header/footer
+        
+        Generic method supporting multiple document types by using dynamic field names.
         
         Args:
             pdf_content: PDF file content as bytes
             page_num: Page number to process (default: first page)
+            report_no_field: Field name for report number (default: 'survey_report_no')
+                - 'survey_report_no' for Survey Reports
+                - 'test_report_no' for Test Reports
+                - 'audit_report_no' for Audit Reports
         
         Returns:
             Dict with extracted fields and metadata:
             {
                 'report_form': str or None,
-                'survey_report_no': str or None,
+                report_no_field: str or None,  # Dynamic field name
                 'header_text': str,
                 'footer_text': str,
                 'ocr_success': bool,
                 'ocr_error': str or None
             }
+        
+        Example:
+            >>> # Survey Report
+            >>> result = ocr.extract_from_pdf(pdf_bytes, report_no_field='survey_report_no')
+            >>> print(result['survey_report_no'])
+            
+            >>> # Test Report
+            >>> result = ocr.extract_from_pdf(pdf_bytes, report_no_field='test_report_no')
+            >>> print(result['test_report_no'])
         """
         result = {
             'report_form': None,
-            'survey_report_no': None,
+            report_no_field: None,  # Dynamic field name
             'header_text': '',
             'footer_text': '',
             'ocr_success': False,
