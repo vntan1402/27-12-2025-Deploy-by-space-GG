@@ -87,7 +87,7 @@ async def delete_survey_report(
 
 @router.delete("/bulk-delete")
 async def bulk_delete_survey_reports(
-    request: BulkDeleteSurveyReportRequest,
+    request: BulkDeleteSurveyReportRequest = Body(...),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Bulk delete Survey Reports (Editor+ role required)"""
