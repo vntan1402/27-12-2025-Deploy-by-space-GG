@@ -134,7 +134,7 @@ async def delete_ship(
         logger.info(f"🗑️ Deleting ship: {ship_name} (ID: {ship_id}, delete_gdrive: {delete_google_drive_folder})")
         
         # Delete ship from database
-        result = await ShipService.delete_ship(ship_id, current_user)
+        await ShipService.delete_ship(ship_id, current_user)
         
         # Prepare response
         response = {
