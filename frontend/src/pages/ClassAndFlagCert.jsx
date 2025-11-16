@@ -1521,6 +1521,16 @@ const ClassAndFlagCert = () => {
               onRefresh={handleRefreshCertificates}
             />
 
+            {/* Page Description - Below Title */}
+            <div className="mb-4 -mt-2">
+              <p className="text-sm text-gray-600">
+                {language === 'vi' 
+                  ? 'Quản lý các giấy chứng nhận phân cấp / chính quyền cờ' 
+                  : 'Manage classification / flag state certificates'
+                }
+              </p>
+            </div>
+
             {/* Certificate Filters */}
             <CertificateFilters
               filters={certificateFilters}
