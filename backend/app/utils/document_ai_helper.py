@@ -56,17 +56,16 @@ async def analyze_survey_report_with_document_ai(
         # Encode file to base64
         file_base64 = base64.b64encode(file_content).decode('utf-8')
         
-        # Build request payload
+        # Build request payload (matching V1 format)
         payload = {
-            "action": "analyze_document",
+            "action": "analyze_maritime_document_ai",  # Same action as V1
             "file_content": file_base64,
             "filename": filename,
             "content_type": content_type,
-            "document_ai": {
-                "project_id": project_id,
-                "processor_id": processor_id,
-                "location": location
-            }
+            "project_id": project_id,
+            "processor_id": processor_id,
+            "location": location,
+            "document_type": "survey_report"  # Specify document type for Apps Script
         }
         
         # Call Apps Script
