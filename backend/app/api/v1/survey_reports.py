@@ -125,6 +125,32 @@ async def analyze_survey_report_file(
     1. Validate PDF file
     2. Split if >15 pages
     3. Process with Document AI
+    4. Perform Targeted OCR
+    5. Extract fields with System AI
+    6. Validate ship name
+    7. Return analysis + file content for upload
+    """
+    from app.services.survey_report_analyze_service import SurveyReportAnalyzeService
+    
+    try:
+        bypass_bool = bypass_validation.lower() == "true"
+        
+        result = await SurveyReportAnalyzeService.analyze_file(
+            file=survey_report_file,
+            ship_id=ship_id,
+            bypass_validation=bypass_bool,
+            current_user=current_user
+        )
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing survey report file: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to analyze survey report: {str(e)}"
+        )
 
 
 @router.post("/{report_id}/upload-files")
