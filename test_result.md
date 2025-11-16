@@ -33,6 +33,92 @@
 
 ## 🗂️ TESTING RESULTS
 
+### Test Report Migration - Phase 2 Backend Testing
+
+**Status:** ⚠️ PARTIALLY WORKING (Critical Issues Found)
+**Date:** 2025-01-17
+**Testing Agent:** deep_testing_backend_v2
+
+**Test Coverage Completed:**
+- Test Report Analyze Endpoint (POST /api/test-reports/analyze-file) ✅
+- Test Report Upload Files Endpoint (POST /api/test-reports/{report_id}/upload-files) ❌
+- Valid Date Calculator Tests ❌
+- Integration Tests ⚠️
+- Error Handling ✅
+
+**Success Rate:** 72.7% (16/22 tests passed)
+
+**✅ WORKING COMPONENTS:**
+- **Authentication:** admin1/123456 login successful ✅
+- **Test Report Analysis Endpoint:** POST /api/test-reports/analyze-file accessible ✅
+- **PDF Processing:** Document AI processing working (5-page PDF processed) ✅
+- **Ship Selection:** VINASHIP HARMONY ship found and used for testing ✅
+- **File Content Handling:** Base64 encoding/decoding working ✅
+- **Test Report Creation:** POST /api/test-reports endpoint working ✅
+- **Error Handling:** Invalid PDF, missing ship_id, non-existent ship properly rejected ✅
+
+**❌ CRITICAL ISSUES IDENTIFIED:**
+
+1. **System AI Extraction Failure:**
+   ```
+   ERROR: No module named 'app.utils.emergent_key'
+   ```
+   - **Impact:** AI field extraction not working, only basic fields populated
+   - **Root Cause:** Missing emergent_key utility module
+   - **Fix Needed:** Update import to use `os.getenv("EMERGENT_LLM_KEY")` like other services
+
+2. **GDriveService Upload Parameter Mismatch:**
+   ```
+   ERROR: GDriveService.upload_file() got an unexpected keyword argument 'path'
+   ```
+   - **Impact:** File upload completely broken
+   - **Root Cause:** TestReportService using wrong parameter names
+   - **Fix Needed:** Update to use `folder_path` and `company_id` parameters
+
+3. **OCR Processing Failure:**
+   ```
+   ERROR: Unable to get page count. Is poppler installed and in PATH?
+   ```
+   - **Impact:** OCR extraction not working
+   - **Root Cause:** Missing poppler-utils dependency
+   - **Fix Needed:** Install poppler-utils or handle gracefully
+
+4. **Valid Date Calculator Error:**
+   ```
+   ERROR: argument of type 'NoneType' is not iterable
+   ```
+   - **Impact:** Valid date calculation failing
+   - **Root Cause:** Likely related to missing AI extraction data
+
+**⚠️ PARTIAL SUCCESS AREAS:**
+
+- **Document AI Processing:** Working but confidence score 0.0
+- **Field Extraction:** Only 1/10 fields extracted (status only)
+- **Integration Flow:** Analysis and creation work, upload fails
+
+**TECHNICAL VERIFICATION:**
+- Test Report Analysis endpoint accessible ✅
+- PDF validation working (rejects invalid files) ✅
+- Ship validation working (60% similarity threshold) ✅
+- Authentication and authorization working ✅
+- Database operations (create/read) working ✅
+
+**NEXT STEPS REQUIRED:**
+1. Fix emergent_key import in test_report_ai.py
+2. Fix GDriveService parameter mismatch in test_report_service.py
+3. Install poppler-utils or handle OCR gracefully
+4. Re-test after fixes to verify Valid Date calculation
+5. Verify complete end-to-end flow works
+
+**FILES TESTED:**
+- `/app/backend/app/utils/test_report_ai.py` - AI extraction module ❌
+- `/app/backend/app/utils/test_report_valid_date_calculator.py` - Valid date calculator ❌
+- `/app/backend/app/services/test_report_analyze_service.py` - Main analyze service ⚠️
+- `/app/backend/app/api/v1/test_reports.py` - API endpoints ✅
+- `/app/backend/app/services/test_report_service.py` - Service layer ❌
+
+---
+
 ### Multi-Upload Certificate Endpoint Migration
 
 **Status:** ✅ MIGRATED (Pending Testing)
