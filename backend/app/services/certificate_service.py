@@ -131,25 +131,47 @@ class CertificateService:
         logger.info(f"🔍 DEBUG - update_data after exclude_unset: {update_data}")
         logger.info(f"🔍 DEBUG - next_survey in update_data: {update_data.get('next_survey')}")
         
-        # CRITICAL FIX: If next_survey is being updated, update next_survey_display to match
-        # next_survey_display is the formatted display value shown in tables (with ±3M annotation)
-        # When user manually updates next_survey, we must sync next_survey_display
-        if "next_survey" in update_data and update_data["next_survey"]:
-            from datetime import datetime
-            # Format: dd/mm/yyyy (±3M) - preserve existing annotation if any, or add default
-            next_survey_date = update_data["next_survey"]
-            if isinstance(next_survey_date, datetime):
-                formatted_date = next_survey_date.strftime("%d/%m/%Y")
-                # Add default annotation (±3M) for Full Term certificates
-                if cert.get("cert_type") == "Full Term":
-                    update_data["next_survey_display"] = f"{formatted_date} (±3M)"
-                else:
-                    update_data["next_survey_display"] = formatted_date
-                logger.info(f"🔄 Updated next_survey_display to: {update_data['next_survey_display']}")
-        elif "next_survey" in update_data and not update_data["next_survey"]:
-            # If next_survey is cleared, also clear next_survey_display
-            update_data["next_survey_display"] = None
-            logger.info("🔄 Cleared next_survey_display (next_survey was cleared)")
+        # BUSINESS RULE: Check if changing to Interim type
+        if "cert_type" in update_data and update_data["cert_type"] == "Interim":
+            # Force next_survey fields to N/A for Interim certificates
+            update_data["next_survey"] = None
+            update_data["next_survey_display"] = "N/A"
+            update_data["next_survey_type"] = "N/A"
+            logger.info("✅ Changed to Interim: Set next_survey to N/A")
+        
+        # BUSINESS RULE: For Interim certificates, NEVER calculate next_survey
+        # Interim certificates are temporary and don't have next survey dates
+        current_cert_type = cert.get("cert_type")
+        is_interim = current_cert_type == "Interim" or update_data.get("cert_type") == "Interim"
+        
+        if is_interim:
+            # Override any next_survey updates with N/A
+            if "next_survey" in update_data:
+                update_data["next_survey"] = None
+                update_data["next_survey_display"] = "N/A"
+                update_data["next_survey_type"] = "N/A"
+                logger.info("⚠️ Prevented next_survey update for Interim certificate (forced to N/A)")
+        else:
+            # Only process next_survey updates for non-Interim certificates
+            # Sync next_survey_display when next_survey is manually updated
+            # next_survey_display is the formatted display value shown in tables (with ±3M annotation)
+            # When user manually updates next_survey, we must sync next_survey_display
+            if "next_survey" in update_data and update_data["next_survey"]:
+                from datetime import datetime
+                # Format: dd/mm/yyyy (±3M) - preserve existing annotation if any, or add default
+                next_survey_date = update_data["next_survey"]
+                if isinstance(next_survey_date, datetime):
+                    formatted_date = next_survey_date.strftime("%d/%m/%Y")
+                    # Add default annotation (±3M) for Full Term certificates
+                    if cert.get("cert_type") == "Full Term" or update_data.get("cert_type") == "Full Term":
+                        update_data["next_survey_display"] = f"{formatted_date} (±3M)"
+                    else:
+                        update_data["next_survey_display"] = formatted_date
+                    logger.info(f"🔄 Updated next_survey_display to: {update_data['next_survey_display']}")
+            elif "next_survey" in update_data and not update_data["next_survey"]:
+                # If next_survey is cleared, also clear next_survey_display
+                update_data["next_survey_display"] = None
+                logger.info("🔄 Cleared next_survey_display (next_survey was cleared)")
         
         # CRITICAL FIX: Auto-set has_notes flag when notes field is updated
         # This ensures the "*" indicator appears in the table when notes are saved
