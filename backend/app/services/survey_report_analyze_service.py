@@ -190,24 +190,34 @@ class SurveyReportAnalyzeService:
                     extracted_ship_name = analysis_result.get('ship_name', '').strip()
                     extracted_ship_imo = analysis_result.get('ship_imo', '').strip()
                     
-                    # Simple validation - check if ship name contains expected name or IMO matches
+                    # Fuzzy matching with 60% threshold (same as V1)
                     ship_name_match = False
                     ship_imo_match = False
+                    similarity_score = 0.0
                     
                     if extracted_ship_name and ship_name:
-                        # Simple contains check (case-insensitive)
-                        ship_name_match = (
-                            ship_name.lower() in extracted_ship_name.lower() or
-                            extracted_ship_name.lower() in ship_name.lower()
-                        )
+                        # Calculate fuzzy similarity using difflib
+                        from difflib import SequenceMatcher
+                        
+                        similarity_score = SequenceMatcher(
+                            None, 
+                            extracted_ship_name.lower(), 
+                            ship_name.lower()
+                        ).ratio()
+                        
+                        logger.info(f"🔍 Ship name similarity: {similarity_score:.2%} - '{extracted_ship_name}' vs '{ship_name}'")
+                        
+                        # 60% threshold
+                        ship_name_match = similarity_score >= 0.6
                     
                     if extracted_ship_imo and ship_imo:
                         ship_imo_match = extracted_ship_imo == ship_imo
+                        logger.info(f"🔍 IMO match: {ship_imo_match} - '{extracted_ship_imo}' vs '{ship_imo}'")
                     
                     # If neither matches, return validation error
                     if not ship_name_match and not ship_imo_match and extracted_ship_name:
                         logger.warning(
-                            f"⚠️ Ship validation mismatch: "
+                            f"⚠️ Ship validation failed (similarity: {similarity_score:.2%}): "
                             f"Expected '{ship_name}' (IMO: {ship_imo}), "
                             f"Found '{extracted_ship_name}' (IMO: {extracted_ship_imo})"
                         )
@@ -219,8 +229,11 @@ class SurveyReportAnalyzeService:
                             "extracted_ship_imo": extracted_ship_imo,
                             "expected_ship_name": ship_name,
                             "expected_ship_imo": ship_imo,
-                            "message": "Ship name or IMO mismatch. Please confirm or select correct ship."
+                            "similarity_score": similarity_score,
+                            "message": f"Ship name mismatch (similarity: {similarity_score:.0%}). Please confirm or select correct ship."
                         }
+                    elif ship_name_match:
+                        logger.info(f"✅ Ship validation passed (similarity: {similarity_score:.2%})")
                 
                 # Success - return analysis
                 logger.info("✅ Survey report analysis completed successfully")
