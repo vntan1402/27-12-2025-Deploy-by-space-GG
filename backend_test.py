@@ -351,56 +351,139 @@ class BackendTester:
             self.log_test("Test Report Analysis", False, f"Exception: {str(e)}")
             return False
     
-    def test_certificate_analyze_with_ship_id(self):
-        """Test certificate analysis with ship_id parameter"""
-        print("\n🚢 Testing Certificate Analysis with Ship ID...")
+    def test_test_report_upload_files(self):
+        """Test POST /api/test-reports/{report_id}/upload-files endpoint"""
+        print("\n📤 Testing Test Report Upload Files...")
         
         try:
-            # First, get a list of ships to use a valid ship_id
-            response = self.session.get(f"{BACKEND_URL}/ships")
+            # First create a test report
+            ships_response = self.session.get(f"{BACKEND_URL}/ships")
+            if ships_response.status_code != 200:
+                self.log_test("Test Report Upload - Get Ships", False, "Failed to get ships")
+                return False
             
-            if response.status_code == 200:
-                ships = response.json()
-                if ships and len(ships) > 0:
-                    ship_id = ships[0].get("id")
-                    ship_name = ships[0].get("name", "Unknown")
+            ships = ships_response.json()
+            if not ships:
+                self.log_test("Test Report Upload - Get Ships", False, "No ships found")
+                return False
+            
+            test_ship = ships[0]
+            ship_id = test_ship.get("id")
+            ship_name = test_ship.get("name", "Unknown")
+            
+            # Create test report
+            test_report_data = {
+                "ship_id": ship_id,
+                "test_report_name": "EEBD",
+                "report_form": "Service Chart A",
+                "test_report_no": "TR-2025-001",
+                "issued_by": "VITECH",
+                "issued_date": "2024-01-15T00:00:00.000Z",
+                "valid_date": "2025-01-15T00:00:00.000Z",
+                "status": "Valid",
+                "note": "Test report for upload testing"
+            }
+            
+            create_response = self.session.post(f"{BACKEND_URL}/test-reports", json=test_report_data)
+            
+            if create_response.status_code != 200:
+                self.log_test("Test Report Upload - Create Report", False, 
+                             f"Failed to create test report: {create_response.status_code}")
+                return False
+            
+            created_report = create_response.json()
+            report_id = created_report.get("id")
+            
+            self.log_test("Test Report Upload - Create Report", True, 
+                         f"Created test report: {report_id}")
+            
+            # Download test PDF for upload
+            try:
+                pdf_response = requests.get(TEST_PDF_URL, timeout=30)
+                if pdf_response.status_code == 200:
+                    pdf_content = pdf_response.content
                     
-                    self.log_test("Certificate Analysis - Ship ID Setup", True, 
-                                 f"Using ship: {ship_name} (ID: {ship_id})")
+                    # Encode to base64
+                    import base64
+                    file_content_b64 = base64.b64encode(pdf_content).decode('utf-8')
                     
-                    # Test with ship_id
-                    test_file = "/app/test_certificate_analysis.txt"
-                    if os.path.exists(test_file):
-                        with open(test_file, "rb") as f:
-                            files = {"file": (os.path.basename(test_file), f, "application/pdf")}
-                            params = {"ship_id": ship_id}
-                            response = self.session.post(f"{BACKEND_URL}/certificates/analyze-file", 
-                                                       files=files, params=params)
+                    self.log_test("Test Report Upload - PDF Preparation", True, 
+                                 f"Prepared PDF for upload: {len(pdf_content)} bytes")
+                else:
+                    self.log_test("Test Report Upload - PDF Preparation", False, 
+                                 f"Failed to download PDF: {pdf_response.status_code}")
+                    return False
+            except Exception as e:
+                self.log_test("Test Report Upload - PDF Preparation", False, f"Exception: {str(e)}")
+                return False
+            
+            # Test upload files endpoint
+            upload_data = {
+                "file_content": file_content_b64,
+                "filename": "test_report_eebd.pdf",
+                "content_type": "application/pdf",
+                "summary_text": "Test report summary for EEBD maintenance"
+            }
+            
+            upload_response = self.session.post(f"{BACKEND_URL}/test-reports/{report_id}/upload-files", 
+                                              json=upload_data)
+            
+            if upload_response.status_code == 200:
+                upload_result = upload_response.json()
+                
+                # Check upload result structure
+                expected_fields = ["success", "message", "test_report_file_id"]
+                missing_fields = [field for field in expected_fields if field not in upload_result]
+                
+                if not missing_fields:
+                    success = upload_result.get("success", False)
+                    test_report_file_id = upload_result.get("test_report_file_id")
+                    test_report_summary_file_id = upload_result.get("test_report_summary_file_id")
+                    
+                    if success and test_report_file_id:
+                        self.log_test("Test Report Upload - File Upload", True, 
+                                     f"File uploaded successfully: {test_report_file_id}")
                         
-                        if response.status_code == 200:
-                            data = response.json()
-                            self.log_test("Certificate Analysis with Ship ID", True, 
-                                         f"Analysis completed for ship: {ship_name}")
+                        if test_report_summary_file_id:
+                            self.log_test("Test Report Upload - Summary Upload", True, 
+                                         f"Summary uploaded: {test_report_summary_file_id}")
+                        
+                        # Verify database update
+                        verify_response = self.session.get(f"{BACKEND_URL}/test-reports/{report_id}")
+                        
+                        if verify_response.status_code == 200:
+                            updated_report = verify_response.json()
+                            
+                            db_file_id = updated_report.get("test_report_file_id")
+                            db_summary_file_id = updated_report.get("test_report_summary_file_id")
+                            
+                            if db_file_id == test_report_file_id:
+                                self.log_test("Test Report Upload - Database Update", True, 
+                                             f"Database updated with file ID: {db_file_id}")
+                            else:
+                                self.log_test("Test Report Upload - Database Update", False, 
+                                             f"File ID mismatch: expected {test_report_file_id}, got {db_file_id}")
+                            
                             return True
                         else:
-                            self.log_test("Certificate Analysis with Ship ID", False, 
-                                         f"Status: {response.status_code}")
+                            self.log_test("Test Report Upload - Database Verification", False, 
+                                         f"Failed to verify database update: {verify_response.status_code}")
                             return False
                     else:
-                        self.log_test("Certificate Analysis with Ship ID", False, 
-                                     "Test file not available")
+                        self.log_test("Test Report Upload - File Upload", False, 
+                                     f"Upload failed or no file ID returned: {upload_result}")
                         return False
                 else:
-                    self.log_test("Certificate Analysis - Ship ID Setup", False, 
-                                 "No ships available for testing")
+                    self.log_test("Test Report Upload - Response Structure", False, 
+                                 f"Missing fields: {missing_fields}")
                     return False
             else:
-                self.log_test("Certificate Analysis - Ship ID Setup", False, 
-                             f"Could not fetch ships: {response.status_code}")
+                self.log_test("Test Report Upload", False, 
+                             f"Status: {upload_response.status_code}, Response: {upload_response.text}")
                 return False
                 
         except Exception as e:
-            self.log_test("Certificate Analysis with Ship ID", False, f"Exception: {str(e)}")
+            self.log_test("Test Report Upload", False, f"Exception: {str(e)}")
             return False
     
     def get_test_ships(self):
