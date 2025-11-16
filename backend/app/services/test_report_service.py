@@ -286,8 +286,9 @@ class TestReportService:
             upload_result = await GDriveService.upload_file(
                 file_content=file_bytes,
                 filename=filename,
-                path=f"{ship_name}/Class & Flag Cert/Test Report",
-                current_user=current_user
+                content_type=content_type,
+                folder_path=f"{ship_name}/Class & Flag Cert/Test Report",
+                company_id=company_uuid
             )
             
             if not upload_result.get('success'):
