@@ -519,7 +519,7 @@ class SurveyReportAnalyzeService:
             analysis_result.update(extracted_fields)
             
             # Recreate summary with extracted data
-            final_summary = splitter.create_enhanced_merged_summary(
+            final_summary = create_enhanced_merged_summary(
                 chunk_results=chunk_results,
                 merged_data=extracted_fields,
                 original_filename=filename,
