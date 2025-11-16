@@ -141,8 +141,8 @@ class CertificateService:
             update_data["cert_abbreviation"] = await generate_certificate_abbreviation(update_data.get("cert_name"))
             logger.info(f"✅ Regenerated cert abbreviation: '{update_data['cert_name']}' → '{update_data['cert_abbreviation']}'")
         
-        # Regenerate organization abbreviation if issued_by is being updated
-        if update_data.get("issued_by"):
+        # Regenerate organization abbreviation ONLY if issued_by is being updated AND user didn't provide abbreviation
+        if update_data.get("issued_by") and not update_data.get("issued_by_abbreviation"):
             update_data["issued_by_abbreviation"] = generate_organization_abbreviation(update_data.get("issued_by"))
             logger.info(f"✅ Regenerated issued_by abbreviation: '{update_data['issued_by']}' → '{update_data['issued_by_abbreviation']}'")
         
