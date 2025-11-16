@@ -603,13 +603,38 @@ class GDriveService:
             # Encode file to base64
             file_base64 = base64.b64encode(file_content).decode('utf-8')
             
-            # Build payload
+            # Parse folder_path to extract components
+            # Expected format: "ShipName/Class & Flag Cert/Class Survey Report"
+            path_parts = folder_path.split('/')
+            
+            if len(path_parts) < 3:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid folder_path format. Expected: 'ShipName/ParentCategory/Category', got: '{folder_path}'"
+                )
+            
+            ship_name = path_parts[0]
+            parent_category = path_parts[1]
+            category = path_parts[2]
+            
+            # Get parent folder ID from config
+            parent_folder_id = config.get("folder_id")
+            if not parent_folder_id:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Parent folder ID not configured in Google Drive settings"
+                )
+            
+            # Build payload using upload_file_with_folder_creation action (like backend-v1)
             payload = {
-                "action": "upload_file",
-                "file_content": file_base64,
+                "action": "upload_file_with_folder_creation",
+                "parent_folder_id": parent_folder_id,
+                "ship_name": ship_name,
+                "parent_category": parent_category,
+                "category": category,
                 "filename": filename,
-                "content_type": content_type,
-                "folder_path": folder_path
+                "file_content": file_base64,
+                "content_type": content_type
             }
             
             # Call Apps Script
