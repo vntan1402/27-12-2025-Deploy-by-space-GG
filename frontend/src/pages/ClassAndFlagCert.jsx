@@ -1505,16 +1505,6 @@ const ClassAndFlagCert = () => {
         ) : (
           /* Certificate List Section */
           <div>
-            {/* Page Description */}
-            <div className="mb-4">
-              <p className="text-sm text-gray-600">
-                {language === 'vi' 
-                  ? 'Quản lý các giấy chứng nhận phân cấp / chính quyền cờ' 
-                  : 'Manage classification / flag state certificates'
-                }
-              </p>
-            </div>
-
             {/* Title + Action Buttons */}
             <CertificateActionButtons
               language={language}
