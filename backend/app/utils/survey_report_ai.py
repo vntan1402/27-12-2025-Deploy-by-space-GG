@@ -201,10 +201,18 @@ Analyze the following text summary of a maritime survey report and extract all k
 - DO NOT extract form codes that look like dates (e.g., "CU (02/19)" is a FORM, not a date)
 
 **ship_name**: 
-- Extract the vessel name mentioned in the report
+- Extract the ACTUAL VESSEL NAME mentioned in the report
+- Look for fields: "Name of Ship", "Vessel Name", "Ship Name"
+- **CRITICAL**: DO NOT extract ship type as ship name
+  * Ship types: "BULK CARRIER", "TANKER", "CONTAINER SHIP", "GENERAL CARGO", "OTHER CARGO", "OFFSHORE SUPPLY VESSEL"
+  * If you see "Type of Ship: OTHER CARGO" → DO NOT use "OTHER CARGO" as ship_name
+  * If you see "Type of Ship: BULK CARRIER" → DO NOT use "BULK CARRIER" as ship_name
+- If the actual ship name is not found in the document, leave it as empty string ""
+- **IMPORTANT**: Ship names are proper nouns (e.g., "PACIFIC STAR", "OCEAN GLORY", "BROTHER 36")
 
 **ship_imo**: 
 - Extract IMO number (7 digits starting with 8 or 9)
+- Look for "IMO Number", "IMO No."
 
 **surveyor_name**: 
 - Extract the name(s) of surveyor(s) who conducted the survey
