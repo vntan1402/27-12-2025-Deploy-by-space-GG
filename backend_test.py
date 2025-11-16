@@ -568,18 +568,22 @@ class BackendTester:
                 
                 if create_response.status_code == 200:
                     created_report = create_response.json()
-                    calculated_valid_date = created_report.get("valid_date", "")
+                    calculated_valid_date = created_report.get("valid_date")
                     
-                    # Extract date part if it's in ISO format
-                    if "T" in calculated_valid_date:
-                        calculated_valid_date = calculated_valid_date.split("T")[0]
-                    
-                    if calculated_valid_date == expected_valid_date:
-                        self.log_test(f"Valid Date Calculator - {equipment}", True, 
-                                     f"Correct: {issued_date} + {expected_months} months = {calculated_valid_date}")
+                    if calculated_valid_date:
+                        # Extract date part if it's in ISO format
+                        if "T" in calculated_valid_date:
+                            calculated_valid_date = calculated_valid_date.split("T")[0]
+                        
+                        if calculated_valid_date == expected_valid_date:
+                            self.log_test(f"Valid Date Calculator - {equipment}", True, 
+                                         f"Correct: {issued_date} + {expected_months} months = {calculated_valid_date}")
+                        else:
+                            self.log_test(f"Valid Date Calculator - {equipment}", False, 
+                                         f"Expected: {expected_valid_date}, Got: {calculated_valid_date}")
                     else:
                         self.log_test(f"Valid Date Calculator - {equipment}", False, 
-                                     f"Expected: {expected_valid_date}, Got: {calculated_valid_date}")
+                                     f"No valid_date calculated (backend should calculate from issued_date + equipment interval)")
                     
                     # Clean up - delete the test report
                     try:
