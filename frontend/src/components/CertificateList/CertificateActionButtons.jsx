@@ -20,7 +20,21 @@ export const CertificateActionButtons = ({
   onRefresh,
 }) => {
   return (
-    <div className="flex justify-end items-center mb-4 gap-3">
+    <div className="flex justify-between items-center mb-4">
+      {/* Left: Title */}
+      <div className="flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-gray-800">
+          {language === 'vi' ? 'Danh Sách Chứng Chỉ' : 'Certificate List'}
+          {selectedShip && (
+            <span className="text-gray-600 ml-2">
+              {language === 'vi' ? `cho tàu ${selectedShip.name}` : `for ${selectedShip.name}`}
+            </span>
+          )}
+        </h3>
+      </div>
+
+      {/* Right: Action Buttons */}
+      <div className="flex gap-3">
         {/* Update Next Survey Button */}
         <button
           onClick={onUpdateSurveyTypes}
