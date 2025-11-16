@@ -1446,10 +1446,28 @@ class BackendTester:
             print("\n❌ Authentication failed. Cannot proceed with tests.")
             return False
         
+        # AI Configuration Test (Review Request Requirement)
+        print("\n" + "="*60)
+        print("🤖 AI CONFIGURATION TESTS")
+        print("="*60)
+        
+        ai_config = self.test_ai_config_get()
+        if not ai_config:
+            print("\n❌ AI Configuration failed - stopping tests")
+            return False
+        
         # Survey Report Analysis Test (Primary Focus - Review Request)
+        print("\n" + "="*60)
+        print("📊 SURVEY REPORT ANALYSIS TESTS")
+        print("="*60)
+        
         self.test_survey_report_analysis_endpoint()
         
         # Additional tests for comprehensive coverage
+        print("\n" + "="*60)
+        print("🔄 ADDITIONAL TESTS")
+        print("="*60)
+        
         self.test_auto_rename_certificate_file()
         self.test_auto_rename_error_cases()
         self.test_certificate_abbreviation_priority()
