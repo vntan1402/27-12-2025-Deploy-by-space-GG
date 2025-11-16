@@ -506,6 +506,11 @@ Return ONLY the JSON object, no markdown blocks, no explanation.
 
 Example output:
 {{"category":"certificates","confidence":"high","cert_name":"Cargo Ship Safety Construction Certificate","cert_no":"CSSC-12345","issue_date":"15/01/2023","valid_date":"14/01/2028","issued_by":"Lloyd's Register","ship_name":"M.V. OCEAN STAR","imo_number":"9123456","text_content":"....."}}
+
+IMPORTANT DATE EXAMPLES:
+- "7 November 2025" → "07/11/2025"
+- "13 September 2030" → "13/09/2030"
+- "28 July 2025" → "28/07/2025"
 """
     
     @staticmethod
