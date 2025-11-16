@@ -32,7 +32,7 @@ class GDriveConfigRepository:
         try:
             config_dict = {
                 "id": str(uuid.uuid4()),
-                "company": company,
+                "company_id": company,
                 **config_data.dict(),
                 "is_configured": bool(config_data.folder_id),
                 "last_sync": None,
