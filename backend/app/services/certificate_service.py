@@ -514,5 +514,208 @@ class CertificateService:
             logger.error(f"❌ Certificate analysis error: {e}")
             raise HTTPException(
                 status_code=500,
+
+    
+    @staticmethod
+    async def auto_rename_certificate_file(certificate_id: str, current_user: UserResponse) -> dict:
+        """
+        Auto rename certificate file on Google Drive using naming convention:
+        {Ship Name}_{Cert Type}_{Cert Abbreviation}_{Issue Date}.pdf
+        
+        Priority for Certificate Abbreviation:
+        1. User-defined mapping (from abbreviation_mappings collection)
+        2. Database cert_abbreviation field
+        3. Auto-generated abbreviation
+        """
+        from app.db.mongodb import mongo_db
+        from app.repositories.ship_repository import ShipRepository
+        from app.utils.certificate_abbreviation import generate_certificate_abbreviation
+        from datetime import datetime
+        import re
+        import aiohttp
+        
+        # Get certificate data
+        cert = await CertificateRepository.find_by_id(certificate_id)
+        if not cert:
+            raise HTTPException(status_code=404, detail="Certificate not found")
+        
+        # Check if certificate has Google Drive file
+        file_id = cert.get("google_drive_file_id")
+        if not file_id:
+            raise HTTPException(status_code=400, detail="Certificate has no associated Google Drive file")
+        
+        # Get ship data
+        ship = await ShipRepository.find_by_id(cert.get("ship_id"))
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found for certificate")
+        
+        # Build new filename components
+        ship_name = ship.get("name", "Unknown Ship")
+        cert_type = cert.get("cert_type", "Unknown Type")
+        cert_name = cert.get("cert_name", "Unknown Certificate")
+        cert_abbreviation = cert.get("cert_abbreviation", "")
+        issue_date = cert.get("issue_date")
+        
+        # ========== PRIORITY LOGIC FOR ABBREVIATION ==========
+        # Priority 1: Check user-defined abbreviation mappings FIRST
+        user_defined_abbr = await mongo_db.database.certificate_abbreviation_mappings.find_one(
+            {"cert_name": cert_name}
+        )
+        
+        if user_defined_abbr and user_defined_abbr.get("abbreviation"):
+            final_abbreviation = user_defined_abbr.get("abbreviation")
+            logger.info(f"🔄 AUTO-RENAME - PRIORITY 1: Using user-defined mapping '{cert_name}' → '{final_abbreviation}'")
+        elif cert_abbreviation:
+            # Priority 2: Use database cert_abbreviation
+            final_abbreviation = cert_abbreviation
+            logger.info(f"🔄 AUTO-RENAME - PRIORITY 2: Using database abbreviation '{final_abbreviation}'")
+        else:
+            # Priority 3: Generate abbreviation as fallback
+            final_abbreviation = await generate_certificate_abbreviation(cert_name)
+            logger.info(f"🔄 AUTO-RENAME - PRIORITY 3: Generated abbreviation '{cert_name}' → '{final_abbreviation}'")
+        
+        cert_identifier = final_abbreviation
+        
+        # Format issue date
+        date_str = "NoDate"
+        if issue_date:
+            try:
+                if isinstance(issue_date, str):
+                    date_obj = datetime.fromisoformat(issue_date.replace('Z', '+00:00'))
+                    date_str = date_obj.strftime("%Y%m%d")
+                elif isinstance(issue_date, datetime):
+                    date_str = issue_date.strftime("%Y%m%d")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not parse issue date: {e}")
+                date_str = "NoDate"
+        
+        # Build new filename: Ship name_Cert type_Cert identifier_Issue date.pdf
+        original_filename = cert.get("file_name", "")
+        file_extension = ".pdf"  # Default
+        if original_filename and "." in original_filename:
+            file_extension = "." + original_filename.split(".")[-1]
+        
+        new_filename = f"{ship_name}_{cert_type}_{cert_identifier}_{date_str}{file_extension}"
+        
+        # Clean up filename: Remove special characters but KEEP spaces and underscores
+        # Only allow: letters, numbers, spaces, underscores, hyphens, and dots
+        new_filename = re.sub(r'[^a-zA-Z0-9 ._-]', '', new_filename)
+        new_filename = re.sub(r'\s+', ' ', new_filename)  # Remove multiple spaces
+        
+        # Get company ID from user
+        company_id = current_user.company
+        
+        # Get company Google Drive configuration
+        gdrive_config = await mongo_db.database.company_gdrive_config.find_one(
+            {"company_id": company_id}
+        )
+        
+        if not gdrive_config:
+            raise HTTPException(status_code=404, detail="Google Drive not configured for this company")
+        
+        # Get Apps Script URL
+        apps_script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+        if not apps_script_url:
+            raise HTTPException(status_code=400, detail="Apps Script URL not configured")
+        
+        # Check if Apps Script supports rename_file action
+        logger.info("🔍 Checking Apps Script capabilities for auto-rename functionality...")
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                # Test payload to get available actions
+                async with session.post(
+                    apps_script_url,
+                    json={},
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        test_result = await response.json()
+                        available_actions = test_result.get("available_actions", [])
+                        supported_actions = test_result.get("supported_actions", [])
+                        all_actions = available_actions + supported_actions
+                        
+                        logger.info(f"📋 Apps Script available actions: {all_actions}")
+                        
+                        if "rename_file" not in all_actions:
+                            logger.warning("⚠️ Apps Script does not support 'rename_file' action")
+                            raise HTTPException(
+                                status_code=501,
+                                detail=f"Auto-rename feature not yet supported by Google Drive integration. Suggested filename: {new_filename}"
+                            )
+                        
+                        logger.info("✅ Apps Script supports 'rename_file' action")
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.warning(f"⚠️ Could not check Apps Script capabilities: {e}")
+            # Continue anyway and let the actual rename call fail if needed
+        
+        # Call Apps Script to rename file
+        payload = {
+            "action": "rename_file",
+            "file_id": file_id,
+            "new_name": new_filename
+        }
+        
+        logger.info(f"🔄 Auto-renaming certificate file {file_id} to '{new_filename}' for certificate {certificate_id}")
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        
+                        if result.get("success"):
+                            # Update certificate record with new filename
+                            await CertificateRepository.update(
+                                certificate_id,
+                                {"file_name": new_filename}
+                            )
+                            
+                            logger.info(f"✅ Successfully auto-renamed certificate file to '{new_filename}'")
+                            
+                            return {
+                                "success": True,
+                                "message": "Certificate file renamed successfully",
+                                "certificate_id": certificate_id,
+                                "file_id": file_id,
+                                "old_name": result.get("old_name"),
+                                "new_name": new_filename,
+                                "naming_convention": {
+                                    "ship_name": ship_name,
+                                    "cert_type": cert_type,
+                                    "cert_identifier": cert_identifier,
+                                    "issue_date": date_str
+                                },
+                                "renamed_timestamp": result.get("renamed_timestamp")
+                            }
+                        else:
+                            error_msg = result.get("error", "Unknown error occurred")
+                            logger.error(f"❌ Apps Script auto-rename failed: {error_msg}")
+                            raise HTTPException(
+                                status_code=500,
+                                detail=f"Failed to auto-rename file: {error_msg}"
+                            )
+                    else:
+                        logger.error(f"❌ Apps Script request failed with status {response.status}")
+                        error_text = await response.text()
+                        raise HTTPException(
+                            status_code=500,
+                            detail=f"Google Drive API request failed: {response.status} - {error_text}"
+                        )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error calling Apps Script: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to communicate with Google Drive: {str(e)}"
+            )
+
                 detail=f"Failed to analyze certificate: {str(e)}"
             )
