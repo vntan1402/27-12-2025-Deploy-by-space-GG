@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://ship-cert-system-1.preview.emergentagent.com/api"
+API_URL="https://test-report-api.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \

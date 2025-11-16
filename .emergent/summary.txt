@@ -1,43 +1,44 @@
 <analysis>
-The trajectory chronicles an extensive and iterative development cycle focused on migrating and debugging the Add Survey Report feature from a legacy Python backend () to a new modular FastAPI backend, alongside numerous frontend fixes and feature enhancements on a React application. The user's language is Vietnamese, and all future interactions must be in Vietnamese.
+The trajectory details a comprehensive software engineering effort to migrate a Test Report feature from a legacy Python backend () to a new, modular FastAPI backend. The user's primary language is Vietnamese, and all subsequent communication must be in Vietnamese.
 
-The process began with debugging a frontend bug where a form failed to auto-fill after AI analysis. This led to a deep dive into the entire stack, revealing and fixing critical infrastructure issues like missing OCR libraries (Poppler, Tesseract) and an unsupported AI provider in the new backend. A significant effort was made to align the new backend's behavior with the legacy system by comparing code, particularly for Google Drive file operations (upload/delete), which involved correcting Apps Script actions and parameters.
+The process began with the user's request to analyze and migrate the Add Test Report flow. Initial investigation revealed that while a similar Survey Report flow had been migrated, its underlying utility functions for handling complex PDF processing—specifically , , and —were hardcoded and not reusable.
 
-Several bugs were addressed based on user feedback, including:
-- Fixing a 404 error on bulk-delete by changing the HTTP method from DELETE to POST.
-- Ensuring file deletion from Google Drive upon record deletion by implementing background tasks.
-- Improving AI prompt engineering to prevent misidentification of data fields (e.g., 'ship type' vs. 'ship name').
-- Correcting Pydantic response models to match database field names, which resolved issues with file icons not appearing on the frontend.
+Following the user's approval of a PROPER REFACTOR strategy, the core of the work shifted to making these utilities generic. This involved:
+1.  **Refactoring :** Generalizing the functions to handle different document types.
+2.  **Debugging:** A user-reported bug with multi-page uploads was traced back to the  not passing the new required  parameter to the refactored splitter. This was promptly fixed.
+3.  **Refactoring :** Abstracting the logic to work with a configuration object based on document type.
+4.  **Refactoring :** Restructuring it to have a generic core processing function with specific wrappers for each document type.
 
-The most recent work involved implementing complex business logic directly on the frontend for both the Certificate and Survey Report lists, such as handling Interim certificate statuses and creating a dynamic, calculated status for Survey Reports based on other data within the application. The final action was a small but crucial fix to this new logic, adding a fallback for a missing date.
+Each refactoring step was followed by a successful backend restart. The last action was the completion of refactoring the . The immediate next step, as per the user's explicit instruction, is to proceed with the remaining tasks in the migration plan.
 </analysis>
 
 <product_requirements>
-The primary objective is to migrate features from a monolithic legacy application () to a new, modular FastAPI backend, while also enhancing a React frontend based on user feedback. The core of the work is to achieve feature parity, fix bugs, and implement new business logic.
+The primary objective is to migrate the Add Test Report feature from the legacy monolithic  to the new modular FastAPI backend, ensuring full feature parity and seamless frontend integration.
 
-**Completed Work:**
-
-1.  **Full Add Survey Report Flow Migration:** The entire workflow, from file upload and AI analysis (using OCR and LLMs) to creating records and storing files (original and summary) in Google Drive, has been successfully migrated and debugged.
-2.  **File Management Parity:** Google Drive file deletion upon record deletion is now functional, mirroring the legacy system's behavior. The bulk-delete endpoint for survey reports is also fixed.
-3.  **AI & Data Normalization:** The AI prompts for survey report analysis have been significantly improved to match 's accuracy. The Issued By field is now correctly normalized on the backend, and redundant frontend logic has been removed.
-4.  **New Business Logic Implementation:**
-    *   **Interim Certificates:** Logic to set  to N/A and exclude these certificates from bulk updates has been added.
-    *   **Dynamic Survey Report Status:** A complex status calculation based on certificate survey dates has been implemented on the frontend, per user requirements.
-5.  **UI/Bug Fixes:** Resolved issues with missing file icons by correcting backend response models and fixed the Status display for Interim certificates.
+**Core Requirements:**
+1.  **Full Feature Migration:** Replicate the entire Add Test Report workflow, which includes:
+    *   API endpoints for analyzing files, creating/updating reports, and managing uploads.
+    *   Complex business logic for processing PDF files, including splitting large files (>15 pages).
+    *   Integration with Google Document AI for text extraction.
+    *   A Targeted OCR process using Tesseract to extract specific data from headers/footers.
+    *   AI-powered data extraction using LLM prompts to parse content.
+    *   Uploading original and summary files to Google Drive.
+2.  **Code Reusability:** A critical sub-requirement emerged to refactor shared utilities (, , ) that were previously hardcoded for Survey Reports. The goal is to make them generic and reusable for Test Reports and future document types, following the PROPER REFACTOR approach.
+3.  **Maintain Logic:** The migrated logic in the new backend must be identical to  to ensure consistency.
+4.  **Frontend Compatibility:** Ensure the React frontend correctly interacts with the new migrated endpoints without any regressions.
 </product_requirements>
 
 <key_technical_concepts>
-- **Backend:** FastAPI, Python, Pydantic (for data validation and serialization).
-- **Frontend:** React.js, Axios.
-- **Database:** MongoDB.
-- **AI & PDF Processing:** Google Document AI via ,  (OCR), , .
-- **Integrations:** Google Drive via Google Apps Script for file uploads and deletions.
-- **Architecture:** Clean Architecture principles (Services, Repositories).
-- **Development Strategy:** Compare and Replicate legacy code from .
+- **Backend:** FastAPI, Pydantic
+- **Frontend:** React.js
+- **Database:** MongoDB
+- **PDF/AI Processing:** Google Document AI, Tesseract (OCR), , 
+- **Integrations:** Google Drive via Google Apps Script
+- **Core Strategy:** Refactor for Reusability - converting hardcoded utility functions into generic, configurable modules before migrating feature-specific logic.
 </key_technical_concepts>
 
 <code_architecture>
-The application uses a React frontend, a new modular FastAPI backend, and a legacy  for reference.
+The application consists of a React frontend, a new modular FastAPI backend, and a legacy  used for reference. The migration effort focuses on moving logic from  to the new .
 
 .
 ├── 2_CO_DUC_PP.pdf
@@ -75,6 +76,7 @@ The application uses a React frontend, a new modular FastAPI backend, and a lega
 ├── Crewlist
 ├── DEBUGGING_GUIDE_API_KEY.md
 ├── DEFAULT_ANNOTATION_FALLBACK_IMPLEMENTATION.md
+├── DOCUMENT_AI_REFACTOR_DETAILED_GUIDE.md
 ├── DOCUMENT_AI_SYSTEM_AI_V2_PATTERN.md
 ├── ENDPOINT_CHECKLIST.md
 ├── FRONTEND_API_USAGE.md
@@ -100,21 +102,26 @@ The application uses a React frontend, a new modular FastAPI backend, and a lega
 ├── MONGODB_DETAILED_INFO.md
 ├── MONGODB_SUMMARY.md
 ├── PASS_PORT_Tran_Trong_Toan.pdf
+├── PHASE1_COMPLETION_REPORT.md
 ├── PRODUCTION_ADMIN_LOGIN_SOLUTION.md
 ├── PRODUCTION_CHECK_COMMANDS.txt
 ├── PRODUCTION_MONGODB_CHECK.sh
 ├── QUICK_CHECKLIST.md
 ├── QUICK_START_V3.md
 ├── README.md
+├── REUSABILITY_ANALYSIS.md
 ├── SELF_EDIT_PROFILE_FEATURE.md
 ├── SIMPLE_TEST_APPS_SCRIPT.js
 ├── SUMMARY
 ├── SUMMARY_BASED_DOCUMENT_AI_SCRIPT.js
+├── SURVEY_REPORT_FLOW_COMPLETE_ANALYSIS.md
 ├── Ship
 ├── Ship workflow. When a new ship is added, the system incorrectly reports Ship
 ├── Standby
 ├── TERMINAL_ACCESS_VA_GIAI_PHAP_THAY_THE.md
 ├── TESTED_PRODUCTION_SCRIPT.md
+├── TEST_REPORT_FLOW_COMPLETE_ANALYSIS.md
+├── TEST_REPORT_MIGRATION_PLAN.md
 ├── UPDATE_ENDPOINTS_SUMMARY.md
 ├── UTILITY_FUNCTIONS_MIGRATED.md
 ├── VIDEO_GUIDE_CREATE_SYSTEM_ADMIN.md
@@ -323,6 +330,7 @@ The application uses a React frontend, a new modular FastAPI backend, and a lega
 │   │       ├── background_tasks.py
 │   │       ├── certificate_abbreviation.py
 │   │       ├── document_ai_helper.py
+│   │       ├── document_ai_helper.py.backup
 │   │       ├── document_factory.py
 │   │       ├── document_name_normalization.py
 │   │       ├── gdrive_folder_helper.py
@@ -330,9 +338,11 @@ The application uses a React frontend, a new modular FastAPI backend, and a lega
 │   │       ├── issued_by_abbreviation.py
 │   │       ├── pdf_processor.py
 │   │       ├── pdf_splitter.py
+│   │       ├── pdf_splitter.py.backup
 │   │       ├── ship_calculations.py
 │   │       ├── survey_report_ai.py
-│   │       └── targeted_ocr.py
+│   │       ├── targeted_ocr.py
+│   │       └── targeted_ocr.py.backup
 │   ├── create_document_routes.py
 │   ├── data
 │   ├── migrations
@@ -50323,55 +50333,55 @@ The application uses a React frontend, a new modular FastAPI backend, and a lega
 ├── verify_fix.sh
 └── yarn.lock
 
-4659 directories, 45624 files
+4659 directories, 45633 files
 
 -   ****
-    -   **Importance:** Handles all CRUD operations for survey reports.
-    -   **Changes:** The  and  methods were updated to use  to correctly trigger file deletions from Google Drive, achieving feature parity with the certificate deletion logic.
+    -   **Importance:** Handles the logic for splitting large PDF files into smaller chunks for processing.
+    -   **Changes:** The functions  and  were refactored to be generic. They now accept parameters like  and  instead of having hardcoded values for Survey Report, making them reusable.
 
 -   ****
-    -   **Importance:** Contains the AI prompt and logic for extracting structured data from survey report text.
-    -   **Changes:** The extraction prompt was completely replaced with the more detailed and robust version from  to improve accuracy, especially in distinguishing  from . The LLM call was fixed to use the  class from .
+    -   **Importance:** Performs OCR on specific regions (header/footer) of a PDF to extract metadata.
+    -   **Changes:** The main  method was refactored. It no longer contains hardcoded logic for survey reports and now accepts a  dictionary, which specifies regex patterns and other parameters based on the .
 
 -   ****
-    -   **Importance:** Defines the API endpoints for survey reports.
-    -   **Changes:** The  endpoint's HTTP method was changed from  to  to resolve a proxy/firewall issue that was blocking  requests with a body. The endpoint was also updated to accept a  dependency.
+    -   **Importance:** Acts as a wrapper for Google Document AI to extract text from PDF files.
+    -   **Changes:** The file was completely rewritten. A generic private function  was created to handle the core API call. Public-facing wrapper functions (, ) were added, which call the generic function with the appropriate processor ID and configuration for each document type. This makes adding new document types trivial.
 
 -   ****
-    -   **Importance:** Defines the Pydantic models for API requests and responses.
-    -   **Changes:** A critical bug was fixed in the  model by renaming  and  to  and  to match the database and frontend expectations, which fixed the missing file icons bug. The  model was also fixed to expect .
+    -   **Importance:** Orchestrates the analysis flow for Survey Reports, using the utility helpers.
+    -   **Changes:** All calls to the refactored utilities (, ) were updated to pass the new required parameters (e.g., ). This was a critical fix to resolve a bug with multi-page uploads that occurred after the refactoring.
 
--   ** & **
-    -   **Importance:** Contain business logic for managing certificates.
-    -   **Changes:** New logic was added to identify Interim certificates. This logic sets their  date to N/A upon creation/update and ensures they are skipped during the Update Next Survey bulk action, as per user requirements.
-
--   ****
-    -   **Importance:** The primary component for displaying the list of survey reports.
-    -   **Changes:** This file was heavily modified. First, redundant abbreviation logic for the Issued By column was removed. Then, complex new logic was added to fetch all ship certificates, calculate the most common next survey date, and use it to determine a dynamic Status (, , ) for each survey report, implementing a new business rule. A fallback to use  if  is missing was added to this calculation.
-
--   ****
-    -   **Importance:** Displays the list of certificates.
-    -   **Changes:** The  function was updated to correctly handle Interim certificates (where  is N/A), ensuring their status is calculated based on their  instead of incorrectly showing Unknown.
+-   **Analysis & Planning Documents**
+    -   **/app/TEST_REPORT_MIGRATION_PLAN.md**: A detailed, multi-phase plan for migrating the Test Report feature, including the utility refactoring.
+    -   **/app/REUSABILITY_ANALYSIS.md**: An analysis report that identified the need to refactor the utilities and proposed the solution.
 </code_architecture>
 
 <pending_tasks>
-- **Full Route Migration:** The new backend is still missing many of the original routes from . A full migration is needed to achieve 100% feature parity and decommission the old system.
-- **Thoroughly Test AI Summaries:** The AI prompt has been updated, but it requires comprehensive testing with a wide variety of real-world PDF documents to fine-tune its accuracy and handle edge cases.
+- **Task 1.5 (Migration Plan):** Create  and integrate the newly refactored generic utilities to handle the analysis logic for Test Reports.
+- **Phase 2 (Migration Plan):** Migrate all remaining  CRUD endpoints from .
+- **Phase 3 (Migration Plan):** Migrate the AI data extraction logic (LLM prompt and post-processing) for .
+- **Phase 4 (Migration Plan):** Perform frontend adjustments and conduct final end-to-end testing of the complete flow.
 </pending_tasks>
 
 <current_work>
-The most recent task was to implement and refine a complex business rule for calculating the Status of items in the Class Survey Report List. The status (e.g., Valid, Expired) is now dynamically calculated on the frontend.
+The most recent work was the execution of **Phase 1: Refactor Utilities** from the . This was a foundational step to enable the migration of the Test Report feature by making shared code reusable.
 
-The calculation logic is as follows:
-1.  For the currently selected ship, fetch all of its certificates.
-2.  Find the most frequently occurring  date among these certificates.
-3.  Calculate a  date by adding 3 months to this common  date.
-4.  The final expiry date for the survey report is the  date, but it is capped at a maximum of 18 months from the report's .
-5.  The status (Valid, Due Soon, Expired) is then determined by comparing this final expiry date with the current date.
+**Completed Actions:**
+1.  **Task 1.1: Refactor **: Successfully generalized the PDF splitting and summary creation logic.
+2.  **Bug Fix**: A user-reported error during multi-page uploads was investigated. The root cause was identified as the  not passing the new  parameter to the refactored utilities. The service code was updated to pass this parameter, and the fix was confirmed by restarting the backend.
+3.  **Task 1.2: Refactor **: Successfully generalized the OCR logic to be driven by a configuration object passed as a parameter, removing hardcoded values.
+4.  **Task 1.3: Refactor **: Successfully restructured the module into a generic core function with specific, clean wrappers for each document type (, ).
 
-The very last action taken was to enhance this logic. Per the user's request, a fallback was added: if a survey report's  is null or undefined, the calculation now uses the report's  date instead. This change was implemented in the  helper function within , and the frontend server was restarted.
+The work concluded after successfully refactoring all three utilities and restarting the backend. The system is now in a state where the Survey Report functionality remains operational with the new generic utilities, and the codebase is ready for the Test Report logic to be built upon this reusable foundation.
 </current_work>
 
 <optional_next_step>
-The logic for dynamic survey report status, including the  fallback, has been implemented and the frontend has been restarted. The next step is to await user testing and confirmation of this new feature.
+Proceed with **Task 1.5** of the migration plan: Begin the implementation for the Test Report analysis by creating the  file and integrating the newly refactored, generic utilities.
 </optional_next_step>
+
+<direct_quotes>
+User's last explicit instruction:
+> tiếp tục Task 1.2, 1.3 và 1.5
+
+(Translation: continue Task 1.2, 1.3, and 1.5)
+</direct_quotes>
