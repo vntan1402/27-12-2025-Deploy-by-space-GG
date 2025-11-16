@@ -1697,6 +1697,152 @@ class BackendTester:
             self.log_test("Backend Logs - Check", False, f"Exception: {str(e)}")
             return False
 
+    def test_survey_report_analysis_final(self):
+        """Test POST /api/survey-reports/analyze-file endpoint - Final Test #2"""
+        print("\n📋 Testing Survey Report Analysis Endpoint - Final Test #2...")
+        
+        try:
+            # Step 1: Download the PDF file
+            print(f"📥 Downloading PDF from: {PDF_URL}")
+            pdf_response = requests.get(PDF_URL, timeout=30)
+            
+            if pdf_response.status_code != 200:
+                self.log_test("Survey Report Analysis - PDF Download", False, 
+                             f"Failed to download PDF: {pdf_response.status_code}")
+                return False
+            
+            pdf_content = pdf_response.content
+            pdf_size = len(pdf_content)
+            
+            self.log_test("Survey Report Analysis - PDF Download", True, 
+                         f"Downloaded CG (02-19).pdf ({pdf_size:,} bytes)")
+            
+            # Step 2: Get any ship ID for testing
+            ships_response = self.session.get(f"{BACKEND_URL}/ships")
+            if ships_response.status_code != 200:
+                self.log_test("Survey Report Analysis - Get Ships", False, 
+                             f"Failed to get ships: {ships_response.status_code}")
+                return False
+            
+            ships = ships_response.json()
+            if not ships:
+                self.log_test("Survey Report Analysis - Get Ships", False, "No ships found")
+                return False
+            
+            # Use any ship ID (we'll bypass validation)
+            test_ship_id = ships[0].get("id")
+            ship_name = ships[0].get("name", "Unknown")
+            
+            self.log_test("Survey Report Analysis - Ship Selection", True, 
+                         f"Using ship: {ship_name} (ID: {test_ship_id})")
+            
+            # Step 3: Test the analyze endpoint
+            print("🤖 Testing POST /api/survey-reports/analyze-file...")
+            
+            files = {
+                'survey_report_file': ('CG (02-19).pdf', pdf_content, 'application/pdf')
+            }
+            
+            data = {
+                'ship_id': test_ship_id,
+                'bypass_validation': 'true'  # As per review request
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/survey-reports/analyze-file",
+                files=files,
+                data=data,
+                timeout=120  # Allow time for AI processing
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Check response structure
+                success = result.get("success", False)
+                analysis = result.get("analysis", {})
+                
+                self.log_test("Survey Report Analysis - API Response", True, 
+                             f"Endpoint responded successfully (success: {success})")
+                
+                if success and analysis:
+                    # Step 4: Count populated fields
+                    expected_fields = [
+                        "survey_report_name", "report_form", "survey_report_no", 
+                        "issued_by", "issued_date", "ship_name", "ship_imo", 
+                        "surveyor_name", "note", "status"
+                    ]
+                    
+                    populated_fields = []
+                    for field in expected_fields:
+                        value = analysis.get(field, "")
+                        if value and str(value).strip() and str(value).strip() != "":
+                            populated_fields.append(field)
+                    
+                    populated_count = len(populated_fields)
+                    
+                    self.log_test("Survey Report Analysis - Field Extraction Count", 
+                                 populated_count >= 4,  # Success criteria: at least 4-5 fields
+                                 f"Populated fields: {populated_count}/10 - {populated_fields}")
+                    
+                    # Step 5: Check processing method
+                    processing_method = analysis.get("processing_method", "")
+                    confidence_score = analysis.get("confidence_score", 0.0)
+                    
+                    # Success criteria: NOT "document_ai_only"
+                    is_full_analysis = processing_method not in ["document_ai_only", "document_ai_failed"]
+                    
+                    self.log_test("Survey Report Analysis - Processing Method", 
+                                 is_full_analysis,
+                                 f"Method: '{processing_method}', Confidence: {confidence_score}")
+                    
+                    # Step 6: Check specific extracted fields
+                    print(f"\n📊 EXTRACTED FIELDS ANALYSIS:")
+                    for field in expected_fields:
+                        value = analysis.get(field, "")
+                        status = "✅" if value and str(value).strip() else "❌"
+                        print(f"   {status} {field}: '{value}'")
+                    
+                    # Step 7: Check for key fields from review request
+                    key_fields = ["survey_report_name", "survey_report_no", "issued_by", "issued_date"]
+                    key_fields_populated = sum(1 for field in key_fields 
+                                             if analysis.get(field, "") and str(analysis.get(field, "")).strip())
+                    
+                    self.log_test("Survey Report Analysis - Key Fields", 
+                                 key_fields_populated > 0,
+                                 f"Key fields populated: {key_fields_populated}/4")
+                    
+                    # Step 8: Overall success assessment
+                    overall_success = (
+                        populated_count >= 4 and  # At least 4 fields populated
+                        is_full_analysis and      # Full analysis method
+                        key_fields_populated > 0  # At least some key fields
+                    )
+                    
+                    self.log_test("Survey Report Analysis - Overall Success", 
+                                 overall_success,
+                                 f"SUCCESS CRITERIA: Fields≥4: {populated_count>=4}, "
+                                 f"Full Analysis: {is_full_analysis}, "
+                                 f"Key Fields>0: {key_fields_populated>0}")
+                    
+                    return overall_success
+                    
+                else:
+                    # Analysis failed
+                    message = result.get("message", "No message")
+                    self.log_test("Survey Report Analysis - AI Processing", False, 
+                                 f"Analysis failed: {message}")
+                    return False
+                    
+            else:
+                self.log_test("Survey Report Analysis - API Call", False, 
+                             f"HTTP {response.status_code}: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Survey Report Analysis - Exception", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests focused on Survey Report Analysis"""
         print("🚀 Starting Survey Report Analysis Testing Suite...")
@@ -1712,7 +1858,7 @@ class BackendTester:
         
         # Core Survey Report Analysis Tests
         self.test_ai_provider_support()
-        self.test_survey_report_analyze_endpoint()
+        self.test_survey_report_analysis_final()
         
         # Check backend logs for analysis results
         self.check_backend_logs_for_survey_analysis()
