@@ -1056,16 +1056,28 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                     {report.issued_by || '-'}
                   </td>
 
-                  {/* Status Badge */}
+                  {/* Status Badge (Dynamic) */}
                   <td className="border border-gray-300 px-4 py-2">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      report.status?.toLowerCase() === 'valid' ? 'bg-green-100 text-green-800' :
-                      report.status?.toLowerCase() === 'expired' ? 'bg-red-100 text-red-800' :
-                      report.status?.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {report.status || 'Unknown'}
-                    </span>
+                    {(() => {
+                      const status = getSurveyReportStatus(report);
+                      return (
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          status.toLowerCase() === 'valid' ? 'bg-green-100 text-green-800' :
+                          status.toLowerCase() === 'due soon' ? 'bg-orange-100 text-orange-800' :
+                          status.toLowerCase() === 'expired' ? 'bg-red-100 text-red-800' :
+                          status.toLowerCase() === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {language === 'vi' ? (
+                            status === 'Valid' ? 'Còn hiệu lực' :
+                            status === 'Due Soon' ? 'Sắp hết hạn' :
+                            status === 'Expired' ? 'Hết hiệu lực' :
+                            status === 'Pending' ? 'Đang chờ' :
+                            status
+                          ) : status}
+                        </span>
+                      );
+                    })()}
                   </td>
 
                   {/* Note (Asterisk with Tooltip) */}
