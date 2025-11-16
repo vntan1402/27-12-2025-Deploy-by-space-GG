@@ -555,3 +555,104 @@ class GDriveService:
         except Exception as e:
             logger.error(f"Error deleting Google Drive file: {e}")
             return {"success": False, "message": str(e)}
+
+    
+    @staticmethod
+    async def upload_file(
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        folder_path: str,
+        company_id: str
+    ) -> Dict[str, Any]:
+        """
+        Upload file to Google Drive via Apps Script
+        
+        Args:
+            file_content: File bytes
+            filename: File name
+            content_type: MIME type
+            folder_path: Folder path (e.g., "ShipName/Class & Flag Cert")
+            company_id: Company ID
+        
+        Returns:
+            Dict with success, file_id, message
+        """
+        import base64
+        import aiohttp
+        
+        logger.info(f"📤 Uploading file to GDrive: {filename} ({len(file_content)} bytes)")
+        
+        try:
+            # Get GDrive config
+            config = await GDriveConfigRepository.get_by_company(company_id)
+            
+            if not config:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Google Drive not configured"
+                )
+            
+            apps_script_url = config.get("web_app_url") or config.get("apps_script_url")
+            if not apps_script_url:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Apps Script URL not configured"
+                )
+            
+            # Encode file to base64
+            file_base64 = base64.b64encode(file_content).decode('utf-8')
+            
+            # Build payload
+            payload = {
+                "action": "upload_file",
+                "file_content": file_base64,
+                "filename": filename,
+                "content_type": content_type,
+                "folder_path": folder_path
+            }
+            
+            # Call Apps Script
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=120)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        
+                        if result.get("success"):
+                            file_id = result.get("file_id") or result.get("survey_report_file_id")
+                            
+                            logger.info(f"✅ File uploaded: {file_id}")
+                            
+                            return {
+                                "success": True,
+                                "file_id": file_id,
+                                "message": "File uploaded successfully"
+                            }
+                        else:
+                            error_msg = result.get("message", "Unknown error")
+                            logger.error(f"❌ Upload failed: {error_msg}")
+                            return {
+                                "success": False,
+                                "message": error_msg
+                            }
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"❌ Request failed: {response.status}")
+                        return {
+                            "success": False,
+                            "message": f"Apps Script error: {response.status}"
+                        }
+        
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading file: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to upload file: {str(e)}"
+            )
+
