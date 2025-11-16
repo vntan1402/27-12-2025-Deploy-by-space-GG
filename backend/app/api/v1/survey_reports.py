@@ -74,11 +74,12 @@ async def update_survey_report(
 @router.delete("/{doc_id}")
 async def delete_survey_report(
     doc_id: str,
+    background_tasks: BackgroundTasks,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Delete Survey Report (Editor+ role required)"""
     try:
-        return await SurveyReportService.delete_survey_report(doc_id, current_user)
+        return await SurveyReportService.delete_survey_report(doc_id, current_user, background_tasks)
     except HTTPException:
         raise
     except Exception as e:
@@ -88,11 +89,12 @@ async def delete_survey_report(
 @router.post("/bulk-delete")
 async def bulk_delete_survey_reports(
     request: BulkDeleteSurveyReportRequest,
+    background_tasks: BackgroundTasks,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """Bulk delete Survey Reports (Editor+ role required)"""
     try:
-        return await SurveyReportService.bulk_delete_survey_reports(request, current_user)
+        return await SurveyReportService.bulk_delete_survey_reports(request, current_user, background_tasks)
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Survey Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Survey Reports")
