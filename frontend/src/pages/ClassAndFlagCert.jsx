@@ -1549,8 +1549,8 @@ const ClassAndFlagCert = () => {
               totalCount={certificates.length}
               filteredCount={getFilteredCertificates().length}
               language={language}
-              linksFetching={false}
-              linksReady={0}
+              linksFetching={linksFetching}
+              linksReady={linksFetchProgress.ready}
             />
 
             {/* Certificate Table */}
