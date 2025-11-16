@@ -14,7 +14,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://naval-migrate.preview.emergentagent.com/api"
+BACKEND_URL = "https://navmaster-1.preview.emergentagent.com/api"
 TEST_USERNAME = "admin1"
 TEST_PASSWORD = "123456"
 

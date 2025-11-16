@@ -1,31 +1,41 @@
 <analysis>
-The trajectory details an extensive, reactive development process focused on migrating a legacy Python backend () to a new Clean Architecture . The work was primarily driven by user-reported issues and a compare and replicate methodology.
+The trajectory documents a comprehensive migration and bug-fixing process, moving features from a legacy Python  to a new, modular FastAPI backend, while also addressing user-reported issues on a React frontend. The work was highly iterative, driven by user feedback in Vietnamese.
 
-The process began with fixing a UI date formatting bug in the React frontend. This was followed by a more complex issue: an error during ship deletion. The engineer refactored the frontend to use a single, unified backend endpoint with a boolean flag for GDrive folder deletion, applying this fix across seven different pages.
+The process began with fixing UI bugs related to date formatting and ship deletion. A major effort was migrating the complex, AI-driven multi-certificate upload feature, which involved debugging API routes, Pydantic models, and AI prompts. Subsequently, the engineer migrated critical business logic for calculating ship survey dates.
 
-A major phase involved migrating the complex multi-certificate upload feature (), which was causing 405 errors. This was a significant undertaking, involving creating a new service, debugging  errors, fixing Pydantic date validation issues, improving AI prompts, and correcting module import paths.
+Following this, a series of UI/UX improvements were made to the certificate and test report lists, such as adding tooltips for notes and reorganizing page layouts based on specific user requests. A significant bug was fixed where files were not being deleted from Google Drive due to a repository misconfiguration.
 
-Subsequently, the user reported errors with Next Survey and Upcoming Survey features, which were traced to missing backend endpoints. The engineer migrated several complex business logic functions from  for calculating survey dates, docking dates, and special survey cycles, consolidating them into . The final task was debugging a  error for the  endpoint, which was resolved by correcting the route order in FastAPI. The conversation is in Vietnamese; the next agent must respond in Vietnamese.
+The most recent major task was the complete migration of the Add Survey Report flow. This was a multi-step process involving porting  and  utilities, creating new services for analysis and file uploads, and integrating with Google Document AI via an Apps Script. The engineer debugged several critical 500 errors related to this new flow, including missing service methods and incorrect Apps Script action names. The final task was debugging a frontend issue where the analysis results were not auto-filling the Add Survey Report modal form fields.
+
+The user's language is Vietnamese. The next agent must respond in Vietnamese.
 </analysis>
-<product_requirements>
-The primary objective is to migrate a legacy monolithic FastAPI application () to a new, modular Clean Architecture backend (), ensuring full feature parity and resolving bugs reported by the user on the existing React frontend.
 
-**Key Features & Fixes Implemented:**
-1.  **UI Date Formatting:** Fixed an issue in the  where  dates were being incorrectly reformatted. The dates are now displayed exactly as they are stored in the database.
-2.  **Unified Ship Deletion:** Refactored a fragmented ship deletion process. Previously, frontend logic made separate calls to delete a ship record and its Google Drive folder. This was consolidated into a single backend API call (), and the fix was propagated across 7 frontend pages.
-3.  **Certificate Multi-Upload Migration:** A critical and complex endpoint () was migrated from . This involved replicating logic for AI-powered PDF analysis, data validation, duplicate checking, and GDrive file handling.
-4.  **Survey & Docking Calculation Logic:** Migrated several crucial business logic endpoints and functions from  to calculate , , and  dates based on complex rules, certificate data, and anniversary dates.
+<product_requirements>
+The primary objective is to incrementally migrate a legacy monolithic FastAPI application () to a new, modular Clean Architecture backend, while simultaneously fixing bugs and implementing UI/UX improvements on the React frontend based on user feedback.
+
+**Completed Features & Fixes:**
+1.  **Bug Fixes:** Resolved issues with certificate date persistence, incorrect Issued By abbreviation logic, and non-functional Google Drive file deletion upon record removal.
+2.  **UI/UX Enhancements:**
+    -   Improved the Notes column in both the Test Report and Certificate List tables to show a  with a hover-activated tooltip, providing a consistent user experience.
+    -   Re-architected the Certificate List page header to place the title and action buttons on the same row, with a descriptive subtitle below, per user specifications.
+    -   Ensured modals close automatically in a logical sequence (e.g., closing the Processing Results modal also closes the Add Certificate modal).
+3.  **Feature Migration:**
+    -   Successfully migrated the  endpoint for individual and batch certificate renaming.
+    -   Ported the entire Add Survey Report analysis flow from , including logic for handling large PDFs (), targeted OCR (), Document AI integration, and file uploads to Google Drive.
 </product_requirements>
+
 <key_technical_concepts>
 - **Backend:** FastAPI, Python, Pydantic, Clean Architecture (Services, Repositories).
-- **Frontend:** React.js.
+- **Frontend:** React.js, Axios.
 - **Database:** MongoDB.
-- **Development Strategy:** Compare and Replicate - analyzing the legacy  to understand and migrate complex business logic to the new modular structure.
-- **API Routing:** Debugging and fixing FastAPI route ordering conflicts to resolve 404 errors.
-- **Code Consolidation:** Refactoring duplicated logic into a single, authoritative module ().
+- **AI & PDF Processing:** Google Document AI,  for OCR,  &  for PDF splitting.
+- **Integrations:** Google Drive integration via Google Apps Script for file operations (upload, rename, delete).
+- **Development Strategy:** Compare and Replicate legacy code from  into the new modular structure.
+- **Debugging:** Investigating frontend state management, backend logs, API routing conflicts, and model validation.
 </key_technical_concepts>
+
 <code_architecture>
-The project architecture involves a new modular backend being built alongside a monolithic legacy backend, which serves as a reference.
+The project consists of a React frontend, a new modular FastAPI backend (), and the original monolithic backend () used for reference.
 
 .
 ├── 2_CO_DUC_PP.pdf
@@ -78,6 +88,7 @@ The project architecture involves a new modular backend being built alongside a 
 ├── MARITIME_DOCUMENTS_AI_SCRIPT.js
 ├── MARITIME_V3_COMPATIBLE.js
 ├── METHOD_1_IMPLEMENTATION_COMPLETE.md
+├── MIGRATION_CHECKLIST.md
 ├── MIGRATION_COMPLETE_SUMMARY.md
 ├── MIGRATION_PROGRESS.md
 ├── MIGRATION_QUICK_START.md
@@ -265,6 +276,7 @@ The project architecture involves a new modular backend being built alongside a 
 │   │   │   │   ├── other_doc_service.cpython-311.pyc
 │   │   │   │   ├── ship_service.cpython-311.pyc
 │   │   │   │   ├── survey_calculation_service.cpython-311.pyc
+│   │   │   │   ├── survey_report_analyze_service.cpython-311.pyc
 │   │   │   │   ├── survey_report_service.cpython-311.pyc
 │   │   │   │   ├── test_report_service.cpython-311.pyc
 │   │   │   │   └── user_service.cpython-311.pyc
@@ -284,6 +296,7 @@ The project architecture involves a new modular backend being built alongside a 
 │   │   │   ├── other_audit_document_service.py
 │   │   │   ├── other_doc_service.py
 │   │   │   ├── ship_service.py
+│   │   │   ├── survey_report_analyze_service.py
 │   │   │   ├── survey_report_service.py
 │   │   │   ├── test_report_service.py
 │   │   │   └── user_service.py
@@ -294,22 +307,30 @@ The project architecture involves a new modular backend being built alongside a 
 │   │       │   ├── ai_helper.cpython-311.pyc
 │   │       │   ├── background_tasks.cpython-311.pyc
 │   │       │   ├── certificate_abbreviation.cpython-311.pyc
+│   │       │   ├── document_ai_helper.cpython-311.pyc
 │   │       │   ├── document_name_normalization.cpython-311.pyc
 │   │       │   ├── gdrive_folder_helper.cpython-311.pyc
 │   │       │   ├── gdrive_helper.cpython-311.pyc
 │   │       │   ├── issued_by_abbreviation.cpython-311.pyc
 │   │       │   ├── pdf_processor.cpython-311.pyc
-│   │       │   └── ship_calculations.cpython-311.pyc
+│   │       │   ├── pdf_splitter.cpython-311.pyc
+│   │       │   ├── ship_calculations.cpython-311.pyc
+│   │       │   ├── survey_report_ai.cpython-311.pyc
+│   │       │   └── targeted_ocr.cpython-311.pyc
 │   │       ├── ai_helper.py
 │   │       ├── background_tasks.py
 │   │       ├── certificate_abbreviation.py
+│   │       ├── document_ai_helper.py
 │   │       ├── document_factory.py
 │   │       ├── document_name_normalization.py
 │   │       ├── gdrive_folder_helper.py
 │   │       ├── gdrive_helper.py
 │   │       ├── issued_by_abbreviation.py
 │   │       ├── pdf_processor.py
-│   │       └── ship_calculations.py
+│   │       ├── pdf_splitter.py
+│   │       ├── ship_calculations.py
+│   │       ├── survey_report_ai.py
+│   │       └── targeted_ocr.py
 │   ├── create_document_routes.py
 │   ├── data
 │   ├── migrations
@@ -393,6 +414,7 @@ The project architecture involves a new modular backend being built alongside a 
 │   ├── recreate_email_index.py
 │   ├── remove_email_unique_index.py
 │   ├── requirements.txt
+│   ├── sedtUcA6x
 │   ├── seed_database.py
 │   ├── server.py
 │   ├── server_mongodb.py
@@ -415,6 +437,7 @@ The project architecture involves a new modular backend being built alongside a 
 │       ├── logo_95710989-837b-47a1-ab7b-a9816e62586d.png
 │       └── logo_eee55398-9756-4a58-86e7-227c3c139ae3.png
 ├── backend_test.py
+├── check_cert_update_logs.sh
 ├── check_missing_endpoints.py
 ├── cleanup_executor.sh
 ├── debug_cert_fields.sh
@@ -50298,37 +50321,36 @@ The project architecture involves a new modular backend being built alongside a 
 ├── verify_fix.sh
 └── yarn.lock
 
-4659 directories, 45611 files
-
-**File Highlights:**
+4659 directories, 45624 files
 
 -   ****
-    -   **Importance:** Handles all certificate-related API routes.
-    -   **Summary of Changes:** The most critical change was fixing a FastAPI routing conflict by moving the  route definition before the dynamic  route. This resolved a persistent 404 error. The  endpoint was also added to enable the certificate upload feature.
+    -   **Importance:** This repository is the single point of access for Google Drive configurations.
+    -   **Summary of Changes:** Fixed a critical bug by changing the queried collection name from  to  and the field name from  to . This resolved persistent No Google Drive configuration found errors and fixed file deletion across the entire application.
 
 -   ****
-    -   **Importance:** Centralizes all complex business logic for ship survey and docking date calculations.
-    -   **Summary of Changes:** This file became the single source of truth for maritime calculations. Logic from the legacy  and a temporary  was consolidated here. This includes functions to calculate the Special Survey cycle, next docking date, and upcoming surveys, ensuring logic is not duplicated.
-
--   ** (7 files)**
-    -   **Importance:** These pages contain the UI and logic for managing different aspects of a ship's data.
-    -   **Summary of Changes:** The  function was refactored across all seven files (, , etc.) to use a new, unified call to , passing a boolean to control the deletion of the associated Google Drive folder. This fixed a bug and streamlined the deletion process.
+    -   **Importance:** Encapsulates the entire complex logic for analyzing a survey report PDF, which was migrated from .
+    -   **Summary of Changes:** This new file orchestrates PDF splitting (), targeted OCR (), and Document AI analysis (), and finally extracts structured data using AI prompts ().
 
 -   ****
-    -   **Importance:** This legacy monolithic file was the primary reference for the entire migration effort.
-    -   **Summary of Changes:** This file was read-only. It was extensively analyzed to understand the original implementation of certificate uploads, AI analysis, survey calculations, and other business rules before they were ported to the new backend.
+    -   **Importance:** This is the main page for managing ship certificates and contains complex state and UI logic.
+    -   **Summary of Changes:** Major UI refactoring was done to move the page title and action buttons into a single row, as requested by the user. It was also modified to fix a  during the batch auto-rename process by introducing a new state variable () to decouple the action from the context menu's lifecycle.
+
+-   ****
+    -   **Importance:** Displays the list of all certificates.
+    -   **Summary of Changes:** The Notes column was updated to show a red  if notes exist and a  otherwise. A tooltip showing the full note content on hover was added, creating a consistent UX with the Test Report page. A fallback check  was added to handle legacy data where the  flag was not set.
 </code_architecture>
+
 <pending_tasks>
-- **Complete Full Route Migration:** The new backend is still missing many of the original 179 routes from . A full migration is necessary to achieve 100% feature parity and prevent future 404 errors.
-- **Address GDrive Config Issue:** An earlier No Google Drive configuration found error was noted. This needs investigation to ensure asynchronous background tasks for GDrive operations are robust.
+- **Complete Full Route Migration:** The new backend is still missing many of the original 179 routes from . A full migration is necessary to achieve 100% feature parity.
+- **Thoroughly Test AI Summaries:** The  function has been migrated but needs to be tested with real Document AI summaries to tune prompts and ensure accuracy.
 </pending_tasks>
+
 <current_work>
-The most recent task was to diagnose and fix a 404 Not Found error for the  endpoint, which the user reported as Error checking upcoming surveys. The  endpoint was working, but the  endpoint was failing despite being present in the code.
+The most recent task was to investigate a user-reported bug in the **Add Survey Report** flow. After a file is successfully analyzed by the backend AI, the frontend displays a success message (✅ Analysis complete! Please review and edit if needed.), but it fails to **auto-fill the form fields** in the  with the extracted data (e.g., ship name, survey type, dates).
 
-The previous engineer correctly deduced that the issue was not a missing endpoint but a **routing order conflict** within FastAPI. In the file , the specific route  was defined *after* the dynamic, general-purpose route . Because FastAPI evaluates routes sequentially, it was incorrectly interpreting upcoming-surveys as a value for , leading to a Certificate not found message internally and a 404 error to the client.
-
-The fix involved editing  to move the  route definition *before* the  route, ensuring the specific route is matched first. The backend was about to be reloaded to apply this fix.
+The previous engineer had just started debugging this issue. They correctly identified that the problem lies within the frontend and began analyzing the  page. They noted that the existing code at the point of analysis seemed to be designed for a batch processing mode (handling multiple files) and was not correctly populating the modal's form for a single file analysis. The investigation was paused while trying to locate the specific code block responsible for handling the single-file analysis result and populating the form.
 </current_work>
+
 <optional_next_step>
-Perfect! The routing has been corrected. The backend will now auto-reload. Please refresh the frontend and verify if the Upcoming Surveys feature now works correctly.
+Continue debugging the frontend by examining  and its child components to find where the analysis result is received and why it's not being set into the state that controls the  form fields.
 </optional_next_step>
