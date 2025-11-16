@@ -1002,16 +1002,8 @@ const ClassAndFlagCert = () => {
   // Execute batch auto rename
   const handleExecuteBatchAutoRename = async () => {
     try {
-      // Get certificates to rename
-      let certificatesToRename = [];
-      
-      if (selectedCertificates.size > 0) {
-        // Use selected certificates if any are checked
-        certificatesToRename = Array.from(selectedCertificates);
-      } else if (contextMenu && contextMenu.certificate && contextMenu.certificate.id) {
-        // Use the right-clicked certificate if no checkboxes are selected
-        certificatesToRename = [contextMenu.certificate.id];
-      }
+      // Use certificates from state (already determined when dialog opened)
+      const certificatesToRename = certificatesToAutoRename;
 
       if (certificatesToRename.length === 0) {
         toast.error(language === 'vi' ? 'Vui lòng chọn ít nhất một chứng chỉ để đổi tên!' : 'Please select at least one certificate to rename!');
