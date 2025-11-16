@@ -1128,6 +1128,7 @@ const ClassAndFlagCert = () => {
       
       // Reset progress on error
       setBatchRenameProgress({ isRunning: false, completed: 0, total: 0, current: '', errors: [] });
+      setCertificatesToAutoRename([]); // Clear certificates to rename
     }
   };
 
