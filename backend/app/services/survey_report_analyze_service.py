@@ -456,7 +456,7 @@ class SurveyReportAnalyzeService:
             'issued_date': 'Processing...'
         }
         
-        merged_summary = splitter.create_enhanced_merged_summary(
+        merged_summary = create_enhanced_merged_summary(
             chunk_results=chunk_results,
             merged_data=temp_merged_data,
             original_filename=filename,
