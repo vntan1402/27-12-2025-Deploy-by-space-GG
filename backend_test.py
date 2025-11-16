@@ -75,7 +75,7 @@ class BackendTester:
             return False
     
     def test_ai_config_get(self):
-        """Test GET /api/ai-config endpoint"""
+        """Test GET /api/ai-config endpoint - Review Request Requirements"""
         print("\n🤖 Testing AI Configuration GET...")
         
         try:
@@ -84,13 +84,23 @@ class BackendTester:
             if response.status_code == 200:
                 data = response.json()
                 
+                # Log provider, model, use_emergent_key values as requested
+                provider = data.get('provider', 'Not Set')
+                model = data.get('model', 'Not Set')
+                use_emergent_key = data.get('use_emergent_key', False)
+                
+                print(f"   📋 AI Configuration Details:")
+                print(f"      Provider: {provider}")
+                print(f"      Model: {model}")
+                print(f"      Use Emergent Key: {use_emergent_key}")
+                
                 # Check required fields
                 required_fields = ["provider", "model", "use_emergent_key"]
                 missing_fields = [field for field in required_fields if field not in data]
                 
                 if not missing_fields:
                     self.log_test("AI Config GET - Structure", True, 
-                                 f"Provider: {data.get('provider')}, Model: {data.get('model')}")
+                                 f"Provider: {provider}, Model: {model}, Use Emergent Key: {use_emergent_key}")
                     
                     # Check if using EMERGENT_LLM_KEY
                     if data.get("use_emergent_key"):
