@@ -987,13 +987,13 @@ const ClassAndFlagCert = () => {
       if (selectedCertificates.size > 0) {
         // Use selected certificates if any are checked
         certificatesToRename = Array.from(selectedCertificates);
-      } else if (contextMenu.certificate?.id) {
+      } else if (contextMenu && contextMenu.certificate && contextMenu.certificate.id) {
         // Use the right-clicked certificate if no checkboxes are selected
         certificatesToRename = [contextMenu.certificate.id];
       }
 
       if (certificatesToRename.length === 0) {
-        toast.error(language === 'vi' ? 'Không có chứng chỉ nào được chọn!' : 'No certificates selected!');
+        toast.error(language === 'vi' ? 'Vui lòng chọn ít nhất một chứng chỉ để đổi tên!' : 'Please select at least one certificate to rename!');
         return;
       }
 
