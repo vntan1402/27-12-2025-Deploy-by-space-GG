@@ -717,6 +717,3 @@ class CertificateService:
                 status_code=500,
                 detail=f"Failed to communicate with Google Drive: {str(e)}"
             )
-
-                detail=f"Failed to analyze certificate: {str(e)}"
-            )
