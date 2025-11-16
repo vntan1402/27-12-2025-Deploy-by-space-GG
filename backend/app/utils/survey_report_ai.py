@@ -40,11 +40,24 @@ async def extract_survey_report_fields_from_summary(
         
         # Call AI based on provider
         if ai_provider in ["google", "emergent"]:
-            from emergentintegrations import get_text_generation_google
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            from app.core.config import settings
             
-            response = await get_text_generation_google(
-                prompt=prompt,
-                model=ai_model or "gemini-2.0-flash-exp",
+            # Get Emergent LLM key
+            emergent_key = settings.EMERGENT_LLM_KEY
+            if not emergent_key:
+                logger.error("EMERGENT_LLM_KEY not configured")
+                return {}
+            
+            # Use LlmChat with google provider
+            chat = LlmChat(
+                api_key=emergent_key,
+                provider="google",
+                model=ai_model or "gemini-2.0-flash-exp"
+            )
+            
+            response = await chat.send_message_async(
+                messages=[UserMessage(content=prompt)],
                 temperature=0.0,
                 max_tokens=2000
             )
