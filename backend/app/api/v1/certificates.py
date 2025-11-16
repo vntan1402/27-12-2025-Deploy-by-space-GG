@@ -172,6 +172,7 @@ async def get_upcoming_surveys(
                     "next_survey_type": cert.get("next_survey_type"),
                     "last_endorse": cert.get("last_endorse"),
                     "status": cert.get("status"),
+                    "survey_status": status,
                     "days_until_survey": days_until_survey,
                     "days_until_window_close": days_until_window_close,
                     "is_overdue": is_overdue,
