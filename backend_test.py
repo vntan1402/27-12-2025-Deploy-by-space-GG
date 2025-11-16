@@ -16,7 +16,7 @@ from datetime import datetime
 
 # Configuration
 BACKEND_URL = "https://navmaster-1.preview.emergentagent.com/api"
-TEST_USERNAME = "admin1@gmail.com"
+TEST_USERNAME = "admin1"
 TEST_PASSWORD = "123456"
 
 class BackendTester:
