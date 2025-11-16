@@ -171,11 +171,11 @@ class TargetedOCRProcessor:
                 result['report_form'] = report_form
                 logger.info(f"✅ Extracted report_form: '{report_form}'")
             
-            # Extract survey_report_no
-            survey_report_no = self._extract_report_no(combined_text)
-            if survey_report_no:
-                result['survey_report_no'] = survey_report_no
-                logger.info(f"✅ Extracted survey_report_no: '{survey_report_no}'")
+            # Extract report_no (dynamic field name)
+            report_no = self._extract_report_no(combined_text)
+            if report_no:
+                result[report_no_field] = report_no  # Dynamic assignment
+                logger.info(f"✅ Extracted {report_no_field}: '{report_no}'")
             
             result['ocr_success'] = True
             logger.info(f"✅ Targeted OCR completed successfully")
