@@ -147,10 +147,12 @@ class CertificateService:
             logger.info(f"✅ Regenerated issued_by abbreviation: '{update_data['issued_by']}' → '{update_data['issued_by_abbreviation']}'")
         
         if update_data:
+            logger.info(f"🔍 DEBUG - About to save to DB: {update_data}")
             await CertificateRepository.update(cert_id, update_data)
         
         # Get updated certificate
         updated_cert = await CertificateRepository.find_by_id(cert_id)
+        logger.info(f"🔍 DEBUG - Certificate after update from DB: next_survey = {updated_cert.get('next_survey')}")
         
         # Generate certificate abbreviation if not present
         if not updated_cert.get("cert_abbreviation") and updated_cert.get("cert_name"):
