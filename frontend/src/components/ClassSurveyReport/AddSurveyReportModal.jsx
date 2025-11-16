@@ -345,14 +345,32 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
       }
 
       // Upload files in background if file was uploaded and analyzed
+      console.log('🔍 Upload check:', {
+        uploadedFile: !!uploadedFile,
+        analyzedData: !!analyzedData,
+        reportId: createdReport.id,
+        hasFileContent: analyzedData?._file_content ? 'yes' : 'no',
+        hasFilename: analyzedData?._filename ? 'yes' : 'no',
+        hasSummary: analyzedData?._summary_text ? 'yes' : 'no'
+      });
+      
       if (uploadedFile && analyzedData && createdReport.id) {
-        uploadFilesInBackground(
-          createdReport.id,
-          analyzedData._file_content,
-          analyzedData._filename,
-          analyzedData._content_type,
-          analyzedData._summary_text
-        );
+        if (analyzedData._file_content && analyzedData._filename) {
+          console.log('✅ Starting background file upload...');
+          uploadFilesInBackground(
+            createdReport.id,
+            analyzedData._file_content,
+            analyzedData._filename,
+            analyzedData._content_type || 'application/pdf',
+            analyzedData._summary_text || ''
+          );
+        } else {
+          console.warn('⚠️ Missing file content or filename in analyzedData');
+          toast.warning(language === 'vi' 
+            ? '⚠️ Không thể upload file - thiếu dữ liệu file' 
+            : '⚠️ Cannot upload file - missing file data'
+          );
+        }
       }
 
       // Reset upload state
