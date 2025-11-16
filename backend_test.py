@@ -1,21 +1,23 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Complete Survey Report Flow - Analysis + Upload
+Backend Testing Script for Test Report Migration - Phase 2 Backend Testing
 
-Tests the complete end-to-end Survey Report flow as requested:
-1. Login with admin1@gmail.com / 123456
-2. Download PDF from specified URL
-3. Test Analysis Endpoint (POST /api/survey-reports/analyze-file)
-4. Create Survey Report (POST /api/survey-reports)
-5. Test Upload Endpoint (POST /api/survey-reports/{report_id}/upload-files)
-6. Verify Database Update (GET /api/survey-reports/{report_id})
+Tests the complete Test Report functionality as requested:
+1. Login with admin1/123456
+2. Test Report Analyze Endpoint (POST /api/test-reports/analyze-file)
+3. Test Report Upload Files Endpoint (POST /api/test-reports/{report_id}/upload-files)
+4. Valid Date Calculator Tests
+5. Integration Tests
+6. Error Handling
 
 Success Criteria:
-- ✅ Analysis returns file content
-- ✅ Report created successfully
-- ✅ Upload returns file IDs (not None)
-- ✅ Database record updated with file IDs
-- ✅ No "File uploaded: None" in logs
+- ✅ Analyze endpoint returns analysis with all expected fields
+- ✅ Valid date calculated correctly based on equipment type
+- ✅ issued_by normalized to standard abbreviation
+- ✅ Ship validation works (60% similarity threshold)
+- ✅ Upload endpoint successfully uploads files
+- ✅ Database updated with file IDs
+- ✅ Complete flow works end-to-end
 """
 
 import requests
