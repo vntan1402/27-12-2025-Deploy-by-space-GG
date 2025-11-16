@@ -35,6 +35,186 @@ async def get_certificates(
         logger.error(f"❌ Error fetching certificates: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch certificates")
 
+@router.get("/upcoming-surveys")
+async def get_upcoming_surveys(
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get upcoming surveys with annotation-based window logic
+    NOTE: This route MUST be before /{cert_id} to avoid routing conflict
+    """
+    from datetime import datetime, timedelta
+    from app.db.mongodb import mongo_db
+    from dateutil.relativedelta import relativedelta
+    import re
+    
+    try:
+        user_company = current_user.company
+        logger.info(f"🔍 Checking upcoming surveys for company: {user_company}")
+        
+        # Get company record
+        company_record = await mongo_db.database.companies.find_one({"id": user_company})
+        company_name = None
+        if company_record:
+            company_name = company_record.get('name_en') or company_record.get('name_vn')
+        
+        # Get all ships by company ID or name
+        ships_query = {"$or": [{"company": user_company}]}
+        if company_name:
+            ships_query["$or"].append({"company": company_name})
+        
+        ships = await mongo_db.database.ships.find(ships_query).to_list(length=1000)
+        ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
+        
+        logger.info(f"🚢 Found {len(ships)} ships for company")
+        
+        if not ship_ids:
+            return {
+                "upcoming_surveys": [],
+                "total_count": 0,
+                "company": user_company,
+                "check_date": datetime.now().date().isoformat()
+            }
+        
+        # Get all certificates from these ships
+        all_certificates = await mongo_db.database.certificates.find(
+            {"ship_id": {"$in": ship_ids}}
+        ).to_list(length=10000)
+        
+        logger.info(f"📄 Found {len(all_certificates)} total certificates to check")
+        
+        current_date = datetime.now().date()
+        upcoming_surveys = []
+        
+        for cert in all_certificates:
+            try:
+                # Get Next Survey Display field
+                next_survey_display = cert.get('next_survey_display') or cert.get('next_survey')
+                
+                if not next_survey_display:
+                    continue
+                
+                # Parse date (dd/mm/yyyy format or ISO)
+                next_survey_str = str(next_survey_display)
+                date_match = re.search(r'(\d{2}/\d{2}/\d{4})', next_survey_str)
+                
+                if not date_match:
+                    # Try ISO format
+                    date_match_alt = re.search(r'(\d{4}-\d{2}-\d{2})', next_survey_str)
+                    if date_match_alt:
+                        date_str = date_match_alt.group(1)
+                        next_survey_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+                    else:
+                        continue
+                else:
+                    date_str = date_match.group(1)
+                    next_survey_date = datetime.strptime(date_str, '%d/%m/%Y').date()
+                
+                # Determine window based on annotation
+                if '(±3M)' in next_survey_str or '(+3M)' in next_survey_str or '(+-3M)' in next_survey_str:
+                    # Window: Next Survey ± 3M
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date + relativedelta(months=3)
+                elif '(-3M)' in next_survey_str:
+                    # Window: Next Survey - 3M → Next Survey (only before)
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date
+                else:
+                    # No annotation found - DEFAULT to (-3M) for safety (backend-v1 logic)
+                    window_open = next_survey_date - relativedelta(months=3)
+                    window_close = next_survey_date
+                    logger.debug(f"Certificate {cert.get('id')} has no annotation - using default (-3M) window")
+                
+                # Check if current date is WITHIN window (backend-v1 logic)
+                if not (window_open <= current_date <= window_close):
+                    continue  # Not within window yet
+                
+                # Calculate status
+                days_until_window_close = (window_close - current_date).days
+                days_until_survey = (next_survey_date - current_date).days
+                
+                # Status logic (unified with backend-v1)
+                is_overdue = current_date > window_close
+                is_critical = 0 <= days_until_window_close <= 30
+                
+                # Due Soon: within window but > 30 days to close
+                window_close_minus_30_date = window_close - timedelta(days=30)
+                is_due_soon = window_open < current_date < window_close_minus_30_date
+                
+                # Determine primary status
+                if is_overdue:
+                    status = "overdue"
+                elif is_critical:
+                    status = "critical"
+                elif is_due_soon:
+                    status = "due_soon"
+                else:
+                    status = "within_window"
+                
+                # Get ship info
+                ship = next((s for s in ships if s.get('id') == cert.get('ship_id')), None)
+                
+                # Get cert abbreviation
+                cert_abbreviation = cert.get('cert_abbreviation') or cert.get('abbreviation', '')
+                cert_name_display = f"{cert.get('cert_name', '')} ({cert_abbreviation})" if cert_abbreviation else cert.get('cert_name', '')
+                
+                upcoming_surveys.append({
+                    "certificate_id": cert.get("id"),
+                    "ship_id": cert.get("ship_id"),
+                    "ship_name": ship.get("name") if ship else "Unknown",
+                    "cert_name": cert.get("cert_name"),
+                    "cert_abbreviation": cert_abbreviation,
+                    "cert_name_display": cert_name_display,
+                    "cert_type": cert.get("cert_type"),
+                    "cert_no": cert.get("cert_no"),
+                    "next_survey": next_survey_str,
+                    "next_survey_date": next_survey_date.isoformat(),
+                    "next_survey_type": cert.get("next_survey_type"),
+                    "last_endorse": cert.get("last_endorse"),
+                    "status": cert.get("status"),
+                    "days_until_survey": days_until_survey,
+                    "days_until_window_close": days_until_window_close,
+                    "is_overdue": is_overdue,
+                    "is_due_soon": is_due_soon,
+                    "is_critical": is_critical,
+                    "is_within_window": True,
+                    "window_open": window_open.isoformat(),
+                    "window_close": window_close.isoformat(),
+                    "window_type": "±3M" if '(±3M)' in next_survey_str else "-3M"
+                })
+                
+            except Exception as e:
+                logger.warning(f"Error processing certificate {cert.get('id')}: {e}")
+                continue
+        
+        # Sort by next_survey_date (soonest first) - backend-v1 logic
+        upcoming_surveys.sort(key=lambda x: x.get("next_survey_date") or "9999-12-31")
+        
+        logger.info(f"✅ Found {len(upcoming_surveys)} certificates with upcoming surveys")
+        
+        return {
+            "upcoming_surveys": upcoming_surveys,
+            "total_count": len(upcoming_surveys),
+            "company": user_company,
+            "company_name": company_name,
+            "check_date": current_date.isoformat(),
+            "logic_info": {
+                "description": "Ship Certificate survey windows based on Next Survey annotation",
+                "window_rules": {
+                    "±3M": "Window: Next Survey Date ± 3 months",
+                    "-3M": "Window: Next Survey Date - 3 months → Next Survey Date (only before)",
+                    "default": "No annotation → use -3M window",
+                    "Due Soon": "window_open < current_date < (window_close - 30 days)",
+                    "Critical": "≤ 30 days to window_close",
+                    "Overdue": "Past window_close"
+                }
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error checking upcoming surveys: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to check upcoming surveys: {str(e)}")
+
 @router.get("/{cert_id}", response_model=CertificateResponse)
 async def get_certificate_by_id(
     cert_id: str,
