@@ -97,6 +97,7 @@ const ClassAndFlagCert = () => {
 
   // Auto rename state
   const [showAutoRenameDialog, setShowAutoRenameDialog] = useState(false);
+  const [certificatesToAutoRename, setCertificatesToAutoRename] = useState([]);
   const [batchRenameProgress, setBatchRenameProgress] = useState({
     isRunning: false,
     completed: 0,
