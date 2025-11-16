@@ -362,7 +362,7 @@ async def update_ship_audit_certificates_next_survey(
         
         for cert in certificates:
             # Calculate next survey
-            survey_info = SurveyCalculationService.calculate_audit_certificate_next_survey(cert)
+            survey_info = calculate_audit_certificate_next_survey(cert)
             
             # Prepare update data
             update_data = {}
