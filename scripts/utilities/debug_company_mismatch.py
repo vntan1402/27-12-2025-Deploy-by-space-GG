@@ -7,7 +7,7 @@ import requests
 import json
 
 # Backend URL
-BACKEND_URL = "https://navmaster-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://ship-cert-system-1.preview.emergentagent.com/api"
 
 def debug_company_mismatch():
     """Debug the company ID mismatch"""

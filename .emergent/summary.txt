@@ -1,41 +1,43 @@
 <analysis>
-The trajectory documents a comprehensive migration and bug-fixing process, moving features from a legacy Python  to a new, modular FastAPI backend, while also addressing user-reported issues on a React frontend. The work was highly iterative, driven by user feedback in Vietnamese.
+The trajectory chronicles an extensive and iterative development cycle focused on migrating and debugging the Add Survey Report feature from a legacy Python backend () to a new modular FastAPI backend, alongside numerous frontend fixes and feature enhancements on a React application. The user's language is Vietnamese, and all future interactions must be in Vietnamese.
 
-The process began with fixing UI bugs related to date formatting and ship deletion. A major effort was migrating the complex, AI-driven multi-certificate upload feature, which involved debugging API routes, Pydantic models, and AI prompts. Subsequently, the engineer migrated critical business logic for calculating ship survey dates.
+The process began with debugging a frontend bug where a form failed to auto-fill after AI analysis. This led to a deep dive into the entire stack, revealing and fixing critical infrastructure issues like missing OCR libraries (Poppler, Tesseract) and an unsupported AI provider in the new backend. A significant effort was made to align the new backend's behavior with the legacy system by comparing code, particularly for Google Drive file operations (upload/delete), which involved correcting Apps Script actions and parameters.
 
-Following this, a series of UI/UX improvements were made to the certificate and test report lists, such as adding tooltips for notes and reorganizing page layouts based on specific user requests. A significant bug was fixed where files were not being deleted from Google Drive due to a repository misconfiguration.
+Several bugs were addressed based on user feedback, including:
+- Fixing a 404 error on bulk-delete by changing the HTTP method from DELETE to POST.
+- Ensuring file deletion from Google Drive upon record deletion by implementing background tasks.
+- Improving AI prompt engineering to prevent misidentification of data fields (e.g., 'ship type' vs. 'ship name').
+- Correcting Pydantic response models to match database field names, which resolved issues with file icons not appearing on the frontend.
 
-The most recent major task was the complete migration of the Add Survey Report flow. This was a multi-step process involving porting  and  utilities, creating new services for analysis and file uploads, and integrating with Google Document AI via an Apps Script. The engineer debugged several critical 500 errors related to this new flow, including missing service methods and incorrect Apps Script action names. The final task was debugging a frontend issue where the analysis results were not auto-filling the Add Survey Report modal form fields.
-
-The user's language is Vietnamese. The next agent must respond in Vietnamese.
+The most recent work involved implementing complex business logic directly on the frontend for both the Certificate and Survey Report lists, such as handling Interim certificate statuses and creating a dynamic, calculated status for Survey Reports based on other data within the application. The final action was a small but crucial fix to this new logic, adding a fallback for a missing date.
 </analysis>
 
 <product_requirements>
-The primary objective is to incrementally migrate a legacy monolithic FastAPI application () to a new, modular Clean Architecture backend, while simultaneously fixing bugs and implementing UI/UX improvements on the React frontend based on user feedback.
+The primary objective is to migrate features from a monolithic legacy application () to a new, modular FastAPI backend, while also enhancing a React frontend based on user feedback. The core of the work is to achieve feature parity, fix bugs, and implement new business logic.
 
-**Completed Features & Fixes:**
-1.  **Bug Fixes:** Resolved issues with certificate date persistence, incorrect Issued By abbreviation logic, and non-functional Google Drive file deletion upon record removal.
-2.  **UI/UX Enhancements:**
-    -   Improved the Notes column in both the Test Report and Certificate List tables to show a  with a hover-activated tooltip, providing a consistent user experience.
-    -   Re-architected the Certificate List page header to place the title and action buttons on the same row, with a descriptive subtitle below, per user specifications.
-    -   Ensured modals close automatically in a logical sequence (e.g., closing the Processing Results modal also closes the Add Certificate modal).
-3.  **Feature Migration:**
-    -   Successfully migrated the  endpoint for individual and batch certificate renaming.
-    -   Ported the entire Add Survey Report analysis flow from , including logic for handling large PDFs (), targeted OCR (), Document AI integration, and file uploads to Google Drive.
+**Completed Work:**
+
+1.  **Full Add Survey Report Flow Migration:** The entire workflow, from file upload and AI analysis (using OCR and LLMs) to creating records and storing files (original and summary) in Google Drive, has been successfully migrated and debugged.
+2.  **File Management Parity:** Google Drive file deletion upon record deletion is now functional, mirroring the legacy system's behavior. The bulk-delete endpoint for survey reports is also fixed.
+3.  **AI & Data Normalization:** The AI prompts for survey report analysis have been significantly improved to match 's accuracy. The Issued By field is now correctly normalized on the backend, and redundant frontend logic has been removed.
+4.  **New Business Logic Implementation:**
+    *   **Interim Certificates:** Logic to set  to N/A and exclude these certificates from bulk updates has been added.
+    *   **Dynamic Survey Report Status:** A complex status calculation based on certificate survey dates has been implemented on the frontend, per user requirements.
+5.  **UI/Bug Fixes:** Resolved issues with missing file icons by correcting backend response models and fixed the Status display for Interim certificates.
 </product_requirements>
 
 <key_technical_concepts>
-- **Backend:** FastAPI, Python, Pydantic, Clean Architecture (Services, Repositories).
+- **Backend:** FastAPI, Python, Pydantic (for data validation and serialization).
 - **Frontend:** React.js, Axios.
 - **Database:** MongoDB.
-- **AI & PDF Processing:** Google Document AI,  for OCR,  &  for PDF splitting.
-- **Integrations:** Google Drive integration via Google Apps Script for file operations (upload, rename, delete).
-- **Development Strategy:** Compare and Replicate legacy code from  into the new modular structure.
-- **Debugging:** Investigating frontend state management, backend logs, API routing conflicts, and model validation.
+- **AI & PDF Processing:** Google Document AI via ,  (OCR), , .
+- **Integrations:** Google Drive via Google Apps Script for file uploads and deletions.
+- **Architecture:** Clean Architecture principles (Services, Repositories).
+- **Development Strategy:** Compare and Replicate legacy code from .
 </key_technical_concepts>
 
 <code_architecture>
-The project consists of a React frontend, a new modular FastAPI backend (), and the original monolithic backend () used for reference.
+The application uses a React frontend, a new modular FastAPI backend, and a legacy  for reference.
 
 .
 ├── 2_CO_DUC_PP.pdf
@@ -414,7 +416,6 @@ The project consists of a React frontend, a new modular FastAPI backend (), and 
 │   ├── recreate_email_index.py
 │   ├── remove_email_unique_index.py
 │   ├── requirements.txt
-│   ├── sedtUcA6x
 │   ├── seed_database.py
 │   ├── server.py
 │   ├── server_mongodb.py
@@ -50314,6 +50315,7 @@ The project consists of a React frontend, a new modular FastAPI backend (), and 
 ├── test_result.md
 ├── test_simple_cert_create.sh
 ├── test_simple_create.sh
+├── test_survey_report.pdf
 ├── test_survey_report.txt
 ├── tests
 │   └── __init__.py
@@ -50324,33 +50326,52 @@ The project consists of a React frontend, a new modular FastAPI backend (), and 
 4659 directories, 45624 files
 
 -   ****
-    -   **Importance:** This repository is the single point of access for Google Drive configurations.
-    -   **Summary of Changes:** Fixed a critical bug by changing the queried collection name from  to  and the field name from  to . This resolved persistent No Google Drive configuration found errors and fixed file deletion across the entire application.
+    -   **Importance:** Handles all CRUD operations for survey reports.
+    -   **Changes:** The  and  methods were updated to use  to correctly trigger file deletions from Google Drive, achieving feature parity with the certificate deletion logic.
 
 -   ****
-    -   **Importance:** Encapsulates the entire complex logic for analyzing a survey report PDF, which was migrated from .
-    -   **Summary of Changes:** This new file orchestrates PDF splitting (), targeted OCR (), and Document AI analysis (), and finally extracts structured data using AI prompts ().
+    -   **Importance:** Contains the AI prompt and logic for extracting structured data from survey report text.
+    -   **Changes:** The extraction prompt was completely replaced with the more detailed and robust version from  to improve accuracy, especially in distinguishing  from . The LLM call was fixed to use the  class from .
 
 -   ****
-    -   **Importance:** This is the main page for managing ship certificates and contains complex state and UI logic.
-    -   **Summary of Changes:** Major UI refactoring was done to move the page title and action buttons into a single row, as requested by the user. It was also modified to fix a  during the batch auto-rename process by introducing a new state variable () to decouple the action from the context menu's lifecycle.
+    -   **Importance:** Defines the API endpoints for survey reports.
+    -   **Changes:** The  endpoint's HTTP method was changed from  to  to resolve a proxy/firewall issue that was blocking  requests with a body. The endpoint was also updated to accept a  dependency.
 
 -   ****
-    -   **Importance:** Displays the list of all certificates.
-    -   **Summary of Changes:** The Notes column was updated to show a red  if notes exist and a  otherwise. A tooltip showing the full note content on hover was added, creating a consistent UX with the Test Report page. A fallback check  was added to handle legacy data where the  flag was not set.
+    -   **Importance:** Defines the Pydantic models for API requests and responses.
+    -   **Changes:** A critical bug was fixed in the  model by renaming  and  to  and  to match the database and frontend expectations, which fixed the missing file icons bug. The  model was also fixed to expect .
+
+-   ** & **
+    -   **Importance:** Contain business logic for managing certificates.
+    -   **Changes:** New logic was added to identify Interim certificates. This logic sets their  date to N/A upon creation/update and ensures they are skipped during the Update Next Survey bulk action, as per user requirements.
+
+-   ****
+    -   **Importance:** The primary component for displaying the list of survey reports.
+    -   **Changes:** This file was heavily modified. First, redundant abbreviation logic for the Issued By column was removed. Then, complex new logic was added to fetch all ship certificates, calculate the most common next survey date, and use it to determine a dynamic Status (, , ) for each survey report, implementing a new business rule. A fallback to use  if  is missing was added to this calculation.
+
+-   ****
+    -   **Importance:** Displays the list of certificates.
+    -   **Changes:** The  function was updated to correctly handle Interim certificates (where  is N/A), ensuring their status is calculated based on their  instead of incorrectly showing Unknown.
 </code_architecture>
 
 <pending_tasks>
-- **Complete Full Route Migration:** The new backend is still missing many of the original 179 routes from . A full migration is necessary to achieve 100% feature parity.
-- **Thoroughly Test AI Summaries:** The  function has been migrated but needs to be tested with real Document AI summaries to tune prompts and ensure accuracy.
+- **Full Route Migration:** The new backend is still missing many of the original routes from . A full migration is needed to achieve 100% feature parity and decommission the old system.
+- **Thoroughly Test AI Summaries:** The AI prompt has been updated, but it requires comprehensive testing with a wide variety of real-world PDF documents to fine-tune its accuracy and handle edge cases.
 </pending_tasks>
 
 <current_work>
-The most recent task was to investigate a user-reported bug in the **Add Survey Report** flow. After a file is successfully analyzed by the backend AI, the frontend displays a success message (✅ Analysis complete! Please review and edit if needed.), but it fails to **auto-fill the form fields** in the  with the extracted data (e.g., ship name, survey type, dates).
+The most recent task was to implement and refine a complex business rule for calculating the Status of items in the Class Survey Report List. The status (e.g., Valid, Expired) is now dynamically calculated on the frontend.
 
-The previous engineer had just started debugging this issue. They correctly identified that the problem lies within the frontend and began analyzing the  page. They noted that the existing code at the point of analysis seemed to be designed for a batch processing mode (handling multiple files) and was not correctly populating the modal's form for a single file analysis. The investigation was paused while trying to locate the specific code block responsible for handling the single-file analysis result and populating the form.
+The calculation logic is as follows:
+1.  For the currently selected ship, fetch all of its certificates.
+2.  Find the most frequently occurring  date among these certificates.
+3.  Calculate a  date by adding 3 months to this common  date.
+4.  The final expiry date for the survey report is the  date, but it is capped at a maximum of 18 months from the report's .
+5.  The status (Valid, Due Soon, Expired) is then determined by comparing this final expiry date with the current date.
+
+The very last action taken was to enhance this logic. Per the user's request, a fallback was added: if a survey report's  is null or undefined, the calculation now uses the report's  date instead. This change was implemented in the  helper function within , and the frontend server was restarted.
 </current_work>
 
 <optional_next_step>
-Continue debugging the frontend by examining  and its child components to find where the analysis result is received and why it's not being set into the state that controls the  form fields.
+The logic for dynamic survey report status, including the  fallback, has been implemented and the frontend has been restarted. The next step is to await user testing and confirmation of this new feature.
 </optional_next_step>
