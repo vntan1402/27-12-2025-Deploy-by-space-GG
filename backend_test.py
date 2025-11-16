@@ -1713,7 +1713,7 @@ class BackendTester:
         # Print summary
         self.print_test_summary()
     
-    def print_summary(self):
+    def print_test_summary(self):
         """Print test summary"""
         print("\n" + "=" * 80)
         print("📊 TEST SUMMARY")
@@ -1727,6 +1727,32 @@ class BackendTester:
         print(f"Passed: {passed_tests}")
         print(f"Failed: {failed_tests}")
         print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        # Show failed tests
+        if failed_tests > 0:
+            print("\n❌ FAILED TESTS:")
+            for result in self.test_results:
+                if not result["success"]:
+                    print(f"   - {result['test']}: {result['details']}")
+        
+        # Show key results for review request
+        print("\n🎯 KEY RESULTS FOR REVIEW REQUEST:")
+        survey_tests = [r for r in self.test_results if "Survey Report" in r["test"]]
+        ai_tests = [r for r in self.test_results if "AI Provider" in r["test"]]
+        
+        if survey_tests:
+            print("   Survey Report Analysis:")
+            for test in survey_tests:
+                status = "✅" if test["success"] else "❌"
+                print(f"     {status} {test['test']}")
+        
+        if ai_tests:
+            print("   AI Provider Support:")
+            for test in ai_tests:
+                status = "✅" if test["success"] else "❌"
+                print(f"     {status} {test['test']}")
+        
+        print("\n" + "=" * 80)
         
         if failed_tests > 0:
             print("\n❌ FAILED TESTS:")
