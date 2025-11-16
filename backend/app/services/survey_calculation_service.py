@@ -12,6 +12,112 @@ class SurveyCalculationService:
     """Service for calculating Next Survey dates based on IMO regulations"""
     
     @staticmethod
+    def calculate_next_docking(
+        last_docking: Optional[datetime],
+        last_docking_2: Optional[datetime],
+        special_survey_to_date: Optional[datetime],
+        ship_age: Optional[int] = None,
+        class_society: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Calculate Next Docking date using ENHANCED LOGIC (2025)
+        
+        NEW LOGIC:
+        1. Get Last Docking (nearest: last_docking or last_docking_2)
+        2. Calculate: Last Docking + 36 months
+        3. Get Special Survey Cycle To Date
+        4. Choose whichever is NEARER: Last Docking + 36 months OR Special Survey To Date
+        
+        Args:
+            last_docking: Last Docking 1 date
+            last_docking_2: Last Docking 2 date
+            special_survey_to_date: Special Survey Cycle end date
+            ship_age: Age of ship (for reference)
+            class_society: Classification society (for reference)
+            
+        Returns:
+            dict with next_docking date and calculation details
+        """
+        from dateutil.relativedelta import relativedelta
+        
+        try:
+            # Step 1: Find nearest (most recent) Last Docking
+            reference_docking = None
+            docking_source = None
+            
+            if last_docking and last_docking_2:
+                if last_docking >= last_docking_2:
+                    reference_docking = last_docking
+                    docking_source = "Last Docking 1"
+                else:
+                    reference_docking = last_docking_2
+                    docking_source = "Last Docking 2"
+            elif last_docking:
+                reference_docking = last_docking
+                docking_source = "Last Docking 1"
+            elif last_docking_2:
+                reference_docking = last_docking_2
+                docking_source = "Last Docking 2"
+            
+            if not reference_docking:
+                return {
+                    'next_docking': None,
+                    'calculation_method': None,
+                    'reasoning': 'No docking dates available'
+                }
+            
+            logger.info(f"Using nearest Last Docking from {docking_source}: {reference_docking.strftime('%d/%m/%Y')}")
+            
+            # Step 2: Calculate Last Docking + 36 months
+            docking_plus_36_months = reference_docking + relativedelta(months=36)
+            logger.info(f"Last Docking + 36 months: {reference_docking.strftime('%d/%m/%Y')} + 36M = {docking_plus_36_months.strftime('%d/%m/%Y')}")
+            
+            # Step 3: If no Special Survey To Date, use Last Docking + 36 months
+            if not special_survey_to_date:
+                logger.info("No Special Survey To Date, using Last Docking + 36 months")
+                return {
+                    'next_docking': docking_plus_36_months,
+                    'calculation_method': 'Last Docking + 36 months',
+                    'reasoning': f'{docking_source} ({reference_docking.strftime("%d/%m/%Y")}) + 36 months',
+                    'docking_source': docking_source,
+                    'reference_docking': reference_docking.strftime('%d/%m/%Y')
+                }
+            
+            # Step 4: Compare both dates and choose NEARER (earlier) one
+            logger.info(f"Special Survey To Date: {special_survey_to_date.strftime('%d/%m/%Y')}")
+            
+            if docking_plus_36_months <= special_survey_to_date:
+                # Last Docking + 36 months is nearer (earlier)
+                next_docking = docking_plus_36_months
+                calculation_method = "Last Docking + 36 months"
+                reasoning = f'{docking_source} ({reference_docking.strftime("%d/%m/%Y")}) + 36 months = {docking_plus_36_months.strftime("%d/%m/%Y")} (earlier than Special Survey To Date)'
+            else:
+                # Special Survey To Date is nearer (earlier)
+                next_docking = special_survey_to_date
+                calculation_method = "Special Survey Cycle To Date"
+                reasoning = f'Special Survey To Date ({special_survey_to_date.strftime("%d/%m/%Y")}) is earlier than {docking_source} + 36 months'
+            
+            logger.info(f"Next Docking chosen: {next_docking.strftime('%d/%m/%Y')} (Method: {calculation_method})")
+            
+            return {
+                'next_docking': next_docking,
+                'calculation_method': calculation_method,
+                'reasoning': reasoning,
+                'docking_source': docking_source,
+                'reference_docking': reference_docking.strftime('%d/%m/%Y'),
+                'docking_plus_36_months': docking_plus_36_months.strftime('%d/%m/%Y'),
+                'special_survey_to_date': special_survey_to_date.strftime('%d/%m/%Y') if special_survey_to_date else None
+            }
+            
+        except Exception as e:
+            logger.error(f"Error calculating next docking: {e}")
+            return {
+                'next_docking': None,
+                'calculation_method': None,
+                'reasoning': f'Error: {str(e)}'
+            }
+    
+    @staticmethod
     def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
         """
         Calculate Next Survey and Next Survey Type for Audit Certificates (ISM/ISPS/MLC)
