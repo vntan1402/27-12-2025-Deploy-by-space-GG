@@ -2385,19 +2385,45 @@ class BackendTester:
                     print(f"   - {result['test']}: {result['details']}")
         
         # Show key results for review request
-        print("\n🎯 KEY RESULTS FOR REVIEW REQUEST:")
-        survey_tests = [r for r in self.test_results if "Survey Report" in r["test"]]
-        ai_tests = [r for r in self.test_results if "AI Provider" in r["test"]]
+        print("\n🎯 KEY RESULTS FOR TEST REPORT MIGRATION - PHASE 2:")
         
-        if survey_tests:
-            print("   Survey Report Analysis:")
-            for test in survey_tests:
+        # Test Report Analysis Tests
+        analysis_tests = [r for r in self.test_results if "Test Report Analysis" in r["test"]]
+        if analysis_tests:
+            print("   Test Report Analysis:")
+            for test in analysis_tests:
                 status = "✅" if test["success"] else "❌"
                 print(f"     {status} {test['test']}")
         
-        if ai_tests:
-            print("   AI Provider Support:")
-            for test in ai_tests:
+        # Upload Tests
+        upload_tests = [r for r in self.test_results if "Test Report Upload" in r["test"]]
+        if upload_tests:
+            print("   Test Report Upload:")
+            for test in upload_tests:
+                status = "✅" if test["success"] else "❌"
+                print(f"     {status} {test['test']}")
+        
+        # Valid Date Calculator Tests
+        calc_tests = [r for r in self.test_results if "Valid Date Calculator" in r["test"]]
+        if calc_tests:
+            print("   Valid Date Calculator:")
+            for test in calc_tests:
+                status = "✅" if test["success"] else "❌"
+                print(f"     {status} {test['test']}")
+        
+        # Integration Tests
+        integration_tests = [r for r in self.test_results if "Integration Flow" in r["test"]]
+        if integration_tests:
+            print("   Integration Tests:")
+            for test in integration_tests:
+                status = "✅" if test["success"] else "❌"
+                print(f"     {status} {test['test']}")
+        
+        # Error Handling Tests
+        error_tests = [r for r in self.test_results if "Error Handling" in r["test"]]
+        if error_tests:
+            print("   Error Handling:")
+            for test in error_tests:
                 status = "✅" if test["success"] else "❌"
                 print(f"     {status} {test['test']}")
         
