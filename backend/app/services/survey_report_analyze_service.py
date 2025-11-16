@@ -374,9 +374,10 @@ class SurveyReportAnalyzeService:
         total_pages: int
     ) -> Dict[str, Any]:
         """Process a large PDF (>15 pages) by splitting into chunks"""
+        from app.utils.document_ai_helper import analyze_survey_report_with_document_ai
         
         chunks = splitter.split_pdf(file_content, filename)
-        logger.info(f"📦 Created {len(chunks)} chunks")
+        logger.info(f"📦 Created {len(chunks)} chunks for batch processing")
         
         analysis_result['_split_info'] = {
             'was_split': True,
@@ -384,18 +385,144 @@ class SurveyReportAnalyzeService:
             'chunks_count': len(chunks)
         }
         
-        # Try Targeted OCR on first chunk
+        # Step 1: Process each chunk with Document AI
+        chunk_results = []
+        for i, chunk in enumerate(chunks):
+            logger.info(f"🔄 Processing chunk {i+1}/{len(chunks)} (pages {chunk['page_range']})")
+            
+            doc_ai_result = await analyze_survey_report_with_document_ai(
+                file_content=chunk['content'],
+                filename=chunk['filename'],
+                content_type='application/pdf',
+                document_ai_config=document_ai_config
+            )
+            
+            if doc_ai_result.get('success'):
+                summary_text = doc_ai_result.get('data', {}).get('summary', '')
+                
+                if summary_text:
+                    chunk_results.append({
+                        'success': True,
+                        'chunk_num': chunk['chunk_num'],
+                        'page_range': chunk['page_range'],
+                        'summary_text': summary_text
+                    })
+                    logger.info(f"✅ Chunk {i+1} completed - {len(summary_text)} chars")
+                else:
+                    logger.warning(f"⚠️ Chunk {i+1} returned empty summary")
+                    chunk_results.append({
+                        'success': False,
+                        'chunk_num': chunk['chunk_num'],
+                        'error': 'Empty summary'
+                    })
+            else:
+                error_msg = doc_ai_result.get('message', 'Unknown error')
+                logger.error(f"❌ Chunk {i+1} failed: {error_msg}")
+                chunk_results.append({
+                    'success': False,
+                    'chunk_num': chunk['chunk_num'],
+                    'error': error_msg
+                })
+        
+        # Step 2: Merge summaries
+        successful_chunks = [cr for cr in chunk_results if cr.get('success')]
+        
+        if not successful_chunks:
+            logger.error("❌ All chunks failed processing")
+            analysis_result['processing_method'] = "all_chunks_failed"
+            analysis_result['_summary_text'] = ""
+            return analysis_result
+        
+        logger.info(f"✅ {len(successful_chunks)}/{len(chunks)} chunks successful")
+        
+        # Create merged summary using PDFSplitter helper
+        temp_merged_data = {
+            'survey_report_name': 'Processing...',
+            'survey_report_no': 'Processing...',
+            'issued_by': 'Processing...',
+            'issued_date': 'Processing...'
+        }
+        
+        merged_summary = splitter.create_enhanced_merged_summary(
+            chunk_results=chunk_results,
+            merged_data=temp_merged_data,
+            original_filename=filename,
+            total_pages=total_pages
+        )
+        
+        logger.info(f"📄 Merged summary created: {len(merged_summary)} chars")
+        
+        # Step 3: Perform Targeted OCR on first chunk
         if chunks:
             ocr_metadata = await SurveyReportAnalyzeService._perform_targeted_ocr(
                 chunks[0]['content'],
                 "first_chunk"
             )
             analysis_result['_ocr_info'] = ocr_metadata
+            
+            # Merge OCR if successful
+            if ocr_metadata.get('ocr_success'):
+                try:
+                    from app.utils.targeted_ocr import get_ocr_processor
+                    ocr_processor = get_ocr_processor()
+                    ocr_result = ocr_processor.extract_from_pdf(chunks[0]['content'], page_num=0)
+                    
+                    if ocr_result.get('ocr_success'):
+                        header_text = ocr_result.get('header_text', '').strip()
+                        footer_text = ocr_result.get('footer_text', '').strip()
+                        
+                        if header_text or footer_text:
+                            ocr_section = "\n\n" + "="*60 + "\n"
+                            ocr_section += "OCR HEADER/FOOTER (from first page)\n"
+                            ocr_section += "="*60 + "\n\n"
+                            
+                            if header_text:
+                                ocr_section += "=== HEADER ===\n" + header_text + "\n\n"
+                            if footer_text:
+                                ocr_section += "=== FOOTER ===\n" + footer_text + "\n\n"
+                            
+                            merged_summary = merged_summary + ocr_section
+                            logger.info(f"✅ Merged summary with OCR: {len(merged_summary)} chars")
+                except Exception as ocr_error:
+                    logger.warning(f"⚠️ Failed to merge OCR: {ocr_error}")
         
-        # For now, return with placeholder
-        # In full implementation, this would process all chunks
-        analysis_result['_summary_text'] = f"Large PDF placeholder - {len(chunks)} chunks"
-        analysis_result['processing_method'] = "partial_implementation"
+        # Step 4: Extract fields from merged summary with System AI
+        logger.info("🧠 Extracting fields from merged summary...")
+        
+        ai_provider = ai_config_doc.get("provider", "google")
+        ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
+        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+        
+        extracted_fields = await extract_survey_report_fields_from_summary(
+            merged_summary,
+            ai_provider,
+            ai_model,
+            use_emergent_key,
+            filename
+        )
+        
+        if extracted_fields:
+            logger.info("✅ System AI extraction from merged summary completed")
+            analysis_result.update(extracted_fields)
+            
+            # Recreate summary with extracted data
+            final_summary = splitter.create_enhanced_merged_summary(
+                chunk_results=chunk_results,
+                merged_data=extracted_fields,
+                original_filename=filename,
+                total_pages=total_pages
+            )
+            
+            analysis_result['_summary_text'] = final_summary
+            analysis_result['processing_method'] = "split_pdf_full_analysis"
+            
+            # Update split info
+            analysis_result['_split_info']['successful_chunks'] = len(successful_chunks)
+            analysis_result['_split_info']['failed_chunks'] = len(chunks) - len(successful_chunks)
+        else:
+            logger.warning("⚠️ System AI extraction returned no fields")
+            analysis_result['_summary_text'] = merged_summary
+            analysis_result['processing_method'] = "split_pdf_merge_only"
         
         return analysis_result
     
