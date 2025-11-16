@@ -136,23 +136,7 @@ async def upload_survey_report_files(
     summary_text: str = Body(...),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """
-    Upload survey report files to Google Drive after record creation
-    
-    Process:
-    1. Decode base64 file content
-    2. Upload original to: ShipName/Class & Flag Cert/Class Survey Report/
-    3. Upload summary to: SUMMARY/Class & Flag Document/
-    4. Update record with file IDs
-    
-    Args:
-        report_id: Survey report ID
-        file_content: Base64 encoded file content
-        filename: Original filename
-        content_type: File MIME type
-        summary_text: Enhanced summary text (with OCR)
-        current_user: Current authenticated user
-    """
+    """Upload survey report files to Google Drive after record creation"""
     from app.services.survey_report_service import SurveyReportService
     
     try:
@@ -169,7 +153,7 @@ async def upload_survey_report_files(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Error uploading survey report files: {e}")
+        logger.error(f"Error uploading survey report files: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Failed to upload survey report files: {str(e)}"
