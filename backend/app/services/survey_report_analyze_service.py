@@ -502,7 +502,11 @@ class SurveyReportAnalyzeService:
                 try:
                     from app.utils.targeted_ocr import get_ocr_processor
                     ocr_processor = get_ocr_processor()
-                    ocr_result = ocr_processor.extract_from_pdf(chunks[0]['content'], page_num=0)
+                    ocr_result = ocr_processor.extract_from_pdf(
+                        chunks[0]['content'], 
+                        page_num=0,
+                        report_no_field='survey_report_no'
+                    )
                     
                     if ocr_result.get('ocr_success'):
                         header_text = ocr_result.get('header_text', '').strip()
