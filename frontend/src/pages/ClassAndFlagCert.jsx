@@ -1115,6 +1115,7 @@ const ClassAndFlagCert = () => {
         setShowAutoRenameDialog(false);
         setBatchRenameProgress({ isRunning: false, completed: 0, total: 0, current: '', errors: [] });
         setSelectedCertificates(new Set());
+        setCertificatesToAutoRename([]); // Clear certificates to rename
       }, 2000);
 
     } catch (error) {
