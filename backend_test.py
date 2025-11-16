@@ -31,9 +31,10 @@ from datetime import datetime
 
 # Configuration
 BACKEND_URL = "https://test-report-api.preview.emergentagent.com/api"
-TEST_USERNAME = "admin1@gmail.com"  # Use email format as per review request
+TEST_USERNAME = "admin1"  # Use admin1 as per review request
 TEST_PASSWORD = "123456"
-PDF_URL = "https://customer-assets.emergentagent.com/job_75aa79c8-ba52-4762-a517-d6f75c7d2704/artifacts/ip1fsm86_CG%20%2802-19%29.pdf"
+# Test PDF for test report analysis (small PDF < 15 pages)
+TEST_PDF_URL = "https://customer-assets.emergentagent.com/job_75aa79c8-ba52-4762-a517-d6f75c7d2704/artifacts/ip1fsm86_CG%20%2802-19%29.pdf"
 
 class BackendTester:
     def __init__(self):
