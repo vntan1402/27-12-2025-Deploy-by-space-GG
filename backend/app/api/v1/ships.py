@@ -257,7 +257,7 @@ async def update_ship_next_survey(
                 continue
             
             # Calculate next survey info
-            survey_info = SurveyCalculationService.calculate_next_survey_info(cert, ship_data)
+            survey_info = calculate_next_survey_info(cert, ship_data)
             
             # Prepare update data
             update_data = {}
