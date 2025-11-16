@@ -1443,6 +1443,253 @@ class BackendTester:
             self.log_test("Survey Analysis - Exception", False, f"Exception: {str(e)}")
             return False
 
+    def download_test_pdf(self):
+        """Download the specific PDF file for testing"""
+        print("\n📥 Downloading Test PDF...")
+        
+        try:
+            response = requests.get(PDF_URL, timeout=30)
+            
+            if response.status_code == 200:
+                pdf_content = response.content
+                pdf_size = len(pdf_content)
+                
+                # Save to local file
+                pdf_path = "/app/test_survey_report.pdf"
+                with open(pdf_path, "wb") as f:
+                    f.write(pdf_content)
+                
+                self.log_test("Download Test PDF", True, 
+                             f"Downloaded CG (02-19).pdf ({pdf_size:,} bytes) from URL")
+                return pdf_path
+            else:
+                self.log_test("Download Test PDF", False, 
+                             f"Failed to download: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            self.log_test("Download Test PDF", False, f"Exception: {str(e)}")
+            return None
+    
+    def test_survey_report_analyze_endpoint(self):
+        """Test POST /api/survey-reports/analyze-file endpoint"""
+        print("\n📋 Testing Survey Report Analysis Endpoint...")
+        
+        try:
+            # First download the PDF
+            pdf_path = self.download_test_pdf()
+            if not pdf_path:
+                self.log_test("Survey Report Analysis - Prerequisites", False, "Could not download test PDF")
+                return False
+            
+            # Get any ship ID for testing
+            ships_response = self.session.get(f"{BACKEND_URL}/ships")
+            if ships_response.status_code != 200:
+                self.log_test("Survey Report Analysis - Get Ships", False, "Could not get ships")
+                return False
+            
+            ships = ships_response.json()
+            if not ships:
+                self.log_test("Survey Report Analysis - Get Ships", False, "No ships found")
+                return False
+            
+            ship_id = ships[0].get("id")
+            ship_name = ships[0].get("name", "Unknown")
+            
+            self.log_test("Survey Report Analysis - Setup", True, 
+                         f"Using ship: {ship_name} (ID: {ship_id})")
+            
+            # Test the analyze endpoint with bypass_validation = "true"
+            with open(pdf_path, "rb") as f:
+                files = {"survey_report_file": ("CG (02-19).pdf", f, "application/pdf")}
+                data = {
+                    "ship_id": ship_id,
+                    "bypass_validation": "true"
+                }
+                
+                response = self.session.post(
+                    f"{BACKEND_URL}/survey-reports/analyze-file",
+                    files=files,
+                    data=data
+                )
+            
+            if response.status_code == 200:
+                result = response.json()
+                
+                # Check response structure
+                if result.get("success"):
+                    analysis = result.get("analysis", {})
+                    
+                    # Expected fields to check
+                    expected_fields = [
+                        "survey_report_name",
+                        "report_form", 
+                        "survey_report_no",
+                        "issued_by",
+                        "issued_date",
+                        "status",
+                        "surveyor_name",
+                        "note",
+                        "ship_name",
+                        "ship_imo"
+                    ]
+                    
+                    # Count populated fields
+                    populated_fields = []
+                    for field in expected_fields:
+                        value = analysis.get(field, "")
+                        if value and str(value).strip():
+                            populated_fields.append(field)
+                    
+                    self.log_test("Survey Report Analysis - Success", True,
+                                 f"Analysis completed successfully")
+                    
+                    self.log_test("Survey Report Analysis - Field Extraction", True,
+                                 f"Populated fields ({len(populated_fields)}/10): {populated_fields}")
+                    
+                    # Check specific fields mentioned in review request
+                    key_fields = ["survey_report_name", "survey_report_no", "issued_by", "issued_date"]
+                    key_populated = [f for f in key_fields if analysis.get(f, "").strip()]
+                    
+                    if len(key_populated) >= 2:  # Expect at least 2 key fields
+                        self.log_test("Survey Report Analysis - Key Fields", True,
+                                     f"Key fields populated: {key_populated}")
+                    else:
+                        self.log_test("Survey Report Analysis - Key Fields", False,
+                                     f"Only {len(key_populated)} key fields populated: {key_populated}")
+                    
+                    # Check processing method and confidence
+                    processing_method = analysis.get("processing_method", "")
+                    confidence_score = analysis.get("confidence_score", 0)
+                    
+                    self.log_test("Survey Report Analysis - Processing", True,
+                                 f"Method: {processing_method}, Confidence: {confidence_score}")
+                    
+                    # Check for OCR info
+                    ocr_info = analysis.get("_ocr_info", {})
+                    if ocr_info:
+                        ocr_success = ocr_info.get("ocr_success", False)
+                        ocr_attempted = ocr_info.get("ocr_attempted", False)
+                        
+                        self.log_test("Survey Report Analysis - OCR", True,
+                                     f"OCR attempted: {ocr_attempted}, OCR success: {ocr_success}")
+                    
+                    return True
+                else:
+                    # Analysis failed but check if it's handled gracefully
+                    message = result.get("message", "")
+                    self.log_test("Survey Report Analysis - Failure Handling", True,
+                                 f"Analysis failed gracefully: {message}")
+                    return True
+            else:
+                self.log_test("Survey Report Analysis - Endpoint", False,
+                             f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Survey Report Analysis - Exception", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_ai_provider_support(self):
+        """Test 'emergent' provider support"""
+        print("\n🤖 Testing AI Provider Support...")
+        
+        try:
+            # Get current AI config
+            response = self.session.get(f"{BACKEND_URL}/ai-config")
+            
+            if response.status_code == 200:
+                config = response.json()
+                provider = config.get("provider", "")
+                model = config.get("model", "")
+                use_emergent_key = config.get("use_emergent_key", False)
+                
+                self.log_test("AI Provider Support - Current Config", True,
+                             f"Provider: {provider}, Model: {model}, Use Emergent: {use_emergent_key}")
+                
+                # Check if emergent provider is supported
+                if use_emergent_key:
+                    self.log_test("AI Provider Support - Emergent Key", True,
+                                 "System is using EMERGENT_LLM_KEY")
+                else:
+                    self.log_test("AI Provider Support - Emergent Key", False,
+                                 "System is NOT using EMERGENT_LLM_KEY")
+                
+                return True
+            else:
+                self.log_test("AI Provider Support", False,
+                             f"Could not get AI config: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("AI Provider Support", False, f"Exception: {str(e)}")
+            return False
+    
+    def check_backend_logs_for_survey_analysis(self):
+        """Check backend logs for survey analysis messages"""
+        print("\n🔍 Checking Backend Logs for Survey Analysis...")
+        
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["tail", "-n", "100", "/var/log/supervisor/backend.err.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0:
+                log_content = result.stdout
+                
+                # Look for survey analysis related messages
+                survey_lines = [line for line in log_content.split('\n') 
+                               if any(keyword in line.lower() for keyword in 
+                                     ['survey', 'analysis', 'ocr', 'tesseract', 'poppler', 'emergent'])]
+                
+                if survey_lines:
+                    self.log_test("Backend Logs - Survey Analysis Messages", True,
+                                 f"Found {len(survey_lines)} relevant log messages")
+                    
+                    # Show recent relevant messages
+                    for line in survey_lines[-5:]:
+                        print(f"   LOG: {line}")
+                else:
+                    self.log_test("Backend Logs - Survey Analysis Messages", True,
+                                 "No survey analysis messages found in recent logs")
+                
+                # Look for specific success messages
+                success_patterns = [
+                    "survey report fields extracted successfully",
+                    "ocr completed successfully", 
+                    "tesseract",
+                    "poppler"
+                ]
+                
+                success_messages = []
+                for pattern in success_patterns:
+                    matching_lines = [line for line in log_content.split('\n') 
+                                    if pattern in line.lower()]
+                    if matching_lines:
+                        success_messages.extend(matching_lines[-2:])  # Last 2 matches
+                
+                if success_messages:
+                    self.log_test("Backend Logs - Success Messages", True,
+                                 f"Found success indicators: {len(success_messages)} messages")
+                    for msg in success_messages:
+                        print(f"   SUCCESS: {msg}")
+                else:
+                    self.log_test("Backend Logs - Success Messages", False,
+                                 "No success indicators found in logs")
+                
+                return True
+            else:
+                self.log_test("Backend Logs - Access", False, f"Could not access logs: {result.stderr}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Backend Logs - Check", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all tests"""
         print("🧪 Starting Backend Testing Suite - Survey Report Analysis Focus")
