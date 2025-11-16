@@ -471,3 +471,26 @@ async def multi_certificate_upload(
         logger.error(f"❌ Multi-upload error: {e}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
+
+@router.post("/{certificate_id}/auto-rename-file")
+async def auto_rename_certificate_file(
+    certificate_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Auto rename certificate file on Google Drive using naming convention:
+    {Ship Name}_{Cert Type}_{Cert Abbreviation}_{Issue Date}.pdf
+    
+    Naming Priority for Certificate Abbreviation:
+    1. User-defined mapping (from abbreviation_mappings collection)
+    2. Database cert_abbreviation field
+    3. Auto-generated abbreviation
+    """
+    try:
+        return await CertificateService.auto_rename_certificate_file(certificate_id, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error auto-renaming certificate file: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to auto-rename certificate file: {str(e)}")
+
