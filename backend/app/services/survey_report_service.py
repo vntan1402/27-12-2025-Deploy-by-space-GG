@@ -278,20 +278,20 @@ class SurveyReportService:
                 detail=f"Failed to upload survey report file: {str(upload_error)}"
             )
         
-        # Upload 2: Summary file to SUMMARY/Class & Flag Document/
+        # Upload 2: Summary file to SAME folder as original (Class Survey Report folder)
         survey_report_summary_file_id = None
         if summary_text and summary_text.strip():
             base_name = filename.rsplit('.', 1)[0]
             summary_filename = f"{base_name}_Summary.txt"
             
-            logger.info(f"📋 Uploading summary file to: SUMMARY/Class & Flag Document/{summary_filename}")
+            logger.info(f"📋 Uploading summary file to: {ship_name}/Class & Flag Cert/Class Survey Report/{summary_filename}")
             
             try:
                 # Convert summary text to bytes
                 summary_bytes = summary_text.encode('utf-8')
                 
-                # Build summary folder path
-                summary_folder_path = "SUMMARY/Class & Flag Document"
+                # Upload to SAME folder as original file
+                summary_folder_path = f"{ship_name}/Class & Flag Cert/Class Survey Report"
                 
                 summary_upload = await GDriveService.upload_file(
                     file_content=summary_bytes,
