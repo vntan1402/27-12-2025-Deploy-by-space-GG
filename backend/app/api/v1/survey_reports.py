@@ -85,7 +85,7 @@ async def delete_survey_report(
         logger.error(f"❌ Error deleting Survey Report: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete Survey Report")
 
-@router.post("/bulk-delete")
+@router.delete("/bulk-delete")
 async def bulk_delete_survey_reports(
     request: BulkDeleteSurveyReportRequest,
     current_user: UserResponse = Depends(check_editor_permission)
