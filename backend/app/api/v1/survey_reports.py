@@ -184,25 +184,3 @@ async def upload_survey_report_files(
             status_code=500,
             detail=f"Failed to upload survey report files: {str(e)}"
         )
-    """
-    from app.services.survey_report_analyze_service import SurveyReportAnalyzeService
-    
-    try:
-        bypass_bool = bypass_validation.lower() == "true"
-        
-        result = await SurveyReportAnalyzeService.analyze_file(
-            file=survey_report_file,
-            ship_id=ship_id,
-            bypass_validation=bypass_bool,
-            current_user=current_user
-        )
-        
-        return result
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"❌ Error analyzing survey report file: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to analyze survey report: {str(e)}"
-        )
