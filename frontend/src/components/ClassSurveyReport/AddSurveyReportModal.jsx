@@ -192,21 +192,27 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
 
   // Process successful analysis
   const processAnalysisSuccess = (analysis, file) => {
+    console.log('🔍 processAnalysisSuccess called with analysis:', analysis);
+    
     // Store complete analysis data (including _file_content, _summary_text)
     setAnalyzedData(analysis);
     
-    // Auto-populate form fields
-    setFormData(prev => ({
-      ...prev,
-      survey_report_name: analysis.survey_report_name || prev.survey_report_name,
-      report_form: analysis.report_form || prev.report_form,
-      survey_report_no: analysis.survey_report_no || prev.survey_report_no,
-      issued_date: analysis.issued_date ? analysis.issued_date.split('T')[0] : prev.issued_date,
-      issued_by: analysis.issued_by || prev.issued_by,
-      status: analysis.status || prev.status,
-      note: analysis.note || prev.note,
-      surveyor_name: analysis.surveyor_name || prev.surveyor_name
-    }));
+    // Prepare form data from analysis
+    const newFormData = {
+      survey_report_name: analysis.survey_report_name || '',
+      report_form: analysis.report_form || '',
+      survey_report_no: analysis.survey_report_no || '',
+      issued_date: analysis.issued_date ? analysis.issued_date.split('T')[0] : '',
+      issued_by: analysis.issued_by || '',
+      status: analysis.status || 'Valid',
+      note: analysis.note || '',
+      surveyor_name: analysis.surveyor_name || ''
+    };
+    
+    console.log('📝 Setting form data:', newFormData);
+    
+    // Auto-populate form fields - use explicit values, not fallback to prev
+    setFormData(newFormData);
 
     // Show split info if file was split
     if (analysis._split_info?.was_split) {
