@@ -643,18 +643,8 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     }
   };
 
-  // Get abbreviation from issued_by (first letters of each word, max 4 letters)
-  const getAbbreviation = (issuedBy) => {
-    if (!issuedBy || issuedBy === '-') return '-';
-    
-    const words = issuedBy.trim().split(/\s+/);
-    const abbreviation = words
-      .slice(0, 4) // Max 4 words
-      .map(word => word.charAt(0).toUpperCase())
-      .join('');
-    
-    return abbreviation;
-  };
+  // Backend already normalizes issued_by to abbreviations (e.g., "PMDS", "LR", "DNV")
+  // No need to create abbreviation again - just display the normalized value directly
 
   // Render empty state
   if (!selectedShip) {
