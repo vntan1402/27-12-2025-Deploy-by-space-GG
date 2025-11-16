@@ -148,6 +148,11 @@ def extract_report_form_from_filename(filename: str) -> Optional[str]:
 def create_survey_report_extraction_prompt(summary_text: str, filename: str = "") -> str:
     """
     Create AI prompt for extracting survey report fields
+    Based on backend-v1 proven prompts
+    
+    Args:
+        summary_text: Document summary text
+        filename: Original filename (can help identify report form)
     """
     prompt = f"""You are an AI specialized in maritime survey report information extraction.
 
@@ -162,73 +167,123 @@ Analyze the following text summary of a maritime survey report and extract all k
 1. Extract only the survey report fields listed below.
 2. Return the output strictly in valid JSON format.
 3. If a field is not found, leave it as an empty string "".
-4. Normalize all dates to format "DD/MM/YYYY" (e.g., "15/01/2024").
+4. Normalize all dates to ISO format "YYYY-MM-DD".
 5. Do not infer or fabricate any missing information.
+6. **For survey_report_name**: Combine information from (a) document beginning, (b) report_form abbreviation, (c) frequently mentioned equipment/systems
+7. **Cross-validation**: If report_form contains abbreviations (e.g., "CG", "BT", "CU"), use them to identify what equipment is being surveyed
 
 === FIELD EXTRACTION RULES ===
 
 **survey_report_name**: 
-- Extract ONLY the equipment/system being surveyed, NOT the survey type
-- REMOVE survey type words like: "Annual", "Special", "Intermediate", "Close-up", "Docking", "Survey", "Record", "Report"
-- Examples:
+- **CRITICAL FORMAT**: Extract ONLY the equipment/system being surveyed, NOT the survey type
+- **REMOVE survey type words**: Do NOT include "Annual", "Special", "Intermediate", "Close-up", "Docking", "Survey", "Record", "Report"
+- **ONLY extract the SUBJECT**: 
   * "survey record for cargo gear" → Extract: "cargo gear"
   * "close-up survey of ballast tanks" → Extract: "ballast tanks"
   * "annual survey of main engine" → Extract: "main engine"
-- Common subjects: cargo gear, ballast tanks, hull structure, machinery, boilers, main engine, steering gear
+  * "docking survey for hull structure" → Extract: "hull structure"
+- **Look at first sentences** like:
+  * "This document is a survey record... for cargo gear" → Extract: "cargo gear"
+  * "This is a close-up survey of ballast tanks" → Extract: "ballast tanks"
+  * "Annual survey report for main engine" → Extract: "main engine"
+- **Cross-validate with report_form**: 
+  * If form is "CG (02/19)", CG = Cargo Gear → extract "cargo gear"
+  * If form is "BT (01/20)", BT = Ballast Tank → extract "ballast tanks"
+  * If form is "ME (05/21)", ME = Main Engine → extract "main engine"
+- **Check document content**: The equipment/system should appear FREQUENTLY throughout the document
+- Common subjects: cargo gear, ballast tanks, hull structure, machinery, boilers, main engine, steering gear, cranes, derricks, lifts, tank coating, fire fighting equipment
+- **DO NOT include**: "survey", "report", "record", "annual", "special", "close-up", "docking", etc.
 
 **report_form**: 
-- Extract the report form identifier used for this survey
-- **PRIORITY**: Check FILENAME first - often contains the report form
+- Extract the report form or form type/number used for this survey
+- **CRITICAL 1**: Check the FILENAME first - often contains the report form
   * Example: Filename "CG (02-19).pdf" → Report Form is "CG (02-19)"
-- Often appears in HEADER or FOOTER sections
-- Common patterns: "CU (02/19)", "AS (03/20)", "PS (01/21)", "CG (02-19)"
-  * "CU" = Close-up, "AS" = Annual Survey, "PS" = Pre-Survey, "CG" = Cargo Gear
+  * Example: Filename "CU 02-19.pdf" → Report Form is "CU (02-19)" or "CU 02-19"
+  * If filename contains pattern like "[A-Z]+ \([0-9]{{2}}[-/][0-9]{{2}}\)", extract it as report_form
+- **CRITICAL 2**: Often appears in HEADER or FOOTER sections
+- **Common patterns**: Abbreviations of survey types followed by numbers/dates
+  * Examples: "CU (02/19)", "AS (03/20)", "PS (01/21)", "DS 02-19", "CG (02-19)"
+  * "CU" = Close-up, "AS" = Annual Survey, "PS" = Pre-Survey, "DS" = Docking Survey, "CG" = Cargo Gear
+- **Look for**: "Report Form", "Form No.", "Form Type", "Survey Form", "Form Used"
+- **Also check**: Abbreviations related to survey_report_name (e.g., if survey is "Close-up Survey", look for "CU")
+- May contain codes like "P&I Form", "Class Form A", "Form 001", etc.
+- Extract the complete form identifier as mentioned in the document
+- **DO NOT confuse with dates**: Forms may look like dates (e.g., "CU (02/19)") but are form identifiers
+- **PRIORITY**: Filename > Header/Footer > Document body
 
 **survey_report_no**: 
 - Extract the report number or reference number
 - Look for "Report No.", "Report Number", "Reference No.", "Survey No."
-- May contain letters, numbers, dashes (e.g., "SR-2024-001")
+- May contain letters, numbers, dashes, slashes (e.g., "SR-2024-001", "AS/2024/123", "A/25/772")
 
 **issued_by**: 
-- Extract the classification society or organization
-- Common: Lloyd's Register, DNV, ABS, BV, Class NK, RINA
+- Extract the classification society or organization that issued this report
+- Common societies: Lloyd's Register, DNV, ABS, BV, Class NK, RINA, Panama Maritime Documentation Services (PMDS)
+- Look for "Classification Society", "Issued by", "Surveyor Society"
 
 **issued_date**: 
 - Extract the date when the report was issued/completed
-- Look for "Issued Date", "Report Date", "Date of Survey", "Completion Date"
-- Convert to DD/MM/YYYY format
-- **IMPORTANT**: ONLY extract if it's clearly a DATE
-- DO NOT extract form codes that look like dates (e.g., "CU (02/19)" is a FORM, not a date)
+- Look for "Issued Date", "Report Date", "Date of Survey", "Completion Date", "Completion", "Date"
+- Convert to ISO format "YYYY-MM-DD"
+- **IMPORTANT**: ONLY extract if it's clearly a DATE (e.g., "15 January 2024", "2024-01-15", "15/01/2024")
+- **DO NOT extract** form codes or abbreviations that look like dates (e.g., "CU (02/19)" is a FORM, not a date)
+- If uncertain whether something is a date or form code, leave issued_date EMPTY and put the value in report_form instead
 
 **ship_name**: 
 - Extract the ACTUAL VESSEL NAME mentioned in the report
-- Look for fields: "Name of Ship", "Vessel Name", "Ship Name"
-- **CRITICAL**: DO NOT extract ship type as ship name
+- Look for fields labeled: "Vessel Name", "Ship Name", "Name of Vessel", "Name of Ship"
+- **CRITICAL - DO NOT CONFUSE WITH SHIP TYPE**:
   * Ship types: "BULK CARRIER", "TANKER", "CONTAINER SHIP", "GENERAL CARGO", "OTHER CARGO", "OFFSHORE SUPPLY VESSEL"
+  * These are NOT ship names - they describe the TYPE of vessel
   * If you see "Type of Ship: OTHER CARGO" → DO NOT use "OTHER CARGO" as ship_name
   * If you see "Type of Ship: BULK CARRIER" → DO NOT use "BULK CARRIER" as ship_name
-- If the actual ship name is not found in the document, leave it as empty string ""
-- **IMPORTANT**: Ship names are proper nouns (e.g., "PACIFIC STAR", "OCEAN GLORY", "BROTHER 36")
+- **What IS a ship name**: Proper nouns identifying specific vessels
+  * Examples: "BROTHER 36", "PACIFIC STAR", "OCEAN GLORY", "MINH ANH 09", "LUCKY STAR"
+  * May include prefixes like "M/V", "MT", "M.V.", "M.T."
+- **If actual ship name is NOT found**: Return empty string ""
+- **DO NOT make assumptions** - only extract if explicitly labeled as ship name
 
 **ship_imo**: 
-- Extract IMO number (7 digits starting with 8 or 9)
-- Look for "IMO Number", "IMO No."
+- Extract the IMO number (International Maritime Organization number)
+- Look for "IMO Number", "IMO No.", "IMO:"
+- Format: 7 digits (e.g., "9876543", "8743531", "IMO 9876543")
+- Extract only the 7-digit number
 
 **surveyor_name**: 
-- Extract the name(s) of surveyor(s) who conducted the survey
-
-**status**: 
-- Determine if the survey passed or failed
-- Return "Valid" if passed, "Expired" if failed or expired
+- Extract the name of the surveyor(s) who conducted the survey
+- Look for "Surveyor", "Surveyor Name", "Inspected by", "Attended by"
+- May be one or multiple names
 
 **note**: 
-- Extract any important notes, recommendations, or deficiencies found
-- Keep concise (max 200 characters)
+- Extract any important findings, recommendations, or remarks
+- Look for "Findings", "Remarks", "Recommendations", "Observations"
+- Summarize key points if text is long (max 200 words)
+
+=== EXTRACTION EXAMPLES ===
+
+**Example 1: Cargo Gear Survey**
+Document beginning: "This document is a survey record, authorization number A/25/772, from PMDS for cargo gear, derricks, cranes, ramps, and personal/cargo lifts"
+Report form: "CG (02-19)"
+Frequent terms: "cargo gear" mentioned 15+ times
+→ survey_report_name: "cargo gear"  ✅ (NOT "survey record for cargo gear")
+→ report_form: "CG (02-19)"
+
+**Example 2: Close-up Survey**
+Document beginning: "This is a close-up survey of ballast tanks and hull structure"
+Report form: "CU (02/19)"
+Frequent terms: "ballast tank", "close-up", "tank coating"
+→ survey_report_name: "ballast tanks"  ✅ (NOT "close-up survey of ballast tanks")
+→ report_form: "CU (02/19)"
+
+**Example 3: Annual Survey**
+Document beginning: "Annual survey report for main engine and auxiliary machinery"
+Report form: "AS (03/20)"
+Frequent terms: "main engine", "machinery", "annual"
+→ survey_report_name: "main engine"  ✅ (NOT "annual survey of main engine")
+→ report_form: "AS (03/20)"
 
 === OUTPUT FORMAT ===
-
-Return ONLY a valid JSON object with these exact fields:
-
+Return ONLY a JSON object with these exact field names:
 {{
   "survey_report_name": "",
   "report_form": "",
@@ -238,19 +293,14 @@ Return ONLY a valid JSON object with these exact fields:
   "ship_name": "",
   "ship_imo": "",
   "surveyor_name": "",
-  "status": "Valid",
-  "note": ""
+  "note": "",
+  "status": "Valid"
 }}
 
-=== DOCUMENT TEXT TO ANALYZE ===
+=== DOCUMENT TEXT ===
+{summary_text}
 
-{summary_text[:8000]}
-
-=== EXTRACTION RULES REMINDER ===
-- survey_report_name: ONLY the equipment/system (NO "survey", "report", "annual", etc.)
-- issued_date: DD/MM/YYYY format (e.g., "15/01/2024")
-- status: "Valid" or "Expired"
-- Return ONLY the JSON object, no markdown code blocks, no explanations.
-"""
+=== YOUR RESPONSE ===
+Extract the fields and return ONLY the JSON object (no other text):"""
     
     return prompt
