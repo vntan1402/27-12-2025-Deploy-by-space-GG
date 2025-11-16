@@ -173,8 +173,8 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
 
   // Calculate survey report status based on expiry
   const getSurveyReportStatus = (report) => {
-    // Try to calculate dynamic expiry
-    const expiryDate = calculateSurveyReportExpiry(report.issued_date);
+    // Try to calculate dynamic expiry (uses issued_date or created_at)
+    const expiryDate = calculateSurveyReportExpiry(report);
 
     if (!expiryDate) {
       // Fallback to static status from backend
