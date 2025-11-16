@@ -66,7 +66,7 @@ class GDriveConfigRepository:
             
             result = await mongo_db.update_one(
                 GDriveConfigRepository.collection_name,
-                {"company": company},
+                {"company_id": company},
                 {"$set": update_dict}
             )
             
@@ -83,7 +83,7 @@ class GDriveConfigRepository:
         try:
             result = await mongo_db.update_one(
                 GDriveConfigRepository.collection_name,
-                {"company": company},
+                {"company_id": company},
                 {"$set": {"last_sync": datetime.utcnow()}}
             )
             return result.modified_count > 0
