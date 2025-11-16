@@ -209,15 +209,29 @@ class SurveyReportService:
         }
     
     @staticmethod
-    async def bulk_delete_survey_reports(request: BulkDeleteSurveyReportRequest, current_user: UserResponse) -> dict:
+    async def bulk_delete_survey_reports(
+        request: BulkDeleteSurveyReportRequest, 
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
         """Bulk delete survey reports"""
         deleted_count = 0
         errors = []
+        total_files_scheduled = 0
         
         for report_id in request.report_ids:
             try:
-                await SurveyReportService.delete_survey_report(report_id, current_user)
+                result = await SurveyReportService.delete_survey_report(
+                    report_id, 
+                    current_user, 
+                    background_tasks
+                )
                 deleted_count += 1
+                
+                # Track files scheduled for deletion
+                if result.get("background_deletion"):
+                    total_files_scheduled += result.get("files_scheduled", 0)
+                    
             except Exception as e:
                 errors.append(f"Failed to delete {report_id}: {str(e)}")
                 logger.error(f"Error deleting survey report {report_id}: {e}")
@@ -225,10 +239,15 @@ class SurveyReportService:
         
         logger.info(f"✅ Bulk deleted {deleted_count}/{len(request.report_ids)} survey reports")
         
+        message = f"Successfully deleted {deleted_count} survey report(s)"
+        if total_files_scheduled > 0:
+            message += f". {total_files_scheduled} file(s) deletion in progress..."
+        
         return {
             "success": True,
-            "message": f"Successfully deleted {deleted_count} survey report(s)",
+            "message": message,
             "deleted_count": deleted_count,
+            "files_scheduled": total_files_scheduled,
             "errors": errors if errors else None
         }
     
