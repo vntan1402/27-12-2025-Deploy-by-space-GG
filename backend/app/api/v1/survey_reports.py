@@ -174,11 +174,6 @@ async def upload_survey_report_files(
             status_code=500,
             detail=f"Failed to upload survey report files: {str(e)}"
         )
-
-    4. Perform Targeted OCR
-    5. Extract fields with System AI
-    6. Validate ship name
-    7. Return analysis + file content for upload
     """
     from app.services.survey_report_analyze_service import SurveyReportAnalyzeService
     
