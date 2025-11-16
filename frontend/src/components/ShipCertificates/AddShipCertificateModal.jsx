@@ -1200,6 +1200,8 @@ export const AddShipCertificateModal = ({
           setShowBatchResults(false);
           setBatchResults([]);
           setMultiCertUploads([]);
+          // Auto close parent Add Ship Certificate Modal
+          onClose();
         }}
         results={batchResults}
       />
