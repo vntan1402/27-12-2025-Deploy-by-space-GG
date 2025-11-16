@@ -3,8 +3,9 @@
  * Displays ship certificates in a sortable, filterable table
  * Extracted from Frontend V1 App.js (lines 13729-14006)
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import { calculateTooltipPosition } from '../../utils/positionHelpers';
 
 export const CertificateTable = ({
   certificates = [],
@@ -19,6 +20,14 @@ export const CertificateTable = ({
   onSurveyTypeRightClick,
   onNotesClick,
 }) => {
+  // ========== NOTE TOOLTIP STATE ==========
+  const [noteTooltip, setNoteTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    width: 300,
+    content: ''
+  });
   // Get sort icon for column
   const getSortIcon = (column) => {
     if (sortConfig.column !== column) {
