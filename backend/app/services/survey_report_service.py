@@ -231,7 +231,8 @@ class SurveyReportService:
             raise HTTPException(status_code=404, detail="Ship not found")
         
         ship_name = ship.get("name", "Unknown Ship")
-        survey_report_name = report.get("survey_report_name", "Survey Report")
+        # survey_report_name is for future use if needed
+        # survey_report_name = report.get("survey_report_name", "Survey Report")
         
         # Decode base64 file content
         try:
