@@ -257,6 +257,11 @@ async def update_ship_next_survey(
                 logger.info(f"⏭️ Skipping certificate {cert.get('id')} - excluded from auto-update")
                 continue
             
+            # BUSINESS RULE: Skip Interim certificates - they don't have next survey
+            if cert.get('cert_type') == 'Interim':
+                logger.info(f"⏭️ Skipping Interim certificate {cert.get('id')} - Interim certs don't have next survey")
+                continue
+            
             # Calculate next survey info
             survey_info = calculate_next_survey_info(cert, ship_data)
             
