@@ -413,6 +413,111 @@ async def update_ship_audit_certificates_next_survey(
             "updated_count": updated_count,
             "results": results
         }
+
+
+@router.post("/{ship_id}/calculate-next-docking")
+async def calculate_ship_next_docking(
+    ship_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Calculate Next Docking date using ENHANCED LOGIC (2025)
+    
+    NEW LOGIC:
+    1. Get Last Docking (nearest: last_docking or last_docking_2)
+    2. Calculate: Last Docking + 36 months
+    3. Get Special Survey Cycle To Date
+    4. Choose whichever is NEARER (earlier date)
+    
+    Migrated from backend-v1
+    """
+    from app.services.survey_calculation_service import SurveyCalculationService
+    from app.db.mongodb import mongo_db
+    from datetime import datetime, timezone
+    
+    try:
+        # Get ship data
+        ship = await mongo_db.database.ships.find_one({"id": ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # Parse docking dates
+        last_docking = SurveyCalculationService._parse_date(ship.get('last_docking'))
+        last_docking_2 = SurveyCalculationService._parse_date(ship.get('last_docking_2'))
+        
+        # Parse special survey cycle to date
+        special_survey_to_date = None
+        special_survey_cycle = ship.get('special_survey_cycle')
+        if special_survey_cycle and isinstance(special_survey_cycle, dict):
+            to_date_value = special_survey_cycle.get('to_date')
+            if to_date_value:
+                special_survey_to_date = SurveyCalculationService._parse_date(to_date_value)
+        
+        # Get ship age and class
+        ship_age = None
+        if ship.get('built_year'):
+            ship_age = datetime.now().year - ship.get('built_year')
+        
+        class_society = ship.get('class_society')
+        
+        # Calculate next docking
+        result = SurveyCalculationService.calculate_next_docking(
+            last_docking=last_docking,
+            last_docking_2=last_docking_2,
+            special_survey_to_date=special_survey_to_date,
+            ship_age=ship_age,
+            class_society=class_society
+        )
+        
+        if not result['next_docking']:
+            return {
+                "success": False,
+                "message": "Unable to calculate next docking date. Last docking date required.",
+                "ship_id": ship_id,
+                "ship_name": ship.get('name', 'Unknown')
+            }
+        
+        # Update ship with calculated next docking
+        next_docking_iso = result['next_docking'].isoformat() + 'Z'
+        
+        await mongo_db.database.ships.update_one(
+            {"id": ship_id},
+            {
+                "$set": {
+                    "next_docking": next_docking_iso,
+                    "next_docking_calculated_at": datetime.now(timezone.utc).isoformat(),
+                    "next_docking_calculation_method": result['calculation_method']
+                }
+            }
+        )
+        
+        logger.info(f"✅ Calculated next docking for ship {ship_id}: {result['next_docking'].strftime('%d/%m/%Y')}")
+        
+        return {
+            "success": True,
+            "message": "Next docking calculated successfully",
+            "ship_id": ship_id,
+            "ship_name": ship.get('name', 'Unknown'),
+            "next_docking": next_docking_iso,
+            "next_docking_display": result['next_docking'].strftime('%d/%m/%Y'),
+            "calculation_method": result['calculation_method'],
+            "reasoning": result['reasoning'],
+            "details": {
+                "docking_source": result.get('docking_source'),
+                "reference_docking": result.get('reference_docking'),
+                "docking_plus_36_months": result.get('docking_plus_36_months'),
+                "special_survey_to_date": result.get('special_survey_to_date'),
+                "ship_age": ship_age,
+                "class_society": class_society
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error calculating next docking: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to calculate next docking: {str(e)}")
+
         
     except HTTPException:
         raise
