@@ -792,9 +792,221 @@ class BackendTester:
             self.log_test("Scheduler Verification", False, f"Exception: {str(e)}")
             return False
     
+    def test_certificate_update_next_survey(self):
+        """Test Certificate Update API endpoint to verify next_survey field is saved correctly"""
+        print("\n📝 Testing Certificate Update - Next Survey Field...")
+        
+        try:
+            # Step 1: Get ships to find one with certificates
+            ships_response = self.session.get(f"{BACKEND_URL}/ships")
+            if ships_response.status_code != 200:
+                self.log_test("Certificate Update - Get Ships", False, f"Failed to get ships: {ships_response.status_code}")
+                return False
+            
+            ships = ships_response.json()
+            if not ships:
+                self.log_test("Certificate Update - Get Ships", False, "No ships found")
+                return False
+            
+            test_ship = ships[0]
+            ship_id = test_ship.get("id")
+            ship_name = test_ship.get("name", "Unknown")
+            
+            self.log_test("Certificate Update - Ship Selection", True, f"Using ship: {ship_name} (ID: {ship_id})")
+            
+            # Step 2: Get existing certificates for this ship
+            certs_response = self.session.get(f"{BACKEND_URL}/certificates", params={"ship_id": ship_id})
+            if certs_response.status_code != 200:
+                self.log_test("Certificate Update - Get Certificates", False, f"Failed to get certificates: {certs_response.status_code}")
+                return False
+            
+            certificates = certs_response.json()
+            
+            # Step 3: Create a test certificate if none exist
+            test_cert_id = None
+            if not certificates:
+                # Create a test certificate
+                cert_data = {
+                    "ship_id": ship_id,
+                    "cert_name": "Test Certificate",
+                    "cert_type": "Full Term",
+                    "cert_no": "TEST-CERT-2025-001",
+                    "issue_date": "2024-01-15T00:00:00.000Z",
+                    "valid_date": "2027-01-15T00:00:00.000Z",
+                    "next_survey": "2025-06-15T00:00:00.000Z",
+                    "next_survey_type": "Annual",
+                    "issued_by": "DNV",
+                    "issued_by_abbreviation": "DNV"
+                }
+                
+                create_response = self.session.post(f"{BACKEND_URL}/certificates", json=cert_data)
+                if create_response.status_code == 200:
+                    created_cert = create_response.json()
+                    test_cert_id = created_cert.get("id")
+                    self.log_test("Certificate Update - Create Test Certificate", True, f"Created test certificate: {test_cert_id}")
+                else:
+                    self.log_test("Certificate Update - Create Test Certificate", False, f"Failed to create certificate: {create_response.status_code}")
+                    return False
+            else:
+                # Use existing certificate
+                test_cert_id = certificates[0].get("id")
+                cert_name = certificates[0].get("cert_name", "Unknown")
+                self.log_test("Certificate Update - Use Existing Certificate", True, f"Using existing certificate: {cert_name} (ID: {test_cert_id})")
+            
+            # Step 4: Test updating the certificate with next_survey field
+            update_data = {
+                "cert_name": "Test Certificate",
+                "cert_type": "Full Term",
+                "next_survey": "2025-06-15T00:00:00.000Z",
+                "next_survey_type": "Annual",
+                "issued_by": "DNV",
+                "issued_by_abbreviation": "DNV"
+            }
+            
+            self.log_test("Certificate Update - Request Data", True, f"Updating with next_survey: {update_data['next_survey']}")
+            
+            update_response = self.session.put(f"{BACKEND_URL}/certificates/{test_cert_id}", json=update_data)
+            
+            if update_response.status_code == 200:
+                updated_cert = update_response.json()
+                response_next_survey = updated_cert.get("next_survey")
+                
+                self.log_test("Certificate Update - API Response", True, f"Update successful, response next_survey: {response_next_survey}")
+                
+                # Step 5: Verify the field is in the response
+                if response_next_survey:
+                    # Check if the date matches what we sent
+                    expected_date = "2025-06-15"
+                    if expected_date in str(response_next_survey):
+                        self.log_test("Certificate Update - Response Verification", True, f"next_survey field present in response: {response_next_survey}")
+                    else:
+                        self.log_test("Certificate Update - Response Verification", False, f"next_survey date mismatch. Expected: {expected_date}, Got: {response_next_survey}")
+                else:
+                    self.log_test("Certificate Update - Response Verification", False, "next_survey field missing from response")
+                
+                # Step 6: Fetch the certificate again to verify persistence
+                verify_response = self.session.get(f"{BACKEND_URL}/certificates/{test_cert_id}")
+                
+                if verify_response.status_code == 200:
+                    verified_cert = verify_response.json()
+                    db_next_survey = verified_cert.get("next_survey")
+                    
+                    if db_next_survey:
+                        if expected_date in str(db_next_survey):
+                            self.log_test("Certificate Update - Database Persistence", True, f"next_survey persisted correctly in DB: {db_next_survey}")
+                        else:
+                            self.log_test("Certificate Update - Database Persistence", False, f"next_survey date mismatch in DB. Expected: {expected_date}, Got: {db_next_survey}")
+                    else:
+                        self.log_test("Certificate Update - Database Persistence", False, "next_survey field NULL/missing in database")
+                        
+                    # Step 7: Test with different date formats
+                    self.test_next_survey_date_formats(test_cert_id)
+                    
+                    return True
+                else:
+                    self.log_test("Certificate Update - Database Verification", False, f"Failed to fetch updated certificate: {verify_response.status_code}")
+                    return False
+            else:
+                self.log_test("Certificate Update - API Call", False, f"Update failed: {update_response.status_code} - {update_response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Certificate Update - Exception", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_next_survey_date_formats(self, cert_id):
+        """Test different date formats for next_survey field"""
+        print("\n📅 Testing Next Survey Date Formats...")
+        
+        test_formats = [
+            {
+                "name": "ISO DateTime with Z",
+                "value": "2025-08-20T00:00:00.000Z",
+                "expected": "2025-08-20"
+            },
+            {
+                "name": "ISO DateTime without Z", 
+                "value": "2025-09-25T00:00:00.000",
+                "expected": "2025-09-25"
+            },
+            {
+                "name": "ISO Date Only",
+                "value": "2025-10-30",
+                "expected": "2025-10-30"
+            }
+        ]
+        
+        for test_format in test_formats:
+            try:
+                update_data = {
+                    "next_survey": test_format["value"]
+                }
+                
+                response = self.session.put(f"{BACKEND_URL}/certificates/{cert_id}", json=update_data)
+                
+                if response.status_code == 200:
+                    updated_cert = response.json()
+                    next_survey = updated_cert.get("next_survey")
+                    
+                    if next_survey and test_format["expected"] in str(next_survey):
+                        self.log_test(f"Date Format - {test_format['name']}", True, f"Format accepted: {next_survey}")
+                    else:
+                        self.log_test(f"Date Format - {test_format['name']}", False, f"Format issue. Sent: {test_format['value']}, Got: {next_survey}")
+                else:
+                    self.log_test(f"Date Format - {test_format['name']}", False, f"Update failed: {response.status_code}")
+                    
+            except Exception as e:
+                self.log_test(f"Date Format - {test_format['name']}", False, f"Exception: {str(e)}")
+    
+    def check_backend_logs_for_debug(self):
+        """Check backend logs for DEBUG messages related to certificate updates"""
+        print("\n🔍 Checking Backend Logs for DEBUG Messages...")
+        
+        try:
+            # Check if we can access backend logs
+            import subprocess
+            result = subprocess.run(
+                ["tail", "-n", "50", "/var/log/supervisor/backend.err.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0:
+                log_content = result.stdout
+                
+                # Look for DEBUG messages related to certificate updates
+                debug_lines = [line for line in log_content.split('\n') if 'DEBUG' in line and 'certificate' in line.lower()]
+                
+                if debug_lines:
+                    self.log_test("Backend Logs - DEBUG Messages Found", True, f"Found {len(debug_lines)} DEBUG messages")
+                    for line in debug_lines[-5:]:  # Show last 5 DEBUG messages
+                        print(f"   LOG: {line}")
+                else:
+                    self.log_test("Backend Logs - DEBUG Messages", True, "No certificate DEBUG messages found in recent logs")
+                
+                # Look for next_survey specific logs
+                next_survey_lines = [line for line in log_content.split('\n') if 'next_survey' in line.lower()]
+                
+                if next_survey_lines:
+                    self.log_test("Backend Logs - Next Survey Messages", True, f"Found {len(next_survey_lines)} next_survey related messages")
+                    for line in next_survey_lines[-3:]:  # Show last 3 messages
+                        print(f"   LOG: {line}")
+                else:
+                    self.log_test("Backend Logs - Next Survey Messages", True, "No next_survey specific messages found")
+                
+                return True
+            else:
+                self.log_test("Backend Logs - Access", False, f"Could not access logs: {result.stderr}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Backend Logs - Check", False, f"Exception checking logs: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all tests"""
-        print("🧪 Starting Backend Testing for Async Google Drive File Deletion System")
+        print("🧪 Starting Backend Testing for Certificate Update API")
         print("=" * 80)
         
         # Authentication is required for all tests
@@ -802,37 +1014,11 @@ class BackendTester:
             print("\n❌ Authentication failed. Cannot proceed with tests.")
             return False
         
-        # Get test data
-        ships = self.get_test_ships()
-        if not ships:
-            print("\n❌ No ships found for testing. Cannot proceed.")
-            return False
+        # Check backend logs first
+        self.check_backend_logs_for_debug()
         
-        # Find ship with certificates (prefer BROTHER 36)
-        test_ship = None
-        for ship in ships:
-            if "BROTHER" in ship.get("name", "").upper():
-                test_ship = ship
-                break
-        
-        if not test_ship:
-            test_ship = ships[0]  # Fallback to first ship
-        
-        # Run Async Deletion tests
-        self.test_certificate_deletion_with_background_tasks(test_ship)
-        self.test_audit_certificate_deletion_with_background_tasks(test_ship)
-        self.test_bulk_certificate_deletion(test_ship)
-        self.test_bulk_audit_certificate_deletion(test_ship)
-        
-        # Run Error Handling tests
-        self.test_delete_nonexistent_certificate()
-        self.test_delete_certificate_without_file_id(test_ship)
-        
-        # Run Cleanup Service tests
-        self.test_cleanup_service_report()
-        
-        # Run Scheduler tests
-        self.test_scheduler_verification()
+        # Run Certificate Update tests
+        self.test_certificate_update_next_survey()
         
         # Print summary
         self.print_summary()
