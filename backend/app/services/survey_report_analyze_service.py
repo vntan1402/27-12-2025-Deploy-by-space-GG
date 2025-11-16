@@ -535,6 +535,25 @@ class SurveyReportAnalyzeService:
         
         if extracted_fields:
             logger.info("✅ System AI extraction from merged summary completed")
+            
+            # Normalize issued_by to standard abbreviation (large PDF)
+            if extracted_fields.get('issued_by'):
+                try:
+                    from app.utils.issued_by_abbreviation import normalize_issued_by
+                    
+                    original_issued_by = extracted_fields['issued_by']
+                    normalized_issued_by = normalize_issued_by(original_issued_by)
+                    
+                    if normalized_issued_by != original_issued_by:
+                        extracted_fields['issued_by'] = normalized_issued_by
+                        logger.info(f"✅ Normalized Issued By (large PDF): '{original_issued_by}' → '{normalized_issued_by}'")
+                    else:
+                        logger.info(f"ℹ️ Issued By kept as (large PDF): '{original_issued_by}'")
+                        
+                except Exception as norm_error:
+                    logger.error(f"❌ Error normalizing issued_by (large PDF): {norm_error}")
+                    # Keep original value if normalization fails
+            
             analysis_result.update(extracted_fields)
             
             # Recreate summary with extracted data
