@@ -414,6 +414,12 @@ async def update_ship_audit_certificates_next_survey(
             "updated_count": updated_count,
             "results": results
         }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error updating audit certificates next survey: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update audit certificates: {str(e)}")
 
 
 @router.post("/{ship_id}/calculate-next-docking")
