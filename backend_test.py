@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Survey Report Analysis
-Tests the Survey Report Analysis functionality after poppler and tesseract installation.
-Focus: Testing AI analysis with CG (02-19).pdf file to verify OCR improvements.
+Backend Testing Script for Survey Report Analysis - Final Test #2
+Tests the Survey Report Analysis functionality after LlmChat fix.
+Focus: Testing AI analysis with CG (02-19).pdf file to verify System AI extraction.
 
-Review Request: Final Test - Survey Report Analysis với tất cả fixes
-- Test endpoint after Poppler installed
-- Test endpoint after Tesseract installed  
-- Test 'emergent' provider support added
-- Verify extracted fields - expect MORE fields now
+Review Request: Final Test #2 - Survey Report Analysis với LlmChat fix
+- Test analyze endpoint: POST /api/survey-reports/analyze-file
+- Use any ship ID with bypass_validation = "true"
+- Check extracted fields: Count how many fields have values
+- Check if we have MORE than 2 fields now (previous test only had 2)
+- Check backend logs for: No import errors, "✅ Survey report fields extracted successfully"
+- Processing method should be "full_analysis" or similar (not "document_ai_only")
+
+Success Criteria:
+- NO import errors
+- At least 4-5 fields populated
+- Processing method indicates successful System AI extraction
 """
 
 import requests
@@ -22,7 +29,7 @@ from datetime import datetime
 
 # Configuration
 BACKEND_URL = "https://navmaster-1.preview.emergentagent.com/api"
-TEST_USERNAME = "admin1"
+TEST_USERNAME = "admin1@gmail.com"  # Updated to use email format as per review request
 TEST_PASSWORD = "123456"
 PDF_URL = "https://customer-assets.emergentagent.com/job_75aa79c8-ba52-4762-a517-d6f75c7d2704/artifacts/ip1fsm86_CG%20%2802-19%29.pdf"
 
