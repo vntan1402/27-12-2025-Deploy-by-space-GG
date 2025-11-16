@@ -158,18 +158,24 @@ class SurveyReportService:
     async def bulk_delete_survey_reports(request: BulkDeleteSurveyReportRequest, current_user: UserResponse) -> dict:
         """Bulk delete survey reports"""
         deleted_count = 0
-        for report_id in request.document_ids:
+        errors = []
+        
+        for report_id in request.report_ids:
             try:
                 await SurveyReportService.delete_survey_report(report_id, current_user)
                 deleted_count += 1
-            except:
+            except Exception as e:
+                errors.append(f"Failed to delete {report_id}: {str(e)}")
+                logger.error(f"Error deleting survey report {report_id}: {e}")
                 continue
         
-        logger.info(f"✅ Bulk deleted {deleted_count} survey reports")
+        logger.info(f"✅ Bulk deleted {deleted_count}/{len(request.report_ids)} survey reports")
         
         return {
-            "message": f"Successfully deleted {deleted_count} survey reports",
-            "deleted_count": deleted_count
+            "success": True,
+            "message": f"Successfully deleted {deleted_count} survey report(s)",
+            "deleted_count": deleted_count,
+            "errors": errors if errors else None
         }
     
     @staticmethod
