@@ -12,6 +12,112 @@ class SurveyCalculationService:
     """Service for calculating Next Survey dates based on IMO regulations"""
     
     @staticmethod
+    async def calculate_special_survey_cycle_from_certificates(ship_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Calculate Special Survey Cycle from Full Term Class certificates
+        Following IMO/Classification Society standards
+        
+        IMO/Classification Society Requirements:
+        - 5-year Special Survey cycle mandated by SOLAS, MARPOL, HSSC
+        - To Date = Valid date of current Full Term Class certificate
+        - From Date = 5 years before To Date
+        - Intermediate Survey required between 2nd-3rd year
+        
+        Args:
+            ship_id: The ship ID to get certificates for
+            
+        Returns:
+            dict with from_date, to_date, cycle_type or None
+        """
+        from app.db.mongodb import mongo_db
+        
+        try:
+            # Get all certificates for this ship
+            certificates = await mongo_db.database.certificates.find({"ship_id": ship_id}).to_list(length=1000)
+            
+            if not certificates:
+                logger.info(f"No certificates found for ship {ship_id}")
+                return None
+            
+            # Filter for Full Term Class certificates only
+            full_term_class_certs = []
+            class_keywords = [
+                'class', 'classification', 'safety construction', 'safety equipment',
+                'safety radio', 'cargo ship safety', 'passenger ship safety'
+            ]
+            
+            for cert in certificates:
+                cert_type = (cert.get('cert_type') or '').strip()
+                cert_name = (cert.get('cert_name') or '').lower()
+                
+                # Only Full Term certificates
+                if cert_type != 'Full Term':
+                    continue
+                
+                # Check if it's a Class certificate
+                is_class_cert = any(keyword in cert_name for keyword in class_keywords)
+                
+                if is_class_cert and cert.get('valid_date'):
+                    full_term_class_certs.append(cert)
+            
+            if not full_term_class_certs:
+                logger.info(f"No Full Term Class certificates found for ship {ship_id}")
+                return None
+            
+            logger.info(f"Found {len(full_term_class_certs)} Full Term Class certificates for Special Survey cycle calculation")
+            
+            # Find certificate with latest valid date (current cycle endpoint)
+            latest_cert = None
+            latest_date = None
+            
+            for cert in full_term_class_certs:
+                valid_date_str = cert.get('valid_date')
+                if valid_date_str:
+                    valid_date = SurveyCalculationService._parse_date(valid_date_str)
+                    if valid_date and (latest_date is None or valid_date > latest_date):
+                        latest_date = valid_date
+                        latest_cert = cert
+            
+            if not latest_cert or not latest_date:
+                logger.info(f"No valid certificate dates found for Special Survey cycle")
+                return None
+            
+            # Calculate Special Survey Cycle: 5-year standard
+            to_date = latest_date  # End of current 5-year cycle
+            
+            # From Date: same day/month, 5 years earlier
+            try:
+                from_date = to_date.replace(year=to_date.year - 5)
+            except ValueError:
+                # Handle leap year edge case (Feb 29th)
+                from_date = to_date.replace(year=to_date.year - 5, month=2, day=28)
+            
+            # Determine cycle type
+            cert_name = latest_cert.get('cert_name', 'Class Certificate')
+            cycle_type = "Class Survey Cycle"
+            
+            if "safety construction" in cert_name.lower():
+                cycle_type = "SOLAS Safety Construction Survey Cycle"
+            elif "safety equipment" in cert_name.lower():
+                cycle_type = "SOLAS Safety Equipment Survey Cycle"
+            elif "safety radio" in cert_name.lower():
+                cycle_type = "SOLAS Safety Radio Survey Cycle"
+            
+            logger.info(f"✅ Calculated Special Survey cycle for ship {ship_id}: {from_date.strftime('%d/%m/%Y')} - {to_date.strftime('%d/%m/%Y')} from {cert_name}")
+            
+            return {
+                'from_date': from_date,
+                'to_date': to_date,
+                'intermediate_required': True,  # IMO requirement
+                'cycle_type': cycle_type,
+                'source_certificate': cert_name
+            }
+            
+        except Exception as e:
+            logger.error(f"Error calculating Special Survey cycle: {e}")
+            return None
+    
+    @staticmethod
     def calculate_next_docking(
         last_docking: Optional[datetime],
         last_docking_2: Optional[datetime],
