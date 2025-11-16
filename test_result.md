@@ -328,6 +328,79 @@
 
 ---
 
+### Survey Report Analysis Endpoint Testing - Final Test với tất cả fixes
+
+**Status:** ⚠️ PARTIALLY WORKING (Critical Issue Found)
+**Date:** 2025-01-17
+**Testing Agent:** deep_testing_backend_v2
+
+**Test Coverage Completed:**
+- Authentication with admin1/123456 ✅
+- PDF download from specified URL ✅
+- AI provider 'emergent' support verification ✅
+- Survey report analyze endpoint testing ✅
+- OCR functionality (Tesseract) verification ✅
+- Backend logs analysis ✅
+
+**Success Rate:** 91.7% (11/12 tests passed)
+
+**✅ WORKING COMPONENTS:**
+- **Authentication:** admin1/123456 login successful ✅
+- **AI Configuration:** Provider: emergent, Model: gemini-2.0-flash, Use Emergent Key: True ✅
+- **PDF Download:** CG (02-19).pdf successfully downloaded (146,206 bytes) ✅
+- **Endpoint Access:** POST /api/survey-reports/analyze-file accessible ✅
+- **OCR Infrastructure:** Tesseract installed and working ✅
+- **Document AI:** Processing PDF successfully ✅
+
+**❌ CRITICAL ISSUE IDENTIFIED:**
+- **Field Extraction Failure:** Only 2/10 fields populated (report_form, status)
+- **Key Fields Missing:** survey_report_name, survey_report_no, issued_by, issued_date NOT extracted
+- **Expected:** MORE fields after fixes, but getting FEWER fields than expected
+
+**🔍 ROOT CAUSE ANALYSIS:**
+```
+ImportError: cannot import name 'get_text_generation_google' from 'emergentintegrations'
+WARNING: System AI extraction returned no fields
+```
+
+**Technical Details:**
+- **Processing Method:** document_ai_only (should be full_analysis)
+- **Confidence Score:** 0.0 (indicating AI extraction failure)
+- **OCR Status:** ✅ Working (Tesseract available at /usr/bin/tesseract)
+- **Document AI:** ✅ Working (PDF processed successfully)
+- **System AI:** ❌ FAILING (emergentintegrations import error)
+
+**Impact Assessment:**
+- Poppler: ✅ Installed and working
+- Tesseract: ✅ Installed and working  
+- 'emergent' provider: ✅ Configured but ❌ Integration broken
+- Field extraction: ❌ Severely limited (2/10 instead of expected 5-6+ fields)
+
+**Extracted Fields (Current):**
+- report_form: ✅ "CG (02-19)" (from filename)
+- status: ✅ "Valid" (default)
+- survey_report_name: ❌ Empty
+- survey_report_no: ❌ Empty
+- issued_by: ❌ Empty
+- issued_date: ❌ Empty
+- ship_name: ❌ Empty
+- ship_imo: ❌ Empty
+- surveyor_name: ❌ Empty
+- note: ❌ Empty
+
+**Expected vs Actual:**
+- Review Request Expected: 5-6 fields populated
+- Current Result: Only 2 fields populated
+- Success Criteria: ❌ NOT MET
+
+**Next Steps Required:**
+1. Fix emergentintegrations import issue
+2. Verify System AI extraction functionality
+3. Re-test to confirm MORE fields are extracted
+4. Validate that survey_report_name, survey_report_no, issued_by, issued_date are populated
+
+---
+
 ## 🧪 Recent Testing History
 
     status_history:
