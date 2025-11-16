@@ -443,8 +443,8 @@ async def calculate_ship_next_docking(
             raise HTTPException(status_code=404, detail="Ship not found")
         
         # Parse docking dates
-        last_docking = SurveyCalculationService._parse_date(ship.get('last_docking'))
-        last_docking_2 = SurveyCalculationService._parse_date(ship.get('last_docking_2'))
+        last_docking = parse_date(ship.get('last_docking'))
+        last_docking_2 = parse_date(ship.get('last_docking_2'))
         
         # Parse special survey cycle to date
         special_survey_to_date = None
