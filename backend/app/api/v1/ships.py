@@ -462,7 +462,7 @@ async def calculate_ship_next_docking(
         class_society = ship.get('class_society')
         
         # Calculate next docking
-        result = SurveyCalculationService.calculate_next_docking(
+        result = calculate_next_docking_enhanced(
             last_docking=last_docking,
             last_docking_2=last_docking_2,
             special_survey_to_date=special_survey_to_date,
