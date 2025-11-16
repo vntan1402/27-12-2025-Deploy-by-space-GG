@@ -648,13 +648,18 @@ class GDriveService:
                         result = await response.json()
                         
                         if result.get("success"):
-                            file_id = result.get("file_id") or result.get("survey_report_file_id")
+                            # Apps Script returns 'file_id' in the response
+                            file_id = result.get("file_id")
+                            file_path = result.get("file_path", "")
                             
-                            logger.info(f"✅ File uploaded: {file_id}")
+                            logger.info(f"✅ File uploaded successfully")
+                            logger.info(f"   File ID: {file_id}")
+                            logger.info(f"   Path: {file_path}")
                             
                             return {
                                 "success": True,
                                 "file_id": file_id,
+                                "file_path": file_path,
                                 "message": "File uploaded successfully"
                             }
                         else:
