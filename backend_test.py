@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Certificate Update API
-Tests the Certificate Update API endpoint to verify that the "next_survey" field is being saved correctly to the database.
+Backend Testing Script for Survey Report Analysis
+Tests the Survey Report Analysis functionality after poppler and tesseract installation.
+Focus: Testing AI analysis with CG (02-19).pdf file to verify OCR improvements.
 """
 
 import requests
@@ -15,7 +16,7 @@ from datetime import datetime
 
 # Configuration
 BACKEND_URL = "https://navmaster-1.preview.emergentagent.com/api"
-TEST_USERNAME = "admin1"
+TEST_USERNAME = "admin1@gmail.com"
 TEST_PASSWORD = "123456"
 
 class BackendTester:
