@@ -38,6 +38,7 @@ class CertificateUpdate(BaseModel):
     next_survey: Optional[datetime] = None
     next_survey_type: Optional[str] = None
     issued_by: Optional[str] = None
+    issued_by_abbreviation: Optional[str] = None
     category: Optional[str] = None
     sensitivity_level: Optional[str] = None
     notes: Optional[str] = None
