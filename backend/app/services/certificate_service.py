@@ -514,7 +514,8 @@ class CertificateService:
             logger.error(f"❌ Certificate analysis error: {e}")
             raise HTTPException(
                 status_code=500,
-
+                detail=f"Failed to analyze certificate: {str(e)}"
+            )
     
     @staticmethod
     async def auto_rename_certificate_file(certificate_id: str, current_user: UserResponse) -> dict:
