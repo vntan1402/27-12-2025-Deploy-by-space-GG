@@ -490,11 +490,17 @@ CLASSIFICATION RULES - MUST classify as "certificates" if:
 ✓ Issued by Classification Society or Maritime Authority
 
 EXTRACTION RULES:
-1. For dates: Convert to DD/MM/YYYY format (e.g., "15 January 2023" → "15/01/2023")
+1. For dates: Convert to DD/MM/YYYY format. Month names → numbers:
+   - "7 November 2025" → "07/11/2025"
+   - "15 January 2023" → "15/01/2023"
+   - "28 July 2025" → "28/07/2025"
+   - "3 Dec 2024" → "03/12/2024"
+   - Month mapping: January=01, February=02, March=03, April=04, May=05, June=06, July=07, August=08, September=09, October=10, November=11, December=12
 2. For ship_type: Pick ONE from the list that matches
 3. For numbers: Extract digits only (e.g., "25,000 MT" → "25000")
 4. If field not found: Use null (not empty string)
 5. confidence: "high" if 5+ fields extracted, "medium" if 3-4 fields, "low" if <3 fields
+6. Issue date priority: Search document from top to bottom. The first date near "Date of issue" or "THIS IS TO CERTIFY" section is usually the issue date
 
 Return ONLY the JSON object, no markdown blocks, no explanation.
 
