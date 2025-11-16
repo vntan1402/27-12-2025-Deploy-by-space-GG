@@ -1691,45 +1691,27 @@ class BackendTester:
             return False
 
     def run_all_tests(self):
-        """Run all tests"""
-        print("🧪 Starting Backend Testing Suite - Survey Report Analysis Focus")
-        print("=" * 80)
+        """Run all backend tests focused on Survey Report Analysis"""
+        print("🚀 Starting Survey Report Analysis Testing Suite...")
+        print(f"Backend URL: {BACKEND_URL}")
+        print(f"Test User: {TEST_USERNAME}")
+        print(f"Test PDF: {PDF_URL}")
+        print("="*80)
         
-        # Authentication is required for all tests
+        # Authentication
         if not self.authenticate():
-            print("\n❌ Authentication failed. Cannot proceed with tests.")
-            return False
+            print("❌ Authentication failed. Cannot proceed with tests.")
+            return
         
-        # AI Configuration Test (Review Request Requirement)
-        print("\n" + "="*60)
-        print("🤖 AI CONFIGURATION TESTS")
-        print("="*60)
+        # Core Survey Report Analysis Tests
+        self.test_ai_provider_support()
+        self.test_survey_report_analyze_endpoint()
         
-        ai_config = self.test_ai_config_get()
-        if not ai_config:
-            print("\n❌ AI Configuration failed - stopping tests")
-            return False
-        
-        # Survey Report Analysis Test (Primary Focus - Review Request)
-        print("\n" + "="*60)
-        print("📊 SURVEY REPORT ANALYSIS TESTS")
-        print("="*60)
-        
-        self.test_survey_report_analysis_endpoint()
-        
-        # Additional tests for comprehensive coverage
-        print("\n" + "="*60)
-        print("🔄 ADDITIONAL TESTS")
-        print("="*60)
-        
-        self.test_auto_rename_certificate_file()
-        self.test_auto_rename_error_cases()
-        self.test_certificate_abbreviation_priority()
+        # Check backend logs for analysis results
+        self.check_backend_logs_for_survey_analysis()
         
         # Print summary
-        self.print_summary()
-        
-        return True
+        self.print_test_summary()
     
     def print_summary(self):
         """Print test summary"""
