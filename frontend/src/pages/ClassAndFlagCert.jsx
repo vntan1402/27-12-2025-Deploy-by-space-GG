@@ -1505,6 +1505,26 @@ const ClassAndFlagCert = () => {
         ) : (
           /* Certificate List Section */
           <div>
+            {/* Page Title and Description */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <h2 className="text-2xl font-bold text-gray-800">
+                  {language === 'vi' ? 'Danh Sách Chứng Chỉ' : 'Certificate List'}
+                </h2>
+                {selectedShip && (
+                  <span className="text-lg text-gray-600">
+                    {language === 'vi' ? `cho tàu ${selectedShip.name}` : `for ${selectedShip.name}`}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-600">
+                {language === 'vi' 
+                  ? 'Quản lý các giấy chứng nhận phân cấp / chính quyền cờ' 
+                  : 'Manage classification / flag state certificates'
+                }
+              </p>
+            </div>
+
             {/* Action Buttons */}
             <CertificateActionButtons
               language={language}
