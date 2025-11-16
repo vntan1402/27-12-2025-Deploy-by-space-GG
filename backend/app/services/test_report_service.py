@@ -317,8 +317,9 @@ class TestReportService:
                     summary_upload = await GDriveService.upload_file(
                         file_content=summary_bytes,
                         filename=summary_filename,
-                        path="SUMMARY/Class & Flag Document",
-                        current_user=current_user
+                        content_type="text/plain",
+                        folder_path="SUMMARY/Class & Flag Document",
+                        company_id=company_uuid
                     )
                     
                     if summary_upload.get('success'):
