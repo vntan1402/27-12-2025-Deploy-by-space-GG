@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Async Google Drive File Deletion System
-Tests the newly implemented async file deletion with retry mechanism and cleanup job.
+Backend Testing Script for Certificate Update API
+Tests the Certificate Update API endpoint to verify that the "next_survey" field is being saved correctly to the database.
 """
 
 import requests
@@ -11,6 +11,7 @@ import sys
 import time
 import asyncio
 from pathlib import Path
+from datetime import datetime
 
 # Configuration
 BACKEND_URL = "https://naval-migrate.preview.emergentagent.com/api"
