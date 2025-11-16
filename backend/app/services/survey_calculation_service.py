@@ -436,6 +436,7 @@ class SurveyCalculationService:
             cycle_start = None
             cycle_end = None
             
+            # Priority 1: Use ship's special_survey_cycle if exists
             if isinstance(special_survey_cycle, dict):
                 cycle_from = special_survey_cycle.get('from_date')
                 cycle_to = special_survey_cycle.get('to_date')
@@ -443,6 +444,10 @@ class SurveyCalculationService:
                 if cycle_from and cycle_to:
                     cycle_start = SurveyCalculationService._parse_date(cycle_from)
                     cycle_end = SurveyCalculationService._parse_date(cycle_to)
+                    logger.info(f"Using ship's Special Survey Cycle: {cycle_start.strftime('%Y-%m-%d') if cycle_start else 'None'} to {cycle_end.strftime('%Y-%m-%d') if cycle_end else 'None'}")
+            
+            # Priority 2: If no cycle in ship data, try to derive from certificate valid_date
+            # (This matches backend-v1 behavior where certificates can define the cycle)
             
             # If no special survey cycle, create one based on valid_date
             if not cycle_start or not cycle_end:
