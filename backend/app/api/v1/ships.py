@@ -271,7 +271,7 @@ async def update_ship_next_survey(
                         from datetime import datetime
                         parsed_date = datetime.strptime(survey_info['raw_date'], '%d/%m/%Y')
                         update_data['next_survey'] = parsed_date.isoformat() + 'Z'  # Add Z for UTC (backend-v1 format)
-                    except:
+                    except Exception:
                         update_data['next_survey'] = None
                 else:
                     update_data['next_survey'] = None
