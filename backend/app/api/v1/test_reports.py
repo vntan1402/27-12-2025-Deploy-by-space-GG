@@ -111,6 +111,57 @@ async def check_duplicate_test_report(
         logger.error(f"❌ Error checking duplicate: {e}")
         raise HTTPException(status_code=500, detail="Failed to check duplicate")
 
+@router.post("/{report_id}/upload-files")
+async def upload_test_report_files(
+    report_id: str,
+    file_content: str,
+    filename: str,
+    content_type: str,
+    summary_text: Optional[str] = None,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload test report files to Google Drive after record creation (Editor+ role required)
+    
+    Process:
+    1. Decode base64 file content
+    2. Upload original file to: ShipName/Class & Flag Cert/Test Report/
+    3. Upload summary to: SUMMARY/Class & Flag Document/
+    4. Update test report record with file IDs
+    
+    Args:
+        report_id: Test report ID
+        file_content: Base64 encoded file content
+        filename: Original filename
+        content_type: File content type
+        summary_text: Summary text (optional)
+        current_user: Current authenticated user
+    
+    Returns:
+        Upload result with file IDs
+    """
+    try:
+        from fastapi import Body
+        
+        result = await TestReportService.upload_files(
+            report_id=report_id,
+            file_content=file_content,
+            filename=filename,
+            content_type=content_type,
+            summary_text=summary_text,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading test report files: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload test report files: {str(e)}")
+
 @router.post("/analyze-file")
 async def analyze_test_report_file(
     test_report_file: UploadFile = File(...),
