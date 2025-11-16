@@ -118,10 +118,14 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
   };
 
   // Calculate survey report expiry date based on most common next_survey in certificates
-  const calculateSurveyReportExpiry = (issuedDate) => {
-    if (!issuedDate || certificates.length === 0) return null;
+  const calculateSurveyReportExpiry = (report) => {
+    if (certificates.length === 0) return null;
 
     try {
+      // Use issued_date if available, otherwise fallback to created_at
+      const referenceDate = report.issued_date || report.created_at;
+      if (!referenceDate) return null;
+
       // 1. Find most common next_survey value from certificates
       const nextSurveyValues = certificates
         .map(cert => cert.next_survey_display || cert.next_survey)
@@ -153,9 +157,9 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
         windowClose.setMonth(windowClose.getMonth() + 3);
       }
 
-      // 3. Calculate max expiry (issued_date + 18 months)
-      const issued = new Date(issuedDate);
-      const maxExpiry = new Date(issued);
+      // 3. Calculate max expiry (reference_date + 18 months)
+      const reference = new Date(referenceDate);
+      const maxExpiry = new Date(reference);
       maxExpiry.setMonth(maxExpiry.getMonth() + 18);
 
       // 4. Return the earlier date (window_close or max 18 months)
