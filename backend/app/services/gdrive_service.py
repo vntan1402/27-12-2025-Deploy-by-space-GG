@@ -508,9 +508,11 @@ class GDriveService:
                 return {"success": False, "message": "No company ID provided"}
             
             logger.info(f"🗑️ Attempting to delete file {file_id} from Google Drive")
+            logger.info(f"🔍 DEBUG - Delete file: company_id = {company_id}, file_id = {file_id}")
             
             # Get company Google Drive configuration
             config = await GDriveConfigRepository.get_by_company(company_id)
+            logger.info(f"🔍 DEBUG - GDrive config found: {config is not None}")
             
             if not config:
                 logger.warning("⚠️ No Google Drive configuration found for company")
