@@ -62,8 +62,9 @@ async def extract_survey_report_fields_from_summary(
                 max_tokens=2000
             )
             
-            if response and response.get('choices'):
-                content = response['choices'][0].get('message', {}).get('content', '')
+            if response:
+                # LlmChat returns content directly
+                content = response if isinstance(response, str) else ''
                 
                 if content:
                     # Parse JSON response
