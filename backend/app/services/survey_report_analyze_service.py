@@ -10,7 +10,7 @@ from fastapi import HTTPException, UploadFile
 
 from app.db.mongodb import mongo_db
 from app.models.user import UserResponse
-from app.utils.pdf_splitter import PDFSplitter
+from app.utils.pdf_splitter import PDFSplitter, merge_analysis_results, create_enhanced_merged_summary
 from app.utils.survey_report_ai import extract_survey_report_fields_from_summary, extract_report_form_from_filename
 
 logger = logging.getLogger(__name__)
