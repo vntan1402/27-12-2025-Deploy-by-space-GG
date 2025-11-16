@@ -525,18 +525,6 @@ async def calculate_ship_next_docking(
         logger.error(f"❌ Error calculating next docking: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to calculate next docking: {str(e)}")
 
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"❌ Error updating audit certificates next survey: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to update audit certificates: {str(e)}")
-
-        raise
-    except Exception as e:
-        logger.error(f"❌ Error updating next survey: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to update next survey: {str(e)}")
-
 @router.post("/{ship_id}/calculate-anniversary-date")
 async def calculate_anniversary_date(
     ship_id: str,
