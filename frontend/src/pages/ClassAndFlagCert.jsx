@@ -1505,18 +1505,8 @@ const ClassAndFlagCert = () => {
         ) : (
           /* Certificate List Section */
           <div>
-            {/* Page Title and Description */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-2">
-                <h2 className="text-2xl font-bold text-gray-800">
-                  {language === 'vi' ? 'Danh Sách Chứng Chỉ' : 'Certificate List'}
-                </h2>
-                {selectedShip && (
-                  <span className="text-lg text-gray-600">
-                    {language === 'vi' ? `cho tàu ${selectedShip.name}` : `for ${selectedShip.name}`}
-                  </span>
-                )}
-              </div>
+            {/* Page Description */}
+            <div className="mb-4">
               <p className="text-sm text-gray-600">
                 {language === 'vi' 
                   ? 'Quản lý các giấy chứng nhận phân cấp / chính quyền cờ' 
@@ -1525,7 +1515,7 @@ const ClassAndFlagCert = () => {
               </p>
             </div>
 
-            {/* Action Buttons */}
+            {/* Title + Action Buttons */}
             <CertificateActionButtons
               language={language}
               selectedShip={selectedShip}
