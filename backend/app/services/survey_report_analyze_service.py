@@ -562,7 +562,8 @@ class SurveyReportAnalyzeService:
                 chunk_results=chunk_results,
                 merged_data=extracted_fields,
                 original_filename=filename,
-                total_pages=total_pages
+                total_pages=total_pages,
+                document_type='survey_report'
             )
             
             analysis_result['_summary_text'] = final_summary
