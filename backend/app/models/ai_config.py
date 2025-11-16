@@ -32,6 +32,7 @@ class AIConfigUpdate(BaseModel):
     custom_api_key: Optional[str] = None
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
+    document_ai: Optional[Dict[str, Any]] = None
 
 class AIConfigResponse(AIConfigBase):
     """Response model for AI configuration"""
