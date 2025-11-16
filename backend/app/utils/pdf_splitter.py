@@ -199,8 +199,12 @@ def merge_analysis_results(
     all_report_nos = []
     all_issued_by = []
     all_dates = []
-    all_surveyors = []
+    all_additional_data = {}  # For document-specific fields
     all_notes = []
+    
+    # Initialize collections for additional fields
+    for field in mapping.get('additional_fields', []):
+        all_additional_data[field] = []
     
     # Collect data from all chunks
     for chunk_result in successful_chunks:
@@ -208,20 +212,22 @@ def merge_analysis_results(
         chunk_num = chunk_result.get('chunk_num', 0)
         page_range = chunk_result.get('page_range', '')
         
-        # Collect values
-        if extracted.get('survey_report_name'):
+        # Collect name (dynamic field)
+        if extracted.get(name_field):
             all_names.append({
-                'value': extracted['survey_report_name'],
+                'value': extracted[name_field],
                 'chunk': chunk_num,
                 'pages': page_range
             })
         
-        if extracted.get('survey_report_no'):
+        # Collect number (dynamic field)
+        if extracted.get(no_field):
             all_report_nos.append({
-                'value': extracted['survey_report_no'],
+                'value': extracted[no_field],
                 'chunk': chunk_num
             })
         
+        # Collect common fields
         if extracted.get('issued_by'):
             all_issued_by.append({
                 'value': extracted['issued_by'],
@@ -234,12 +240,15 @@ def merge_analysis_results(
                 'chunk': chunk_num
             })
         
-        if extracted.get('surveyor_name'):
-            all_surveyors.append({
-                'value': extracted['surveyor_name'],
-                'chunk': chunk_num
-            })
+        # Collect additional fields (document-specific)
+        for field in mapping.get('additional_fields', []):
+            if extracted.get(field):
+                all_additional_data[field].append({
+                    'value': extracted[field],
+                    'chunk': chunk_num
+                })
         
+        # Collect notes
         if extracted.get('note'):
             all_notes.append({
                 'value': extracted['note'],
@@ -247,10 +256,10 @@ def merge_analysis_results(
                 'pages': page_range
             })
     
-    # Strategy 1: Survey Report Name (prefer first chunk - usually cover page)
+    # Strategy 1: Document Name (prefer first chunk - usually cover page)
     if all_names:
-        merged['survey_report_name'] = all_names[0]['value']
-        logger.info(f"  📝 Name: '{merged['survey_report_name']}' (from chunk {all_names[0]['chunk']})")
+        merged[name_field] = all_names[0]['value']
+        logger.info(f"  📝 {name_field}: '{merged[name_field]}' (from chunk {all_names[0]['chunk']})")
     
     # Strategy 2: Report Number (take first non-empty or most common)
     if all_report_nos:
@@ -261,8 +270,8 @@ def merge_analysis_results(
             report_no_counts[val] = report_no_counts.get(val, 0) + 1
         
         # Take most common
-        merged['survey_report_no'] = max(report_no_counts, key=report_no_counts.get)
-        logger.info(f"  🔢 Report No: '{merged['survey_report_no']}' (appears in {report_no_counts[merged['survey_report_no']]} chunk(s))")
+        merged[no_field] = max(report_no_counts, key=report_no_counts.get)
+        logger.info(f"  🔢 {no_field}: '{merged[no_field]}' (appears in {report_no_counts[merged[no_field]]} chunk(s))")
     
     # Strategy 3: Issued By (take most common)
     if all_issued_by:
@@ -279,11 +288,18 @@ def merge_analysis_results(
         merged['issued_date'] = all_dates[0]['value']
         logger.info(f"  📅 Date: '{merged['issued_date']}'")
     
-    # Strategy 5: Surveyor Name (collect unique names)
-    if all_surveyors:
-        unique_surveyors = list(set([s['value'] for s in all_surveyors]))
-        merged['surveyor_name'] = ', '.join(unique_surveyors)
-        logger.info(f"  👤 Surveyors: '{merged['surveyor_name']}'")
+    # Strategy 5: Additional fields (document-specific merging)
+    for field, values in all_additional_data.items():
+        if values:
+            # For surveyor_name or auditor_name: collect unique names
+            if field in ['surveyor_name', 'auditor_name']:
+                unique_values = list(set([v['value'] for v in values]))
+                merged[field] = ', '.join(unique_values)
+                logger.info(f"  👤 {field}: '{merged[field]}'")
+            # For other fields (like valid_date): take first
+            else:
+                merged[field] = values[0]['value']
+                logger.info(f"  ✅ {field}: '{merged[field]}'")
     
     # Strategy 6: Notes (concatenate with chunk indicators)
     if all_notes:
