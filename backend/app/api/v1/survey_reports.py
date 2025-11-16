@@ -125,6 +125,56 @@ async def analyze_survey_report_file(
     1. Validate PDF file
     2. Split if >15 pages
     3. Process with Document AI
+
+
+@router.post("/{report_id}/upload-files")
+async def upload_survey_report_files(
+    report_id: str,
+    file_content: str,
+    filename: str,
+    content_type: str,
+    summary_text: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload survey report files to Google Drive after record creation
+    
+    Process:
+    1. Decode base64 file content
+    2. Upload original to: ShipName/Class & Flag Cert/Class Survey Report/
+    3. Upload summary to: SUMMARY/Class & Flag Document/
+    4. Update record with file IDs
+    
+    Args:
+        report_id: Survey report ID
+        file_content: Base64 encoded file content
+        filename: Original filename
+        content_type: File MIME type
+        summary_text: Enhanced summary text (with OCR)
+        current_user: Current authenticated user
+    """
+    from app.services.survey_report_service import SurveyReportService
+    
+    try:
+        result = await SurveyReportService.upload_files(
+            report_id=report_id,
+            file_content=file_content,
+            filename=filename,
+            content_type=content_type,
+            summary_text=summary_text,
+            current_user=current_user
+        )
+        
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading survey report files: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to upload survey report files: {str(e)}"
+        )
+
     4. Perform Targeted OCR
     5. Extract fields with System AI
     6. Validate ship name
