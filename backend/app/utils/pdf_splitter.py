@@ -111,24 +111,62 @@ class PDFSplitter:
         return chunks
 
 
-def merge_analysis_results(chunk_results: List[Dict]) -> Dict:
+def merge_analysis_results(
+    chunk_results: List[Dict],
+    document_type: str = 'survey_report'
+) -> Dict:
     """
     Intelligently merge results from multiple PDF chunks
     
+    Generic function supporting multiple document types:
+    - 'survey_report': Survey reports (class surveys, inspections)
+    - 'test_report': Test reports (equipment maintenance, testing)
+    - 'audit_report': Audit reports (ISM, ISPS, MLC)
+    - Other document types
+    
     Strategy:
-    1. Survey Report Name: Usually in first chunk (take from earliest chunk)
-    2. Report Number: Take first non-empty
+    1. Document Name: Usually in first chunk (take from earliest chunk)
+    2. Document Number: Take first non-empty or most common
     3. Issued By: Take most common value
     4. Issued Date: Take first valid date
-    5. Surveyor Name: Collect all unique names
+    5. Additional fields: Merge based on document type
     6. Notes: Concatenate all notes with chunk indicators
     
     Args:
         chunk_results: List of analysis results from each chunk
+        document_type: Type of document ('survey_report', 'test_report', etc.)
         
     Returns:
         Merged analysis result
     """
+    
+    # Define field mappings per document type
+    FIELD_MAPPINGS = {
+        'survey_report': {
+            'name': 'survey_report_name',
+            'no': 'survey_report_no',
+            'additional_fields': ['surveyor_name']
+        },
+        'test_report': {
+            'name': 'test_report_name',
+            'no': 'test_report_no',
+            'additional_fields': ['valid_date']
+        },
+        'audit_report': {
+            'name': 'audit_report_name',
+            'no': 'audit_report_no',
+            'additional_fields': ['auditor_name']
+        }
+    }
+    
+    # Validate document_type
+    if document_type not in FIELD_MAPPINGS:
+        logger.warning(f"⚠️ Unsupported document_type: {document_type}, using 'survey_report'")
+        document_type = 'survey_report'
+    
+    mapping = FIELD_MAPPINGS[document_type]
+    name_field = mapping['name']
+    no_field = mapping['no']
     
     # Check if all chunks succeeded
     successful_chunks = [cr for cr in chunk_results if cr.get('success')]
@@ -140,18 +178,21 @@ def merge_analysis_results(chunk_results: List[Dict]) -> Dict:
             'error': 'All chunks failed to process'
         }
     
-    logger.info(f"🔀 Merging {len(successful_chunks)}/{len(chunk_results)} successful chunks")
+    logger.info(f"🔀 Merging {len(successful_chunks)}/{len(chunk_results)} successful chunks for {document_type}")
     
-    # Initialize merged result
+    # Initialize merged result with dynamic field names
     merged = {
-        'survey_report_name': '',
-        'survey_report_no': '',
+        name_field: '',
+        no_field: '',
         'issued_by': '',
         'issued_date': '',
-        'surveyor_name': '',
         'note': '',
         'status': 'Valid'
     }
+    
+    # Add additional fields based on document type
+    for field in mapping.get('additional_fields', []):
+        merged[field] = ''
     
     # Collections for smart merging
     all_names = []
