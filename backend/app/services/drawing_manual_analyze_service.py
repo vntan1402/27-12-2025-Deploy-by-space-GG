@@ -329,7 +329,7 @@ class DrawingManualAnalyzeService:
         
         KEY IMPROVEMENT: Parallel chunk processing with staggered start
         """
-        from app.utils.document_ai_helper import analyze_with_document_ai
+        from app.utils.document_ai_helper import analyze_document_with_document_ai
         
         chunks = splitter.split_pdf(file_content, filename)
         total_chunks = len(chunks)
