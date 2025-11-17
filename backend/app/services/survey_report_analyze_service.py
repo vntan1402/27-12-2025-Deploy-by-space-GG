@@ -533,7 +533,8 @@ class SurveyReportAnalyzeService:
             analysis_result['_summary_text'] = ""
             return analysis_result
         
-        logger.info(f"✅ {len(successful_chunks)}/{len(chunks)} chunks successful")
+        failed_chunks = len(chunks_to_process) - len(successful_chunks)
+        logger.info(f"✅ Split PDF processing complete: {len(successful_chunks)}/{len(chunks_to_process)} chunks successful, {failed_chunks} failed, {skipped_chunks} chunks skipped")
         
         # Create merged summary using PDFSplitter helper
         temp_merged_data = {
