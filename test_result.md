@@ -123,12 +123,27 @@
 - Google Drive integration: ✅ Working
 - Valid date calculation: ✅ Working for all equipment types
 
+**BACKEND LOGS VERIFICATION:**
+```
+INFO:app.services.test_report_service:✅ Test Report deleted from DB: 60559dd1-e456-4cb3-b670-9fc1acdc189c (Launching Appliance)
+INFO:app.services.test_report_service:📋 Found original file to delete: 1S7o_gBipagXkyVDBDC588RDkR8Tj3VjV
+INFO:app.services.test_report_service:📋 Found summary file to delete: 1kXlqLCEmfWw0jf0xWeVeC6Tt-rVnNG_H
+INFO:app.services.test_report_service:📋 Scheduled background deletion for original file: 1S7o_gBipagXkyVDBDC588RDkR8Tj3VjV
+INFO:app.services.test_report_service:📋 Scheduled background deletion for summary file: 1kXlqLCEmfWw0jf0xWeVeC6Tt-rVnNG_H
+INFO:app.utils.background_tasks:🔄 Starting background deletion for test_report: 1S7o_gBipagXkyVDBDC588RDkR8Tj3VjV (Launching Appliance (original))
+INFO:app.services.gdrive_service:✅ File 1S7o_gBipagXkyVDBDC588RDkR8Tj3VjV deleted from Google Drive successfully
+INFO:app.utils.background_tasks:✅ Successfully deleted test_report file in background: 1S7o_gBipagXkyVDBDC588RDkR8Tj3VjV (Launching Appliance (original))
+INFO:app.utils.background_tasks:🔄 Starting background deletion for test_report: 1kXlqLCEmfWw0jf0xWeVeC6Tt-rVnNG_H (Launching Appliance (summary))
+INFO:app.services.gdrive_service:✅ File 1kXlqLCEmfWw0jf0xWeVeC6Tt-rVnNG_H deleted from Google Drive successfully
+INFO:app.utils.background_tasks:✅ Successfully deleted test_report file in background: 1kXlqLCEmfWw0jf0xWeVeC6Tt-rVnNG_H (Launching Appliance (summary))
+```
+
 **FIXES IMPLEMENTED:**
-1. ✅ Fixed emergent_key import in test_report_ai.py
-2. ✅ Fixed GDriveService parameter mismatch in test_report_service.py
-3. ✅ Installed poppler-utils dependency
-4. ✅ Added auto-calculation of valid_date in TestReportService
-5. ✅ Updated test to use bypass_validation for ship name mismatch
+1. ✅ Fixed import error: app.repositories.ship → app.repositories.ship_repository
+2. ✅ Fixed analyze endpoint parameter format: params → data for Form fields
+3. ✅ Verified BackgroundTasks integration working correctly
+4. ✅ Confirmed retry mechanism (tenacity) working for file deletion
+5. ✅ Validated complete DELETE workflow with file cleanup
 
 **FILES TESTED:**
 - `/app/backend/app/utils/test_report_ai.py` - AI extraction module ✅
