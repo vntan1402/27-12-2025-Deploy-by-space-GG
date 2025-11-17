@@ -173,9 +173,11 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
       // DEBUG: Log response
       console.log('=== TEST REPORT ANALYSIS RESPONSE ===');
       console.log('Full response:', data);
+      console.log('data.success:', data.success);
+      console.log('data.analysis:', data.analysis);
       console.log('====================================');
       
-      // Backend returns DIRECT analysis result (not wrapped)
+      // Backend returns wrapped response: { success: true/false, analysis: {...} }
       // Check for validation error (ship name mismatch)
       if (data.validation_error) {
         const { extracted_ship_name, extracted_ship_imo, expected_ship_name, expected_ship_imo } = data;
@@ -221,12 +223,17 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
         }
 
         const retryData = await retryResponse.json();
-        // Backend returns direct analysis result
-        processAnalysisSuccess(retryData, file);
+        // Extract analysis from wrapped response
+        if (retryData.success && retryData.analysis) {
+          processAnalysisSuccess(retryData.analysis, file);
+        } else {
+          throw new Error('Invalid retry response structure');
+        }
+      } else if (data.success && data.analysis) {
+        // Success - extract analysis from wrapped response
+        processAnalysisSuccess(data.analysis, file);
       } else {
-        // No validation error - success
-        // Backend returns direct analysis result
-        processAnalysisSuccess(data, file);
+        throw new Error(data.message || 'Analysis failed');
       }
 
     } catch (error) {
