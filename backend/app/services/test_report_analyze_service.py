@@ -700,9 +700,11 @@ class TestReportAnalyzeService:
             analysis_result['_summary_text'] = final_summary
             analysis_result['processing_method'] = "split_pdf_full_analysis"
             
-            # Update split info
+            # Update split info with detailed stats
             analysis_result['_split_info']['successful_chunks'] = len(successful_chunks)
-            analysis_result['_split_info']['failed_chunks'] = len(chunks) - len(successful_chunks)
+            analysis_result['_split_info']['failed_chunks'] = failed_chunks
+            analysis_result['_split_info']['has_failures'] = failed_chunks > 0
+            analysis_result['_split_info']['partial_success'] = len(successful_chunks) > 0 and failed_chunks > 0
         else:
             logger.warning("⚠️ System AI extraction returned no fields")
             analysis_result['_summary_text'] = merged_summary
