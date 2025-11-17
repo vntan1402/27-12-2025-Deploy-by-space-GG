@@ -2335,6 +2335,298 @@ class BackendTester:
             self.log_test("Survey Report Analysis - Exception", False, f"Exception: {str(e)}")
             return False
 
+    def test_test_report_delete_with_file_cleanup(self):
+        """Test DELETE /api/test-reports/{report_id} with Google Drive file cleanup"""
+        print("\n🗑️ Testing Test Report Delete with Google Drive File Cleanup...")
+        
+        try:
+            # Step 1: Get test ship
+            ships_response = self.session.get(f"{BACKEND_URL}/ships")
+            if ships_response.status_code != 200:
+                self.log_test("Test Report Delete - Get Ships", False, "Failed to get ships")
+                return False
+            
+            ships = ships_response.json()
+            if not ships:
+                self.log_test("Test Report Delete - Get Ships", False, "No ships found")
+                return False
+            
+            test_ship = ships[0]
+            ship_id = test_ship.get("id")
+            ship_name = test_ship.get("name", "Unknown")
+            
+            self.log_test("Test Report Delete - Ship Selection", True, 
+                         f"Using ship: {ship_name} (ID: {ship_id})")
+            
+            # Step 2: Analyze file to get file content
+            try:
+                pdf_response = requests.get(TEST_PDF_URL, timeout=30)
+                if pdf_response.status_code != 200:
+                    self.log_test("Test Report Delete - PDF Download", False, "Failed to download PDF")
+                    return False
+                
+                pdf_content = pdf_response.content
+                
+                files = {
+                    "test_report_file": ("test_report.pdf", pdf_content, "application/pdf")
+                }
+                params = {
+                    "ship_id": ship_id,
+                    "bypass_validation": True
+                }
+                
+                analyze_response = self.session.post(f"{BACKEND_URL}/test-reports/analyze-file", 
+                                                   files=files, params=params)
+                
+                if analyze_response.status_code != 200:
+                    self.log_test("Test Report Delete - Analyze File", False, 
+                                 f"Analysis failed: {analyze_response.status_code}")
+                    return False
+                
+                analyze_data = analyze_response.json()
+                
+                if not analyze_data.get("success"):
+                    self.log_test("Test Report Delete - Analyze File", False, 
+                                 f"Analysis unsuccessful: {analyze_data.get('message')}")
+                    return False
+                
+                analysis = analyze_data.get("analysis", {})
+                file_content = analysis.get("_file_content")
+                filename = analysis.get("_filename", "test_report.pdf")
+                
+                self.log_test("Test Report Delete - Analyze File", True, 
+                             f"Analysis completed, file content available: {bool(file_content)}")
+                
+            except Exception as e:
+                self.log_test("Test Report Delete - Analyze File", False, f"Exception: {str(e)}")
+                return False
+            
+            # Step 3: Create test report with analysis data
+            test_report_data = {
+                "ship_id": ship_id,
+                "test_report_name": analysis.get("test_report_name", "EEBD"),
+                "report_form": analysis.get("report_form", "Service Chart A"),
+                "test_report_no": analysis.get("test_report_no", "TR-DELETE-TEST-001"),
+                "issued_by": analysis.get("issued_by", "VITECH"),
+                "issued_date": analysis.get("issued_date", "2024-01-15T00:00:00.000Z"),
+                "valid_date": analysis.get("valid_date", "2025-01-15T00:00:00.000Z"),
+                "status": analysis.get("status", "Valid"),
+                "note": "Test report for deletion testing with file cleanup"
+            }
+            
+            create_response = self.session.post(f"{BACKEND_URL}/test-reports", json=test_report_data)
+            
+            if create_response.status_code != 200:
+                self.log_test("Test Report Delete - Create Report", False, 
+                             f"Failed to create report: {create_response.status_code}")
+                return False
+            
+            created_report = create_response.json()
+            report_id = created_report.get("id")
+            
+            self.log_test("Test Report Delete - Create Report", True, 
+                         f"Report created: {report_id}")
+            
+            # Step 4: Upload files with file_content from analysis
+            if file_content and filename:
+                upload_data = {
+                    "file_content": file_content,
+                    "filename": filename,
+                    "content_type": "application/pdf",
+                    "summary_text": "Test report summary for deletion testing"
+                }
+                
+                upload_response = self.session.post(f"{BACKEND_URL}/test-reports/{report_id}/upload-files", 
+                                                  json=upload_data)
+                
+                if upload_response.status_code == 200:
+                    upload_result = upload_response.json()
+                    
+                    if upload_result.get("success"):
+                        test_report_file_id = upload_result.get("test_report_file_id")
+                        test_report_summary_file_id = upload_result.get("test_report_summary_file_id")
+                        
+                        self.log_test("Test Report Delete - Upload Files", True, 
+                                     f"Files uploaded - Original: {test_report_file_id}, Summary: {test_report_summary_file_id}")
+                        
+                        # Step 5: Verify record has file IDs
+                        verify_response = self.session.get(f"{BACKEND_URL}/test-reports/{report_id}")
+                        
+                        if verify_response.status_code == 200:
+                            report_with_files = verify_response.json()
+                            
+                            db_file_id = report_with_files.get("test_report_file_id")
+                            db_summary_file_id = report_with_files.get("test_report_summary_file_id")
+                            
+                            if db_file_id == test_report_file_id:
+                                self.log_test("Test Report Delete - Verify Files", True, 
+                                             f"Files verified in DB - Original: {db_file_id}, Summary: {db_summary_file_id}")
+                                
+                                # Step 6: DELETE the test report (main test)
+                                delete_response = self.session.delete(f"{BACKEND_URL}/test-reports/{report_id}")
+                                
+                                if delete_response.status_code == 200:
+                                    delete_data = delete_response.json()
+                                    
+                                    # Check response structure
+                                    expected_fields = ["success", "message", "background_deletion", "files_scheduled"]
+                                    missing_fields = [field for field in expected_fields if field not in delete_data]
+                                    
+                                    if not missing_fields:
+                                        success = delete_data.get("success", False)
+                                        message = delete_data.get("message", "")
+                                        background_deletion = delete_data.get("background_deletion", False)
+                                        files_scheduled = delete_data.get("files_scheduled", 0)
+                                        
+                                        # Verify expected behavior
+                                        if success:
+                                            self.log_test("Test Report Delete - Success Flag", True, 
+                                                         f"Success: {success}")
+                                        else:
+                                            self.log_test("Test Report Delete - Success Flag", False, 
+                                                         f"Expected success=true, got: {success}")
+                                        
+                                        if "File deletion in progress" in message:
+                                            self.log_test("Test Report Delete - Message", True, 
+                                                         f"Correct message: {message}")
+                                        else:
+                                            self.log_test("Test Report Delete - Message", False, 
+                                                         f"Expected 'File deletion in progress', got: {message}")
+                                        
+                                        if background_deletion:
+                                            self.log_test("Test Report Delete - Background Deletion", True, 
+                                                         f"Background deletion: {background_deletion}")
+                                        else:
+                                            self.log_test("Test Report Delete - Background Deletion", False, 
+                                                         f"Expected background_deletion=true, got: {background_deletion}")
+                                        
+                                        # Check files scheduled (should be 2 if both files exist)
+                                        expected_files = 2 if db_summary_file_id else 1
+                                        if files_scheduled == expected_files:
+                                            self.log_test("Test Report Delete - Files Scheduled", True, 
+                                                         f"Files scheduled: {files_scheduled} (expected: {expected_files})")
+                                        else:
+                                            self.log_test("Test Report Delete - Files Scheduled", False, 
+                                                         f"Expected {expected_files} files scheduled, got: {files_scheduled}")
+                                        
+                                        # Step 7: Verify record deleted from database
+                                        verify_delete_response = self.session.get(f"{BACKEND_URL}/test-reports/{report_id}")
+                                        
+                                        if verify_delete_response.status_code == 404:
+                                            self.log_test("Test Report Delete - DB Removal", True, 
+                                                         "Record successfully deleted from database")
+                                        else:
+                                            self.log_test("Test Report Delete - DB Removal", False, 
+                                                         f"Record still exists: {verify_delete_response.status_code}")
+                                        
+                                        # Step 8: Check backend logs for background task messages
+                                        # Note: We can't directly check logs in this test, but we can verify the response structure
+                                        self.log_test("Test Report Delete - Background Task Scheduling", True, 
+                                                     "Background tasks scheduled (check backend logs for execution)")
+                                        
+                                        return True
+                                    else:
+                                        self.log_test("Test Report Delete - Response Structure", False, 
+                                                     f"Missing fields: {missing_fields}")
+                                        return False
+                                else:
+                                    self.log_test("Test Report Delete - DELETE Request", False, 
+                                                 f"Delete failed: {delete_response.status_code} - {delete_response.text}")
+                                    return False
+                            else:
+                                self.log_test("Test Report Delete - Verify Files", False, 
+                                             f"File ID mismatch: expected {test_report_file_id}, got {db_file_id}")
+                                return False
+                        else:
+                            self.log_test("Test Report Delete - Verify Files", False, 
+                                         f"Failed to verify files: {verify_response.status_code}")
+                            return False
+                    else:
+                        self.log_test("Test Report Delete - Upload Files", False, 
+                                     f"Upload failed: {upload_result.get('message')}")
+                        return False
+                else:
+                    self.log_test("Test Report Delete - Upload Files", False, 
+                                 f"Upload request failed: {upload_response.status_code}")
+                    return False
+            else:
+                self.log_test("Test Report Delete - Upload Files", False, 
+                             "No file content available from analysis")
+                return False
+                
+        except Exception as e:
+            self.log_test("Test Report Delete", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_test_report_delete_edge_cases(self):
+        """Test edge cases for test report deletion"""
+        print("\n⚠️ Testing Test Report Delete Edge Cases...")
+        
+        try:
+            # Test 1: Delete report without files
+            ships_response = self.session.get(f"{BACKEND_URL}/ships")
+            if ships_response.status_code == 200:
+                ships = ships_response.json()
+                if ships:
+                    test_ship = ships[0]
+                    ship_id = test_ship.get("id")
+                    
+                    # Create test report WITHOUT uploading files
+                    test_report_data = {
+                        "ship_id": ship_id,
+                        "test_report_name": "EEBD",
+                        "report_form": "Service Chart A",
+                        "test_report_no": "TR-NO-FILES-001",
+                        "issued_by": "VITECH",
+                        "issued_date": "2024-01-15T00:00:00.000Z",
+                        "valid_date": "2025-01-15T00:00:00.000Z",
+                        "status": "Valid",
+                        "note": "Test report without files"
+                    }
+                    
+                    create_response = self.session.post(f"{BACKEND_URL}/test-reports", json=test_report_data)
+                    
+                    if create_response.status_code == 200:
+                        created_report = create_response.json()
+                        report_id = created_report.get("id")
+                        
+                        # Delete it
+                        delete_response = self.session.delete(f"{BACKEND_URL}/test-reports/{report_id}")
+                        
+                        if delete_response.status_code == 200:
+                            delete_data = delete_response.json()
+                            background_deletion = delete_data.get("background_deletion", True)
+                            
+                            if not background_deletion:
+                                self.log_test("Test Report Delete - No Files", True, 
+                                             "Report without files deleted correctly (no background task)")
+                            else:
+                                self.log_test("Test Report Delete - No Files", False, 
+                                             "Unexpected background task for report without files")
+                        else:
+                            self.log_test("Test Report Delete - No Files", False, 
+                                         f"Delete failed: {delete_response.status_code}")
+                    else:
+                        self.log_test("Test Report Delete - No Files", False, 
+                                     f"Failed to create test report: {create_response.status_code}")
+            
+            # Test 2: Delete non-existent report
+            fake_report_id = "00000000-0000-0000-0000-000000000000"
+            delete_response = self.session.delete(f"{BACKEND_URL}/test-reports/{fake_report_id}")
+            
+            if delete_response.status_code == 404:
+                self.log_test("Test Report Delete - Non-existent", True, 
+                             "Correctly returned 404 for non-existent report")
+            else:
+                self.log_test("Test Report Delete - Non-existent", False, 
+                             f"Expected 404, got {delete_response.status_code}")
+            
+            return True
+            
+        except Exception as e:
+            self.log_test("Test Report Delete Edge Cases", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests for Test Report Migration - Phase 2"""
         print("🚀 Starting Test Report Backend Testing Suite...")
