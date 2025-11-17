@@ -153,7 +153,62 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
 
     try {
       setIsAnalyzing(true);
-      toast.info(language === 'vi' ? '🤖 Đang phân tích file với AI...' : '🤖 Analyzing file with AI...');
+      
+      // Estimate chunks based on file size
+      // Backend splits PDFs > 15 pages into chunks of 12 pages each
+      // Rough estimate: 1MB ≈ 10 pages (for typical PDFs)
+      const fileSizeMB = file.size / (1024 * 1024);
+      const estimatedPages = Math.ceil(fileSizeMB * 10);
+      const estimatedChunks = estimatedPages > 15 ? Math.ceil(estimatedPages / 12) : 1;
+      
+      // Initialize chunk progress
+      if (estimatedChunks > 1) {
+        setChunkProgress({
+          isProcessing: true,
+          currentChunk: 1,
+          totalChunks: estimatedChunks,
+          progress: 0
+        });
+        
+        toast.info(
+          language === 'vi' 
+            ? `🤖 Đang phân tích file lớn (${estimatedChunks} chunks)...` 
+            : `🤖 Analyzing large file (${estimatedChunks} chunks)...`
+        );
+        
+        // Simulate chunk progress (staggered start with 2s delay + processing time)
+        // Each chunk: 2s delay + ~15-20s processing = ~17s average
+        const timePerChunk = 17000; // 17 seconds
+        const totalEstimatedTime = 4000 + (estimatedChunks - 1) * 2000 + timePerChunk; // Delays + processing
+        const progressInterval = 500; // Update every 500ms
+        const progressIncrement = (100 / totalEstimatedTime) * progressInterval;
+        
+        const progressTimer = setInterval(() => {
+          setChunkProgress(prev => {
+            if (!prev.isProcessing) {
+              clearInterval(progressTimer);
+              return prev;
+            }
+            
+            const newProgress = Math.min(prev.progress + progressIncrement, 95); // Cap at 95%
+            const newCurrentChunk = Math.min(
+              Math.ceil((newProgress / 100) * estimatedChunks), 
+              estimatedChunks
+            );
+            
+            return {
+              ...prev,
+              progress: newProgress,
+              currentChunk: newCurrentChunk || 1
+            };
+          });
+        }, progressInterval);
+        
+        // Store timer to clear later
+        window._chunkProgressTimer = progressTimer;
+      } else {
+        toast.info(language === 'vi' ? '🤖 Đang phân tích file với AI...' : '🤖 Analyzing file with AI...');
+      }
 
       // Create FormData for backend
       const formData = new FormData();
