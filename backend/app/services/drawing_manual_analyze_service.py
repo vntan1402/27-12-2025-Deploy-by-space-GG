@@ -370,7 +370,8 @@ class DrawingManualAnalyzeService:
                     file_content=chunk['content'],
                     filename=chunk['filename'],
                     content_type='application/pdf',
-                    document_ai_config=document_ai_config
+                    document_ai_config=document_ai_config,
+                    document_type='drawings_manual'
                 )
                 
                 if doc_ai_result.get('success'):
