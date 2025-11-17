@@ -94,11 +94,17 @@ async def delete_drawing_manual(
 @router.post("/bulk-delete")
 async def bulk_delete_drawings_manuals(
     request: BulkDeleteDrawingManualRequest,
+    background_tasks: BackgroundTasks,
+    background: bool = Query(True),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Bulk delete Drawings & Manuals (Editor+ role required)"""
+    """Bulk delete Drawings & Manuals with optional background GDrive cleanup (Editor+ role required)"""
     try:
-        return await DrawingManualService.bulk_delete_drawings_manuals(request, current_user)
+        return await DrawingManualService.bulk_delete_drawings_manuals(
+            request, 
+            current_user,
+            background_tasks if background else None
+        )
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Drawings & Manuals: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Drawings & Manuals")
