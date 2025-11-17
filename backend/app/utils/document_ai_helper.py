@@ -99,12 +99,12 @@ async def analyze_document_with_document_ai(
         
         logger.info(f"📤 Sending request to Apps Script: {apps_script_url}")
         
-        # Call Apps Script with timeout
+        # Call Apps Script with timeout (180s for large PDFs >15 pages)
         async with aiohttp.ClientSession() as session:
             async with session.post(
                 apps_script_url,
                 json=payload,
-                timeout=aiohttp.ClientTimeout(total=120)
+                timeout=aiohttp.ClientTimeout(total=180)
             ) as response:
                 if response.status == 200:
                     result = await response.json()
