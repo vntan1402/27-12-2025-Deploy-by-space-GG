@@ -409,13 +409,14 @@ const TestReport = () => {
         true // Auto-bypass ship validation in batch mode
       );
       
-      const data = analyzeResponse.data || analyzeResponse;
+      const responseData = analyzeResponse.data || analyzeResponse;
       
-      if (!data || !data.test_report_name) {
-        throw new Error('AI analysis failed');
+      // Backend returns wrapped response: { success: true/false, analysis: {...} }
+      if (!responseData || !responseData.success || !responseData.analysis) {
+        throw new Error(responseData?.message || 'AI analysis failed');
       }
       
-      const analysis = data;
+      const analysis = responseData.analysis;
       result.testReportName = analysis.test_report_name || file.name;
       result.testReportNo = analysis.test_report_no || '';
       
