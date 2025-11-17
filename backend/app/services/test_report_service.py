@@ -332,7 +332,10 @@ class TestReportService:
                     base_name = filename.rsplit('.', 1)[0] if '.' in filename else filename
                     summary_filename = f"{base_name}_Summary.txt"
                     
-                    logger.info(f"📤 Uploading summary to: SUMMARY/Class & Flag Document/{summary_filename}")
+                    # Upload to SAME folder as original file (like Survey Report)
+                    summary_folder_path = f"{ship_name}/Class & Flag Cert/Test Report"
+                    
+                    logger.info(f"📤 Uploading summary to: {summary_folder_path}/{summary_filename}")
                     
                     # Convert summary text to bytes
                     summary_bytes = summary_text.encode('utf-8')
@@ -341,7 +344,7 @@ class TestReportService:
                         file_content=summary_bytes,
                         filename=summary_filename,
                         content_type="text/plain",
-                        folder_path="SUMMARY/Class & Flag Document",
+                        folder_path=summary_folder_path,
                         company_id=company_uuid
                     )
                     
