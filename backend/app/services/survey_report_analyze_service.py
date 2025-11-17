@@ -511,24 +511,9 @@ class SurveyReportAnalyzeService:
         successful_chunks = [cr for cr in chunk_results if cr.get('success')]
         
         if not successful_chunks:
-            logger.error(f"❌ All {len(chunks)} chunks failed processing")
-            logger.warning("⚠️ Providing fallback data based on filename")
-            
-            # BUG FIX: Fallback like backend-v1 - provide basic data from filename
-            # Extract survey_report_name from filename
-            survey_report_name = filename.replace('.pdf', '').replace('_', ' ').strip()
-            
-            analysis_result['survey_report_name'] = survey_report_name
-            analysis_result['note'] = f"AI analysis failed: All {len(chunks)} chunks failed to process. Manual review required."
-            analysis_result['processing_method'] = "all_chunks_failed_fallback"
+            logger.error("❌ All chunks failed processing")
+            analysis_result['processing_method'] = "all_chunks_failed"
             analysis_result['_summary_text'] = ""
-            
-            # Add split info showing complete failure
-            analysis_result['_split_info']['successful_chunks'] = 0
-            analysis_result['_split_info']['failed_chunks'] = len(chunks)
-            analysis_result['_split_info']['all_chunks_failed'] = True
-            
-            logger.warning(f"⚠️ Returning fallback data for {filename}")
             return analysis_result
         
         logger.info(f"✅ {len(successful_chunks)}/{len(chunks)} chunks successful")
