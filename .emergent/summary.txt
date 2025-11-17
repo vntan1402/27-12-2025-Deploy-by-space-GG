@@ -1,44 +1,51 @@
 <analysis>
-The trajectory details a comprehensive software engineering effort to migrate a Test Report feature from a legacy Python backend () to a new, modular FastAPI backend. The user's primary language is Vietnamese, and all subsequent communication must be in Vietnamese.
+The trajectory details an intensive development cycle focused on migrating the Test Report feature from a legacy Python backend () to a new FastAPI backend. The user's primary language is Vietnamese, and all subsequent communication must be in Vietnamese.
 
-The process began with the user's request to analyze and migrate the Add Test Report flow. Initial investigation revealed that while a similar Survey Report flow had been migrated, its underlying utility functions for handling complex PDF processing—specifically , , and —were hardcoded and not reusable.
+The engineer was tasked with completing Phase 2 of the migration plan. This involved creating the entire backend logic for Test Report analysis, creation, and file uploads, mirroring the existing  implementation.
 
-Following the user's approval of a PROPER REFACTOR strategy, the core of the work shifted to making these utilities generic. This involved:
-1.  **Refactoring :** Generalizing the functions to handle different document types.
-2.  **Debugging:** A user-reported bug with multi-page uploads was traced back to the  not passing the new required  parameter to the refactored splitter. This was promptly fixed.
-3.  **Refactoring :** Abstracting the logic to work with a configuration object based on document type.
-4.  **Refactoring :** Restructuring it to have a generic core processing function with specific wrappers for each document type.
+The process was highly iterative, following a pattern of:
+1.  **Implementation:** Building new services (, ), endpoints (), and utility modules.
+2.  **User Testing & Bug Reports:** The user would test the frontend and report issues, such as 422 errors, forms not auto-filling, and files not uploading.
+3.  **Debugging & Fixing:** The engineer would diagnose issues by inspecting frontend code, backend logs, and comparing behavior with both  and the  module. Key fixes included correcting mismatched request parameters (FormData vs. Query), handling nested API responses on the frontend, and fixing incorrect Google Drive folder paths.
+4.  **Feature Enhancement:** The user requested several new features or behavior changes mid-development, which the engineer successfully implemented. These included: deleting GDrive files upon record deletion, increasing API timeouts, processing file chunks in parallel, and adding a  limit to prevent overload, ensuring these changes were also applied to the  module for consistency.
 
-Each refactoring step was followed by a successful backend restart. The last action was the completion of refactoring the . The immediate next step, as per the user's explicit instruction, is to proceed with the remaining tasks in the migration plan.
+The cycle concluded after resolving a bug with the  endpoint by aligning its HTTP method () and payload key () with the  implementation, leaving the system in a stable and consistent state.
 </analysis>
 
 <product_requirements>
-The primary objective is to migrate the Add Test Report feature from the legacy monolithic  to the new modular FastAPI backend, ensuring full feature parity and seamless frontend integration.
+The primary objective is to migrate the Add Test Report feature from the legacy  to the new modular FastAPI backend, achieving full feature parity and adding enhancements.
 
 **Core Requirements:**
-1.  **Full Feature Migration:** Replicate the entire Add Test Report workflow, which includes:
-    *   API endpoints for analyzing files, creating/updating reports, and managing uploads.
-    *   Complex business logic for processing PDF files, including splitting large files (>15 pages).
-    *   Integration with Google Document AI for text extraction.
-    *   A Targeted OCR process using Tesseract to extract specific data from headers/footers.
-    *   AI-powered data extraction using LLM prompts to parse content.
-    *   Uploading original and summary files to Google Drive.
-2.  **Code Reusability:** A critical sub-requirement emerged to refactor shared utilities (, , ) that were previously hardcoded for Survey Reports. The goal is to make them generic and reusable for Test Reports and future document types, following the PROPER REFACTOR approach.
-3.  **Maintain Logic:** The migrated logic in the new backend must be identical to  to ensure consistency.
-4.  **Frontend Compatibility:** Ensure the React frontend correctly interacts with the new migrated endpoints without any regressions.
+1.  **Backend Migration (Phase 2):** Implement all backend logic for Test Reports, including:
+    *   An analysis endpoint () that processes uploaded PDFs.
+    *   CRUD endpoints for managing test report records.
+    *   An upload endpoint () to save original and summary files to Google Drive.
+2.  **Complex PDF Processing:**
+    *   Logic to split large PDF files into smaller chunks for processing.
+    *   A  limit (set to 5) to handle excessively large files gracefully.
+    *   Parallel processing for chunks with a 2-second staggered start to improve performance and avoid rate-limiting.
+3.  **Data Extraction & Calculation:**
+    *   Integration with Google Document AI and a System AI (LLM) for data extraction.
+    *   A  to determine the report's expiry based on equipment type and issued date.
+4.  **Google Drive Integration:**
+    *   Upload original and summary files to specific folder structures.
+    *   Delete both original and summary files from Google Drive when a report record is deleted from the database.
+5.  **Frontend Feedback:**
+    *   Implement a simulated progress bar on the frontend to provide better UX during the analysis of large, multi-chunk files.
+6.  **Consistency:** Ensure the new Test Report implementation is consistent with the existing Survey Report module in terms of API design, request/response structures, and core logic.
 </product_requirements>
 
 <key_technical_concepts>
 - **Backend:** FastAPI, Pydantic
 - **Frontend:** React.js
-- **Database:** MongoDB
-- **PDF/AI Processing:** Google Document AI, Tesseract (OCR), , 
-- **Integrations:** Google Drive via Google Apps Script
-- **Core Strategy:** Refactor for Reusability - converting hardcoded utility functions into generic, configurable modules before migrating feature-specific logic.
+- **Asynchronous Programming:**  for parallel chunk processing (, ).
+- **API Design:** Differentiating  vs.  parameters in FastAPI; using  for non-blocking operations like file deletion.
+- **Frontend State Management:** Using  and  to create a simulated progress bar for a better user experience.
+- **Development Strategy:** Iterative development, bug fixing based on user feedback, and maintaining consistency with existing modules ().
 </key_technical_concepts>
 
 <code_architecture>
-The application consists of a React frontend, a new modular FastAPI backend, and a legacy  used for reference. The migration effort focuses on moving logic from  to the new .
+The application uses a React frontend and a modular FastAPI backend, migrating logic from a monolithic .
 
 .
 ├── 2_CO_DUC_PP.pdf
@@ -287,6 +294,7 @@ The application consists of a React frontend, a new modular FastAPI backend, and
 │   │   │   │   ├── survey_calculation_service.cpython-311.pyc
 │   │   │   │   ├── survey_report_analyze_service.cpython-311.pyc
 │   │   │   │   ├── survey_report_service.cpython-311.pyc
+│   │   │   │   ├── test_report_analyze_service.cpython-311.pyc
 │   │   │   │   ├── test_report_service.cpython-311.pyc
 │   │   │   │   └── user_service.cpython-311.pyc
 │   │   │   ├── ai_config_service.py
@@ -307,6 +315,7 @@ The application consists of a React frontend, a new modular FastAPI backend, and
 │   │   │   ├── ship_service.py
 │   │   │   ├── survey_report_analyze_service.py
 │   │   │   ├── survey_report_service.py
+│   │   │   ├── test_report_analyze_service.py
 │   │   │   ├── test_report_service.py
 │   │   │   └── user_service.py
 │   │   └── utils
@@ -325,7 +334,9 @@ The application consists of a React frontend, a new modular FastAPI backend, and
 │   │       │   ├── pdf_splitter.cpython-311.pyc
 │   │       │   ├── ship_calculations.cpython-311.pyc
 │   │       │   ├── survey_report_ai.cpython-311.pyc
-│   │       │   └── targeted_ocr.cpython-311.pyc
+│   │       │   ├── targeted_ocr.cpython-311.pyc
+│   │       │   ├── test_report_ai.cpython-311.pyc
+│   │       │   └── test_report_valid_date_calculator.cpython-311.pyc
 │   │       ├── ai_helper.py
 │   │       ├── background_tasks.py
 │   │       ├── certificate_abbreviation.py
@@ -342,7 +353,9 @@ The application consists of a React frontend, a new modular FastAPI backend, and
 │   │       ├── ship_calculations.py
 │   │       ├── survey_report_ai.py
 │   │       ├── targeted_ocr.py
-│   │       └── targeted_ocr.py.backup
+│   │       ├── targeted_ocr.py.backup
+│   │       ├── test_report_ai.py
+│   │       └── test_report_valid_date_calculator.py
 │   ├── create_document_routes.py
 │   ├── data
 │   ├── migrations
@@ -50333,55 +50346,64 @@ The application consists of a React frontend, a new modular FastAPI backend, and
 ├── verify_fix.sh
 └── yarn.lock
 
-4659 directories, 45633 files
+4659 directories, 45639 files
 
--   ****
-    -   **Importance:** Handles the logic for splitting large PDF files into smaller chunks for processing.
-    -   **Changes:** The functions  and  were refactored to be generic. They now accept parameters like  and  instead of having hardcoded values for Survey Report, making them reusable.
+- ****
+    - **Importance:** Contains the core business logic for analyzing a Test Report PDF.
+    - **Changes:** This file was created from scratch, adapting logic from the survey report service. It now includes parallel chunk processing using  with a staggered start, and a  limit to prevent overload on very large files.
 
--   ****
-    -   **Importance:** Performs OCR on specific regions (header/footer) of a PDF to extract metadata.
-    -   **Changes:** The main  method was refactored. It no longer contains hardcoded logic for survey reports and now accepts a  dictionary, which specifies regex patterns and other parameters based on the .
+- ****
+    - **Importance:** Defines all API endpoints related to Test Reports.
+    - **Changes:** This file was heavily modified. Key changes include:
+        - Fixing the  endpoint to accept  data instead of  parameters.
+        - Adding  to the  and  endpoints to handle GDrive file deletion asynchronously.
+        - Unifying the  endpoint to use  for consistency with Survey Reports.
 
--   ****
-    -   **Importance:** Acts as a wrapper for Google Document AI to extract text from PDF files.
-    -   **Changes:** The file was completely rewritten. A generic private function  was created to handle the core API call. Public-facing wrapper functions (, ) were added, which call the generic function with the appropriate processor ID and configuration for each document type. This makes adding new document types trivial.
+- ****
+    - **Importance:** Handles CRUD operations and GDrive interactions for Test Reports.
+    - **Changes:** Created and updated to include logic for  and /. The delete methods were modified to call the  helper to remove files from GDrive. The payload for  was changed to use  for consistency.
 
--   ****
-    -   **Importance:** Orchestrates the analysis flow for Survey Reports, using the utility helpers.
-    -   **Changes:** All calls to the refactored utilities (, ) were updated to pass the new required parameters (e.g., ). This was a critical fix to resolve a bug with multi-page uploads that occurred after the refactoring.
+- ****
+    - **Importance:** The modal UI for uploading and creating a new Test Report.
+    - **Changes:**
+        - Fixed a bug where the form wouldn't auto-fill by correctly accessing the nested  object from the API response.
+        - Implemented a simulated, animated progress bar for a better user experience during file analysis.
 
--   **Analysis & Planning Documents**
-    -   **/app/TEST_REPORT_MIGRATION_PLAN.md**: A detailed, multi-phase plan for migrating the Test Report feature, including the utility refactoring.
-    -   **/app/REUSABILITY_ANALYSIS.md**: An analysis report that identified the need to refactor the utilities and proposed the solution.
+- ****
+    - **Importance:** The main page for listing and managing Test Reports, including bulk operations.
+    - **Changes:** Fixed a bug in the bulk upload functionality where it failed because it was not correctly handling the nested API response ().
+
+- ****
+    - **Importance:** The client-side service for making API calls related to Test Reports.
+    - **Changes:** The  function was modified to use the  HTTP method instead of  and to send a payload with  to align with backend changes and ensure consistency.
+
+- ****
+    - **Importance:** Central place for frontend constants, including API timeouts.
+    - **Changes:** The  and  timeouts were both increased to  ms (180 seconds) to handle large file processing.
 </code_architecture>
 
 <pending_tasks>
-- **Task 1.5 (Migration Plan):** Create  and integrate the newly refactored generic utilities to handle the analysis logic for Test Reports.
-- **Phase 2 (Migration Plan):** Migrate all remaining  CRUD endpoints from .
-- **Phase 3 (Migration Plan):** Migrate the AI data extraction logic (LLM prompt and post-processing) for .
-- **Phase 4 (Migration Plan):** Perform frontend adjustments and conduct final end-to-end testing of the complete flow.
+- **Phase 3 (Migration Plan):** Migrate the AI data extraction logic (LLM prompt and post-processing) for . This involves a deeper review and potential improvement of the prompt in .
+- **Phase 4 (Migration Plan):** Perform final frontend adjustments and comprehensive end-to-end testing of the entire Test Report flow.
+- **Non-critical issue:** The  calculation sometimes fails if the AI cannot extract an . Improving the AI prompt in Phase 3 could address this.
 </pending_tasks>
 
 <current_work>
-The most recent work was the execution of **Phase 1: Refactor Utilities** from the . This was a foundational step to enable the migration of the Test Report feature by making shared code reusable.
+The engineer has just completed Phase 2 of the Test Report migration, along with several additional features and bug fixes requested by the user. The final action was a consistency fix for the bulk delete functionality.
 
-**Completed Actions:**
-1.  **Task 1.1: Refactor **: Successfully generalized the PDF splitting and summary creation logic.
-2.  **Bug Fix**: A user-reported error during multi-page uploads was investigated. The root cause was identified as the  not passing the new  parameter to the refactored utilities. The service code was updated to pass this parameter, and the fix was confirmed by restarting the backend.
-3.  **Task 1.2: Refactor **: Successfully generalized the OCR logic to be driven by a configuration object passed as a parameter, removing hardcoded values.
-4.  **Task 1.3: Refactor **: Successfully restructured the module into a generic core function with specific, clean wrappers for each document type (, ).
+**Problem:** The frontend  call was failing. An investigation revealed two inconsistencies between the  and  modules:
+1.  **Payload Key:** Test Report's backend expected a list of IDs under the key , while Survey Report (and the frontend) used .
+2.  **HTTP Method:** The frontend was initially using  for , which was corrected to , but the payload key was the final piece of the puzzle.
 
-The work concluded after successfully refactoring all three utilities and restarting the backend. The system is now in a state where the Survey Report functionality remains operational with the new generic utilities, and the codebase is ready for the Test Report logic to be built upon this reusable foundation.
+**Action Taken:**
+1.  **Backend Model:** The Pydantic model in  was changed from  to .
+2.  **Backend Service:** The  method in  was updated to read .
+3.  **Frontend Service:** The  function in  was confirmed to be sending .
+4.  The backend was restarted to apply the changes.
+
+The system is now in a stable state where both  and  features are functional and consistent, especially regarding chunk processing, file deletion, and bulk operations.
 </current_work>
 
 <optional_next_step>
-Proceed with **Task 1.5** of the migration plan: Begin the implementation for the Test Report analysis by creating the  file and integrating the newly refactored, generic utilities.
+Proceed with **Phase 3** of the migration plan: review and migrate the AI data extraction logic from , focusing on the LLM prompt and post-processing for Test Reports.
 </optional_next_step>
-
-<direct_quotes>
-User's last explicit instruction:
-> tiếp tục Task 1.2, 1.3 và 1.5
-
-(Translation: continue Task 1.2, 1.3, and 1.5)
-</direct_quotes>
