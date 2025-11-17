@@ -636,13 +636,13 @@ class BackendTester:
                 files = {
                     "test_report_file": ("test_report.pdf", pdf_content, "application/pdf")
                 }
-                params = {
+                data = {
                     "ship_id": ship_id,
-                    "bypass_validation": True  # Bypass validation for integration test
+                    "bypass_validation": "true"  # Bypass validation for integration test
                 }
                 
                 analyze_response = self.session.post(f"{BACKEND_URL}/test-reports/analyze-file", 
-                                                   files=files, params=params)
+                                                   files=files, data=data)
                 
                 if analyze_response.status_code != 200:
                     self.log_test("Integration Flow - Analyze File", False, 
