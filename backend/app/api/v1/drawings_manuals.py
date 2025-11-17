@@ -74,11 +74,17 @@ async def update_drawing_manual(
 @router.delete("/{doc_id}")
 async def delete_drawing_manual(
     doc_id: str,
+    background_tasks: BackgroundTasks,
+    background: bool = Query(True),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Delete Drawing/Manual (Editor+ role required)"""
+    """Delete Drawing/Manual with optional background GDrive cleanup (Editor+ role required)"""
     try:
-        return await DrawingManualService.delete_drawing_manual(doc_id, current_user)
+        return await DrawingManualService.delete_drawing_manual(
+            doc_id, 
+            current_user,
+            background_tasks if background else None
+        )
     except HTTPException:
         raise
     except Exception as e:
