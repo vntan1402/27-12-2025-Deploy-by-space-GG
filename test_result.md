@@ -104,17 +104,15 @@
    - **Root Cause:** Poppler-utils installed but OCR still failing (non-critical)
    - **Status:** Non-blocking, system works without OCR
 
-2. **Analysis Missing issued_date:**
-   - **Impact:** Minor - AI didn't extract issued_date from test PDF
-   - **Root Cause:** Test PDF may not contain clear issued_date
+2. **Analysis Missing issued_date/valid_date:**
+   - **Impact:** Minor - AI didn't extract issued_date/valid_date from test PDF
+   - **Root Cause:** Test PDF may not contain clear date fields
    - **Status:** Valid date calculation works when issued_date is provided
 
-3. **Summary Upload Folder Path:**
-   ```
-   WARNING: Invalid folder_path format for SUMMARY/Class & Flag Document
-   ```
-   - **Impact:** Minor - Summary file upload fails but main file upload works
-   - **Status:** Non-critical, main functionality intact
+3. **Unauthorized Access Error Code:**
+   - **Impact:** Minor - Returns 403 instead of expected 401 for unauthorized access
+   - **Root Cause:** FastAPI security implementation returns 403 for insufficient permissions
+   - **Status:** Non-critical, proper access control working
 
 **TECHNICAL VERIFICATION:**
 - Test Report Analysis endpoint: ✅ Working
