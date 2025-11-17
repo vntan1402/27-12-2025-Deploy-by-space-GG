@@ -226,7 +226,7 @@ class DrawingManualAnalyzeService:
         total_pages: int
     ) -> Dict[str, Any]:
         """Process a single PDF (≤15 pages)"""
-        from app.utils.document_ai_helper import analyze_with_document_ai
+        from app.utils.document_ai_helper import analyze_document_with_document_ai
         
         logger.info(f"🔄 Processing single PDF: {filename} ({total_pages} pages)")
         
