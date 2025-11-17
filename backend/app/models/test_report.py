@@ -65,4 +65,4 @@ class TestReportResponse(BaseModel):
 
 class BulkDeleteTestReportRequest(BaseModel):
     """Request model for bulk delete test report operations"""
-    document_ids: List[str]
+    report_ids: List[str]
