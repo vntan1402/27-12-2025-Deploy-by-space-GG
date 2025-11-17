@@ -141,10 +141,10 @@ async def analyze_document_with_document_ai(
                     }
     
     except asyncio.TimeoutError:
-        logger.error(f"❌ Document AI timed out for {document_type} after 120 seconds")
+        logger.error(f"❌ Document AI timed out for {document_type} after 180 seconds")
         return {
             "success": False,
-            "message": "Document AI request timed out (>2 minutes)"
+            "message": "Document AI request timed out (>3 minutes)"
         }
     
     except aiohttp.ClientError as e:
