@@ -73,7 +73,7 @@ export const testReportService = {
    */
   bulkDelete: async (reportIds) => {
     const response = await api.post(API_ENDPOINTS.TEST_REPORT_BULK_DELETE, {
-      document_ids: reportIds
+      report_ids: reportIds
     });
     return response.data;
   },
