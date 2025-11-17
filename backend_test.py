@@ -766,13 +766,13 @@ class BackendTester:
             files = {
                 "test_report_file": ("invalid.pdf", invalid_content, "application/pdf")
             }
-            params = {
+            data = {
                 "ship_id": "test-ship-id",
-                "bypass_validation": True
+                "bypass_validation": "true"
             }
             
             response = self.session.post(f"{BACKEND_URL}/test-reports/analyze-file", 
-                                       files=files, params=params)
+                                       files=files, data=data)
             
             if response.status_code == 400:
                 self.log_test("Error Handling - Invalid PDF", True, 
