@@ -113,14 +113,40 @@ async def check_duplicate_drawing_manual(
 
 @router.post("/analyze-file")
 async def analyze_drawing_manual_file(
-    file: UploadFile = File(...),
-    ship_id: Optional[str] = None,
+    ship_id: str = Form(...),
+    document_file: UploadFile = File(...),
+    bypass_validation: str = Form("false"),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Analyze drawing/manual file using AI (Editor+ role required)"""
-    # TODO: Implement AI analysis for drawings/manuals
-    return {
-        "success": True,
-        "message": "Drawing/Manual analysis not yet implemented",
-        "analysis": None
-    }
+    """
+    Analyze drawing/manual file using AI (Editor+ role required)
+    
+    Process:
+    1. Validate PDF file
+    2. Check if needs splitting (>15 pages)
+    3. Process with Document AI (parallel chunks if large)
+    4. Extract fields with System AI
+    5. Normalize document_name & approved_by
+    6. Return analysis + base64 file for upload
+    """
+    try:
+        from app.services.drawing_manual_analyze_service import DrawingManualAnalyzeService
+        
+        bypass = bypass_validation.lower() == "true"
+        
+        result = await DrawingManualAnalyzeService.analyze_file(
+            file=document_file,
+            ship_id=ship_id,
+            bypass_validation=bypass,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error analyzing drawing/manual: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
