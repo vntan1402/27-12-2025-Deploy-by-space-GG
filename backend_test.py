@@ -813,13 +813,13 @@ class BackendTester:
                     files = {
                         "test_report_file": ("test.pdf", pdf_content, "application/pdf")
                     }
-                    params = {
+                    data = {
                         "ship_id": "non-existent-ship-id",
-                        "bypass_validation": False
+                        "bypass_validation": "false"
                     }
                     
                     response = self.session.post(f"{BACKEND_URL}/test-reports/analyze-file", 
-                                               files=files, params=params)
+                                               files=files, data=data)
                     
                     if response.status_code == 404:
                         self.log_test("Error Handling - Non-existent Ship", True, 
