@@ -193,17 +193,73 @@ class TestReportService:
         return TestReportResponse(**updated_report)
     
     @staticmethod
-    async def delete_test_report(report_id: str, current_user: UserResponse) -> dict:
-        """Delete test report"""
+    async def delete_test_report(
+        report_id: str, 
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
+        """Delete test report and schedule Google Drive file deletion in background"""
+        from app.utils.background_tasks import delete_file_background
+        from app.services.gdrive_service import GDriveService
+        from app.repositories.ship import ShipRepository
+        
         report = await mongo_db.find_one(TestReportService.collection_name, {"id": report_id})
         if not report:
             raise HTTPException(status_code=404, detail="Test Report not found")
         
+        # Extract file info before deleting from DB
+        test_report_file_id = report.get("test_report_file_id")
+        test_report_summary_file_id = report.get("test_report_summary_file_id")
+        test_report_name = report.get("test_report_name", "Unknown")
+        
+        # Delete from database immediately
         await mongo_db.delete(TestReportService.collection_name, {"id": report_id})
+        logger.info(f"✅ Test Report deleted from DB: {report_id} ({test_report_name})")
         
-        logger.info(f"✅ Test Report deleted: {report_id}")
+        # Schedule Google Drive file deletions in background if files exist
+        files_to_delete = []
         
-        return {"message": "Test Report deleted successfully"}
+        if test_report_file_id:
+            files_to_delete.append(("original", test_report_file_id))
+            logger.info(f"📋 Found original file to delete: {test_report_file_id}")
+        
+        if test_report_summary_file_id:
+            files_to_delete.append(("summary", test_report_summary_file_id))
+            logger.info(f"📋 Found summary file to delete: {test_report_summary_file_id}")
+        
+        if files_to_delete and background_tasks:
+            # Get ship to find company_id
+            ship_id = report.get("ship_id")
+            if ship_id:
+                ship = await ShipRepository.find_by_id(ship_id)
+                if ship:
+                    company_id = ship.get("company")
+                    if company_id:
+                        for file_type, file_id in files_to_delete:
+                            background_tasks.add_task(
+                                delete_file_background,
+                                file_id,
+                                company_id,
+                                "test_report",
+                                f"{test_report_name} ({file_type})",
+                                GDriveService
+                            )
+                            logger.info(f"📋 Scheduled background deletion for {file_type} file: {file_id}")
+                        
+                        return {
+                            "success": True,
+                            "message": "Test Report deleted successfully. File deletion in progress...",
+                            "report_id": report_id,
+                            "background_deletion": True,
+                            "files_scheduled": len(files_to_delete)
+                        }
+        
+        return {
+            "success": True,
+            "message": "Test Report deleted successfully",
+            "report_id": report_id,
+            "background_deletion": False
+        }
     
     @staticmethod
     async def bulk_delete_test_reports(request: BulkDeleteTestReportRequest, current_user: UserResponse) -> dict:
