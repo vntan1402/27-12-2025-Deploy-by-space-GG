@@ -182,21 +182,34 @@ class DrawingManualService:
         }
     
     @staticmethod
-    async def bulk_delete_drawings_manuals(request: BulkDeleteDrawingManualRequest, current_user: UserResponse) -> dict:
-        """Bulk delete drawings/manuals"""
+    async def bulk_delete_drawings_manuals(
+        request: BulkDeleteDrawingManualRequest, 
+        current_user: UserResponse,
+        background_tasks = None
+    ) -> dict:
+        """Bulk delete drawings/manuals and schedule Google Drive file cleanup"""
         deleted_count = 0
+        files_scheduled = 0
+        
         for doc_id in request.document_ids:
             try:
-                await DrawingManualService.delete_drawing_manual(doc_id, current_user)
+                result = await DrawingManualService.delete_drawing_manual(doc_id, current_user, background_tasks)
                 deleted_count += 1
-            except:
+                
+                # Count scheduled files for deletion
+                if result.get('background_deletion'):
+                    files_scheduled += result.get('files_scheduled', 0)
+            except Exception as e:
+                logger.error(f"Failed to delete drawing/manual {doc_id}: {e}")
                 continue
         
-        logger.info(f"✅ Bulk deleted {deleted_count} drawings/manuals")
+        logger.info(f"✅ Bulk deleted {deleted_count} drawings/manuals, scheduled {files_scheduled} files for deletion")
         
         return {
+            "success": True,
             "message": f"Successfully deleted {deleted_count} drawings/manuals",
-            "deleted_count": deleted_count
+            "deleted_count": deleted_count,
+            "files_scheduled_for_deletion": files_scheduled
         }
     
     @staticmethod
