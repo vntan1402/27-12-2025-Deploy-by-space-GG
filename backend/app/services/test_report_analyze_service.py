@@ -454,44 +454,91 @@ class TestReportAnalyzeService:
             'chunks_count': len(chunks)
         }
         
-        # Step 1: Process each chunk with Document AI
-        chunk_results = []
-        for i, chunk in enumerate(chunks):
-            logger.info(f"🔄 Processing chunk {i+1}/{len(chunks)} (pages {chunk['page_range']})")
+        # Step 1: Process chunks with Document AI (Staggered Parallel Processing)
+        # Start each chunk with 2s delay to avoid rate limits, but process in parallel
+        import asyncio
+        
+        async def process_single_chunk(chunk, chunk_index):
+            """Process a single chunk with Document AI"""
+            logger.info(f"🔄 Processing chunk {chunk_index+1}/{len(chunks)} (pages {chunk['page_range']})")
             
-            doc_ai_result = await analyze_test_report_with_document_ai(
-                file_content=chunk['content'],
-                filename=chunk['filename'],
-                content_type='application/pdf',
-                document_ai_config=document_ai_config
-            )
-            
-            if doc_ai_result.get('success'):
-                summary_text = doc_ai_result.get('data', {}).get('summary', '')
+            try:
+                doc_ai_result = await analyze_test_report_with_document_ai(
+                    file_content=chunk['content'],
+                    filename=chunk['filename'],
+                    content_type='application/pdf',
+                    document_ai_config=document_ai_config
+                )
                 
-                if summary_text:
-                    chunk_results.append({
-                        'success': True,
-                        'chunk_num': chunk['chunk_num'],
-                        'page_range': chunk['page_range'],
-                        'summary_text': summary_text
-                    })
-                    logger.info(f"✅ Chunk {i+1} completed - {len(summary_text)} chars")
+                if doc_ai_result.get('success'):
+                    summary_text = doc_ai_result.get('data', {}).get('summary', '')
+                    
+                    if summary_text:
+                        logger.info(f"✅ Chunk {chunk_index+1} completed - {len(summary_text)} chars")
+                        return {
+                            'success': True,
+                            'chunk_num': chunk['chunk_num'],
+                            'page_range': chunk['page_range'],
+                            'summary_text': summary_text
+                        }
+                    else:
+                        logger.warning(f"⚠️ Chunk {chunk_index+1} returned empty summary")
+                        return {
+                            'success': False,
+                            'chunk_num': chunk['chunk_num'],
+                            'page_range': chunk['page_range'],
+                            'error': 'Empty summary'
+                        }
                 else:
-                    logger.warning(f"⚠️ Chunk {i+1} returned empty summary")
-                    chunk_results.append({
+                    error_msg = doc_ai_result.get('message', 'Unknown error')
+                    logger.error(f"❌ Chunk {chunk_index+1} failed: {error_msg}")
+                    return {
                         'success': False,
                         'chunk_num': chunk['chunk_num'],
-                        'error': 'Empty summary'
-                    })
-            else:
-                error_msg = doc_ai_result.get('message', 'Unknown error')
-                logger.error(f"❌ Chunk {i+1} failed: {error_msg}")
-                chunk_results.append({
+                        'page_range': chunk['page_range'],
+                        'error': error_msg
+                    }
+            except Exception as e:
+                logger.error(f"❌ Chunk {chunk_index+1} exception: {e}")
+                return {
                     'success': False,
                     'chunk_num': chunk['chunk_num'],
-                    'error': error_msg
+                    'page_range': chunk['page_range'],
+                    'error': str(e)
+                }
+        
+        # Create tasks with staggered start (2s delay between each chunk start)
+        logger.info(f"🚀 Starting staggered parallel processing of {len(chunks)} chunks (2s delay between starts)...")
+        tasks = []
+        for i, chunk in enumerate(chunks):
+            # Add 2s delay before starting each chunk (except first)
+            if i > 0:
+                logger.info(f"⏳ Waiting 2s before starting chunk {i+1}...")
+                await asyncio.sleep(2)
+            
+            # Create and start task immediately
+            task = asyncio.create_task(process_single_chunk(chunk, i))
+            tasks.append(task)
+            logger.info(f"🚀 Chunk {i+1} task created and started")
+        
+        # Wait for all chunks to complete (parallel execution)
+        logger.info(f"⏳ Waiting for all {len(chunks)} chunks to complete...")
+        chunk_results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        # Handle exceptions in results
+        processed_results = []
+        for i, result in enumerate(chunk_results):
+            if isinstance(result, Exception):
+                logger.error(f"❌ Chunk {i+1} raised exception: {result}")
+                processed_results.append({
+                    'success': False,
+                    'chunk_num': i + 1,
+                    'error': str(result)
                 })
+            else:
+                processed_results.append(result)
+        
+        chunk_results = processed_results
         
         # Step 2: Merge summaries
         successful_chunks = [cr for cr in chunk_results if cr.get('success')]
