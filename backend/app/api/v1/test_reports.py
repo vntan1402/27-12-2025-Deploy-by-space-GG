@@ -74,11 +74,12 @@ async def update_test_report(
 @router.delete("/{doc_id}")
 async def delete_test_report(
     doc_id: str,
+    background_tasks: BackgroundTasks,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Delete Test Report (Editor+ role required)"""
+    """Delete Test Report and associated files from Google Drive (Editor+ role required)"""
     try:
-        return await TestReportService.delete_test_report(doc_id, current_user)
+        return await TestReportService.delete_test_report(doc_id, current_user, background_tasks)
     except HTTPException:
         raise
     except Exception as e:
