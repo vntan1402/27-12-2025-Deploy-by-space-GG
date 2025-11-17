@@ -446,12 +446,29 @@ class TestReportAnalyzeService:
         from app.utils.document_ai_helper import analyze_test_report_with_document_ai
         
         chunks = splitter.split_pdf(file_content, filename)
-        logger.info(f"📦 Created {len(chunks)} chunks for batch processing")
+        total_chunks = len(chunks)
+        logger.info(f"📦 Created {total_chunks} chunks from {total_pages}-page PDF")
+        
+        # LIMIT: Process max 5 chunks only (like backend-v1)
+        MAX_CHUNKS = 5
+        chunks_to_process = chunks[:MAX_CHUNKS]
+        skipped_chunks = total_chunks - len(chunks_to_process)
+        
+        if skipped_chunks > 0:
+            logger.warning(f"⚠️ File has {total_chunks} chunks. Processing first {MAX_CHUNKS} chunks only, skipping {skipped_chunks} chunks")
+            # Calculate skipped pages
+            skipped_pages = sum(chunk.get('page_count', 0) for chunk in chunks[MAX_CHUNKS:])
+            processed_pages = total_pages - skipped_pages
+            logger.info(f"📊 Processing {processed_pages}/{total_pages} pages ({skipped_pages} pages skipped)")
         
         analysis_result['_split_info'] = {
             'was_split': True,
             'total_pages': total_pages,
-            'chunks_count': len(chunks)
+            'total_chunks': total_chunks,
+            'processed_chunks': len(chunks_to_process),
+            'skipped_chunks': skipped_chunks,
+            'max_chunks_limit': MAX_CHUNKS,
+            'was_limited': skipped_chunks > 0
         }
         
         # Step 1: Process chunks with Document AI (Staggered Parallel Processing)
