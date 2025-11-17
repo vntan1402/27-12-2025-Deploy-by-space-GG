@@ -112,17 +112,74 @@ class DrawingManualService:
         return DrawingManualResponse(**updated_doc)
     
     @staticmethod
-    async def delete_drawing_manual(doc_id: str, current_user: UserResponse) -> dict:
-        """Delete drawing/manual"""
+    async def delete_drawing_manual(
+        doc_id: str, 
+        current_user: UserResponse,
+        background_tasks = None
+    ) -> dict:
+        """Delete drawing/manual and schedule Google Drive file deletion in background"""
+        from fastapi import BackgroundTasks
+        from app.utils.background_tasks import delete_file_background
+        from app.services.gdrive_service import GDriveService
+        from app.repositories.ship_repository import ShipRepository
+        
         doc = await mongo_db.find_one(DrawingManualService.collection_name, {"id": doc_id})
         if not doc:
             raise HTTPException(status_code=404, detail="Drawing/Manual not found")
         
+        # Extract file info before deleting from DB
+        file_id = doc.get("file_id")
+        summary_file_id = doc.get("summary_file_id")
+        document_name = doc.get("document_name", "Unknown")
+        
+        # Delete from database immediately
         await mongo_db.delete(DrawingManualService.collection_name, {"id": doc_id})
+        logger.info(f"✅ Drawing/Manual deleted from DB: {doc_id} ({document_name})")
         
-        logger.info(f"✅ Drawing/Manual deleted: {doc_id}")
+        # Schedule Google Drive file deletions in background if files exist
+        files_to_delete = []
         
-        return {"message": "Drawing/Manual deleted successfully"}
+        if file_id:
+            files_to_delete.append(("original", file_id))
+            logger.info(f"📋 Found original file to delete: {file_id}")
+        
+        if summary_file_id:
+            files_to_delete.append(("summary", summary_file_id))
+            logger.info(f"📋 Found summary file to delete: {summary_file_id}")
+        
+        if files_to_delete and background_tasks:
+            # Get ship to find company_id
+            ship_id = doc.get("ship_id")
+            if ship_id:
+                ship = await ShipRepository.find_by_id(ship_id)
+                if ship:
+                    company_id = ship.get("company")
+                    if company_id:
+                        for file_type, file_id_val in files_to_delete:
+                            background_tasks.add_task(
+                                delete_file_background,
+                                file_id_val,
+                                company_id,
+                                "drawing_manual",
+                                f"{document_name} ({file_type})",
+                                GDriveService
+                            )
+                            logger.info(f"📋 Scheduled background deletion for {file_type} file: {file_id_val}")
+                        
+                        return {
+                            "success": True,
+                            "message": "Drawing/Manual deleted successfully. File deletion in progress...",
+                            "document_id": doc_id,
+                            "background_deletion": True,
+                            "files_scheduled": len(files_to_delete)
+                        }
+        
+        return {
+            "success": True,
+            "message": "Drawing/Manual deleted successfully",
+            "document_id": doc_id,
+            "background_deletion": False
+        }
     
     @staticmethod
     async def bulk_delete_drawings_manuals(request: BulkDeleteDrawingManualRequest, current_user: UserResponse) -> dict:
