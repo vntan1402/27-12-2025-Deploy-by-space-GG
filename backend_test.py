@@ -2652,6 +2652,10 @@ class BackendTester:
         # Integration Tests
         self.test_integration_flow()
         
+        # Test Report Delete with File Cleanup Tests (NEW)
+        self.test_test_report_delete_with_file_cleanup()
+        self.test_test_report_delete_edge_cases()
+        
         # Error Handling Tests
         self.test_error_handling()
         
