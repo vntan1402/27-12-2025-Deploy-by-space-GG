@@ -2370,13 +2370,13 @@ class BackendTester:
                 files = {
                     "test_report_file": ("test_report.pdf", pdf_content, "application/pdf")
                 }
-                params = {
+                data = {
                     "ship_id": ship_id,
-                    "bypass_validation": True
+                    "bypass_validation": "true"
                 }
                 
                 analyze_response = self.session.post(f"{BACKEND_URL}/test-reports/analyze-file", 
-                                                   files=files, params=params)
+                                                   files=files, data=data)
                 
                 if analyze_response.status_code != 200:
                     self.log_test("Test Report Delete - Analyze File", False, 
