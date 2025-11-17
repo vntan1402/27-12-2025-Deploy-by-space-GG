@@ -23,6 +23,14 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
   const [analyzedData, setAnalyzedData] = useState(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef(null);
+  
+  // Chunk progress state
+  const [chunkProgress, setChunkProgress] = useState({
+    isProcessing: false,
+    currentChunk: 0,
+    totalChunks: 0,
+    progress: 0
+  });
 
   const [formData, setFormData] = useState({
     test_report_name: '',
