@@ -477,7 +477,7 @@ class TestReportAnalyzeService:
         
         async def process_single_chunk(chunk, chunk_index):
             """Process a single chunk with Document AI"""
-            logger.info(f"🔄 Processing chunk {chunk_index+1}/{len(chunks)} (pages {chunk['page_range']})")
+            logger.info(f"🔄 Processing chunk {chunk_index+1}/{len(chunks_to_process)} (pages {chunk['page_range']})")
             
             try:
                 doc_ai_result = await analyze_test_report_with_document_ai(
