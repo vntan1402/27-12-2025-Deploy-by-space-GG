@@ -309,6 +309,31 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
       setUploadedFile(null);
     } finally {
       setIsAnalyzing(false);
+      
+      // Clear chunk progress timer
+      if (window._chunkProgressTimer) {
+        clearInterval(window._chunkProgressTimer);
+        window._chunkProgressTimer = null;
+      }
+      
+      // Complete chunk progress (jump to 100%)
+      if (chunkProgress.isProcessing) {
+        setChunkProgress(prev => ({
+          ...prev,
+          isProcessing: false,
+          progress: 100
+        }));
+        
+        // Reset after 1 second
+        setTimeout(() => {
+          setChunkProgress({
+            isProcessing: false,
+            currentChunk: 0,
+            totalChunks: 0,
+            progress: 0
+          });
+        }, 1000);
+      }
     }
   };
 
