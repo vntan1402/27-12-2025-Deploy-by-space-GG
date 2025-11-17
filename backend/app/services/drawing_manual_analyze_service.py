@@ -241,7 +241,8 @@ class DrawingManualAnalyzeService:
             file_content=file_content,
             filename=filename,
             content_type=content_type,
-            document_ai_config=document_ai_config
+            document_ai_config=document_ai_config,
+            document_type='drawings_manual'
         )
         
         if not doc_ai_result.get('success'):
