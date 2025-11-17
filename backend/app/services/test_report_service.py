@@ -2,7 +2,7 @@ import uuid
 import logging
 from typing import List, Optional
 from datetime import datetime, timezone
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 
 from app.models.test_report import TestReportCreate, TestReportUpdate, TestReportResponse, BulkDeleteTestReportRequest
 from app.models.user import UserResponse
