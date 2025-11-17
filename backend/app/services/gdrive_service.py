@@ -637,12 +637,12 @@ class GDriveService:
                 "content_type": content_type
             }
             
-            # Call Apps Script
+            # Call Apps Script (180s timeout for large files)
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     apps_script_url,
                     json=payload,
-                    timeout=aiohttp.ClientTimeout(total=120)
+                    timeout=aiohttp.ClientTimeout(total=180)
                 ) as response:
                     if response.status == 200:
                         result = await response.json()
