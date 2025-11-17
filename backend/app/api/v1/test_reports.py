@@ -192,10 +192,12 @@ async def analyze_test_report_file(
     try:
         from app.services.test_report_analyze_service import TestReportAnalyzeService
         
+        bypass_bool = bypass_validation.lower() == "true"
+        
         result = await TestReportAnalyzeService.analyze_file(
             file=test_report_file,
             ship_id=ship_id,
-            bypass_validation=bypass_validation,
+            bypass_validation=bypass_bool,
             current_user=current_user
         )
         
