@@ -201,7 +201,7 @@ class TestReportService:
         """Delete test report and schedule Google Drive file deletion in background"""
         from app.utils.background_tasks import delete_file_background
         from app.services.gdrive_service import GDriveService
-        from app.repositories.ship import ShipRepository
+        from app.repositories.ship_repository import ShipRepository
         
         report = await mongo_db.find_one(TestReportService.collection_name, {"id": report_id})
         if not report:
