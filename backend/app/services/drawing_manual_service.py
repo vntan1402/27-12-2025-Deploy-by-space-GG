@@ -143,6 +143,158 @@ class DrawingManualService:
         }
     
     @staticmethod
+    async def upload_files(
+        document_id: str,
+        file_content: str,
+        filename: str,
+        content_type: str,
+        summary_text: Optional[str],
+        current_user: UserResponse
+    ) -> dict:
+        """
+        Upload drawing/manual files to Google Drive
+        
+        Path: {ship_name}/Class & Flag Cert/Drawings & Manuals/
+        - Original file and summary in SAME folder (unlike Test Report)
+        
+        Args:
+            document_id: Drawing/Manual document ID
+            file_content: Base64 encoded file content
+            filename: Original filename
+            content_type: File content type
+            summary_text: Summary text (optional)
+            current_user: Current user
+        
+        Returns:
+            Upload result with file IDs
+        """
+        try:
+            logger.info(f"📤 Starting file upload for drawing/manual: {document_id}")
+            
+            # Validate document exists
+            document = await mongo_db.find_one(DrawingManualService.collection_name, {"id": document_id})
+            if not document:
+                raise HTTPException(status_code=404, detail="Drawing/Manual not found")
+            
+            # Get ship info
+            ship_id = document.get("ship_id")
+            if not ship_id:
+                raise HTTPException(status_code=400, detail="Drawing/Manual has no ship_id")
+            
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            ship_name = ship.get("name", "Unknown Ship")
+            
+            # Decode base64 file content
+            import base64
+            try:
+                file_bytes = base64.b64decode(file_content)
+                logger.info(f"✅ Decoded file content: {len(file_bytes)} bytes")
+            except Exception as e:
+                logger.error(f"Failed to decode base64 file content: {e}")
+                raise HTTPException(status_code=400, detail="Invalid file content encoding")
+            
+            # Get company UUID
+            company_uuid = current_user.company
+            if not company_uuid:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+            
+            # Upload to Google Drive via GDriveService
+            from app.services.gdrive_service import GDriveService
+            
+            # Upload original file to: ShipName/Class & Flag Cert/Drawings & Manuals/
+            logger.info(f"📤 Uploading drawing/manual to: {ship_name}/Class & Flag Cert/Drawings & Manuals/{filename}")
+            
+            upload_result = await GDriveService.upload_file(
+                file_content=file_bytes,
+                filename=filename,
+                content_type=content_type,
+                folder_path=f"{ship_name}/Class & Flag Cert/Drawings & Manuals",
+                company_id=company_uuid
+            )
+            
+            if not upload_result.get('success'):
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to upload drawing/manual file: {upload_result.get('message', 'Unknown error')}"
+                )
+            
+            original_file_id = upload_result.get('file_id')
+            
+            # Upload summary file if provided (to SAME folder)
+            summary_file_id = None
+            summary_error = None
+            
+            if summary_text and summary_text.strip():
+                try:
+                    # Create summary filename
+                    base_name = filename.rsplit('.', 1)[0] if '.' in filename else filename
+                    summary_filename = f"{base_name}_Summary.txt"
+                    
+                    # Upload to SAME folder as original file
+                    summary_folder_path = f"{ship_name}/Class & Flag Cert/Drawings & Manuals"
+                    
+                    logger.info(f"📤 Uploading summary to: {summary_folder_path}/{summary_filename}")
+                    
+                    # Convert summary text to bytes
+                    summary_bytes = summary_text.encode('utf-8')
+                    
+                    summary_upload = await GDriveService.upload_file(
+                        file_content=summary_bytes,
+                        filename=summary_filename,
+                        content_type="text/plain",
+                        folder_path=summary_folder_path,
+                        company_id=company_uuid
+                    )
+                    
+                    if summary_upload.get('success'):
+                        summary_file_id = summary_upload.get('file_id')
+                        logger.info(f"✅ Summary uploaded: {summary_file_id}")
+                    else:
+                        summary_error = summary_upload.get('message', 'Unknown error')
+                        logger.warning(f"⚠️ Summary upload failed (non-critical): {summary_error}")
+                        
+                except Exception as summary_exc:
+                    summary_error = str(summary_exc)
+                    logger.warning(f"⚠️ Summary upload failed (non-critical): {summary_error}")
+            
+            # Update document record with file IDs
+            update_data = {
+                "updated_at": datetime.now(timezone.utc)
+            }
+            
+            if original_file_id:
+                update_data["file_id"] = original_file_id
+            
+            if summary_file_id:
+                update_data["summary_file_id"] = summary_file_id
+            
+            await mongo_db.update(DrawingManualService.collection_name, {"id": document_id}, update_data)
+            logger.info("✅ Drawing/Manual updated with file IDs")
+            
+            # Get updated document
+            updated_document = await mongo_db.find_one(DrawingManualService.collection_name, {"id": document_id})
+            
+            logger.info("✅ Drawing/Manual files uploaded successfully")
+            
+            return {
+                "success": True,
+                "message": "Drawing/Manual files uploaded successfully",
+                "document": DrawingManualResponse(**updated_document),
+                "original_file_id": original_file_id,
+                "summary_file_id": summary_file_id,
+                "summary_error": summary_error
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading drawing/manual files: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @staticmethod
     async def check_duplicate(ship_id: str, document_name: str, document_no: Optional[str], current_user: UserResponse) -> dict:
         """Check if drawing/manual is duplicate"""
         filters = {
