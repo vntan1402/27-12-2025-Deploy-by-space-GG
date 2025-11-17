@@ -271,7 +271,7 @@ class TestReportService:
         deleted_count = 0
         files_scheduled = 0
         
-        for report_id in request.document_ids:
+        for report_id in request.report_ids:
             try:
                 result = await TestReportService.delete_test_report(report_id, current_user, background_tasks)
                 deleted_count += 1
