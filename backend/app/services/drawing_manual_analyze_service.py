@@ -365,7 +365,7 @@ class DrawingManualAnalyzeService:
             logger.info(f"🔄 Processing chunk {chunk_index+1}/{len(chunks_to_process)} (pages {chunk['page_range']})")
             
             try:
-                doc_ai_result = await analyze_with_document_ai(
+                doc_ai_result = await analyze_document_with_document_ai(
                     file_content=chunk['content'],
                     filename=chunk['filename'],
                     content_type='application/pdf',
