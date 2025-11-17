@@ -492,9 +492,9 @@ class SurveyReportAnalyzeService:
                 }
         
         # Create tasks with staggered start (2s delay between each chunk start)
-        logger.info(f"🚀 Starting staggered parallel processing of {len(chunks)} chunks (2s delay between starts)...")
+        logger.info(f"🚀 Starting staggered parallel processing of {len(chunks_to_process)} chunks (2s delay between starts)...")
         tasks = []
-        for i, chunk in enumerate(chunks):
+        for i, chunk in enumerate(chunks_to_process):
             # Add 2s delay before starting each chunk (except first)
             if i > 0:
                 logger.info(f"⏳ Waiting 2s before starting chunk {i+1}...")
@@ -506,7 +506,7 @@ class SurveyReportAnalyzeService:
             logger.info(f"🚀 Chunk {i+1} task created and started")
         
         # Wait for all chunks to complete (parallel execution)
-        logger.info(f"⏳ Waiting for all {len(chunks)} chunks to complete...")
+        logger.info(f"⏳ Waiting for all {len(chunks_to_process)} chunks to complete...")
         chunk_results = await asyncio.gather(*tasks, return_exceptions=True)
         
         # Handle exceptions in results
