@@ -237,7 +237,7 @@ class DrawingManualAnalyzeService:
         }
         
         # Step 1: Call Document AI
-        doc_ai_result = await analyze_with_document_ai(
+        doc_ai_result = await analyze_document_with_document_ai(
             file_content=file_content,
             filename=filename,
             content_type=content_type,
