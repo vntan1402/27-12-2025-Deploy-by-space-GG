@@ -262,22 +262,36 @@ class TestReportService:
         }
     
     @staticmethod
-    async def bulk_delete_test_reports(request: BulkDeleteTestReportRequest, current_user: UserResponse) -> dict:
-        """Bulk delete test reports"""
+    async def bulk_delete_test_reports(
+        request: BulkDeleteTestReportRequest, 
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
+        """Bulk delete test reports and schedule Google Drive file cleanup"""
         deleted_count = 0
+        files_scheduled = 0
+        
         for report_id in request.document_ids:
             try:
-                await TestReportService.delete_test_report(report_id, current_user)
+                result = await TestReportService.delete_test_report(report_id, current_user, background_tasks)
                 deleted_count += 1
+                
+                # Count scheduled files for deletion
+                if result.get('background_deletion'):
+                    files_scheduled += result.get('files_scheduled', 0)
+                    
             except Exception as e:
                 logger.warning(f"⚠️ Failed to delete test report {report_id}: {e}")
                 continue
         
-        logger.info(f"✅ Bulk deleted {deleted_count} test reports")
+        logger.info(f"✅ Bulk deleted {deleted_count} test reports, {files_scheduled} files scheduled for cleanup")
         
         return {
-            "message": f"Successfully deleted {deleted_count} test reports",
-            "deleted_count": deleted_count
+            "success": True,
+            "message": f"Successfully deleted {deleted_count} test reports. File cleanup in progress...",
+            "deleted_count": deleted_count,
+            "files_scheduled_for_deletion": files_scheduled,
+            "background_deletion": files_scheduled > 0
         }
     
     @staticmethod
