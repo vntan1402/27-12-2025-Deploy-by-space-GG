@@ -235,13 +235,13 @@ class BackendTester:
             files = {
                 "test_report_file": ("test_report.pdf", pdf_content, "application/pdf")
             }
-            params = {
+            data = {
                 "ship_id": ship_id,
-                "bypass_validation": True  # Bypass validation since test PDF may not contain exact ship name
+                "bypass_validation": "true"  # Bypass validation since test PDF may not contain exact ship name
             }
             
             response = self.session.post(f"{BACKEND_URL}/test-reports/analyze-file", 
-                                       files=files, params=params)
+                                       files=files, data=data)
             
             if response.status_code == 200:
                 data = response.json()
