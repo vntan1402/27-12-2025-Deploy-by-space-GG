@@ -223,9 +223,16 @@ export const AddDrawingManualModal = ({
 
       const data = await response.json();
       
+      // Backend returns wrapped response: { success: true/false, analysis: {...} }
+      if (!data.success || !data.analysis) {
+        throw new Error(data.message || 'Analysis failed');
+      }
+      
+      const analysis = data.analysis;
+      
       // Check split info and show appropriate warnings
-      if (data._split_info) {
-        const splitInfo = data._split_info;
+      if (analysis._split_info) {
+        const splitInfo = analysis._split_info;
         
         // Case 1: All chunks failed
         if (splitInfo.all_chunks_failed) {
@@ -256,17 +263,17 @@ export const AddDrawingManualModal = ({
         }
       }
       
-      // Store complete analysis data
-      setAnalyzedData(data);
+      // Store complete analysis data (including _file_content, _summary_text)
+      setAnalyzedData(analysis);
       
       // Auto-fill form with AI-extracted data
       setFormData({
-        document_name: data.document_name || file.name.replace('.pdf', ''),
-        document_no: data.document_no || '',
-        approved_by: data.approved_by || '',
-        approved_date: formatDateForInput(data.approved_date) || '',
+        document_name: analysis.document_name || file.name.replace('.pdf', ''),
+        document_no: analysis.document_no || '',
+        approved_by: analysis.approved_by || '',
+        approved_date: formatDateForInput(analysis.approved_date) || '',
         status: 'Unknown',
-        note: data.note || ''
+        note: analysis.note || ''
       });
       
       toast.success(language === 'vi' ? '✅ Phân tích file thành công!' : '✅ File analyzed successfully!');
