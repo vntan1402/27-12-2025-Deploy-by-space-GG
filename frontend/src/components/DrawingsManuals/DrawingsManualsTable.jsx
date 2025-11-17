@@ -510,7 +510,14 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
         throw new Error('Analysis failed');
       }
 
-      const analysis = await analyzeResponse.json();
+      const data = await analyzeResponse.json();
+      
+      // Backend returns wrapped response: { success: true/false, analysis: {...} }
+      if (!data.success || !data.analysis) {
+        throw new Error(data.message || 'Analysis failed');
+      }
+      
+      const analysis = data.analysis;
       result.documentName = analysis.document_name || file.name;
       result.documentNo = analysis.document_no || '';
 
