@@ -163,8 +163,8 @@ async def upload_test_report_files(
 @router.post("/analyze-file")
 async def analyze_test_report_file(
     test_report_file: UploadFile = File(...),
-    ship_id: str = Query(...),
-    bypass_validation: bool = Query(False),
+    ship_id: str = Form(...),
+    bypass_validation: str = Form("false"),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
