@@ -170,7 +170,7 @@ async def upload_other_document(
             ship_id=ship_id,
             document_name=document_name,
             date=date,
-            status=status or "Unknown",
+            status=status or "Valid",
             note=note,
             current_user=current_user
         )
