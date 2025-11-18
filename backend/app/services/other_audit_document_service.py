@@ -151,3 +151,324 @@ class OtherAuditDocumentService:
             "is_duplicate": existing is not None,
             "existing_id": existing.get("id") if existing else None
         }
+    
+    # ==================== UPLOAD METHODS ====================
+    
+    @staticmethod
+    async def upload_single_file(
+        file_content: bytes,
+        filename: str,
+        ship_id: str,
+        document_name: str,
+        date: Optional[str],
+        status: str,
+        note: Optional[str],
+        current_user: UserResponse
+    ) -> dict:
+        """
+        Upload single file + create record
+        Path: ShipName > ISM-ISPS-MLC > Other Audit Document > filename
+        """
+        try:
+            logger.info(f"📤 Uploading single audit file: {filename} for ship: {ship_id}")
+            
+            # Get ship info
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            ship_name = ship.get("name", "Unknown Ship")
+            
+            # Get company UUID
+            company_uuid = current_user.company
+            if not company_uuid:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+            
+            # Validate file type
+            allowed_extensions = ['.pdf', '.jpg', '.jpeg']
+            file_extension = filename.lower().split('.')[-1]
+            if f'.{file_extension}' not in allowed_extensions:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid file type. Only PDF and JPG files are supported."
+                )
+            
+            # Upload to Google Drive
+            from app.repositories.gdrive_config_repository import GDriveConfigRepository
+            from app.utils.gdrive_helper import upload_file_with_parent_category
+            
+            gdrive_config = await GDriveConfigRepository.get_by_company(company_uuid)
+            if not gdrive_config:
+                raise HTTPException(status_code=500, detail="Google Drive not configured")
+            
+            # Upload file - Path: ShipName > ISM-ISPS-MLC > Other Audit Document
+            logger.info(f"📤 Uploading to: {ship_name}/ISM-ISPS-MLC/Other Audit Document/{filename}")
+            
+            upload_result = await upload_file_with_parent_category(
+                gdrive_config=gdrive_config,
+                file_content=file_content,
+                filename=filename,
+                ship_name=ship_name,
+                parent_category="ISM-ISPS-MLC",
+                category="Other Audit Document"
+            )
+            
+            if not upload_result.get('success'):
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to upload file: {upload_result.get('error', 'Unknown error')}"
+                )
+            
+            file_id = upload_result.get('file_id')
+            logger.info(f"✅ File uploaded with ID: {file_id}")
+            
+            # Create document record
+            doc_dict = {
+                "id": str(uuid.uuid4()),
+                "ship_id": ship_id,
+                "document_name": document_name,
+                "date": date,
+                "status": status or "Valid",
+                "note": note,
+                "file_ids": [file_id],
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await mongo_db.create(OtherAuditDocumentService.collection_name, doc_dict)
+            logger.info(f"✅ Other Audit Document record created: {doc_dict['id']}")
+            
+            return {
+                "success": True,
+                "message": "File uploaded successfully",
+                "document_id": doc_dict['id'],
+                "file_id": file_id
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading single audit file: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @staticmethod
+    async def upload_file_only(
+        file_content: bytes,
+        filename: str,
+        ship_id: str,
+        current_user: UserResponse
+    ) -> dict:
+        """Upload file WITHOUT creating a record"""
+        try:
+            logger.info(f"📤 Uploading audit file-only: {filename} for ship: {ship_id}")
+            
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            ship_name = ship.get("name", "Unknown Ship")
+            company_uuid = current_user.company
+            if not company_uuid:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+            
+            from app.repositories.gdrive_config_repository import GDriveConfigRepository
+            from app.utils.gdrive_helper import upload_file_with_parent_category
+            
+            gdrive_config = await GDriveConfigRepository.get_by_company(company_uuid)
+            if not gdrive_config:
+                raise HTTPException(status_code=500, detail="Google Drive not configured")
+            
+            upload_result = await upload_file_with_parent_category(
+                gdrive_config=gdrive_config,
+                file_content=file_content,
+                filename=filename,
+                ship_name=ship_name,
+                parent_category="ISM-ISPS-MLC",
+                category="Other Audit Document"
+            )
+            
+            if not upload_result.get('success'):
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to upload file: {upload_result.get('error', 'Unknown error')}"
+                )
+            
+            file_id = upload_result.get('file_id')
+            logger.info(f"✅ Audit file uploaded (no record): {file_id}")
+            
+            return {
+                "success": True,
+                "message": "File uploaded successfully (no record created)",
+                "file_id": file_id,
+                "filename": filename
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading audit file-only: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @staticmethod
+    async def upload_folder(
+        files: List[Tuple[bytes, str]],
+        ship_id: str,
+        folder_name: str,
+        date: Optional[str],
+        status: str,
+        note: Optional[str],
+        current_user: UserResponse
+    ) -> dict:
+        """Upload folder with multiple files + create 1 record"""
+        try:
+            logger.info(f"📁 Uploading audit folder: {folder_name} with {len(files)} files for ship: {ship_id}")
+            
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            ship_name = ship.get("name", "Unknown Ship")
+            company_uuid = current_user.company
+            if not company_uuid:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+            
+            from app.repositories.gdrive_config_repository import GDriveConfigRepository
+            from app.utils.gdrive_helper import upload_files_to_folder
+            
+            gdrive_config = await GDriveConfigRepository.get_by_company(company_uuid)
+            if not gdrive_config:
+                raise HTTPException(status_code=500, detail="Google Drive not configured")
+            
+            logger.info("📤 Creating subfolder and uploading files to Google Drive...")
+            upload_result = await upload_files_to_folder(
+                gdrive_config=gdrive_config,
+                files=files,
+                folder_name=folder_name,
+                ship_name=ship_name,
+                parent_category="ISM-ISPS-MLC/Other Audit Document"
+            )
+            
+            if not upload_result or not upload_result.get('success'):
+                error_msg = upload_result.get('message', 'Unknown error') if upload_result else 'Upload failed'
+                raise HTTPException(status_code=500, detail=f"Failed to upload folder: {error_msg}")
+            
+            folder_id = upload_result.get('folder_id')
+            folder_link = upload_result.get('folder_link')
+            file_ids = upload_result.get('file_ids', [])
+            
+            logger.info("✅ Audit folder uploaded to Google Drive")
+            logger.info(f"   Folder ID: {folder_id}")
+            logger.info(f"   Files uploaded: {len(file_ids)}/{len(files)}")
+            
+            # Create document record
+            doc_dict = {
+                "id": str(uuid.uuid4()),
+                "ship_id": ship_id,
+                "document_name": folder_name,
+                "date": date,
+                "status": status or "Valid",
+                "note": note,
+                "file_ids": file_ids,
+                "folder_id": folder_id,
+                "folder_link": folder_link,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await mongo_db.create(OtherAuditDocumentService.collection_name, doc_dict)
+            logger.info(f"✅ Other Audit Document folder record created: {doc_dict['id']}")
+            
+            return {
+                "success": True,
+                "message": f"Folder uploaded successfully: {len(file_ids)}/{len(files)} files",
+                "document_id": doc_dict['id'],
+                "folder_id": folder_id,
+                "folder_link": folder_link,
+                "file_ids": file_ids,
+                "total_files": len(files),
+                "successful_files": len(file_ids),
+                "failed_files": upload_result.get('failed_files', [])
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading audit folder: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @staticmethod
+    async def upload_file_for_document(
+        document_id: str,
+        ship_id: str,
+        file_content: bytes,
+        filename: str,
+        current_user: UserResponse
+    ) -> dict:
+        """Upload file for existing document"""
+        try:
+            logger.info(f"📤 Uploading audit file for existing document: {document_id}")
+            
+            document = await mongo_db.find_one(OtherAuditDocumentService.collection_name, {"id": document_id})
+            if not document:
+                raise HTTPException(status_code=404, detail="Other Audit Document not found")
+            
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            ship_name = ship.get("name", "Unknown Ship")
+            company_uuid = current_user.company
+            if not company_uuid:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+            
+            from app.repositories.gdrive_config_repository import GDriveConfigRepository
+            from app.utils.gdrive_helper import upload_file_with_parent_category
+            
+            gdrive_config = await GDriveConfigRepository.get_by_company(company_uuid)
+            if not gdrive_config:
+                raise HTTPException(status_code=500, detail="Google Drive not configured")
+            
+            upload_result = await upload_file_with_parent_category(
+                gdrive_config=gdrive_config,
+                file_content=file_content,
+                filename=filename,
+                ship_name=ship_name,
+                parent_category="ISM-ISPS-MLC",
+                category="Other Audit Document"
+            )
+            
+            if not upload_result.get('success'):
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to upload file: {upload_result.get('error', 'Unknown error')}"
+                )
+            
+            file_id = upload_result.get('file_id')
+            logger.info(f"✅ Audit file uploaded: {file_id}")
+            
+            # Update document's file_ids
+            current_file_ids = document.get("file_ids", [])
+            current_file_ids.append(file_id)
+            
+            await mongo_db.update(
+                OtherAuditDocumentService.collection_name,
+                {"id": document_id},
+                {"file_ids": current_file_ids}
+            )
+            
+            logger.info(f"✅ Updated audit document {document_id} with file_id: {file_id}")
+            
+            return {
+                "success": True,
+                "message": "File uploaded and document updated",
+                "file_id": file_id,
+                "filename": filename
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading audit file for document: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
