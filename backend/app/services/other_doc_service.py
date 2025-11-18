@@ -275,7 +275,7 @@ class OtherDocumentService:
             
             # Upload to Google Drive
             from app.repositories.gdrive_config_repository import GDriveConfigRepository
-            from app.utils.gdrive_helper import upload_file_to_ship_folder
+            from app.utils.gdrive_helper import upload_file_with_parent_category
             
             # Get GDrive config
             gdrive_config = await GDriveConfigRepository.get_by_company(company_uuid)
@@ -285,12 +285,13 @@ class OtherDocumentService:
             # Upload file - Path: ShipName > Class & Flag Cert > Other Documents
             logger.info(f"📤 Uploading to: {ship_name}/Class & Flag Cert/Other Documents/{filename}")
             
-            upload_result = await upload_file_to_ship_folder(
+            upload_result = await upload_file_with_parent_category(
                 gdrive_config=gdrive_config,
                 file_content=file_content,
                 filename=filename,
                 ship_name=ship_name,
-                category="Class & Flag Cert/Other Documents"
+                parent_category="Class & Flag Cert",
+                category="Other Documents"
             )
             
             if not upload_result.get('success'):
