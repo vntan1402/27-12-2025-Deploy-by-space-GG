@@ -127,3 +127,186 @@ async def analyze_other_document_file(
         "message": "Other document analysis not yet implemented",
         "analysis": None
     }
+
+
+# ==================== UPLOAD ENDPOINTS ====================
+
+@router.post("/upload")
+async def upload_other_document(
+    file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    document_name: str = Form(...),
+    date: Optional[str] = Form(None),
+    status: Optional[str] = Form("Unknown"),
+    note: Optional[str] = Form(None),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload a single file for other documents (PDF, JPG)
+    NO AI processing - just file upload and metadata storage
+    
+    Creates 1 record with uploaded file
+    """
+    try:
+        logger.info(f"📤 Uploading other document file: {file.filename} for ship: {ship_id}")
+        
+        # Validate file type
+        allowed_extensions = ['.pdf', '.jpg', '.jpeg']
+        file_extension = os.path.splitext(file.filename)[1].lower()
+        if file_extension not in allowed_extensions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file type. Only PDF and JPG files are supported. Got: {file_extension}"
+            )
+        
+        # Read file content
+        file_content = await file.read()
+        logger.info(f"✅ File read successfully: {len(file_content)} bytes")
+        
+        # Call service
+        result = await OtherDocumentService.upload_single_file(
+            file_content=file_content,
+            filename=file.filename,
+            ship_id=ship_id,
+            document_name=document_name,
+            date=date,
+            status=status or "Unknown",
+            note=note,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading other document: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/upload-file-only")
+async def upload_file_only(
+    file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload a file to Google Drive without creating a record
+    Returns only the file_id for later use
+    Accepts ALL file types (no filtering)
+    
+    Used for background uploads where record is already created
+    """
+    try:
+        logger.info(f"📤 Uploading file (file-only): {file.filename} for ship: {ship_id}")
+        
+        # Read file content (accept ALL file types)
+        file_content = await file.read()
+        logger.info(f"✅ File read successfully: {len(file_content)} bytes")
+        
+        # Call service
+        result = await OtherDocumentService.upload_file_only(
+            file_content=file_content,
+            filename=file.filename,
+            ship_id=ship_id,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading file: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/upload-folder")
+async def upload_folder(
+    files: List[UploadFile] = File(...),
+    ship_id: str = Form(...),
+    folder_name: str = Form(...),
+    date: Optional[str] = Form(None),
+    status: Optional[str] = Form("Unknown"),
+    note: Optional[str] = Form(None),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload a folder with multiple files to Google Drive
+    Creates a subfolder under "Other Documents" and uploads all files into it
+    Also creates a single record with folder_id and folder_link
+    """
+    try:
+        logger.info(f"📁 Uploading folder: {folder_name} with {len(files)} files for ship: {ship_id}")
+        
+        # Read all files into memory
+        files_data = []
+        for file in files:
+            file_content = await file.read()
+            # Extract only the filename, remove any folder path
+            filename = os.path.basename(file.filename)
+            files_data.append((file_content, filename))
+            logger.info(f"   📄 Read file: {filename} ({len(file_content)} bytes)")
+        
+        # Call service
+        result = await OtherDocumentService.upload_folder(
+            files=files_data,
+            ship_id=ship_id,
+            folder_name=folder_name,
+            date=date,
+            status=status or "Unknown",
+            note=note,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading folder: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{doc_id}/upload-file")
+async def upload_file_for_document(
+    doc_id: str,
+    file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload file for an existing document (background upload case)
+    Updates the document's file_ids array
+    """
+    try:
+        logger.info(f"📤 Uploading file for document {doc_id}: {file.filename}")
+        
+        # Read file content
+        file_content = await file.read()
+        logger.info(f"✅ File read successfully: {len(file_content)} bytes")
+        
+        # Call service
+        result = await OtherDocumentService.upload_file_for_document(
+            document_id=doc_id,
+            ship_id=ship_id,
+            file_content=file_content,
+            filename=file.filename,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading file for document: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
