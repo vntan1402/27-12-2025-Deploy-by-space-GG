@@ -184,34 +184,26 @@ const AddOtherAuditDocumentModal = ({ show, onClose, selectedShip, onSuccess }) 
         
         onSuccess();
       } else if (isFolder) {
-        // Folder upload - keep old flow (create + upload together)
+        // Folder upload - NEW FLOW with minimizable floating progress
         const folderName = formData.document_name || files[0].webkitRelativePath.split('/')[0];
         
-        toast.info(language === 'vi'
-          ? `📤 Đang upload ${files.length} files lên Google Drive...`
-          : `📤 Uploading ${files.length} files to Google Drive...`
-        );
+        // Initialize floating progress
+        setShowFloatingProgress(true);
+        setIsProgressMinimized(true); // Start minimized
+        setUploadProgress({
+          totalFiles: files.length,
+          completedFiles: 0,
+          currentFile: files[0].name,
+          status: 'uploading',
+          errorMessage: ''
+        });
         
-        const result = await otherAuditDocumentService.uploadFolder(
-          selectedShip.id,
-          files,
-          folderName,
-          {
-            date: formData.date || null,
-            status: formData.status,
-            note: formData.note || null
-          }
-        );
-
-        if (result.success) {
-          toast.success(language === 'vi'
-            ? `✅ Đã upload folder thành công! (${result.successful_files}/${result.total_files} files)`
-            : `✅ Folder uploaded successfully! (${result.successful_files}/${result.total_files} files)`
-          );
-          onSuccess();
-        } else {
-          throw new Error(result.message || 'Upload failed');
-        }
+        // Close main modal immediately
+        onClose();
+        setIsProcessing(false);
+        
+        // Start upload with progress tracking
+        uploadFolderWithProgress(folderName, files);
       } else {
         // Multiple files - NEW FLOW: create records first, upload in background
         const createdDocs = [];
