@@ -1,5 +1,6 @@
 import uuid
 import logging
+import asyncio
 from typing import List, Optional, Tuple
 from datetime import datetime, timezone
 from fastapi import HTTPException, BackgroundTasks
@@ -9,6 +10,102 @@ from app.models.user import UserResponse
 from app.db.mongodb import mongo_db
 
 logger = logging.getLogger(__name__)
+
+
+# Background task function for folder upload
+async def upload_folder_background_task(
+    document_id: str,
+    files_info: List[Tuple[str, str]],  # List of (file_path, filename)
+    folder_name: str,
+    ship_name: str,
+    parent_category: str,
+    gdrive_config: dict,
+    company_id: str
+):
+    """
+    Background task to upload folder files after record is created.
+    Updates the document with folder_id and file_ids when done.
+    """
+    try:
+        logger.info(f"🔄 [Background] Starting folder upload for document: {document_id}")
+        logger.info(f"   Folder: {folder_name}, Files: {len(files_info)}")
+        
+        # Import here to avoid circular imports
+        from app.utils.gdrive_helper import upload_files_to_folder
+        from app.repositories.gdrive_config_repository import GDriveConfigRepository
+        
+        # Get fresh GDrive config
+        gdrive_config = await GDriveConfigRepository.get_by_company(company_id)
+        if not gdrive_config:
+            logger.error(f"❌ [Background] GDrive config not found for company: {company_id}")
+            return
+        
+        # Prepare files data (read from temp storage if needed)
+        # For now, we'll use the provided files_info
+        # In production, files would be stored temporarily and read here
+        
+        # Upload folder
+        upload_result = await upload_files_to_folder(
+            gdrive_config=gdrive_config,
+            files=files_info,
+            folder_name=folder_name,
+            ship_name=ship_name,
+            parent_category=parent_category
+        )
+        
+        if upload_result and upload_result.get('success'):
+            folder_id = upload_result.get('folder_id')
+            folder_link = upload_result.get('folder_link')
+            file_ids = upload_result.get('file_ids', [])
+            
+            # Update document with upload results
+            await mongo_db.update(
+                "other_audit_documents",
+                {"id": document_id},
+                {
+                    "folder_id": folder_id,
+                    "folder_link": folder_link,
+                    "file_ids": file_ids,
+                    "upload_status": "completed",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            )
+            
+            logger.info(f"✅ [Background] Folder upload completed for document: {document_id}")
+            logger.info(f"   Files uploaded: {len(file_ids)}/{len(files_info)}")
+        else:
+            error_msg = upload_result.get('message', 'Unknown error') if upload_result else 'Upload failed'
+            logger.error(f"❌ [Background] Folder upload failed: {error_msg}")
+            
+            # Update document with error status
+            await mongo_db.update(
+                "other_audit_documents",
+                {"id": document_id},
+                {
+                    "upload_status": "failed",
+                    "upload_error": error_msg,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            )
+            
+    except Exception as e:
+        logger.error(f"❌ [Background] Error uploading folder: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        
+        # Update document with error
+        try:
+            await mongo_db.update(
+                "other_audit_documents",
+                {"id": document_id},
+                {
+                    "upload_status": "failed",
+                    "upload_error": str(e),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            )
+        except:
+            pass
 
 class OtherAuditDocumentService:
     """Service for Other Audit Document operations"""
