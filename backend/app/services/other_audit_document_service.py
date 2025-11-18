@@ -271,15 +271,15 @@ class OtherAuditDocumentService:
             if not gdrive_config:
                 raise HTTPException(status_code=500, detail="Google Drive not configured")
             
-            # Upload file - Path: ShipName > ISM-ISPS-MLC > Other Audit Document
-            logger.info(f"📤 Uploading to: {ship_name}/ISM-ISPS-MLC/Other Audit Document/{filename}")
+            # Upload file - Path: ShipName > ISM - ISPS - MLC > Other Audit Document
+            logger.info(f"📤 Uploading to: {ship_name}/ISM - ISPS - MLC/Other Audit Document/{filename}")
             
             upload_result = await upload_file_with_parent_category(
                 gdrive_config=gdrive_config,
                 file_content=file_content,
                 filename=filename,
                 ship_name=ship_name,
-                parent_category="ISM-ISPS-MLC",
+                parent_category="ISM - ISPS - MLC",
                 category="Other Audit Document"
             )
             
