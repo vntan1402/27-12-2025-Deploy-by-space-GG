@@ -131,11 +131,14 @@ async def upload_file_with_parent_category(
         
         logger.info(f"📤 Uploading {filename} to {ship_name}/{parent_category}/{category} via Apps Script")
         
-        # Call Apps Script
-        response = requests.post(script_url, json=payload, timeout=120)
-        response.raise_for_status()
-        
-        result = response.json()
+        # Call Apps Script asynchronously
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                script_url,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=120)
+            ) as response:
+                result = await response.json()
         
         if result.get("success"):
             logger.info(f"✅ Uploaded {filename} to {ship_name}/{parent_category}/{category}")
