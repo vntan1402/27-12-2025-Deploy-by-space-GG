@@ -20,10 +20,16 @@ import otherDocumentService from '../../services/otherDocumentService';
 const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
   const { language } = useAuth();
 
+  // Helper function to get current date in YYYY-MM-DD format
+  const getCurrentDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
   // Form state
   const [formData, setFormData] = useState({
     document_name: '',
-    date: '',
+    date: getCurrentDate(),
     status: 'Valid',
     note: ''
   });
