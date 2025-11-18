@@ -106,7 +106,8 @@ const otherDocumentService = {
     // Retry loop for handling 429 rate limit errors
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
-        const response = await api.post('/api/other-documents/upload-file-only', formData, {
+        // Use new endpoint that handles both upload AND update
+        const response = await api.post(`/api/other-documents/${documentId}/upload-file`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -116,15 +117,7 @@ const otherDocumentService = {
         console.log('📦 Upload response:', response.data);
         
         if (response.data.success && response.data.file_id) {
-          console.log('🔄 Updating document with file_id:', response.data.file_id);
-          
-          // Update document with file_id
-          const updateResponse = await api.put(`/api/other-documents/${documentId}`, {
-            file_ids: [response.data.file_id]
-          });
-          
-          console.log('✅ Update response:', updateResponse.data);
-          console.log('✅ Document updated with file_id:', response.data.file_id);
+          console.log('✅ File uploaded and document updated:', response.data.file_id);
           
           return {
             success: true,
