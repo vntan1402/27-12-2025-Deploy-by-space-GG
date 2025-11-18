@@ -108,12 +108,13 @@ const otherAuditDocumentService = {
     formData.append('file', file);
     formData.append('ship_id', shipId);
     
-    console.log('📤 Uploading file for document:', documentId, 'file:', file.name);
+    console.log('📤 Uploading audit file for document:', documentId, 'file:', file.name);
     
     // Retry loop for handling 429 rate limit errors
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
-        const response = await api.post('/api/other-audit-documents/upload-file-only', formData, {
+        // Use new endpoint that handles both upload AND update
+        const response = await api.post(`/api/other-audit-documents/${documentId}/upload-file`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -123,15 +124,7 @@ const otherAuditDocumentService = {
         console.log('📦 Upload response:', response.data);
         
         if (response.data.success && response.data.file_id) {
-          console.log('🔄 Updating document with file_id:', response.data.file_id);
-          
-          // Update document with file_id
-          const updateResponse = await api.put(`/api/other-audit-documents/${documentId}`, {
-            file_ids: [response.data.file_id]
-          });
-          
-          console.log('✅ Update response:', updateResponse.data);
-          console.log('✅ Document updated with file_id:', response.data.file_id);
+          console.log('✅ Audit file uploaded and document updated:', response.data.file_id);
           
           return {
             success: true,
