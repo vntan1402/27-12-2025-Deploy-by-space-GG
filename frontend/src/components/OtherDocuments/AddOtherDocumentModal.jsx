@@ -17,7 +17,19 @@ import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import otherDocumentService from '../../services/otherDocumentService';
 
-const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
+const AddOtherDocumentModal = ({ 
+  show, 
+  onClose, 
+  selectedShip, 
+  onSuccess,
+  // Floating progress props (lifted to parent)
+  showFloatingProgress,
+  setShowFloatingProgress,
+  isProgressMinimized,
+  setIsProgressMinimized,
+  uploadProgress,
+  setUploadProgress
+}) => {
   const { language } = useAuth();
 
   // Helper function to get current date in YYYY-MM-DD format
