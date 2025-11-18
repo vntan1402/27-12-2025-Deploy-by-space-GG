@@ -113,18 +113,167 @@ async def check_duplicate_other_audit_document(
         logger.error(f"❌ Error checking duplicate: {e}")
         raise HTTPException(status_code=500, detail="Failed to check duplicate")
 
-@router.post("/upload-folder")
-async def upload_other_audit_document_folder(
-    ship_id: str,
-    folder_id: str,
-    folder_link: str,
-    files: List[UploadFile] = File(...),
+
+
+# ==================== UPLOAD ENDPOINTS ====================
+
+@router.post("/upload")
+async def upload_other_audit_document(
+    file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    document_name: str = Form(...),
+    date: Optional[str] = Form(None),
+    status: Optional[str] = Form("Valid"),
+    note: Optional[str] = Form(None),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Upload folder of files for Other Audit Document (Editor+ role required)"""
-    # TODO: Implement folder upload logic
-    return {
-        "success": True,
-        "message": "Folder upload not yet implemented",
-        "file_count": len(files)
-    }
+    """Upload single file for Other Audit Document (PDF, JPG)"""
+    try:
+        logger.info(f"📤 Uploading audit document file: {file.filename} for ship: {ship_id}")
+        
+        # Validate file type
+        allowed_extensions = ['.pdf', '.jpg', '.jpeg']
+        file_extension = os.path.splitext(file.filename)[1].lower()
+        if file_extension not in allowed_extensions:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid file type. Only PDF and JPG files are supported. Got: {file_extension}"
+            )
+        
+        # Read file content
+        file_content = await file.read()
+        logger.info(f"✅ File read successfully: {len(file_content)} bytes")
+        
+        # Call service
+        result = await OtherAuditDocumentService.upload_single_file(
+            file_content=file_content,
+            filename=file.filename,
+            ship_id=ship_id,
+            document_name=document_name,
+            date=date,
+            status=status or "Valid",
+            note=note,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading audit document: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/upload-file-only")
+async def upload_file_only(
+    file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """Upload file without creating a record (for background uploads)"""
+    try:
+        logger.info(f"📤 Uploading audit file (file-only): {file.filename} for ship: {ship_id}")
+        
+        # Read file content (accept ALL file types)
+        file_content = await file.read()
+        logger.info(f"✅ File read successfully: {len(file_content)} bytes")
+        
+        # Call service
+        result = await OtherAuditDocumentService.upload_file_only(
+            file_content=file_content,
+            filename=file.filename,
+            ship_id=ship_id,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading audit file: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/upload-folder")
+async def upload_folder(
+    files: List[UploadFile] = File(...),
+    ship_id: str = Form(...),
+    folder_name: str = Form(...),
+    date: Optional[str] = Form(None),
+    status: Optional[str] = Form("Valid"),
+    note: Optional[str] = Form(None),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """Upload folder with multiple files to GDrive"""
+    try:
+        logger.info(f"📁 Uploading audit folder: {folder_name} with {len(files)} files for ship: {ship_id}")
+        
+        # Read all files into memory
+        files_data = []
+        for file in files:
+            file_content = await file.read()
+            filename = os.path.basename(file.filename)
+            files_data.append((file_content, filename))
+            logger.info(f"   📄 Read file: {filename} ({len(file_content)} bytes)")
+        
+        # Call service
+        result = await OtherAuditDocumentService.upload_folder(
+            files=files_data,
+            ship_id=ship_id,
+            folder_name=folder_name,
+            date=date,
+            status=status or "Valid",
+            note=note,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading audit folder: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{doc_id}/upload-file")
+async def upload_file_for_document(
+    doc_id: str,
+    file: UploadFile = File(...),
+    ship_id: str = Form(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """Upload file for existing audit document (background upload case)"""
+    try:
+        logger.info(f"📤 Uploading audit file for document {doc_id}: {file.filename}")
+        
+        # Read file content
+        file_content = await file.read()
+        logger.info(f"✅ File read successfully: {len(file_content)} bytes")
+        
+        # Call service
+        result = await OtherAuditDocumentService.upload_file_for_document(
+            document_id=doc_id,
+            ship_id=ship_id,
+            file_content=file_content,
+            filename=file.filename,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading audit file for document: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
