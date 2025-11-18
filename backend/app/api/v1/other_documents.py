@@ -137,7 +137,7 @@ async def upload_other_document(
     ship_id: str = Form(...),
     document_name: str = Form(...),
     date: Optional[str] = Form(None),
-    status: Optional[str] = Form("Unknown"),
+    status: Optional[str] = Form("Valid"),
     note: Optional[str] = Form(None),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
