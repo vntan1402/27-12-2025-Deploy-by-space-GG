@@ -231,7 +231,7 @@ async def upload_folder(
     ship_id: str = Form(...),
     folder_name: str = Form(...),
     date: Optional[str] = Form(None),
-    status: Optional[str] = Form("Unknown"),
+    status: Optional[str] = Form("Valid"),
     note: Optional[str] = Form(None),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
