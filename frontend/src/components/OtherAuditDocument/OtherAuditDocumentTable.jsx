@@ -22,6 +22,7 @@ import { calculateContextMenuPosition } from '../../utils/positionHelpers';
 import AddOtherAuditDocumentModal from './AddOtherAuditDocumentModal';
 import EditOtherAuditDocumentModal from './EditOtherAuditDocumentModal';
 import OtherAuditDocumentNotesModal from './OtherAuditDocumentNotesModal';
+import FloatingUploadProgress from '../Common/FloatingUploadProgress';
 
 const OtherAuditDocumentsTable = ({ selectedShip }) => {
   const { language } = useAuth();
@@ -30,6 +31,17 @@ const OtherAuditDocumentsTable = ({ selectedShip }) => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState(new Set());
+  
+  // Floating progress state (lifted from modal to persist when modal closes)
+  const [showFloatingProgress, setShowFloatingProgress] = useState(false);
+  const [isProgressMinimized, setIsProgressMinimized] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({
+    totalFiles: 0,
+    completedFiles: 0,
+    currentFile: '',
+    status: 'uploading',
+    errorMessage: ''
+  });
   
   // Sorting
   const [sortConfig, setSortConfig] = useState({
