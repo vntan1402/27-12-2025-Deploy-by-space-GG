@@ -210,21 +210,17 @@ async def upload_folder(
     note: Optional[str] = Form(None),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Upload folder with multiple files to GDrive"""
+    """
+    Upload folder with multiple files to GDrive using streaming approach.
+    Files are read and uploaded one-by-one to minimize memory usage.
+    """
     try:
         logger.info(f"📁 Uploading audit folder: {folder_name} with {len(files)} files for ship: {ship_id}")
+        logger.info(f"   🚀 Using streaming upload (read → upload → clear) to minimize RAM usage")
         
-        # Read all files into memory
-        files_data = []
-        for file in files:
-            file_content = await file.read()
-            filename = os.path.basename(file.filename)
-            files_data.append((file_content, filename))
-            logger.info(f"   📄 Read file: {filename} ({len(file_content)} bytes)")
-        
-        # Call service
-        result = await OtherAuditDocumentService.upload_folder(
-            files=files_data,
+        # Call service with UploadFile list (streaming mode)
+        result = await OtherAuditDocumentService.upload_folder_streaming(
+            files=files,  # Pass UploadFile objects directly
             ship_id=ship_id,
             folder_name=folder_name,
             date=date,
