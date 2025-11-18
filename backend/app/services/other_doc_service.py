@@ -107,17 +107,76 @@ class OtherDocumentService:
         return OtherDocumentResponse(**updated_doc)
     
     @staticmethod
-    async def delete_other_document(doc_id: str, current_user: UserResponse) -> dict:
-        """Delete other document"""
+    async def delete_other_document(
+        doc_id: str, 
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
+        """Delete other document and schedule Google Drive file deletion in background"""
+        from app.utils.background_tasks import delete_file_background
+        from app.services.gdrive_service import GDriveService
+        from app.repositories.ship_repository import ShipRepository
+        
         doc = await mongo_db.find_one(OtherDocumentService.collection_name, {"id": doc_id})
         if not doc:
             raise HTTPException(status_code=404, detail="Other Document not found")
         
+        # Extract file info before deleting from DB
+        file_ids = doc.get("file_ids", [])
+        folder_id = doc.get("folder_id")
+        document_name = doc.get("document_name", "Unknown")
+        
+        # Delete from database immediately
         await mongo_db.delete(OtherDocumentService.collection_name, {"id": doc_id})
+        logger.info(f"✅ Other Document deleted from DB: {doc_id} ({document_name})")
         
-        logger.info(f"✅ Other Document deleted: {doc_id}")
+        # Schedule Google Drive file deletions in background if files exist
+        files_to_delete = []
         
-        return {"message": "Other Document deleted successfully"}
+        # Add individual files
+        if file_ids:
+            for idx, file_id in enumerate(file_ids):
+                files_to_delete.append((f"file_{idx+1}", file_id))
+            logger.info(f"📋 Found {len(file_ids)} files to delete")
+        
+        # Add folder (if exists, Apps Script will handle folder deletion)
+        if folder_id:
+            files_to_delete.append(("folder", folder_id))
+            logger.info(f"📋 Found folder to delete: {folder_id}")
+        
+        if files_to_delete and background_tasks:
+            # Get ship to find company_id
+            ship_id = doc.get("ship_id")
+            if ship_id:
+                ship = await ShipRepository.find_by_id(ship_id)
+                if ship:
+                    company_id = ship.get("company")
+                    if company_id:
+                        for file_type, file_id in files_to_delete:
+                            background_tasks.add_task(
+                                delete_file_background,
+                                file_id,
+                                company_id,
+                                "other_document",
+                                f"{document_name} ({file_type})",
+                                GDriveService
+                            )
+                            logger.info(f"📋 Scheduled background deletion for {file_type}: {file_id}")
+                        
+                        return {
+                            "success": True,
+                            "message": "Other Document deleted successfully. File deletion in progress...",
+                            "document_id": doc_id,
+                            "background_deletion": True,
+                            "files_scheduled": len(files_to_delete)
+                        }
+        
+        return {
+            "success": True,
+            "message": "Other Document deleted successfully",
+            "document_id": doc_id,
+            "background_deletion": False
+        }
     
     @staticmethod
     async def bulk_delete_other_documents(request: BulkDeleteOtherDocumentRequest, current_user: UserResponse) -> dict:
