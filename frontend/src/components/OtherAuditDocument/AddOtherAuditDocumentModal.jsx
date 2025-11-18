@@ -581,6 +581,7 @@ const AddOtherAuditDocumentModal = ({ show, onClose, selectedShip, onSuccess }) 
         </div>
       </div>
     </div>
+    )}
 
     {/* Floating Upload Progress */}
     <FloatingUploadProgress
@@ -596,7 +597,7 @@ const AddOtherAuditDocumentModal = ({ show, onClose, selectedShip, onSuccess }) 
       }}
       uploadStatus={uploadProgress}
     />
-  </>
+    </>
   );
 };
 
