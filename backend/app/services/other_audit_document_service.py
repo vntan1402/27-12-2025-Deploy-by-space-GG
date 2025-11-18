@@ -237,7 +237,7 @@ class OtherAuditDocumentService:
     ) -> dict:
         """
         Upload single file + create record
-        Path: ShipName > ISM-ISPS-MLC > Other Audit Document > filename
+        Path: ShipName > ISM - ISPS - MLC > Other Audit Document > filename
         """
         try:
             logger.info(f"📤 Uploading single audit file: {filename} for ship: {ship_id}")
