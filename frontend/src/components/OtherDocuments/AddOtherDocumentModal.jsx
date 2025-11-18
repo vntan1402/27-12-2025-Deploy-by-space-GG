@@ -12,7 +12,7 @@
  * Simpler than Test Report/Drawings & Manuals (no AI analysis)
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import otherDocumentService from '../../services/otherDocumentService';
