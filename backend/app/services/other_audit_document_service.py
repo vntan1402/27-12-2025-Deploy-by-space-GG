@@ -416,7 +416,7 @@ class OtherAuditDocumentService:
                 files=files,
                 folder_name=folder_name,
                 ship_name=ship_name,
-                parent_category="ISM-ISPS-MLC/Other Audit Document"
+                parent_category="ISM - ISPS - MLC/Other Audit Document"
             )
             
             if not upload_result or not upload_result.get('success'):
