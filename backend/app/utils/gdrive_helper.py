@@ -74,3 +74,119 @@ async def upload_file_to_ship_folder(
     except Exception as e:
         logger.error(f"❌ Error uploading to ship folder: {e}")
         return {"success": False, "error": str(e)}
+
+
+async def upload_files_to_folder(
+    gdrive_config: Dict[str, Any],
+    files: List[Tuple[bytes, str]],  # List of (file_content, filename) tuples
+    folder_name: str,
+    ship_name: str,
+    parent_category: str  # e.g., "Class & Flag Cert/Other Documents"
+) -> Dict[str, Any]:
+    """
+    Upload multiple files to a subfolder on Google Drive
+    Path: ShipName > parent_category > folder_name > files
+    Example: BROTHER 36 > Class & Flag Cert/Other Documents > Radio Report > file.pdf
+    
+    Args:
+        gdrive_config: Google Drive configuration with script_url and folder_id
+        files: List of (file_content, filename) tuples
+        folder_name: Name of the subfolder to create (e.g., "Radio Report")
+        ship_name: Ship name for folder structure
+        parent_category: Parent category path (e.g., "Class & Flag Cert/Other Documents")
+    
+    Returns:
+        dict: Upload results with folder_id, folder_link, and file_ids
+    """
+    try:
+        script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+        if not script_url:
+            raise Exception("Apps Script URL not configured")
+        
+        parent_folder_id = gdrive_config.get("folder_id")
+        if not parent_folder_id:
+            raise Exception("Parent folder ID not configured")
+        
+        logger.info(f"📁 Uploading folder to Google Drive")
+        logger.info(f"   Folder: {folder_name}")
+        logger.info(f"   Files: {len(files)}")
+        logger.info(f"   Parent category: {parent_category}")
+        
+        file_ids = []
+        failed_files = []
+        folder_id = None
+        
+        # Upload all files using the same nested category path
+        for file_content, filename in files:
+            try:
+                # Determine content type
+                if filename.lower().endswith('.pdf'):
+                    content_type = 'application/pdf'
+                elif filename.lower().endswith(('.jpg', '.jpeg')):
+                    content_type = 'image/jpeg'
+                else:
+                    content_type = 'application/octet-stream'
+                
+                # Prepare payload for Apps Script
+                payload = {
+                    "action": "upload_file_with_folder_creation",
+                    "parent_folder_id": parent_folder_id,
+                    "ship_name": ship_name,
+                    "parent_category": parent_category,  # e.g., "Class & Flag Cert/Other Documents"
+                    "category": folder_name,  # e.g., "Radio Report"
+                    "filename": filename,
+                    "file_content": base64.b64encode(file_content).decode('utf-8'),
+                    "content_type": content_type
+                }
+                
+                logger.info(f"   📤 Uploading: {filename}")
+                
+                # Call Apps Script asynchronously
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(
+                        script_url,
+                        json=payload,
+                        timeout=aiohttp.ClientTimeout(total=300)
+                    ) as response:
+                        result = await response.json()
+                
+                if result.get('success'):
+                    file_ids.append(result.get('file_id'))
+                    
+                    # Extract folder_id from first successful upload
+                    if not folder_id and result.get('folder_id'):
+                        folder_id = result.get('folder_id')
+                    
+                    logger.info(f"   ✅ Uploaded: {filename}")
+                else:
+                    failed_files.append(filename)
+                    logger.warning(f"   ⚠️ Failed to upload: {filename}")
+                    
+            except Exception as e:
+                failed_files.append(filename)
+                logger.error(f"   ❌ Error uploading {filename}: {e}")
+        
+        # Generate folder link from folder_id
+        folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if folder_id else None
+        
+        logger.info(f"✅ Folder upload completed: {len(file_ids)}/{len(files)} files successful")
+        
+        # Return results
+        return {
+            'success': True,
+            'message': f'Folder uploaded successfully: {len(file_ids)}/{len(files)} files',
+            'folder_id': folder_id,
+            'folder_link': folder_link,
+            'file_ids': file_ids,
+            'failed_files': failed_files,
+            'total_files': len(files),
+            'successful_files': len(file_ids)
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error uploading folder: {e}")
+        return {
+            'success': False,
+            'message': f'Folder upload failed: {str(e)}',
+            'error': str(e)
+        }
