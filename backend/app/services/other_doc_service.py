@@ -179,21 +179,36 @@ class OtherDocumentService:
         }
     
     @staticmethod
-    async def bulk_delete_other_documents(request: BulkDeleteOtherDocumentRequest, current_user: UserResponse) -> dict:
-        """Bulk delete other documents"""
+    async def bulk_delete_other_documents(
+        request: BulkDeleteOtherDocumentRequest, 
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
+        """Bulk delete other documents and schedule Google Drive file cleanup"""
         deleted_count = 0
+        files_scheduled = 0
+        
         for doc_id in request.document_ids:
             try:
-                await OtherDocumentService.delete_other_document(doc_id, current_user)
+                result = await OtherDocumentService.delete_other_document(doc_id, current_user, background_tasks)
                 deleted_count += 1
-            except:
+                
+                # Count scheduled files for deletion
+                if result.get('background_deletion'):
+                    files_scheduled += result.get('files_scheduled', 0)
+                    
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to delete other document {doc_id}: {e}")
                 continue
         
-        logger.info(f"✅ Bulk deleted {deleted_count} other documents")
+        logger.info(f"✅ Bulk deleted {deleted_count} other documents, {files_scheduled} files scheduled for cleanup")
         
         return {
-            "message": f"Successfully deleted {deleted_count} other documents",
-            "deleted_count": deleted_count
+            "success": True,
+            "message": f"Successfully deleted {deleted_count} other documents. File cleanup in progress...",
+            "deleted_count": deleted_count,
+            "files_scheduled_for_deletion": files_scheduled,
+            "background_deletion": files_scheduled > 0
         }
     
     @staticmethod
