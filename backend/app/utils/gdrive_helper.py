@@ -76,6 +76,86 @@ async def upload_file_to_ship_folder(
         return {"success": False, "error": str(e)}
 
 
+async def upload_file_with_parent_category(
+    gdrive_config: Dict[str, Any],
+    file_content: bytes,
+    filename: str,
+    ship_name: str,
+    parent_category: str,  # e.g., "Class & Flag Cert"
+    category: str  # e.g., "Other Documents"
+) -> Dict[str, Any]:
+    """
+    Upload file to ship folder with parent_category and category
+    Path: ShipName > parent_category > category > file
+    Example: BROTHER 36 > Class & Flag Cert > Other Documents > file.pdf
+    
+    Args:
+        gdrive_config: Google Drive configuration with script_url and folder_id
+        file_content: File content as bytes
+        filename: Name of the file
+        ship_name: Ship name for folder structure
+        parent_category: Parent category (e.g., "Class & Flag Cert")
+        category: Category (e.g., "Other Documents")
+    
+    Returns:
+        dict: Upload result with success status and file info
+    """
+    try:
+        script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+        if not script_url:
+            raise Exception("Apps Script URL not configured")
+        
+        parent_folder_id = gdrive_config.get("folder_id")
+        if not parent_folder_id:
+            raise Exception("Parent folder ID not configured")
+        
+        # Determine content type
+        if filename.lower().endswith('.pdf'):
+            content_type = 'application/pdf'
+        elif filename.lower().endswith(('.jpg', '.jpeg')):
+            content_type = 'image/jpeg'
+        else:
+            content_type = 'application/octet-stream'
+        
+        # Prepare payload for Apps Script - MATCHING backend-v1 structure
+        payload = {
+            "action": "upload_file_with_folder_creation",
+            "parent_folder_id": parent_folder_id,
+            "ship_name": ship_name,
+            "parent_category": parent_category,  # e.g., "Class & Flag Cert"
+            "category": category,  # e.g., "Other Documents"
+            "filename": filename,
+            "file_content": base64.b64encode(file_content).decode('utf-8'),
+            "content_type": content_type
+        }
+        
+        logger.info(f"📤 Uploading {filename} to {ship_name}/{parent_category}/{category} via Apps Script")
+        
+        # Call Apps Script
+        response = requests.post(script_url, json=payload, timeout=120)
+        response.raise_for_status()
+        
+        result = response.json()
+        
+        if result.get("success"):
+            logger.info(f"✅ Uploaded {filename} to {ship_name}/{parent_category}/{category}")
+            return {
+                "success": True,
+                "file_id": result.get("file_id"),
+                "folder_path": f"{ship_name}/{parent_category}/{category}",
+                "file_url": result.get("file_url"),
+                "file_path": result.get("file_path")
+            }
+        else:
+            error_msg = result.get("message", "Unknown error")
+            logger.error(f"❌ Upload failed: {error_msg}")
+            return {"success": False, "error": error_msg}
+            
+    except Exception as e:
+        logger.error(f"❌ Error uploading to ship folder: {e}")
+        return {"success": False, "error": str(e)}
+
+
 async def upload_files_to_folder(
     gdrive_config: Dict[str, Any],
     files: List[Tuple[bytes, str]],  # List of (file_content, filename) tuples
