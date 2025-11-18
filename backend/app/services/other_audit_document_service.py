@@ -176,21 +176,35 @@ class OtherAuditDocumentService:
         }
     
     @staticmethod
-    async def bulk_delete_other_audit_documents(request: BulkDeleteOtherAuditDocumentRequest, current_user: UserResponse) -> dict:
-        """Bulk delete other audit documents"""
+    async def bulk_delete_other_audit_documents(
+        request: BulkDeleteOtherAuditDocumentRequest,
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
+        """Bulk delete other audit documents with background GDrive cleanup"""
         deleted_count = 0
+        files_scheduled = 0
+        
         for doc_id in request.document_ids:
             try:
-                await OtherAuditDocumentService.delete_other_audit_document(doc_id, current_user)
+                result = await OtherAuditDocumentService.delete_other_audit_document(doc_id, current_user, background_tasks)
                 deleted_count += 1
-            except:
+                
+                if result.get('background_deletion'):
+                    files_scheduled += result.get('files_scheduled', 0)
+                    
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to delete audit document {doc_id}: {e}")
                 continue
         
-        logger.info(f"✅ Bulk deleted {deleted_count} other audit documents")
+        logger.info(f"✅ Bulk deleted {deleted_count} audit documents, {files_scheduled} files scheduled for cleanup")
         
         return {
-            "message": f"Successfully deleted {deleted_count} other audit documents",
-            "deleted_count": deleted_count
+            "success": True,
+            "message": f"Successfully deleted {deleted_count} audit documents. File cleanup in progress...",
+            "deleted_count": deleted_count,
+            "files_scheduled_for_deletion": files_scheduled,
+            "background_deletion": files_scheduled > 0
         }
     
     @staticmethod
