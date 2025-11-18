@@ -16,7 +16,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import otherAuditDocumentService from '../../services/otherAuditDocumentService';
-import FloatingUploadProgress from '../Common/FloatingUploadProgress';
 
 const AddOtherAuditDocumentModal = ({ 
   show, 
