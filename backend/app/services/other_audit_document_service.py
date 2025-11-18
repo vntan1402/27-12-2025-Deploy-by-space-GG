@@ -354,7 +354,7 @@ class OtherAuditDocumentService:
                 file_content=file_content,
                 filename=filename,
                 ship_name=ship_name,
-                parent_category="ISM-ISPS-MLC",
+                parent_category="ISM - ISPS - MLC",
                 category="Other Audit Document"
             )
             
@@ -505,7 +505,7 @@ class OtherAuditDocumentService:
                 file_content=file_content,
                 filename=filename,
                 ship_name=ship_name,
-                parent_category="ISM-ISPS-MLC",
+                parent_category="ISM - ISPS - MLC",
                 category="Other Audit Document"
             )
             
