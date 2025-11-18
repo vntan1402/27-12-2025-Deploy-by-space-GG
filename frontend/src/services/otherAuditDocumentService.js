@@ -172,9 +172,10 @@ const otherAuditDocumentService = {
   },
 
   /**
-   * Upload a folder with multiple files
+   * Upload folder with multiple files
+   * With optional progress callback for UI tracking
    */
-  uploadFolder: async (shipId, files, folderName, metadata) => {
+  uploadFolder: async (shipId, files, folderName, metadata, progressCallback = null) => {
     const formData = new FormData();
     
     // Append all files
@@ -189,14 +190,63 @@ const otherAuditDocumentService = {
     if (metadata.status) formData.append('status', metadata.status);
     if (metadata.note) formData.append('note', metadata.note);
     
-    const response = await api.post('/api/other-audit-documents/upload-folder', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-      timeout: 300000, // 5 minutes timeout for folder upload
-    });
-    
-    return response.data;
+    // Simulate progress updates (since backend uploads in parallel, we estimate)
+    if (progressCallback) {
+      // Estimate: each file takes ~1.5s with staggered delay
+      const estimatedTotalTime = files.length * 1500; // 1.5s per file
+      const intervalTime = 500; // Update every 500ms
+      const totalUpdates = Math.ceil(estimatedTotalTime / intervalTime);
+      let currentUpdate = 0;
+      
+      const progressInterval = setInterval(() => {
+        currentUpdate++;
+        const estimatedCompleted = Math.floor((currentUpdate / totalUpdates) * files.length);
+        const fileIndex = Math.min(estimatedCompleted, files.length - 1);
+        
+        progressCallback({
+          completedFiles: estimatedCompleted,
+          currentFile: files[fileIndex]?.name || '',
+          totalFiles: files.length
+        });
+        
+        if (currentUpdate >= totalUpdates) {
+          clearInterval(progressInterval);
+        }
+      }, intervalTime);
+      
+      try {
+        const response = await api.post('/api/other-audit-documents/upload-folder', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          timeout: 300000, // 5 minutes timeout for folder upload
+        });
+        
+        clearInterval(progressInterval);
+        
+        // Final progress update
+        progressCallback({
+          completedFiles: files.length,
+          currentFile: '',
+          totalFiles: files.length
+        });
+        
+        return response.data;
+      } catch (error) {
+        clearInterval(progressInterval);
+        throw error;
+      }
+    } else {
+      // No progress callback - simple upload
+      const response = await api.post('/api/other-audit-documents/upload-folder', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 300000, // 5 minutes timeout for folder upload
+      });
+      
+      return response.data;
+    }
   },
 
   /**
