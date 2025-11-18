@@ -579,6 +579,22 @@ const AddOtherAuditDocumentModal = ({ show, onClose, selectedShip, onSuccess }) 
         </div>
       </div>
     </div>
+
+    {/* Floating Upload Progress */}
+    <FloatingUploadProgress
+      isVisible={showFloatingProgress}
+      isMinimized={isProgressMinimized}
+      onMinimize={() => setIsProgressMinimized(true)}
+      onMaximize={() => setIsProgressMinimized(false)}
+      onClose={() => {
+        setShowFloatingProgress(false);
+        if (uploadProgress.status === 'completed') {
+          onSuccess(); // Refresh table when closing after success
+        }
+      }}
+      uploadStatus={uploadProgress}
+    />
+  </>
   );
 };
 
