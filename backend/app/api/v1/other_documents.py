@@ -258,7 +258,7 @@ async def upload_folder(
             ship_id=ship_id,
             folder_name=folder_name,
             date=date,
-            status=status or "Unknown",
+            status=status or "Valid",
             note=note,
             current_user=current_user
         )
