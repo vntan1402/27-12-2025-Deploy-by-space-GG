@@ -154,6 +154,78 @@ const AddOtherDocumentModal = ({
     }
   };
 
+  // Upload folder with progress tracking
+  const uploadFolderWithProgress = async (folderName, filesToUpload) => {
+    try {
+      console.log('📁 Starting folder upload with progress tracking...');
+      console.log(`   Folder: ${folderName}, Files: ${filesToUpload.length}`);
+      
+      const result = await otherDocumentService.uploadFolder(
+        selectedShip.id,
+        filesToUpload,
+        folderName,
+        {
+          date: formData.date || null,
+          status: formData.status,
+          note: formData.note || null
+        },
+        // Progress callback
+        (progress) => {
+          console.log('📊 Upload progress:', progress);
+          setUploadProgress({
+            totalFiles: filesToUpload.length,
+            completedFiles: progress.completedFiles || 0,
+            currentFile: progress.currentFile || '',
+            status: 'uploading',
+            errorMessage: ''
+          });
+        }
+      );
+
+      console.log('✅ Folder upload result:', result);
+
+      if (result.success) {
+        // Update to completed status
+        setUploadProgress({
+          totalFiles: filesToUpload.length,
+          completedFiles: result.successful_files || filesToUpload.length,
+          currentFile: '',
+          status: 'completed',
+          errorMessage: ''
+        });
+        
+        toast.success(language === 'vi'
+          ? `✅ Đã upload folder thành công! (${result.successful_files}/${result.total_files} files)`
+          : `✅ Folder uploaded successfully! (${result.successful_files}/${result.total_files} files)`
+        );
+
+        // Auto-close floating progress after 3 seconds
+        setTimeout(() => {
+          setShowFloatingProgress(false);
+          onSuccess(); // Refresh table
+        }, 3000);
+        
+      } else {
+        throw new Error(result.message || 'Upload failed');
+      }
+      
+    } catch (error) {
+      console.error('❌ Folder upload error:', error);
+      
+      // Update to error status
+      setUploadProgress(prev => ({
+        ...prev,
+        status: 'error',
+        errorMessage: error.response?.data?.detail || error.message || 'Upload failed'
+      }));
+      
+      toast.error(language === 'vi'
+        ? `❌ Lỗi upload folder: ${error.message}`
+        : `❌ Folder upload failed: ${error.message}`
+      );
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async () => {
     // Validate: must have document name OR files
