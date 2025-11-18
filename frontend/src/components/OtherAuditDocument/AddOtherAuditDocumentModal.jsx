@@ -43,6 +43,17 @@ const AddOtherAuditDocumentModal = ({ show, onClose, selectedShip, onSuccess }) 
   // Processing state
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Floating progress state
+  const [showFloatingProgress, setShowFloatingProgress] = useState(false);
+  const [isProgressMinimized, setIsProgressMinimized] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({
+    totalFiles: 0,
+    completedFiles: 0,
+    currentFile: '',
+    status: 'uploading',
+    errorMessage: ''
+  });
+
   // Reset form when modal opens
   useEffect(() => {
     if (show) {
