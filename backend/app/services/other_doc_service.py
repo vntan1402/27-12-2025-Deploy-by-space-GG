@@ -309,7 +309,7 @@ class OtherDocumentService:
                 "ship_id": ship_id,
                 "document_name": document_name,
                 "date": date,
-                "status": status or "Unknown",
+                "status": status or "Valid",
                 "note": note,
                 "file_ids": [file_id],
                 "created_at": datetime.now(timezone.utc).isoformat()
