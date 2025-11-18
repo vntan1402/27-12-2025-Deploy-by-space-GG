@@ -41,8 +41,8 @@ const drawingManualService = {
 
   // Bulk delete documents
   bulkDelete: async (documentIds, background = true) => {
-    const response = await api.delete(`/api/drawings-manuals/bulk-delete?background=${background}`, {
-      data: { document_ids: documentIds }
+    const response = await api.post(`/api/drawings-manuals/bulk-delete?background=${background}`, {
+      document_ids: documentIds
     });
     return response;
   },
