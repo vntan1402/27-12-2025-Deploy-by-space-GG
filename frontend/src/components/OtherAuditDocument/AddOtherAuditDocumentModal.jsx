@@ -18,7 +18,19 @@ import { toast } from 'sonner';
 import otherAuditDocumentService from '../../services/otherAuditDocumentService';
 import FloatingUploadProgress from '../Common/FloatingUploadProgress';
 
-const AddOtherAuditDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
+const AddOtherAuditDocumentModal = ({ 
+  show, 
+  onClose, 
+  selectedShip, 
+  onSuccess,
+  // Floating progress props (lifted to parent)
+  showFloatingProgress,
+  setShowFloatingProgress,
+  isProgressMinimized,
+  setIsProgressMinimized,
+  uploadProgress,
+  setUploadProgress
+}) => {
   const { language } = useAuth();
 
   // Helper function to get current date in YYYY-MM-DD format
