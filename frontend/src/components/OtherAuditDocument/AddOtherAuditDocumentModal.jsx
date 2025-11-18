@@ -12,7 +12,7 @@
  * Simpler than Test Report/Drawings & Manuals (no AI analysis)
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import otherAuditDocumentService from '../../services/otherAuditDocumentService';
@@ -20,11 +20,17 @@ import otherAuditDocumentService from '../../services/otherAuditDocumentService'
 const AddOtherAuditDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
   const { language } = useAuth();
 
+  // Helper function to get current date in YYYY-MM-DD format
+  const getCurrentDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
   // Form state
   const [formData, setFormData] = useState({
     document_name: '',
-    date: '',
-    status: 'Unknown',
+    date: getCurrentDate(),
+    status: 'Valid',
     note: ''
   });
 
