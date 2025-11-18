@@ -1,8 +1,8 @@
 import uuid
 import logging
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from datetime import datetime, timezone
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 
 from app.models.other_audit_document import OtherAuditDocumentCreate, OtherAuditDocumentUpdate, OtherAuditDocumentResponse, BulkDeleteOtherAuditDocumentRequest
 from app.models.user import UserResponse
