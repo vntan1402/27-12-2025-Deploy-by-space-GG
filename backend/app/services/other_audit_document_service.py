@@ -469,6 +469,104 @@ class OtherAuditDocumentService:
             raise HTTPException(status_code=500, detail=str(e))
     
     @staticmethod
+    async def upload_folder_streaming(
+        files: List,  # List[UploadFile]
+        ship_id: str,
+        folder_name: str,
+        date: Optional[str],
+        status: str,
+        note: Optional[str],
+        current_user: UserResponse
+    ) -> dict:
+        """
+        Upload folder with streaming approach (optimized for memory).
+        Reads and uploads files ONE-BY-ONE to minimize RAM usage.
+        """
+        try:
+            from fastapi import UploadFile
+            
+            total_files = len(files)
+            logger.info(f"📁 Uploading audit folder (streaming): {folder_name} with {total_files} files")
+            logger.info(f"   🚀 Memory optimization: Read → Upload → Clear (one file at a time)")
+            
+            # Get ship info
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            ship_name = ship.get("name", "Unknown Ship")
+            company_uuid = current_user.company
+            if not company_uuid:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+            
+            # Get GDrive config
+            from app.repositories.gdrive_config_repository import GDriveConfigRepository
+            gdrive_config = await GDriveConfigRepository.get_by_company(company_uuid)
+            if not gdrive_config:
+                raise HTTPException(status_code=500, detail="Google Drive not configured")
+            
+            # Upload files one by one
+            from app.utils.gdrive_helper import upload_file_to_folder_streaming
+            
+            logger.info("📤 Starting streaming upload to Google Drive...")
+            upload_result = await upload_file_to_folder_streaming(
+                gdrive_config=gdrive_config,
+                files=files,  # UploadFile objects
+                folder_name=folder_name,
+                ship_name=ship_name,
+                parent_category="ISM - ISPS - MLC/Other Audit Document"
+            )
+            
+            if not upload_result or not upload_result.get('success'):
+                error_msg = upload_result.get('message', 'Unknown error') if upload_result else 'Upload failed'
+                raise HTTPException(status_code=500, detail=f"Failed to upload folder: {error_msg}")
+            
+            folder_id = upload_result.get('folder_id')
+            folder_link = upload_result.get('folder_link')
+            file_ids = upload_result.get('file_ids', [])
+            
+            logger.info("✅ Streaming upload completed")
+            logger.info(f"   Folder ID: {folder_id}")
+            logger.info(f"   Files uploaded: {len(file_ids)}/{total_files}")
+            
+            # Create document record
+            doc_dict = {
+                "id": str(uuid.uuid4()),
+                "ship_id": ship_id,
+                "document_name": folder_name,
+                "date": date,
+                "status": status or "Valid",
+                "note": note,
+                "file_ids": file_ids,
+                "folder_id": folder_id,
+                "folder_link": folder_link,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await mongo_db.create(OtherAuditDocumentService.collection_name, doc_dict)
+            logger.info(f"✅ Other Audit Document folder record created: {doc_dict['id']}")
+            
+            return {
+                "success": True,
+                "message": f"Folder uploaded successfully: {len(file_ids)}/{total_files} files",
+                "document_id": doc_dict['id'],
+                "folder_id": folder_id,
+                "folder_link": folder_link,
+                "file_ids": file_ids,
+                "total_files": total_files,
+                "successful_files": len(file_ids),
+                "failed_files": upload_result.get('failed_files', [])
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading audit folder (streaming): {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @staticmethod
     async def upload_file_for_document(
         document_id: str,
         ship_id: str,
