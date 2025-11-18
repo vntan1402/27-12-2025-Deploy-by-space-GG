@@ -75,11 +75,12 @@ async def update_other_document(
 @router.delete("/{doc_id}")
 async def delete_other_document(
     doc_id: str,
+    background_tasks: BackgroundTasks,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Delete Other Document (Editor+ role required)"""
+    """Delete Other Document with background GDrive file cleanup (Editor+ role required)"""
     try:
-        return await OtherDocumentService.delete_other_document(doc_id, current_user)
+        return await OtherDocumentService.delete_other_document(doc_id, current_user, background_tasks)
     except HTTPException:
         raise
     except Exception as e:
@@ -89,11 +90,12 @@ async def delete_other_document(
 @router.post("/bulk-delete")
 async def bulk_delete_other_documents(
     request: BulkDeleteOtherDocumentRequest,
+    background_tasks: BackgroundTasks,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Bulk delete Other Documents (Editor+ role required)"""
+    """Bulk delete Other Documents with background GDrive cleanup (Editor+ role required)"""
     try:
-        return await OtherDocumentService.bulk_delete_other_documents(request, current_user)
+        return await OtherDocumentService.bulk_delete_other_documents(request, current_user, background_tasks)
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Other Documents: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Other Documents")
