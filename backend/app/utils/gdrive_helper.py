@@ -273,3 +273,170 @@ async def upload_files_to_folder(
             'message': f'Folder upload failed: {str(e)}',
             'error': str(e)
         }
+
+
+async def upload_file_to_folder_streaming(
+    gdrive_config: Dict[str, Any],
+    files: List,  # List[UploadFile]
+    folder_name: str,
+    ship_name: str,
+    parent_category: str
+) -> Dict[str, Any]:
+    """
+    Upload multiple files to folder using PARALLEL approach with streaming.
+    
+    Optimization:
+    - Upload files in PARALLEL (not sequential)
+    - Staggered start: 1 second delay between each file start
+    - Memory efficient: Read file content only when needed (not all at once)
+    - Much faster than sequential upload
+    
+    Args:
+        gdrive_config: Google Drive configuration
+        files: List of UploadFile objects
+        folder_name: Subfolder name to create
+        ship_name: Ship name
+        parent_category: Parent category path
+    
+    Returns:
+        dict: Upload results with folder_id, folder_link, file_ids
+    """
+    try:
+        import asyncio
+        from fastapi import UploadFile
+        
+        script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+        if not script_url:
+            raise Exception("Apps Script URL not configured")
+        
+        parent_folder_id = gdrive_config.get("folder_id")
+        if not parent_folder_id:
+            raise Exception("Parent folder ID not configured")
+        
+        logger.info(f"📁 Starting PARALLEL upload with streaming")
+        logger.info(f"   Folder: {folder_name}")
+        logger.info(f"   Files: {len(files)}")
+        logger.info(f"   Strategy: Staggered parallel (1s delay between starts)")
+        
+        # Async function to upload a single file with delay
+        async def upload_single_file(file_obj: UploadFile, index: int):
+            """Upload single file with staggered delay"""
+            try:
+                # Staggered delay: File 0 starts immediately, File 1 after 1s, File 2 after 2s, etc.
+                delay = index * 1.0  # 1 second per file
+                if delay > 0:
+                    logger.info(f"   ⏰ File {index+1}/{len(files)} ({file_obj.filename}): Waiting {delay}s before upload...")
+                    await asyncio.sleep(delay)
+                
+                # Read file content NOW (when needed, not all at once)
+                logger.info(f"   📖 File {index+1}/{len(files)} ({file_obj.filename}): Reading file...")
+                file_content = await file_obj.read()
+                filename = file_obj.filename.split('/')[-1]  # Extract filename from path
+                
+                logger.info(f"   📤 File {index+1}/{len(files)} ({filename}): Uploading ({len(file_content)} bytes)...")
+                
+                # Determine content type
+                if filename.lower().endswith('.pdf'):
+                    content_type = 'application/pdf'
+                elif filename.lower().endswith(('.jpg', '.jpeg')):
+                    content_type = 'image/jpeg'
+                else:
+                    content_type = 'application/octet-stream'
+                
+                # Prepare payload
+                payload = {
+                    "action": "upload_file_with_folder_creation",
+                    "parent_folder_id": parent_folder_id,
+                    "ship_name": ship_name,
+                    "parent_category": parent_category,
+                    "category": folder_name,
+                    "filename": filename,
+                    "file_content": base64.b64encode(file_content).decode('utf-8'),
+                    "content_type": content_type
+                }
+                
+                # Upload to Apps Script
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(
+                        script_url,
+                        json=payload,
+                        timeout=aiohttp.ClientTimeout(total=300)
+                    ) as response:
+                        result = await response.json()
+                
+                # Clear file content from memory
+                del file_content
+                
+                if result.get('success'):
+                    logger.info(f"   ✅ File {index+1}/{len(files)} ({filename}): Upload successful!")
+                    return {
+                        'success': True,
+                        'filename': filename,
+                        'file_id': result.get('file_id'),
+                        'folder_id': result.get('folder_id')
+                    }
+                else:
+                    logger.warning(f"   ⚠️ File {index+1}/{len(files)} ({filename}): Upload failed - {result.get('message')}")
+                    return {
+                        'success': False,
+                        'filename': filename,
+                        'error': result.get('message', 'Unknown error')
+                    }
+                    
+            except Exception as e:
+                logger.error(f"   ❌ File {index+1}/{len(files)} ({file_obj.filename}): Error - {e}")
+                return {
+                    'success': False,
+                    'filename': file_obj.filename,
+                    'error': str(e)
+                }
+        
+        # Create tasks for all files
+        logger.info(f"🚀 Creating {len(files)} parallel upload tasks...")
+        tasks = [upload_single_file(file_obj, idx) for idx, file_obj in enumerate(files)]
+        
+        # Execute all tasks in parallel
+        logger.info(f"⚡ Executing parallel uploads (staggered start: 1s delay)...")
+        results = await asyncio.gather(*tasks)
+        
+        # Process results
+        file_ids = []
+        failed_files = []
+        folder_id = None
+        
+        for result in results:
+            if result['success']:
+                file_ids.append(result['file_id'])
+                # Get folder_id from first successful upload
+                if not folder_id and result.get('folder_id'):
+                    folder_id = result['folder_id']
+            else:
+                failed_files.append(result['filename'])
+        
+        # Generate folder link
+        folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if folder_id else None
+        
+        logger.info(f"✅ Parallel upload completed: {len(file_ids)}/{len(files)} files successful")
+        if failed_files:
+            logger.warning(f"⚠️ Failed files: {', '.join(failed_files)}")
+        
+        return {
+            'success': True,
+            'message': f'Folder uploaded: {len(file_ids)}/{len(files)} files',
+            'folder_id': folder_id,
+            'folder_link': folder_link,
+            'file_ids': file_ids,
+            'failed_files': failed_files,
+            'total_files': len(files),
+            'successful_files': len(file_ids)
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error in parallel folder upload: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return {
+            'success': False,
+            'message': f'Parallel upload failed: {str(e)}',
+            'error': str(e)
+        }
