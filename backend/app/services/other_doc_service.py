@@ -471,7 +471,7 @@ class OtherDocumentService:
                 "ship_id": ship_id,
                 "document_name": folder_name,
                 "date": date,
-                "status": status or "Unknown",
+                "status": status or "Valid",
                 "note": note,
                 "file_ids": file_ids,
                 "folder_id": folder_id,
