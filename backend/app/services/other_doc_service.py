@@ -68,7 +68,7 @@ class OtherDocumentService:
             doc["document_name"] = "Untitled Document"
         
         if not doc.get("status"):
-            doc["status"] = "Unknown"
+            doc["status"] = "Valid"
         
         return OtherDocumentResponse(**doc)
     
