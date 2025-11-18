@@ -42,6 +42,21 @@ const AddOtherAuditDocumentModal = ({ show, onClose, selectedShip, onSuccess }) 
   // Processing state
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Reset form when modal opens
+  useEffect(() => {
+    if (show) {
+      setFormData({
+        document_name: '',
+        date: getCurrentDate(),
+        status: 'Valid',
+        note: ''
+      });
+      setFiles([]);
+      setIsFolder(false);
+      setFileError('');
+    }
+  }, [show]);
+
   // Handle file selection
   const handleFileSelect = (e) => {
     const selectedFiles = Array.from(e.target.files);
