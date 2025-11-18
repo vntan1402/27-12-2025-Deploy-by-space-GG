@@ -24,7 +24,7 @@ const AddOtherDocumentModal = ({ show, onClose, selectedShip, onSuccess }) => {
   const [formData, setFormData] = useState({
     document_name: '',
     date: '',
-    status: 'Unknown',
+    status: 'Valid',
     note: ''
   });
 
