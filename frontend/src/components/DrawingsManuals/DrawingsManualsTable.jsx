@@ -392,10 +392,24 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
         const documentIds = Array.from(selectedDocuments);
         const response = await drawingManualService.bulkDelete(documentIds, true);
 
-        toast.success(language === 'vi' 
-          ? `✅ Đã xóa ${response.data.deleted_count} tài liệu` 
-          : `✅ Deleted ${response.data.deleted_count} documents`
-        );
+        // Show success message with Drive deletion info
+        const deletedCount = response.data.deleted_count || 0;
+        const filesScheduled = response.data.files_scheduled_for_deletion || 0;
+        
+        if (filesScheduled > 0) {
+          toast.success(
+            language === 'vi' 
+              ? `✅ Đã xóa ${deletedCount} tài liệu. Đang xóa ${filesScheduled} file khỏi Google Drive...` 
+              : `✅ Deleted ${deletedCount} documents. Removing ${filesScheduled} files from Google Drive...`,
+            { duration: 5000 }
+          );
+        } else {
+          toast.success(
+            language === 'vi' 
+              ? `✅ Đã xóa ${deletedCount} tài liệu` 
+              : `✅ Deleted ${deletedCount} documents`
+          );
+        }
 
         setSelectedDocuments(new Set());
         await fetchDocuments();
