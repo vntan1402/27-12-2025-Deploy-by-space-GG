@@ -236,25 +236,18 @@ async def upload_folder(
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
-    Upload a folder with multiple files to Google Drive
-    Creates a subfolder under "Other Documents" and uploads all files into it
-    Also creates a single record with folder_id and folder_link
+    Upload folder using PARALLEL approach with streaming.
+    - Files upload in parallel with 1s staggered delay
+    - Memory efficient: Read file only when needed
+    - Much faster than sequential upload
     """
     try:
         logger.info(f"📁 Uploading folder: {folder_name} with {len(files)} files for ship: {ship_id}")
+        logger.info(f"   🚀 Using parallel streaming upload (1s staggered delay)")
         
-        # Read all files into memory
-        files_data = []
-        for file in files:
-            file_content = await file.read()
-            # Extract only the filename, remove any folder path
-            filename = os.path.basename(file.filename)
-            files_data.append((file_content, filename))
-            logger.info(f"   📄 Read file: {filename} ({len(file_content)} bytes)")
-        
-        # Call service
-        result = await OtherDocumentService.upload_folder(
-            files=files_data,
+        # Call service with streaming mode
+        result = await OtherDocumentService.upload_folder_streaming(
+            files=files,  # Pass UploadFile objects directly
             ship_id=ship_id,
             folder_name=folder_name,
             date=date,
