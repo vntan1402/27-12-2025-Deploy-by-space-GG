@@ -476,6 +476,24 @@ def create_audit_report_extraction_prompt(summary_text: str, filename: str = "")
   - "Maritime Labour Convention" → MLC
   - If unsure, leave empty string
 
+**CRITICAL INSTRUCTIONS FOR AUDIT_DATE**:
+- **MUST extract in FULL TEXT FORMAT** to avoid ambiguity
+- **CORRECT formats**:
+  - "November 7, 2025" ✅
+  - "7 November 2025" ✅
+  - "7th November 2025" ✅
+  - "November 7-8, 2025" ✅ (for multi-day audits, use first day)
+- **AVOID numeric formats** that can be ambiguous:
+  - ❌ "11/7/2025" (could be Nov 7 or July 11)
+  - ❌ "07/11/2025" (could be July 11 or Nov 7)
+  - ❌ "7/11/2025" (ambiguous)
+- **COMMON LOCATIONS**:
+  - Opening/closing meeting dates
+  - "Audit Date:", "Date of Audit:", "Conducted on:"
+  - Document header or first page
+- **FOR MULTI-DAY AUDITS**: Use the first day (e.g., "November 7, 2025" for "November 7-8, 2025")
+- **IF NOT FOUND**: Leave empty string ""
+
 **CRITICAL INSTRUCTIONS FOR AUDITOR_NAME**:
 - Extract the name(s) of the individual auditor(s)
 - Look for "Auditor:", "Lead Auditor:", "Auditor Name:", "Conducted by (person name)"
