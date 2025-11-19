@@ -220,42 +220,15 @@ export const AuditReportList = ({
     });
   };
 
-  const handleViewFile = async (report) => {
+  const handleViewFile = (report) => {
     if (!report.audit_report_file_id) {
       toast.warning(language === 'vi' ? 'Không có file' : 'No file available');
       setContextMenu({ show: false, x: 0, y: 0, report: null });
       return;
     }
 
-    try {
-      // Use backend endpoint to get proper view URL (handles company/system gdrive config)
-      const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.audit_report_file_id}/view`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.view_url) {
-          window.open(data.view_url, '_blank');
-        } else {
-          // Fallback to direct Google Drive link
-          window.open(`https://drive.google.com/file/d/${report.audit_report_file_id}/view`, '_blank');
-        }
-      } else {
-        // Fallback to direct Google Drive link
-        window.open(`https://drive.google.com/file/d/${report.audit_report_file_id}/view`, '_blank');
-      }
-    } catch (error) {
-      console.error('Error getting view URL:', error);
-      // Fallback to direct Google Drive link
-      window.open(`https://drive.google.com/file/d/${report.audit_report_file_id}/view`, '_blank');
-    }
-
+    // Direct link to Google Drive (simple & reliable)
+    window.open(`https://drive.google.com/file/d/${report.audit_report_file_id}/view`, '_blank');
     setContextMenu({ show: false, x: 0, y: 0, report: null });
   };
 
