@@ -353,6 +353,40 @@ def create_audit_report_extraction_prompt(summary_text: str, filename: str = "")
     "note": "Any important notes or observations"
 }}
 
+**CRITICAL INSTRUCTIONS FOR AUDIT_REPORT_NAME**:
+- **MUST IDENTIFY DOCUMENT TYPE** - The name MUST clearly indicate what type of document this is
+- **DOCUMENT TYPES** (identify and include in name):
+  1. **Audit Plan** - "ISM Audit Plan", "ISPS Code Audit Plan"
+     - Keywords: "plan", "audit plan", "planning"
+  2. **Audit Checklist / Check List** - "ISM Code Checklist", "ISPS Verification Checklist"
+     - Keywords: "checklist", "check list", "check-list", "verification checklist"
+  3. **Verification Report** - "ISM Code Verification Report", "Ship Safety Verification"
+     - Keywords: "verification", "verification report", "verification audit"
+  4. **Audit Report** - "ISM Annual Audit Report", "ISPS Compliance Audit"
+     - Keywords: "audit report", "audit", "compliance audit", "assessment report"
+  5. **NCR (Non-Conformity Report)** - "ISM Code NCR", "Non-Conformity Report"
+     - Keywords: "NCR", "non-conformity", "non conformity", "deficiency"
+  6. **Meeting Minutes** - "Audit Opening Meeting Minutes", "Closing Meeting Record"
+     - Keywords: "meeting", "minutes", "opening meeting", "closing meeting"
+  7. **Certificate/Certification** - "ISM Interim Certification", "DOC Certification"
+     - Keywords: "certificate", "certification", "certified"
+- **FORMAT RULES**:
+  - Start with audit type: "ISM", "ISPS", "MLC", or "CICA"
+  - Add "Code" if applicable: "ISM Code", "ISPS Code"
+  - Add document type: "Audit Plan", "Checklist", "Verification Report"
+  - Add timing if relevant: "Annual", "Interim", "Initial", "Renewal"
+  - Examples:
+    * "ISM Code Audit Plan"
+    * "ISPS Code Verification Checklist"
+    * "MLC Annual Audit Report"
+    * "ISM Code NCR"
+    * "ISM Audit Opening Meeting Minutes"
+- **DO NOT use generic/vague names** like:
+  - ❌ "Record of opening and closing meetings, along with the audit plan"
+  - ❌ "International Safety Management audit"
+  - ✅ Use: "ISM Code Audit Plan and Meeting Minutes"
+  - ✅ Use: "ISM Code Annual Audit Report"
+
 **CRITICAL INSTRUCTIONS FOR REPORT_FORM**:
 - **LOOK IN FOOTER/HEADER SECTIONS FIRST** (bottom and top of pages)
 - May appear as: "(07-23)", "Form 7.10", "CG (02-19)", "ISM (05-22)", etc.
