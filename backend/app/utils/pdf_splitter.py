@@ -289,20 +289,20 @@ def merge_analysis_results(
         merged[no_field] = max(report_no_counts, key=report_no_counts.get)
         logger.info(f"  🔢 {no_field}: '{merged[no_field]}' (appears in {report_no_counts[merged[no_field]]} chunk(s))")
     
-    # Strategy 3: Issued By (take most common)
+    # Strategy 3: Issued By / Approved By (take most common)
     if all_issued_by:
         issued_by_counts = {}
         for item in all_issued_by:
             val = item['value']
             issued_by_counts[val] = issued_by_counts.get(val, 0) + 1
         
-        merged['issued_by'] = max(issued_by_counts, key=issued_by_counts.get)
-        logger.info(f"  🏛️ Issued By: '{merged['issued_by']}'")
+        merged[issued_by_field] = max(issued_by_counts, key=issued_by_counts.get)
+        logger.info(f"  🏛️ {issued_by_field}: '{merged[issued_by_field]}'")
     
     # Strategy 4: Date (take first valid date)
     if all_dates:
-        merged['issued_date'] = all_dates[0]['value']
-        logger.info(f"  📅 Date: '{merged['issued_date']}'")
+        merged[issued_date_field] = all_dates[0]['value']
+        logger.info(f"  📅 {issued_date_field}: '{merged[issued_date_field]}'")
     
     # Strategy 5: Additional fields (document-specific merging)
     for field, values in all_additional_data.items():
