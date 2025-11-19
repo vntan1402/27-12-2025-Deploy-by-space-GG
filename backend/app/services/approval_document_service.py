@@ -319,7 +319,7 @@ class ApprovalDocumentService:
         1. Validate document exists
         2. Verify company access
         3. Decode base64 file content
-        4. Upload original file to: ShipName/ISM-ISPS-MLC/Approval Document/
+        4. Upload original file to: ShipName/ISM - ISPS - MLC/Approval Document/
         5. Upload summary file (if summary_text provided)
         6. Update document with file IDs
         
