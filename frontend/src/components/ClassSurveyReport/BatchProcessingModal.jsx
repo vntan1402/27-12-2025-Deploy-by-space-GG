@@ -196,6 +196,15 @@ export const BatchProcessingModal = ({
                     </span>
                   )}
                 </div>
+                
+                {/* Sub-status message (for processing and errors) */}
+                {subStatus && (
+                  <div className={`mt-2 text-xs ${
+                    status === 'error' ? 'text-red-600 bg-red-50' : 'text-gray-600 bg-gray-50'
+                  } p-2 rounded whitespace-pre-wrap`}>
+                    {subStatus}
+                  </div>
+                )}
               </div>
             );
           })}
