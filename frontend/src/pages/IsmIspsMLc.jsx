@@ -1134,7 +1134,7 @@ const IsmIspsMLc = () => {
       const createdReport = createResponse.data || createResponse;
       result.surveyReportCreated = true;
       
-      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 70 }));
+      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 60 }));
 
       // Step 3: Upload files to Google Drive (RATE LIMITED to prevent 429 errors)
       // Use 'uploading' to match BatchProcessingModal expectation
@@ -1142,6 +1142,9 @@ const IsmIspsMLc = () => {
         ...prev, 
         [fileName]: 'uploading' 
       }));
+      
+      // Progress: Starting file upload
+      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 65 }));
 
       // Only upload if file content is available
       if (analysis._file_content && analysis._filename) {
