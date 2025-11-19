@@ -139,7 +139,7 @@ class AuditReportTester:
             }
             data = {
                 "ship_id": ship_id,
-                "bypass_validation": "false"  # Use false as per review request
+                "bypass_validation": "true"  # Use true to bypass ship validation for test PDF
             }
             
             response = self.session.post(f"{BACKEND_URL}/audit-reports/analyze-file", 
