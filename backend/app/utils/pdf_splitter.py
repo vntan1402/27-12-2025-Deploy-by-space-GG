@@ -343,6 +343,9 @@ def merge_analysis_results(
     
     logger.info(f"✅ Merge complete!")
     
+    # Add success flag
+    merged['success'] = True
+    
     return merged
 
 
