@@ -68,15 +68,31 @@ export const auditReportService = {
   /**
    * Upload audit report files to Google Drive
    * Using JSON body (not FormData) to match backend Form(...) signature
+   * WITH RETRY LOGIC for handling rate limits (429 errors)
    */
   uploadFiles: async (reportId, fileContent, filename, contentType, summaryText = null) => {
-    return await api.post(`/api/audit-reports/${reportId}/upload-files`, {
-      file_content: fileContent,
-      filename: filename,
-      content_type: contentType,
-      summary_text: summaryText
-    }, {
-      timeout: API_TIMEOUT.FILE_UPLOAD,
-    });
+    return await retryWithBackoff(
+      async () => {
+        return await api.post(`/api/audit-reports/${reportId}/upload-files`, {
+          file_content: fileContent,
+          filename: filename,
+          content_type: contentType,
+          summary_text: summaryText
+        }, {
+          timeout: API_TIMEOUT.FILE_UPLOAD,
+        });
+      },
+      {
+        maxRetries: 3,
+        initialDelay: 2000,  // Start with 2 seconds
+        maxDelay: 15000,     // Max 15 seconds between retries
+        backoffMultiplier: 2,
+        shouldRetry: (error) => {
+          // Retry on 429 (rate limit), 503 (service unavailable), 502 (bad gateway)
+          const status = error.response?.status;
+          return status === 429 || status === 503 || status === 502;
+        }
+      }
+    );
   }
 };
