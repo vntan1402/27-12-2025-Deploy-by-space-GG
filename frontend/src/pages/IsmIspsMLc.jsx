@@ -1127,7 +1127,8 @@ const IsmIspsMLc = () => {
         issued_by: analysis.issued_by || null,
         auditor_name: analysis.auditor_name || null,
         status: analysis.status || 'Valid',
-        note: analysis.note || null
+        note: analysis.note || null,
+        original_filename: analysis.original_filename || file.name  // Save original filename for report_form extraction
       };
 
       const createResponse = await auditReportService.create(reportData);
