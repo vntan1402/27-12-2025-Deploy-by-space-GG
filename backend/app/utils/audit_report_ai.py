@@ -388,12 +388,28 @@ def create_audit_report_extraction_prompt(summary_text: str, filename: str = "")
   - ✅ Use: "ISM Code Annual Audit Report"
 
 **CRITICAL INSTRUCTIONS FOR REPORT_FORM**:
-- **LOOK IN FOOTER/HEADER SECTIONS FIRST** (bottom and top of pages)
-- May appear as: "(07-23)", "Form 7.10", "CG (02-19)", "ISM (05-22)", etc.
-- Often repeats on every page in header/footer
-- Check "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)" section
-- Filename hint: {filename}
-- This is the MOST IMPORTANT field - spend extra effort to find it
+- **THIS IS THE HIGHEST PRIORITY FIELD - SEARCH EXTENSIVELY**
+- **PRIMARY SEARCH LOCATIONS** (in order):
+  1. **PAGE FOOTERS** - Bottom of every page (most common location)
+  2. **PAGE HEADERS** - Top of every page (second most common)
+  3. **DOCUMENT TITLE AREA** - Near the main title/heading
+  4. **FIRST PAGE** - Anywhere on the first page, especially corners
+  5. **DOCUMENT METADATA SECTION** - "Form:", "Form No:", "Form Number:" labels
+- **SEARCH PATTERNS** - Look for these formats:
+  - Parentheses format: "(07-23)", "(02-19)", "(05-22)", "(09-25)"
+  - Form with text: "Form 7.10", "Form A-123", "Form CG-719"
+  - Code with parentheses: "ISM (07-23)", "ISPS-Code (06-23)", "MLC-AUD (05-22)"
+  - Hyphenated codes: "ISM-07-23", "ISPS-06-23", "MLC-AUD-05-22"
+  - Slash format: "07/23", "02/19" (convert to "07-23", "02-19")
+- **FILENAME CLUE**: {filename} (may contain the form code)
+- **REPEATING PATTERN**: Form codes often appear on EVERY page in footer/header
+- **OCR SECTION**: Check "ADDITIONAL INFORMATION FROM HEADER/FOOTER" carefully
+- **IF NOT FOUND**: Return empty string "" (do NOT guess or make up a form code)
+- **EXTRACTION RULE**: Extract the COMPLETE form code including prefix and year
+  - Examples: 
+    * If you see "ISM-Code Audit Plan (07-23)" → Extract "(07-23)" or "ISM-Code Audit Plan (07-23)"
+    * If you see "Form 7.10" → Extract "Form 7.10"
+    * If you see only "(05-22)" → Extract "(05-22)"
 
 **CRITICAL INSTRUCTIONS FOR ISSUED_BY**:
 - **LOOK IN LETTERHEAD/HEADER FIRST** (top of first page)
