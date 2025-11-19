@@ -1013,6 +1013,88 @@ const IsmIspsMLc = () => {
     );
   };
 
+  // Handle retry for failed audit report
+  const handleRetryFailedAuditReport = (failedFileName) => {
+    // Create a file input to allow user to select a new file
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf';
+    input.onchange = async (e) => {
+      const newFile = e.target.files[0];
+      if (!newFile) return;
+      
+      // Remove the failed file from maps
+      setAuditReportFileStatusMap(prev => {
+        const updated = { ...prev };
+        delete updated[failedFileName];
+        return updated;
+      });
+      setAuditReportFileProgressMap(prev => {
+        const updated = { ...prev };
+        delete updated[failedFileName];
+        return updated;
+      });
+      setAuditReportFileSubStatusMap(prev => {
+        const updated = { ...prev };
+        delete updated[failedFileName];
+        return updated;
+      });
+      
+      // Update total and reset status for new file
+      setAuditReportBatchProgress(prev => ({
+        ...prev,
+        total: prev.total // Keep same total, replacing failed file
+      }));
+      
+      // Reset maps for new file
+      setAuditReportFileStatusMap(prev => ({ ...prev, [newFile.name]: 'pending' }));
+      setAuditReportFileProgressMap(prev => ({ ...prev, [newFile.name]: 0 }));
+      setAuditReportFileSubStatusMap(prev => ({ ...prev, [newFile.name]: '' }));
+      
+      // Process the new file
+      toast.info(
+        language === 'vi' 
+          ? `🔄 Đang xử lý file mới: ${newFile.name}` 
+          : `🔄 Processing new file: ${newFile.name}`
+      );
+      
+      try {
+        const result = await processSingleAuditReportFile(newFile, newFile.name);
+        
+        if (result.success) {
+          toast.success(
+            language === 'vi' 
+              ? `✅ File mới đã được xử lý thành công!` 
+              : `✅ New file processed successfully!`
+          );
+          // Update progress
+          setAuditReportBatchProgress(prev => ({
+            ...prev,
+            current: prev.current + 1
+          }));
+          
+          // Refresh list
+          await fetchAuditReports();
+        } else {
+          toast.error(
+            language === 'vi' 
+              ? `❌ File mới vẫn bị lỗi: ${result.error}` 
+              : `❌ New file also failed: ${result.error}`
+          );
+        }
+      } catch (error) {
+        console.error('Retry error:', error);
+        toast.error(
+          language === 'vi' 
+            ? `❌ Lỗi khi xử lý file mới` 
+            : `❌ Error processing new file`
+        );
+      }
+    };
+    
+    input.click();
+  };
+
   // Process single audit report file (Match Survey Report pattern)
   const processSingleAuditReportFile = async (file, fileName) => {
     const result = {
