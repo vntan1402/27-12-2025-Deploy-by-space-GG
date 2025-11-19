@@ -37,6 +37,7 @@ class AuditReportUpdate(BaseModel):
     next_audit_date: Optional[Union[str, datetime]] = None
     findings_count: Optional[int] = None
     nc_count: Optional[int] = None
+    original_filename: Optional[str] = None
 
 class AuditReportResponse(BaseModel):
     id: str
