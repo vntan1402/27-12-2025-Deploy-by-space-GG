@@ -53,8 +53,8 @@ class AuditReportResponse(BaseModel):
     next_audit_date: Optional[Union[str, datetime]] = None
     findings_count: Optional[int] = None
     nc_count: Optional[int] = None
-    file_id: Optional[str] = None
-    summary_file_id: Optional[str] = None
+    audit_report_file_id: Optional[str] = None  # Fixed: was file_id
+    audit_report_summary_file_id: Optional[str] = None  # Fixed: was summary_file_id
     created_at: datetime
 
 class BulkDeleteAuditReportRequest(BaseModel):
