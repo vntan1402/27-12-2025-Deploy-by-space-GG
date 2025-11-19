@@ -1154,10 +1154,21 @@ const IsmIspsMLc = () => {
 
     } catch (error) {
       console.error(`Error processing ${fileName}:`, error);
-      result.error = error.response?.data?.detail || error.message || 'Processing failed';
+      
+      // Provide user-friendly error messages
+      let errorMessage = error.response?.data?.detail || error.message || 'Processing failed';
+      
+      // Special handling for rate limit errors
+      if (error.response?.status === 429) {
+        errorMessage = language === 'vi' 
+          ? 'Quá nhiều yêu cầu. Hệ thống sẽ tự động thử lại...'
+          : 'Too many requests. System will retry automatically...';
+      }
+      
+      result.error = errorMessage;
       result.success = false;
       setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'error' }));
-      setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: result.error }));
+      setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: errorMessage }));
     }
     
     // Brief pause before returning (match Survey Report)
