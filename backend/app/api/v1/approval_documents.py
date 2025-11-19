@@ -186,24 +186,6 @@ async def delete_approval_document(
         logger.error(f"❌ Error deleting Approval Document: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete Approval Document")
 
-@router.post("/bulk-delete")
-async def bulk_delete_approval_documents(
-    request: BulkDeleteApprovalDocumentRequest,
-    background_tasks: BackgroundTasks,
-    background: bool = Query(True),
-    current_user: UserResponse = Depends(check_editor_permission)
-):
-    """Bulk delete Approval Documents with background GDrive cleanup (Editor+ role required)"""
-    try:
-        return await ApprovalDocumentService.bulk_delete_approval_documents(
-            request,
-            current_user,
-            background_tasks if background else None
-        )
-    except Exception as e:
-        logger.error(f"❌ Error bulk deleting Approval Documents: {e}")
-        raise HTTPException(status_code=500, detail="Failed to bulk delete Approval Documents")
-
 @router.post("/check-duplicate")
 async def check_duplicate_approval_document(
     ship_id: str,
