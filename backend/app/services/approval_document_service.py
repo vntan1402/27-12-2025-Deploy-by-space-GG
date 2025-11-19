@@ -203,85 +203,35 @@ class ApprovalDocumentService:
     ) -> dict:
         """
         Bulk delete approval documents with background GDrive cleanup
-        
-        Similar to single delete but processes multiple documents
+        Calls delete_approval_document for each document
         """
-        from app.utils.background_tasks import delete_file_background
-        from app.services.gdrive_service import GDriveService
-        
-        doc_ids = request.document_ids
-        company_id = current_user.company
-        
         deleted_count = 0
         files_scheduled = 0
-        files_to_delete = []
         
-        for doc_id in doc_ids:
+        for doc_id in request.document_ids:
             try:
-                doc = await mongo_db.find_one(ApprovalDocumentService.collection_name, {"id": doc_id})
-                if not doc:
-                    continue
-                
-                # Verify access
-                ship_id = doc.get("ship_id")
-                if ship_id:
-                    ship = await mongo_db.find_one("ships", {"id": ship_id})
-                    if ship and ship.get("company") != company_id:
-                        continue
-                
-                # Collect file IDs for background deletion
-                document_name = doc.get("approval_document_name", "Unknown")
-                
-                if doc.get("file_id"):
-                    files_to_delete.append({
-                        'file_id': doc["file_id"],
-                        'description': f"{document_name} (original)"
-                    })
-                
-                if doc.get("summary_file_id"):
-                    files_to_delete.append({
-                        'file_id': doc["summary_file_id"],
-                        'description': f"{document_name} (summary)"
-                    })
-                
-                # Delete from database
-                await mongo_db.delete(ApprovalDocumentService.collection_name, {"id": doc_id})
+                result = await ApprovalDocumentService.delete_approval_document(
+                    doc_id, 
+                    current_user, 
+                    background_tasks
+                )
                 deleted_count += 1
-                logger.info(f"✅ Deleted approval document: {doc_id} ({document_name})")
                 
+                # Count scheduled files for deletion
+                if result.get('background_deletion'):
+                    files_scheduled += result.get('files_scheduled', 0)
+                    
             except Exception as e:
-                logger.error(f"Error deleting document {doc_id}: {e}")
+                logger.error(f"Failed to delete approval document {doc_id}: {e}")
                 continue
         
-        # Schedule background deletions
-        background_deletion = False
-        if background_tasks and files_to_delete and company_id:
-            for file_info in files_to_delete:
-                background_tasks.add_task(
-                    delete_file_background,
-                    file_info['file_id'],
-                    company_id,
-                    "approval_document",
-                    file_info['description'],
-                    GDriveService
-                )
-                files_scheduled += 1
-            
-            background_deletion = True
-            logger.info(f"📋 Scheduled {files_scheduled} file(s) for background deletion")
-        
-        message = f"Deleted {deleted_count} approval document(s)"
-        if background_deletion:
-            message += f". Background deletion of {files_scheduled} file(s) in progress..."
-        
-        logger.info(f"✅ Bulk deleted {deleted_count} approval documents")
+        logger.info(f"✅ Bulk deleted {deleted_count} approval documents, scheduled {files_scheduled} files for deletion")
         
         return {
             "success": True,
-            "message": message,
+            "message": f"Successfully deleted {deleted_count} approval document(s)",
             "deleted_count": deleted_count,
-            "background_deletion": background_deletion,
-            "files_scheduled": files_scheduled
+            "files_scheduled_for_deletion": files_scheduled
         }
     
     @staticmethod
