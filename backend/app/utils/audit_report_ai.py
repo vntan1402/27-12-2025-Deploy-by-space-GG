@@ -344,7 +344,7 @@ def create_audit_report_extraction_prompt(summary_text: str, filename: str = "")
     "audit_report_name": "Main title or name of audit report",
     "audit_type": "Type of audit - MUST be one of: ISM, ISPS, MLC, or CICA",
     "report_form": "**CRITICAL** - Form code/number (e.g., '07-23', 'CG (02-19)', 'ISM-AUD-01')",
-    "audit_report_no": "Report number or reference",
+    "audit_report_no": "**IMPORTANT** - Report number, reference, or authorization number",
     "issued_by": "**IMPORTANT** - Organization that issued/conducted the audit",
     "audit_date": "Date of audit (YYYY-MM-DD format)",
     "auditor_name": "Name(s) of auditor(s) - NOT the organization",
