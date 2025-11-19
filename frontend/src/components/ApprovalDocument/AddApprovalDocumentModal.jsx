@@ -119,9 +119,9 @@ export const AddApprovalDocumentModal = ({
       return;
     }
 
-    // Validate file size (max 20MB)
-    if (file.size > 20 * 1024 * 1024) {
-      toast.error(language === 'vi' ? 'File quá lớn (tối đa 20MB)' : 'File too large (max 20MB)');
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error(language === 'vi' ? 'File quá lớn (tối đa 50MB)' : 'File too large (max 50MB)');
       return;
     }
 
