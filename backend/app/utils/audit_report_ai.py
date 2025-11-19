@@ -370,6 +370,37 @@ def create_audit_report_extraction_prompt(summary_text: str, filename: str = "")
 - Extract FULL organization name (e.g., "Det Norske Veritas GL" not just "DNV")
 - **DO NOT extract individual auditor names here** (use auditor_name field for that)
 
+**CRITICAL INSTRUCTIONS FOR AUDIT_REPORT_NO**:
+- **SEARCH MULTIPLE LABELS** - This field can appear under various names:
+  - "Report No:", "Report Number:", "Reference No:", "Ref No:", "Ref:"
+  - "Document No:", "Doc No:", "Document Reference:"
+  - "Authorization No:", "Authorization Number:", "Auth No:"
+  - "Certificate No:", "Cert No:" (for audit certificates)
+  - "Audit No:", "Audit Number:", "Audit Reference:"
+  - "File No:", "File Number:", "File Reference:"
+  - "Serial No:", "Serial Number:"
+- **COMMON LOCATIONS**:
+  - Document header (top right or left corner)
+  - Document footer (bottom of pages)
+  - First page near title or letterhead
+  - In "Document Information" or "Reference Details" sections
+  - Near date or issued_by information
+- **FORMAT PATTERNS**:
+  - Alphanumeric codes: "AUD-2024-001", "AR-123", "REP-12345"
+  - Slash separated: "A/25/1573", "2024/ISM/001", "ISM/2025/123"
+  - Dot separated: "REP.2024.001", "AUD.123.456"
+  - Hyphen separated: "ISM-2024-001", "AUTH-12345"
+  - Simple numbers: "252495874", "PM252495874"
+  - Mixed format: "A/25/1573", "PM/2024/001"
+- **PRIORITY ORDER**:
+  1. Authorization Number (if exists)
+  2. Report Number / Reference Number
+  3. Document Number
+  4. Audit Number
+  5. Any other unique identifier
+- **IMPORTANT**: If multiple numbers exist, prefer the most specific audit/report/authorization number
+- Extract the COMPLETE number including all parts (e.g., "A/25/1573" not just "1573")
+
 **CRITICAL INSTRUCTIONS FOR AUDIT_TYPE**:
 - Must be EXACTLY one of: ISM, ISPS, MLC, or CICA
 - Check report_form for hints (e.g., "ISM-AUD-01" → ISM)
