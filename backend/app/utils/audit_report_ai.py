@@ -290,7 +290,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                         filename_extracted_form = f"({date_part})"
                     
                     # PRIORITY 1: Filename overrides AI extraction
-                    extracted_data['report_form'] = extracted_form
+                    extracted_data['report_form'] = filename_extracted_form
                     logger.info(f"✅ [PRIORITY 1] Extracted report_form from filename: '{extracted_form}' (overriding AI: '{extracted_data.get('report_form', 'none')}')")
                     break
             else:
