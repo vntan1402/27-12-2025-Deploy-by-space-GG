@@ -57,6 +57,7 @@ class AuditReportResponse(BaseModel):
     nc_count: Optional[int] = None
     audit_report_file_id: Optional[str] = None  # Fixed: was file_id
     audit_report_summary_file_id: Optional[str] = None  # Fixed: was summary_file_id
+    original_filename: Optional[str] = None
     created_at: datetime
 
 class BulkDeleteAuditReportRequest(BaseModel):
