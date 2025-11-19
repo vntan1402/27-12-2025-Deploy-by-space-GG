@@ -423,10 +423,14 @@ class AuditReportService:
             
             if audit_report_summary_file_id:
                 update_data["audit_report_summary_file_id"] = audit_report_summary_file_id
+                logger.info(f"✅ Both files will be saved: main={audit_report_file_id[:20]}..., summary={audit_report_summary_file_id[:20]}...")
+            else:
+                logger.warning(f"⚠️ ONLY main file will be saved: {audit_report_file_id[:20]}... (NO SUMMARY FILE ID)")
+                logger.warning(f"   Reason: summary_file_id is None - summary upload may have failed")
             
             await mongo_db.update(AuditReportService.collection_name, {"id": report_id}, update_data)
             
-            logger.info(f"✅ Files uploaded successfully for audit report: {report_id}")
+            logger.info(f"✅ Database updated for audit report: {report_id}")
             
             result = {
                 "success": True,
