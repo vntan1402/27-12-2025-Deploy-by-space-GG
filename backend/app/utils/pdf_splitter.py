@@ -243,16 +243,16 @@ def merge_analysis_results(
                 'chunk': chunk_num
             })
         
-        # Collect common fields
-        if extracted.get('issued_by'):
+        # Collect common fields (use dynamic field names)
+        if extracted.get(issued_by_field):
             all_issued_by.append({
-                'value': extracted['issued_by'],
+                'value': extracted[issued_by_field],
                 'chunk': chunk_num
             })
         
-        if extracted.get('issued_date'):
+        if extracted.get(issued_date_field):
             all_dates.append({
-                'value': extracted['issued_date'],
+                'value': extracted[issued_date_field],
                 'chunk': chunk_num
             })
         
