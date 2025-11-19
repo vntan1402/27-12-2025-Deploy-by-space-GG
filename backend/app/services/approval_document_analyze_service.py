@@ -382,13 +382,20 @@ class ApprovalDocumentAnalyzeService:
                     logger.info(f"🔄 Processing chunk {chunk_num}/{len(chunks_to_process)} (pages {page_range})...")
                     
                     # Analyze chunk with Document AI
-                    ai_analysis = await analyze_document_with_document_ai(
+                    doc_ai_result = await analyze_document_with_document_ai(
                         file_content=chunk_content,
                         filename=f"{filename}_chunk{chunk_num}",
                         content_type='application/pdf',
                         document_ai_config=document_ai_config,
-                        company_id=company_id
+                        document_type='other'  # approval_document type
                     )
+                    
+                    # Extract summary from result
+                    ai_analysis = None
+                    if doc_ai_result.get('success'):
+                        summary_text = doc_ai_result.get('data', {}).get('summary', '')
+                        if summary_text:
+                            ai_analysis = {'summary_text': summary_text}
                     
                     if ai_analysis and ai_analysis.get('summary_text'):
                         summary_text = ai_analysis['summary_text']
