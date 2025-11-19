@@ -242,11 +242,11 @@ class ApprovalDocumentAnalyzeService:
         logger.info("📄 Processing as single file (≤15 pages)")
         
         try:
-            # Get Document AI service (reuse from drawing manuals)
-            from app.services.document_ai_service import DocumentAIService
+            # Get Document AI helper (same as drawing manuals)
+            from app.utils.document_ai_helper import analyze_document_with_document_ai
             
             # Analyze with Document AI
-            ai_analysis = await DocumentAIService.analyze_document(
+            ai_analysis = await analyze_document_with_document_ai(
                 file_content=file_content,
                 filename=filename,
                 content_type='application/pdf',
