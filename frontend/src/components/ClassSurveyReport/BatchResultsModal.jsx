@@ -50,7 +50,25 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile }) => 
               {results.map((result, index) => (
                 <tr key={index} className={result.success ? 'bg-green-50' : 'bg-red-50'}>
                   <td className="border border-gray-300 px-4 py-2 text-sm">
-                    {result.filename}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="flex-1">{result.filename}</span>
+                      {/* Retry button for failed files */}
+                      {!result.success && onRetryFile && (
+                        <button
+                          onClick={() => {
+                            onClose(); // Close modal first
+                            onRetryFile(result.filename); // Then retry
+                          }}
+                          className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                          title={language === 'vi' ? 'Thử lại file này' : 'Retry this file'}
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          <span>{language === 'vi' ? 'Thử lại' : 'Retry'}</span>
+                        </button>
+                      )}
+                    </div>
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-sm">
                     {result.surveyReportName || '-'}
