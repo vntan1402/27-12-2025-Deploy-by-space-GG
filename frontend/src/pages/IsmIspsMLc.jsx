@@ -1124,7 +1124,7 @@ const IsmIspsMLc = () => {
       
       setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 70 }));
 
-      // Step 3: Upload files to Google Drive (SYNCHRONOUS in batch mode)
+      // Step 3: Upload files to Google Drive (RATE LIMITED to prevent 429 errors)
       // Use 'uploading' to match BatchProcessingModal expectation
       setAuditReportFileSubStatusMap(prev => ({ 
         ...prev, 
@@ -1133,13 +1133,16 @@ const IsmIspsMLc = () => {
 
       // Only upload if file content is available
       if (analysis._file_content && analysis._filename) {
-        await auditReportService.uploadFiles(
-          createdReport.id,
-          analysis._file_content,
-          analysis._filename,
-          analysis._content_type || 'application/pdf',
-          analysis._summary_text || ''
-        );
+        // Use rate limiter to prevent too many concurrent uploads
+        await gdriveUploadLimiter.execute(async () => {
+          await auditReportService.uploadFiles(
+            createdReport.id,
+            analysis._file_content,
+            analysis._filename,
+            analysis._content_type || 'application/pdf',
+            analysis._summary_text || ''
+          );
+        });
         result.fileUploaded = true;
       }
 
