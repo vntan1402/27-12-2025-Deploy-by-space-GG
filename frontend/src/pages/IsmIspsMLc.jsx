@@ -966,16 +966,19 @@ const IsmIspsMLc = () => {
     const initialProgressMap = {};
     const initialStatusMap = {};
     const initialSubStatusMap = {};
+    const initialFileObjectsMap = {};
     
     files.forEach(file => {
       initialProgressMap[file.name] = 0;
       initialStatusMap[file.name] = 'waiting';
       initialSubStatusMap[file.name] = null;
+      initialFileObjectsMap[file.name] = file; // Store file object for retry
     });
     
     setAuditReportFileProgressMap(initialProgressMap);
     setAuditReportFileStatusMap(initialStatusMap);
     setAuditReportFileSubStatusMap(initialSubStatusMap);
+    setAuditReportFileObjectsMap(initialFileObjectsMap); // Save file objects
     setAuditReportBatchResults([]);
 
     const STAGGER_DELAY = 5000; // 5 seconds between file starts (match Survey Report)
