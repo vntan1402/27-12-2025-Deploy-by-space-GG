@@ -1031,10 +1031,20 @@ const IsmIspsMLc = () => {
       return;
     }
     
+    // Show ProcessingModal in minimized mode for this retry
+    setIsBatchProcessingAuditReports(true);
+    setIsAuditReportBatchModalMinimized(true);
+    
     // Reset status for retry
     setAuditReportFileStatusMap(prev => ({ ...prev, [failedFileName]: 'pending' }));
     setAuditReportFileProgressMap(prev => ({ ...prev, [failedFileName]: 0 }));
-    setAuditReportFileSubStatusMap(prev => ({ ...prev, [failedFileName]: '' }));
+    setAuditReportFileSubStatusMap(prev => ({ 
+      ...prev, 
+      [failedFileName]: language === 'vi' ? '🔄 Đang thử lại...' : '🔄 Retrying...' 
+    }));
+    
+    // Update batch progress to show we're processing 1 file
+    setAuditReportBatchProgress({ current: 0, total: 1 });
     
     // Show retry message
     toast.info(
@@ -1053,20 +1063,38 @@ const IsmIspsMLc = () => {
             ? `✅ File đã được xử lý thành công!` 
             : `✅ File processed successfully!`
         );
-        // Update progress
-        setAuditReportBatchProgress(prev => ({
-          ...prev,
-          current: prev.current + 1
-        }));
+        
+        // Update progress to show completion
+        setAuditReportBatchProgress({ current: 1, total: 1 });
+        
+        // Update the result in BatchResultsModal
+        setAuditReportBatchResults(prev => 
+          prev.map(r => r.filename === failedFileName ? result : r)
+        );
         
         // Refresh list
         await fetchAuditReports();
+        
+        // Close ProcessingModal after a short delay
+        setTimeout(() => {
+          setIsBatchProcessingAuditReports(false);
+        }, 1500);
       } else {
         toast.error(
           language === 'vi' 
             ? `❌ File vẫn bị lỗi: ${result.error}` 
             : `❌ File still failed: ${result.error}`
         );
+        
+        // Update the result in BatchResultsModal with new error
+        setAuditReportBatchResults(prev => 
+          prev.map(r => r.filename === failedFileName ? result : r)
+        );
+        
+        // Close ProcessingModal after a short delay
+        setTimeout(() => {
+          setIsBatchProcessingAuditReports(false);
+        }, 1500);
       }
     } catch (error) {
       console.error('Retry error:', error);
@@ -1075,6 +1103,18 @@ const IsmIspsMLc = () => {
           ? `❌ Lỗi khi xử lý lại file` 
           : `❌ Error retrying file`
       );
+      
+      // Mark as failed in status map
+      setAuditReportFileStatusMap(prev => ({ ...prev, [failedFileName]: 'failed' }));
+      setAuditReportFileSubStatusMap(prev => ({ 
+        ...prev, 
+        [failedFileName]: error.message || 'Unknown error' 
+      }));
+      
+      // Close ProcessingModal after a short delay
+      setTimeout(() => {
+        setIsBatchProcessingAuditReports(false);
+      }, 1500);
     }
   };
 
