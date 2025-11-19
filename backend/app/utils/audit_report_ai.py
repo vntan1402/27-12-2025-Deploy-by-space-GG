@@ -261,7 +261,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                 r'\(([0-9]{2}[-/][0-9]{2,3})\)',
             ]
             
-            extracted_form = None
+            filename_extracted_form = None
             for pattern in filename_form_patterns:
                 match = re.search(pattern, filename)
                 if match:
