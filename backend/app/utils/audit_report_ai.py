@@ -298,6 +298,23 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                 logger.info(f"🔍 No report_form pattern found in filename: {filename}")
                 logger.info(f"   Using AI extracted report_form: '{extracted_data.get('report_form', 'none')}'")
         
+        
+        # Decide which report_form to use
+        ai_report_form = extracted_data.get('report_form', '')
+        
+        if filename_extracted_form:
+            # Filename has highest priority
+            extracted_data['report_form'] = filename_extracted_form
+            if ai_report_form and ai_report_form != filename_extracted_form:
+                logger.info(f"   ℹ️ Overriding AI extracted: '{ai_report_form}' → Using filename: '{filename_extracted_form}'")
+        elif ai_report_form:
+            # Use AI extraction if filename didn't find anything
+            logger.info(f"✅ [PRIORITY 2] Using AI extracted report_form: '{ai_report_form}'")
+        else:
+            # Neither filename nor AI found report_form
+            logger.warning(f"⚠️ No report_form found in filename or AI extraction")
+            logger.warning(f"   Filename: {filename}")
+            logger.warning(f"   AI result: empty or None")
         # 4. Normalize issued_by abbreviations
         # Backend V1 lines 7234-7273
         if extracted_data.get('issued_by'):
