@@ -16,6 +16,101 @@ def check_editor_permission(current_user: UserResponse = Depends(get_current_use
         raise HTTPException(status_code=403, detail="Insufficient permissions")
     return current_user
 
+
+# ========== STATIC ROUTES (must come before dynamic routes) ==========
+
+@router.post("/bulk-delete")
+async def bulk_delete_approval_documents(
+    request: BulkDeleteApprovalDocumentRequest,
+    background_tasks: BackgroundTasks,
+    background: bool = Query(True),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """Bulk delete Approval Documents with background GDrive cleanup (Editor+ role required)"""
+    try:
+        return await ApprovalDocumentService.bulk_delete_approval_documents(
+            request,
+            current_user,
+            background_tasks if background else None
+        )
+    except Exception as e:
+        logger.error(f"❌ Error bulk deleting Approval Documents: {e}")
+        raise HTTPException(status_code=500, detail="Failed to bulk delete Approval Documents")
+
+@router.post("/check-duplicate")
+async def check_duplicate_approval_document(
+    ship_id: str,
+    approval_document_name: str,
+    approval_document_no: Optional[str] = None,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Check if Approval Document is duplicate"""
+    try:
+        return await ApprovalDocumentService.check_duplicate(ship_id, approval_document_name, approval_document_no, current_user)
+    except Exception as e:
+        logger.error(f"❌ Error checking duplicate: {e}")
+        raise HTTPException(status_code=500, detail="Failed to check duplicate")
+
+@router.post("/analyze-file")
+async def analyze_approval_document_file(
+    ship_id: str = Form(...),
+    document_file: UploadFile = File(...),
+    bypass_validation: str = Form("false"),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Analyze approval document file using AI (Editor+ role required)
+    
+    Process:
+    1. Validate PDF file (magic bytes, extension, max 50MB)
+    2. Check if needs splitting (>15 pages)
+    3. Process with Document AI (parallel chunks if large)
+    4. Extract fields with System AI
+    5. Normalize approved_by
+    6. Return analysis + base64 file for upload
+    
+    Returns:
+        dict: Analysis result with extracted fields + metadata
+            {
+                "approval_document_name": str,
+                "approval_document_no": str,
+                "approved_by": str (normalized),
+                "approved_date": str (YYYY-MM-DD),
+                "note": str,
+                "confidence_score": float,
+                "processing_method": str,
+                "_filename": str,
+                "_file_content": str (base64),
+                "_content_type": str,
+                "_summary_text": str,
+                "_split_info": dict (if large file)
+            }
+    """
+    try:
+        from app.services.approval_document_analyze_service import ApprovalDocumentAnalyzeService
+        
+        bypass = bypass_validation.lower() == "true"
+        
+        result = await ApprovalDocumentAnalyzeService.analyze_file(
+            file=document_file,
+            ship_id=ship_id,
+            bypass_validation=bypass,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error analyzing approval document: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ========== CRUD ROUTES ==========
+
 @router.get("", response_model=List[ApprovalDocumentResponse])
 async def get_approval_documents(
     ship_id: Optional[str] = Query(None),
