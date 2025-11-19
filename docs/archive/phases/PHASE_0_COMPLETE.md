@@ -170,7 +170,7 @@ Status: Running on port 3000
 #### Environment Variables (.env)
 
 ```env
-REACT_APP_BACKEND_URL=https://reportflow-api.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://report-extract-ai.preview.emergentagent.com
 REACT_APP_VERSION=2.0.0
 DISABLE_ESLINT_PLUGIN=true
 ESLINT_NO_DEV_ERRORS=true
@@ -204,7 +204,7 @@ ESLINT_NO_DEV_ERRORS=true
 
 **Access:**
 - Local: http://localhost:3000
-- Preview: https://reportflow-api.preview.emergentagent.com
+- Preview: https://report-extract-ai.preview.emergentagent.com
 
 ---
 
