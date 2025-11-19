@@ -263,7 +263,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
             ]
             
             for pattern in filename_form_patterns:
-                match = re.search(pattern, filename)
+                match = re.search(pattern, filename, re.IGNORECASE)
                 if match:
                     if len(match.groups()) > 1:
                         # Pattern with 2 groups
