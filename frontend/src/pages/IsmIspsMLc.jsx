@@ -1017,86 +1017,65 @@ const IsmIspsMLc = () => {
     );
   };
 
-  // Handle retry for failed audit report
-  const handleRetryFailedAuditReport = (failedFileName) => {
-    // Create a file input to allow user to select a new file
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.pdf';
-    input.onchange = async (e) => {
-      const newFile = e.target.files[0];
-      if (!newFile) return;
-      
-      // Remove the failed file from maps
-      setAuditReportFileStatusMap(prev => {
-        const updated = { ...prev };
-        delete updated[failedFileName];
-        return updated;
-      });
-      setAuditReportFileProgressMap(prev => {
-        const updated = { ...prev };
-        delete updated[failedFileName];
-        return updated;
-      });
-      setAuditReportFileSubStatusMap(prev => {
-        const updated = { ...prev };
-        delete updated[failedFileName];
-        return updated;
-      });
-      
-      // Update total and reset status for new file
-      setAuditReportBatchProgress(prev => ({
-        ...prev,
-        total: prev.total // Keep same total, replacing failed file
-      }));
-      
-      // Reset maps for new file
-      setAuditReportFileStatusMap(prev => ({ ...prev, [newFile.name]: 'pending' }));
-      setAuditReportFileProgressMap(prev => ({ ...prev, [newFile.name]: 0 }));
-      setAuditReportFileSubStatusMap(prev => ({ ...prev, [newFile.name]: '' }));
-      
-      // Process the new file
-      toast.info(
-        language === 'vi' 
-          ? `🔄 Đang xử lý file mới: ${newFile.name}` 
-          : `🔄 Processing new file: ${newFile.name}`
+  // Handle retry for failed audit report - RE-UPLOAD SAME FILE
+  const handleRetryFailedAuditReport = async (failedFileName) => {
+    // Get the original file object from map
+    const originalFile = auditReportFileObjectsMap[failedFileName];
+    
+    if (!originalFile) {
+      toast.error(
+        language === 'vi'
+          ? '❌ Không tìm thấy file gốc. Vui lòng upload lại từ đầu.'
+          : '❌ Original file not found. Please upload again from scratch.'
       );
+      return;
+    }
+    
+    // Reset status for retry
+    setAuditReportFileStatusMap(prev => ({ ...prev, [failedFileName]: 'pending' }));
+    setAuditReportFileProgressMap(prev => ({ ...prev, [failedFileName]: 0 }));
+    setAuditReportFileSubStatusMap(prev => ({ ...prev, [failedFileName]: '' }));
+    
+    // Show retry message
+    toast.info(
+      language === 'vi' 
+        ? `🔄 Đang xử lý lại file: ${failedFileName}` 
+        : `🔄 Retrying file: ${failedFileName}`
+    );
+    
+    try {
+      // Re-process the SAME file
+      const result = await processSingleAuditReportFile(originalFile, failedFileName);
       
-      try {
-        const result = await processSingleAuditReportFile(newFile, newFile.name);
+      if (result.success) {
+        toast.success(
+          language === 'vi' 
+            ? `✅ File đã được xử lý thành công!` 
+            : `✅ File processed successfully!`
+        );
+        // Update progress
+        setAuditReportBatchProgress(prev => ({
+          ...prev,
+          current: prev.current + 1
+        }));
         
-        if (result.success) {
-          toast.success(
-            language === 'vi' 
-              ? `✅ File mới đã được xử lý thành công!` 
-              : `✅ New file processed successfully!`
-          );
-          // Update progress
-          setAuditReportBatchProgress(prev => ({
-            ...prev,
-            current: prev.current + 1
-          }));
-          
-          // Refresh list
-          await fetchAuditReports();
-        } else {
-          toast.error(
-            language === 'vi' 
-              ? `❌ File mới vẫn bị lỗi: ${result.error}` 
-              : `❌ New file also failed: ${result.error}`
-          );
-        }
-      } catch (error) {
-        console.error('Retry error:', error);
+        // Refresh list
+        await fetchAuditReports();
+      } else {
         toast.error(
           language === 'vi' 
-            ? `❌ Lỗi khi xử lý file mới` 
-            : `❌ Error processing new file`
+            ? `❌ File vẫn bị lỗi: ${result.error}` 
+            : `❌ File still failed: ${result.error}`
         );
       }
-    };
-    
-    input.click();
+    } catch (error) {
+      console.error('Retry error:', error);
+      toast.error(
+        language === 'vi' 
+          ? `❌ Lỗi khi xử lý lại file` 
+          : `❌ Error retrying file`
+      );
+    }
   };
 
   // Process single audit report file (Match Survey Report pattern)
