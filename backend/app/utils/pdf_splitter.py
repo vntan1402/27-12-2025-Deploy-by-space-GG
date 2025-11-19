@@ -481,3 +481,19 @@ def create_enhanced_merged_summary(
     summary_lines.append("=" * 80)
     
     return '\n'.join(summary_lines)
+
+
+
+def merge_approval_document_results(chunk_results: List[Dict]) -> Dict:
+    """
+    Convenience wrapper for merging approval document results
+    Calls merge_analysis_results with 'approval_document' type
+    
+    Args:
+        chunk_results: List of chunk processing results
+        
+    Returns:
+        Merged approval document data
+    """
+    return merge_analysis_results(chunk_results, document_type='approval_document')
+
