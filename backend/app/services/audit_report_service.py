@@ -386,7 +386,7 @@ class AuditReportService:
                     base_name = filename.rsplit('.', 1)[0] if '.' in filename else filename
                     summary_filename = f"{base_name}_Summary.txt"
                     
-                    logger.info(f"📋 Uploading summary file: {summary_filename}")
+                    logger.info(f"📋 Uploading summary file: {summary_filename} ({len(summary_text)} chars)")
                     
                     # Convert summary text to bytes
                     summary_bytes = summary_text.encode('utf-8')
@@ -401,14 +401,19 @@ class AuditReportService:
                     
                     if summary_result.get('success'):
                         audit_report_summary_file_id = summary_result.get('file_id')
-                        logger.info(f"✅ Summary file uploaded: {audit_report_summary_file_id}")
+                        logger.info(f"✅ Summary file uploaded successfully: {audit_report_summary_file_id}")
                     else:
                         summary_error = f"Summary upload failed: {summary_result.get('message')}"
                         logger.warning(f"⚠️ {summary_error}")
+                        logger.warning(f"   Report will be created without summary file icon")
                         
                 except Exception as summary_exc:
                     summary_error = f"Summary upload error: {str(summary_exc)}"
                     logger.error(f"❌ {summary_error}")
+                    logger.error(f"   Report will be created without summary file icon")
+            else:
+                logger.warning(f"⚠️ No summary text provided for report {report_id}")
+                logger.warning(f"   Summary file will not be uploaded - icon will not appear")
             
             # Update database with file IDs
             update_data = {
