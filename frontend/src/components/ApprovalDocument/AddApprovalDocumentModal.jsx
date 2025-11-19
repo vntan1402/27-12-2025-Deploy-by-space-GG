@@ -90,9 +90,9 @@ export const AddApprovalDocumentModal = ({
         return;
       }
 
-      const oversizedFiles = fileArray.filter(f => f.size > 20 * 1024 * 1024);
+      const oversizedFiles = fileArray.filter(f => f.size > 50 * 1024 * 1024);
       if (oversizedFiles.length > 0) {
-        toast.error(language === 'vi' ? 'Một số files quá lớn (tối đa 20MB/file)' : 'Some files are too large (max 20MB/file)');
+        toast.error(language === 'vi' ? 'Một số files quá lớn (tối đa 50MB/file)' : 'Some files are too large (max 50MB/file)');
         return;
       }
 
