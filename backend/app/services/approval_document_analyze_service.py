@@ -246,13 +246,23 @@ class ApprovalDocumentAnalyzeService:
             from app.utils.document_ai_helper import analyze_document_with_document_ai
             
             # Analyze with Document AI
-            ai_analysis = await analyze_document_with_document_ai(
+            doc_ai_result = await analyze_document_with_document_ai(
                 file_content=file_content,
                 filename=filename,
                 content_type='application/pdf',
                 document_ai_config=document_ai_config,
-                company_id=company_id
+                document_type='other'  # approval_document type
             )
+            
+            # Extract AI analysis from result
+            ai_analysis = None
+            if doc_ai_result.get('success'):
+                ai_analysis = {
+                    'summary_text': doc_ai_result.get('data', {}).get('summary', ''),
+                    'confidence_score': doc_ai_result.get('data', {}).get('confidence_score', 0.0)
+                }
+            else:
+                logger.warning(f"⚠️ Document AI failed: {doc_ai_result.get('message')}")
             
             if ai_analysis:
                 summary_text = ai_analysis.get('summary_text', '')
