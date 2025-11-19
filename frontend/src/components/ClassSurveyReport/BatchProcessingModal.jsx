@@ -165,13 +165,13 @@ export const BatchProcessingModal = ({
                   </span>
                 </div>
                 
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                {/* Progress Bar (Enhanced with smoother animation) */}
+                <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden shadow-sm">
                   <div 
-                    className={`h-2 rounded-full transition-all duration-500 ease-out ${
-                      status === 'completed' ? 'bg-green-500' :
-                      status === 'error' ? 'bg-red-500' :
-                      status === 'processing' ? 'bg-gradient-to-r from-blue-500 to-blue-600' :
+                    className={`h-2.5 rounded-full transition-all duration-700 ease-out ${
+                      status === 'completed' ? 'bg-gradient-to-r from-green-400 to-green-600 shadow-sm' :
+                      status === 'error' ? 'bg-gradient-to-r from-red-400 to-red-600 shadow-sm' :
+                      status === 'processing' ? 'bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600 animate-pulse shadow-sm' :
                       'bg-gray-300'
                     }`}
                     style={{ width: `${fileProgress}%` }}
