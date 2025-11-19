@@ -11,6 +11,7 @@ import { EditAuditReportModal } from './EditAuditReportModal';
 import { AuditReportNotesModal } from './AuditReportNotesModal';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 import { calculateTooltipPosition, calculateContextMenuPosition } from '../../utils/positionHelpers';
+import { formatAuditReportName } from '../../utils/auditReportNameFormatter';
 
 export const AuditReportList = ({ 
   selectedShip, 
