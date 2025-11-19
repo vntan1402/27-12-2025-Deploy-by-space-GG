@@ -1180,15 +1180,22 @@ const IsmIspsMLc = () => {
       // Provide user-friendly error messages
       let errorMessage = error.response?.data?.detail || error.message || 'Processing failed';
       
-      // Special handling for rate limit errors
+      // Special handling for specific error types
       if (error.response?.status === 429) {
+        // Rate limit error
         errorMessage = language === 'vi' 
           ? 'Quá nhiều yêu cầu. Hệ thống sẽ tự động thử lại...'
           : 'Too many requests. System will retry automatically...';
+      } else if (errorMessage.includes('empty summary') || errorMessage.includes('corrupted') || errorMessage.includes('unreadable')) {
+        // Document AI failed to extract - make error very clear
+        errorMessage = language === 'vi'
+          ? `❌ Không thể đọc file: ${errorMessage}\n\n💡 Vui lòng kiểm tra:\n• File có bị hỏng không?\n• File có phải PDF hợp lệ không?\n• Chất lượng scan có đủ rõ không?\n\n🔄 Click "Re-upload" để thử lại với file khác.`
+          : `❌ Cannot read file: ${errorMessage}\n\n💡 Please check:\n• Is the file corrupted?\n• Is it a valid PDF?\n• Is the scan quality clear enough?\n\n🔄 Click "Re-upload" to try again with a different file.`;
       }
       
       result.error = errorMessage;
       result.success = false;
+      result.canRetry = true;  // Mark as retryable
       setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'error' }));
       setAuditReportFileSubStatusMap(prev => ({ ...prev, [fileName]: errorMessage }));
     }
