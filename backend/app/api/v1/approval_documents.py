@@ -167,3 +167,57 @@ async def analyze_approval_document_file(
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/{document_id}/upload-files")
+async def upload_approval_document_files(
+    document_id: str,
+    file_content: str = Body(...),
+    filename: str = Body(...),
+    content_type: str = Body(...),
+    summary_text: Optional[str] = Body(None),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload approval document files to Google Drive after record creation
+    
+    Path: {ship_name}/ISM-ISPS-MLC/Approval Document/
+    - Original file and summary file in SAME folder
+    
+    Args:
+        document_id: Document ID
+        file_content: Base64 encoded file content
+        filename: Original filename
+        content_type: File MIME type
+        summary_text: Optional summary text for summary file
+        
+    Returns:
+        dict: Upload result
+            {
+                "success": true,
+                "message": "...",
+                "document": ApprovalDocumentResponse,
+                "original_file_id": str,
+                "summary_file_id": str,
+                "summary_error": str (if summary upload failed)
+            }
+    """
+    try:
+        result = await ApprovalDocumentService.upload_files(
+            document_id=document_id,
+            file_content=file_content,
+            filename=filename,
+            content_type=content_type,
+            summary_text=summary_text,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading approval document files: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
