@@ -236,10 +236,10 @@ async def upload_audit_report_files(
     try:
         result = await AuditReportService.upload_files(
             report_id=report_id,
-            file_content=file_content,
-            filename=filename,
-            content_type=content_type,
-            summary_text=summary_text,
+            file_content=request.file_content,
+            filename=request.filename,
+            content_type=request.content_type,
+            summary_text=request.summary_text,
             current_user=current_user
         )
         
