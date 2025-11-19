@@ -484,17 +484,11 @@ class AuditReportAnalyzeService:
                 logger.info(f"   📋 Merged Audit Name: '{merged_fields.get('audit_report_name', '')[:50]}'")
                 logger.info(f"   📝 Merged Audit Type: '{merged_fields.get('audit_type', '')}'")
             else:
-                logger.error("❌ No chunks processed successfully")
-                analysis_result['audit_report_name'] = filename.replace('.pdf', '').replace('_', ' ')
-                analysis_result['note'] = "All chunks failed to process. Manual review required."
-                analysis_result['_split_info'] = {
-                    'was_split': True,
-                    'total_pages': total_pages,
-                    'chunks_count': len(chunks),
-                    'processed_chunks': len(chunks_to_process),
-                    'successful_chunks': 0,
-                    'failed_chunks': len(chunks_to_process)
-                }
+                logger.error("❌ No chunks processed successfully - All chunks failed")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Failed to process large PDF ({total_pages} pages). All {len(chunks_to_process)} chunks failed to process. The file may be corrupted or unreadable. Please check the file and try again."
+                )
             
         except Exception as split_error:
             logger.error(f"❌ Large PDF processing failed: {split_error}")
