@@ -1028,7 +1028,7 @@ const IsmIspsMLc = () => {
     try {
       // Update status to 'processing'
       setAuditReportFileStatusMap(prev => ({ ...prev, [fileName]: 'processing' }));
-      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 10 }));
+      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 5 }));
       
       // Step 1: AI Analysis with validation check
       // Use 'analyzing' to match BatchProcessingModal expectation
@@ -1036,10 +1036,16 @@ const IsmIspsMLc = () => {
         ...prev, 
         [fileName]: 'analyzing' 
       }));
+
+      // Smooth progress updates during analysis
+      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 15 }));
       
       // Batch mode: WITH validation check (NO auto-retry)
       let analysisResponse;
       let data;
+
+      // Progress update: Preparing analysis
+      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 20 }));
       
       try {
         analysisResponse = await auditReportService.analyzeFile(
@@ -1048,6 +1054,9 @@ const IsmIspsMLc = () => {
           false // Check validation in batch mode
         );
         data = analysisResponse.data || analysisResponse;
+        
+        // Progress update: Analysis received
+        setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 35 }));
       } catch (apiError) {
         // API call failed - check if it's validation error in response
         console.error(`API call failed for ${fileName}:`, apiError);
