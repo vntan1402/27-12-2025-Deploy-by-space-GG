@@ -18,6 +18,7 @@ class AuditReportBase(BaseModel):
     next_audit_date: Optional[Union[str, datetime]] = None
     findings_count: Optional[int] = None
     nc_count: Optional[int] = None
+    original_filename: Optional[str] = None  # Store original PDF filename for re-extraction
 
 class AuditReportCreate(AuditReportBase):
     pass
