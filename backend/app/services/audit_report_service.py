@@ -401,10 +401,16 @@ class AuditReportService:
                     
                     if summary_result.get('success'):
                         audit_report_summary_file_id = summary_result.get('file_id')
-                        logger.info(f"✅ Summary file uploaded successfully: {audit_report_summary_file_id}")
+                        if audit_report_summary_file_id:
+                            logger.info(f"✅ Summary file uploaded successfully: {audit_report_summary_file_id}")
+                        else:
+                            logger.error(f"❌ CRITICAL: summary_result success=True but file_id is None!")
+                            logger.error(f"   GDrive response: {summary_result}")
+                            summary_error = "Summary upload returned success but no file_id"
                     else:
                         summary_error = f"Summary upload failed: {summary_result.get('message')}"
                         logger.warning(f"⚠️ {summary_error}")
+                        logger.warning(f"   GDrive response: {summary_result}")
                         logger.warning(f"   Report will be created without summary file icon")
                         
                 except Exception as summary_exc:
