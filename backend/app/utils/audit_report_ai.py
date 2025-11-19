@@ -237,26 +237,62 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
             logger.warning("⚠️ Could not determine audit_type from any source")
         
         # 3. Extract report_form from filename (PRIORITY 1)
-        # Backend V1 lines 7176-7232
+        # Backend V1 lines 7176-7232 - EXACT IMPLEMENTATION
         if filename:
             filename_form_patterns = [
-                r'\((\d{2}[-/]\d{2,3})\)',           # (07-23), (02-19)
-                r'[A-Z]{2,4}\s*\((\d{2}[-/]\d{2,3})\)',  # CG (02-19), ISM (07-23)
-                r'Form[_\s]+([A-Z0-9\-\.]+)',        # Form 7.10, Form_ISM-01
-                r'[_\-\s](\d{2}[-/]\d{2,3})[_\-\.\s]'    # _07-23_, -02-19.
+                # Pattern 1: Long form names with parentheses (NEW - Priority)
+                # e.g., "ISPS-Code-Interim-Check List (06-23) TRUONG MINH LUCKY" → "ISPS-Code-Interim-Check List (06-23)"
+                r'([A-Z][A-Za-z0-9\-\s]+)\s*\(([0-9]{2}[-/][0-9]{2,3})\)',
+                
+                # Pattern 2: Short abbreviation with parentheses
+                # e.g., "CG (02-19).pdf" → "CG (02-19)"
+                r'([A-Z]{1,3})\s*\(([0-9]{2}[-/][0-9]{2,3})\)',
+                
+                # Pattern 3: Short abbreviation with space
+                # e.g., "CG 02-19" → "CG (02-19)"
+                r'([A-Z]{1,3})\s+([0-9]{2}[-/][0-9]{2,3})',
+                
+                # Pattern 4: Short abbreviation with dash/underscore
+                # e.g., "CG-02-19" → "CG (02-19)"
+                r'([A-Z]{1,3})[-_]([0-9]{2}[-/][0-9]{2,3})',
+                
+                # Pattern 5: Just parentheses (Audit-specific)
+                # e.g., "(07-230)" → "(07-230)"
+                r'\(([0-9]{2}[-/][0-9]{2,3})\)',
             ]
             
-            filename_form = None
+            extracted_form = None
             for pattern in filename_form_patterns:
-                match = re.search(pattern, filename, re.IGNORECASE)
+                match = re.search(pattern, filename)
                 if match:
-                    filename_form = match.group(1)
+                    if len(match.groups()) > 1:
+                        # Pattern with 2 groups
+                        abbrev = match.group(1).strip()
+                        date_part = match.group(2).replace('/', '-')
+                        
+                        # Clean up abbrev: capitalize properly and remove trailing spaces
+                        # Handle both short (e.g., "CG") and long forms (e.g., "ISPS-Code-Interim-Check List")
+                        abbrev_cleaned = abbrev.strip()
+                        
+                        # For long forms, remove common ship name patterns at the end
+                        # e.g., "ISPS-Code-Interim-Check List TRUONG MINH" → "ISPS-Code-Interim-Check List"
+                        ship_name_patterns = [
+                            r'\s+[A-Z][A-Z\s]+$',  # All caps words at end (likely ship names)
+                        ]
+                        for ship_pattern in ship_name_patterns:
+                            abbrev_cleaned = re.sub(ship_pattern, '', abbrev_cleaned)
+                        
+                        abbrev_cleaned = abbrev_cleaned.strip()
+                        extracted_form = f"{abbrev_cleaned} ({date_part})"
+                    else:
+                        # Pattern with 1 group - just parentheses (e.g., (07-230))
+                        date_part = match.group(1).replace('/', '-')
+                        extracted_form = f"({date_part})"
+                    
+                    # PRIORITY 1: Filename overrides AI extraction
+                    extracted_data['report_form'] = extracted_form
+                    logger.info(f"✅ [PRIORITY 1] Extracted report_form from filename: '{extracted_form}' (overriding AI: '{extracted_data.get('report_form', 'none')}')")
                     break
-            
-            # Override AI extraction if filename has clear pattern
-            if filename_form and (not extracted_data.get('report_form') or len(extracted_data.get('report_form', '')) < 5):
-                logger.info(f"✅ Extracted report_form from filename: '{filename_form}' (overriding AI: '{extracted_data.get('report_form', '')}')")
-                extracted_data['report_form'] = filename_form
         
         # 4. Normalize issued_by abbreviations
         # Backend V1 lines 7234-7273
