@@ -293,11 +293,6 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                     extracted_data['report_form'] = filename_extracted_form
                     logger.info(f"✅ [PRIORITY 1] Extracted report_form from filename: '{filename_extracted_form}'")
                     break
-            else:
-                # No pattern matched in filename
-                pass
-                logger.info(f"   Using AI extracted report_form: '{extracted_data.get('report_form', 'none')}'")
-        
         
         # Decide which report_form to use
         ai_report_form = extracted_data.get('report_form', '')
