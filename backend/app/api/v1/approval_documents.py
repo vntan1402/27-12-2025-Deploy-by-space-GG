@@ -111,16 +111,59 @@ async def check_duplicate_approval_document(
         logger.error(f"❌ Error checking duplicate: {e}")
         raise HTTPException(status_code=500, detail="Failed to check duplicate")
 
-@router.post("/analyze")
+@router.post("/analyze-file")
 async def analyze_approval_document_file(
-    file: UploadFile = File(...),
-    ship_id: Optional[str] = None,
+    ship_id: str = Form(...),
+    document_file: UploadFile = File(...),
+    bypass_validation: str = Form("false"),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Analyze approval document file using AI (Editor+ role required)"""
-    # TODO: Implement AI analysis for approval documents
-    return {
-        "success": True,
-        "message": "Approval document analysis not yet implemented",
-        "analysis": None
-    }
+    """
+    Analyze approval document file using AI (Editor+ role required)
+    
+    Process:
+    1. Validate PDF file (magic bytes, extension, max 50MB)
+    2. Check if needs splitting (>15 pages)
+    3. Process with Document AI (parallel chunks if large)
+    4. Extract fields with System AI
+    5. Normalize approved_by
+    6. Return analysis + base64 file for upload
+    
+    Returns:
+        dict: Analysis result with extracted fields + metadata
+            {
+                "approval_document_name": str,
+                "approval_document_no": str,
+                "approved_by": str (normalized),
+                "approved_date": str (YYYY-MM-DD),
+                "note": str,
+                "confidence_score": float,
+                "processing_method": str,
+                "_filename": str,
+                "_file_content": str (base64),
+                "_content_type": str,
+                "_summary_text": str,
+                "_split_info": dict (if large file)
+            }
+    """
+    try:
+        from app.services.approval_document_analyze_service import ApprovalDocumentAnalyzeService
+        
+        bypass = bypass_validation.lower() == "true"
+        
+        result = await ApprovalDocumentAnalyzeService.analyze_file(
+            file=document_file,
+            ship_id=ship_id,
+            bypass_validation=bypass,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error analyzing approval document: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
