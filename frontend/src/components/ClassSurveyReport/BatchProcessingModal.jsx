@@ -205,6 +205,19 @@ export const BatchProcessingModal = ({
                     {subStatus}
                   </div>
                 )}
+                
+                {/* Re-upload button for failed files */}
+                {status === 'error' && onRetryFile && (
+                  <button
+                    onClick={() => onRetryFile(filename)}
+                    className="mt-2 w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    <span>{language === 'vi' ? 'Chọn File Khác' : 'Choose Different File'}</span>
+                  </button>
+                )}
               </div>
             );
           })}
