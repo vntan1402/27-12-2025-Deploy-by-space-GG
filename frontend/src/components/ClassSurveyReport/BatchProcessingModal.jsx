@@ -20,14 +20,14 @@ export const BatchProcessingModal = ({
 
   if (!isOpen) return null;
 
-  // Minimized floating widget
+  // Minimized floating widget (Enhanced with smoother animations)
   if (isMinimized) {
     return (
       <div 
         onClick={onRestore}
-        className="fixed bottom-6 right-6 z-[9999] cursor-pointer group"
+        className="fixed bottom-6 right-6 z-[9999] cursor-pointer group animate-fade-in"
       >
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all hover:scale-105 p-4 min-w-[280px]">
+        <div className="bg-gradient-to-r from-purple-600 via-purple-700 to-pink-600 text-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 p-4 min-w-[280px]">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="bg-white bg-opacity-20 rounded-full p-2">
@@ -43,10 +43,17 @@ export const BatchProcessingModal = ({
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="bg-white bg-opacity-20 rounded-full p-1.5 group-hover:bg-opacity-30 transition-all">
+              <div className="bg-white bg-opacity-20 rounded-full p-1.5 group-hover:bg-opacity-30 transition-all duration-200">
                 <span className="text-sm">↑</span>
               </div>
             </div>
+          </div>
+          {/* Mini progress bar */}
+          <div className="mt-3 w-full bg-white bg-opacity-20 rounded-full h-1.5 overflow-hidden">
+            <div 
+              className="bg-white h-1.5 rounded-full transition-all duration-700 ease-out shadow-sm"
+              style={{ width: `${(progress.current / progress.total) * 100}%` }}
+            ></div>
           </div>
           <div className="mt-2 text-xs text-purple-100">
             {language === 'vi' ? 'Click để xem tiến trình' : 'Click to view progress'}
