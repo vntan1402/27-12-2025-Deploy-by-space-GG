@@ -410,7 +410,7 @@ class ApprovalDocumentService:
                     summary_filename = f"{base_name}_Summary.txt"
                     
                     # Upload to SAME folder as original file
-                    summary_folder_path = f"{ship_name}/ISM-ISPS-MLC/Approval Document"
+                    summary_folder_path = f"{ship_name}/ISM - ISPS - MLC/Approval Document"
                     
                     logger.info(f"📤 Uploading summary to: {summary_folder_path}/{summary_filename}")
                     
