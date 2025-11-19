@@ -141,34 +141,121 @@ class AuditReportService:
         return AuditReportResponse(**updated_report)
     
     @staticmethod
-    async def delete_audit_report(report_id: str, current_user: UserResponse) -> dict:
-        """Delete audit report"""
+    async def delete_audit_report(
+        report_id: str,
+        background_tasks: BackgroundTasks,
+        current_user: UserResponse
+    ) -> dict:
+        """
+        Delete audit report with background GDrive cleanup
+        
+        Process:
+        1. Get report and verify access
+        2. Delete from database immediately
+        3. Schedule background GDrive file deletion (if file IDs exist)
+        
+        Based on Approval Document pattern
+        """
+        from app.utils.background_tasks import delete_file_background
+        from app.services.gdrive_service import GDriveService
+        
+        # Get report
         report = await mongo_db.find_one(AuditReportService.collection_name, {"id": report_id})
         if not report:
             raise HTTPException(status_code=404, detail="Audit Report not found")
         
+        # Verify company access
+        company_id = current_user.company
+        ship_id = report.get("ship_id")
+        if ship_id:
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if ship and ship.get("company") != company_id:
+                raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Extract file info before deleting from DB
+        audit_report_file_id = report.get("audit_report_file_id")
+        audit_report_summary_file_id = report.get("audit_report_summary_file_id")
+        report_name = report.get("audit_report_name", "Unknown")
+        
+        # Delete from database immediately
         await mongo_db.delete(AuditReportService.collection_name, {"id": report_id})
+        logger.info(f"✅ Audit Report deleted from DB: {report_id} ({report_name})")
         
-        logger.info(f"✅ Audit Report deleted: {report_id}")
+        # Schedule background GDrive deletion
+        files_scheduled = 0
+        background_deletion = False
         
-        return {"message": "Audit Report deleted successfully"}
-    
-    @staticmethod
-    async def bulk_delete_audit_reports(request: BulkDeleteAuditReportRequest, current_user: UserResponse) -> dict:
-        """Bulk delete audit reports"""
-        deleted_count = 0
-        for report_id in request.document_ids:
-            try:
-                await AuditReportService.delete_audit_report(report_id, current_user)
-                deleted_count += 1
-            except:
-                continue
+        if background_tasks and company_id:
+            files_to_delete = []
+            
+            if audit_report_file_id:
+                files_to_delete.append(("original", audit_report_file_id))
+                logger.info(f"📋 Found original file to delete: {audit_report_file_id}")
+            
+            if audit_report_summary_file_id:
+                files_to_delete.append(("summary", audit_report_summary_file_id))
+                logger.info(f"📋 Found summary file to delete: {audit_report_summary_file_id}")
+            
+            if files_to_delete:
+                for file_type, file_id_val in files_to_delete:
+                    background_tasks.add_task(
+                        delete_file_background,
+                        file_id_val,
+                        company_id,
+                        "audit_report",
+                        f"{report_name} ({file_type})",
+                        GDriveService
+                    )
+                    logger.info(f"📋 Scheduled background deletion for {file_type} file: {file_id_val}")
+                    files_scheduled += 1
+                
+                background_deletion = True
         
-        logger.info(f"✅ Bulk deleted {deleted_count} audit reports")
+        message = "Audit Report deleted successfully"
+        if background_deletion:
+            message += f". File deletion in progress ({files_scheduled} file(s))..."
         
         return {
+            "success": True,
+            "message": message,
+            "report_id": report_id,
+            "background_deletion": background_deletion,
+            "files_scheduled": files_scheduled
+        }
+    
+    @staticmethod
+    async def bulk_delete_audit_reports(
+        request: BulkDeleteAuditReportRequest,
+        background_tasks: BackgroundTasks,
+        current_user: UserResponse
+    ) -> dict:
+        """
+        Bulk delete audit reports with background GDrive cleanup
+        Calls delete_audit_report for each report
+        """
+        deleted_count = 0
+        files_scheduled = 0
+        
+        for report_id in request.document_ids:
+            try:
+                result = await AuditReportService.delete_audit_report(
+                    report_id,
+                    background_tasks,
+                    current_user
+                )
+                deleted_count += 1
+                files_scheduled += result.get("files_scheduled", 0)
+            except Exception as e:
+                logger.error(f"Failed to delete audit report {report_id}: {e}")
+                continue
+        
+        logger.info(f"✅ Bulk deleted {deleted_count} audit reports, scheduled {files_scheduled} file deletions")
+        
+        return {
+            "success": True,
             "message": f"Successfully deleted {deleted_count} audit reports",
-            "deleted_count": deleted_count
+            "deleted_count": deleted_count,
+            "files_scheduled": files_scheduled
         }
     
     @staticmethod
