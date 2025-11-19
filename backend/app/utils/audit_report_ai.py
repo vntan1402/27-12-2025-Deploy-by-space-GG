@@ -293,6 +293,35 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                     
                     logger.info(f"📋 Found report_form pattern in filename: '{filename_extracted_form}'")
                     break
+            
+            # FALLBACK: If no (XX-XX) pattern found, extract from filename directly
+            # Remove .pdf, _1, _2, etc. and use cleaned filename as report_form
+            if not filename_extracted_form and filename:
+                # Clean filename: remove extension and common suffixes
+                cleaned_name = filename
+                
+                # Remove .pdf extension
+                if cleaned_name.lower().endswith('.pdf'):
+                    cleaned_name = cleaned_name[:-4]
+                
+                # Remove common suffixes like _1, _2, _Ship, etc.
+                # But keep meaningful parts like VR, NCR, Audit plan
+                suffixes_to_remove = [
+                    r'\s*_\d+$',           # Remove _1, _2, _3 at end
+                    r'\s+Ship$',           # Remove "Ship" at end
+                    r'\s+TRUONG\s+MINH.*$', # Remove ship names
+                    r'\s+[A-Z][A-Z\s]+$',  # Remove all caps at end (ship names)
+                ]
+                
+                for suffix_pattern in suffixes_to_remove:
+                    cleaned_name = re.sub(suffix_pattern, '', cleaned_name, flags=re.IGNORECASE)
+                
+                cleaned_name = cleaned_name.strip()
+                
+                # Only use if result is not empty and reasonable length
+                if cleaned_name and len(cleaned_name) >= 3:
+                    filename_extracted_form = cleaned_name
+                    logger.info(f"📋 [FALLBACK] Extracted report_form from filename (no pattern): '{filename_extracted_form}'")
         
         # Decide which report_form to use (Priority: Filename > AI)
         ai_report_form = extracted_data.get('report_form', '')
