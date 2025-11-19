@@ -233,6 +233,54 @@ export const AuditReportList = ({
     setContextMenu({ show: false, x: 0, y: 0, report: null });
   };
 
+  const handleDownloadFile = async (report) => {
+    if (!report.audit_report_file_id) {
+      toast.warning(language === 'vi' ? 'Không có file' : 'No file available');
+      setContextMenu({ show: false, x: 0, y: 0, report: null });
+      return;
+    }
+
+    try {
+      // Use backend endpoint to download file
+      const downloadUrl = `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.audit_report_file_id}/download`;
+      
+      const response = await fetch(downloadUrl, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      // Get blob from response
+      const blob = await response.blob();
+      
+      // Create filename from audit report info
+      const filename = report.audit_report_no 
+        ? `${report.audit_report_no}_${report.audit_report_name || 'audit_report'}.pdf`
+        : `${report.audit_report_name || 'audit_report'}.pdf`;
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success(language === 'vi' ? '✅ Đã tải xuống file' : '✅ File downloaded');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error(language === 'vi' ? '❌ Lỗi khi tải xuống file' : '❌ Error downloading file');
+    }
+
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+  };
+
   const handleCopyLink = async (report) => {
     if (!report.audit_report_file_id) {
       toast.warning(language === 'vi' ? 'Không có file' : 'No file available');
