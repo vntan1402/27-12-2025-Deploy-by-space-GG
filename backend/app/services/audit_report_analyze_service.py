@@ -346,8 +346,11 @@ class AuditReportAnalyzeService:
                 
                 logger.info("✅ Audit report file analyzed successfully")
             else:
-                logger.warning("⚠️ AI analysis returned no data, using fallback")
-                analysis_result['audit_report_name'] = filename.replace('.pdf', '').replace('_', ' ')
+                logger.error("❌ Document AI analysis failed - No data returned")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Document AI analysis failed. The file may be corrupted or unreadable. Please check the file and try again."
+                )
                 analysis_result['note'] = "AI analysis unavailable. Manual review required."
                 
         except Exception as ai_error:
