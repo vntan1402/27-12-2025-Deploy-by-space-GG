@@ -293,6 +293,10 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                     extracted_data['report_form'] = extracted_form
                     logger.info(f"✅ [PRIORITY 1] Extracted report_form from filename: '{extracted_form}' (overriding AI: '{extracted_data.get('report_form', 'none')}')")
                     break
+            else:
+                # No pattern matched in filename
+                logger.info(f"🔍 No report_form pattern found in filename: {filename}")
+                logger.info(f"   Using AI extracted report_form: '{extracted_data.get('report_form', 'none')}'")
         
         # 4. Normalize issued_by abbreviations
         # Backend V1 lines 7234-7273
