@@ -1105,7 +1105,7 @@ const IsmIspsMLc = () => {
       result.surveyReportName = analysis.audit_report_name || file.name;
       result.surveyReportNo = analysis.audit_report_no || '';
       
-      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 40 }));
+      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 45 }));
 
       // Step 2: Create report record
       // Keep 'analyzing' during record creation (part of same phase)
@@ -1113,6 +1113,9 @@ const IsmIspsMLc = () => {
         ...prev, 
         [fileName]: 'analyzing' 
       }));
+      
+      // Progress: Preparing database record
+      setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 50 }));
 
       const reportData = {
         ship_id: selectedShip.id,
