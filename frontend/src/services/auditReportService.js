@@ -66,21 +66,15 @@ export const auditReportService = {
 
   /**
    * Upload audit report files to Google Drive
-   * Fixed: Changed to use FormData instead of JSON body to match backend
+   * Using JSON body (not FormData) to match backend Form(...) signature
    */
   uploadFiles: async (reportId, fileContent, filename, contentType, summaryText = null) => {
-    const formData = new FormData();
-    formData.append('file_content', fileContent);
-    formData.append('filename', filename);
-    formData.append('content_type', contentType);
-    if (summaryText) {
-      formData.append('summary_text', summaryText);
-    }
-    
-    return await api.post(`/api/audit-reports/${reportId}/upload-files`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
+    return await api.post(`/api/audit-reports/${reportId}/upload-files`, {
+      file_content: fileContent,
+      filename: filename,
+      content_type: contentType,
+      summary_text: summaryText
+    }, {
       timeout: API_TIMEOUT.FILE_UPLOAD,
     });
   }
