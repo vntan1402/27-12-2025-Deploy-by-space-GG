@@ -156,6 +156,20 @@ def merge_analysis_results(
             'name': 'audit_report_name',
             'no': 'audit_report_no',
             'additional_fields': ['auditor_name']
+        },
+        'approval_document': {
+            'name': 'approval_document_name',
+            'no': 'approval_document_no',
+            'issued_by_field': 'approved_by',
+            'issued_date_field': 'approved_date',
+            'additional_fields': []
+        },
+        'drawing_manual': {
+            'name': 'document_name',
+            'no': 'document_no',
+            'issued_by_field': 'approved_by',
+            'issued_date_field': 'approved_date',
+            'additional_fields': []
         }
     }
     
