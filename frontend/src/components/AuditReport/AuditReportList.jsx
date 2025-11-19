@@ -922,8 +922,6 @@ export const AuditReportList = ({
                   <td className="border border-gray-300 px-4 py-2">
                     <div className="flex items-center gap-2">
                       <span>{report.audit_report_name}</span>
-                      {/* Debug: Log file_id to console */}
-                      {console.log('Audit Report:', report.audit_report_name, 'File ID:', report.audit_report_file_id, 'Summary ID:', report.audit_report_summary_file_id)}
                       {report.audit_report_file_id && (
                         <span 
                           className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
