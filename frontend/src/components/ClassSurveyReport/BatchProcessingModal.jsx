@@ -14,6 +14,7 @@ export const BatchProcessingModal = ({
   fileProgressMap,
   fileStatusMap,
   fileSubStatusMap,
+  onRetryFile, // Optional callback to retry failed file
   title // Optional custom title
 }) => {
   const { language } = useAuth();
