@@ -160,6 +160,7 @@ class AuditReportAnalyzeService:
                 "status": "Valid",
                 "confidence_score": 0.0,
                 "processing_method": "clean_analysis",
+                "original_filename": filename,  # Save for report_form re-extraction
                 # Internal data for upload
                 "_file_content": base64.b64encode(file_content).decode('utf-8'),
                 "_filename": filename,
