@@ -360,7 +360,7 @@ def create_audit_report_extraction_prompt(summary_text: str, filename: str = "")
     "report_form": "**CRITICAL** - Form code/number (e.g., '07-23', 'CG (02-19)', 'ISM-AUD-01')",
     "audit_report_no": "**IMPORTANT** - Report number, reference, or authorization number",
     "issued_by": "**IMPORTANT** - Organization that issued/conducted the audit",
-    "audit_date": "Date of audit (YYYY-MM-DD format)",
+    "audit_date": "**CRITICAL** - Date of audit in FULL TEXT format (e.g., 'November 7, 2025' or '7 November 2025') - NOT numeric format like '11/7/2025'",
     "auditor_name": "Name(s) of auditor(s) - NOT the organization",
     "ship_name": "Name of ship being audited",
     "ship_imo": "IMO number (7 digits only, no 'IMO:' prefix)",
