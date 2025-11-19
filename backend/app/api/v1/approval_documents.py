@@ -74,11 +74,17 @@ async def update_approval_document(
 @router.delete("/{doc_id}")
 async def delete_approval_document(
     doc_id: str,
+    background_tasks: BackgroundTasks,
+    background: bool = Query(True),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Delete Approval Document (Editor+ role required)"""
+    """Delete Approval Document with optional background GDrive cleanup (Editor+ role required)"""
     try:
-        return await ApprovalDocumentService.delete_approval_document(doc_id, current_user)
+        return await ApprovalDocumentService.delete_approval_document(
+            doc_id,
+            current_user,
+            background_tasks if background else None
+        )
     except HTTPException:
         raise
     except Exception as e:
