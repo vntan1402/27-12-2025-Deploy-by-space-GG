@@ -124,6 +124,7 @@ const IsmIspsMLc = () => {
   const [auditReportFileProgressMap, setAuditReportFileProgressMap] = useState({});
   const [auditReportFileStatusMap, setAuditReportFileStatusMap] = useState({});
   const [auditReportFileSubStatusMap, setAuditReportFileSubStatusMap] = useState({});
+  const [auditReportFileObjectsMap, setAuditReportFileObjectsMap] = useState({}); // Store file objects for retry
   const [auditReportBatchResults, setAuditReportBatchResults] = useState([]);
   const [showAuditReportBatchResults, setShowAuditReportBatchResults] = useState(false);
   const [isAuditReportBatchModalMinimized, setIsAuditReportBatchModalMinimized] = useState(false);
