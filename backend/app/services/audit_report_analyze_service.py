@@ -495,8 +495,10 @@ class AuditReportAnalyzeService:
         except Exception as split_error:
             logger.error(f"❌ Large PDF processing failed: {split_error}")
             logger.error(traceback.format_exc())
-            analysis_result['audit_report_name'] = filename.replace('.pdf', '').replace('_', ' ')
-            analysis_result['note'] = f"PDF splitting/processing error: {str(split_error)[:100]}"
+            raise HTTPException(
+                status_code=500,
+                detail=f"Large PDF processing failed: {str(split_error)}. Please check the file and try again."
+            )
         
         return analysis_result
     
