@@ -1,8 +1,9 @@
 import uuid
 import logging
-from typing import List, Optional
+import base64
+from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
-from fastapi import HTTPException
+from fastapi import HTTPException, BackgroundTasks
 
 from app.models.audit_report import AuditReportCreate, AuditReportUpdate, AuditReportResponse, BulkDeleteAuditReportRequest
 from app.models.user import UserResponse
