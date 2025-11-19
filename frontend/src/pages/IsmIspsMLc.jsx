@@ -1148,6 +1148,9 @@ const IsmIspsMLc = () => {
 
       // Only upload if file content is available
       if (analysis._file_content && analysis._filename) {
+        // Progress: Uploading to Google Drive
+        setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 75 }));
+        
         // Use rate limiter to prevent too many concurrent uploads
         await gdriveUploadLimiter.execute(async () => {
           await auditReportService.uploadFiles(
@@ -1159,6 +1162,9 @@ const IsmIspsMLc = () => {
           );
         });
         result.fileUploaded = true;
+        
+        // Progress: Upload complete
+        setAuditReportFileProgressMap(prev => ({ ...prev, [fileName]: 90 }));
       }
 
       // Success!
