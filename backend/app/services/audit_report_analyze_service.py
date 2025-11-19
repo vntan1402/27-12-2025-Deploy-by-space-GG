@@ -223,8 +223,8 @@ class AuditReportAnalyzeService:
             
             # Ship validation (optional)
             if not bypass_validation:
-                extracted_ship_name = analysis_result.get('ship_name', '').strip()
-                extracted_ship_imo = analysis_result.get('ship_imo', '').strip()
+                extracted_ship_name = (analysis_result.get('ship_name') or '').strip()
+                extracted_ship_imo = (analysis_result.get('ship_imo') or '').strip()
                 
                 if extracted_ship_name or extracted_ship_imo:
                     validation_result = AuditReportAnalyzeService._validate_ship_info(
