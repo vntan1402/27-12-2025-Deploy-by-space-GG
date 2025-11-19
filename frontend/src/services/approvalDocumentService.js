@@ -41,8 +41,8 @@ const approvalDocumentService = {
 
   // Bulk delete documents
   bulkDelete: async (documentIds, background = true) => {
-    const response = await api.delete(`/api/approval-documents/bulk-delete?background=${background}`, {
-      data: { document_ids: documentIds }
+    const response = await api.post(`/api/approval-documents/bulk-delete?background=${background}`, {
+      document_ids: documentIds
     });
     return response;
   },
