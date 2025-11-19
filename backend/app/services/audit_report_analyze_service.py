@@ -325,9 +325,11 @@ class AuditReportAnalyzeService:
                             logger.info(f"   📄 Extracted Report Form: '{analysis_result.get('report_form')}'")
                             logger.info(f"   🔢 Extracted Audit No: '{analysis_result.get('audit_report_no')}'")
                         else:
-                            logger.warning("⚠️ No fields extracted from summary, using fallback")
-                            analysis_result['audit_report_name'] = filename.replace('.pdf', '').replace('_', ' ')
-                            analysis_result['note'] = "AI field extraction incomplete"
+                            logger.error("❌ No fields extracted from summary - AI extraction returned empty results")
+                            raise HTTPException(
+                                status_code=400,
+                                detail="AI could not extract any fields from the document. The document format may be unusual or the content is unreadable. Please check the file and try again."
+                            )
                     
                     except Exception as extraction_error:
                         logger.error(f"❌ Field extraction failed: {extraction_error}")
