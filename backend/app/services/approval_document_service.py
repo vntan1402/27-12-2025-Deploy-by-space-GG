@@ -107,17 +107,93 @@ class ApprovalDocumentService:
         return ApprovalDocumentResponse(**updated_doc)
     
     @staticmethod
-    async def delete_approval_document(doc_id: str, current_user: UserResponse) -> dict:
-        """Delete approval document"""
+    async def delete_approval_document(
+        doc_id: str,
+        current_user: UserResponse,
+        background_tasks: Optional[BackgroundTasks] = None
+    ) -> dict:
+        """
+        Delete approval document with optional background GDrive cleanup
+        
+        Process:
+        1. Get document and verify access
+        2. Delete from database immediately
+        3. Schedule background GDrive file deletion (if file IDs exist)
+        
+        Args:
+            doc_id: Document ID
+            current_user: Current user
+            background_tasks: FastAPI BackgroundTasks (for async deletion)
+            
+        Returns:
+            dict: Deletion result with background status
+        """
+        from app.utils.background_tasks import delete_file_background
+        from app.services.gdrive_service import GDriveService
+        
+        # Get document
         doc = await mongo_db.find_one(ApprovalDocumentService.collection_name, {"id": doc_id})
         if not doc:
             raise HTTPException(status_code=404, detail="Approval Document not found")
         
+        # Verify company access
+        company_id = current_user.company
+        ship_id = doc.get("ship_id")
+        if ship_id:
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if ship and ship.get("company") != company_id:
+                raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Extract file info before deleting from DB
+        file_id = doc.get("file_id")
+        summary_file_id = doc.get("summary_file_id")
+        document_name = doc.get("approval_document_name", "Unknown")
+        
+        # Delete from database immediately
         await mongo_db.delete(ApprovalDocumentService.collection_name, {"id": doc_id})
+        logger.info(f"✅ Approval Document deleted from DB: {doc_id} ({document_name})")
         
-        logger.info(f"✅ Approval Document deleted: {doc_id}")
+        # Schedule background GDrive deletion
+        files_scheduled = 0
+        background_deletion = False
         
-        return {"message": "Approval Document deleted successfully"}
+        if background_tasks and company_id:
+            files_to_delete = []
+            
+            if file_id:
+                files_to_delete.append(("original", file_id))
+                logger.info(f"📋 Found original file to delete: {file_id}")
+            
+            if summary_file_id:
+                files_to_delete.append(("summary", summary_file_id))
+                logger.info(f"📋 Found summary file to delete: {summary_file_id}")
+            
+            if files_to_delete:
+                for file_type, file_id_val in files_to_delete:
+                    background_tasks.add_task(
+                        delete_file_background,
+                        file_id_val,
+                        company_id,
+                        "approval_document",
+                        f"{document_name} ({file_type})",
+                        GDriveService
+                    )
+                    logger.info(f"📋 Scheduled background deletion for {file_type} file: {file_id_val}")
+                    files_scheduled += 1
+                
+                background_deletion = True
+        
+        message = "Approval Document deleted successfully"
+        if background_deletion:
+            message += f". File deletion in progress ({files_scheduled} file(s))..."
+        
+        return {
+            "success": True,
+            "message": message,
+            "document_id": doc_id,
+            "background_deletion": background_deletion,
+            "files_scheduled": files_scheduled
+        }
     
     @staticmethod
     async def bulk_delete_approval_documents(request: BulkDeleteApprovalDocumentRequest, current_user: UserResponse) -> dict:
