@@ -945,20 +945,20 @@ export const AuditReportList = ({
                     </div>
                   </td>
 
-                  {/* Audit Report Name with File Icons - HIDDEN */}
-                  {/* <td className="border border-gray-300 px-4 py-2">
+                  {/* Audit Report Name with File Icons */}
+                  <td className="border border-gray-300 px-4 py-2">
                     <div className="flex items-center gap-2">
                       <span>{report.audit_report_name}</span>
                       {report.audit_report_file_id && (
                         <span 
                           className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
                           title={language === 'vi' 
-                            ? `📄 File gốc\n📁 Đường dẫn: ${selectedShip?.name}/ISM-ISPS-MLC/Audit Report/` 
-                            : `📄 Original file\n📁 Path: ${selectedShip?.name}/ISM-ISPS-MLC/Audit Report/`
+                            ? `📄 File gốc\n📁 Đường dẫn: ${selectedShip?.name}/ISM - ISPS - MLC/Audit Report/` 
+                            : `📄 Original file\n📁 Path: ${selectedShip?.name}/ISM - ISPS - MLC/Audit Report/`
                           }
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`https://drive.google.com/file/d/${report.audit_report_file_id}/view`, '_blank');
+                            handleViewFile(report);
                           }}
                         >
                           📄
@@ -968,8 +968,8 @@ export const AuditReportList = ({
                         <span 
                           className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
                           title={language === 'vi' 
-                            ? `📋 File tóm tắt (Summary)\n📁 Đường dẫn: ${selectedShip?.name}/ISM-ISPS-MLC/Audit Report/` 
-                            : `📋 Summary file\n📁 Path: ${selectedShip?.name}/ISM-ISPS-MLC/Audit Report/`
+                            ? `📋 File tóm tắt (Summary)\n📁 Đường dẫn: ${selectedShip?.name}/ISM - ISPS - MLC/Audit Report/` 
+                            : `📋 Summary file\n📁 Path: ${selectedShip?.name}/ISM - ISPS - MLC/Audit Report/`
                           }
                           onClick={(e) => {
                             e.stopPropagation();
@@ -980,7 +980,7 @@ export const AuditReportList = ({
                         </span>
                       )}
                     </div>
-                  </td> */}
+                  </td>
 
                   {/* Audit Type */}
                   <td className="border border-gray-300 px-4 py-2">{report.audit_type || '-'}</td>
