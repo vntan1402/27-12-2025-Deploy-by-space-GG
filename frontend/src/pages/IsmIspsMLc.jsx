@@ -1911,6 +1911,7 @@ const IsmIspsMLc = () => {
           setAuditReportBatchResults([]);
         }}
         results={auditReportBatchResults}
+        onRetryFile={handleRetryFailedAuditReport}
         language={language}
       />
     </MainLayout>
