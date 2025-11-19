@@ -283,7 +283,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                             abbrev_cleaned = re.sub(ship_pattern, '', abbrev_cleaned)
                         
                         abbrev_cleaned = abbrev_cleaned.strip()
-                        extracted_form = f"{abbrev_cleaned} ({date_part})"
+                        filename_extracted_form = f"{abbrev_cleaned} ({date_part})"
                     else:
                         # Pattern with 1 group - just parentheses (e.g., (07-230))
                         date_part = match.group(1).replace('/', '-')
