@@ -359,7 +359,7 @@ class ApprovalDocumentAnalyzeService:
                 logger.info(f"📊 Processing {len(chunks_to_process)} chunks (~{sum(c.get('page_count', 0) for c in chunks_to_process)} pages), skipping ~{skipped_pages} pages")
             
             # Process chunks (reuse from drawing manuals)
-            from app.services.document_ai_service import DocumentAIService
+            from app.utils.document_ai_helper import analyze_document_with_document_ai
             
             chunk_results = []
             
@@ -372,7 +372,7 @@ class ApprovalDocumentAnalyzeService:
                     logger.info(f"🔄 Processing chunk {chunk_num}/{len(chunks_to_process)} (pages {page_range})...")
                     
                     # Analyze chunk with Document AI
-                    ai_analysis = await DocumentAIService.analyze_document(
+                    ai_analysis = await analyze_document_with_document_ai(
                         file_content=chunk_content,
                         filename=f"{filename}_chunk{chunk_num}",
                         content_type='application/pdf',
