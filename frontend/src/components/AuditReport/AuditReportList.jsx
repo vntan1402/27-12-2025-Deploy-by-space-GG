@@ -922,7 +922,12 @@ export const AuditReportList = ({
                   {/* Audit Report Name with File Icons */}
                   <td className="border border-gray-300 px-4 py-2">
                     <div className="flex items-center gap-2">
-                      <span>{report.audit_report_name}</span>
+                      <span 
+                        title={report.audit_report_name}
+                        className="cursor-help"
+                      >
+                        {formatAuditReportName(report.audit_report_name)}
+                      </span>
                       {report.audit_report_file_id && (
                         <span 
                           className="text-green-500 text-xs cursor-pointer hover:text-green-600" 
