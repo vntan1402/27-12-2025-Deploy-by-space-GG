@@ -295,7 +295,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                     break
             else:
                 # No pattern matched in filename
-                logger.info(f"🔍 No report_form pattern found in filename: {filename}")
+                pass
                 logger.info(f"   Using AI extracted report_form: '{extracted_data.get('report_form', 'none')}'")
         
         
