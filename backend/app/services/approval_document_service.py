@@ -154,3 +154,187 @@ class ApprovalDocumentService:
             "is_duplicate": existing is not None,
             "existing_id": existing.get("id") if existing else None
         }
+
+    
+    @staticmethod
+    async def upload_files(
+        document_id: str,
+        file_content: str,
+        filename: str,
+        content_type: str,
+        summary_text: Optional[str],
+        current_user: UserResponse
+    ) -> dict:
+        """
+        Upload approval document files to Google Drive
+        
+        Process:
+        1. Validate document exists
+        2. Verify company access
+        3. Decode base64 file content
+        4. Upload original file to: ShipName/ISM-ISPS-MLC/Approval Document/
+        5. Upload summary file (if summary_text provided)
+        6. Update document with file IDs
+        
+        Args:
+            document_id: Document ID
+            file_content: Base64 encoded file
+            filename: Original filename
+            content_type: MIME type
+            summary_text: Optional summary text
+            current_user: Current user
+            
+        Returns:
+            dict: Upload result with file IDs
+        """
+        try:
+            logger.info(f"📤 Starting file upload for approval document: {document_id}")
+            
+            # Validate document exists
+            document = await mongo_db.find_one(ApprovalDocumentService.collection_name, {"id": document_id})
+            if not document:
+                raise HTTPException(status_code=404, detail="Document not found")
+            
+            # Get company and ship info
+            company_id = current_user.company
+            if not company_id:
+                raise HTTPException(status_code=404, detail="Company not found")
+            
+            ship_id = document.get("ship_id")
+            if not ship_id:
+                raise HTTPException(status_code=400, detail="Document has no ship_id")
+            
+            # Get ship
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            # Verify company access
+            ship_company = ship.get("company")
+            if ship_company != company_id:
+                logger.warning(f"Access denied: ship company '{ship_company}' != user company '{company_id}'")
+                raise HTTPException(status_code=403, detail="Access denied to this ship")
+            
+            ship_name = ship.get("name", "Unknown Ship")
+            
+            # Decode base64 file content
+            import base64
+            try:
+                file_bytes = base64.b64decode(file_content)
+                logger.info(f"✅ Decoded file content: {len(file_bytes)} bytes")
+            except Exception as e:
+                logger.error(f"Failed to decode base64 file content: {e}")
+                raise HTTPException(status_code=400, detail="Invalid file content encoding")
+            
+            logger.info(f"📄 Processing file: {filename} ({len(file_bytes)} bytes)")
+            
+            # Upload files to Google Drive
+            from app.services.gdrive_service import GDriveService
+            
+            logger.info("📤 Uploading approval document files to Drive...")
+            logger.info(f"📄 Target path: {ship_name}/ISM-ISPS-MLC/Approval Document/{filename}")
+            
+            # Upload original file to: ShipName/ISM-ISPS-MLC/Approval Document/
+            upload_result = await GDriveService.upload_file(
+                file_content=file_bytes,
+                filename=filename,
+                content_type=content_type,
+                folder_path=f"{ship_name}/ISM-ISPS-MLC/Approval Document",
+                company_id=company_id
+            )
+            
+            if not upload_result.get('success'):
+                logger.error(f"❌ File upload failed: {upload_result.get('message')}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"File upload failed: {upload_result.get('message', 'Unknown error')}"
+                )
+            
+            original_file_id = upload_result.get('file_id')
+            
+            # Upload summary file if provided (to SAME folder)
+            summary_file_id = None
+            summary_error = None
+            
+            if summary_text and summary_text.strip():
+                try:
+                    # Create summary filename
+                    base_name = filename.rsplit('.', 1)[0] if '.' in filename else filename
+                    summary_filename = f"{base_name}_Summary.txt"
+                    
+                    # Upload to SAME folder as original file
+                    summary_folder_path = f"{ship_name}/ISM-ISPS-MLC/Approval Document"
+                    
+                    logger.info(f"📤 Uploading summary to: {summary_folder_path}/{summary_filename}")
+                    
+                    # Convert summary text to bytes
+                    summary_bytes = summary_text.encode('utf-8')
+                    
+                    summary_upload = await GDriveService.upload_file(
+                        file_content=summary_bytes,
+                        filename=summary_filename,
+                        content_type="text/plain",
+                        folder_path=summary_folder_path,
+                        company_id=company_id
+                    )
+                    
+                    if summary_upload.get('success'):
+                        summary_file_id = summary_upload.get('file_id')
+                        logger.info(f"✅ Summary uploaded: {summary_file_id}")
+                    else:
+                        summary_error = summary_upload.get('message', 'Unknown error')
+                        logger.warning(f"⚠️ Summary upload failed (non-critical): {summary_error}")
+                        
+                except Exception as summary_exc:
+                    summary_error = str(summary_exc)
+                    logger.warning(f"⚠️ Summary file upload error (non-critical): {summary_error}")
+            
+            # Update document with file IDs
+            update_data = {}
+            if original_file_id:
+                update_data['file_id'] = original_file_id
+            if summary_file_id:
+                update_data['summary_file_id'] = summary_file_id
+            
+            if update_data:
+                update_data['updated_at'] = datetime.now(timezone.utc)
+                
+                await mongo_db.update(
+                    ApprovalDocumentService.collection_name,
+                    {"id": document_id},
+                    update_data
+                )
+                logger.info("✅ Document updated with file IDs")
+            
+            # Get updated document
+            updated_doc = await mongo_db.find_one(ApprovalDocumentService.collection_name, {"id": document_id})
+            
+            # Handle backward compatibility
+            if not updated_doc.get("approval_document_name") and updated_doc.get("doc_name"):
+                updated_doc["approval_document_name"] = updated_doc.get("doc_name")
+            
+            if not updated_doc.get("approval_document_no") and updated_doc.get("doc_no"):
+                updated_doc["approval_document_no"] = updated_doc.get("doc_no")
+            
+            if not updated_doc.get("status"):
+                updated_doc["status"] = "Unknown"
+            
+            logger.info("✅ Approval document files uploaded successfully")
+            
+            return {
+                "success": True,
+                "message": "Approval document files uploaded successfully",
+                "document": ApprovalDocumentResponse(**updated_doc),
+                "original_file_id": original_file_id,
+                "summary_file_id": summary_file_id,
+                "summary_error": summary_error
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading approval document files: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            raise HTTPException(status_code=500, detail=str(e))
+
