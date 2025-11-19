@@ -56,8 +56,8 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile }) => 
                       {!result.success && onRetryFile && (
                         <button
                           onClick={() => {
-                            onClose(); // Close modal first
-                            onRetryFile(result.filename); // Then retry
+                            // Don't close modal - let user retry multiple files
+                            onRetryFile(result.filename);
                           }}
                           className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors"
                           title={language === 'vi' ? 'Thử lại file này' : 'Retry this file'}
