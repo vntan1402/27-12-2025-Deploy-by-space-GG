@@ -505,10 +505,14 @@ def create_audit_report_extraction_prompt(summary_text: str, filename: str = "")
 - Check report_form for hints (e.g., "ISM-AUD-01" → ISM)
 - Check filename: {filename}
 - Check audit_report_name for type indicators
+- **SPECIAL CASE**: If document title contains "CREW ACCOMMODATION" → type = CICA
+  - Examples: "CERTIFICATE OF INSPECTION / STATEMENT OF COMPLIANCE OF CREW ACCOMMODATION"
+  - "CREW ACCOMMODATION INSPECTION CERTIFICATE"
 - Normalize variations:
   - "ISM CODE" → ISM
   - "ISPS Code" → ISPS
   - "Maritime Labour Convention" → MLC
+  - "CREW ACCOMMODATION" → CICA
   - If unsure, leave empty string
 
 **CRITICAL INSTRUCTIONS FOR AUDIT_DATE**:
