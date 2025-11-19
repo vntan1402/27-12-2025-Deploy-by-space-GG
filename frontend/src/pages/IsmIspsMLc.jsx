@@ -1833,6 +1833,7 @@ const IsmIspsMLc = () => {
         fileProgressMap={auditReportFileProgressMap}
         fileStatusMap={auditReportFileStatusMap}
         fileSubStatusMap={auditReportFileSubStatusMap}
+        onRetryFile={handleRetryFailedAuditReport}
         language={language}
         title={language === 'vi' ? 'Đang xử lý Audit Reports' : 'Processing Audit Reports'}
       />
