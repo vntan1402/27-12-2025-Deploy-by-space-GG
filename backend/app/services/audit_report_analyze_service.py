@@ -355,9 +355,11 @@ class AuditReportAnalyzeService:
                 
         except Exception as ai_error:
             logger.error(f"❌ Document AI analysis failed: {ai_error}")
-            logger.warning("⚠️ Continuing without AI analysis - file upload will still work")
-            analysis_result['audit_report_name'] = analysis_result.get('audit_report_name') or filename
-            analysis_result['note'] = f"AI analysis failed: {str(ai_error)}"
+            logger.error(traceback.format_exc())
+            raise HTTPException(
+                status_code=500,
+                detail=f"Document AI analysis failed with error: {str(ai_error)}. Please try again or contact support if the issue persists."
+            )
         
         return analysis_result
     
