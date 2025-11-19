@@ -335,10 +335,11 @@ class AuditReportAnalyzeService:
                         analysis_result['note'] = f"AI extraction error: {str(extraction_error)[:100]}"
                 
                 else:
-                    logger.warning("⚠️ Document AI returned empty summary")
-                    analysis_result['_summary_text'] = ''
-                    analysis_result['audit_report_name'] = filename.replace('.pdf', '').replace('_', ' ')
-                    analysis_result['note'] = "AI analysis returned empty result. Manual review required."
+                    logger.error("❌ Document AI returned empty summary - Cannot process file")
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Document AI returned empty summary. The file may be corrupted, unreadable, or not a valid audit report. Please check the file and try again."
+                    )
                 
                 if 'confidence_score' in ai_analysis:
                     analysis_result['confidence_score'] = ai_analysis['confidence_score']
