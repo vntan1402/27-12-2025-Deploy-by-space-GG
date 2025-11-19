@@ -194,13 +194,17 @@ async def delete_audit_report(
         logger.error(f"❌ Error deleting Audit Report: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete Audit Report")
 
+class UploadFilesRequest(BaseModel):
+    """Request model for upload files endpoint"""
+    file_content: str
+    filename: str
+    content_type: str
+    summary_text: Optional[str] = None
+
 @router.post("/{report_id}/upload-files")
 async def upload_audit_report_files(
     report_id: str,
-    file_content: str = Form(...),
-    filename: str = Form(...),
-    content_type: str = Form(...),
-    summary_text: str = Form(None),
+    request: UploadFilesRequest,
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
