@@ -331,8 +331,11 @@ class AuditReportAnalyzeService:
                     
                     except Exception as extraction_error:
                         logger.error(f"❌ Field extraction failed: {extraction_error}")
-                        analysis_result['audit_report_name'] = filename.replace('.pdf', '').replace('_', ' ')
-                        analysis_result['note'] = f"AI extraction error: {str(extraction_error)[:100]}"
+                        logger.error(traceback.format_exc())
+                        raise HTTPException(
+                            status_code=500,
+                            detail=f"AI field extraction failed: {str(extraction_error)}. The file may have unusual format. Please check the file and try again."
+                        )
                 
                 else:
                     logger.error("❌ Document AI returned empty summary - Cannot process file")
