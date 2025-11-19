@@ -181,6 +181,8 @@ def merge_analysis_results(
     mapping = FIELD_MAPPINGS[document_type]
     name_field = mapping['name']
     no_field = mapping['no']
+    issued_by_field = mapping.get('issued_by_field', 'issued_by')
+    issued_date_field = mapping.get('issued_date_field', 'issued_date')
     
     # Check if all chunks succeeded
     successful_chunks = [cr for cr in chunk_results if cr.get('success')]
@@ -198,8 +200,8 @@ def merge_analysis_results(
     merged = {
         name_field: '',
         no_field: '',
-        'issued_by': '',
-        'issued_date': '',
+        issued_by_field: '',
+        issued_date_field: '',
         'note': '',
         'status': 'Valid'
     }
