@@ -379,14 +379,14 @@ class ApprovalDocumentService:
             from app.services.gdrive_service import GDriveService
             
             logger.info("📤 Uploading approval document files to Drive...")
-            logger.info(f"📄 Target path: {ship_name}/ISM-ISPS-MLC/Approval Document/{filename}")
+            logger.info(f"📄 Target path: {ship_name}/ISM - ISPS - MLC/Approval Document/{filename}")
             
-            # Upload original file to: ShipName/ISM-ISPS-MLC/Approval Document/
+            # Upload original file to: ShipName/ISM - ISPS - MLC/Approval Document/
             upload_result = await GDriveService.upload_file(
                 file_content=file_bytes,
                 filename=filename,
                 content_type=content_type,
-                folder_path=f"{ship_name}/ISM-ISPS-MLC/Approval Document",
+                folder_path=f"{ship_name}/ISM - ISPS - MLC/Approval Document",
                 company_id=company_id
             )
             
