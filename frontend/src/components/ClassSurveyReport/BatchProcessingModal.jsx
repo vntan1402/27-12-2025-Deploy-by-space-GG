@@ -82,6 +82,26 @@ export const BatchProcessingModal = ({
             </svg>
           </button>
         </div>
+
+        {/* Overall Progress Bar (Enhanced with smooth animation) */}
+        <div className="mb-6">
+          <div className="flex justify-between text-sm text-gray-600 mb-2">
+            <span className="font-medium">{language === 'vi' ? '📊 Tiến độ tổng' : '📊 Overall Progress'}</span>
+            <span className="font-semibold text-blue-600">{Math.round((progress.current / progress.total) * 100)}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-5 overflow-hidden shadow-inner">
+            <div
+              className="bg-gradient-to-r from-blue-500 via-blue-600 to-green-500 h-5 rounded-full transition-all duration-700 ease-out flex items-center justify-center text-xs text-white font-bold shadow-lg"
+              style={{ width: `${(progress.current / progress.total) * 100}%` }}
+            >
+              {progress.current > 0 && (
+                <span className="drop-shadow-md">
+                  {progress.current}/{progress.total}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
         
         {/* Files List - Scrollable */}
         <div className="flex-1 overflow-y-auto space-y-3">
