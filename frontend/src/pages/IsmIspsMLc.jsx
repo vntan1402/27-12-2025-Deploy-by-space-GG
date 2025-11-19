@@ -25,6 +25,11 @@ import { OtherAuditDocumentTable } from '../components/OtherAuditDocument';
 import { shipService, companyService, auditCertificateService, auditReportService } from '../services';
 import api from '../services/api';
 import { toast } from 'sonner';
+import { RateLimiter } from '../utils/retryHelper';
+
+// Create a global rate limiter for GDrive uploads to prevent 429 errors
+// Max 2 concurrent uploads, 2 seconds between requests
+const gdriveUploadLimiter = new RateLimiter(2, 2000);
 
 const IsmIspsMLc = () => {
   const { language, user } = useAuth();
