@@ -194,6 +194,10 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                 audit_type = 'MLC'
             elif 'CICA' in filename_upper:
                 audit_type = 'CICA'
+            elif 'CREW ACCOMMODATION' in filename_upper:
+                # Special case: Crew Accommodation certificates are CICA type
+                audit_type = 'CICA'
+                logger.info("✅ Detected 'CREW ACCOMMODATION' in filename → type = CICA")
         
         # Check report_form if audit_type still empty (Priority 2)
         if not audit_type and extracted_data.get('report_form'):
