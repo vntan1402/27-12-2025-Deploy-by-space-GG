@@ -5,7 +5,7 @@
 import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
-export const BatchResultsModal = ({ isOpen, onClose, results }) => {
+export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile }) => {
   const { language } = useAuth();
 
   if (!isOpen) return null;
