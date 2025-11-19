@@ -166,8 +166,10 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
             else:
                 try:
                     # Parse and convert to ISO format
-                    parsed_date = date_parser.parse(audit_date_raw)
+                    # Use dayfirst=True for DD/MM/YYYY format (Vietnamese/European standard)
+                    parsed_date = date_parser.parse(audit_date_raw, dayfirst=True)
                     extracted_data['audit_date'] = parsed_date.strftime('%Y-%m-%d')
+                    logger.info(f"✅ Parsed audit_date: '{audit_date_raw}' → '{extracted_data['audit_date']}'")
                 except Exception as date_error:
                     logger.warning(f"Failed to parse audit_date '{audit_date_raw}': {date_error}")
                     # If parse fails, might be a form code - move to report_form if empty
