@@ -238,6 +238,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
         
         # 3. Extract report_form from filename (PRIORITY 1)
         # Backend V1 lines 7176-7232 - EXACT IMPLEMENTATION
+        filename_extracted_form = None
         if filename:
             filename_form_patterns = [
                 # Pattern 1: Long form names with parentheses (NEW - Priority)
@@ -261,7 +262,6 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                 r'\(([0-9]{2}[-/][0-9]{2,3})\)',
             ]
             
-            filename_extracted_form = None
             for pattern in filename_form_patterns:
                 match = re.search(pattern, filename)
                 if match:
@@ -289,27 +289,27 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                         date_part = match.group(1).replace('/', '-')
                         filename_extracted_form = f"({date_part})"
                     
-                    # PRIORITY 1: Filename overrides AI extraction
-                    extracted_data['report_form'] = filename_extracted_form
-                    logger.info(f"✅ [PRIORITY 1] Extracted report_form from filename: '{filename_extracted_form}'")
+                    logger.info(f"📋 Found report_form pattern in filename: '{filename_extracted_form}'")
                     break
         
-        # Decide which report_form to use
+        # Decide which report_form to use (Priority: Filename > AI)
         ai_report_form = extracted_data.get('report_form', '')
         
         if filename_extracted_form:
             # Filename has highest priority
             extracted_data['report_form'] = filename_extracted_form
             if ai_report_form and ai_report_form != filename_extracted_form:
-                logger.info(f"   ℹ️ Overriding AI extracted: '{ai_report_form}' → Using filename: '{filename_extracted_form}'")
+                logger.info(f"✅ [PRIORITY 1] Using filename report_form: '{filename_extracted_form}' (overriding AI: '{ai_report_form}')")
+            else:
+                logger.info(f"✅ [PRIORITY 1] Using filename report_form: '{filename_extracted_form}'")
         elif ai_report_form:
             # Use AI extraction if filename didn't find anything
             logger.info(f"✅ [PRIORITY 2] Using AI extracted report_form: '{ai_report_form}'")
         else:
             # Neither filename nor AI found report_form
-            logger.warning("⚠️ No report_form found in filename or AI extraction")
+            logger.warning(f"⚠️ No report_form found in filename or AI extraction")
             logger.warning(f"   Filename: {filename}")
-            logger.warning("   AI result: empty or None")
+            logger.warning(f"   AI result: empty or None")
         # 4. Normalize issued_by abbreviations
         # Backend V1 lines 7234-7273
         if extracted_data.get('issued_by'):
