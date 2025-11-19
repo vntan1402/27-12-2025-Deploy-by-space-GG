@@ -218,6 +218,10 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                 audit_type = 'MLC'
             elif 'CICA' in name_upper:
                 audit_type = 'CICA'
+            elif 'CREW ACCOMMODATION' in name_upper:
+                # Special case: Crew Accommodation certificates are CICA type
+                audit_type = 'CICA'
+                logger.info("✅ Detected 'CREW ACCOMMODATION' in name → type = CICA")
         
         # Normalize AI extraction if exists but not standard (Priority 4)
         if not audit_type and extracted_data.get('audit_type'):
