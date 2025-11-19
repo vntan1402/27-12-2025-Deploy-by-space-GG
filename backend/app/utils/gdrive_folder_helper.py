@@ -148,7 +148,7 @@ async def create_google_drive_folder_for_new_ship(
         
         # Get backend API URL for dynamic structure fetching
         import os
-        backend_api_url = os.environ.get('BACKEND_API_URL', 'https://fastapi-migrate-1.preview.emergentagent.com')
+        backend_api_url = os.environ.get('BACKEND_API_URL', 'https://upload-flow-enhance.preview.emergentagent.com')
         
         payload = {
             "action": "create_complete_ship_structure",
