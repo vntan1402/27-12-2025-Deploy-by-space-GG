@@ -287,7 +287,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
                     else:
                         # Pattern with 1 group - just parentheses (e.g., (07-230))
                         date_part = match.group(1).replace('/', '-')
-                        extracted_form = f"({date_part})"
+                        filename_extracted_form = f"({date_part})"
                     
                     # PRIORITY 1: Filename overrides AI extraction
                     extracted_data['report_form'] = extracted_form
