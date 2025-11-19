@@ -1,6 +1,7 @@
 import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, BackgroundTasks
+from pydantic import BaseModel
 
 from app.models.audit_report import AuditReportCreate, AuditReportUpdate, AuditReportResponse, BulkDeleteAuditReportRequest
 from app.models.user import UserResponse, UserRole
