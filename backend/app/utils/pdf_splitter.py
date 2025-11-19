@@ -155,7 +155,9 @@ def merge_analysis_results(
         'audit_report': {
             'name': 'audit_report_name',
             'no': 'audit_report_no',
-            'additional_fields': ['auditor_name']
+            'issued_by_field': 'issued_by',
+            'issued_date_field': 'audit_date',
+            'additional_fields': ['audit_type', 'report_form', 'auditor_name', 'ship_name', 'ship_imo', 'status']
         },
         'approval_document': {
             'name': 'approval_document_name',
