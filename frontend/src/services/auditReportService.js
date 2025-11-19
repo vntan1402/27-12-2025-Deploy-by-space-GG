@@ -36,44 +36,52 @@ export const auditReportService = {
 
   /**
    * Bulk delete audit reports
+   * Fixed: Changed from DELETE to POST method to match backend
+   * Fixed: Changed report_ids to document_ids to match backend model
    */
   bulkDelete: async (reportIds) => {
-    return await api.delete('/api/audit-reports/bulk-delete', {
-      data: { report_ids: reportIds }
+    return await api.post('/api/audit-reports/bulk-delete', {
+      document_ids: reportIds
     });
   },
 
   /**
    * Analyze audit report file using AI
+   * Fixed: Changed endpoint from /analyze to /analyze-file to match backend
    */
   analyzeFile: async (shipId, file, bypassValidation = false) => {
     const formData = new FormData();
-    formData.append('audit_report_file', file); // Changed from 'file' to 'audit_report_file' to match backend
+    formData.append('audit_report_file', file);
     formData.append('ship_id', shipId);
-    formData.append('bypass_validation', bypassValidation ? 'true' : 'false'); // Convert boolean to string like Survey Report
+    formData.append('bypass_validation', bypassValidation ? 'true' : 'false');
     
-    // IMPORTANT: When sending FormData, axios needs to set Content-Type with boundary automatically
-    // But we need to explicitly tell axios this is multipart/form-data
-    return await api.post('/api/audit-reports/analyze', formData, {
+    return await api.post('/api/audit-reports/analyze-file', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       },
-      timeout: API_TIMEOUT.AI_ANALYSIS, // 90 seconds for AI processing (same as Survey Report)
-      transformRequest: [(data) => data] // Prevent axios from converting FormData to JSON
+      timeout: API_TIMEOUT.AI_ANALYSIS,
+      transformRequest: [(data) => data]
     });
   },
 
   /**
    * Upload audit report files to Google Drive
+   * Fixed: Changed to use FormData instead of JSON body to match backend
    */
   uploadFiles: async (reportId, fileContent, filename, contentType, summaryText = null) => {
-    return await api.post(`/api/audit-reports/${reportId}/upload-files`, {
-      file_content: fileContent,
-      filename: filename,
-      content_type: contentType,
-      summary_text: summaryText
-    }, {
-      timeout: API_TIMEOUT.FILE_UPLOAD, // 60 seconds for file upload (same as Survey Report)
+    const formData = new FormData();
+    formData.append('file_content', fileContent);
+    formData.append('filename', filename);
+    formData.append('content_type', contentType);
+    if (summaryText) {
+      formData.append('summary_text', summaryText);
+    }
+    
+    return await api.post(`/api/audit-reports/${reportId}/upload-files`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      timeout: API_TIMEOUT.FILE_UPLOAD,
     });
   }
 };
