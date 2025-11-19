@@ -192,7 +192,7 @@ async def upload_approval_document_files(
     """
     Upload approval document files to Google Drive after record creation
     
-    Path: {ship_name}/ISM-ISPS-MLC/Approval Document/
+    Path: {ship_name}/ISM - ISPS - MLC/Approval Document/
     - Original file and summary file in SAME folder
     
     Args:
