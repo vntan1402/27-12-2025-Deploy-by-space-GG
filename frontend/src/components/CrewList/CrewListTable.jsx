@@ -983,6 +983,147 @@ export const CrewListTable = ({
     }
   };
 
+  /**
+   * Retry failed file from BatchResultsModal
+   */
+  const handleRetryFailedFile = async (failedFileName) => {
+    // Get the original file object from map
+    const originalFile = fileObjectsMap[failedFileName];
+    
+    if (!originalFile) {
+      toast.error(
+        language === 'vi'
+          ? '❌ Không tìm thấy file gốc. Vui lòng upload lại từ đầu.'
+          : '❌ Original file not found. Please upload again from scratch.'
+      );
+      return;
+    }
+    
+    // Show ProcessingModal in minimized mode for this retry
+    setShowBatchProcessingModal(true);
+    setIsBatchModalMinimized(true);
+    setIsBatchProcessing(true);
+    
+    // Reset status for retry
+    setFileStatusMap(prev => ({ ...prev, [failedFileName]: 'pending' }));
+    setFileProgressMap(prev => ({ ...prev, [failedFileName]: 0 }));
+    setFileSubStatusMap(prev => ({ 
+      ...prev, 
+      [failedFileName]: language === 'vi' ? '🔄 Đang thử lại...' : '🔄 Retrying...' 
+    }));
+    
+    // Update batch progress to show we're processing 1 file
+    setBatchProgress({ current: 0, total: 1, success: 0, failed: 0 });
+    
+    // Show retry message
+    toast.info(
+      language === 'vi' 
+        ? `🔄 Đang xử lý lại file: ${failedFileName}` 
+        : `🔄 Retrying file: ${failedFileName}`
+    );
+    
+    try {
+      // Update status to processing
+      setFileStatusMap(prev => ({ ...prev, [failedFileName]: 'processing' }));
+      
+      // Get batch status and ship from current context
+      const batchStatus = filters.ship_sign_on === 'Standby' ? 'Standby' : 'Sign on';
+      const batchShip = selectedShip?.name || '-';
+      
+      // Create progress controller
+      const estimatedTime = 15000; // 15 seconds estimate
+      const progressController = {
+        interval: setInterval(() => {
+          setFileProgressMap(prev => {
+            const currentProgress = prev[failedFileName] || 0;
+            if (currentProgress < 90) {
+              return { ...prev, [failedFileName]: Math.min(currentProgress + 5, 90) };
+            }
+            return prev;
+          });
+        }, estimatedTime / 18),
+        complete: () => {
+          clearInterval(progressController.interval);
+          setFileProgressMap(prev => ({ ...prev, [failedFileName]: 100 }));
+        },
+        stop: () => {
+          clearInterval(progressController.interval);
+        }
+      };
+      
+      // Re-process the SAME file
+      const result = await processSingleFileInBatch(originalFile, progressController, batchStatus, batchShip);
+      
+      if (result.success) {
+        progressController.complete();
+        setFileStatusMap(prev => ({ ...prev, [failedFileName]: 'completed' }));
+        
+        toast.success(
+          language === 'vi' 
+            ? `✅ File đã được xử lý thành công!` 
+            : `✅ File processed successfully!`
+        );
+        
+        // Update progress to show completion
+        setBatchProgress({ current: 1, total: 1, success: 1, failed: 0 });
+        
+        // Update the result in BatchResultsModal
+        setBatchResults(prev => 
+          prev.map(r => r.filename === failedFileName ? result : r)
+        );
+        
+        // Refresh list
+        fetchCrewList();
+        
+        // Close ProcessingModal after a short delay
+        setTimeout(() => {
+          setShowBatchProcessingModal(false);
+          setIsBatchProcessing(false);
+        }, 1500);
+      } else {
+        progressController.stop();
+        setFileStatusMap(prev => ({ ...prev, [failedFileName]: 'error' }));
+        
+        toast.error(
+          language === 'vi' 
+            ? `❌ File vẫn bị lỗi: ${result.error}` 
+            : `❌ File still failed: ${result.error}`
+        );
+        
+        // Update the result in BatchResultsModal with new error
+        setBatchResults(prev => 
+          prev.map(r => r.filename === failedFileName ? result : r)
+        );
+        
+        // Close ProcessingModal after a short delay
+        setTimeout(() => {
+          setShowBatchProcessingModal(false);
+          setIsBatchProcessing(false);
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Retry error:', error);
+      toast.error(
+        language === 'vi' 
+          ? `❌ Lỗi khi xử lý lại file` 
+          : `❌ Error retrying file`
+      );
+      
+      // Mark as failed in status map
+      setFileStatusMap(prev => ({ ...prev, [failedFileName]: 'error' }));
+      setFileSubStatusMap(prev => ({ 
+        ...prev, 
+        [failedFileName]: error.message || 'Unknown error' 
+      }));
+      
+      // Close ProcessingModal after a short delay
+      setTimeout(() => {
+        setShowBatchProcessingModal(false);
+        setIsBatchProcessing(false);
+      }, 1500);
+    }
+  };
+
   const filteredCrewData = getFilteredCrewData();
   const sortedCrewData = getSortedCrewData();
 
