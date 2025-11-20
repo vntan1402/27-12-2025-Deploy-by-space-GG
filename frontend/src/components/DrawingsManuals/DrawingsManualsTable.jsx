@@ -41,6 +41,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
   const [fileProgressMap, setFileProgressMap] = useState({});
   const [fileStatusMap, setFileStatusMap] = useState({});
   const [fileSubStatusMap, setFileSubStatusMap] = useState({});
+  const [fileObjectsMap, setFileObjectsMap] = useState({}); // Store file objects for retry
   const [isBatchMinimized, setIsBatchMinimized] = useState(false);
 
   // Selection state
