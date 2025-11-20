@@ -549,6 +549,154 @@ export const AddShipCertificateModal = ({
     }
   };
 
+  /**
+   * Retry failed file from BatchResultsModal
+   */
+  const handleRetryFailedFile = async (failedFileName) => {
+    // Get the original file object from map
+    const originalFile = fileObjectsMap[failedFileName];
+    
+    if (!originalFile) {
+      toast.error(
+        language === 'vi'
+          ? '❌ Không tìm thấy file gốc. Vui lòng upload lại từ đầu.'
+          : '❌ Original file not found. Please upload again from scratch.'
+      );
+      return;
+    }
+    
+    if (!selectedShip?.id) {
+      toast.error(language === 'vi' 
+        ? '❌ Vui lòng chọn tàu trước khi upload certificate'
+        : '❌ Please select a ship before uploading certificate'
+      );
+      return;
+    }
+    
+    // Show ProcessingModal in minimized mode for this retry
+    setShowBatchProcessing(true);
+    setIsProcessingMinimized(true);
+    
+    // Reset status for retry
+    setFileStatusMap(prev => ({ ...prev, [failedFileName]: 'pending' }));
+    setFileProgressMap(prev => ({ ...prev, [failedFileName]: 0 }));
+    setFileSubStatusMap(prev => ({ 
+      ...prev, 
+      [failedFileName]: language === 'vi' ? '🔄 Đang thử lại...' : '🔄 Retrying...' 
+    }));
+    
+    // Update batch progress to show we're processing 1 file
+    setBatchProgress({ current: 0, total: 1 });
+    
+    // Show retry message
+    toast.info(
+      language === 'vi' 
+        ? `🔄 Đang xử lý lại file: ${failedFileName}` 
+        : `🔄 Retrying file: ${failedFileName}`
+    );
+    
+    try {
+      // Re-upload the SAME file
+      setFileStatusMap(prev => ({ ...prev, [failedFileName]: 'processing' }));
+      setFileSubStatusMap(prev => ({ ...prev, [failedFileName]: 'analyzing' }));
+      
+      const formData = new FormData();
+      formData.append('files', originalFile);
+      
+      const response = await api.post(
+        `/api/certificates/multi-upload?ship_id=${selectedShip.id}`,
+        formData,
+        {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (progressEvent) => {
+            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setFileProgressMap(prev => ({ ...prev, [failedFileName]: progress }));
+            setFileSubStatusMap(prev => ({ ...prev, [failedFileName]: 'uploading' }));
+          }
+        }
+      );
+      
+      if (response.data?.certificates && response.data.certificates.length > 0) {
+        const certData = response.data.certificates[0];
+        
+        // Success!
+        setFileStatusMap(prev => ({ ...prev, [failedFileName]: 'completed' }));
+        setFileProgressMap(prev => ({ ...prev, [failedFileName]: 100 }));
+        setFileSubStatusMap(prev => ({ ...prev, [failedFileName]: 'completed' }));
+        
+        // Update progress to show completion
+        setBatchProgress({ current: 1, total: 1 });
+        
+        // Update the result in BatchResultsModal
+        const successResult = {
+          filename: failedFileName,
+          success: true,
+          certificateCreated: true,
+          fileUploaded: true,
+          certificateName: certData.cert_name || '',
+          certificateNo: certData.cert_no || '',
+          error: null
+        };
+        
+        setBatchResults(prev => 
+          prev.map(r => r.filename === failedFileName ? successResult : r)
+        );
+        
+        toast.success(
+          language === 'vi' 
+            ? `✅ File đã được xử lý thành công!` 
+            : `✅ File processed successfully!`
+        );
+        
+        // Refresh certificates list
+        if (onSuccess) {
+          onSuccess();
+        }
+        
+        // Close ProcessingModal after a short delay
+        setTimeout(() => {
+          setShowBatchProcessing(false);
+        }, 1500);
+      } else {
+        throw new Error('No certificate data returned');
+      }
+      
+    } catch (error) {
+      console.error('Retry error:', error);
+      
+      const errorMsg = error.response?.data?.detail || error.message || 'Processing failed';
+      
+      setFileStatusMap(prev => ({ ...prev, [failedFileName]: 'error' }));
+      setFileSubStatusMap(prev => ({ ...prev, [failedFileName]: errorMsg }));
+      
+      // Update the result in BatchResultsModal with new error
+      const failedResult = {
+        filename: failedFileName,
+        success: false,
+        certificateCreated: false,
+        fileUploaded: false,
+        certificateName: '',
+        certificateNo: '',
+        error: errorMsg
+      };
+      
+      setBatchResults(prev => 
+        prev.map(r => r.filename === failedFileName ? failedResult : r)
+      );
+      
+      toast.error(
+        language === 'vi' 
+          ? `❌ File vẫn bị lỗi: ${errorMsg}` 
+          : `❌ File still failed: ${errorMsg}`
+      );
+      
+      // Close ProcessingModal after a short delay
+      setTimeout(() => {
+        setShowBatchProcessing(false);
+      }, 1500);
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
