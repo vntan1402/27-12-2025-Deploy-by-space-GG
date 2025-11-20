@@ -838,14 +838,19 @@ const TestReport = () => {
         fileStatusMap={fileStatusMap}
         fileSubStatusMap={fileSubStatusMap}
         isMinimized={isBatchModalMinimized}
-        onToggleMinimize={() => setIsBatchModalMinimized(!isBatchModalMinimized)}
-        onClose={() => {/* Can't close while processing */}}
+        onMinimize={() => setIsBatchModalMinimized(true)}
+        onRestore={() => setIsBatchModalMinimized(false)}
+        onRetryFile={handleRetryFailedFile}
+        language={language}
+        title={language === 'vi' ? 'Đang xử lý Test Reports' : 'Processing Test Reports'}
       />
 
       <BatchResultsModal
         isOpen={showBatchResults}
         results={batchResults}
         onClose={() => setShowBatchResults(false)}
+        onRetryFile={handleRetryFailedFile}
+        language={language}
       />
 
       {/* Add Ship Modal */}
