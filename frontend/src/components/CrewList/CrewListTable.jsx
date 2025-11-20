@@ -784,14 +784,17 @@ export const CrewListTable = ({
     const initialStatusMap = {};
     const initialProgressMap = {};
     const initialSubStatusMap = {};
+    const initialFileObjectsMap = {};
     validFiles.forEach(file => {
       initialStatusMap[file.name] = 'waiting';
       initialProgressMap[file.name] = 0;
       initialSubStatusMap[file.name] = '';
+      initialFileObjectsMap[file.name] = file; // Store file object for retry
     });
     setFileStatusMap(initialStatusMap);
     setFileProgressMap(initialProgressMap);
     setFileSubStatusMap(initialSubStatusMap);
+    setFileObjectsMap(initialFileObjectsMap);
     
     // Close Add Crew modal
     setShowAddCrewModal(false);
