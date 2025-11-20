@@ -9,9 +9,12 @@ import { useAuth } from '../../contexts/AuthContext';
 export const BatchResultsModal = ({
   isOpen,
   results,
-  onClose
+  onClose,
+  onRetryFile,
+  language: propLanguage
 }) => {
-  const { language } = useAuth();
+  const { language: contextLanguage } = useAuth();
+  const language = propLanguage || contextLanguage;
 
   if (!isOpen) return null;
 
