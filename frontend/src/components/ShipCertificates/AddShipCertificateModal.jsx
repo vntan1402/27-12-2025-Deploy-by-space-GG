@@ -1342,6 +1342,8 @@ export const AddShipCertificateModal = ({
         fileProgressMap={fileProgressMap}
         fileStatusMap={fileStatusMap}
         fileSubStatusMap={fileSubStatusMap}
+        onRetryFile={handleRetryFailedFile}
+        language={language}
         title={language === 'vi' ? '📜 Đang xử lý Ship Certificates' : '📜 Processing Ship Certificates'}
       />
 
@@ -1356,6 +1358,8 @@ export const AddShipCertificateModal = ({
           onClose();
         }}
         results={batchResults}
+        onRetryFile={handleRetryFailedFile}
+        language={language}
       />
     </div>
   );
