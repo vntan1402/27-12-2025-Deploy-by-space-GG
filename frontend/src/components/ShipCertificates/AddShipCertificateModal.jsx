@@ -61,6 +61,7 @@ export const AddShipCertificateModal = ({
   const [fileProgressMap, setFileProgressMap] = useState({});
   const [fileStatusMap, setFileStatusMap] = useState({});
   const [fileSubStatusMap, setFileSubStatusMap] = useState({});
+  const [fileObjectsMap, setFileObjectsMap] = useState({}); // Store file objects for retry
 
   // Single file upload state for form
   const [certificateFile, setCertificateFile] = useState(null);
