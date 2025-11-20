@@ -77,7 +77,7 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile, langu
                         )}
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center gap-1">
+                      <div className="flex flex-col items-center gap-2">
                         <span className="text-red-600 font-semibold">
                           ❌ {language === 'vi' ? 'Thất bại' : 'Failed'}
                         </span>
@@ -90,6 +90,14 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile, langu
                             ? (language === 'vi' ? '⚠️ Tên tàu không khớp' : '⚠️ Ship name mismatch')
                             : result.error}
                         </span>
+                        {onRetryFile && (
+                          <button
+                            onClick={() => onRetryFile(result.filename)}
+                            className="mt-1 px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors"
+                          >
+                            🔄 {language === 'vi' ? 'Thử lại' : 'Retry'}
+                          </button>
+                        )}
                       </div>
                     )}
                   </td>
