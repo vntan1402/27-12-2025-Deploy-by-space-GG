@@ -266,14 +266,17 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     const initialStatusMap = {};
     const initialProgressMap = {};
     const initialSubStatusMap = {};
+    const initialFileObjectsMap = {};
     Array.from(files).forEach(file => {
       initialStatusMap[file.name] = 'waiting';
       initialProgressMap[file.name] = 0;
       initialSubStatusMap[file.name] = '';
+      initialFileObjectsMap[file.name] = file; // Store file object for retry
     });
     setFileStatusMap(initialStatusMap);
     setFileProgressMap(initialProgressMap);
     setFileSubStatusMap(initialSubStatusMap);
+    setFileObjectsMap(initialFileObjectsMap);
 
     const STAGGER_DELAY = 2000; // 2 seconds between file starts (same as crew batch upload)
     const results = [];
