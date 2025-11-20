@@ -271,16 +271,19 @@ export const AddShipCertificateModal = ({
     const initialStatusMap = {};
     const initialProgressMap = {};
     const initialSubStatusMap = {};
+    const initialFileObjectsMap = {};
     
     fileArray.forEach(file => {
       initialStatusMap[file.name] = 'waiting';
       initialProgressMap[file.name] = 0;
       initialSubStatusMap[file.name] = '';
+      initialFileObjectsMap[file.name] = file; // Store file object for retry
     });
     
     setFileStatusMap(initialStatusMap);
     setFileProgressMap(initialProgressMap);
     setFileSubStatusMap(initialSubStatusMap);
+    setFileObjectsMap(initialFileObjectsMap);
     setBatchProgress({ current: 0, total: totalFiles });
     
     // Show batch processing modal
