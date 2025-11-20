@@ -834,6 +834,9 @@ const ClassSurveyReport = () => {
         fileProgressMap={fileProgressMap}
         fileStatusMap={fileStatusMap}
         fileSubStatusMap={fileSubStatusMap}
+        onRetryFile={handleRetryFailedFile}
+        language={language}
+        title={language === 'vi' ? 'Đang xử lý Survey Reports' : 'Processing Survey Reports'}
       />
 
       {/* Batch Results Modal */}
@@ -846,6 +849,8 @@ const ClassSurveyReport = () => {
           setListRefreshKey(prev => prev + 1);
         }}
         results={batchResults}
+        onRetryFile={handleRetryFailedFile}
+        language={language}
       />
     </MainLayout>
   );
