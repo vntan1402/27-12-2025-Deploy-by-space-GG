@@ -36,6 +36,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
   const [fileProgressMap, setFileProgressMap] = useState({});
   const [fileStatusMap, setFileStatusMap] = useState({});
   const [fileSubStatusMap, setFileSubStatusMap] = useState({});
+  const [fileObjectsMap, setFileObjectsMap] = useState({}); // Store file objects for retry
   const [showBatchResults, setShowBatchResults] = useState(false);
   const [batchResults, setBatchResults] = useState([]);
   
