@@ -45,6 +45,7 @@ const ClassSurveyReport = () => {
   const [fileProgressMap, setFileProgressMap] = useState({});
   const [fileStatusMap, setFileStatusMap] = useState({});
   const [fileSubStatusMap, setFileSubStatusMap] = useState({});
+  const [fileObjectsMap, setFileObjectsMap] = useState({}); // Store file objects for retry
   const [batchResults, setBatchResults] = useState([]);
   const [showBatchResults, setShowBatchResults] = useState(false);
   const [isBatchModalMinimized, setIsBatchModalMinimized] = useState(false);
