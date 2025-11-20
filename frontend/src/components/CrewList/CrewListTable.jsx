@@ -1685,10 +1685,11 @@ export const CrewListTable = ({
           fileStatusMap={fileStatusMap}
           fileSubStatusMap={fileSubStatusMap}
           isMinimized={isBatchModalMinimized}
-          onToggleMinimize={() => setIsBatchModalMinimized(!isBatchModalMinimized)}
-          onClose={() => {
-            // Don't allow closing during processing
-          }}
+          onMinimize={() => setIsBatchModalMinimized(true)}
+          onRestore={() => setIsBatchModalMinimized(false)}
+          onRetryFile={handleRetryFailedFile}
+          language={language}
+          title={language === 'vi' ? 'Đang xử lý Crew List' : 'Processing Crew List'}
         />
       )}
       
@@ -1701,6 +1702,8 @@ export const CrewListTable = ({
             setShowBatchResultsModal(false);
             setBatchResults([]);
           }}
+          onRetryFile={handleRetryFailedFile}
+          language={language}
         />
       )}
       
