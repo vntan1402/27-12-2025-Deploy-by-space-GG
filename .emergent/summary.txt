@@ -1,42 +1,37 @@
 <analysis>
-This trajectory documents an extensive, iterative development process for migrating and refining the Audit Report module. The user's primary language is Vietnamese. The work began by addressing two initial bugs: a missing Download option and failed Report Form AI extraction. The development cycle was heavily driven by continuous user feedback, leading to a series of fixes and enhancements.
+The user's primary language is Vietnamese. The next agent must respond in Vietnamese.
 
-Key development arcs include:
-1.  **AI Extraction Logic:** The AI prompts and post-processing logic in  were repeatedly refined. This included fixing case-insensitivity (), improving date parsing (), adding fallback logic to extract  from filenames, and enhancing prompts to get dates in  format. A new field, , was added to the database model to aid this process.
-2.  **Error Handling & Robustness:** Significant effort was made to handle failures gracefully. This involved implementing client-side retry logic with exponential backoff for Google Drive API 429 rate-limiting errors, and adding strict backend validation in  to prevent creating database records if the AI fails to generate a summary.
-3.  **UI/UX Enhancements:** The frontend was improved based on user requests. Progress bars in  were made smoother. The Re-upload functionality was changed to an automatic Retry that re-processes the same failed file, and retry buttons were added to both the main processing modal and the final results modal.
+This trajectory chronicles an extensive, iterative development process focused on implementing and then propagating a robust Retry mechanism for batch file uploads across an entire application. The work began with a request to fix the retry logic for the Audit Report module, specifically to keep the results modal open while retrying a failed file. This single task quickly expanded into a major refactoring epic.
 
-The final request focused on refining the retry behavior from the results modal.
+The engineer systematically replicated the retry logic—which involved adding state to store  objects (), creating a retry handler function, and passing it as a prop—across seven additional modules. This process was punctuated by two key bug fixes driven by user feedback:
+1.  A backend AI logic update to classify CREW ACCOMMODATION documents as type CICA.
+2.  A frontend  fix to ensure the processing modal appears on top of the results modal.
 
-**Note to the next agent:** The user's primary language is Vietnamese. Please ensure all future responses are in Vietnamese.
+The final phase involved another critical fix after the user discovered the Retry button was missing in some modules. The engineer correctly diagnosed that these modules used their own non-shared  components and proceeded to update all of them, completing the full scope of the user's request.
 </analysis>
 
 <product_requirements>
-The project's goal is to migrate and enhance the Audit Report feature. The initial scope was to fix two bugs: a missing Download option and incorrect Report Form extraction.
+The primary objective was to enhance the robustness and user experience of the batch file upload features across the application.
 
-This evolved into a series of user-driven requirements:
-1.  **AI Data Extraction Parity:** Ensure AI extraction for , , and  matches or exceeds the legacy V1 system's accuracy. This includes extracting  from filenames as a fallback and correctly parsing ambiguous date formats (e.g., November 7, 2025 vs. 11/07/2025).
-2.  **UI/UX Improvements:**
-    *   Implement smooth, granular progress bars for batch file uploads, similar to the Approval Document module.
-    *   Provide clear error states and a user-friendly retry mechanism for failed uploads.
-    *   The Retry button should automatically re-process the failed file, not ask the user to re-select it.
-    *   Display a placeholder with a tooltip for empty  fields instead of just -.
-3.  **System Robustness:**
-    *   Prevent the creation of Audit Report records if the AI fails to generate a summary from the PDF.
-    *   Handle Google Drive API rate-limiting (429 errors) during batch uploads gracefully, with client-side retries.
-    *   Ensure summary file icons appear correctly by reliably saving the  to the database.
+1.  **Core Feature: Enhanced Retry Mechanism:**
+    - Implement a Retry button for failed file uploads, accessible from both the in-progress  and the final .
+    - When a user clicks Retry from the , it must *not* close. Instead, it should launch a new, minimized  for the specific file being retried. This allows the user to retry other failed files or close the modal manually.
+
+2.  **Scope Expansion:**
+    - Initially requested for the Audit Report module (), this functionality was subsequently requested to be implemented across all seven other modules that feature batch uploads.
+
+3.  **AI Logic Enhancement:**
+    - A secondary requirement was to improve the backend AI classification. Any document whose name or filename contains the phrase CREW ACCOMMODATION must be automatically classified with the type CICA.
 </product_requirements>
 
 <key_technical_concepts>
-- **Backend:** FastAPI, Pydantic, Python  (with ),  module (with ).
-- **Frontend:** React.js, Axios. State management () for batch processing, file progress, and error handling.
-- **Cloud & AI:** Google Document AI for PDF analysis, Google Drive API for file storage.
-- **Error Handling:** Client-side exponential backoff for API rate limiting (429 errors). Strict backend validation to reject uploads on AI failure.
-- **Database:** MongoDB, involving schema updates to add an  field to the  model.
+- **Frontend:** React.js (, ), advanced state management for batch file processing, prop drilling (), conditional rendering, and CSS  for modal stacking.
+- **Backend:** FastAPI (Python), using the  module for case-insensitive string matching.
+- **Architecture:** A component-based pattern where a core functionality (retry logic) was replicated across multiple page/container components. The work revealed a mix of shared and non-shared sub-components, which required careful updates to ensure consistent UI.
 </key_technical_concepts>
 
 <code_architecture>
-The application is a standard React frontend/FastAPI backend architecture. The work was concentrated on the Audit Report module and its shared dependencies.
+The application follows a React frontend and FastAPI backend structure. The work spanned multiple modules, primarily on the frontend, to implement a consistent batch upload retry feature.
 
 .
 ├── 2_CO_DUC_PP.pdf
@@ -50365,67 +50360,44 @@ The application is a standard React frontend/FastAPI backend architecture. The w
 
 4660 directories, 45664 files
 
-- ****
-  - **Importance:** Core AI logic for extracting data from PDFs. It was the most frequently changed file.
-  - **Changes:**
-    - AI prompts were repeatedly updated to improve  and  extraction accuracy.
-    - Added  to  to resolve date ambiguity.
-    - The  extraction logic was updated to use  to match V1 behavior.
-    - Implemented a fallback mechanism: if a specific pattern  isn't found in the filename, the cleaned-up filename itself is used as the .
+- ** &  (All MODIFIED files):**
+    - **Importance:** These are the container components for each module's batch upload functionality.
+    - **Changes:** A consistent pattern was applied to all:
+        1.  Added  to store  objects.
+        2.  Updated the batch processing start function to populate .
+        3.  Added a  async function to re-process a single failed file using the stored  object.
+        4.  Passed  as a prop to both  and .
 
-- ****
-  - **Importance:** Orchestrates the PDF analysis pipeline, calling  and .
-  - **Changes:**
-    - Added strict validation. The service now raises  if Document AI fails or returns an empty summary, preventing the creation of incomplete records. Multiple  blocks that previously suppressed errors were fixed to re-raise them.
-    - Modified to return  in its result.
+- **Module-specific  files (e.g., ):**
+    - **Importance:** These custom modals were initially missed, causing a UI bug where the Retry button was absent.
+    - **Changes:** They were all updated to accept the  prop and render a Thử Lại (Retry) button next to each failed item, which calls the prop's function on click.
 
-- ****
-  - **Importance:** The main page component that manages the state and logic for batch uploads of Audit Reports.
-  - **Changes:**
-    - Implemented smoother progress updates by setting intermediate steps (e.g., 20%, 30%) during analysis.
-    - Added logic to handle the Retry functionality, including storing the  object to re-process the exact same file automatically.
-    - Modified to pass an  callback to .
-    - Integrated a rate limiter and a  helper to handle GDrive 429 errors.
+- **:**
+    - **Importance:** This shared modal is used for displaying upload progress.
+    - **Changes:** Its  was increased from  to  to fix a bug where it would render underneath the results modal when restored from a minimized state.
 
-- ****
-  - **Importance:** Defines the database schema for audit reports.
-  - **Changes:**
-    - Added  to the  and related Pydantic models to persist the original name of the uploaded file, which is crucial for the fallback extraction logic.
-
-- ****
-  - **Importance:** The modal used to show the progress of batch uploads.
-  - **Changes:**
-    - UI/UX was improved with smoother CSS transitions.
-    - Logic was added to display a Retry button for files that fail during processing, which triggers the  callback.
-
-- ****
-  - **Importance:** Shows the final summary of a batch upload operation.
-  - **Changes:** A Retry button was added next to failed files in the results list, allowing the user to trigger a re-upload directly from the summary.
-
-- ****
-  - **Importance:** A new utility for robust API calls.
-  - **Changes:** Created to provide a generic  function to handle transient network errors and API rate limits, initially used for the GDrive upload process.
+- **:**
+    - **Importance:** Contains the AI logic for data extraction from audit reports.
+    - **Changes:** Logic was added to check both the filename and the extracted report name for the string CREW ACCOMMODATION (case-insensitive) and set the  to 'CICA' if found. The AI prompt was also updated to reflect this new classification.
 </code_architecture>
 
 <pending_tasks>
-- Implement the requested behavior for the Retry button in the :
-  1.  When Retry is clicked for a failed file, a  should appear for that specific file.
-  2.  The  should not close automatically if other failed files remain. It should only close when the user manually closes it.
+- All development tasks requested by the user in the trajectory have been completed.
+- The final step is to await user validation to confirm that the retry functionality and bug fixes work as expected across all 8 modules.
 </pending_tasks>
 
 <current_work>
-The AI engineer was actively implementing the user's request from Chat Message 544 to improve the retry workflow from the .
+The engineer just completed a critical multi-file bug fix. The user had reported that the Retry button was missing from the Ship Certificate results modal, even after the feature was supposedly rolled out everywhere.
 
-The task is to modify the frontend logic so that clicking Retry on a failed file in the final  does not close the modal. Instead, it should trigger the  for the retried file while keeping the results modal open, allowing the user to retry other failed files or close the modal manually.
+The investigation revealed that unlike the main Audit Report module, several other modules (, , , etc.) used their own local, non-shared  component. The initial refactoring had only updated the shared component, leaving these other modals without the retry button.
 
-The last actions taken by the previous engineer were:
-1.  **Identified the relevant component:** .
-2.  **Passed the  handler** to this component from its parent, .
-3.  **Added a Thử Lại (Retry) button** to the UI within the results modal for items with a 'failed' status.
+The work immediately preceding this summary involved systematically finding every module-specific  file and applying the necessary changes:
+1.  Accepting the  function as a prop.
+2.  Adding the conditional JSX to render the Thử Lại (Retry) button for any item with a 'failed' status.
 
-The current state is that the button exists, and the  function is being called, but the logic to keep the  open and show a new  for the individual retried file has not yet been implemented.
+The very last action was running the JavaScript linter on all modified files to ensure code quality and prevent syntax errors. The system is now believed to be fully compliant with all user requests.
 </current_work>
 
 <optional_next_step>
-Continue implementing the logic for the Retry button in  by modifying the  handler in  to show a processing modal without closing the results modal.
+Summarize the completed work for the user, confirming that the retry functionality has been implemented across all 8 modules and that the missing button bug is fixed. Ask for final testing and confirmation.
 </optional_next_step>
