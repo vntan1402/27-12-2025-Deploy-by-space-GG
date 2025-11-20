@@ -1297,13 +1297,19 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
         fileStatusMap={fileStatusMap}
         fileSubStatusMap={fileSubStatusMap}
         isMinimized={isBatchMinimized}
-        onToggleMinimize={() => setIsBatchMinimized(!isBatchMinimized)}
+        onMinimize={() => setIsBatchMinimized(true)}
+        onRestore={() => setIsBatchMinimized(false)}
+        onRetryFile={handleRetryFailedFile}
+        language={language}
+        title={language === 'vi' ? 'Đang xử lý Drawings & Manuals' : 'Processing Drawings & Manuals'}
       />
 
       <BatchResultsModal 
         isOpen={showBatchResults}
         onClose={() => setShowBatchResults(false)}
         results={batchResults}
+        onRetryFile={handleRetryFailedFile}
+        language={language}
       />
     </div>
   );
