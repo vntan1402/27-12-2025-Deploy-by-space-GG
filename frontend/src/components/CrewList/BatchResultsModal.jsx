@@ -135,8 +135,18 @@ export const BatchResultsModal = ({
                         )}
                       </div>
                     ) : (
-                      <div className="text-xs text-red-600">
-                        {result.error || (language === 'vi' ? 'Lỗi không xác định' : 'Unknown error')}
+                      <div className="space-y-1">
+                        <div className="text-xs text-red-600">
+                          {result.error || (language === 'vi' ? 'Lỗi không xác định' : 'Unknown error')}
+                        </div>
+                        {onRetryFile && (
+                          <button
+                            onClick={() => onRetryFile(result.filename)}
+                            className="mt-1 px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors"
+                          >
+                            🔄 {language === 'vi' ? 'Thử lại' : 'Retry'}
+                          </button>
+                        )}
                       </div>
                     )}
                   </td>
