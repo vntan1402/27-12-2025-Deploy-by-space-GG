@@ -1103,6 +1103,7 @@ export const AddAuditCertificateModal = ({
                   <li>• {language === 'vi' ? 'PDF, JPG, PNG' : 'PDF, JPG, PNG files'}</li>
                   <li>• {language === 'vi' ? 'Max 50MB/file' : 'Max 50MB per file'}</li>
                   <li>• {language === 'vi' ? 'AI tự động phân tích' : 'AI auto-analysis'}</li>
+                  <li>• {language === 'vi' ? 'Hỗ trợ: ISM, ISPS, MLC, CICA' : 'Supports: ISM, ISPS, MLC, CICA'}</li>
                 </ul>
               </div>
 
