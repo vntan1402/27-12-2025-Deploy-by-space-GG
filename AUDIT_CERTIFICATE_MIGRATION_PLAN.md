@@ -165,8 +165,9 @@ def create_audit_certificate_extraction_prompt(
     - Issued by: Full organization name
     
     CATEGORY VALIDATION:
-    - MUST be ISM, ISPS, or MLC certificate
+    - MUST be ISM, ISPS, MLC, or CICA certificate
     - Check cert_name for these keywords
+    - CICA: "CREW ACCOMMODATION", "CERTIFICATE OF INSPECTION"
     - Reject if not in these categories
     
     Returns:
