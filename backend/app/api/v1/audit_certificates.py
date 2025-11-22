@@ -1,11 +1,13 @@
 import logging
+import base64
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, BackgroundTasks, Form
 
 from app.models.audit_certificate import AuditCertificateCreate, AuditCertificateUpdate, AuditCertificateResponse, BulkDeleteAuditCertificateRequest
 from app.models.user import UserResponse, UserRole
 from app.services.audit_certificate_service import AuditCertificateService
 from app.core.security import get_current_user
+from app.db.mongodb import mongo_db
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
