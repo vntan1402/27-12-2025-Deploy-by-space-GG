@@ -147,10 +147,13 @@ async def analyze_audit_certificate_file(
         }
     """
     try:
+        logger.info(f"📥 Received analyze-file request: ship_id={ship_id}, file={certificate_file.filename if certificate_file else 'None'}")
+        
         from app.services.audit_certificate_analyze_service import AuditCertificateAnalyzeService
         
         # Validate file
         if not certificate_file:
+            logger.error("❌ No file provided")
             raise HTTPException(status_code=400, detail="No file provided")
         
         # Read file content
