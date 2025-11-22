@@ -114,16 +114,59 @@ async def check_duplicate_audit_certificate(
         logger.error(f"❌ Error checking duplicate: {e}")
         raise HTTPException(status_code=500, detail="Failed to check duplicate")
 
-@router.post("/analyze")
+@router.post("/analyze-file")
 async def analyze_audit_certificate_file(
-    file: UploadFile = File(...),
-    ship_id: Optional[str] = None,
+    file_content: str = Form(...),
+    filename: str = Form(...),
+    content_type: str = Form(...),
+    ship_id: str = Form(...),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
-    """Analyze audit certificate file using AI (Editor+ role required)"""
-    # TODO: Implement AI analysis for audit certificates
-    return {
-        "success": True,
-        "message": "Audit certificate analysis not yet implemented",
-        "analysis": None
-    }
+    """
+    Analyze audit certificate file using AI (Editor+ role required)
+    
+    Process:
+    1. Validate file input (base64, filename, content_type)
+    2. Call AuditCertificateAnalyzeService.analyze_file()
+    3. Return extracted_info + warnings
+    
+    Used by: Single file upload (analyze only, no DB create)
+    
+    Request Body (Form Data):
+        file_content: base64 encoded file
+        filename: original filename
+        content_type: MIME type
+        ship_id: ship ID for validation
+    
+    Returns:
+        {
+            "success": true,
+            "extracted_info": {...},
+            "validation_warning": {...} | null,
+            "duplicate_warning": {...} | null,
+            "category_warning": {...} | null
+        }
+    """
+    try:
+        from app.services.audit_certificate_analyze_service import AuditCertificateAnalyzeService
+        
+        # Validate inputs
+        if not filename or not file_content:
+            raise HTTPException(status_code=400, detail="Missing filename or file content")
+        
+        # Call analyze service
+        result = await AuditCertificateAnalyzeService.analyze_file(
+            file_content=file_content,
+            filename=filename,
+            content_type=content_type,
+            ship_id=ship_id,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error analyzing audit certificate file: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
