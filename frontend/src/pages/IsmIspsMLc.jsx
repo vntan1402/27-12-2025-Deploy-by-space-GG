@@ -436,7 +436,39 @@ const IsmIspsMLc = () => {
   const getFilteredCertificates = () => {
     let filtered = [...auditCertificates];
 
-    // Filter by certificate type
+    // ⭐ NEW: Filter by category (ISM/ISPS/MLC/CICA)
+    if (certificateFilters.category !== 'all') {
+      filtered = filtered.filter(cert => {
+        // Detect category from cert_name
+        const certNameUpper = (cert.cert_name || '').toUpperCase();
+        
+        // Check if cert_name matches selected category
+        if (certificateFilters.category === 'CICA') {
+          return certNameUpper.includes('CREW ACCOMMODATION') || 
+                 certNameUpper.includes('CERTIFICATE OF INSPECTION') ||
+                 certNameUpper.includes('CICA');
+        } else if (certificateFilters.category === 'ISM') {
+          return (certNameUpper.includes('ISM') || 
+                  certNameUpper.includes('SAFETY MANAGEMENT') ||
+                  certNameUpper.includes('SMC') ||
+                  certNameUpper.includes('DOCUMENT OF COMPLIANCE') ||
+                  certNameUpper.includes('DOC')) &&
+                 !certNameUpper.includes('ISPS'); // Exclude ISPS
+        } else if (certificateFilters.category === 'ISPS') {
+          return certNameUpper.includes('ISPS') || 
+                 certNameUpper.includes('SHIP SECURITY') ||
+                 certNameUpper.includes('ISSC') ||
+                 certNameUpper.includes('SSP');
+        } else if (certificateFilters.category === 'MLC') {
+          return certNameUpper.includes('MLC') || 
+                 certNameUpper.includes('MARITIME LABOUR') ||
+                 certNameUpper.includes('DMLC');
+        }
+        return true;
+      });
+    }
+
+    // Filter by certificate type (Full Term/Interim/etc.)
     if (certificateFilters.certificateType !== 'all') {
       filtered = filtered.filter(cert => 
         cert.cert_type === certificateFilters.certificateType
