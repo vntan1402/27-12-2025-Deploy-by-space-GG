@@ -1300,7 +1300,7 @@ Files are stored at:
 ## Validation Rules
 - **IMO Mismatch**: Hard reject
 - **Ship Name Mismatch**: Soft warning (add note)
-- **Category Check**: Only ISM/ISPS/MLC allowed
+- **Category Check**: Only ISM/ISPS/MLC/CICA allowed ⭐ (EXPANDED)
 - **Duplicate Check**: Show modal for user choice
 
 ## Error Handling
