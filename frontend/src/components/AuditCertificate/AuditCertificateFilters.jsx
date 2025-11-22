@@ -17,7 +17,25 @@ export const AuditCertificateFilters = ({
   return (
     <div className="mb-4 p-4 bg-gray-50 rounded-lg border">
       <div className="flex gap-4 items-center flex-wrap">
-        {/* Certificate Type Filter */}
+        {/* Category Filter (ISM/ISPS/MLC/CICA) - NEW */}
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-700">
+            {language === 'vi' ? 'Danh mục:' : 'Category:'}
+          </label>
+          <select
+            value={filters.category || 'all'}
+            onChange={(e) => onFilterChange({ ...filters, category: e.target.value })}
+            className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+            <option value="ISM">ISM</option>
+            <option value="ISPS">ISPS</option>
+            <option value="MLC">MLC</option>
+            <option value="CICA">CICA</option>
+          </select>
+        </div>
+        
+        {/* Certificate Type Filter (Full Term/Interim/etc.) */}
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium text-gray-700">
             {language === 'vi' ? 'Loại chứng chỉ:' : 'Certificate Type:'}
