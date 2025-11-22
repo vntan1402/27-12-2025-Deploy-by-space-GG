@@ -1297,12 +1297,40 @@ Files are stored at:
 ```
 {ShipName}/ISM - ISPS - MLC/Audit Certificates/{filename}
 ```
+**Note**: CICA certificates cũng lưu trong folder này (không cần folder riêng)
 
 ## Validation Rules
 - **IMO Mismatch**: Hard reject
 - **Ship Name Mismatch**: Soft warning (add note)
-- **Category Check**: Only ISM/ISPS/MLC/CICA allowed ⭐ (EXPANDED)
+- **Category Check**: Only ISM/ISPS/MLC/CICA allowed ⭐ (EXPANDED - includes CREW ACCOMMODATION)
 - **Duplicate Check**: Show modal for user choice
+
+## ⭐ CICA EXPANSION DETAILS
+
+**CICA (Certificate of Inspection for Crew Accommodation)** được thêm vào hệ thống:
+
+### CICA Certificate Types:
+- Certificate of Inspection / Statement of Compliance of Crew Accommodation
+- Crew Accommodation Certificate
+- CICA abbreviation
+
+### Detection Keywords:
+- "CREW ACCOMMODATION" (highest priority)
+- "CERTIFICATE OF INSPECTION"
+- "CICA"
+
+### Frontend Changes:
+- Type filter: Add CICA option
+- Table badge: Orange color for CICA (`bg-orange-100 text-orange-800`)
+- Upload guidelines: Mention CICA support
+
+### Backend Changes:
+- Dictionary: Add `"cica": [...]` to `AUDIT_CERTIFICATE_CATEGORIES`
+- Validation: Update function to `check_category_ism_isps_mlc_cica()`
+- AI Prompt: Add CICA detection rules
+- Error messages: Update to mention CICA
+
+**See**: `/app/AUDIT_CERTIFICATE_CICA_EXPANSION.md` for complete details
 
 ## Error Handling
 - File size > 50MB: Reject
