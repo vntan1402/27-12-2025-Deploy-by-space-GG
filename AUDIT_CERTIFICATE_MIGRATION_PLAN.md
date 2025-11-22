@@ -346,27 +346,30 @@ class AuditCertificateAnalyzeService:
         # Port logic from Backend V1
         
     @staticmethod
-    async def check_category_ism_isps_mlc(
+    async def check_category_ism_isps_mlc_cica(
         cert_name: str
     ) -> Dict[str, Any]:
         """
-        Check if certificate belongs to ISM/ISPS/MLC categories
+        Check if certificate belongs to ISM/ISPS/MLC/CICA categories
         
+        ⭐ EXPANDED: Now includes CICA (Crew Accommodation)
         Based on Backend V1: check_ism_isps_mlc_category()
         
         Rules:
-        - cert_name must contain: "ISM", "ISPS", or "MLC"
+        - cert_name must contain: "ISM", "ISPS", "MLC", or "CICA"
+        - Special priority for "CREW ACCOMMODATION" → CICA
         - Case-insensitive search
         - If not found → Return error
         
         Returns:
             dict: {
                 "is_valid": bool,
-                "category": "ISM" | "ISPS" | "MLC" | null,
+                "category": "ISM" | "ISPS" | "MLC" | "CICA" | null,
                 "message": str
             }
         """
-        # Check cert_name for ISM/ISPS/MLC keywords
+        # Special check for CREW ACCOMMODATION first
+        # Then check cert_name for ISM/ISPS/MLC/CICA keywords
 ```
 
 **Tham khảo**:
