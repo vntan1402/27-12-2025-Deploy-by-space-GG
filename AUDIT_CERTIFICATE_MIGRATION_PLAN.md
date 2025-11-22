@@ -8,6 +8,7 @@ Migrate toàn bộ module "Add Audit Certificate" từ Backend V1 sang Backend V
 - ✅ Google Drive integration (GDriveService V2)
 - ✅ Validation & duplicate detection
 - ✅ **Sửa path: `ISM-ISPS-MLC` → `ISM - ISPS - MLC`**
+- ✅ **⭐ MỚI: Mở rộng hỗ trợ CICA (CREW ACCOMMODATION) certificate**
 
 ---
 
