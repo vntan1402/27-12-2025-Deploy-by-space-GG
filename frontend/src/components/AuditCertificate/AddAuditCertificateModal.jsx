@@ -1576,8 +1576,8 @@ export const AddAuditCertificateModal = ({
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <p className="text-sm text-yellow-800">
                   {language === 'vi' 
-                    ? '💡 Module ISM-ISPS-MLC chỉ dành cho các giấy chứng nhận liên quan đến ISM (International Safety Management), ISPS (International Ship and Port Facility Security), và MLC (Maritime Labour Convention).'
-                    : '💡 ISM-ISPS-MLC module is only for certificates related to ISM (International Safety Management), ISPS (International Ship and Port Facility Security), and MLC (Maritime Labour Convention).'
+                    ? '💡 Module ISM-ISPS-MLC chỉ dành cho các giấy chứng nhận liên quan đến ISM (International Safety Management), ISPS (International Ship and Port Facility Security), MLC (Maritime Labour Convention), và CICA (Certificate of Inspection for Crew Accommodation).'
+                    : '💡 ISM-ISPS-MLC module is only for certificates related to ISM (International Safety Management), ISPS (International Ship and Port Facility Security), MLC (Maritime Labour Convention), and CICA (Certificate of Inspection for Crew Accommodation).'
                   }
                 </p>
               </div>
