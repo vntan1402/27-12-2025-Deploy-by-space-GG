@@ -118,27 +118,24 @@ async def check_duplicate_audit_certificate(
 
 @router.post("/analyze-file")
 async def analyze_audit_certificate_file(
-    file_content: str = Form(...),
-    filename: str = Form(...),
-    content_type: str = Form(...),
     ship_id: str = Form(...),
+    certificate_file: UploadFile = File(...),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
     Analyze audit certificate file using AI (Editor+ role required)
     
     Process:
-    1. Validate file input (base64, filename, content_type)
-    2. Call AuditCertificateAnalyzeService.analyze_file()
-    3. Return extracted_info + warnings
+    1. Read and validate file (PDF/JPG/PNG, max 50MB)
+    2. Convert to base64
+    3. Call AuditCertificateAnalyzeService.analyze_file()
+    4. Return extracted_info + warnings
     
     Used by: Single file upload (analyze only, no DB create)
     
     Request Body (Form Data):
-        file_content: base64 encoded file
-        filename: original filename
-        content_type: MIME type
-        ship_id: ship ID for validation
+        ship_id: Ship ID for validation
+        certificate_file: Uploaded file
     
     Returns:
         {
@@ -152,15 +149,24 @@ async def analyze_audit_certificate_file(
     try:
         from app.services.audit_certificate_analyze_service import AuditCertificateAnalyzeService
         
-        # Validate inputs
-        if not filename or not file_content:
-            raise HTTPException(status_code=400, detail="Missing filename or file content")
+        # Validate file
+        if not certificate_file:
+            raise HTTPException(status_code=400, detail="No file provided")
+        
+        # Read file content
+        file_content = await certificate_file.read()
+        
+        if not file_content or len(file_content) == 0:
+            raise HTTPException(status_code=400, detail="Empty file provided")
+        
+        # Convert to base64
+        file_base64 = base64.b64encode(file_content).decode('utf-8')
         
         # Call analyze service
         result = await AuditCertificateAnalyzeService.analyze_file(
-            file_content=file_content,
-            filename=filename,
-            content_type=content_type,
+            file_content=file_base64,
+            filename=certificate_file.filename,
+            content_type=certificate_file.content_type,
             ship_id=ship_id,
             current_user=current_user
         )
