@@ -168,6 +168,10 @@ async def analyze_audit_certificate_file(
         return result
         
     except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error analyzing audit certificate file: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/multi-upload")
