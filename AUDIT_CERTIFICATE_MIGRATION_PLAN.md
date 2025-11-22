@@ -106,7 +106,7 @@ Migrate toàn bộ module "Add Audit Certificate" từ Backend V1 sang Backend V
 ```python
 """
 Audit Certificate AI Extraction Utilities
-Handles AI-powered field extraction from audit certificates (ISM/ISPS/MLC)
+Handles AI-powered field extraction from audit certificates (ISM/ISPS/MLC/CICA)
 Based on Backend V1 analyze_document_with_ai and Audit Report AI pattern
 """
 
