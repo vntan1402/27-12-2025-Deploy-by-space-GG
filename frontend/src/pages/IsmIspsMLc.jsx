@@ -58,6 +58,7 @@ const IsmIspsMLc = () => {
   
   // Filters & Sort
   const [certificateFilters, setCertificateFilters] = useState({
+    category: 'all', // ⭐ NEW: ISM/ISPS/MLC/CICA filter
     certificateType: 'all',
     status: 'all',
     search: ''
