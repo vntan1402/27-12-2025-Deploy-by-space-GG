@@ -552,7 +552,7 @@ class AuditCertificateAnalyzeService:
                 text_quality_sufficient
             )
             
-            logger.info(f"📊 Extraction Quality: sufficient={sufficient}, confidence={confidence_score}, critical_rate={critical_extraction_rate}")
+            logger.info(f"📊 Extraction Quality: sufficient={sufficient}, confidence={confidence_score}, critical_rate={critical_extraction_rate}, overall_rate={overall_extraction_rate}, text_quality={text_quality_sufficient}, missing={missing_fields}")
             
             return {
                 "sufficient": sufficient,
