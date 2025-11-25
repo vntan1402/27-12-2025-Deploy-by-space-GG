@@ -55,6 +55,10 @@ class AuditCertificateService:
             if not cert.get("issued_by_abbreviation") and cert.get("issued_by"):
                 cert["issued_by_abbreviation"] = generate_organization_abbreviation(cert.get("issued_by"))
             
+            # ⭐ Map google_drive_file_id to file_id for frontend compatibility
+            if cert.get("google_drive_file_id") and not cert.get("file_id"):
+                cert["file_id"] = cert.get("google_drive_file_id")
+            
             result.append(AuditCertificateResponse(**cert))
         
         return result
