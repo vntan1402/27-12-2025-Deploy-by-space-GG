@@ -308,17 +308,32 @@ export const AuditCertificateTable = ({
                   </div>
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    cert.cert_type === 'Full Term' ? 'bg-green-100 text-green-800' :
-                    cert.cert_type === 'Interim' ? 'bg-yellow-100 text-yellow-800' :
-                    cert.cert_type === 'Provisional' ? 'bg-orange-100 text-orange-800' :
-                    cert.cert_type === 'Short term' ? 'bg-red-100 text-red-800' :
-                    cert.cert_type === 'Conditional' ? 'bg-blue-100 text-blue-800' :
-                    cert.cert_type === 'Other' ? 'bg-purple-100 text-purple-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {cert.cert_type || 'Unknown'}
-                  </span>
+                  <div className="flex flex-col gap-1">
+                    {/* Category Badge (ISM/ISPS/MLC/CICA) - Moved from Cert. Name column */}
+                    {(() => {
+                      const category = detectCertificateCategory(cert.cert_name);
+                      const badgeColor = getCategoryBadgeColor(category);
+                      
+                      return (
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${badgeColor}`}>
+                          {category}
+                        </span>
+                      );
+                    })()}
+                    
+                    {/* Certificate Type Badge */}
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      cert.cert_type === 'Full Term' ? 'bg-green-100 text-green-800' :
+                      cert.cert_type === 'Interim' ? 'bg-yellow-100 text-yellow-800' :
+                      cert.cert_type === 'Provisional' ? 'bg-orange-100 text-orange-800' :
+                      cert.cert_type === 'Short term' ? 'bg-red-100 text-red-800' :
+                      cert.cert_type === 'Conditional' ? 'bg-blue-100 text-blue-800' :
+                      cert.cert_type === 'Other' ? 'bg-purple-100 text-purple-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {cert.cert_type || 'Unknown'}
+                    </span>
+                  </div>
                 </td>
                 <td 
                   className="border border-gray-300 px-4 py-2 font-mono relative group cursor-help"
