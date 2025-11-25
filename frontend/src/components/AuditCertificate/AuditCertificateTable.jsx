@@ -330,13 +330,13 @@ export const AuditCertificateTable = ({
                     })()}
                     
                     {/* Original File Icon (📄 red) */}
-                    {cert.google_drive_file_id && (
+                    {cert.file_id && (
                       <span
                         className="text-red-500 text-xs cursor-pointer hover:text-red-600"
                         title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 ${cert.ship_name || 'Unknown'}/ISM - ISPS - MLC/Audit Certificates`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          window.open(`https://drive.google.com/file/d/${cert.google_drive_file_id}/view`, '_blank');
+                          window.open(`https://drive.google.com/file/d/${cert.file_id}/view`, '_blank');
                         }}
                       >
                         📄
