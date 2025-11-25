@@ -368,7 +368,7 @@ class AuditCertificateAnalyzeService:
                     return ""
             
             # Process all chunks in parallel
-            tasks = [process_chunk(chunk) for chunk in chunks]
+            tasks = [process_chunk(chunk, i) for i, chunk in enumerate(chunks)]
             chunk_texts = await asyncio.gather(*tasks)
             
             # Merge summaries
