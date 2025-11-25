@@ -797,17 +797,21 @@ export const AddAuditCertificateModal = ({
 
       // **NEW LOGIC: Nếu có certificateFile (từ single upload), upload file trước**
       if (certificateFile) {
-        // Check if validation was approved (user clicked Continue on validation modal)
-        if (validationApproved) {
-          // User approved validation warning - create record with file using special endpoint
-          console.log('✅ Validation approved - creating record with file upload');
+        // ⭐ NEW: Check if this is a manual save after AI extraction failed
+        // or if validation was approved
+        const isManualSaveAfterAIFail = formData.cert_name && formData.cert_no; // User filled required fields
+        
+        // Check if validation was approved OR this is manual input after AI fail
+        if (validationApproved || isManualSaveAfterAIFail) {
+          // User approved validation warning OR manually filled form - create record with file using special endpoint
+          console.log('✅ Creating record with file upload (validation approved or manual input)');
           
           toast.info(language === 'vi' 
             ? '📤 Đang upload file và tạo certificate...'
             : '📤 Uploading file and creating certificate...'
           );
           
-          // Use special endpoint that uploads file WITHOUT validation (user already approved)
+          // Use special endpoint that uploads file WITHOUT validation (user already approved or manually entered)
           const uploadFormData = new FormData();
           uploadFormData.append('file', certificateFile);
           uploadFormData.append('cert_data', JSON.stringify(certPayload));
@@ -822,8 +826,8 @@ export const AddAuditCertificateModal = ({
           
           if (uploadResponse.data.success) {
             toast.success(language === 'vi' 
-              ? '✅ Đã tạo certificate với file và ghi chú tham khảo!'
-              : '✅ Certificate created with file and reference note!'
+              ? '✅ Đã tạo certificate với file đính kèm!'
+              : '✅ Certificate created with attached file!'
             );
             
             // Clear states
