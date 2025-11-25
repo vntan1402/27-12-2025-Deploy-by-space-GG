@@ -795,175 +795,38 @@ export const AddAuditCertificateModal = ({
         next_survey: formData.next_survey ? convertDateInputToUTC(formData.next_survey) : null
       };
 
-      // **NEW LOGIC: Nếu có certificateFile (từ single upload), upload file trước**
+      // ⭐ NEW LOGIC: Nếu có certificateFile → Upload file + Create DB record (KHÔNG AI analyze lại)
       if (certificateFile) {
-        // ⭐ NEW: Check if this is a manual save after AI extraction failed
-        // or if validation was approved
-        const isManualSaveAfterAIFail = formData.cert_name && formData.cert_no; // User filled required fields
+        console.log('✅ Saving certificate with file (already analyzed, no re-analysis)');
         
-        // Check if validation was approved OR this is manual input after AI fail
-        if (validationApproved || isManualSaveAfterAIFail) {
-          // User approved validation warning OR manually filled form - create record with file using special endpoint
-          console.log('✅ Creating record with file upload (validation approved or manual input)');
-          
-          toast.info(language === 'vi' 
-            ? '📤 Đang upload file và tạo certificate...'
-            : '📤 Uploading file and creating certificate...'
-          );
-          
-          // Use special endpoint that uploads file WITHOUT validation (user already approved or manually entered)
-          const uploadFormData = new FormData();
-          uploadFormData.append('file', certificateFile);
-          uploadFormData.append('cert_data', JSON.stringify(certPayload));
-          
-          const uploadResponse = await api.post(
-            `/api/audit-certificates/create-with-file-override?ship_id=${selectedShip.id}`,
-            uploadFormData,
-            {
-              headers: { 'Content-Type': 'multipart/form-data' }
-            }
-          );
-          
-          if (uploadResponse.data.success) {
-            toast.success(language === 'vi' 
-              ? '✅ Đã tạo certificate với file đính kèm!'
-              : '✅ Certificate created with attached file!'
-            );
-            
-            // Clear states
-            setCertificateFile(null);
-            setValidationApproved(false);
-            
-            // Call onSuccess to refresh list
-            if (onSuccess) {
-              onSuccess();
-            }
-            
-            // Reset form
-            setFormData({
-              ship_id: selectedShip?.id || '',
-              ship_name: selectedShip?.name || '',
-              cert_name: '',
-              cert_abbreviation: '',
-              cert_no: '',
-              cert_type: 'Full Term',
-              issue_date: '',
-              valid_date: '',
-              last_endorse: '',
-              next_survey: '',
-              next_survey_type: '',
-              issued_by: '',
-              issued_by_abbreviation: '',
-              notes: ''
-            });
-            
-            handleClose();
-          } else {
-            throw new Error(uploadResponse.data.message || 'Upload failed');
-          }
-          
-          return; // Exit after success
-        }
-        
-        // Normal flow: upload via multi-upload endpoint (with validation)
         toast.info(language === 'vi' 
-          ? '📤 Đang upload file lên Google Drive...'
-          : '📤 Uploading file to Google Drive...'
+          ? '📤 Đang upload file và tạo certificate...'
+          : '📤 Uploading file and creating certificate...'
         );
-
-        // Upload file to Drive using multi-upload endpoint (sẽ tạo DB record)
+        
+        // ⭐ Use create-with-file-override endpoint (KHÔNG analyze lại)
+        // File đã được analyze trước đó, giờ chỉ upload + create DB với data form
         const uploadFormData = new FormData();
-        uploadFormData.append('files', certificateFile);
-
+        uploadFormData.append('file', certificateFile);
+        uploadFormData.append('cert_data', JSON.stringify(certPayload));
+        
         const uploadResponse = await api.post(
-          `/api/audit-certificates/multi-upload?ship_id=${selectedShip.id}`,
+          `/api/audit-certificates/create-with-file-override?ship_id=${selectedShip.id}`,
           uploadFormData,
           {
             headers: { 'Content-Type': 'multipart/form-data' }
           }
         );
-
-        console.log('📥 Upload response:', uploadResponse.data);
-
-        // Check response status
-        const results = uploadResponse.data.results || [];
-        const firstResult = results[0];
         
-        if (!firstResult) {
-          throw new Error('No response from server');
-        }
-
-        // Handle different statuses
-        if (firstResult.status === 'requires_manual_input') {
-          // AI extraction insufficient
-          toast.error(language === 'vi' 
-            ? `❌ ${firstResult.message || 'AI không thể trích xuất đủ thông tin'}\n\n📝 Vui lòng điền thông tin thủ công và click Save lại. File sẽ được upload khi bạn Save.`
-            : `❌ ${firstResult.message || 'AI could not extract sufficient information'}\n\n📝 Please fill in manually and click Save again. File will be uploaded when you Save.`
-          , { duration: 10000 });
-          
-          console.warn('⚠️ Manual input required:', firstResult.manual_input_reason);
-          console.log('📄 Keeping certificateFile for later upload');
-          
-          // ⭐ DON'T clear certificateFile - keep it for later upload when user saves manually
-          // setCertificateFile(null); // ← REMOVED! Keep file!
-          
-          // Auto-fill any extracted data (even if incomplete)
-          if (firstResult.extracted_info) {
-            const partialData = firstResult.extracted_info;
-            setFormData(prev => ({
-              ...prev,
-              cert_name: partialData.cert_name || prev.cert_name,
-              cert_abbreviation: partialData.cert_abbreviation || prev.cert_abbreviation,
-              cert_no: partialData.cert_no || prev.cert_no,
-              cert_type: partialData.cert_type || prev.cert_type,
-              issue_date: formatCertDate(partialData.issue_date) || prev.issue_date,
-              valid_date: formatCertDate(partialData.valid_date) || prev.valid_date,
-              issued_by: partialData.issued_by || prev.issued_by,
-            }));
-          }
-          
-          // Don't close modal, let user manually complete and save
-          return; // Stop here
-        }
-        
-        if (firstResult.status === 'error') {
-          // Hard error (IMO mismatch, etc.)
-          const errorMessage = firstResult.message || firstResult.progress_message || 'Upload failed';
-          toast.error(language === 'vi' 
-            ? `❌ ${errorMessage}`
-            : `❌ ${errorMessage}`
-          , { duration: 6000 });
-          
-          console.error('❌ Upload error:', firstResult);
-          
-          // Clear file and stop
-          setCertificateFile(null);
-          return;
-        }
-        
-        if (firstResult.status === 'pending_duplicate_resolution') {
-          // Duplicate detected
-          toast.warning(language === 'vi' 
-            ? `⚠️ ${firstResult.message || 'Phát hiện chứng chỉ trùng lặp'}\n\nVui lòng xử lý duplicate từ batch upload.`
-            : `⚠️ ${firstResult.message || 'Duplicate certificate detected'}\n\nPlease handle duplicate from batch upload.`
-          , { duration: 8000 });
-          
-          console.warn('⚠️ Duplicate detected:', firstResult.duplicate_info);
-          
-          // Clear file and stop
-          setCertificateFile(null);
-          return;
-        }
-
-        // Success case
-        if (uploadResponse.data.success && uploadResponse.data.summary.successfully_created > 0) {
+        if (uploadResponse.data.success) {
           toast.success(language === 'vi' 
             ? '✅ Đã tạo certificate với file đính kèm!'
             : '✅ Certificate created with attached file!'
           );
           
-          // Clear file state
+          // Clear states
           setCertificateFile(null);
+          setValidationApproved(false);
           
           // Call onSuccess to refresh list
           if (onSuccess) {
@@ -990,8 +853,10 @@ export const AddAuditCertificateModal = ({
           
           handleClose();
         } else {
-          throw new Error(firstResult.message || 'Upload failed');
+          throw new Error(uploadResponse.data.message || 'Upload failed');
         }
+        
+        return; // Exit after success
       } else {
         // **ORIGINAL LOGIC: Không có file, chỉ tạo DB record**
         await onSave(certPayload);
