@@ -893,14 +893,32 @@ export const AddAuditCertificateModal = ({
         if (firstResult.status === 'requires_manual_input') {
           // AI extraction insufficient
           toast.error(language === 'vi' 
-            ? `❌ ${firstResult.message || 'AI không thể trích xuất đủ thông tin'}\n\n${firstResult.manual_input_reason || ''}`
-            : `❌ ${firstResult.message || 'AI could not extract sufficient information'}\n\n${firstResult.manual_input_reason || ''}`
-          , { duration: 8000 });
+            ? `❌ ${firstResult.message || 'AI không thể trích xuất đủ thông tin'}\n\n📝 Vui lòng điền thông tin thủ công và click Save lại. File sẽ được upload khi bạn Save.`
+            : `❌ ${firstResult.message || 'AI could not extract sufficient information'}\n\n📝 Please fill in manually and click Save again. File will be uploaded when you Save.`
+          , { duration: 10000 });
           
           console.warn('⚠️ Manual input required:', firstResult.manual_input_reason);
+          console.log('📄 Keeping certificateFile for later upload');
           
-          // Don't close modal, let user manually enter data
-          setCertificateFile(null); // Clear file
+          // ⭐ DON'T clear certificateFile - keep it for later upload when user saves manually
+          // setCertificateFile(null); // ← REMOVED! Keep file!
+          
+          // Auto-fill any extracted data (even if incomplete)
+          if (firstResult.extracted_info) {
+            const partialData = firstResult.extracted_info;
+            setFormData(prev => ({
+              ...prev,
+              cert_name: partialData.cert_name || prev.cert_name,
+              cert_abbreviation: partialData.cert_abbreviation || prev.cert_abbreviation,
+              cert_no: partialData.cert_no || prev.cert_no,
+              cert_type: partialData.cert_type || prev.cert_type,
+              issue_date: formatCertDate(partialData.issue_date) || prev.issue_date,
+              valid_date: formatCertDate(partialData.valid_date) || prev.valid_date,
+              issued_by: partialData.issued_by || prev.issued_by,
+            }));
+          }
+          
+          // Don't close modal, let user manually complete and save
           return; // Stop here
         }
         
