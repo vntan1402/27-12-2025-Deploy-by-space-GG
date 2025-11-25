@@ -116,9 +116,15 @@ async def check_duplicate_audit_certificate(
         logger.error(f"❌ Error checking duplicate: {e}")
         raise HTTPException(status_code=500, detail="Failed to check duplicate")
 
+class AnalyzeFileRequest(BaseModel):
+    file_content: str
+    filename: str
+    content_type: str
+    ship_id: str
+
 @router.post("/analyze-file")
 async def analyze_audit_certificate_file(
-    request_data: dict,
+    request_data: AnalyzeFileRequest,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
