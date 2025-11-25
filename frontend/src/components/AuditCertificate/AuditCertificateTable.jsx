@@ -308,7 +308,7 @@ export const AuditCertificateTable = ({
                   </div>
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-row gap-1 items-center flex-wrap">
                     {/* Category Badge (ISM/ISPS/MLC/CICA) - Moved from Cert. Name column */}
                     {(() => {
                       const category = detectCertificateCategory(cert.cert_name);
