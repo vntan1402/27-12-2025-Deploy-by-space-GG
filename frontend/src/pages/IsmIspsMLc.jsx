@@ -1776,8 +1776,12 @@ const IsmIspsMLc = () => {
             onClick={() => {
               if (selectedCertificates.size > 1) {
                 handleBulkDownload();
-              } else if (contextMenu.certificate?.google_drive_file_id) {
-                window.open(`https://drive.google.com/uc?export=download&id=${contextMenu.certificate.google_drive_file_id}`, '_blank');
+              } else {
+                // Check both file_id (new) and google_drive_file_id (legacy)
+                const fileId = contextMenu.certificate?.file_id || contextMenu.certificate?.google_drive_file_id;
+                if (fileId) {
+                  window.open(`https://drive.google.com/uc?export=download&id=${fileId}`, '_blank');
+                }
               }
               setContextMenu(null);
             }}
