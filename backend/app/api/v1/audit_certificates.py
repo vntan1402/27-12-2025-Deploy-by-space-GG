@@ -118,8 +118,8 @@ async def check_duplicate_audit_certificate(
 
 @router.post("/analyze-file")
 async def analyze_audit_certificate_file(
-    ship_id: str = Form(...),
     certificate_file: UploadFile = File(...),
+    ship_id: str = Form(...),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
