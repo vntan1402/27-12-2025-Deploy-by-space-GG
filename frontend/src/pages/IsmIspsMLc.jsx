@@ -1814,7 +1814,7 @@ const IsmIspsMLc = () => {
               <div className="border-t border-gray-200 my-1"></div>
               
               {/* Auto Rename File - single file only */}
-              {contextMenu.certificate?.google_drive_file_id && (
+              {(contextMenu.certificate?.file_id || contextMenu.certificate?.google_drive_file_id) && (
                 <button
                   onClick={() => {
                     handleAutoRenameFile(contextMenu.certificate);
