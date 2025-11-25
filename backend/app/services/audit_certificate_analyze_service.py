@@ -350,14 +350,19 @@ class AuditCertificateAnalyzeService:
             # Process chunks in parallel
             from app.utils.document_ai_helper import analyze_document_with_document_ai
             
-            async def process_chunk(chunk_bytes):
+            async def process_chunk(chunk_bytes, chunk_index):
                 try:
                     result = await analyze_document_with_document_ai(
-                        file_bytes=chunk_bytes,
-                        mime_type='application/pdf',
-                        document_ai_config=document_ai_config
+                        file_content=chunk_bytes,
+                        filename=f"{filename}_chunk_{chunk_index}",
+                        content_type='application/pdf',
+                        document_ai_config=document_ai_config,
+                        document_type='audit_certificate'
                     )
-                    return result.get("summary", "") if result else ""
+                    if result and result.get("success"):
+                        data = result.get("data", {})
+                        return data.get("summary", "")
+                    return ""
                 except Exception as e:
                     logger.error(f"❌ Chunk processing error: {e}")
                     return ""
