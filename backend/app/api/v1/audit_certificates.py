@@ -162,10 +162,10 @@ async def analyze_audit_certificate_file(
         from app.services.audit_certificate_analyze_service import AuditCertificateAnalyzeService
         
         # Extract fields from request
-        file_content = request_data.get("file_content")
-        filename = request_data.get("filename")
-        content_type = request_data.get("content_type")
-        ship_id = request_data.get("ship_id")
+        file_content = request_data.file_content
+        filename = request_data.filename
+        content_type = request_data.content_type
+        ship_id = request_data.ship_id
         
         logger.info(f"ship_id={ship_id}, filename={filename}, content_type={content_type}")
         
