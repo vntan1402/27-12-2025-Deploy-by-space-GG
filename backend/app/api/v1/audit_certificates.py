@@ -147,7 +147,10 @@ async def analyze_audit_certificate_file(
         }
     """
     try:
-        logger.info(f"📥 Received analyze-file request: ship_id={ship_id}, file={certificate_file.filename if certificate_file else 'None'}")
+        logger.info(f"📥 Received analyze-file request START")
+        logger.info(f"ship_id={ship_id}")
+        logger.info(f"certificate_file={certificate_file}")
+        logger.info(f"certificate_file.filename={certificate_file.filename if certificate_file else 'None'}")
         
         from app.services.audit_certificate_analyze_service import AuditCertificateAnalyzeService
         
