@@ -534,8 +534,11 @@ const IsmIspsMLc = () => {
   };
 
   const handleCertificateDoubleClick = (cert) => {
-    if (cert.google_drive_file_id) {
-      const link = `https://drive.google.com/file/d/${cert.google_drive_file_id}/view`;
+    // Check both file_id (new) and google_drive_file_id (legacy) for backward compatibility
+    const fileId = cert.file_id || cert.google_drive_file_id;
+    
+    if (fileId) {
+      const link = `https://drive.google.com/file/d/${fileId}/view`;
       window.open(link, '_blank');
     } else {
       toast.warning(language === 'vi' 
@@ -548,9 +551,33 @@ const IsmIspsMLc = () => {
 
   const handleCertificateRightClick = (e, cert) => {
     e.preventDefault();
+    
+    // Calculate position with boundary checks to prevent menu from going off-screen
+    const menuWidth = 250; // Approximate context menu width
+    const menuHeight = 400; // Approximate context menu height
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Adjust X position if menu would go off-screen on the right
+    if (x + menuWidth > windowWidth) {
+      x = windowWidth - menuWidth - 10; // 10px padding from edge
+    }
+    
+    // Adjust Y position if menu would go off-screen at the bottom
+    if (y + menuHeight > windowHeight) {
+      y = windowHeight - menuHeight - 10; // 10px padding from edge
+    }
+    
+    // Ensure minimum position (at least 10px from top/left)
+    x = Math.max(10, x);
+    y = Math.max(10, y);
+    
     setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
+      x,
+      y,
       certificate: cert
     });
   };
