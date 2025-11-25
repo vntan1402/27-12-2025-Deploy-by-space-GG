@@ -248,13 +248,15 @@ class AuditCertificateAnalyzeService:
                 'jpeg': 'image/jpeg',
                 'png': 'image/png'
             }
-            mime_type = mime_type_mapping.get(file_ext, 'application/pdf')
+            content_type = mime_type_mapping.get(file_ext, 'application/pdf')
             
             # Process with Document AI
             doc_ai_result = await analyze_document_with_document_ai(
-                file_bytes=file_bytes,
-                mime_type=mime_type,
-                document_ai_config=document_ai_config
+                file_content=file_bytes,
+                filename=filename,
+                content_type=content_type,
+                document_ai_config=document_ai_config,
+                document_type='audit_certificate'  # Use 'other' or specific type
             )
             
             if not doc_ai_result or not doc_ai_result.get("success"):
