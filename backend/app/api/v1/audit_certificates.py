@@ -118,24 +118,27 @@ async def check_duplicate_audit_certificate(
 
 @router.post("/analyze-file")
 async def analyze_audit_certificate_file(
-    certificate_file: UploadFile = File(...),
-    ship_id: Optional[str] = Query(None),
+    request_data: dict,
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
     Analyze audit certificate file using AI (Editor+ role required)
     
     Process:
-    1. Read and validate file (PDF/JPG/PNG, max 50MB)
-    2. Convert to base64
+    1. Receive JSON body with base64 file content
+    2. Validate inputs
     3. Call AuditCertificateAnalyzeService.analyze_file()
     4. Return extracted_info + warnings
     
     Used by: Single file upload (analyze only, no DB create)
     
-    Request Body (Form Data):
-        ship_id: Ship ID for validation
-        certificate_file: Uploaded file
+    Request Body (JSON):
+        {
+            "file_content": "base64_string",
+            "filename": "filename.pdf",
+            "content_type": "application/pdf",
+            "ship_id": "ship_uuid"
+        }
     
     Returns:
         {
@@ -147,32 +150,36 @@ async def analyze_audit_certificate_file(
         }
     """
     try:
-        logger.info(f"📥 Received analyze-file request START")
-        logger.info(f"ship_id={ship_id}")
-        logger.info(f"certificate_file={certificate_file}")
-        logger.info(f"certificate_file.filename={certificate_file.filename if certificate_file else 'None'}")
+        logger.info(f"📥 Received analyze-file request (JSON body)")
         
         from app.services.audit_certificate_analyze_service import AuditCertificateAnalyzeService
         
-        # Validate file
-        if not certificate_file:
-            logger.error("❌ No file provided")
-            raise HTTPException(status_code=400, detail="No file provided")
+        # Extract fields from request
+        file_content = request_data.get("file_content")
+        filename = request_data.get("filename")
+        content_type = request_data.get("content_type")
+        ship_id = request_data.get("ship_id")
         
-        # Read file content
-        file_content = await certificate_file.read()
+        logger.info(f"ship_id={ship_id}, filename={filename}, content_type={content_type}")
         
-        if not file_content or len(file_content) == 0:
-            raise HTTPException(status_code=400, detail="Empty file provided")
+        # Validate inputs
+        if not file_content:
+            logger.error("❌ No file_content provided")
+            raise HTTPException(status_code=400, detail="No file_content provided")
         
-        # Convert to base64
-        file_base64 = base64.b64encode(file_content).decode('utf-8')
+        if not filename:
+            logger.error("❌ No filename provided")
+            raise HTTPException(status_code=400, detail="No filename provided")
         
-        # Call analyze service
+        if not ship_id:
+            logger.error("❌ No ship_id provided")
+            raise HTTPException(status_code=400, detail="No ship_id provided")
+        
+        # Call analyze service (file_content is already base64)
         result = await AuditCertificateAnalyzeService.analyze_file(
-            file_content=file_base64,
-            filename=certificate_file.filename,
-            content_type=certificate_file.content_type,
+            file_content=file_content,
+            filename=filename,
+            content_type=content_type or "application/pdf",
             ship_id=ship_id,
             current_user=current_user
         )
