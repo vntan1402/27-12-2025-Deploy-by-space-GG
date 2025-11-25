@@ -1,37 +1,43 @@
 <analysis>
 The user's primary language is Vietnamese. The next agent must respond in Vietnamese.
 
-This trajectory chronicles an extensive, iterative development process focused on implementing and then propagating a robust Retry mechanism for batch file uploads across an entire application. The work began with a request to fix the retry logic for the Audit Report module, specifically to keep the results modal open while retrying a failed file. This single task quickly expanded into a major refactoring epic.
+This trajectory details the complex migration and debugging of the Add Audit Certificate module from a legacy V1 backend to a new V2 backend. The work was initiated by the user's request to understand the full workflow of this feature. The initial analysis revealed that critical endpoints for this module were entirely missing in the V2 backend.
 
-The engineer systematically replicated the retry logic—which involved adding state to store  objects (), creating a retry handler function, and passing it as a prop—across seven additional modules. This process was punctuated by two key bug fixes driven by user feedback:
-1.  A backend AI logic update to classify CREW ACCOMMODATION documents as type CICA.
-2.  A frontend  fix to ensure the processing modal appears on top of the results modal.
+The user then approved a detailed migration plan which included:
+1.  Porting all logic and creating three missing API endpoints (, , ).
+2.  Expanding the feature to accept CICA (Crew Accommodation) certificates, which were previously rejected. This involved UI updates for filters and tables.
+3.  Correcting a Google Drive folder path to include spaces ().
 
-The final phase involved another critical fix after the user discovered the Retry button was missing in some modules. The engineer correctly diagnosed that these modules used their own non-shared  components and proceeded to update all of them, completing the full scope of the user's request.
+The implementation phase was an extensive, iterative debugging cycle. The engineer battled a series of interconnected issues:
+-   **API Contract Mismatches:** The frontend sent a JSON payload with base64 content, while the backend initially expected . This required multiple signature changes in the FastAPI endpoint, eventually settling on a Pydantic model for the JSON body.
+-   **Backend Logic Errors:** The migrated code had missing dependencies (), incorrect function signatures, and data serialization bugs where the  from the database wasn't being mapped to the  field in the API response.
+-   **Frontend State Management Bugs:** A critical bug was found where the file object was cleared after a failed AI analysis, preventing it from being uploaded when the user manually corrected the data and saved. This was fixed to persist the file.
+-   **Frontend Rendering Error:** The final bug was a simple but elusive issue where the UI component checked for  to display an icon, but the API response (after being fixed) provided .
+
+The engineer systematically resolved each issue, culminating in the correction of the frontend rendering logic.
 </analysis>
 
 <product_requirements>
-The primary objective was to enhance the robustness and user experience of the batch file upload features across the application.
+The primary objective is to migrate the Audit Certificate module from a legacy V1 backend to the new V2 backend, ensuring full feature parity and incorporating several enhancements.
 
-1.  **Core Feature: Enhanced Retry Mechanism:**
-    - Implement a Retry button for failed file uploads, accessible from both the in-progress  and the final .
-    - When a user clicks Retry from the , it must *not* close. Instead, it should launch a new, minimized  for the specific file being retried. This allows the user to retry other failed files or close the modal manually.
-
-2.  **Scope Expansion:**
-    - Initially requested for the Audit Report module (), this functionality was subsequently requested to be implemented across all seven other modules that feature batch uploads.
-
-3.  **AI Logic Enhancement:**
-    - A secondary requirement was to improve the backend AI classification. Any document whose name or filename contains the phrase CREW ACCOMMODATION must be automatically classified with the type CICA.
+**Core Requirements:**
+1.  **Backend Migration:** Implement three missing API endpoints in the V2 backend (, , ) to handle single-file AI analysis, batch uploads, and saving with user overrides.
+2.  **Feature Expansion (CICA Support):** The module, which originally only supported ISM, ISPS, and MLC certificates, must be updated to also accept CICA (Crew Accommodation) certificates. This requires updating backend validation, AI classification logic, and frontend UI elements like filters and table displays to include CICA as a category.
+3.  **Path Correction:** The Google Drive storage path for uploaded certificates must be changed from  to .
+4.  **Bug Fix & UX Improvement:**
+    *   Resolve the critical bug where the original file icon (📄) does not appear next to a certificate in the table after it has been successfully saved and uploaded to Google Drive.
+    *   Optimize the save workflow so that the AI analysis is performed only once upon initial upload, not again when the user clicks Save after reviewing the auto-filled form.
 </product_requirements>
 
 <key_technical_concepts>
-- **Frontend:** React.js (, ), advanced state management for batch file processing, prop drilling (), conditional rendering, and CSS  for modal stacking.
-- **Backend:** FastAPI (Python), using the  module for case-insensitive string matching.
-- **Architecture:** A component-based pattern where a core functionality (retry logic) was replicated across multiple page/container components. The work revealed a mix of shared and non-shared sub-components, which required careful updates to ensure consistent UI.
+- **Frontend:** React.js, including state management (), conditional rendering, and debugging frontend/backend API contract mismatches (JSON vs. FormData).
+- **Backend:** FastAPI, including routing (), request validation with Pydantic models, handling file uploads (both  and base64-encoded JSON), and dependency injection (, , ).
+- **Database:** MongoDB, including direct database inspection using the  shell to verify data integrity.
+- **Architecture:** Module migration from a monolithic backend (V1) to a service-oriented architecture (V2), involving creating new services () and utility files ().
 </key_technical_concepts>
 
 <code_architecture>
-The application follows a React frontend and FastAPI backend structure. The work spanned multiple modules, primarily on the frontend, to implement a consistent batch upload retry feature.
+The application uses a standard React frontend and FastAPI backend. The work focused on building out the  module in the V2 backend and connecting it to the existing frontend UI.
 
 .
 ├── 2_CO_DUC_PP.pdf
@@ -46,6 +52,12 @@ The application follows a React frontend and FastAPI backend structure. The work
 ├── APPS_SCRIPT_TEST_FUNCTIONS.js
 ├── APPS_SCRIPT_V3_FILES_INDEX.md
 ├── APPS_SCRIPT_V3_FINAL_UPDATE.md
+├── AUDIT_CERTIFICATE_CICA_CLARIFICATION.md
+├── AUDIT_CERTIFICATE_CICA_EXPANSION.md
+├── AUDIT_CERTIFICATE_FLOW_ANALYSIS.md
+├── AUDIT_CERTIFICATE_IMPLEMENTATION_ROADMAP.md
+├── AUDIT_CERTIFICATE_MIGRATION_PLAN.md
+├── AUDIT_CERTIFICATE_MIGRATION_SUMMARY.md
 ├── AUDIT_REPORT_ANALYSIS.md
 ├── AUDIT_REPORT_MIGRATION_PLAN.md
 ├── AUDIT_REPORT_NO_STATUS_LOGIC.md
@@ -274,6 +286,7 @@ The application follows a React frontend and FastAPI backend structure. The work
 │   │   │   │   ├── ai_config_service.cpython-311.pyc
 │   │   │   │   ├── approval_document_analyze_service.cpython-311.pyc
 │   │   │   │   ├── approval_document_service.cpython-311.pyc
+│   │   │   │   ├── audit_certificate_analyze_service.cpython-311.pyc
 │   │   │   │   ├── audit_certificate_service.cpython-311.pyc
 │   │   │   │   ├── audit_report_analyze_service.cpython-311.pyc
 │   │   │   │   ├── audit_report_service.cpython-311.pyc
@@ -299,6 +312,7 @@ The application follows a React frontend and FastAPI backend structure. The work
 │   │   │   ├── ai_config_service.py
 │   │   │   ├── approval_document_analyze_service.py
 │   │   │   ├── approval_document_service.py
+│   │   │   ├── audit_certificate_analyze_service.py
 │   │   │   ├── audit_certificate_service.py
 │   │   │   ├── audit_report_analyze_service.py
 │   │   │   ├── audit_report_service.py
@@ -326,6 +340,7 @@ The application follows a React frontend and FastAPI backend structure. The work
 │   │       │   ├── __init__.cpython-311.pyc
 │   │       │   ├── ai_helper.cpython-311.pyc
 │   │       │   ├── approval_document_ai.cpython-311.pyc
+│   │       │   ├── audit_certificate_ai.cpython-311.pyc
 │   │       │   ├── audit_report_ai.cpython-311.pyc
 │   │       │   ├── background_tasks.cpython-311.pyc
 │   │       │   ├── certificate_abbreviation.cpython-311.pyc
@@ -344,6 +359,7 @@ The application follows a React frontend and FastAPI backend structure. The work
 │   │       │   └── test_report_valid_date_calculator.cpython-311.pyc
 │   │       ├── ai_helper.py
 │   │       ├── approval_document_ai.py
+│   │       ├── audit_certificate_ai.py
 │   │       ├── audit_report_ai.py
 │   │       ├── background_tasks.py
 │   │       ├── certificate_abbreviation.py
@@ -50303,6 +50319,7 @@ The application follows a React frontend and FastAPI backend structure. The work
 │   │   │   └── userService.js
 │   │   ├── testUtilities.js
 │   │   └── utils
+│   │       ├── auditCertificateCategory.js
 │   │       ├── auditReportNameFormatter.js
 │   │       ├── constants.js
 │   │       ├── dateHelpers.js
@@ -50358,46 +50375,48 @@ The application follows a React frontend and FastAPI backend structure. The work
 ├── verify_fix.sh
 └── yarn.lock
 
-4660 directories, 45664 files
+4660 directories, 45675 files
 
-- ** &  (All MODIFIED files):**
-    - **Importance:** These are the container components for each module's batch upload functionality.
-    - **Changes:** A consistent pattern was applied to all:
-        1.  Added  to store  objects.
-        2.  Updated the batch processing start function to populate .
-        3.  Added a  async function to re-process a single failed file using the stored  object.
-        4.  Passed  as a prop to both  and .
+- ****:
+  - **Importance:** The main API router for this module.
+  - **Summary of changes:** This file was heavily modified. The placeholder  endpoint was replaced with three fully implemented endpoints: , , and . The agent debugged multiple signature issues, finally implementing a Pydantic model () to correctly handle the incoming JSON payload with base64 file content from the frontend.
 
-- **Module-specific  files (e.g., ):**
-    - **Importance:** These custom modals were initially missed, causing a UI bug where the Retry button was absent.
-    - **Changes:** They were all updated to accept the  prop and render a Thử Lại (Retry) button next to each failed item, which calls the prop's function on click.
+- ****:
+  - **Importance:** Handles the business logic for fetching and manipulating certificate data.
+  - **Summary of changes:** The agent added crucial mapping logic in  and  to map the database field  to the  field expected by the response model and the frontend. This was a key fix for the missing icon bug.
 
-- **:**
-    - **Importance:** This shared modal is used for displaying upload progress.
-    - **Changes:** Its  was increased from  to  to fix a bug where it would render underneath the results modal when restored from a minimized state.
+- ****:
+  - **Importance:** Renders the list of audit certificates.
+  - **Summary of changes:** The final fix was applied here. The conditional rendering logic for the file icon was changed from checking  to checking , aligning it with the now-correct API response.
 
-- **:**
-    - **Importance:** Contains the AI logic for data extraction from audit reports.
-    - **Changes:** Logic was added to check both the filename and the extracted report name for the string CREW ACCOMMODATION (case-insensitive) and set the  to 'CICA' if found. The AI prompt was also updated to reflect this new classification.
+- ****:
+  - **Importance:** The main UI for uploading and creating single certificates.
+  - **Summary of changes:** Significant logic changes were made to fix the workflow. The agent removed code that cleared the  state after a low-confidence AI analysis and modified the  function to prevent a redundant second AI analysis, directly calling the  endpoint instead.
+
+- ** & **:
+  - **Importance:** The main page and its filter component.
+  - **Summary of changes:** These were updated to support the CICA requirement by adding a new Category filter dropdown and the state management logic to filter certificates based on their category (ISM, ISPS, MLC, CICA).
 </code_architecture>
 
 <pending_tasks>
-- All development tasks requested by the user in the trajectory have been completed.
-- The final step is to await user validation to confirm that the retry functionality and bug fixes work as expected across all 8 modules.
+- Restart the frontend service to apply the latest fix to .
+- Conduct a final test to confirm that the file icon (📄) now appears correctly for certificates that have an associated file in Google Drive.
+- Get final confirmation from the user that the entire feature and all bug fixes are working as expected.
 </pending_tasks>
 
 <current_work>
-The engineer just completed a critical multi-file bug fix. The user had reported that the Retry button was missing from the Ship Certificate results modal, even after the feature was supposedly rolled out everywhere.
+The work immediately preceding this summary was the final step in a long debugging process to fix a missing file icon (📄) in the . The user confirmed that the API was correctly returning a  for each certificate, yet the icon was still not showing up.
 
-The investigation revealed that unlike the main Audit Report module, several other modules (, , , etc.) used their own local, non-shared  component. The initial refactoring had only updated the shared component, leaving these other modals without the retry button.
+The engineer correctly deduced the problem was in the frontend rendering logic.
 
-The work immediately preceding this summary involved systematically finding every module-specific  file and applying the necessary changes:
-1.  Accepting the  function as a prop.
-2.  Adding the conditional JSX to render the Thử Lại (Retry) button for any item with a 'failed' status.
-
-The very last action was running the JavaScript linter on all modified files to ensure code quality and prevent syntax errors. The system is now believed to be fully compliant with all user requests.
+-   **Investigation:** The engineer inspected .
+-   **Discovery:** The JSX code for rendering the icon was found to be checking for the wrong property:
+    
+-   **Action Taken:** The engineer edited this file to change the condition to check for , which is the correct property name being sent by the fixed backend API.
+    
+The very last action was successfully applying this edit. The next logical step is to make this change live by restarting the service.
 </current_work>
 
 <optional_next_step>
-Summarize the completed work for the user, confirming that the retry functionality has been implemented across all 8 modules and that the missing button bug is fixed. Ask for final testing and confirmation.
+Restart the frontend service to apply the fix in  and then confirm the fix with the user.
 </optional_next_step>

@@ -170,7 +170,7 @@ Status: Running on port 3000
 #### Environment Variables (.env)
 
 ```env
-REACT_APP_BACKEND_URL=https://batch-retry-manager.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://cert-file-upload.preview.emergentagent.com
 REACT_APP_VERSION=2.0.0
 DISABLE_ESLINT_PLUGIN=true
 ESLINT_NO_DEV_ERRORS=true
@@ -204,7 +204,7 @@ ESLINT_NO_DEV_ERRORS=true
 
 **Access:**
 - Local: http://localhost:3000
-- Preview: https://batch-retry-manager.preview.emergentagent.com
+- Preview: https://cert-file-upload.preview.emergentagent.com
 
 ---
 

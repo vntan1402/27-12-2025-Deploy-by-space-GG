@@ -30,7 +30,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://batch-retry-manager.preview.emergentagent.com/api"
+BACKEND_URL = "https://cert-file-upload.preview.emergentagent.com/api"
 TEST_USERNAME = "admin1"  # Use admin1 as per review request
 TEST_PASSWORD = "123456"
 # Test PDF for test report analysis (small PDF < 15 pages)
