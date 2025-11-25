@@ -238,13 +238,7 @@ class AuditCertificateAnalyzeService:
             logger.info("📄 Processing small file/image (single Document AI call)")
             
             # Call Document AI
-            from ocr_processor import OCRProcessor
-            
-            ocr_processor = OCRProcessor(
-                project_id=document_ai_config["project_id"],
-                location=document_ai_config.get("location", "us"),
-                processor_id=document_ai_config["processor_id"]
-            )
+            from app.utils.document_ai_helper import analyze_document_with_document_ai
             
             # Determine MIME type
             file_ext = filename.lower().split('.')[-1] if '.' in filename else 'pdf'
@@ -257,9 +251,10 @@ class AuditCertificateAnalyzeService:
             mime_type = mime_type_mapping.get(file_ext, 'application/pdf')
             
             # Process with Document AI
-            doc_ai_result = await ocr_processor.process_document(
-                file_content=file_bytes,
-                mime_type=mime_type
+            doc_ai_result = await analyze_document_with_document_ai(
+                file_bytes=file_bytes,
+                mime_type=mime_type,
+                document_ai_config=document_ai_config
             )
             
             if not doc_ai_result or not doc_ai_result.get("text"):
