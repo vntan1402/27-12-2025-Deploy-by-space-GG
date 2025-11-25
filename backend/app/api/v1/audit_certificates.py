@@ -548,6 +548,7 @@ async def create_audit_certificate_with_file_override(
         
         # Upload to Google Drive
         # ⭐ NEW PATH WITH SPACES: "ISM - ISPS - MLC"
+        logger.info(f"📤 Uploading file to GDrive: {file.filename}")
         upload_result = await GDriveService.upload_file(
             file_content=file_content,
             filename=file.filename,
@@ -556,11 +557,17 @@ async def create_audit_certificate_with_file_override(
             company_id=company_id
         )
         
+        logger.info(f"📥 Upload result: {upload_result}")
+        
         if not upload_result.get("success"):
+            logger.error(f"❌ GDrive upload failed: {upload_result}")
             raise HTTPException(
                 status_code=500,
                 detail=upload_result.get("message", "Failed to upload file")
             )
+        
+        file_id = upload_result.get("file_id")
+        logger.info(f"✅ GDrive upload success! file_id={file_id}")
         
         # Create DB record
         cert_record = {
@@ -568,11 +575,13 @@ async def create_audit_certificate_with_file_override(
             "ship_id": ship_id,
             "ship_name": ship.get("name"),
             **cert_payload,
-            "google_drive_file_id": upload_result.get("file_id"),
+            "google_drive_file_id": file_id,
             "file_name": file.filename,
             "created_at": datetime.now(timezone.utc),
             "company": company_id
         }
+        
+        logger.info(f"💾 Creating DB record with file_id={file_id}")
         
         await mongo_db.create("audit_certificates", cert_record)
         
