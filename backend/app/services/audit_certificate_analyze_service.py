@@ -257,13 +257,22 @@ class AuditCertificateAnalyzeService:
                 document_ai_config=document_ai_config
             )
             
-            if not doc_ai_result or not doc_ai_result.get("text"):
+            if not doc_ai_result or not doc_ai_result.get("success"):
+                error_msg = doc_ai_result.get("message", "Unknown error") if doc_ai_result else "No response"
                 raise HTTPException(
                     status_code=400,
-                    detail="Document AI could not extract text from file"
+                    detail=f"Document AI could not extract text from file: {error_msg}"
                 )
             
-            summary_text = doc_ai_result["text"]
+            data = doc_ai_result.get("data", {})
+            summary_text = data.get("summary", "")
+            
+            if not summary_text:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Document AI returned empty summary"
+                )
+            
             logger.info(f"✅ Document AI extraction: {len(summary_text)} characters")
             
             # Extract fields with System AI
