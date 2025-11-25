@@ -292,44 +292,6 @@ export const AuditCertificateTable = ({
                       {cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A'}
                     </span>
                     
-                    {/* ⭐ NEW: Category Badge (ISM/ISPS/MLC/CICA) */}
-                    {(() => {
-                      const certNameUpper = (cert.cert_name || '').toUpperCase();
-                      let category = 'Unknown';
-                      let badgeColor = 'bg-gray-100 text-gray-800';
-                      
-                      // Detect category from cert_name (Priority: CICA > ISM > ISPS > MLC)
-                      if (certNameUpper.includes('CREW ACCOMMODATION') || 
-                          certNameUpper.includes('CERTIFICATE OF INSPECTION') ||
-                          certNameUpper.includes('CICA')) {
-                        category = 'CICA';
-                        badgeColor = 'bg-orange-100 text-orange-800'; // ⭐ Orange for CICA
-                      } else if ((certNameUpper.includes('ISM') || 
-                                  certNameUpper.includes('SAFETY MANAGEMENT') ||
-                                  certNameUpper.includes('SMC') ||
-                                  certNameUpper.includes('DOC')) &&
-                                 !certNameUpper.includes('ISPS')) {
-                        category = 'ISM';
-                        badgeColor = 'bg-blue-100 text-blue-800';
-                      } else if (certNameUpper.includes('ISPS') || 
-                                 certNameUpper.includes('SHIP SECURITY') ||
-                                 certNameUpper.includes('ISSC')) {
-                        category = 'ISPS';
-                        badgeColor = 'bg-green-100 text-green-800';
-                      } else if (certNameUpper.includes('MLC') || 
-                                 certNameUpper.includes('MARITIME LABOUR') ||
-                                 certNameUpper.includes('DMLC')) {
-                        category = 'MLC';
-                        badgeColor = 'bg-purple-100 text-purple-800';
-                      }
-                      
-                      return (
-                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${badgeColor}`}>
-                          {category}
-                        </span>
-                      );
-                    })()}
-                    
                     {/* Original File Icon (📄 red) */}
                     {cert.file_id && (
                       <span
