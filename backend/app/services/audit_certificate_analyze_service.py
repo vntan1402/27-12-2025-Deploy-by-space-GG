@@ -337,21 +337,16 @@ class AuditCertificateAnalyzeService:
             logger.info(f"✂️ Split into {len(chunks)} chunks")
             
             # Process chunks in parallel
-            from ocr_processor import OCRProcessor
-            
-            ocr_processor = OCRProcessor(
-                project_id=document_ai_config["project_id"],
-                location=document_ai_config.get("location", "us"),
-                processor_id=document_ai_config["processor_id"]
-            )
+            from app.utils.document_ai_helper import analyze_document_with_document_ai
             
             async def process_chunk(chunk_bytes):
                 try:
-                    result = await ocr_processor.process_document(
-                        file_content=chunk_bytes,
-                        mime_type='application/pdf'
+                    result = await analyze_document_with_document_ai(
+                        file_bytes=chunk_bytes,
+                        mime_type='application/pdf',
+                        document_ai_config=document_ai_config
                     )
-                    return result.get("text", "") if result else ""
+                    return result.get("summary", "") if result else ""
                 except Exception as e:
                     logger.error(f"❌ Chunk processing error: {e}")
                     return ""
