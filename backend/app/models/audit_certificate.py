@@ -37,6 +37,9 @@ class AuditCertificateUpdate(BaseModel):
     status: Optional[str] = None
     note: Optional[str] = None
     next_survey_date: Optional[Union[str, datetime]] = None
+    next_survey: Optional[Union[str, datetime]] = None  # ISO datetime format
+    next_survey_display: Optional[str] = None  # Display format with window annotation
+    next_survey_type: Optional[str] = None  # Survey type
 
 class AuditCertificateResponse(BaseModel):
     id: str
