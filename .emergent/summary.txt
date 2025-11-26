@@ -1,44 +1,59 @@
-<analysis>
-The user's primary language is Vietnamese. The next agent must respond in Vietnamese.
+<analysis>**original_problem_statement:**
+The user wants to migrate two missing API endpoints from a legacy V1 backend to the new V2 backend. These endpoints were discovered after frontend console logs showed 404 (Not Found) errors.
 
-This trajectory details the complex migration and debugging of the Add Audit Certificate module from a legacy V1 backend to a new V2 backend. The work was initiated by the user's request to understand the full workflow of this feature. The initial analysis revealed that critical endpoints for this module were entirely missing in the V2 backend.
+PRODUCT REQUIREMENTS:
+1.  **Implement Upcoming Surveys Endpoint:** Create a  endpoint in the V2 backend. This endpoint should fetch certificates that are due for survey within a specified number of days. The logic must be migrated from the V1 backend.
+2.  **Implement Auto Rename File Endpoint:** Create a  endpoint in the V2 backend. This endpoint will handle the logic for automatically renaming the certificate file stored in Google Drive based on a standardized format. The logic must be migrated from the V1 backend.
 
-The user then approved a detailed migration plan which included:
-1.  Porting all logic and creating three missing API endpoints (, , ).
-2.  Expanding the feature to accept CICA (Crew Accommodation) certificates, which were previously rejected. This involved UI updates for filters and tables.
-3.  Correcting a Google Drive folder path to include spaces ().
+**User's preferred language**: Vietnamese
 
-The implementation phase was an extensive, iterative debugging cycle. The engineer battled a series of interconnected issues:
--   **API Contract Mismatches:** The frontend sent a JSON payload with base64 content, while the backend initially expected . This required multiple signature changes in the FastAPI endpoint, eventually settling on a Pydantic model for the JSON body.
--   **Backend Logic Errors:** The migrated code had missing dependencies (), incorrect function signatures, and data serialization bugs where the  from the database wasn't being mapped to the  field in the API response.
--   **Frontend State Management Bugs:** A critical bug was found where the file object was cleared after a failed AI analysis, preventing it from being uploaded when the user manually corrected the data and saved. This was fixed to persist the file.
--   **Frontend Rendering Error:** The final bug was a simple but elusive issue where the UI component checked for  to display an icon, but the API response (after being fixed) provided .
+**what currently exists?**
+The application is a full-stack React and FastAPI system for managing audit certificates. Most of the certificate management functionality (upload, AI analysis, delete, edit) has been successfully migrated to the V2 backend and debugged. The frontend calls two remaining V1 endpoints, which do not exist in the V2 backend, causing 404 errors. The agent has identified the missing endpoints and located the source code for them in the V1 backend file ().
 
-The engineer systematically resolved each issue, culminating in the correction of the frontend rendering logic.
-</analysis>
+**Last working item**:
+-   **Last item agent was working:** The agent was preparing to migrate two missing API endpoints ( and ) from the V1 backend to the V2 backend. The last action was to locate the corresponding code in .
+-   **Status:** NOT STARTED
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?**: backend testing agent
+-   **User Testing Done:** N
 
-<product_requirements>
-The primary objective is to migrate the Audit Certificate module from a legacy V1 backend to the new V2 backend, ensuring full feature parity and incorporating several enhancements.
+**All Pending/In progress Issue list**:
+There are no outstanding bugs. The current task is to implement features that will resolve known 404 errors.
 
-**Core Requirements:**
-1.  **Backend Migration:** Implement three missing API endpoints in the V2 backend (, , ) to handle single-file AI analysis, batch uploads, and saving with user overrides.
-2.  **Feature Expansion (CICA Support):** The module, which originally only supported ISM, ISPS, and MLC certificates, must be updated to also accept CICA (Crew Accommodation) certificates. This requires updating backend validation, AI classification logic, and frontend UI elements like filters and table displays to include CICA as a category.
-3.  **Path Correction:** The Google Drive storage path for uploaded certificates must be changed from  to .
-4.  **Bug Fix & UX Improvement:**
-    *   Resolve the critical bug where the original file icon (📄) does not appear next to a certificate in the table after it has been successfully saved and uploaded to Google Drive.
-    *   Optimize the save workflow so that the AI analysis is performed only once upon initial upload, not again when the user clicks Save after reviewing the auto-filled form.
-</product_requirements>
+**In progress Task List**:
+-   **Task 1: Migrate  and  endpoints (P0)**
+    -   **Where to resume:**
+        1.  Read the V1 backend code in  starting at lines 6166 () and 6250 ().
+        2.  Implement these two routes in the V2 router file: .
+        3.  Port the business logic, creating new service methods in  as needed. The  logic will likely require interaction with .
+    -   **What will be achieved with this?** This will resolve the 404 errors observed in the frontend and enable the Upcoming Surveys and Auto Rename File features, completing the V2 migration for this module.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** backend
+    -   **Blocked on something:** None
 
-<key_technical_concepts>
-- **Frontend:** React.js, including state management (), conditional rendering, and debugging frontend/backend API contract mismatches (JSON vs. FormData).
-- **Backend:** FastAPI, including routing (), request validation with Pydantic models, handling file uploads (both  and base64-encoded JSON), and dependency injection (, , ).
-- **Database:** MongoDB, including direct database inspection using the  shell to verify data integrity.
-- **Architecture:** Module migration from a monolithic backend (V1) to a service-oriented architecture (V2), involving creating new services () and utility files ().
-</key_technical_concepts>
+**Upcoming and Future Tasks**
+- None.
 
-<code_architecture>
-The application uses a standard React frontend and FastAPI backend. The work focused on building out the  module in the V2 backend and connecting it to the existing frontend UI.
+**Completed work in this session**
+-   **UI Badge Relocation:** Moved certificate type badges (ISM, ISPS, etc.) to the Type column and arranged them horizontally.
+-   **Context Menu/Double Click Fix:** Corrected bugs where the context menu appeared off-screen and double-clicking a certificate failed to open the file due to an incorrect property name ( vs. ).
+-   **Selection State Fix:** Fixed a UI bug where the selected certificate count did not update after deleting a certificate.
+-   **Bulk Delete Fix:** Resolved a 422 error during bulk deletion by aligning the frontend payload key () with the backend model ().
+-   **AI Classification Logic Enhancements:**
+    -   **STATEMENT OF FACTS:** Certificates containing this phrase are now correctly typed as Other.
+    -   **DMLC I/II:** Implemented logic to set  to DMLC I or DMLC II and ensured the abbreviation is not shortened from this.
+    -   **ISPS Category:** Improved category detection to check , correctly classifying certificates with SSP in the abbreviation.
+    -   **Interim Certificate Date:** Added logic to auto-calculate the  for interim ISPS certificates (issue date + 6 months - 1 day).
+-   **Batch Upload Reliability:**
+    -   Fixed multiple bugs where uploads failed due to overly strict  validation rules, especially after  was overridden to a shorter string like DMLC II. A redundant quality check was also removed.
 
+**Earlier issues found/mentioned but not fixed**
+-   None.
+
+**Known issue recurrence from previous fork**
+-   None.
+
+**Code Architecture**
 .
 ├── 2_CO_DUC_PP.pdf
 ├── 3_2O_THUONG_PP.pdf
@@ -168,9 +183,6 @@ The application uses a standard React frontend and FastAPI backend. The work foc
 │   │   │       │   ├── crew_certificates.cpython-311.pyc
 │   │   │       │   ├── drawings_manuals.cpython-311.pyc
 │   │   │       │   ├── gdrive.cpython-311.pyc
-│   │   │       │   ├── ism_documents.cpython-311.pyc
-│   │   │       │   ├── isps_documents.cpython-311.pyc
-│   │   │       │   ├── mlc_documents.cpython-311.pyc
 │   │   │       │   ├── other_audit_documents.cpython-311.pyc
 │   │   │       │   ├── other_documents.cpython-311.pyc
 │   │   │       │   ├── ships.cpython-311.pyc
@@ -284,29 +296,22 @@ The application uses a standard React frontend and FastAPI backend. The work foc
 │   │   │   ├── __pycache__
 │   │   │   │   ├── __init__.cpython-311.pyc
 │   │   │   │   ├── ai_config_service.cpython-311.pyc
-│   │   │   │   ├── approval_document_analyze_service.cpython-311.pyc
 │   │   │   │   ├── approval_document_service.cpython-311.pyc
-│   │   │   │   ├── audit_certificate_analyze_service.cpython-311.pyc
 │   │   │   │   ├── audit_certificate_service.cpython-311.pyc
 │   │   │   │   ├── audit_report_analyze_service.cpython-311.pyc
 │   │   │   │   ├── audit_report_service.cpython-311.pyc
-│   │   │   │   ├── certificate_multi_upload_service.cpython-311.pyc
 │   │   │   │   ├── certificate_service.cpython-311.pyc
 │   │   │   │   ├── cleanup_service.cpython-311.pyc
 │   │   │   │   ├── company_service.cpython-311.pyc
 │   │   │   │   ├── crew_certificate_service.cpython-311.pyc
 │   │   │   │   ├── crew_service.cpython-311.pyc
 │   │   │   │   ├── document_service.cpython-311.pyc
-│   │   │   │   ├── drawing_manual_analyze_service.cpython-311.pyc
 │   │   │   │   ├── drawing_manual_service.cpython-311.pyc
 │   │   │   │   ├── gdrive_service.cpython-311.pyc
 │   │   │   │   ├── other_audit_document_service.cpython-311.pyc
 │   │   │   │   ├── other_doc_service.cpython-311.pyc
 │   │   │   │   ├── ship_service.cpython-311.pyc
-│   │   │   │   ├── survey_calculation_service.cpython-311.pyc
-│   │   │   │   ├── survey_report_analyze_service.cpython-311.pyc
 │   │   │   │   ├── survey_report_service.cpython-311.pyc
-│   │   │   │   ├── test_report_analyze_service.cpython-311.pyc
 │   │   │   │   ├── test_report_service.cpython-311.pyc
 │   │   │   │   └── user_service.cpython-311.pyc
 │   │   │   ├── ai_config_service.py
@@ -339,24 +344,15 @@ The application uses a standard React frontend and FastAPI backend. The work foc
 │   │       ├── __pycache__
 │   │       │   ├── __init__.cpython-311.pyc
 │   │       │   ├── ai_helper.cpython-311.pyc
-│   │       │   ├── approval_document_ai.cpython-311.pyc
-│   │       │   ├── audit_certificate_ai.cpython-311.pyc
 │   │       │   ├── audit_report_ai.cpython-311.pyc
 │   │       │   ├── background_tasks.cpython-311.pyc
 │   │       │   ├── certificate_abbreviation.cpython-311.pyc
-│   │       │   ├── document_ai_helper.cpython-311.pyc
 │   │       │   ├── document_name_normalization.cpython-311.pyc
-│   │       │   ├── drawing_manual_ai.cpython-311.pyc
 │   │       │   ├── gdrive_folder_helper.cpython-311.pyc
-│   │       │   ├── gdrive_helper.cpython-311.pyc
 │   │       │   ├── issued_by_abbreviation.cpython-311.pyc
 │   │       │   ├── pdf_processor.cpython-311.pyc
 │   │       │   ├── pdf_splitter.cpython-311.pyc
-│   │       │   ├── ship_calculations.cpython-311.pyc
-│   │       │   ├── survey_report_ai.cpython-311.pyc
-│   │       │   ├── targeted_ocr.cpython-311.pyc
-│   │       │   ├── test_report_ai.cpython-311.pyc
-│   │       │   └── test_report_valid_date_calculator.cpython-311.pyc
+│   │       │   └── ship_calculations.cpython-311.pyc
 │   │       ├── ai_helper.py
 │   │       ├── approval_document_ai.py
 │   │       ├── audit_certificate_ai.py
@@ -50375,48 +50371,68 @@ The application uses a standard React frontend and FastAPI backend. The work foc
 ├── verify_fix.sh
 └── yarn.lock
 
-4660 directories, 45675 files
+4660 directories, 45656 files
 
-- ****:
-  - **Importance:** The main API router for this module.
-  - **Summary of changes:** This file was heavily modified. The placeholder  endpoint was replaced with three fully implemented endpoints: , , and . The agent debugged multiple signature issues, finally implementing a Pydantic model () to correctly handle the incoming JSON payload with base64 file content from the frontend.
+**Key Technical Concepts**
+-   **Frameworks:** React.js, FastAPI
+-   **Database:** MongoDB
+-   **Backend Logic:** The core business logic for certificate classification is in  within . This function uses a combination of AI-extracted data and raw PDF text (via ) to make decisions.
+-   **API Migration:** Porting routes and logic from a legacy Flask-like backend to a modern FastAPI structure.
 
-- ****:
-  - **Importance:** Handles the business logic for fetching and manipulating certificate data.
-  - **Summary of changes:** The agent added crucial mapping logic in  and  to map the database field  to the  field expected by the response model and the frontend. This was a key fix for the missing icon bug.
+**key DB schema**
+-   **audit_certificates**: 
 
-- ****:
-  - **Importance:** Renders the list of audit certificates.
-  - **Summary of changes:** The final fix was applied here. The conditional rendering logic for the file icon was changed from checking  to checking , aligning it with the now-correct API response.
+**changes in tech stack**
+-   The backend now uses the  library to extract raw text from PDF files, which is used in parallel with Google's Document AI summary for more robust data analysis.
 
-- ****:
-  - **Importance:** The main UI for uploading and creating single certificates.
-  - **Summary of changes:** Significant logic changes were made to fix the workflow. The agent removed code that cleared the  state after a low-confidence AI analysis and modified the  function to prevent a redundant second AI analysis, directly calling the  endpoint instead.
+**All files**
+-   : Source file for the logic of the two endpoints to be migrated.
+-   : The destination router file for the new V2 endpoints.
+-   : The service layer where the business logic for the new endpoints will be implemented.
+-   : The frontend page component that makes the calls to the missing endpoints.
 
-- ** & **:
-  - **Importance:** The main page and its filter component.
-  - **Summary of changes:** These were updated to support the CICA requirement by adding a new Category filter dropdown and the state management logic to filter certificates based on their category (ISM, ISPS, MLC, CICA).
-</code_architecture>
+**Areas that need refactoring**:
+-   The  function in  has grown very complex. It could be refactored into a more maintainable, rule-based system.
+-   The  component is large and manages significant state and side effects. It would benefit from being broken down into smaller components and custom hooks.
 
-<pending_tasks>
-- Restart the frontend service to apply the latest fix to .
-- Conduct a final test to confirm that the file icon (📄) now appears correctly for certificates that have an associated file in Google Drive.
-- Get final confirmation from the user that the entire feature and all bug fixes are working as expected.
-</pending_tasks>
+**key api endpoints**
+-   
+-   
+-   **To be created:**
+    -   
+    -   
 
-<current_work>
-The work immediately preceding this summary was the final step in a long debugging process to fix a missing file icon (📄) in the . The user confirmed that the API was correctly returning a  for each certificate, yet the icon was still not showing up.
+**Critical Info for New Agent**
+-   Your primary task is to migrate two features from V1 to V2: Upcoming Surveys and Auto Rename File.
+-   The V1 source code is in  (line 6166 for  and 6250 for ).
+-   You need to implement the new endpoints in  and the supporting logic in the service layer.
+-   The Auto Rename functionality will require using the existing  to interact with Google Drive.
 
-The engineer correctly deduced the problem was in the frontend rendering logic.
+**documents created in this job**
+-   None.
 
--   **Investigation:** The engineer inspected .
--   **Discovery:** The JSX code for rendering the icon was found to be checking for the wrong property:
-    
--   **Action Taken:** The engineer edited this file to change the condition to check for , which is the correct property name being sent by the fixed backend API.
-    
-The very last action was successfully applying this edit. The next logical step is to make this change live by restarting the service.
-</current_work>
+**Last 5 User Messages and any pending user messages**
+1.  **User:** Implement the two missing endpoints (, ) by migrating them from the V1 backend. (PENDING)
+2.  **User:** After deleting a selected file, the selection count is not updated. (COMPLETED)
+3.  **User:** The  for an interim ISPS certificate is not being calculated automatically. (COMPLETED)
+4.  **User:** A DMLC II certificate still shows MLC as its abbreviation. (COMPLETED)
+5.  **User:** An ISPS-related certificate is being classified as Unknown. (COMPLETED)
 
-<optional_next_step>
-Restart the frontend service to apply the fix in  and then confirm the fix with the user.
-</optional_next_step>
+**Project Health Check:**
+-   **Broken:**
+    -   The Upcoming Surveys feature is non-functional (triggers a 404).
+    -   The Auto Rename File context menu option is non-functional (triggers a 404).
+-   **Mocked:**
+    -   None.
+
+**Testing status**
+-   **Testing agent used after significant changes:** YES
+-   **Troubleshoot agent used after agent stuck in loop:** NO
+-   **Test files created:** None
+-   **Known regressions:** None
+
+**Credentials to test flow:**
+-   N/A
+
+**What agent forgot to execute**
+-   Nothing. The agent is proceeding with the user's latest request.</analysis>
