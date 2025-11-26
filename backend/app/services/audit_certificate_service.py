@@ -292,3 +292,217 @@ class AuditCertificateService:
             "is_duplicate": existing is not None,
             "existing_id": existing.get("id") if existing else None
         }
+
+    
+    @staticmethod
+    def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
+        """
+        Calculate Next Survey and Next Survey Type for Audit Certificates (ISM/ISPS/MLC)
+        
+        Logic:
+        1. Interim: Next Survey = Valid Date - 3M, Type = "Initial"
+        2. Short Term: Next Survey = N/A, Type = N/A
+        3. Full Term:
+           - Priority 1 (check Last Endorse):
+             * If no Last Endorse: Next Survey = Valid Date - 30 months ±3M, Type = "Intermediate"
+             * If has Last Endorse: Next Survey = Valid Date - 3M, Type = "Renewal"
+        4. Special documents (DMLC I, DMLC II, SSP): Next Survey = N/A, Type = N/A
+        
+        Args:
+            certificate_data: Certificate information (cert_name, cert_type, valid_date, last_endorse)
+        
+        Returns:
+            dict with next_survey, next_survey_type, and reasoning
+        """
+        try:
+            from dateutil.relativedelta import relativedelta
+            from app.utils.date_parser import parse_date_string
+            
+            # Extract certificate information
+            cert_name = certificate_data.get('cert_name', '').upper()
+            cert_type = certificate_data.get('cert_type', '').upper()
+            valid_date = certificate_data.get('valid_date')
+            last_endorse = certificate_data.get('last_endorse')
+            current_date = datetime.now(timezone.utc)
+            
+            # Parse valid_date
+            valid_dt = None
+            if valid_date:
+                if isinstance(valid_date, str):
+                    valid_dt = parse_date_string(valid_date)
+                else:
+                    valid_dt = valid_date
+            
+            # Rule: No valid date = no Next Survey
+            if not valid_dt:
+                return {
+                    'next_survey': None,
+                    'next_survey_type': None,
+                    'reasoning': 'No valid date available'
+                }
+            
+            # Rule 4: Special documents (DMLC I, DMLC II, SSP) = N/A
+            special_docs = ['DMLC I', 'DMLC II', 'DMLC PART I', 'DMLC PART II', 'SSP', 'SHIP SECURITY PLAN']
+            if any(doc in cert_name for doc in special_docs):
+                return {
+                    'next_survey': None,
+                    'next_survey_type': None,
+                    'reasoning': f'{cert_name} does not require Next Survey calculation'
+                }
+            
+            # Rule 2: Short Term = N/A
+            if 'SHORT' in cert_type or 'SHORT TERM' in cert_type:
+                return {
+                    'next_survey': None,
+                    'next_survey_type': None,
+                    'reasoning': 'Short Term certificates do not require Next Survey'
+                }
+            
+            # Rule 1: Interim = Valid Date - 3M, Type = "Initial"
+            if 'INTERIM' in cert_type:
+                next_survey_date = valid_dt - relativedelta(months=3)
+                return {
+                    'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
+                    'next_survey_type': 'Initial',
+                    'reasoning': 'Interim certificate: Next Survey = Valid Date - 3 months',
+                    'raw_date': next_survey_date.strftime('%d/%m/%Y'),
+                    'window_months': 3
+                }
+            
+            # Rule 3: Full Term certificates
+            if 'FULL' in cert_type or 'FULL TERM' in cert_type or cert_type == 'FULL TERM':
+                # Parse last_endorse if exists
+                last_endorse_dt = None
+                if last_endorse:
+                    if isinstance(last_endorse, str):
+                        last_endorse_dt = parse_date_string(last_endorse)
+                    else:
+                        last_endorse_dt = last_endorse
+                
+                # Priority 1: Check Last Endorse
+                if last_endorse_dt:
+                    # Has Last Endorse → Renewal
+                    next_survey_date = valid_dt - relativedelta(months=3)
+                    return {
+                        'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
+                        'next_survey_type': 'Renewal',
+                        'reasoning': 'Full Term with Last Endorse: Next Survey = Valid Date - 3 months (Renewal)',
+                        'raw_date': next_survey_date.strftime('%d/%m/%Y'),
+                        'window_months': 3
+                    }
+                else:
+                    # No Last Endorse → Intermediate
+                    intermediate_date = valid_dt - relativedelta(years=2)
+                    return {
+                        'next_survey': intermediate_date.strftime('%d/%m/%Y') + ' (±3M)',
+                        'next_survey_type': 'Intermediate',
+                        'reasoning': 'Full Term without Last Endorse: Next Survey = Valid Date - 2 years (Intermediate)',
+                        'raw_date': intermediate_date.strftime('%d/%m/%Y'),
+                        'window_months': 3
+                    }
+            
+            # Default: Cannot determine
+            return {
+                'next_survey': None,
+                'next_survey_type': None,
+                'reasoning': f'Cannot determine Next Survey for cert_type: {cert_type}'
+            }
+            
+        except Exception as e:
+            logger.error(f"Error calculating audit certificate next survey: {e}")
+            return {
+                'next_survey': None,
+                'next_survey_type': None,
+                'reasoning': f'Error in calculation: {str(e)}'
+            }
+    
+    @staticmethod
+    async def update_ship_audit_certificates_next_survey(ship_id: str, current_user: UserResponse) -> dict:
+        """
+        Calculate and update Next Survey for all audit certificates of a ship
+        
+        Args:
+            ship_id: Ship ID
+            current_user: Current user making the request
+            
+        Returns:
+            dict with success status, message, and results
+        """
+        try:
+            # Get ship data
+            ship_data = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship_data:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            # Get all audit certificates for the ship
+            certificates = await mongo_db.find_all(AuditCertificateService.collection_name, {"ship_id": ship_id})
+            if not certificates:
+                return {
+                    "success": True,
+                    "message": "No audit certificates found for this ship",
+                    "updated_count": 0,
+                    "results": []
+                }
+            
+            updated_count = 0
+            results = []
+            
+            for cert in certificates:
+                # Calculate next survey
+                survey_info = AuditCertificateService.calculate_audit_certificate_next_survey(cert)
+                
+                # Prepare update data
+                update_data = {}
+                
+                if survey_info['next_survey']:
+                    if survey_info.get('raw_date'):
+                        try:
+                            from app.utils.date_parser import parse_date_string
+                            parsed_date = datetime.strptime(survey_info['raw_date'], '%d/%m/%Y')
+                            update_data['next_survey'] = parsed_date.isoformat() + 'Z'
+                        except Exception as e:
+                            logger.warning(f"Failed to parse date {survey_info['raw_date']}: {e}")
+                            update_data['next_survey'] = None
+                    else:
+                        update_data['next_survey'] = None
+                        
+                    update_data['next_survey_display'] = survey_info['next_survey']
+                else:
+                    update_data['next_survey'] = None
+                    update_data['next_survey_display'] = None
+                    
+                if survey_info['next_survey_type']:
+                    update_data['next_survey_type'] = survey_info['next_survey_type']
+                else:
+                    update_data['next_survey_type'] = None
+                
+                # Update certificate if there are changes
+                if update_data:
+                    update_data['updated_at'] = datetime.now(timezone.utc)
+                    await mongo_db.update(AuditCertificateService.collection_name, {"id": cert["id"]}, update_data)
+                    updated_count += 1
+                
+                results.append({
+                    "cert_id": cert["id"],
+                    "cert_name": cert.get("cert_name", "Unknown"),
+                    "cert_type": cert.get("cert_type", "Unknown"),
+                    "next_survey": survey_info['next_survey'],
+                    "next_survey_type": survey_info['next_survey_type'],
+                    "updated": bool(update_data)
+                })
+            
+            logger.info(f"✅ Updated next survey for {updated_count} audit certificates")
+            
+            return {
+                "success": True,
+                "message": f"Updated next survey for {updated_count} audit certificates",
+                "updated_count": updated_count,
+                "results": results
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error updating audit certificates next survey: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
