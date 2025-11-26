@@ -46,7 +46,7 @@ def test_full_term_no_endorse():
     cert_data = {
         'cert_name': 'ISM Certificate',
         'cert_type': 'Full Term',
-        'valid_date': '2027-05-07',  # Valid date is 2 years from now
+        'valid_date': '2027-05-07',  # Valid date is 30 months from now
         'last_endorse': None
     }
     
@@ -57,14 +57,14 @@ def test_full_term_no_endorse():
     print(f"  - Valid Date: {cert_data['valid_date']}")
     print(f"  - Last Endorse: {cert_data.get('last_endorse')}")
     print(f"\nExpected:")
-    print(f"  - Next Survey: 07/05/2025 (±3M)")
+    print(f"  - Next Survey: 07/11/2024 (±6M)")
     print(f"  - Next Survey Type: Intermediate")
-    print(f"  - Reasoning: Valid Date - 2 years (no Last Endorse)")
+    print(f"  - Reasoning: Valid Date - 30 months (no Last Endorse)")
     print(f"\nActual Result:")
     print(f"  - Next Survey: {result['next_survey']}")
     print(f"  - Next Survey Type: {result['next_survey_type']}")
     print(f"  - Reasoning: {result['reasoning']}")
-    print(f"\n✅ PASS" if result['next_survey'] == '07/05/2025 (±3M)' and result['next_survey_type'] == 'Intermediate' else "❌ FAIL")
+    print(f"\n✅ PASS" if result['next_survey'] == '07/11/2024 (±6M)' and result['next_survey_type'] == 'Intermediate' else "❌ FAIL")
 
 def test_full_term_with_endorse():
     """Test Case 3: Full Term WITH Last Endorse"""
