@@ -242,7 +242,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
                 logger.warning(f"⚠️ Invalid IMO number format: {imo} (not 7 digits)")
                 extracted_data['imo_number'] = None
         
-        # 5. ⭐ Determine certificate category (ISM/ISPS/MLC/CICA)
+        # 6. ⭐ Determine certificate category (ISM/ISPS/MLC/CICA)
         # Priority: filename > cert_name
         cert_category = None
         
