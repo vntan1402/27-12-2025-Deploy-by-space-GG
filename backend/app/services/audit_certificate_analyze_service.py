@@ -296,7 +296,8 @@ class AuditCertificateAnalyzeService:
                 summary_text=summary_text,
                 filename=filename,
                 ai_config=ai_config_doc,
-                raw_pdf_text=raw_text  # Pass raw text for header checking
+                raw_pdf_text=raw_text,  # Pass raw text for header checking (first page)
+                full_document_text=summary_text  # Pass full document for content checking
             )
             
             if not extracted_info:
