@@ -17,6 +17,9 @@ class AuditCertificateBase(BaseModel):
     status: Optional[str] = "Valid"
     note: Optional[str] = None
     next_survey_date: Optional[Union[str, datetime]] = None
+    next_survey: Optional[Union[str, datetime]] = None  # ISO datetime format
+    next_survey_display: Optional[str] = None  # Display format with window annotation (e.g., "30/10/2025 (±3M)")
+    next_survey_type: Optional[str] = None  # Survey type (Initial, Intermediate, Renewal, etc.)
 
 class AuditCertificateCreate(AuditCertificateBase):
     pass
