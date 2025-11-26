@@ -330,21 +330,8 @@ async def multi_upload_audit_certificates(
                 
                 extracted_info = analysis_result.get("extracted_info", {})
                 
-                # Check extraction quality
-                quality_check = AuditCertificateAnalyzeService.check_extraction_quality(extracted_info)
-                
-                if not quality_check.get("sufficient"):
-                    # Insufficient extraction → Request manual input
-                    missing_fields = quality_check.get("missing_fields", [])
-                    summary["errors"] += 1
-                    results.append({
-                        "filename": file.filename,
-                        "status": "requires_manual_input",
-                        "message": f"AI không thể trích xuất đủ thông tin. Thiếu: {', '.join(missing_fields)}",
-                        "extracted_info": extracted_info,
-                        "extraction_quality": quality_check
-                    })
-                    continue
+                # ⭐ REMOVED: Quality check lần 2 (already checked in analyze_file service)
+                # Trust the analyze service result - if it returned success, quality is sufficient
                 
                 # Check category (ISM/ISPS/MLC/CICA)
                 category_warning = analysis_result.get("category_warning")
