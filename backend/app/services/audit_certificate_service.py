@@ -506,3 +506,209 @@ class AuditCertificateService:
             logger.error(f"Error updating audit certificates next survey: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
+
+    
+    @staticmethod
+    async def get_upcoming_audit_surveys(current_user: UserResponse, days: int = 30) -> dict:
+        """
+        Get upcoming audit surveys based on window logic
+        
+        Window Rules:
+        - (±6M): Next Survey Date ± 6 months (Intermediate without Last Endorse)
+        - (±3M): Next Survey Date ± 3 months (other Intermediate cases)
+        - (-3M): Next Survey Date - 3 months → Next Survey Date (Initial, Renewal)
+        
+        Args:
+            current_user: Current user making the request
+            days: Number of days to look ahead (not used with new window logic)
+            
+        Returns:
+            dict with upcoming_surveys list and metadata
+        """
+        try:
+            import re
+            from datetime import timedelta
+            from dateutil.relativedelta import relativedelta
+            
+            # Get current date
+            current_date = datetime.now(timezone.utc).date()
+            user_company = current_user.company
+            
+            logger.info(f"Checking upcoming audit surveys for company: {user_company}")
+            
+            # Get company record
+            company_record = await mongo_db.find_one("companies", {"id": user_company})
+            company_name = None
+            if company_record:
+                company_name = company_record.get('name_en') or company_record.get('name_vn')
+            
+            # Get all ships for this company
+            ships_by_id = await mongo_db.find_all("ships", {"company": user_company})
+            ships_by_name = []
+            if company_name:
+                ships_by_name = await mongo_db.find_all("ships", {"company": company_name})
+            
+            # Combine and deduplicate ships
+            all_ships_dict = {}
+            for ship in ships_by_id + ships_by_name:
+                ship_id = ship.get('id')
+                if ship_id and ship_id not in all_ships_dict:
+                    all_ships_dict[ship_id] = ship
+            
+            ships = list(all_ships_dict.values())
+            ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
+            
+            logger.info(f"Found {len(ships)} ships for company")
+            
+            if not ship_ids:
+                return {
+                    "upcoming_surveys": [],
+                    "total_count": 0,
+                    "company": user_company,
+                    "company_name": company_name,
+                    "check_date": current_date.isoformat()
+                }
+            
+            # Get all audit certificates for these ships
+            all_certificates = []
+            for ship_id in ship_ids:
+                certs = await mongo_db.find_all(AuditCertificateService.collection_name, {"ship_id": ship_id})
+                all_certificates.extend(certs)
+            
+            logger.info(f"Found {len(all_certificates)} audit certificates to check")
+            
+            upcoming_surveys = []
+            
+            for cert in all_certificates:
+                try:
+                    # Get Next Survey Display field (contains date with annotation like "30/10/2025 (±3M)")
+                    next_survey_display = cert.get('next_survey_display') or cert.get('next_survey')
+                    
+                    if not next_survey_display:
+                        continue
+                    
+                    # Parse Next Survey to extract date and window annotation
+                    next_survey_str = str(next_survey_display)
+                    
+                    # Extract date part (before annotation)
+                    # Format examples: "30/10/2025 (±6M)", "30/11/2025 (-3M)", "31/10/2027 (±3M)"
+                    date_match = re.search(r'(\d{2}/\d{2}/\d{4})', next_survey_str)
+                    if not date_match:
+                        continue
+                    
+                    date_str = date_match.group(1)
+                    next_survey_date = datetime.strptime(date_str, '%d/%m/%Y').date()
+                    
+                    # Determine window based on annotation
+                    window_open = None
+                    window_close = None
+                    window_type = ''
+                    has_explicit_annotation = False
+                    
+                    if '(±6M)' in next_survey_str:
+                        # Window: Next Survey ± 6M (Intermediate without Last Endorse)
+                        window_open = next_survey_date - relativedelta(months=6)
+                        window_close = next_survey_date + relativedelta(months=6)
+                        window_type = '±6M'
+                        has_explicit_annotation = True
+                    elif '(±3M)' in next_survey_str or '(+3M)' in next_survey_str or '(+-3M)' in next_survey_str:
+                        # Window: Next Survey ± 3M
+                        window_open = next_survey_date - relativedelta(months=3)
+                        window_close = next_survey_date + relativedelta(months=3)
+                        window_type = '±3M'
+                        has_explicit_annotation = True
+                    elif '(-3M)' in next_survey_str:
+                        # Window: Next Survey - 3M → Next Survey (only before)
+                        window_open = next_survey_date - relativedelta(months=3)
+                        window_close = next_survey_date
+                        window_type = '-3M'
+                        has_explicit_annotation = True
+                    else:
+                        # No annotation found - DEFAULT to (-3M) for safety
+                        window_open = next_survey_date - relativedelta(months=3)
+                        window_close = next_survey_date
+                        window_type = '-3M (default)'
+                        logger.info(f"📌 Certificate {cert.get('id', 'unknown')} has no annotation - using default (-3M) window")
+                    
+                    # Check if current_date is within window
+                    if window_open <= current_date <= window_close:
+                        # Find ship information
+                        ship_info = next((ship for ship in ships if ship.get('id') == cert.get('ship_id')), {})
+                        
+                        # Calculate status
+                        days_until_window_close = (window_close - current_date).days
+                        days_until_survey = (next_survey_date - current_date).days
+                        
+                        # Status logic
+                        # Overdue: Past window_close
+                        is_overdue = current_date > window_close
+                        
+                        # Critical: ≤ 30 days to window_close
+                        is_critical = 0 <= days_until_window_close <= 30
+                        
+                        # Due Soon: window_open < current_date < (window_close - 30 days)
+                        window_close_minus_30 = window_close - timedelta(days=30)
+                        is_due_soon = window_open < current_date < window_close_minus_30
+                        
+                        # Get cert abbreviation
+                        cert_abbreviation = cert.get('cert_abbreviation', '')
+                        cert_name_display = f"{cert.get('cert_name', '')} ({cert_abbreviation})" if cert_abbreviation else cert.get('cert_name', '')
+                        
+                        upcoming_survey = {
+                            'certificate_id': cert.get('id'),
+                            'ship_id': cert.get('ship_id'),
+                            'ship_name': ship_info.get('name', ''),
+                            'cert_name': cert.get('cert_name', ''),
+                            'cert_abbreviation': cert_abbreviation,
+                            'cert_name_display': cert_name_display,
+                            'next_survey': next_survey_display,
+                            'next_survey_date': next_survey_date.isoformat(),
+                            'next_survey_type': cert.get('next_survey_type', ''),
+                            'valid_date': cert.get('valid_date'),
+                            'last_endorse': cert.get('last_endorse', ''),
+                            'status': cert.get('status', ''),
+                            'days_until_survey': days_until_survey,
+                            'days_until_window_close': days_until_window_close,
+                            'is_overdue': is_overdue,
+                            'is_due_soon': is_due_soon,
+                            'is_critical': is_critical,
+                            'is_within_window': True,
+                            'window_open': window_open.isoformat(),
+                            'window_close': window_close.isoformat(),
+                            'window_type': window_type
+                        }
+                        
+                        upcoming_surveys.append(upcoming_survey)
+                        
+                except Exception as cert_error:
+                    logger.warning(f"Error processing audit certificate {cert.get('id', 'unknown')}: {cert_error}")
+                    continue
+            
+            # Sort by next survey date (soonest first)
+            upcoming_surveys.sort(key=lambda x: x['next_survey_date'] or '9999-12-31')
+            
+            logger.info(f"✅ Found {len(upcoming_surveys)} audit certificates with upcoming surveys")
+            
+            return {
+                "upcoming_surveys": upcoming_surveys,
+                "total_count": len(upcoming_surveys),
+                "company": user_company,
+                "company_name": company_name,
+                "check_date": current_date.isoformat(),
+                "logic_info": {
+                    "description": "Audit Certificate survey windows based on Next Survey annotation",
+                    "window_rules": {
+                        "±6M": "Window: Next Survey Date ± 6 months (Intermediate without Last Endorse)",
+                        "±3M": "Window: Next Survey Date ± 3 months",
+                        "-3M": "Window: Next Survey Date - 3 months → Next Survey Date (Initial/Renewal)",
+                        "Due Soon": "window_open < current_date < (window_close - 30 days)",
+                        "Critical": "≤ 30 days to window_close",
+                        "Overdue": "Past window_close"
+                    }
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting upcoming audit surveys: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
