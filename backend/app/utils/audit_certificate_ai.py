@@ -64,7 +64,8 @@ VALID_CERTIFICATE_TYPES = [
 async def extract_audit_certificate_fields_from_summary(
     summary_text: str,
     filename: str,
-    ai_config: Dict[str, Any]
+    ai_config: Dict[str, Any],
+    raw_pdf_text: str = ""
 ) -> Dict[str, Any]:
     """
     Extract audit certificate fields from Document AI summary using System AI
