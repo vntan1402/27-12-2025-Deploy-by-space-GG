@@ -202,6 +202,32 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
                     extracted_data[field] = normalized_date
                     logger.info(f"✅ Normalized {field}: {extracted_data[field]}")
         
+        # 1.5. ⭐ NEW: Auto-calculate valid_date for ISPS interim certificates
+        # If document contains "until the initial ISPS audit is conducted"
+        # → valid_date = issue_date + 6 months - 1 day
+        if summary_text:
+            full_text = summary_text.upper()
+            if 'UNTIL THE INITIAL ISPS AUDIT IS CONDUCTED' in full_text:
+                issue_date_str = extracted_data.get('issue_date')
+                if issue_date_str:
+                    try:
+                        from datetime import datetime, timedelta
+                        from dateutil.relativedelta import relativedelta
+                        
+                        # Parse issue_date (YYYY-MM-DD format)
+                        issue_date = datetime.strptime(issue_date_str, '%Y-%m-%d')
+                        
+                        # Calculate: issue_date + 6 months - 1 day
+                        valid_date = issue_date + relativedelta(months=6) - timedelta(days=1)
+                        
+                        # Format back to YYYY-MM-DD
+                        calculated_valid_date = valid_date.strftime('%Y-%m-%d')
+                        
+                        extracted_data['valid_date'] = calculated_valid_date
+                        logger.info(f"✅ Detected 'until the initial ISPS audit is conducted' → auto-calculated valid_date: {calculated_valid_date} (issue_date + 6 months - 1 day)")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Could not auto-calculate valid_date: {e}")
+        
         # 2. Validate and normalize cert_type
         if extracted_data.get('cert_type'):
             normalized_type = validate_certificate_type(extracted_data['cert_type'])
