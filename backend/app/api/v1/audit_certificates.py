@@ -590,3 +590,28 @@ async def create_audit_certificate_with_file_override(
     except Exception as e:
         logger.error(f"❌ Error analyzing audit certificate file: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/ships/{ship_id}/audit-certificates/update-next-survey")
+async def update_ship_audit_certificates_next_survey(
+    ship_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Calculate and update Next Survey for all audit certificates of a ship
+    
+    This endpoint implements the Next Survey calculation logic:
+    - Interim certificates: Next Survey = Valid Date - 3M (Initial)
+    - Short Term certificates: No Next Survey
+    - Full Term with Last Endorse: Next Survey = Valid Date - 3M (Renewal)
+    - Full Term without Last Endorse: Next Survey = Valid Date - 2 years (Intermediate)
+    - Special documents (DMLC I/II, SSP): No Next Survey
+    """
+    try:
+        return await AuditCertificateService.update_ship_audit_certificates_next_survey(ship_id, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error updating audit certificates next survey for ship {ship_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
