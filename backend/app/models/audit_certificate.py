@@ -56,6 +56,9 @@ class AuditCertificateResponse(BaseModel):
     status: Optional[str] = "Valid"
     note: Optional[str] = None
     next_survey_date: Optional[Union[str, datetime]] = None
+    next_survey: Optional[Union[str, datetime]] = None  # ISO datetime format
+    next_survey_display: Optional[str] = None  # Display format with window annotation
+    next_survey_type: Optional[str] = None  # Survey type
     file_id: Optional[str] = None
     summary_file_id: Optional[str] = None
     created_at: datetime
