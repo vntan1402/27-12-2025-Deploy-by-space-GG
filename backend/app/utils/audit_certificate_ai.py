@@ -212,6 +212,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
         if summary_text:
             # Get first 1000 characters to check document header
             header_text = summary_text[:1000].upper()
+            logger.info(f"🔍 Checking header text (first 200 chars): {header_text[:200]}")
             
             # Priority 1: Check for "STATEMENT OF FACTS" → force cert_type = "Other"
             if 'STATEMENT OF FACTS' in header_text:
@@ -227,6 +228,8 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
             ]):
                 extracted_data['cert_type'] = 'Interim'
                 logger.info("✅ Detected 'Interim Certificate' in header → cert_type forced to 'Interim'")
+            else:
+                logger.info(f"ℹ️ No header indicators found, keeping cert_type: {extracted_data.get('cert_type')}")
         
         # 4. Normalize issued_by abbreviations
         if extracted_data.get('issued_by'):
