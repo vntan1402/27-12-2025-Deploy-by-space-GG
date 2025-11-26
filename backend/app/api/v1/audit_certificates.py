@@ -32,6 +32,40 @@ async def get_audit_certificates(
         logger.error(f"❌ Error fetching Audit Certificates: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Audit Certificates")
 
+
+@router.get("/upcoming-surveys")
+async def get_upcoming_audit_surveys(
+    days: int = Query(30, description="Number of days to look ahead (legacy parameter, not used with window logic)"),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get upcoming audit surveys based on window logic
+    
+    This endpoint returns all audit certificates that are within their survey window:
+    - (±6M): Intermediate surveys without Last Endorse (6 months before/after)
+    - (±3M): Other surveys with bidirectional window (3 months before/after)
+    - (-3M): Initial and Renewal surveys (3 months before only)
+    
+    The endpoint checks:
+    1. All ships belonging to the user's company
+    2. All audit certificates for those ships
+    3. Certificates with next_survey_display field populated
+    4. Current date falls within the survey window
+    
+    Returns certificates with status indicators:
+    - is_overdue: Past window_close date
+    - is_critical: ≤ 30 days to window_close
+    - is_due_soon: More than 30 days but within window
+    """
+    try:
+        return await AuditCertificateService.get_upcoming_audit_surveys(current_user, days)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error getting upcoming audit surveys: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{cert_id}", response_model=AuditCertificateResponse)
 async def get_audit_certificate_by_id(
     cert_id: str,
