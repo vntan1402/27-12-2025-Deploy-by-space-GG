@@ -231,6 +231,29 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
                 logger.info("✅ Detected 'Interim Certificate' in header → cert_type forced to 'Interim'")
             else:
                 logger.info(f"ℹ️ No header indicators found, keeping cert_type: {extracted_data.get('cert_type')}")
+            
+            # Priority 3: Check for DMLC Part I/II → override cert_name
+            full_text = summary_text.upper()
+            
+            # Check for DMLC Part II (higher priority than Part I)
+            if any(indicator in full_text for indicator in [
+                'DMLC PART II',
+                'DMLC PART 2',
+                'DMLC-II',
+                'DMLC II'
+            ]):
+                extracted_data['cert_name'] = 'DMLC II'
+                logger.info("✅ Detected 'DMLC Part II' → cert_name forced to 'DMLC II'")
+            
+            # Check for DMLC Part I
+            elif any(indicator in full_text for indicator in [
+                'DMLC PART I',
+                'DMLC PART 1',
+                'DMLC-I',
+                'DMLC I'
+            ]):
+                extracted_data['cert_name'] = 'DMLC I'
+                logger.info("✅ Detected 'DMLC Part I' → cert_name forced to 'DMLC I'")
         
         # 4. Normalize issued_by abbreviations
         if extracted_data.get('issued_by'):
