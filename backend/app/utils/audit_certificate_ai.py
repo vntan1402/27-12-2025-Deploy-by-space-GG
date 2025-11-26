@@ -338,16 +338,15 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
         if cert_category:
             extracted_data['_detected_category'] = cert_category
         
-        # 7. Generate cert_abbreviation if not provided
-        if not extracted_data.get('cert_abbreviation') and extracted_data.get('cert_name'):
-            cert_name = extracted_data['cert_name']
-            
-            # ⭐ Special case: DMLC I/II should keep full name as abbreviation
-            if cert_name in ['DMLC I', 'DMLC II']:
-                extracted_data['cert_abbreviation'] = cert_name
-                logger.info(f"✅ DMLC I/II detected → abbreviation = '{cert_name}' (no shortening)")
-            else:
-                extracted_data['cert_abbreviation'] = generate_certificate_abbreviation(cert_name)
+        # 7. ⭐ Force override abbreviation for DMLC I/II (do this BEFORE checking if abbreviation exists)
+        cert_name = extracted_data.get('cert_name', '')
+        if cert_name in ['DMLC I', 'DMLC II']:
+            extracted_data['cert_abbreviation'] = cert_name
+            logger.info(f"✅ DMLC I/II detected → abbreviation forced to '{cert_name}' (override any AI extraction)")
+        
+        # 8. Generate cert_abbreviation if not provided (and not DMLC I/II)
+        elif not extracted_data.get('cert_abbreviation') and extracted_data.get('cert_name'):
+            extracted_data['cert_abbreviation'] = generate_certificate_abbreviation(extracted_data['cert_name'])
         
         return extracted_data
         
