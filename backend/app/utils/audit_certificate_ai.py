@@ -173,16 +173,17 @@ async def extract_audit_certificate_fields_from_summary(
         return {}
 
 
-def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) -> Dict[str, Any]:
+def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, summary_text: str = "") -> Dict[str, Any]:
     """
     Post-process extracted data from AI
     
     Logic:
     1. Validate and normalize dates (issue_date, valid_date, last_endorse, next_survey)
     2. Validate cert_type (must be valid option)
-    3. Normalize issued_by abbreviations
-    4. Validate IMO number format (7 digits)
-    5. Determine certificate category (ISM/ISPS/MLC/CICA) ⭐
+    3. Check for "STATEMENT OF FACTS" → force cert_type = "Other" ⭐ NEW
+    4. Normalize issued_by abbreviations
+    5. Validate IMO number format (7 digits)
+    6. Determine certificate category (ISM/ISPS/MLC/CICA)
     
     Based on Backend V1 logic
     
@@ -205,6 +206,15 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str) 
             if normalized_type:
                 extracted_data['cert_type'] = normalized_type
                 logger.info(f"✅ Normalized cert_type: '{normalized_type}'")
+        
+        # 3. ⭐ NEW: Check for "STATEMENT OF FACTS" → force cert_type = "Other"
+        if summary_text:
+            # Get first 1000 characters to check document header
+            header_text = summary_text[:1000].upper()
+            
+            if 'STATEMENT OF FACTS' in header_text:
+                extracted_data['cert_type'] = 'Other'
+                logger.info("✅ Detected 'STATEMENT OF FACTS' → cert_type forced to 'Other'")
         
         # 3. Normalize issued_by abbreviations
         if extracted_data.get('issued_by'):
