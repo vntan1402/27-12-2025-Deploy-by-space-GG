@@ -285,7 +285,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
         if cert_category:
             extracted_data['_detected_category'] = cert_category
         
-        # 6. Generate cert_abbreviation if not provided
+        # 7. Generate cert_abbreviation if not provided
         if not extracted_data.get('cert_abbreviation') and extracted_data.get('cert_name'):
             extracted_data['cert_abbreviation'] = generate_certificate_abbreviation(
                 extracted_data['cert_name']
