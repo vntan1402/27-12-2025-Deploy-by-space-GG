@@ -394,6 +394,13 @@ const IsmIspsMLc = () => {
           ? 'Đã xóa chứng chỉ' 
           : 'Certificate deleted successfully'
         );
+        
+        // Clear selection if deleted certificate was selected
+        setSelectedCertificates(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(deletingCertificate.id);
+          return newSet;
+        });
       }
       setShowDeleteCertificateModal(false);
       setDeletingCertificate(null);
