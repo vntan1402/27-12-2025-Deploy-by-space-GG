@@ -182,7 +182,7 @@ async def extract_audit_certificate_fields_from_summary(
         return {}
 
 
-def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, summary_text: str = "") -> Dict[str, Any]:
+def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, summary_text: str = "", full_text: str = "") -> Dict[str, Any]:
     """
     Post-process extracted data from AI
     
