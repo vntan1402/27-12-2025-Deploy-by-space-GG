@@ -66,7 +66,7 @@ export const auditCertificateService = {
    */
   bulkDelete: async (certIds) => {
     return api.post('/api/audit-certificates/bulk-delete', {
-      cert_ids: certIds,
+      document_ids: certIds,  // Backend expects 'document_ids' not 'cert_ids'
     });
   },
 
