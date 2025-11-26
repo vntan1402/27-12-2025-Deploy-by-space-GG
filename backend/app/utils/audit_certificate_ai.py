@@ -148,7 +148,7 @@ async def extract_audit_certificate_fields_from_summary(
                         extracted_data = json.loads(clean_content)
                         
                         # POST-PROCESSING
-                        extracted_data = _post_process_extracted_data(extracted_data, filename)
+                        extracted_data = _post_process_extracted_data(extracted_data, filename, summary_text)
                         
                         logger.info("✅ Audit certificate field extraction successful")
                         return extracted_data
