@@ -216,7 +216,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
                 extracted_data['cert_type'] = 'Other'
                 logger.info("✅ Detected 'STATEMENT OF FACTS' → cert_type forced to 'Other'")
         
-        # 3. Normalize issued_by abbreviations
+        # 4. Normalize issued_by abbreviations
         if extracted_data.get('issued_by'):
             from app.utils.issued_by_abbreviation import normalize_issued_by
             original_issued_by = extracted_data['issued_by']
