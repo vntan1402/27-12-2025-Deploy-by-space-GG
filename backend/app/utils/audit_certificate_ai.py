@@ -213,9 +213,9 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
         # 1.5. ⭐ NEW: Auto-calculate valid_date for ISPS interim certificates
         # If document contains "until the initial ISPS audit is conducted"
         # → valid_date = issue_date + 6 months - 1 day
-        if summary_text:
-            full_text = summary_text.upper()
-            if 'UNTIL THE INITIAL ISPS AUDIT IS CONDUCTED' in full_text:
+        if full_text:
+            full_text_upper = full_text.upper()
+            if 'UNTIL THE INITIAL ISPS AUDIT IS CONDUCTED' in full_text_upper:
                 issue_date_str = extracted_data.get('issue_date')
                 if issue_date_str:
                     try:
