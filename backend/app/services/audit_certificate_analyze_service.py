@@ -277,11 +277,26 @@ class AuditCertificateAnalyzeService:
             
             logger.info(f"✅ Document AI extraction: {len(summary_text)} characters")
             
+            # Extract raw text from PDF for header checking
+            raw_text = ""
+            try:
+                if file_ext == 'pdf':
+                    import PyPDF2
+                    import io
+                    pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
+                    # Extract first page only for header check
+                    if len(pdf_reader.pages) > 0:
+                        raw_text = pdf_reader.pages[0].extract_text()
+                        logger.info(f"✅ Extracted raw text from PDF first page: {len(raw_text)} chars")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not extract raw PDF text: {e}")
+            
             # Extract fields with System AI
             extracted_info = await extract_audit_certificate_fields_from_summary(
                 summary_text=summary_text,
                 filename=filename,
-                ai_config=ai_config_doc
+                ai_config=ai_config_doc,
+                raw_pdf_text=raw_text  # Pass raw text for header checking
             )
             
             if not extracted_info:
