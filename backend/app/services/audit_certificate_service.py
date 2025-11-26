@@ -304,7 +304,7 @@ class AuditCertificateService:
         2. Short Term: Next Survey = N/A, Type = N/A
         3. Full Term:
            - Priority 1 (check Last Endorse):
-             * If no Last Endorse: Next Survey = Valid Date - 30 months ±3M, Type = "Intermediate"
+             * If no Last Endorse: Next Survey = Valid Date - 30 months ±6M, Type = "Intermediate"
              * If has Last Endorse: Next Survey = Valid Date - 3M, Type = "Renewal"
         4. Special documents (DMLC I, DMLC II, SSP): Next Survey = N/A, Type = N/A
         
