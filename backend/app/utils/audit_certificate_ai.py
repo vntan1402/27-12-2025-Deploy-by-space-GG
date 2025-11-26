@@ -191,6 +191,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
         dict: Post-processed data
     """
     try:
+        logger.info(f"🔧 Starting post-processing for: {filename}, summary_text length: {len(summary_text)}")
         # 1. Normalize dates
         date_fields = ['issue_date', 'valid_date', 'last_endorse', 'next_survey']
         for field in date_fields:
