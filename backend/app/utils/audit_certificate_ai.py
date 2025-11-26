@@ -230,7 +230,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
             if not extracted_data.get('issued_by_abbreviation'):
                 extracted_data['issued_by_abbreviation'] = normalized_issued_by
         
-        # 4. Validate IMO number (7 digits)
+        # 5. Validate IMO number (7 digits)
         if extracted_data.get('imo_number'):
             imo = str(extracted_data['imo_number']).strip()
             # Extract only digits
