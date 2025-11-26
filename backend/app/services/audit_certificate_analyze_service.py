@@ -532,11 +532,13 @@ class AuditCertificateAnalyzeService:
             confidence_score = float(extracted_info.get('confidence_score', 0))
             
             # Text quality (check if we have meaningful text)
+            # Reduced threshold from 100 to 50 chars for more lenient validation
+            # Since cert abbreviations and numbers are typically short
             text_quality = sum(
                 len(str(extracted_info.get(field, '')))
                 for field in all_fields
             )
-            text_quality_sufficient = text_quality >= 100
+            text_quality_sufficient = text_quality >= 50
             
             # Missing critical fields
             missing_fields = [
