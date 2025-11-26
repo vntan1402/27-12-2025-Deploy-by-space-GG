@@ -553,7 +553,15 @@ class AuditCertificateAnalyzeService:
                 len(str(extracted_info.get(field, '')))
                 for field in all_fields
             )
-            text_quality_sufficient = text_quality >= 50
+            
+            # ⭐ Special case: DMLC I/II are valid short cert names
+            # Don't fail quality check for them
+            cert_name = extracted_info.get('cert_name', '')
+            if cert_name in ['DMLC I', 'DMLC II']:
+                text_quality_sufficient = True  # Always pass for DMLC I/II
+                logger.info(f"✅ DMLC I/II detected in quality check → text_quality forced to True")
+            else:
+                text_quality_sufficient = text_quality >= 50
             
             # Missing critical fields
             missing_fields = [
