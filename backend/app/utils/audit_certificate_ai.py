@@ -150,7 +150,14 @@ async def extract_audit_certificate_fields_from_summary(
                         extracted_data = json.loads(clean_content)
                         
                         # POST-PROCESSING
-                        extracted_data = _post_process_extracted_data(extracted_data, filename, raw_pdf_text or summary_text)
+                        # Pass raw_pdf_text for header checking (cert_type, DMLC detection)
+                        # Pass full_document_text for content checking (ISPS valid_date calculation)
+                        extracted_data = _post_process_extracted_data(
+                            extracted_data, 
+                            filename, 
+                            raw_pdf_text or summary_text,
+                            full_document_text or summary_text
+                        )
                         
                         logger.info("✅ Audit certificate field extraction successful")
                         return extracted_data
