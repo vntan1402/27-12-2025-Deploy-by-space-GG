@@ -320,6 +320,20 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
                     if cert_category:
                         break
         
+        # ⭐ NEW: Check cert_abbreviation if category still not found
+        if not cert_category and extracted_data.get('cert_abbreviation'):
+            cert_abbrev_upper = extracted_data['cert_abbreviation'].upper()
+            
+            # Check against dictionary
+            for category, cert_list in AUDIT_CERTIFICATE_CATEGORIES.items():
+                for valid_cert in cert_list:
+                    if valid_cert in cert_abbrev_upper or cert_abbrev_upper in valid_cert:
+                        cert_category = category.upper()
+                        logger.info(f"✅ Matched certificate category from abbreviation: {cert_category}")
+                        break
+                if cert_category:
+                    break
+        
         # Store detected category (for validation later)
         if cert_category:
             extracted_data['_detected_category'] = cert_category
