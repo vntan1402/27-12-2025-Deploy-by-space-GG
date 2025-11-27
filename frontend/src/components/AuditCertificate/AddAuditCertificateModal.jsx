@@ -40,6 +40,7 @@ export const AddAuditCertificateModal = ({
   // Single file upload state (for review before save)
   const [certificateFile, setCertificateFile] = useState(null);
   const [validationApproved, setValidationApproved] = useState(false); // Track if user approved validation warning
+  const [analyzeSummary, setAnalyzeSummary] = useState(null); // ⭐ Store summary_text from analysis for later upload
   
   // Error modal state
   const [errorModal, setErrorModal] = useState({
