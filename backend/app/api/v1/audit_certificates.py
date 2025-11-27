@@ -658,34 +658,54 @@ async def auto_rename_audit_certificate_file(
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
-    Auto-rename audit certificate file on Google Drive
+    Auto-rename audit certificate file on Google Drive (matches Class & Flag Certificate)
     
-    New filename pattern:
-    {Shipname}_{CertType}_{CertAbbreviation}_{IssueDate_DDMMYYYY}.{ext}
+    Filename pattern:
+    {Ship Name}_{Cert Type}_{Cert Abbreviation}_{Issue Date}.{ext}
     
-    Example: VINASHIP_FullTerm_ISM-DOC_07052024.pdf
+    Example: VINASHIP HARMONY_Full Term_ISM-DOC_20240507.pdf
+    
+    Naming Priority for Certificate Abbreviation:
+    1. User-defined mapping (from certificate_abbreviation_mappings collection)
+    2. Database cert_abbreviation field
+    3. Fallback to "CERT"
     
     Process:
-    1. Get certificate from DB
-    2. Validate has google_drive_file_id
-    3. Get ship name (from extracted_ship_name or ship DB)
+    1. Get certificate and ship data from DB
+    2. Check Apps Script capability (supports rename_file action)
+    3. Determine abbreviation using priority logic
     4. Generate new filename with pattern
     5. Call Apps Script to rename file on Google Drive
     6. Update DB with new filename
     
     Requires:
     - Editor+ permission
-    - Certificate must have google_drive_file_id
+    - Certificate must have file_id
     - Company must have Apps Script URL configured
+    - Apps Script must support "rename_file" action
     
     Returns:
     {
       "success": true,
-      "message": "File renamed successfully",
+      "message": "Certificate file renamed successfully",
+      "certificate_id": "...",
+      "file_id": "1ABC...",
       "old_name": "original.pdf",
-      "new_name": "VINASHIP_FullTerm_ISM-DOC_07052024.pdf",
-      "file_id": "1ABC..."
+      "new_name": "VINASHIP HARMONY_Full Term_ISM-DOC_20240507.pdf",
+      "naming_convention": {
+        "ship_name": "VINASHIP HARMONY",
+        "cert_type": "Full Term",
+        "cert_identifier": "ISM-DOC",
+        "issue_date": "2024-05-07"
+      },
+      "renamed_timestamp": "2024-11-27T10:30:00Z"
     }
+    
+    Error Codes:
+    - 400: No file attached to certificate
+    - 404: Certificate or ship not found
+    - 501: Apps Script does not support rename_file action (includes suggested filename)
+    - 500: Apps Script communication error
     """
     try:
         return await AuditCertificateService.auto_rename_file(cert_id, current_user)
@@ -693,5 +713,5 @@ async def auto_rename_audit_certificate_file(
         raise
     except Exception as e:
         logger.error(f"❌ Error auto-renaming audit certificate file: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to auto-rename certificate file: {str(e)}")
 
