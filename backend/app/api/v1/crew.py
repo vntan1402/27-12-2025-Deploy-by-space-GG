@@ -539,10 +539,18 @@ IMPORTANT:
             system_message="You are an AI assistant that extracts passport information from OCR text."
         )
         
-        if provider == "google":
+        # Map provider to correct format for emergentintegrations
+        if provider in ["google", "emergent"]:
+            # For Google/Emergent, use "gemini" as provider
             llm_chat = llm_chat.with_model("gemini", model)
+        elif provider == "anthropic":
+            llm_chat = llm_chat.with_model("claude", model)
+        elif provider == "openai":
+            llm_chat = llm_chat.with_model("openai", model)
         else:
-            llm_chat = llm_chat.with_model(provider, model)
+            # Fallback to gemini
+            logger.warning(f"Unknown provider {provider}, using gemini as fallback")
+            llm_chat = llm_chat.with_model("gemini", model)
         
         # Call AI
         ai_response = await llm_chat.send_message(UserMessage(text=prompt))
