@@ -100,7 +100,7 @@ class AuditCertificateAnalyzeService:
             if file_ext not in supported_extensions:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Unsupported file type. Supported: PDF, JPG, PNG"
+                    detail="Unsupported file type. Supported: PDF, JPG, PNG"
                 )
             
             # Validate file format (magic bytes)
@@ -562,7 +562,7 @@ class AuditCertificateAnalyzeService:
             cert_name = extracted_info.get('cert_name', '')
             if cert_name in ['DMLC I', 'DMLC II']:
                 text_quality_sufficient = True  # Always pass for DMLC I/II
-                logger.info(f"✅ DMLC I/II detected in quality check → text_quality forced to True")
+                logger.info("✅ DMLC I/II detected in quality check → text_quality forced to True")
             else:
                 text_quality_sufficient = text_quality >= 50
             
