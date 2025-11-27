@@ -569,6 +569,10 @@ export const AddAuditCertificateModal = ({
     
     setMultiCertUploads(initialUploads);
     setUploadSummary({ success: 0, failed: 0, total: totalFiles });
+    
+    // ⭐ Show Processing Modal
+    setShowBatchProcessing(true);
+    setIsProcessingMinimized(false);
 
     // Show batch info
     toast.info(language === 'vi' 
