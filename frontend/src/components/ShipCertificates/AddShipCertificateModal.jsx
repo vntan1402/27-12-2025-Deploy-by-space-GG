@@ -514,6 +514,7 @@ export const AddShipCertificateModal = ({
         certNo: r.result?.extracted_info?.cert_no || r.result?.extracted_info?.certificate_number || '-',
         certificateCreated: r.success,
         fileUploaded: r.success,
+        summaryGenerated: r.result?.summary_text ? true : false,  // ⭐ NEW: Check if summary was generated
         error: r.error || null
       }));
       
