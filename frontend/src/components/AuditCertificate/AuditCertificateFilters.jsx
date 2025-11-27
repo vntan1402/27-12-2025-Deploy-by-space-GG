@@ -64,8 +64,9 @@ export const AuditCertificateFilters = ({
           >
             <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
             <option value="Valid">{language === 'vi' ? 'Còn hiệu lực' : 'Valid'}</option>
+            <option value="Due Soon">{language === 'vi' ? 'Sắp hết hạn' : 'Due Soon'}</option>
             <option value="Expired">{language === 'vi' ? 'Hết hiệu lực' : 'Expired'}</option>
-            <option value="Over Due">{language === 'vi' ? 'Quá hạn' : 'Over Due'}</option>
+            <option value="Unknown">{language === 'vi' ? 'Không rõ' : 'Unknown'}</option>
           </select>
         </div>
         
