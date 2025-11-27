@@ -69,10 +69,10 @@
 
 ### **4. Issue Date (Ngày cấp)**
 - **Source:** `certificates.issue_date` field
-- **Format:** `YYYYMMDD` (8 số)
+- **Format:** `DD-MM-YYYY` (với dấu gạch ngang)
 - **Examples:**
-  - `2024-11-27` → `20241127`
-  - `2025-01-15` → `20250115`
+  - `2024-11-27` → `27-11-2024`
+  - `2025-01-15` → `15-01-2025`
 - **Default:** `NoDate` (nếu không có hoặc parse failed)
 
 ---
