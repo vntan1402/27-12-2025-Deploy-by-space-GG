@@ -1,6 +1,7 @@
 import logging
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from typing import List, Optional, Dict
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Body
+from datetime import datetime, timezone
 
 from app.models.crew import CrewCreate, CrewUpdate, CrewResponse, BulkDeleteCrewRequest
 from app.models.user import UserResponse, UserRole
