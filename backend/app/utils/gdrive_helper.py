@@ -15,7 +15,8 @@ async def upload_file_to_ship_folder(
     file_content: bytes,
     filename: str,
     ship_name: str,
-    category: str
+    category: str,
+    content_type: str = None  # ⭐ NEW: Allow custom content_type
 ) -> Dict[str, Any]:
     """
     Upload file to existing ship folder structure using Apps Script
@@ -26,6 +27,7 @@ async def upload_file_to_ship_folder(
         filename: Name of the file
         ship_name: Ship name for folder structure
         category: Category folder (e.g., "Certificates", "Test Reports")
+        content_type: MIME type (optional, auto-detected from filename)
     
     Returns:
         dict: Upload result with success status and file info
@@ -39,6 +41,23 @@ async def upload_file_to_ship_folder(
         if not parent_folder_id:
             raise Exception("Parent folder ID not configured")
         
+        # ⭐ NEW: Detect MIME type from filename if not provided
+        if not content_type:
+            file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
+            mime_type_map = {
+                'pdf': 'application/pdf',
+                'txt': 'text/plain',
+                'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg',
+                'png': 'image/png',
+                'doc': 'application/msword',
+                'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'xls': 'application/vnd.ms-excel',
+                'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            }
+            content_type = mime_type_map.get(file_ext, 'application/octet-stream')
+            logger.info(f"🔍 Auto-detected MIME type for {filename}: {content_type}")
+        
         # Prepare payload for Apps Script
         payload = {
             "action": "upload_file_with_folder_creation",
@@ -47,7 +66,7 @@ async def upload_file_to_ship_folder(
             "category": category,
             "filename": filename,
             "file_content": base64.b64encode(file_content).decode('utf-8'),
-            "content_type": "application/pdf"
+            "content_type": content_type  # ⭐ Use detected/provided MIME type
         }
         
         logger.info(f"📤 Uploading {filename} to {ship_name}/{category} via Apps Script")
