@@ -469,6 +469,24 @@ export const AuditCertificateTable = ({
           )}
         </tbody>
       </table>
+
+      {/* ⭐ NEW: Note Tooltip (giống Class & Flag) */}
+      {noteTooltip.show && (
+        <div
+          className="fixed bg-gray-800 text-white p-3 rounded-lg shadow-2xl z-50 border border-gray-600"
+          style={{
+            left: `${noteTooltip.x}px`,
+            top: `${noteTooltip.y}px`,
+            width: `${noteTooltip.width}px`,
+            maxHeight: '200px',
+            overflowY: 'auto',
+            fontSize: '14px',
+            lineHeight: '1.5'
+          }}
+        >
+          {noteTooltip.content}
+        </div>
+      )}
     </div>
   );
 };
