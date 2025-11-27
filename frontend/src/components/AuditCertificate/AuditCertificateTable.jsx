@@ -77,11 +77,14 @@ export const AuditCertificateTable = ({
     // Calculate window_close based on annotation
     let windowClose = new Date(nextSurveyDate);
     
-    if (nextSurvey.includes('(±3M)') || nextSurvey.includes('(+-3M)')) {
+    if (nextSurvey.includes('(±6M)') || nextSurvey.includes('(+-6M)')) {
+      // ±6M: window_close = next_survey_date + 6 months
+      windowClose.setMonth(windowClose.getMonth() + 6);
+    } else if (nextSurvey.includes('(±3M)') || nextSurvey.includes('(+-3M)')) {
       // ±3M: window_close = next_survey_date + 3 months
       windowClose.setMonth(windowClose.getMonth() + 3);
     }
-    // For (-3M): window_close = next_survey_date (no change needed)
+    // For (-3M) or (-6M): window_close = next_survey_date (no change needed)
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
