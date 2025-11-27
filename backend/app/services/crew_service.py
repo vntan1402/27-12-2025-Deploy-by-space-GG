@@ -100,7 +100,7 @@ class CrewService:
     
     @staticmethod
     async def delete_crew(crew_id: str, current_user: UserResponse) -> dict:
-        """Delete crew member"""
+        """Delete crew member and associated files"""
         crew = await CrewRepository.find_by_id(crew_id)
         if not crew:
             raise HTTPException(status_code=404, detail="Crew member not found")
@@ -110,9 +110,33 @@ class CrewService:
             if crew.get('company_id') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
         
+        # Delete files from Google Drive
+        passport_file_id = crew.get('passport_file_id')
+        summary_file_id = crew.get('summary_file_id')
+        
+        if passport_file_id or summary_file_id:
+            try:
+                from app.services.google_drive_service import GoogleDriveService
+                
+                drive_service = GoogleDriveService()
+                delete_result = await drive_service.delete_passport_files(
+                    company_id=current_user.company,
+                    passport_file_id=passport_file_id,
+                    summary_file_id=summary_file_id
+                )
+                
+                if delete_result.get('success'):
+                    logger.info(f"✅ Google Drive files deleted: {delete_result.get('deleted_count')} files")
+                else:
+                    logger.warning(f"⚠️ Google Drive deletion failed: {delete_result.get('message')}")
+            except Exception as e:
+                logger.error(f"❌ Error deleting Google Drive files: {e}")
+                # Continue with database deletion even if Drive deletion fails
+        
+        # Delete from database
         await CrewRepository.delete(crew_id)
         
-        logger.info(f"✅ Crew member deleted: {crew_id}")
+        logger.info(f"✅ Crew member deleted from database: {crew_id}")
         
         return {"message": "Crew member deleted successfully"}
     
