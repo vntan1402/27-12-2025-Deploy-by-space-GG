@@ -570,7 +570,7 @@ export const AddAuditCertificateModal = ({
 
     let successCount = 0;
     let failedCount = 0;
-    let firstSuccessInfo = null;
+    // ⭐ REMOVED: firstSuccessInfo - no longer needed since we don't auto-fill for multi-upload
 
     try {
       // Create array of upload promises with staggered start
