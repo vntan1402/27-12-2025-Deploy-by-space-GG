@@ -58,7 +58,10 @@ def generate_audit_certificate_filename(
         
         filename_base = "_".join(filename_parts)
         
-        # 6. Smart truncate if too long (max 150 chars before extension)
+        # 6. Final cleanup: normalize multiple spaces (like Class & Flag Certificate)
+        filename_base = re.sub(r'\s+', ' ', filename_base)
+        
+        # 7. Smart truncate if too long (max 150 chars before extension)
         max_length = 150
         if len(filename_base) > max_length:
             logger.warning(f"Filename too long ({len(filename_base)} chars), truncating ship name")
@@ -66,10 +69,10 @@ def generate_audit_certificate_filename(
             other_parts_length = len(cert_type_clean) + len(cert_abbr_clean) + len(date_str) + 3  # 3 underscores
             available_for_ship = max_length - other_parts_length
             if available_for_ship > 20:  # Keep at least 20 chars for ship name
-                ship_name_clean = ship_name_clean[:available_for_ship]
+                ship_name_clean = ship_name_clean[:available_for_ship].strip()
             filename_base = "_".join([ship_name_clean, cert_type_clean, cert_abbr_clean, date_str])
         
-        # 7. Add extension
+        # 8. Add extension
         new_filename = f"{filename_base}.{file_ext}"
         
         logger.info(f"Generated filename: {new_filename}")
