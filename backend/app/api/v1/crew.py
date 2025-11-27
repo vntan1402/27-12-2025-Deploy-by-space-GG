@@ -362,10 +362,16 @@ async def move_standby_files(
 @router.post("/analyze-passport")
 async def analyze_passport_file(
     file: UploadFile = File(...),
+    ship_name: str = Form(None),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
     Analyze passport file using AI (Editor+ role required)
+    
+    Args:
+        file: Passport file (PDF or image)
+        ship_name: Ship name for the crew (optional, used for logging)
+        current_user: Authenticated user
     """
     try:
         # Validate file type
