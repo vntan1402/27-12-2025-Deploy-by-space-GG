@@ -725,7 +725,9 @@ IMPORTANT DATE EXAMPLES:
         current_user: UserResponse,
         ship_id: str,
         validation_note: Optional[str],
-        db: Any
+        db: Any,
+        summary_file_id: Optional[str] = None,  # ⭐ NEW
+        extracted_ship_name: Optional[str] = None  # ⭐ NEW
     ) -> Dict[str, Any]:
         """Create certificate record from AI analysis"""
         try:
