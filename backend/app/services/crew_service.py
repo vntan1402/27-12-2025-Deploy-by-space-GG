@@ -8,6 +8,7 @@ from app.models.crew import CrewCreate, CrewUpdate, CrewResponse, BulkDeleteCrew
 from app.models.user import UserResponse, UserRole
 from app.repositories.crew_repository import CrewRepository
 from app.utils.date_helpers import convert_dates_in_dict, CREW_DATE_FIELDS
+from app.services.audit_trail_service import AuditTrailService
 
 logger = logging.getLogger(__name__)
 
