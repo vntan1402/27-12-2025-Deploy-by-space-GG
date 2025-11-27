@@ -146,10 +146,73 @@ class GoogleDriveService:
         passport_file_id: Optional[str],
         summary_file_id: Optional[str]
     ) -> Dict:
-        """Delete passport files from Google Drive"""
-        # TODO: Implement in Phase 2
-        logger.warning("⚠️ delete_passport_files not yet implemented")
-        return {"success": True, "message": "Delete not yet implemented (MOCK)"}
+        """
+        Delete passport files from Google Drive
+        
+        Called when deleting a crew member
+        
+        Args:
+            company_id: Company UUID
+            passport_file_id: Google Drive file ID of passport
+            summary_file_id: Google Drive file ID of summary
+            
+        Returns:
+            {
+                "success": bool,
+                "deleted_count": int,
+                "failed_count": int,
+                "message": str
+            }
+        """
+        try:
+            from app.utils.google_drive_helper import GoogleDriveHelper
+            
+            drive_helper = GoogleDriveHelper(company_id)
+            await drive_helper.load_config()
+            
+            deleted_files = []
+            failed_files = []
+            
+            # Delete passport file
+            if passport_file_id:
+                logger.info(f"🗑️ Deleting passport file: {passport_file_id}")
+                if await drive_helper.delete_file(passport_file_id):
+                    deleted_files.append(passport_file_id)
+                    logger.info(f"✅ Passport file deleted")
+                else:
+                    failed_files.append(passport_file_id)
+                    logger.error(f"❌ Failed to delete passport file")
+            
+            # Delete summary file
+            if summary_file_id:
+                logger.info(f"🗑️ Deleting summary file: {summary_file_id}")
+                if await drive_helper.delete_file(summary_file_id):
+                    deleted_files.append(summary_file_id)
+                    logger.info(f"✅ Summary file deleted")
+                else:
+                    failed_files.append(summary_file_id)
+                    logger.error(f"❌ Failed to delete summary file")
+            
+            success = len(failed_files) == 0
+            message = f"Deleted {len(deleted_files)} files"
+            if failed_files:
+                message += f", failed to delete {len(failed_files)} files"
+            
+            return {
+                "success": success,
+                "deleted_count": len(deleted_files),
+                "failed_count": len(failed_files),
+                "message": message
+            }
+            
+        except Exception as e:
+            logger.error(f"❌ Delete error: {e}")
+            return {
+                "success": False,
+                "deleted_count": 0,
+                "failed_count": 0,
+                "message": f"Delete failed: {str(e)}"
+            }
     
     async def rename_passport_files(
         self,
