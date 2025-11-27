@@ -526,6 +526,48 @@ const IsmIspsMLc = () => {
   };
 
   const getCertificateStatus = (cert) => {
+    // ⭐ ENHANCED: Check next_survey first (with window_close calculation)
+    const nextSurvey = cert.next_survey_display || cert.next_survey;
+    
+    // Treat "N/A" as no next_survey (common for special documents)
+    const hasValidNextSurvey = nextSurvey && nextSurvey !== 'N/A' && nextSurvey !== 'n/a';
+    
+    if (hasValidNextSurvey) {
+      // Parse Next Survey date and annotation
+      const match = nextSurvey.match(/(\d{2}\/\d{2}\/\d{4})/);
+      
+      if (match) {
+        const [day, month, year] = match[1].split('/');
+        const nextSurveyDate = new Date(year, month - 1, day);
+        nextSurveyDate.setHours(0, 0, 0, 0);
+        
+        // ⭐ Calculate window_close based on annotation (±6M, ±3M, -3M, -6M)
+        let windowClose = new Date(nextSurveyDate);
+        
+        if (nextSurvey.includes('(±6M)') || nextSurvey.includes('(+-6M)')) {
+          // ±6M: window_close = next_survey_date + 6 months
+          windowClose.setMonth(windowClose.getMonth() + 6);
+        } else if (nextSurvey.includes('(±3M)') || nextSurvey.includes('(+-3M)')) {
+          // ±3M: window_close = next_survey_date + 3 months
+          windowClose.setMonth(windowClose.getMonth() + 3);
+        }
+        // For (-3M) or (-6M): window_close = next_survey_date (no adjustment)
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        // Compare with window_close
+        if (today > windowClose) return 'Expired';
+        
+        const diffTime = windowClose.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays <= 30) return 'Due Soon';
+        return 'Valid';
+      }
+    }
+    
+    // ⭐ Fallback to valid_date if no next_survey
     if (!cert.valid_date) return 'Unknown';
     
     const today = new Date();
@@ -539,7 +581,7 @@ const IsmIspsMLc = () => {
     const diffTime = validDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays <= 30) return 'Over Due';
+    if (diffDays <= 30) return 'Due Soon';
     return 'Valid';
   };
 
