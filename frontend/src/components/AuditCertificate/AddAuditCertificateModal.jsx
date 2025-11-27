@@ -1048,64 +1048,7 @@ export const AddAuditCertificateModal = ({
               </div>
             )}
 
-            {/* Upload Progress List */}
-            {multiCertUploads.length > 0 && (
-              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
-                {multiCertUploads.map((upload, idx) => (
-                  <div 
-                    key={idx}
-                    className={`p-3 rounded-lg border transition-all ${
-                      upload.status === 'completed' ? 'bg-green-50 border-green-300' :
-                      upload.status === 'error' ? 'bg-red-50 border-red-300' :
-                      upload.status === 'uploading' ? 'bg-blue-50 border-blue-300' :
-                      'bg-gray-50 border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center space-x-2 flex-1 min-w-0">
-                        <span className="text-xs font-mono text-gray-500">#{idx + 1}</span>
-                        <span className="text-sm font-medium truncate" title={upload.filename}>
-                          {upload.filename}
-                        </span>
-                      </div>
-                      <span className="text-xs text-gray-500 ml-2">{(upload.size / 1024).toFixed(1)} KB</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className={`text-xs font-medium ${
-                        upload.status === 'completed' ? 'text-green-700' :
-                        upload.status === 'error' ? 'text-red-700' :
-                        upload.status === 'uploading' ? 'text-blue-700' :
-                        'text-gray-700'
-                      }`}>
-                        {upload.stage}
-                      </span>
-                      
-                      {upload.status === 'uploading' && upload.progress > 0 && (
-                        <span className="text-xs text-blue-600 font-bold">{upload.progress}%</span>
-                      )}
-                    </div>
-                    
-                    {/* Progress bar for uploading */}
-                    {upload.status === 'uploading' && upload.progress > 0 && (
-                      <div className="mt-2 w-full bg-blue-200 rounded-full h-1.5">
-                        <div 
-                          className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-                          style={{ width: `${upload.progress}%` }}
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Error message */}
-                    {upload.status === 'error' && upload.error && (
-                      <div className="mt-1 text-xs text-red-600">
-                        {upload.error}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* ⭐ REMOVED: Old inline progress tracker - Now using BatchProcessingModal */}
           </div>
           
           {/* Manual Form */}
