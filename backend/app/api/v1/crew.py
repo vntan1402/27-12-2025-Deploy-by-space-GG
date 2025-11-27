@@ -13,6 +13,51 @@ import base64
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+def parse_passport_response(response_text: str) -> dict:
+    """
+    Parse AI response for passport data extraction
+    
+    Args:
+        response_text: Raw AI response text containing JSON
+        
+    Returns:
+        Dict with passport fields
+    """
+    import re
+    import json
+    
+    try:
+        # Try to find JSON in the response
+        json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', response_text, re.DOTALL)
+        if json_match:
+            json_str = json_match.group(0)
+            data = json.loads(json_str)
+        else:
+            # If no JSON found, try to parse the whole response
+            data = json.loads(response_text)
+        
+        # Extract passport fields only
+        passport_data = {
+            "full_name": data.get("full_name"),
+            "passport_no": data.get("passport_no"),
+            "nationality": data.get("nationality"),
+            "date_of_birth": data.get("date_of_birth"),
+            "issue_date": data.get("issue_date"),
+            "expiry_date": data.get("expiry_date"),
+            "place_of_birth": data.get("place_of_birth"),
+            "sex": data.get("sex")
+        }
+        
+        return passport_data
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse JSON from AI response: {e}")
+        logger.error(f"Response text: {response_text[:500]}")
+        return {}
+    except Exception as e:
+        logger.error(f"Error parsing passport response: {e}")
+        return {}
+
 async def check_passport_duplicate(
     passport_number: str,
     company_id: str
