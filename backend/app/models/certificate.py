@@ -23,6 +23,8 @@ class CertificateBase(BaseModel):
     file_size: Optional[int] = None
     notes: Optional[str] = None
     ship_name: Optional[str] = None  # For folder organization
+    summary_file_id: Optional[str] = None  # ⭐ NEW: Google Drive ID for summary text file
+    extracted_ship_name: Optional[str] = None  # ⭐ Ship name extracted by AI
 
 class CertificateCreate(CertificateBase):
     pass
