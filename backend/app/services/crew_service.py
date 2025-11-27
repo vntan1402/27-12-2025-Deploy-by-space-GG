@@ -7,6 +7,7 @@ from fastapi import HTTPException
 from app.models.crew import CrewCreate, CrewUpdate, CrewResponse, BulkDeleteCrewRequest
 from app.models.user import UserResponse, UserRole
 from app.repositories.crew_repository import CrewRepository
+from app.utils.date_helpers import convert_dates_in_dict, CREW_DATE_FIELDS
 
 logger = logging.getLogger(__name__)
 
