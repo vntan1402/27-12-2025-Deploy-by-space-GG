@@ -50,29 +50,45 @@ class PDFProcessor:
             str: Extracted text from OCR
         """
         try:
-            pdf_file = io.BytesIO(file_content)
-            pdf_reader = PyPDF2.PdfReader(pdf_file)
+            from pdf2image import convert_from_bytes
+            
+            logger.info("Converting PDF pages to images for OCR...")
+            
+            # Convert PDF to images
+            images = convert_from_bytes(
+                file_content,
+                dpi=300,  # Higher DPI for better OCR accuracy
+                fmt='png'
+            )
+            
+            logger.info(f"Converted PDF to {len(images)} image(s)")
             
             text = ""
-            for page_num, page in enumerate(pdf_reader.pages):
+            for page_num, image in enumerate(images):
                 try:
-                    # Convert PDF page to image
-                    # Note: PyPDF2 doesn't have direct image conversion
-                    # This is a simplified approach - in production, use pdf2image
+                    # Apply OCR on the image
                     page_text = pytesseract.image_to_string(
-                        page,
+                        image,
                         lang='eng',
-                        config='--psm 6'
+                        config='--psm 6 --oem 3'  # Page segmentation mode 6, OCR Engine Mode 3 (LSTM)
                     )
                     text += page_text + "\n"
+                    logger.info(f"Page {page_num + 1}: Extracted {len(page_text)} characters")
                 except Exception as e:
                     logger.warning(f"OCR failed for page {page_num}: {e}")
                     continue
             
-            logger.info(f"OCR extracted {len(text)} characters")
+            logger.info(f"✅ OCR extracted {len(text)} characters total")
             return text
+        except ImportError as e:
+            logger.error(f"pdf2image not installed: {e}")
+            logger.error("Install with: pip install pdf2image")
+            logger.error("Also ensure poppler is installed on system")
+            return ""
         except Exception as e:
             logger.error(f"Error extracting text with OCR: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return ""
     
     @staticmethod
