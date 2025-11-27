@@ -755,6 +755,11 @@ export const AddAuditCertificateModal = ({
       );
     } finally {
       setIsMultiCertProcessing(false);
+      
+      // ⭐ Close Processing Modal and show Results Modal
+      setShowBatchProcessing(false);
+      setBatchResults(multiCertUploads);
+      setShowBatchResults(true);
     }
   };
 
