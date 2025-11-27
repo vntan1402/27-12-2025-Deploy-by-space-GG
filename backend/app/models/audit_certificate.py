@@ -62,7 +62,9 @@ class AuditCertificateResponse(BaseModel):
     issued_by: Optional[str] = None
     issued_by_abbreviation: Optional[str] = None
     status: Optional[str] = "Valid"
-    note: Optional[str] = None
+    note: Optional[str] = None  # ⚠️ Deprecated
+    notes: Optional[str] = None  # ⭐ Correct field
+    has_notes: Optional[bool] = None  # ⭐ Notes flag
     next_survey_date: Optional[Union[str, datetime]] = None
     next_survey: Optional[Union[str, datetime]] = None  # ISO datetime format
     next_survey_display: Optional[str] = None  # Display format with window annotation
