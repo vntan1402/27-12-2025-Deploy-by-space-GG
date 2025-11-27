@@ -510,11 +510,16 @@ export const AddShipCertificateModal = ({
       const results = allResults.map((r, idx) => ({
         filename: r.file.name,
         success: r.success,
-        certName: r.result?.extracted_info?.cert_name || r.result?.extracted_info?.certificate_name || '-',
-        certNo: r.result?.extracted_info?.cert_no || r.result?.extracted_info?.certificate_number || '-',
+        // ⭐ FIXED: Backend returns analysis (which contains extracted_info) or certificate
+        certName: r.result?.analysis?.cert_name || 
+                  r.result?.certificate?.cert_name || 
+                  r.result?.extracted_info?.cert_name || '-',
+        certNo: r.result?.analysis?.cert_no || 
+                r.result?.certificate?.cert_no || 
+                r.result?.extracted_info?.cert_no || '-',
         certificateCreated: r.success,
         fileUploaded: r.success,
-        summaryGenerated: r.result?.summary_text ? true : false,  // ⭐ NEW: Check if summary was generated
+        summaryGenerated: r.result?.summary_text ? true : false,
         error: r.error || null
       }));
       
