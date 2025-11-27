@@ -6,6 +6,8 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useUploadGuard } from '../../hooks/useUploadGuard';
 import api from '../../services/api';
+import { BatchProcessingModal } from './BatchProcessingModal';
+import { BatchResultsModal } from './BatchResultsModal';
 
 export const AddAuditCertificateModal = ({
   isOpen,
