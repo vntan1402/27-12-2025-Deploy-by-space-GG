@@ -436,17 +436,18 @@ export const AuditCertificateTable = ({
                     }
                   </span>
                 </td>
-                <td 
-                  className="border border-gray-300 px-4 py-2 text-center" 
-                  title={cert.notes || (language === 'vi' ? 'Click để thêm ghi chú' : 'Click to add notes')}
-                >
-                  {cert.has_notes ? (
+                <td className="border border-gray-300 px-4 py-2 text-center">
+                  {(cert.has_notes || (cert.notes && cert.notes.trim())) ? (
                     <span 
-                      className="text-orange-600 font-bold cursor-pointer text-lg hover:text-orange-700"
+                      className="text-red-600 font-bold cursor-pointer text-lg hover:text-red-700"
+                      onMouseEnter={(e) => handleNoteMouseEnter(e, cert.notes)}
+                      onMouseLeave={handleNoteMouseLeave}
                       onClick={(e) => {
                         e.stopPropagation();
+                        handleNoteMouseLeave();
                         if (onNotesClick) onNotesClick(cert);
                       }}
+                      title={language === 'vi' ? 'Click để xem/chỉnh sửa ghi chú' : 'Click to view/edit notes'}
                     >
                       *
                     </span>
@@ -457,8 +458,9 @@ export const AuditCertificateTable = ({
                         e.stopPropagation();
                         if (onNotesClick) onNotesClick(cert);
                       }}
+                      title={language === 'vi' ? 'Click để thêm ghi chú' : 'Click to add notes'}
                     >
-                      +
+                      -
                     </span>
                   )}
                 </td>
