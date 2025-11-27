@@ -20,6 +20,7 @@ class AuditCertificateBase(BaseModel):
     next_survey: Optional[Union[str, datetime]] = None  # ISO datetime format
     next_survey_display: Optional[str] = None  # Display format with window annotation (e.g., "30/10/2025 (±3M)")
     next_survey_type: Optional[str] = None  # Survey type (Initial, Intermediate, Renewal, etc.)
+    extracted_ship_name: Optional[str] = None  # Ship name extracted by AI from certificate
 
 class AuditCertificateCreate(AuditCertificateBase):
     pass
