@@ -184,70 +184,60 @@ class CertificateMultiUploadService:
                     "message": f"Unsupported file type. Supported: PDF, JPG, PNG. Got: {file.content_type}"
                 }
         
-        # Analyze document with AI
+        # ⭐ NEW: Analyze document with advanced AI pipeline (Document AI + OCR)
         analysis_result = await CertificateMultiUploadService._analyze_document_with_ai(
-            file_content, file.filename, file.content_type, ai_config
+            file_content, 
+            file.filename, 
+            file.content_type, 
+            ai_config,
+            ship_id,
+            current_user
         )
         
-        # Add filename to analysis result for later use
-        analysis_result['filename'] = file.filename
-        
-        logger.info(f"🔍 AI Analysis for {file.filename}:")
-        logger.info(f"   Category: {analysis_result.get('category')}")
-        
-        # Check if it's a Marine Certificate
-        is_marine_certificate = analysis_result.get("category") == "certificates"
-        
-        # AI EXTRACTION QUALITY CHECK
-        extraction_quality = CertificateMultiUploadService._check_ai_extraction_quality(
-            analysis_result, is_marine_certificate
-        )
-        
-        logger.info(f"🤖 AI Extraction Quality for {file.filename}:")
-        logger.info(f"   Confidence: {extraction_quality['confidence_score']}")
-        logger.info(f"   Sufficient: {extraction_quality['sufficient']}")
-        
-        # If AI extraction is insufficient, request manual input
-        if not extraction_quality['sufficient']:
-            logger.warning(f"⚠️ AI extraction insufficient for {file.filename}")
-            
-            reasons = []
-            if extraction_quality['confidence_score'] < 0.5:
-                reasons.append(f"Low confidence ({extraction_quality['confidence_score']:.1f})")
-            if extraction_quality['critical_extraction_rate'] < 0.67:
-                reasons.append(f"Missing critical fields")
-            if not is_marine_certificate:
-                reasons.append(f"Not classified as certificate")
-            
-            reason_text = ", ".join(reasons)
-            
+        # Check if analysis was successful
+        if not analysis_result.get("success"):
+            error_msg = analysis_result.get("message", "Analysis failed")
             return {
                 "filename": file.filename,
-                "status": "requires_manual_input",
-                "message": f"AI không thể trích xuất đủ thông tin từ '{file.filename}'. Vui lòng nhập thủ công.",
-                "progress_message": f"AI không thể trích xuất đủ thông tin - Cần nhập thủ công ({reason_text})",
-                "analysis": analysis_result,
-                "extraction_quality": extraction_quality,
-                "is_marine": is_marine_certificate,
-                "requires_manual_input": True,
-                "manual_input_reason": reason_text
+                "status": "error",
+                "message": error_msg
             }
         
-        # If not marine certificate
-        if not is_marine_certificate:
-            logger.info(f"⚠️ File {file.filename} not classified as marine certificate")
+        # Extract components from new analysis result
+        extracted_info = analysis_result.get("extracted_info", {})
+        summary_text = analysis_result.get("summary_text", "")  # ⭐ NEW: Document AI text
+        validation_warning = analysis_result.get("validation_warning")
+        duplicate_warning = analysis_result.get("duplicate_warning")
+        
+        logger.info(f"✅ AI Analysis successful for {file.filename}")
+        logger.info(f"   Summary text: {len(summary_text)} characters")
+        logger.info(f"   Extracted fields: {list(extracted_info.keys())}")
+        
+        # Check for validation warnings (IMO mismatch - BLOCKING)
+        if validation_warning and validation_warning.get("is_blocking"):
+            logger.error(f"❌ Blocking validation error for {file.filename}")
             return {
                 "filename": file.filename,
-                "status": "requires_manual_review",
-                "message": f"System did not classify '{file.filename}' as a marine certificate.",
-                "detected_category": analysis_result.get("category", "unknown"),
-                "analysis": analysis_result,
-                "is_marine": False
+                "status": "error",
+                "message": validation_warning.get("message"),
+                "validation_error": validation_warning
             }
         
-        # IMO and Ship Name Validation
-        extracted_imo = (analysis_result.get('imo_number') or '').strip()
-        extracted_ship_name = (analysis_result.get('ship_name') or '').strip()
+        # Check for duplicates
+        if duplicate_warning and duplicate_warning.get("has_duplicate"):
+            logger.warning(f"⚠️ Duplicate detected for {file.filename}")
+            return {
+                "filename": file.filename,
+                "status": "pending_duplicate_resolution",
+                "message": duplicate_warning.get("message"),
+                "duplicate_info": duplicate_warning,
+                "analysis": extracted_info,
+                "summary_text": summary_text  # ⭐ Pass summary for later use
+            }
+        
+        # Extract key fields for further processing
+        extracted_imo = extracted_info.get('imo_number', '').strip()
+        extracted_ship_name = extracted_info.get('ship_name', '').strip()
         current_ship_imo = (ship.get('imo') or '').strip()
         current_ship_name = (ship.get('name') or '').strip()
         validation_note = None
