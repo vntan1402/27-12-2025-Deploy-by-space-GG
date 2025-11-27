@@ -402,6 +402,12 @@ export const AddAuditCertificateModal = ({
         const duplicateWarning = response.data.duplicate_warning;
         const categoryWarning = response.data.category_warning;
         
+        // ⭐ Store summary_text immediately after analysis (for all paths)
+        if (response.data.summary_text) {
+          setAnalyzeSummary(response.data.summary_text);
+          console.log('✅ Stored summary_text:', response.data.summary_text.length, 'chars');
+        }
+        
         // ===== CHECK FOR CATEGORY WARNING (ISM/ISPS/MLC) - FIRST PRIORITY =====
         if (categoryWarning && categoryWarning.type === 'category_mismatch') {
           // Show category confirmation modal
