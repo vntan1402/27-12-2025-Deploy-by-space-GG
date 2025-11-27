@@ -51,34 +51,93 @@ class GoogleDriveService:
             }
         """
         try:
-            logger.info(f"📤 Uploading passport files for crew: {upload_data.get('crew_name')}")
+            # Extract data
+            file_content = upload_data['file_content']
+            filename = upload_data['filename']
+            content_type = upload_data['content_type']
+            summary_text = upload_data['summary_text']
+            ship_name = upload_data['ship_name']
+            crew_name = upload_data['crew_name']
+            passport_number = upload_data['passport_number']
             
-            # TODO: Implement actual Google Drive upload in Phase 2
-            # For now, return mock success for testing
+            logger.info(f"📤 Uploading files for: {crew_name} ({passport_number})")
             
-            logger.warning("⚠️ Google Drive upload not yet implemented - returning mock response")
+            # Initialize Google Drive helper
+            from app.utils.google_drive_helper import GoogleDriveHelper
             
-            # Mock file IDs
-            passport_file_id = f"mock-passport-{upload_data.get('crew_id')}"
-            summary_file_id = f"mock-summary-{upload_data.get('crew_id')}"
+            drive_helper = GoogleDriveHelper(company_id)
+            await drive_helper.load_config()
             
-            logger.info(f"✅ Mock upload successful")
-            logger.info(f"   📎 Mock Passport ID: {passport_file_id}")
-            logger.info(f"   📋 Mock Summary ID: {summary_file_id}")
+            # Determine folder path
+            if ship_name and ship_name != '-':
+                folder_path = f"{ship_name}/Passport"
+                summary_folder_path = f"{ship_name}/Passport/SUMMARY"
+            else:
+                folder_path = "Standby Crew/Passport"
+                summary_folder_path = "Standby Crew/Passport/SUMMARY"
+            
+            logger.info(f"📁 Target folder: {folder_path}")
+            
+            # Upload original passport file
+            logger.info(f"📄 Uploading passport file: {filename}")
+            passport_file_id = await drive_helper.upload_file(
+                file_content=file_content,
+                filename=filename,
+                folder_path=folder_path,
+                mime_type=content_type
+            )
+            
+            if not passport_file_id:
+                return {
+                    "success": False,
+                    "message": "Failed to upload passport file to Google Drive"
+                }
+            
+            # Generate and upload summary file
+            summary_filename = f"{crew_name}_{passport_number}_summary.txt"
+            summary_content = self._generate_summary_content(
+                crew_name=crew_name,
+                passport_number=passport_number,
+                ship_name=ship_name,
+                summary_text=summary_text,
+                filename=filename
+            )
+            
+            logger.info(f"📝 Uploading summary file: {summary_filename}")
+            summary_file_id = await drive_helper.upload_file(
+                file_content=summary_content.encode('utf-8'),
+                filename=summary_filename,
+                folder_path=summary_folder_path,
+                mime_type='text/plain'
+            )
+            
+            if not summary_file_id:
+                logger.warning("⚠️ Summary file upload failed, but passport file uploaded")
+            
+            logger.info(f"✅ Files uploaded successfully")
+            logger.info(f"   📎 Passport ID: {passport_file_id}")
+            logger.info(f"   📋 Summary ID: {summary_file_id}")
             
             return {
                 "success": True,
                 "passport_file_id": passport_file_id,
                 "summary_file_id": summary_file_id,
-                "message": "Files uploaded successfully (MOCK)"
+                "message": "Files uploaded successfully"
             }
             
-        except Exception as e:
-            logger.error(f"❌ Error in upload_passport_files: {e}")
+        except ValueError as e:
+            logger.error(f"❌ Configuration error: {e}")
             return {
                 "success": False,
-                "message": f"Upload failed: {str(e)}",
-                "error": str(e)
+                "message": f"Google Drive configuration error: {str(e)}"
+            }
+        except Exception as e:
+            logger.error(f"❌ Upload error: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return {
+                "success": False,
+                "message": f"Upload failed: {str(e)}"
             }
     
     async def delete_passport_files(
