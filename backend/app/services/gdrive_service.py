@@ -710,31 +710,36 @@ class GDriveService:
     async def rename_file_via_apps_script(
         file_id: str,
         new_filename: str,
-        company_id: str
+        company_id: str,
+        check_capability: bool = True
     ) -> dict:
         """
-        Rename file on Google Drive via Apps Script
+        Rename file on Google Drive via Apps Script (matches Class & Flag Certificate implementation)
         
         Args:
             file_id: Google Drive file ID
             new_filename: New filename (with extension)
             company_id: Company UUID
+            check_capability: Whether to check Apps Script capability before rename
             
         Returns:
             dict: {
                 "success": bool,
                 "message": str,
                 "file_id": str,
-                "new_name": str
+                "old_name": str,
+                "new_name": str,
+                "renamed_timestamp": str
             }
             
         Raises:
             HTTPException: If Apps Script URL not configured or request fails
         """
         try:
+            import aiohttp
             from app.db.mongodb import mongo_db
             
-            logger.info(f"Renaming file via Apps Script: file_id={file_id}, new_name={new_filename}")
+            logger.info(f"🔄 Renaming file via Apps Script: file_id={file_id}, new_name={new_filename}")
             
             # Get company Apps Script URL from company_gdrive_config
             config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
@@ -742,18 +747,57 @@ class GDriveService:
             if not config:
                 logger.error(f"No GDrive config found for company: {company_id}")
                 raise HTTPException(
-                    status_code=500,
-                    detail="Company Google Drive configuration not found"
+                    status_code=404,
+                    detail="Google Drive not configured for this company"
                 )
             
-            apps_script_url = config.get("company_apps_script_url")
+            # Try multiple possible field names for Apps Script URL
+            apps_script_url = (
+                config.get("company_apps_script_url") or 
+                config.get("web_app_url") or 
+                config.get("apps_script_url")
+            )
             
             if not apps_script_url:
                 logger.error(f"Company Apps Script URL not configured for company: {company_id}")
                 raise HTTPException(
-                    status_code=500,
-                    detail="Company Apps Script URL not configured. Please configure in Google Drive settings."
+                    status_code=400,
+                    detail="Apps Script URL not configured. Please configure in Google Drive settings."
                 )
+            
+            # Check Apps Script capability (like Class & Flag Certificate)
+            if check_capability:
+                logger.info("🔍 Checking Apps Script capabilities for auto-rename functionality...")
+                
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        # Test payload to get available actions
+                        async with session.post(
+                            apps_script_url,
+                            json={},
+                            timeout=aiohttp.ClientTimeout(total=30)
+                        ) as response:
+                            if response.status == 200:
+                                test_result = await response.json()
+                                available_actions = test_result.get("available_actions", [])
+                                supported_actions = test_result.get("supported_actions", [])
+                                all_actions = available_actions + supported_actions
+                                
+                                logger.info(f"📋 Apps Script available actions: {all_actions}")
+                                
+                                if "rename_file" not in all_actions:
+                                    logger.warning("⚠️ Apps Script does not support 'rename_file' action")
+                                    raise HTTPException(
+                                        status_code=501,
+                                        detail=f"Auto-rename feature not yet supported by Google Drive integration. Suggested filename: {new_filename}"
+                                    )
+                                
+                                logger.info("✅ Apps Script supports 'rename_file' action")
+                except HTTPException:
+                    raise
+                except Exception as e:
+                    logger.warning(f"⚠️ Could not check Apps Script capabilities: {e}")
+                    # Continue anyway and let the actual rename call fail if needed
             
             # Prepare payload
             payload = {
@@ -762,60 +806,50 @@ class GDriveService:
                 "new_name": new_filename
             }
             
-            logger.info(f"Calling Apps Script: {apps_script_url}")
+            logger.info(f"📤 Calling Apps Script rename action...")
             
-            # Call Apps Script with timeout
-            response = requests.post(
-                apps_script_url,
-                json=payload,
-                timeout=30,  # 30 seconds timeout
-                headers={"Content-Type": "application/json"}
-            )
-            
-            # Check HTTP status
-            if response.status_code != 200:
-                error_msg = f"Apps Script returned status {response.status_code}"
-                logger.error(f"{error_msg}: {response.text}")
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Apps Script request failed: {error_msg}"
-                )
-            
-            # Parse response
-            result = response.json()
-            
-            if not result.get("success"):
-                error_msg = result.get("message", "Unknown error from Apps Script")
-                logger.error(f"Apps Script failed: {error_msg}")
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"Failed to rename file: {error_msg}"
-                )
-            
-            logger.info(f"✅ File renamed successfully: {new_filename}")
-            
-            return {
-                "success": True,
-                "message": result.get("message", "File renamed successfully"),
-                "file_id": file_id,
-                "new_name": new_filename
-            }
+            # Call Apps Script with aiohttp (like Class & Flag Certificate)
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        
+                        if result.get("success"):
+                            logger.info(f"✅ File renamed successfully: {new_filename}")
+                            
+                            return {
+                                "success": True,
+                                "message": result.get("message", "File renamed successfully"),
+                                "file_id": file_id,
+                                "old_name": result.get("old_name", ""),
+                                "new_name": new_filename,
+                                "renamed_timestamp": result.get("renamed_timestamp", "")
+                            }
+                        else:
+                            error_msg = result.get("error", result.get("message", "Unknown error occurred"))
+                            logger.error(f"❌ Apps Script rename failed: {error_msg}")
+                            raise HTTPException(
+                                status_code=500,
+                                detail=f"Failed to rename file: {error_msg}"
+                            )
+                    else:
+                        logger.error(f"❌ Apps Script request failed with status {response.status}")
+                        error_text = await response.text()
+                        raise HTTPException(
+                            status_code=500,
+                            detail=f"Google Drive API request failed: {response.status} - {error_text}"
+                        )
             
         except HTTPException:
             raise
-        except requests.exceptions.Timeout:
-            logger.error("Apps Script request timeout")
-            raise HTTPException(
-                status_code=500,
-                detail="Apps Script request timeout (30s). Please try again."
-            )
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Apps Script request error: {e}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to connect to Apps Script: {str(e)}"
-            )
         except Exception as e:
-            logger.error(f"Error renaming file via Apps Script: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            logger.error(f"❌ Error calling Apps Script: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to communicate with Google Drive: {str(e)}"
+            )
 
