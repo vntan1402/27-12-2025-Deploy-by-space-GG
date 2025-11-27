@@ -377,74 +377,62 @@ class CertificateMultiUploadService:
         file_content: bytes, 
         filename: str, 
         content_type: str, 
-        ai_config: Dict[str, Any]
+        ai_config: Dict[str, Any],
+        ship_id: str,
+        current_user: Any
     ) -> Dict[str, Any]:
         """
-        Analyze document using AI - simplified version focusing on certificate extraction
-        Uses the same logic as certificate_service.py
-        """
-        from app.utils.pdf_processor import PDFProcessor
+        Analyze document using AI with advanced Document AI pipeline
         
+        ⭐ UPGRADED: Now uses ShipCertificateAnalyzeService with Document AI + OCR
+        
+        Returns:
+            dict: {
+                "success": bool,
+                "extracted_info": {...},
+                "summary_text": str,  # ⭐ NEW: Document AI extracted text
+                "validation_warning": {...} | None,
+                "duplicate_warning": {...} | None
+            }
+        """
         try:
-            # Extract text from PDF
-            if content_type == "application/pdf":
-                text, is_scanned = PDFProcessor.extract_text_from_pdf(file_content)
-                if not text or len(text.strip()) < 50:
-                    logger.warning(f"Insufficient text from {filename}")
-                    return {"category": "unknown", "confidence": 0.0}
-            else:
-                # For images, would need OCR (not implemented yet)
-                logger.warning(f"Image file {filename} - OCR not available")
-                return {"category": "unknown", "confidence": 0.0}
+            logger.info(f"🤖 Analyzing document with advanced AI pipeline: {filename}")
             
-            # Call AI for analysis using existing certificate service logic
-            from emergentintegrations.llm.chat import LlmChat, UserMessage
-            from app.utils.ai_helper import AIHelper
+            # Use new ShipCertificateAnalyzeService (with Document AI + OCR)
+            from app.services.ship_certificate_analyze_service import ShipCertificateAnalyzeService
+            import base64
             
-            emergent_key = ai_config.get("api_key")
-            provider = ai_config.get("provider", "google").lower()
-            model = ai_config.get("model", "gemini-2.0-flash-exp")
+            # Convert bytes to base64
+            file_base64 = base64.b64encode(file_content).decode('utf-8')
             
-            # Create comprehensive prompt for certificate extraction
-            prompt = CertificateMultiUploadService._create_certificate_extraction_prompt(text)
-            
-            # Initialize LLM chat
-            llm_chat = LlmChat(
-                api_key=emergent_key,
-                session_id="cert_multi_upload",
-                system_message="You are an AI that analyzes maritime certificates."
+            # Call analysis service
+            analysis_result = await ShipCertificateAnalyzeService.analyze_file(
+                file_content=file_base64,
+                filename=filename,
+                content_type=content_type,
+                ship_id=ship_id,
+                current_user=current_user
             )
             
-            # Set model based on provider
-            if "gemini" in model.lower() or provider in ["google", "gemini", "emergent"]:
-                llm_chat = llm_chat.with_model("gemini", model)
-            elif provider == "openai" or "gpt" in model.lower():
-                llm_chat = llm_chat.with_model("openai", model)
-            elif provider == "anthropic" or "claude" in model.lower():
-                llm_chat = llm_chat.with_model("anthropic", model)
-            
-            # Call AI
-            ai_response = await llm_chat.send_message(UserMessage(text=prompt))
-            
-            logger.info(f"📥 AI Response for {filename}: {ai_response[:500]}")
-            
-            # Parse response
-            cert_data = AIHelper.parse_ai_response(ai_response)
-            
-            logger.info(f"📊 Parsed cert_data keys: {list(cert_data.keys()) if cert_data else 'None'}")
-            logger.info(f"📊 Category value: {cert_data.get('category') if cert_data else 'None'}")
-            
-            if not cert_data:
-                return {"category": "unknown", "confidence": 0.0}
-            
-            # Add text_content for quality checks
-            cert_data["text_content"] = text
-            
-            return cert_data
+            if analysis_result.get("success"):
+                logger.info(f"✅ Document AI analysis successful for {filename}")
+                return analysis_result
+            else:
+                logger.error(f"❌ Document AI analysis failed for {filename}")
+                return {
+                    "success": False,
+                    "message": "Analysis failed"
+                }
             
         except Exception as e:
-            logger.error(f"AI analysis error: {e}")
-            return {"category": "unknown", "confidence": 0.0, "error": str(e)}
+            logger.error(f"❌ AI analysis error: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return {
+                "success": False,
+                "error": str(e),
+                "message": f"Analysis failed: {str(e)}"
+            }
     
     @staticmethod
     def _create_certificate_extraction_prompt(text: str) -> str:
