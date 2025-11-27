@@ -259,13 +259,13 @@ POST /api/certificates/{certificate_id}/auto-rename-file
   "certificate_id": "cert-uuid",
   "file_id": "gdrive-file-id",
   "old_name": "original_certificate.pdf",
-  "new_name": "VINASHIP HARMONY_Full Term_LLC_20241127.pdf",
+  "new_name": "VINASHIP HARMONY_Full Term_LLC_27-11-2024.pdf",
   "summary_renamed": true,
   "naming_convention": {
     "ship_name": "VINASHIP HARMONY",
     "cert_type": "Full Term",
     "cert_identifier": "LLC",
-    "issue_date": "20241127"
+    "issue_date": "27-11-2024"
   },
   "renamed_timestamp": "2024-11-27T10:30:00Z"
 }
