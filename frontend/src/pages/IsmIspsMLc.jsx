@@ -895,13 +895,13 @@ const IsmIspsMLc = () => {
         
         if (!viewUrl) {
           // Fetch from API if not cached
-          const response = await api.get(`/api/gdrive/file/${cert.google_drive_file_id}/view`);
+          const response = await api.get(`/api/gdrive/file/${fileId}/view`);
           if (response.data?.success && response.data?.view_url) {
             viewUrl = response.data.view_url;
             // Update cache
             setCertificateLinksCache(prev => ({
               ...prev,
-              [cert.google_drive_file_id]: viewUrl
+              [fileId]: viewUrl
             }));
           }
         }
