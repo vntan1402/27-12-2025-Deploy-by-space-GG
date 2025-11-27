@@ -375,26 +375,26 @@ async def analyze_passport_file(
     """
     try:
         # Validate file type
-        if not file.content_type or not file.content_type.startswith("image/"):
-            if file.content_type != "application/pdf":
+        if not passport_file.content_type or not passport_file.content_type.startswith("image/"):
+            if passport_file.content_type != "application/pdf":
                 raise HTTPException(status_code=400, detail="Only image or PDF files are allowed")
         
         # Validate file size (10MB limit)
-        if file.size and file.size > 10 * 1024 * 1024:
+        if passport_file.size and passport_file.size > 10 * 1024 * 1024:
             raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB")
         
         # Read file content
-        file_content = await file.read()
+        file_content = await passport_file.read()
         if not file_content:
             raise HTTPException(status_code=400, detail="Empty file received")
         
-        logger.info(f"📄 Analyzing passport file: {file.filename} ({len(file_content)} bytes)")
+        logger.info(f"📄 Analyzing passport file: {passport_file.filename} ({len(file_content)} bytes)")
         
         # Extract text from file
         from app.utils.pdf_processor import PDFProcessor
         from app.utils.ai_helper import AIHelper
         
-        if file.content_type == "application/pdf":
+        if passport_file.content_type == "application/pdf":
             text = await PDFProcessor.process_pdf(file_content, use_ocr_fallback=True)
         else:
             # For images, use OCR directly
