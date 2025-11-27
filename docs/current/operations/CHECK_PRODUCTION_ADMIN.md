@@ -10,14 +10,14 @@ Kiểm tra xem System Admin đã được tạo tự động trong production en
 ### Bước 1: Kiểm tra Admin API
 Mở browser và truy cập:
 ```
-https://auditmanage-api.preview.emergentagent.com/api/admin/status
+https://cert-backend-v2.preview.emergentagent.com/api/admin/status
 ```
 
 **Thay `YOUR_DOMAIN` bằng tên project của bạn**
 
 Ví dụ:
-- `https://auditmanage-api.preview.emergentagent.com/api/admin/status`
-- `https://auditmanage-api.preview.emergentagent.com/api/admin/status`
+- `https://cert-backend-v2.preview.emergentagent.com/api/admin/status`
+- `https://cert-backend-v2.preview.emergentagent.com/api/admin/status`
 
 ### Kết quả:
 
@@ -69,7 +69,7 @@ Trong Emergent Platform → Click vào **"Deployments"** (icon bên phải) → 
 ### Bước 2: Thử đăng nhập
 
 1. Mở browser
-2. Truy cập: `https://auditmanage-api.preview.emergentagent.com`
+2. Truy cập: `https://cert-backend-v2.preview.emergentagent.com`
 3. Nhập:
    - Username: `system_admin`
    - Password: (từ env variables)
@@ -88,19 +88,19 @@ Mở **Terminal trên máy local của bạn** (Windows CMD, PowerShell, Mac Ter
 
 ### A. Kiểm tra Admin Status
 ```bash
-curl -X GET "https://auditmanage-api.preview.emergentagent.com/api/admin/status"
+curl -X GET "https://cert-backend-v2.preview.emergentagent.com/api/admin/status"
 ```
 
 ### B. Test Login API
 ```bash
-curl -X POST "https://auditmanage-api.preview.emergentagent.com/api/auth/login" \
+curl -X POST "https://cert-backend-v2.preview.emergentagent.com/api/auth/login" \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"system_admin\",\"password\":\"YourSecure@Pass2024\",\"remember_me\":false}"
 ```
 
 **Cho Windows PowerShell:**
 ```powershell
-curl.exe -X POST "https://auditmanage-api.preview.emergentagent.com/api/auth/login" `
+curl.exe -X POST "https://cert-backend-v2.preview.emergentagent.com/api/auth/login" `
   -H "Content-Type: application/json" `
   -d '{"username":"system_admin","password":"YourSecure@Pass2024","remember_me":false}'
 ```
@@ -195,13 +195,13 @@ Xem trong **Deployments** panel → `ADMIN_CREATION_SECRET`
 ### Bước 2: Gọi API Create Admin
 
 ```bash
-curl -X POST "https://auditmanage-api.preview.emergentagent.com/api/admin/create-from-env" \
+curl -X POST "https://cert-backend-v2.preview.emergentagent.com/api/admin/create-from-env" \
   -H "X-Admin-Secret: YOUR_SECRET_KEY_HERE"
 ```
 
 **Hoặc qua browser:**
 ```
-https://auditmanage-api.preview.emergentagent.com/api/admin/create-simple?secret=YOUR_SECRET_KEY_HERE
+https://cert-backend-v2.preview.emergentagent.com/api/admin/create-simple?secret=YOUR_SECRET_KEY_HERE
 ```
 
 ### Kết quả:
@@ -294,7 +294,7 @@ Nếu sau các bước trên vẫn không được:
 ## ⚡ TL;DR - Cách Nhanh Nhất
 
 1. Mở browser
-2. Vào: `https://auditmanage-api.preview.emergentagent.com/api/admin/status`
+2. Vào: `https://cert-backend-v2.preview.emergentagent.com/api/admin/status`
 3. Xem response có `"admin_exists": true` không
 4. Nếu **true** → Thử login với `system_admin` + password từ env
 5. Nếu **false** → Check env variables → Re-deploy
