@@ -191,7 +191,7 @@ async def analyze_audit_certificate_file(
         }
     """
     try:
-        logger.info(f"📥 Received analyze-file request (JSON body)")
+        logger.info("📥 Received analyze-file request (JSON body)")
         
         from app.services.audit_certificate_analyze_service import AuditCertificateAnalyzeService
         
