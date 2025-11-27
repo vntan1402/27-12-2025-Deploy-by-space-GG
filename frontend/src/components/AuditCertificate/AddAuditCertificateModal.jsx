@@ -515,6 +515,12 @@ export const AddAuditCertificateModal = ({
 
         // Store file for later upload when user clicks Save
         setCertificateFile(file);
+        
+        // ⭐ Store summary_text for later upload
+        if (response.data.summary_text) {
+          setAnalyzeSummary(response.data.summary_text);
+          console.log('✅ Stored summary_text for later upload:', response.data.summary_text.length, 'chars');
+        }
 
         toast.success(language === 'vi' 
           ? `✅ Đã phân tích và điền ${filledFields} trường! Vui lòng review và click Save.`
