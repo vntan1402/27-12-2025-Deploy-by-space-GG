@@ -390,43 +390,110 @@ async def analyze_passport_file(
         
         logger.info(f"📄 Analyzing passport file: {passport_file.filename} ({len(file_content)} bytes)")
         
-        # Extract text from file
-        from app.utils.pdf_processor import PDFProcessor
-        from app.utils.ai_helper import AIHelper
+        # ✅ USE GOOGLE DOCUMENT AI via Apps Script (same as V1)
+        logger.info("🤖 Using Google Document AI for passport analysis...")
         
-        if passport_file.content_type == "application/pdf":
-            text = await PDFProcessor.process_pdf(file_content, use_ocr_fallback=True)
-        else:
-            # For images, use OCR directly
-            import pytesseract
-            from PIL import Image
-            import io
-            image = Image.open(io.BytesIO(file_content))
-            text = pytesseract.image_to_string(image, lang='eng')
+        # Get company information
+        from app.db.mongodb import mongo_db
         
-        if not text or len(text) < 20:
+        company_id = current_user.company
+        
+        # Get AI configuration for Document AI (system-wide configuration)
+        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        if not ai_config_doc:
             return {
                 "success": False,
-                "message": "Could not extract sufficient text from passport",
+                "message": "AI configuration not found. Please configure Google Document AI in System Settings.",
                 "analysis": None
             }
         
-        logger.info(f"✅ Extracted {len(text)} characters from passport")
+        document_ai_config = ai_config_doc.get("document_ai", {})
         
-        # Get AI configuration and analyze
+        if not document_ai_config.get("enabled", False):
+            return {
+                "success": False,
+                "message": "Google Document AI is not enabled in System Settings",
+                "analysis": None
+            }
+        
+        # Validate required Document AI configuration
+        if not all([
+            document_ai_config.get("project_id"),
+            document_ai_config.get("processor_id")
+        ]):
+            return {
+                "success": False,
+                "message": "Incomplete Google Document AI configuration. Please check Project ID and Processor ID.",
+                "analysis": None
+            }
+        
+        # Call Google Apps Script to analyze passport with Document AI
+        from app.utils.google_drive_helper import GoogleDriveHelper
+        import asyncio
+        
+        drive_helper = GoogleDriveHelper(company_id)
+        await drive_helper.load_config()
+        
+        apps_script_payload = {
+            "action": "analyze_passport_document_ai",
+            "file_content": base64.b64encode(file_content).decode('utf-8'),
+            "filename": passport_file.filename,
+            "content_type": passport_file.content_type or 'application/octet-stream',
+            "project_id": document_ai_config.get("project_id"),
+            "location": document_ai_config.get("location", "us"),
+            "processor_id": document_ai_config.get("processor_id")
+        }
+        
+        logger.info(f"📞 Calling Google Apps Script for Document AI analysis...")
+        
+        # Make request with timeout
+        try:
+            analysis_response = await asyncio.wait_for(
+                drive_helper.call_apps_script(apps_script_payload, timeout=90.0),
+                timeout=90.0
+            )
+        except asyncio.TimeoutError:
+            logger.error("❌ Document AI analysis timed out after 90 seconds")
+            return {
+                "success": False,
+                "message": "Document AI analysis timed out. The file may be too large or complex.",
+                "analysis": None
+            }
+        
+        if not analysis_response.get("success"):
+            logger.error(f"❌ Document AI failed: {analysis_response.get('message')}")
+            return {
+                "success": False,
+                "message": f"Document AI analysis failed: {analysis_response.get('message', 'Unknown error')}",
+                "analysis": None
+            }
+        
+        # Get summary from Document AI
+        document_summary = analysis_response.get("data", {}).get("summary", "")
+        
+        if not document_summary:
+            logger.warning("Document AI returned empty summary")
+            return {
+                "success": False,
+                "message": "Could not extract text from passport using Document AI",
+                "analysis": None
+            }
+        
+        logger.info(f"✅ Document AI extracted {len(document_summary)} characters")
+        
+        # Use System AI to extract passport fields from summary
+        from app.utils.ai_helper import AIHelper
         from app.services.ai_config_service import AIConfigService
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
-        import os
         
         try:
             ai_config = await AIConfigService.get_ai_config(current_user)
             provider = ai_config.provider
             model = ai_config.model
         except:
-            provider = "google"
-            model = "gemini-2.0-flash"
+            provider = ai_config_doc.get("provider", "google")
+            model = ai_config_doc.get("model", "gemini-2.0-flash")
         
-        # Get EMERGENT_LLM_KEY
+        import os
         emergent_key = os.getenv("EMERGENT_LLM_KEY", "sk-emergent-eEe35Fb1b449940199")
         
         # Create AI prompt for passport
