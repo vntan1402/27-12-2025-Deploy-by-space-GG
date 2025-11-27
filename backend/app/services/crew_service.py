@@ -68,6 +68,21 @@ class CrewService:
         
         await CrewRepository.create(crew_dict)
         
+        # Log audit trail
+        await AuditTrailService.log_action(
+            user_id=current_user.id,
+            action="CREATE_CREW",
+            resource_type="crew_member",
+            resource_id=crew_dict["id"],
+            details={
+                "crew_name": crew_data.full_name,
+                "passport": crew_data.passport,
+                "ship": crew_data.ship_sign_on,
+                "status": crew_data.status
+            },
+            company_id=current_user.company
+        )
+        
         logger.info(f"✅ Crew member created: {crew_dict['full_name']}")
         
         return CrewResponse(**crew_dict)
