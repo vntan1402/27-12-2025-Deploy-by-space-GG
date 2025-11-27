@@ -923,6 +923,7 @@ export const AddAuditCertificateModal = ({
     });
     setCertificateFile(null);
     setValidationApproved(false);
+    setAnalyzeSummary(null);  // ⭐ Clear summary
     setMultiCertUploads([]);
     setUploadSummary({ success: 0, failed: 0, total: 0 });
     setIsMultiCertProcessing(false);
