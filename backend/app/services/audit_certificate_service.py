@@ -200,14 +200,21 @@ class AuditCertificateService:
         
         # Extract file info before deleting
         google_drive_file_id = cert.get("google_drive_file_id")
+        summary_file_id = cert.get("summary_file_id")  # ⭐ NEW: Also get summary file ID
         cert_name = cert.get("cert_name", "Unknown")
         
         # Delete from database immediately
         await mongo_db.delete(AuditCertificateService.collection_name, {"id": cert_id})
         logger.info(f"✅ Audit Certificate deleted from DB: {cert_id} ({cert_name})")
         
-        # Schedule Google Drive file deletion in background
-        if google_drive_file_id and background_tasks:
+        # Schedule Google Drive file deletion in background (both original file and summary)
+        files_to_delete = []
+        if google_drive_file_id:
+            files_to_delete.append(("audit_certificate", google_drive_file_id, cert_name))
+        if summary_file_id:
+            files_to_delete.append(("audit_certificate", summary_file_id, f"{cert_name} (summary)"))
+        
+        if files_to_delete and background_tasks:
             ship_id = cert.get("ship_id")
             if ship_id:
                 from app.repositories.ship_repository import ShipRepository
