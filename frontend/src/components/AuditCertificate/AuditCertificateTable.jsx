@@ -260,13 +260,13 @@ export const AuditCertificateTable = ({
                 className={`cursor-pointer transition-colors ${
                   selectedCertificates.has(cert.id) 
                     ? 'bg-blue-100 hover:bg-blue-150' 
-                    : cert.google_drive_file_id 
+                    : (cert.file_id || cert.google_drive_file_id)
                       ? 'hover:bg-blue-50' 
                       : 'hover:bg-gray-50'
                 }`}
                 onDoubleClick={() => onDoubleClick(cert)}
                 onContextMenu={(e) => onRightClick(e, cert)}
-                title={cert.google_drive_file_id 
+                title={(cert.file_id || cert.google_drive_file_id)
                   ? (language === 'vi' ? 'Nhấn đúp để mở file | Chuột phải để Edit/Delete' : 'Double-click to open file | Right-click for Edit/Delete')
                   : (language === 'vi' ? 'Chưa có file đính kèm | Chuột phải để Edit/Delete' : 'No file attached | Right-click for Edit/Delete')
                 }
