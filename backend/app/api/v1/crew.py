@@ -137,6 +137,146 @@ async def delete_crew(
         logger.error(f"❌ Error deleting crew: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete crew member")
 
+
+@router.post("/{crew_id}/upload-passport-files")
+async def upload_passport_files(
+    crew_id: str,
+    file_data: Dict = Body(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload passport files to Google Drive AFTER successful crew creation
+    
+    This endpoint is called by the frontend after:
+    1. User uploads passport file
+    2. AI analysis completes
+    3. User reviews and creates crew member
+    
+    Request Body Structure:
+    {
+        "file_content": "base64_encoded_file_content",
+        "filename": "passport.pdf",
+        "content_type": "application/pdf",
+        "summary_text": "OCR extracted text from passport",
+        "ship_name": "BROTHER 36"
+    }
+    
+    Returns:
+    {
+        "success": true,
+        "message": "Files uploaded successfully",
+        "passport_file_id": "gdrive-file-id-xxx",
+        "summary_file_id": "gdrive-file-id-yyy"
+    }
+    """
+    try:
+        logger.info(f"📤 Upload passport files request for crew: {crew_id}")
+        
+        # 1. Verify crew exists and user has access
+        crew = await CrewService.get_crew_by_id(crew_id, current_user)
+        if not crew:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Crew member {crew_id} not found"
+            )
+        
+        # 2. Validate required fields in request
+        required_fields = ['file_content', 'filename', 'ship_name']
+        missing_fields = [f for f in required_fields if f not in file_data]
+        
+        if missing_fields:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing required fields: {', '.join(missing_fields)}"
+            )
+        
+        # 3. Decode and validate file content
+        try:
+            file_content = base64.b64decode(file_data['file_content'])
+            logger.info(f"✅ Decoded file content: {len(file_content)} bytes")
+        except Exception as e:
+            logger.error(f"❌ Failed to decode base64: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid base64 file content: {str(e)}"
+            )
+        
+        # Validate file size (max 10MB)
+        file_size_mb = len(file_content) / (1024 * 1024)
+        if file_size_mb > 10:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File too large: {file_size_mb:.2f}MB (max 10MB)"
+            )
+        
+        # 4. Prepare upload data
+        upload_data = {
+            'file_content': file_content,
+            'filename': file_data['filename'],
+            'content_type': file_data.get('content_type', 'application/octet-stream'),
+            'summary_text': file_data.get('summary_text', ''),
+            'ship_name': file_data['ship_name'],
+            'crew_id': crew_id,
+            'crew_name': crew.full_name,
+            'passport_number': crew.passport
+        }
+        
+        # 5. Upload files to Google Drive
+        from app.services.google_drive_service import GoogleDriveService
+        
+        drive_service = GoogleDriveService()
+        upload_result = await drive_service.upload_passport_files(
+            company_id=current_user.company,
+            upload_data=upload_data
+        )
+        
+        if not upload_result.get('success'):
+            logger.error(f"❌ Google Drive upload failed: {upload_result.get('message')}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"File upload failed: {upload_result.get('message', 'Unknown error')}"
+            )
+        
+        # 6. Extract file IDs
+        passport_file_id = upload_result.get('passport_file_id')
+        summary_file_id = upload_result.get('summary_file_id')
+        
+        # 7. Update crew record with file IDs
+        update_data = {
+            'updated_at': datetime.now(timezone.utc),
+            'updated_by': current_user.username
+        }
+        
+        if passport_file_id:
+            update_data['passport_file_id'] = passport_file_id
+        if summary_file_id:
+            update_data['summary_file_id'] = summary_file_id
+        
+        await CrewRepository.update(crew_id, update_data)
+        
+        logger.info(f"✅ Passport files uploaded for crew {crew_id}")
+        logger.info(f"   📎 Passport File ID: {passport_file_id}")
+        logger.info(f"   📋 Summary File ID: {summary_file_id}")
+        
+        return {
+            "success": True,
+            "message": "Passport files uploaded successfully",
+            "passport_file_id": passport_file_id,
+            "summary_file_id": summary_file_id,
+            "crew_id": crew_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading passport files: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to upload passport files: {str(e)}"
+        )
+
 @router.post("/bulk-delete")
 async def bulk_delete_crew(
     request: BulkDeleteCrewRequest,
