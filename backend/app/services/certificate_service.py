@@ -240,6 +240,7 @@ class CertificateService:
         
         # Extract file info before deleting from DB
         google_drive_file_id = cert.get("google_drive_file_id")
+        summary_file_id = cert.get("summary_file_id")  # ⭐ NEW: Get summary file ID
         cert_name = cert.get("cert_name", "Unknown")
         
         # Delete certificate from database immediately
@@ -257,7 +258,7 @@ class CertificateService:
                     if company_id:
                         from app.services.gdrive_service import GDriveService
                         
-                        # Schedule background deletion with retry
+                        # Schedule background deletion for main certificate file
                         background_tasks.add_task(
                             delete_file_background,
                             google_drive_file_id,
@@ -268,11 +269,24 @@ class CertificateService:
                         )
                         logger.info(f"📋 Scheduled background deletion for certificate file: {google_drive_file_id}")
                         
+                        # ⭐ NEW: Schedule background deletion for summary file
+                        if summary_file_id:
+                            background_tasks.add_task(
+                                delete_file_background,
+                                summary_file_id,
+                                company_id,
+                                "certificate_summary",
+                                f"{cert_name} (Summary)",
+                                GDriveService
+                            )
+                            logger.info(f"📋 Scheduled background deletion for summary file: {summary_file_id}")
+                        
                         return {
                             "success": True,
                             "message": "Certificate deleted successfully. File deletion in progress...",
                             "certificate_id": cert_id,
-                            "background_deletion": True
+                            "background_deletion": True,
+                            "files_deleted": 2 if summary_file_id else 1  # ⭐ NEW
                         }
         
         return {
