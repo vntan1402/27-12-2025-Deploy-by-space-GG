@@ -1012,7 +1012,7 @@ const IsmIspsMLc = () => {
 
     try {
       const selectedCerts = auditCertificates.filter(cert => selectedCertificates.has(cert.id));
-      const certsWithFiles = selectedCerts.filter(cert => cert.google_drive_file_id);
+      const certsWithFiles = selectedCerts.filter(cert => cert.file_id || cert.google_drive_file_id);
 
       if (certsWithFiles.length === 0) {
         toast.warning(
@@ -1026,19 +1026,20 @@ const IsmIspsMLc = () => {
       const links = [];
 
       for (const cert of certsWithFiles) {
+        const fileId = cert.file_id || cert.google_drive_file_id;
         // Check cache first
-        let viewUrl = certificateLinksCache[cert.google_drive_file_id];
+        let viewUrl = certificateLinksCache[fileId];
         
         if (!viewUrl) {
           // Fetch from API if not cached
           try {
-            const response = await api.get(`/api/gdrive/file/${cert.google_drive_file_id}/view`);
+            const response = await api.get(`/api/gdrive/file/${fileId}/view`);
             if (response.data?.success && response.data?.view_url) {
               viewUrl = response.data.view_url;
               // Update cache
               setCertificateLinksCache(prev => ({
                 ...prev,
-                [cert.google_drive_file_id]: viewUrl
+                [fileId]: viewUrl
               }));
             }
           } catch (error) {
