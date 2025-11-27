@@ -724,41 +724,9 @@ export const AddAuditCertificateModal = ({
         total: totalFiles
       });
 
-      // Auto-fill form with first success
-      if (firstSuccessInfo) {
-        const autoFillData = {
-          cert_name: firstSuccessInfo.cert_name || firstSuccessInfo.certificate_name || '',
-          cert_abbreviation: firstSuccessInfo.cert_abbreviation || '',
-          cert_no: firstSuccessInfo.cert_no || firstSuccessInfo.certificate_number || '',
-          cert_type: firstSuccessInfo.cert_type || 'Full Term',
-          issue_date: formatCertDate(firstSuccessInfo.issue_date),
-          valid_date: formatCertDate(firstSuccessInfo.valid_date || firstSuccessInfo.expiry_date),
-          last_endorse: formatCertDate(firstSuccessInfo.last_endorse),
-          next_survey: formatCertDate(firstSuccessInfo.next_survey),
-          next_survey_type: firstSuccessInfo.next_survey_type || '',
-          issued_by: firstSuccessInfo.issued_by || '',
-          issued_by_abbreviation: firstSuccessInfo.issued_by_abbreviation || '',
-          ship_id: selectedShip.id,
-          ship_name: firstSuccessInfo.ship_name || '',  // Fill từ AI extraction
-          ship_imo: firstSuccessInfo.imo_number || ''   // Fill từ AI extraction
-        };
-
-        console.log('📝 Auto-filling form:', autoFillData);
-
-        const filledFields = Object.keys(autoFillData).filter(key => 
-          autoFillData[key] && String(autoFillData[key]).trim() && !['ship_id', 'ship_name', 'ship_imo'].includes(key)
-        ).length;
-
-        setFormData(prev => ({
-          ...prev,
-          ...autoFillData
-        }));
-
-        toast.success(language === 'vi' 
-          ? `✅ Đã điền ${filledFields} trường thông tin!`
-          : `✅ Auto-filled ${filledFields} fields!`
-        );
-      }
+      // ⭐ REMOVED: No auto-fill for multi-file upload
+      // Multi-file uploads are automatically created in DB via multi-upload endpoint
+      // Form remains empty for manual entry if needed
 
       // Final summary toast
       toast.success(language === 'vi'
