@@ -36,18 +36,14 @@ def generate_audit_certificate_filename(
         file_ext = original_filename.split('.')[-1] if '.' in original_filename else 'pdf'
         file_ext = file_ext.lower()
         
-        # 1. Clean ship name
-        ship_name_clean = _clean_filename_component(ship_name or "Unknown")
+        # 1. Clean ship name (KEEP SPACES like Class & Flag Certificate)
+        ship_name_clean = _clean_filename_component(ship_name or "Unknown", keep_spaces=True)
         
-        # 2. Clean cert type (remove spaces for shorter name)
-        cert_type_clean = _clean_filename_component(cert_type or "Unknown")
-        # Simplify common types
-        cert_type_clean = cert_type_clean.replace("Full_Term", "FullTerm")
-        cert_type_clean = cert_type_clean.replace("Short_term", "ShortTerm")
-        cert_type_clean = cert_type_clean.replace("Short_Term", "ShortTerm")
+        # 2. Clean cert type (KEEP SPACES like Class & Flag Certificate)
+        cert_type_clean = _clean_filename_component(cert_type or "Unknown", keep_spaces=True)
         
-        # 3. Clean cert abbreviation
-        cert_abbr_clean = _clean_filename_component(cert_abbreviation or "CERT")
+        # 3. Clean cert abbreviation (KEEP SPACES)
+        cert_abbr_clean = _clean_filename_component(cert_abbreviation or "CERT", keep_spaces=True)
         
         # 4. Format issue date to DDMMYYYY
         date_str = _format_date_to_ddmmyyyy(issue_date)
