@@ -75,6 +75,11 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile, langu
                             {language === 'vi' ? '☁️ Đã upload Drive' : '☁️ Uploaded to Drive'}
                           </span>
                         )}
+                        {result.summaryGenerated && (
+                          <span className="text-xs text-blue-600">
+                            {language === 'vi' ? '📝 Đã tạo summary' : '📝 Summary generated'}
+                          </span>
+                        )}
                       </div>
                     ) : (
                       <div className="flex flex-col items-center gap-2">
