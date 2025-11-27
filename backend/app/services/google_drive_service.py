@@ -68,13 +68,17 @@ class GoogleDriveService:
             drive_helper = GoogleDriveHelper(company_id)
             await drive_helper.load_config()
             
-            # Determine folder path
+            # ✅ V1 STRUCTURE: Determine folder path matching Backend V1
+            # Normal crew: {Ship Name}/Crew Records/Crew List/
+            # Standby crew: COMPANY DOCUMENT/Standby Crew/
             if ship_name and ship_name != '-':
-                folder_path = f"{ship_name}/Passport"
-                summary_folder_path = f"{ship_name}/Passport/SUMMARY"
+                # Normal crew with ship
+                folder_path = f"{ship_name}/Crew Records/Crew List"
+                logger.info(f"📤 Uploading passport file (Normal): {folder_path}/{filename}")
             else:
-                folder_path = "Standby Crew/Passport"
-                summary_folder_path = "Standby Crew/Passport/SUMMARY"
+                # Standby crew
+                folder_path = "COMPANY DOCUMENT/Standby Crew"
+                logger.info(f"📤 Uploading passport file (Standby): {folder_path}/{filename}")
             
             logger.info(f"📁 Target folder: {folder_path}")
             
@@ -93,8 +97,11 @@ class GoogleDriveService:
                     "message": "Failed to upload passport file to Google Drive"
                 }
             
-            # Generate and upload summary file
-            summary_filename = f"{crew_name}_{passport_number}_summary.txt"
+            # ✅ V1 STRUCTURE: Generate summary filename matching V1
+            # Format: {original_filename}_Summary.txt (same folder as passport)
+            base_name = filename.rsplit('.', 1)[0]  # Remove extension
+            summary_filename = f"{base_name}_Summary.txt"
+            
             summary_content = self._generate_summary_content(
                 crew_name=crew_name,
                 passport_number=passport_number,
@@ -103,11 +110,12 @@ class GoogleDriveService:
                 filename=filename
             )
             
-            logger.info(f"📝 Uploading summary file: {summary_filename}")
+            # Upload summary to SAME folder as passport (V1 behavior)
+            logger.info(f"📝 Uploading summary file: {folder_path}/{summary_filename}")
             summary_file_id = await drive_helper.upload_file(
                 file_content=summary_content.encode('utf-8'),
                 filename=summary_filename,
-                folder_path=summary_folder_path,
+                folder_path=folder_path,  # Same folder as passport
                 mime_type='text/plain'
             )
             
