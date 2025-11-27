@@ -778,6 +778,9 @@ class AuditCertificateService:
                     detail="Certificate has no associated Google Drive file"
                 )
             
+            # ⭐ Also get summary_file_id if exists
+            summary_file_id = cert.get("summary_file_id")
+            
             original_filename = cert.get("file_name", "certificate.pdf")
             
             # 3. Get ship info
