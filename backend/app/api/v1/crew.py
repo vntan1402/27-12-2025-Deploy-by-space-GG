@@ -496,12 +496,12 @@ async def analyze_passport_file(
         import os
         emergent_key = os.getenv("EMERGENT_LLM_KEY", "sk-emergent-eEe35Fb1b449940199")
         
-        # Create AI prompt for passport
+        # Create AI prompt for passport field extraction from Document AI summary
         prompt = f"""
-You are an AI assistant that analyzes passport documents. Extract key information from the following text.
+You are an AI assistant that extracts passport information from OCR text. Extract key information from the following Document AI summary.
 
-Passport Text:
-{text}
+Document AI Summary:
+{document_summary}
 
 Please extract and return ONLY a valid JSON object with the following fields:
 {{
@@ -519,13 +519,19 @@ IMPORTANT:
 - Return ONLY the JSON object, no additional text
 - Use DD/MM/YYYY format for all dates
 - If a field is not found, use null
+- Look for passport number patterns (alphanumeric, 6-12 characters)
+- Extract the full name as written on the passport
 """
         
+        logger.info(f"🤖 Extracting passport fields using {provider} {model}...")
+        
         # Initialize LLM
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        
         llm_chat = LlmChat(
             api_key=emergent_key,
             session_id="passport_analysis",
-            system_message="You are an AI assistant that analyzes passport documents."
+            system_message="You are an AI assistant that extracts passport information from OCR text."
         )
         
         if provider == "google":
