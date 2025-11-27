@@ -273,15 +273,17 @@ const IsmIspsMLc = () => {
     if (!certs || certs.length === 0) return;
 
     // Filter certificates that have file IDs and are not already cached
-    const certsWithFiles = certs.filter(cert => 
-      cert.google_drive_file_id && !certificateLinksCache[cert.google_drive_file_id]
-    );
+    const certsWithFiles = certs.filter(cert => {
+      const fileId = cert.file_id || cert.google_drive_file_id;
+      return fileId && !certificateLinksCache[fileId];
+    });
 
     if (certsWithFiles.length === 0) {
       // All links are cached, just update the progress indicator
+      const totalWithFiles = certs.filter(c => c.file_id || c.google_drive_file_id).length;
       setLinksFetchProgress({ 
-        ready: certs.filter(c => c.google_drive_file_id).length, 
-        total: certs.filter(c => c.google_drive_file_id).length 
+        ready: totalWithFiles, 
+        total: totalWithFiles 
       });
       return;
     }
@@ -300,9 +302,10 @@ const IsmIspsMLc = () => {
       await Promise.allSettled(
         batch.map(async (cert) => {
           try {
-            const response = await api.get(`/api/gdrive/file/${cert.google_drive_file_id}/view`);
+            const fileId = cert.file_id || cert.google_drive_file_id;
+            const response = await api.get(`/api/gdrive/file/${fileId}/view`);
             if (response.data?.success && response.data?.view_url) {
-              newCache[cert.google_drive_file_id] = response.data.view_url;
+              newCache[fileId] = response.data.view_url;
               fetchedCount++;
               setLinksFetchProgress({ ready: fetchedCount, total: certsWithFiles.length });
             }
