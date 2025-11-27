@@ -1,8 +1,10 @@
 /**
  * Audit Certificate Notes Modal Component
  * Modal for viewing and editing audit certificate notes
+ * 
+ * ⭐ IMPORTANT: Parent must pass `key={certificate?.id}` to force re-render
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 export const AuditCertificateNotesModal = ({
   isOpen,
@@ -12,14 +14,8 @@ export const AuditCertificateNotesModal = ({
   notes,
   language
 }) => {
-  const [currentNotes, setCurrentNotes] = useState('');
-
-  // ⭐ FIX: Update currentNotes when modal opens with new certificate
-  useEffect(() => {
-    if (isOpen && certificate) {
-      setCurrentNotes(notes || '');
-    }
-  }, [isOpen, certificate?.id]); // Update when modal opens or certificate changes
+  // ⭐ FIX: Initialize with notes prop (will reset when key changes)
+  const [currentNotes, setCurrentNotes] = useState(notes || '');
 
   if (!isOpen) return null;
 
