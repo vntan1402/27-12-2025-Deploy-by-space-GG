@@ -718,6 +718,102 @@ const IsmIspsMLc = () => {
     }
   };
 
+  // Bulk Auto Rename Files
+  const handleBulkAutoRenameFiles = async () => {
+    const selectedCerts = auditCertificates.filter(cert => 
+      selectedCertificates.has(cert.id)
+    );
+
+    if (selectedCerts.length === 0) {
+      toast.warning(language === 'vi' 
+        ? 'Vui lòng chọn chứng chỉ' 
+        : 'Please select certificates'
+      );
+      return;
+    }
+
+    // Filter certificates that have files
+    const certsWithFiles = selectedCerts.filter(cert => 
+      cert.file_id || cert.google_drive_file_id
+    );
+
+    if (certsWithFiles.length === 0) {
+      toast.warning(language === 'vi' 
+        ? 'Không có chứng chỉ nào có file đính kèm' 
+        : 'No certificates with attached files'
+      );
+      return;
+    }
+
+    const confirmMsg = language === 'vi' 
+      ? `Đổi tên tự động cho ${certsWithFiles.length} file?` 
+      : `Auto rename ${certsWithFiles.length} files?`;
+    
+    if (!window.confirm(confirmMsg)) return;
+
+    toast.info(language === 'vi' 
+      ? `Đang đổi tên ${certsWithFiles.length} file...` 
+      : `Renaming ${certsWithFiles.length} files...`
+    );
+
+    let successCount = 0;
+    let failCount = 0;
+    const results = [];
+
+    for (const cert of certsWithFiles) {
+      try {
+        const response = await api.post(`/api/audit-certificates/${cert.id}/auto-rename-file`);
+        
+        if (response.data.success) {
+          successCount++;
+          results.push({
+            cert: cert.cert_name,
+            status: 'success',
+            new_name: response.data.new_name
+          });
+        } else {
+          failCount++;
+          results.push({
+            cert: cert.cert_name,
+            status: 'failed',
+            error: response.data.message
+          });
+        }
+      } catch (error) {
+        failCount++;
+        results.push({
+          cert: cert.cert_name,
+          status: 'error',
+          error: error.response?.data?.detail || error.message
+        });
+      }
+    }
+
+    // Show results
+    if (successCount > 0 && failCount === 0) {
+      toast.success(language === 'vi' 
+        ? `✅ Đã đổi tên thành công ${successCount} file` 
+        : `✅ Successfully renamed ${successCount} files`
+      );
+    } else if (successCount > 0 && failCount > 0) {
+      toast.warning(language === 'vi' 
+        ? `⚠️ Đã đổi tên ${successCount} file, ${failCount} thất bại` 
+        : `⚠️ Renamed ${successCount} files, ${failCount} failed`
+      );
+    } else {
+      toast.error(language === 'vi' 
+        ? `❌ Không thể đổi tên file` 
+        : `❌ Failed to rename files`
+      );
+    }
+
+    // Log detailed results
+    console.log('Bulk rename results:', results);
+
+    // Refresh certificates list
+    fetchAuditCertificates(selectedShip.id);
+  };
+
   const handleUpdateSurveyTypes = async () => {
     if (!selectedShip) {
       toast.error(language === 'vi' 
