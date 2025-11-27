@@ -76,6 +76,7 @@ class CertificateResponse(BaseModel):
     extracted_ship_name: Optional[str] = None
     text_content: Optional[str] = None
     exclude_from_auto_update: Optional[bool] = False
+    summary_file_id: Optional[str] = None  # ⭐ NEW: Google Drive ID for summary text file
     
     @field_validator('next_survey', mode='before')
     @classmethod
