@@ -943,7 +943,7 @@ const IsmIspsMLc = () => {
 
     try {
       const selectedCerts = auditCertificates.filter(cert => selectedCertificates.has(cert.id));
-      const certsWithFiles = selectedCerts.filter(cert => cert.google_drive_file_id);
+      const certsWithFiles = selectedCerts.filter(cert => cert.file_id || cert.google_drive_file_id);
 
       if (certsWithFiles.length === 0) {
         toast.warning(
@@ -964,7 +964,8 @@ const IsmIspsMLc = () => {
 
       for (const cert of certsWithFiles) {
         try {
-          const response = await api.get(`/api/gdrive/file/${cert.google_drive_file_id}/download`, {
+          const fileId = cert.file_id || cert.google_drive_file_id;
+          const response = await api.get(`/api/gdrive/file/${fileId}/download`, {
             responseType: 'blob'
           });
           
