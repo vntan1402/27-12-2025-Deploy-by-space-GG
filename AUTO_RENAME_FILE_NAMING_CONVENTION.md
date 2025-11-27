@@ -239,8 +239,8 @@ Khi auto-rename được trigger, system log chi tiết:
 
 ```
 INFO: 🔄 AUTO-RENAME - PRIORITY 1: Using user-defined mapping 'Cargo Ship Safety Construction Certificate' → 'CSSC'
-INFO: 🔄 Auto-renaming certificate file abc123 to 'VINASHIP HARMONY_Full Term_CSSC_20241127.pdf'
-INFO: ✅ Successfully auto-renamed certificate file to 'VINASHIP HARMONY_Full Term_CSSC_20241127.pdf'
+INFO: 🔄 Auto-renaming certificate file abc123 to 'VINASHIP HARMONY_Full Term_CSSC_27-11-2024.pdf'
+INFO: ✅ Successfully auto-renamed certificate file to 'VINASHIP HARMONY_Full Term_CSSC_27-11-2024.pdf'
 ```
 
 ---
