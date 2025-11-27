@@ -715,6 +715,44 @@ class CertificateService:
                         result = await response.json()
                         
                         if result.get("success"):
+                            # ⭐ NEW: Also rename summary file if it exists
+                            summary_file_id = cert.get("summary_file_id")
+                            summary_renamed = False
+                            
+                            if summary_file_id:
+                                try:
+                                    # Create summary filename (same pattern, but with _Summary.txt)
+                                    base_name = new_filename.rsplit('.', 1)[0] if '.' in new_filename else new_filename
+                                    summary_filename = f"{base_name}_Summary.txt"
+                                    
+                                    logger.info(f"🔄 Also renaming summary file {summary_file_id} to '{summary_filename}'")
+                                    
+                                    # Rename summary file
+                                    summary_payload = {
+                                        "action": "rename_file",
+                                        "file_id": summary_file_id,
+                                        "new_name": summary_filename
+                                    }
+                                    
+                                    async with session.post(
+                                        apps_script_url,
+                                        json=summary_payload,
+                                        timeout=aiohttp.ClientTimeout(total=30)
+                                    ) as summary_response:
+                                        if summary_response.status == 200:
+                                            summary_result = await summary_response.json()
+                                            if summary_result.get("success"):
+                                                summary_renamed = True
+                                                logger.info(f"✅ Successfully renamed summary file to '{summary_filename}'")
+                                            else:
+                                                logger.warning(f"⚠️ Summary file rename failed: {summary_result.get('error')}")
+                                        else:
+                                            logger.warning(f"⚠️ Summary file rename request failed with status {summary_response.status}")
+                                
+                                except Exception as summary_error:
+                                    logger.warning(f"⚠️ Failed to rename summary file: {summary_error}")
+                                    # Don't fail the entire operation if summary rename fails
+                            
                             # Update certificate record with new filename
                             await CertificateRepository.update(
                                 certificate_id,
@@ -730,6 +768,7 @@ class CertificateService:
                                 "file_id": file_id,
                                 "old_name": result.get("old_name"),
                                 "new_name": new_filename,
+                                "summary_renamed": summary_renamed,  # ⭐ NEW
                                 "naming_convention": {
                                     "ship_name": ship_name,
                                     "cert_type": cert_type,
