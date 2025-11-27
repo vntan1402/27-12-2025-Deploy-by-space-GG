@@ -650,3 +650,48 @@ async def update_ship_audit_certificates_next_survey(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+
+@router.post("/{cert_id}/auto-rename-file")
+async def auto_rename_audit_certificate_file(
+    cert_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Auto-rename audit certificate file on Google Drive
+    
+    New filename pattern:
+    {Shipname}_{CertType}_{CertAbbreviation}_{IssueDate_DDMMYYYY}.{ext}
+    
+    Example: VINASHIP_FullTerm_ISM-DOC_07052024.pdf
+    
+    Process:
+    1. Get certificate from DB
+    2. Validate has google_drive_file_id
+    3. Get ship name (from extracted_ship_name or ship DB)
+    4. Generate new filename with pattern
+    5. Call Apps Script to rename file on Google Drive
+    6. Update DB with new filename
+    
+    Requires:
+    - Editor+ permission
+    - Certificate must have google_drive_file_id
+    - Company must have Apps Script URL configured
+    
+    Returns:
+    {
+      "success": true,
+      "message": "File renamed successfully",
+      "old_name": "original.pdf",
+      "new_name": "VINASHIP_FullTerm_ISM-DOC_07052024.pdf",
+      "file_id": "1ABC..."
+    }
+    """
+    try:
+        return await AuditCertificateService.auto_rename_file(cert_id, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error auto-renaming audit certificate file: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
