@@ -598,6 +598,9 @@ async def create_audit_certificate_with_file_override(
         except json.JSONDecodeError:
             raise HTTPException(status_code=400, detail="Invalid cert_data JSON")
         
+        # ⭐ Extract summary_text if provided by frontend
+        summary_text = cert_payload.pop("summary_text", None)  # Remove from payload to avoid saving in DB
+        
         # Read file
         file_content = await file.read()
         
@@ -623,6 +626,37 @@ async def create_audit_certificate_with_file_override(
         
         file_id = upload_result.get("file_id")
         logger.info(f"✅ GDrive upload success! file_id={file_id}")
+        
+        # ⭐ NEW: Upload summary file if provided
+        summary_file_id = None
+        if summary_text and summary_text.strip():
+            try:
+                # Create summary filename
+                base_name = file.filename.rsplit('.', 1)[0] if '.' in file.filename else file.filename
+                summary_filename = f"{base_name}_Summary.txt"
+                
+                logger.info(f"📋 Uploading summary file: {summary_filename} ({len(summary_text)} chars)")
+                
+                # Convert summary text to bytes
+                summary_bytes = summary_text.encode('utf-8')
+                
+                summary_upload_result = await GDriveService.upload_file(
+                    file_content=summary_bytes,
+                    filename=summary_filename,
+                    content_type="text/plain",
+                    folder_path=f"{ship.get('name')}/ISM - ISPS - MLC/Audit Certificates",
+                    company_id=company_id
+                )
+                
+                if summary_upload_result.get("success"):
+                    summary_file_id = summary_upload_result.get("file_id")
+                    logger.info(f"✅ Summary file uploaded successfully: {summary_file_id}")
+                else:
+                    logger.warning(f"⚠️ Summary upload failed: {summary_upload_result.get('message')}")
+            
+            except Exception as summary_error:
+                logger.warning(f"⚠️ Failed to upload summary: {summary_error}")
+                # Don't fail the entire upload if summary fails
         
         # Create DB record
         cert_record = {
