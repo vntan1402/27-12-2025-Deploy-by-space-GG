@@ -13,6 +13,7 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile, langu
 
   const successCount = results.filter(r => r.success).length;
   const failCount = results.length - successCount;
+  const summaryCount = results.filter(r => r.summaryGenerated).length;  // ⭐ NEW: Count summaries generated
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80]">
