@@ -432,6 +432,7 @@ class AuditCertificateAnalyzeService:
             return {
                 "success": True,
                 "extracted_info": extracted_info,
+                "summary_text": merged_summary,  # ⭐ NEW: Return summary text for storage
                 "validation_warning": validation_warning,
                 "duplicate_warning": duplicate_warning,
                 "category_warning": category_warning
