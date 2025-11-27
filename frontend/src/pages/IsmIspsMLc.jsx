@@ -562,7 +562,7 @@ const IsmIspsMLc = () => {
         const diffTime = windowClose.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        if (diffDays <= 30) return 'Due Soon';
+        if (diffDays <= 90) return 'Due Soon';  // ⭐ Changed from 30 to 90 days
         return 'Valid';
       }
     }
