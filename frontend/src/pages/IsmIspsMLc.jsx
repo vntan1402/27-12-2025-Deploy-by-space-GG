@@ -873,7 +873,7 @@ const IsmIspsMLc = () => {
 
     try {
       const selectedCerts = auditCertificates.filter(cert => selectedCertificates.has(cert.id));
-      const certsWithFiles = selectedCerts.filter(cert => cert.google_drive_file_id);
+      const certsWithFiles = selectedCerts.filter(cert => cert.file_id || cert.google_drive_file_id);
 
       if (certsWithFiles.length === 0) {
         toast.warning(
@@ -888,9 +888,10 @@ const IsmIspsMLc = () => {
       const limit = Math.min(certsWithFiles.length, 10);
       for (let i = 0; i < limit; i++) {
         const cert = certsWithFiles[i];
+        const fileId = cert.file_id || cert.google_drive_file_id;
         
         // Check cache first
-        let viewUrl = certificateLinksCache[cert.google_drive_file_id];
+        let viewUrl = certificateLinksCache[fileId];
         
         if (!viewUrl) {
           // Fetch from API if not cached
