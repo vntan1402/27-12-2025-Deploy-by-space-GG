@@ -557,6 +557,13 @@ This certificate MUST belong to one of these categories:
    - International Ship Security Certificate (ISSC)
    - Ship Security Plan (SSP)
    - Keywords: "ISPS", "SHIP SECURITY", "ISSC", "SSP"
+   - ⚠️ **IMPORTANT**: If document says "Ship Security Plan (SSP)" AND contains text like:
+     * "submitted for approval"
+     * "for approval and FTC issuance"
+     * "submitted to Head Office"
+     * "STATEMENT OF FACTS"
+     → cert_name should be ONLY "Ship Security Plan (SSP)", NOT include "/Full Term Certificate"
+     → This is a SUBMISSION document, not the final certificate
 
 3. **MLC (Maritime Labour Convention)**
    - Maritime Labour Certificate
@@ -574,6 +581,13 @@ This certificate MUST belong to one of these categories:
 2. If "ISM" or "SAFETY MANAGEMENT" appears → ISM
 3. If "ISPS" or "SHIP SECURITY" appears → ISPS
 4. If "MLC" or "MARITIME LABOUR" appears → MLC
+
+**CERT_NAME EXTRACTION RULES**:
+⚠️ **CRITICAL - DO NOT COMBINE MULTIPLE CERTIFICATE TYPES**:
+- If document is a "Statement of Facts" for SSP submission → cert_name = "Ship Security Plan (SSP)" ONLY
+- If document mentions "submitted for approval and FTC issuance" → This is NOT an FTC yet
+- DO NOT append "/Full Term Certificate" or "/Interim" unless that text appears EXACTLY in the certificate title
+- Extract ONLY the primary certificate name/type mentioned in the document header
 
 **CRITICAL VALIDATION**:
 - If the certificate does NOT belong to ISM/ISPS/MLC/CICA, return an error
