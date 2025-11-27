@@ -846,7 +846,33 @@ class AuditCertificateService:
                     detail=rename_result.get("message", "Failed to rename file")
                 )
             
-            # 8. Update DB with new file_name
+            # 8. Rename summary file if exists (⭐ NEW)
+            summary_rename_result = None
+            if summary_file_id:
+                try:
+                    # Generate summary filename: {new_filename_without_ext}_Summary.txt
+                    base_name = new_filename.rsplit('.', 1)[0] if '.' in new_filename else new_filename
+                    new_summary_filename = f"{base_name}_Summary.txt"
+                    
+                    logger.info(f"📋 Renaming summary file to: {new_summary_filename}")
+                    
+                    summary_rename_result = await GDriveService.rename_file_via_apps_script(
+                        file_id=summary_file_id,
+                        new_filename=new_summary_filename,
+                        company_id=company_id,
+                        check_capability=True
+                    )
+                    
+                    if summary_rename_result.get("success"):
+                        logger.info(f"✅ Successfully renamed summary file to '{new_summary_filename}'")
+                    else:
+                        logger.warning(f"⚠️ Failed to rename summary file: {summary_rename_result.get('message')}")
+                
+                except Exception as summary_error:
+                    logger.warning(f"⚠️ Error renaming summary file: {summary_error}")
+                    # Don't fail the entire operation if summary rename fails
+            
+            # 9. Update DB with new file_name
             await mongo_db.update(
                 AuditCertificateService.collection_name,
                 {"id": cert_id},
