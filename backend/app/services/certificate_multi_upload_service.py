@@ -310,7 +310,9 @@ class CertificateMultiUploadService:
             return {
                 "filename": file.filename,
                 "status": "success_with_reference_note",
-                "analysis": analysis_result,
+                "extracted_info": extracted_info,  # ⭐ Add extracted_info for frontend
+                "summary_text": summary_text,  # ⭐ Add summary_text
+                "analysis": extracted_info,  # Keep for backward compatibility
                 "upload": upload_result,
                 "certificate": cert_result,
                 "is_marine": True,
@@ -321,7 +323,9 @@ class CertificateMultiUploadService:
             return {
                 "filename": file.filename,
                 "status": "success",
-                "analysis": analysis_result,
+                "extracted_info": extracted_info,  # ⭐ Add extracted_info for frontend
+                "summary_text": summary_text,  # ⭐ Add summary_text
+                "analysis": extracted_info,  # Keep for backward compatibility
                 "upload": upload_result,
                 "certificate": cert_result,
                 "is_marine": True
