@@ -2627,6 +2627,137 @@ class BackendTester:
             self.log_test("Test Report Delete Edge Cases", False, f"Exception: {str(e)}")
             return False
 
+    def test_audit_certificate_multi_upload_with_summary_storage(self):
+        """Test POST /api/audit-certificates/multi-upload with summary storage feature"""
+        print("\n📋 Testing Audit Certificate Multi-Upload with Summary Storage...")
+        
+        try:
+            # Step 1: Get ships and pick any ship_id
+            ships_response = self.session.get(f"{BACKEND_URL}/ships")
+            
+            if ships_response.status_code != 200:
+                self.log_test("Audit Certificate Multi-Upload - Get Ships", False, f"Failed to get ships: {ships_response.status_code}")
+                return False
+            
+            ships = ships_response.json()
+            if not ships:
+                self.log_test("Audit Certificate Multi-Upload - Get Ships", False, "No ships found")
+                return False
+            
+            # Pick any ship (first one)
+            test_ship = ships[0]
+            ship_id = test_ship.get("id")
+            ship_name = test_ship.get("name", "Unknown")
+            
+            self.log_test("Audit Certificate Multi-Upload - Ship Selection", True, 
+                         f"Using ship: {ship_name} (ID: {ship_id})")
+            
+            # Step 2: Download a test certificate file
+            # Using a known audit certificate URL or create mock multipart upload
+            try:
+                # Use the same test PDF as other tests
+                pdf_response = requests.get(TEST_PDF_URL, timeout=30)
+                if pdf_response.status_code == 200:
+                    pdf_content = pdf_response.content
+                    self.log_test("Audit Certificate Multi-Upload - PDF Download", True, 
+                                 f"Downloaded test certificate: {len(pdf_content)} bytes")
+                else:
+                    self.log_test("Audit Certificate Multi-Upload - PDF Download", False, 
+                                 f"Failed to download PDF: {pdf_response.status_code}")
+                    return False
+            except Exception as e:
+                self.log_test("Audit Certificate Multi-Upload - PDF Download", False, f"Exception: {str(e)}")
+                return False
+            
+            # Step 3: Upload certificate using multi-upload endpoint
+            files = {
+                "files": ("test_audit_cert.pdf", pdf_content, "application/pdf")
+            }
+            params = {
+                "ship_id": ship_id
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/audit-certificates/multi-upload", 
+                                       files=files, params=params)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Step 4: Verify the response shows success
+                if data.get("success"):
+                    self.log_test("Audit Certificate Multi-Upload - Upload Success", True, 
+                                 f"Upload successful: {data.get('message')}")
+                    
+                    # Check if any certificates were created
+                    results = data.get("results", [])
+                    summary = data.get("summary", {})
+                    
+                    successfully_created = summary.get("successfully_created", 0)
+                    certificates_created = summary.get("certificates_created", [])
+                    
+                    if successfully_created > 0 and certificates_created:
+                        # Get the first created certificate ID
+                        cert_id = certificates_created[0].get("id")
+                        
+                        self.log_test("Audit Certificate Multi-Upload - Certificate Created", True, 
+                                     f"Certificate created with ID: {cert_id}")
+                        
+                        # Step 5: Query the database to check the newly created certificate
+                        cert_response = self.session.get(f"{BACKEND_URL}/audit-certificates/{cert_id}")
+                        
+                        if cert_response.status_code == 200:
+                            cert_data = cert_response.json()
+                            
+                            # Step 6: Verify both IDs are non-null
+                            google_drive_file_id = cert_data.get("google_drive_file_id")
+                            summary_file_id = cert_data.get("summary_file_id")
+                            
+                            # Check google_drive_file_id
+                            if google_drive_file_id:
+                                self.log_test("Audit Certificate Multi-Upload - Google Drive File ID", True, 
+                                             f"google_drive_file_id: {google_drive_file_id}")
+                            else:
+                                self.log_test("Audit Certificate Multi-Upload - Google Drive File ID", False, 
+                                             "google_drive_file_id is null")
+                            
+                            # ⭐ CRITICAL: Check summary_file_id (NEW FEATURE)
+                            if summary_file_id:
+                                self.log_test("Audit Certificate Multi-Upload - Summary File ID", True, 
+                                             f"summary_file_id: {summary_file_id} ✅ NEW FEATURE WORKING")
+                                
+                                # Verify summary file naming convention
+                                file_name = cert_data.get("file_name", "")
+                                if file_name:
+                                    expected_summary_name = f"{file_name.rsplit('.', 1)[0]}_Summary.txt"
+                                    self.log_test("Audit Certificate Multi-Upload - Summary File Naming", True, 
+                                                 f"Expected summary name: {expected_summary_name}")
+                                
+                                return True
+                            else:
+                                self.log_test("Audit Certificate Multi-Upload - Summary File ID", False, 
+                                             "❌ CRITICAL: summary_file_id is null - NEW FEATURE NOT WORKING")
+                                return False
+                        else:
+                            self.log_test("Audit Certificate Multi-Upload - Database Query", False, 
+                                         f"Failed to query certificate: {cert_response.status_code}")
+                            return False
+                    else:
+                        self.log_test("Audit Certificate Multi-Upload - Certificate Creation", False, 
+                                     f"No certificates created: {summary}")
+                        return False
+                else:
+                    self.log_test("Audit Certificate Multi-Upload - Upload Success", False, 
+                                 f"Upload failed: {data.get('message')}")
+                    return False
+            else:
+                self.log_test("Audit Certificate Multi-Upload", False, 
+                             f"Status: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Audit Certificate Multi-Upload", False, f"Exception: {str(e)}")
+            return False
+
     def run_all_tests(self):
         """Run all backend tests for Test Report Migration - Phase 2"""
         print("🚀 Starting Test Report Backend Testing Suite...")
