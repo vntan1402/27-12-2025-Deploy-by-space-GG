@@ -318,6 +318,7 @@ class CertificateService:
                 
                 # Extract file info before deletion
                 google_drive_file_id = cert.get("google_drive_file_id")
+                summary_file_id = cert.get("summary_file_id")  # ⭐ NEW: Get summary file ID
                 cert_name = cert.get("cert_name", "Unknown")
                 
                 # Delete from database immediately
@@ -333,6 +334,7 @@ class CertificateService:
                         if ship:
                             company_id = ship.get("company")
                             if company_id:
+                                # Schedule main certificate file deletion
                                 background_tasks.add_task(
                                     delete_file_background,
                                     google_drive_file_id,
@@ -342,7 +344,20 @@ class CertificateService:
                                     GDriveService
                                 )
                                 files_scheduled += 1
-                                logger.info(f"📋 Scheduled background deletion for file: {google_drive_file_id}")
+                                logger.info(f"📋 Scheduled background deletion for certificate file: {google_drive_file_id}")
+                                
+                                # ⭐ NEW: Schedule summary file deletion
+                                if summary_file_id:
+                                    background_tasks.add_task(
+                                        delete_file_background,
+                                        summary_file_id,
+                                        company_id,
+                                        "certificate_summary",
+                                        f"{cert_name} (Summary)",
+                                        GDriveService
+                                    )
+                                    files_scheduled += 1
+                                    logger.info(f"📋 Scheduled background deletion for summary file: {summary_file_id}")
                 
             except Exception as e:
                 errors.append(f"Error deleting certificate {cert_id}: {str(e)}")
