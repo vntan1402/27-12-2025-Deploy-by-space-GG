@@ -43,6 +43,7 @@ class AuditCertificateUpdate(BaseModel):
     next_survey_display: Optional[str] = None  # Display format with window annotation
     next_survey_type: Optional[str] = None  # Survey type
     extracted_ship_name: Optional[str] = None  # Ship name extracted by AI
+    file_name: Optional[str] = None  # Filename
 
 class AuditCertificateResponse(BaseModel):
     id: str
