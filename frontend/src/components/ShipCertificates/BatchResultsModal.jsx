@@ -115,7 +115,7 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile, langu
 
         {/* Summary */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-4 gap-4 text-center">
             <div>
               <div className="text-3xl font-bold text-gray-800">{results.length}</div>
               <div className="text-sm text-gray-600 mt-1">
@@ -132,6 +132,12 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile, langu
               <div className="text-3xl font-bold text-red-600">{failCount}</div>
               <div className="text-sm text-gray-600 mt-1">
                 {language === 'vi' ? 'Thất bại' : 'Failed'}
+              </div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold text-blue-600">{summaryCount}</div>
+              <div className="text-sm text-gray-600 mt-1">
+                {language === 'vi' ? 'AI Summary' : 'AI Summary'}
               </div>
             </div>
           </div>
