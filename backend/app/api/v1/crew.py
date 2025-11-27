@@ -432,7 +432,17 @@ async def analyze_passport_file(
         import asyncio
         
         drive_helper = GoogleDriveHelper(company_id)
-        await drive_helper.load_config()
+        
+        # Load Google Drive configuration
+        try:
+            await drive_helper.load_config()
+        except ValueError as e:
+            logger.error(f"❌ Google Drive configuration error: {e}")
+            return {
+                "success": False,
+                "message": f"Google Drive configuration error: {str(e)}. Please configure Google Apps Script URL in company settings.",
+                "analysis": None
+            }
         
         apps_script_payload = {
             "action": "analyze_passport_document_ai",
