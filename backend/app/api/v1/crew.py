@@ -498,8 +498,8 @@ IMPORTANT:
         
         # ✅ NEW: Store file content for later upload
         passport_data['_file_content'] = base64.b64encode(file_content).decode('utf-8')
-        passport_data['_filename'] = file.filename
-        passport_data['_content_type'] = file.content_type or 'application/octet-stream'
+        passport_data['_filename'] = passport_file.filename
+        passport_data['_content_type'] = passport_file.content_type or 'application/octet-stream'
         passport_data['_summary_text'] = text  # OCR extracted text
         
         logger.info("✅ File content stored for later upload")
