@@ -26,6 +26,41 @@ export const AuditCertificateTable = ({
     width: 300,
     content: ''
   });
+  // ⭐ NEW: Note tooltip handlers (giống Class & Flag)
+  const handleNoteMouseEnter = (e, note) => {
+    if (!note) return;
+    
+    const rect = e.target.getBoundingClientRect();
+    const tooltipWidth = 300;
+    const tooltipHeight = 200;
+    
+    // Calculate position (avoid going off-screen)
+    let x = rect.left;
+    let y = rect.bottom + 5;
+    
+    // Check right edge
+    if (x + tooltipWidth > window.innerWidth) {
+      x = window.innerWidth - tooltipWidth - 10;
+    }
+    
+    // Check bottom edge
+    if (y + tooltipHeight > window.innerHeight) {
+      y = rect.top - tooltipHeight - 5;
+    }
+    
+    setNoteTooltip({
+      show: true,
+      x: x,
+      y: y,
+      width: tooltipWidth,
+      content: note
+    });
+  };
+
+  const handleNoteMouseLeave = () => {
+    setNoteTooltip({ show: false, x: 0, y: 0, width: 300, content: '' });
+  };
+
   // Get sort icon for column
   const getSortIcon = (column) => {
     if (sortConfig.column !== column) {
