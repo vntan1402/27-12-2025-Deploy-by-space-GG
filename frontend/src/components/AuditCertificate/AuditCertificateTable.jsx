@@ -257,7 +257,13 @@ export const AuditCertificateTable = ({
             certificates.map((cert, index) => (
               <tr 
                 key={cert.id} 
-                className={`hover:bg-gray-50 cursor-pointer transition-colors ${cert.google_drive_file_id ? 'hover:bg-blue-50' : ''}`}
+                className={`cursor-pointer transition-colors ${
+                  selectedCertificates.has(cert.id) 
+                    ? 'bg-blue-100 hover:bg-blue-150' 
+                    : cert.google_drive_file_id 
+                      ? 'hover:bg-blue-50' 
+                      : 'hover:bg-gray-50'
+                }`}
                 onDoubleClick={() => onDoubleClick(cert)}
                 onContextMenu={(e) => onRightClick(e, cert)}
                 title={cert.google_drive_file_id 
