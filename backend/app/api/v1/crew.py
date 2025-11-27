@@ -334,6 +334,29 @@ IMPORTANT:
         
         logger.info("✅ Passport analyzed successfully")
         
+        # ✅ NEW: Check for duplicate passport BEFORE returning
+        passport_no = passport_data.get('passport_no', '').strip()
+        if passport_no:
+            duplicate_info = await check_passport_duplicate(
+                passport_no,
+                current_user.company
+            )
+            
+            if duplicate_info:
+                logger.warning(f"Duplicate detected during analysis: {passport_no}")
+                return {
+                    "success": False,
+                    **duplicate_info
+                }
+        
+        # ✅ NEW: Store file content for later upload
+        passport_data['_file_content'] = base64.b64encode(file_content).decode('utf-8')
+        passport_data['_filename'] = file.filename
+        passport_data['_content_type'] = file.content_type or 'application/octet-stream'
+        passport_data['_summary_text'] = text  # OCR extracted text
+        
+        logger.info("✅ File content stored for later upload")
+        
         return {
             "success": True,
             "message": "Passport analyzed successfully",
