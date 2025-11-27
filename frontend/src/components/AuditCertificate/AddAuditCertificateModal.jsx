@@ -801,6 +801,12 @@ export const AddAuditCertificateModal = ({
         last_endorse: formData.last_endorse ? convertDateInputToUTC(formData.last_endorse) : null,
         next_survey: formData.next_survey ? convertDateInputToUTC(formData.next_survey) : null
       };
+      
+      // ⭐ Add summary_text if available from analysis
+      if (analyzeSummary) {
+        certPayload.summary_text = analyzeSummary;
+        console.log('✅ Including summary_text in payload:', analyzeSummary.length, 'chars');
+      }
 
       // ⭐ NEW LOGIC: Nếu có certificateFile → Upload file + Create DB record (KHÔNG AI analyze lại)
       if (certificateFile) {
