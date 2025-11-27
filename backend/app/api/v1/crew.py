@@ -470,11 +470,16 @@ async def analyze_passport_file(
         # Get summary from Document AI
         document_summary = doc_ai_result.get("summary", "")
         
-        if not document_summary:
-            logger.warning("Document AI returned empty summary")
+        # Strip whitespace and check if meaningful content exists
+        document_summary = document_summary.strip() if document_summary else ""
+        
+        logger.info(f"📄 Document AI summary length: {len(document_summary)} characters")
+        
+        if not document_summary or len(document_summary) < 20:
+            logger.warning(f"⚠️ Document AI returned insufficient text: {len(document_summary)} characters")
             return {
                 "success": False,
-                "message": "Could not extract text from passport using Document AI",
+                "message": "Could not extract sufficient text from passport using Document AI",
                 "analysis": None
             }
         
