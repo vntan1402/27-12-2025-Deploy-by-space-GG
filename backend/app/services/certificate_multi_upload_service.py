@@ -277,9 +277,10 @@ class CertificateMultiUploadService:
                 # Convert summary text to bytes
                 summary_bytes = summary_text.encode('utf-8')
                 
-                # Upload summary to GDrive
+                # Upload summary to GDrive with text/plain MIME type
                 summary_upload_result = await CertificateMultiUploadService._upload_to_gdrive(
-                    gdrive_config_doc, summary_bytes, summary_filename, ship_name, "Certificates"
+                    gdrive_config_doc, summary_bytes, summary_filename, ship_name, "Certificates",
+                    content_type="text/plain"  # ⭐ Explicitly set MIME type for text files
                 )
                 
                 if summary_upload_result.get("success"):
