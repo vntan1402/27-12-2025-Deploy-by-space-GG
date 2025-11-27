@@ -85,6 +85,12 @@ export const AddAuditCertificateModal = ({
   const [multiCertUploads, setMultiCertUploads] = useState([]);
   const [uploadSummary, setUploadSummary] = useState({ success: 0, failed: 0, total: 0 });
   
+  // ⭐ NEW: Separate modals for batch processing
+  const [showBatchProcessing, setShowBatchProcessing] = useState(false);
+  const [isProcessingMinimized, setIsProcessingMinimized] = useState(false);
+  const [showBatchResults, setShowBatchResults] = useState(false);
+  const [batchResults, setBatchResults] = useState([]);
+  
   // Update ship_id when selectedShip changes (nhưng KHÔNG fill ship_name và ship_imo)
   useEffect(() => {
     if (selectedShip?.id) {
