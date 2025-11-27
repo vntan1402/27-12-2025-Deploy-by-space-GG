@@ -772,7 +772,7 @@ IMPORTANT DATE EXAMPLES:
                 "id": cert_id,
                 "ship_id": ship_id,
                 "ship_name": ship_name,
-                "extracted_ship_name": analysis_result.get("ship_name"),  # Ship name from certificate
+                "extracted_ship_name": extracted_ship_name or analysis_result.get("ship_name"),  # ⭐ Ship name from certificate
                 "cert_name": cert_name,
                 "cert_abbreviation": cert_abbreviation,
                 "cert_no": analysis_result.get("cert_no", "Unknown"),
@@ -792,6 +792,7 @@ IMPORTANT DATE EXAMPLES:
                 "google_drive_file_url": upload_result.get("file_url"),
                 "google_drive_folder_path": upload_result.get("folder_path"),
                 "file_path": upload_result.get("file_path"),
+                "summary_file_id": summary_file_id,  # ⭐ NEW: Summary file ID
                 "text_content": analysis_result.get("text_content"),  # For future re-analysis
                 "created_by": current_user.email,
                 "created_at": datetime.now(timezone.utc).isoformat(),
