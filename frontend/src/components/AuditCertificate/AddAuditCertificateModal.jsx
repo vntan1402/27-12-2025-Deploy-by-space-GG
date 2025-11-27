@@ -646,11 +646,7 @@ export const AddAuditCertificateModal = ({
                 : upload
             ));
 
-            // Store first success for auto-fill
-            if (!firstSuccessInfo && result.extracted_info) {
-              firstSuccessInfo = result.extracted_info;
-              console.log('✅ First success with extracted_info:', firstSuccessInfo);
-            }
+            // ⭐ REMOVED: No longer storing firstSuccessInfo for auto-fill
 
             toast.success(language === 'vi' 
               ? `✅ ${file.name} (${i + 1}/${totalFiles})`
