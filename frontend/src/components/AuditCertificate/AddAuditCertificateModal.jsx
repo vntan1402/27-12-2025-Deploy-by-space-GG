@@ -1559,6 +1559,30 @@ export const AddAuditCertificateModal = ({
           </div>
         </div>
       )}
+      
+      {/* ⭐ NEW: Batch Processing Modal */}
+      <BatchProcessingModal
+        isOpen={showBatchProcessing}
+        isMinimized={isProcessingMinimized}
+        onMinimize={() => setIsProcessingMinimized(true)}
+        onRestore={() => setIsProcessingMinimized(false)}
+        uploads={multiCertUploads}
+        language={language}
+      />
+      
+      {/* ⭐ NEW: Batch Results Modal */}
+      <BatchResultsModal
+        isOpen={showBatchResults}
+        onClose={() => {
+          setShowBatchResults(false);
+          setBatchResults([]);
+          setMultiCertUploads([]);
+          setUploadSummary({ success: 0, failed: 0, total: 0 });
+        }}
+        results={batchResults}
+        summary={uploadSummary}
+        language={language}
+      />
     </div>
   );
 };
