@@ -704,3 +704,118 @@ class GDriveService:
                 detail=f"Failed to upload file: {str(e)}"
             )
 
+
+    
+    @staticmethod
+    async def rename_file_via_apps_script(
+        file_id: str,
+        new_filename: str,
+        company_id: str
+    ) -> dict:
+        """
+        Rename file on Google Drive via Apps Script
+        
+        Args:
+            file_id: Google Drive file ID
+            new_filename: New filename (with extension)
+            company_id: Company UUID
+            
+        Returns:
+            dict: {
+                "success": bool,
+                "message": str,
+                "file_id": str,
+                "new_name": str
+            }
+            
+        Raises:
+            HTTPException: If Apps Script URL not configured or request fails
+        """
+        try:
+            from app.db.mongodb import mongo_db
+            
+            logger.info(f"Renaming file via Apps Script: file_id={file_id}, new_name={new_filename}")
+            
+            # Get company Apps Script URL from company_gdrive_config
+            config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+            
+            if not config:
+                logger.error(f"No GDrive config found for company: {company_id}")
+                raise HTTPException(
+                    status_code=500,
+                    detail="Company Google Drive configuration not found"
+                )
+            
+            apps_script_url = config.get("company_apps_script_url")
+            
+            if not apps_script_url:
+                logger.error(f"Company Apps Script URL not configured for company: {company_id}")
+                raise HTTPException(
+                    status_code=500,
+                    detail="Company Apps Script URL not configured. Please configure in Google Drive settings."
+                )
+            
+            # Prepare payload
+            payload = {
+                "action": "rename_file",
+                "file_id": file_id,
+                "new_name": new_filename
+            }
+            
+            logger.info(f"Calling Apps Script: {apps_script_url}")
+            
+            # Call Apps Script with timeout
+            response = requests.post(
+                apps_script_url,
+                json=payload,
+                timeout=30,  # 30 seconds timeout
+                headers={"Content-Type": "application/json"}
+            )
+            
+            # Check HTTP status
+            if response.status_code != 200:
+                error_msg = f"Apps Script returned status {response.status_code}"
+                logger.error(f"{error_msg}: {response.text}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Apps Script request failed: {error_msg}"
+                )
+            
+            # Parse response
+            result = response.json()
+            
+            if not result.get("success"):
+                error_msg = result.get("message", "Unknown error from Apps Script")
+                logger.error(f"Apps Script failed: {error_msg}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to rename file: {error_msg}"
+                )
+            
+            logger.info(f"✅ File renamed successfully: {new_filename}")
+            
+            return {
+                "success": True,
+                "message": result.get("message", "File renamed successfully"),
+                "file_id": file_id,
+                "new_name": new_filename
+            }
+            
+        except HTTPException:
+            raise
+        except requests.exceptions.Timeout:
+            logger.error("Apps Script request timeout")
+            raise HTTPException(
+                status_code=500,
+                detail="Apps Script request timeout (30s). Please try again."
+            )
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Apps Script request error: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to connect to Apps Script: {str(e)}"
+            )
+        except Exception as e:
+            logger.error(f"Error renaming file via Apps Script: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
