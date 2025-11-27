@@ -6,9 +6,53 @@ from app.models.crew import CrewCreate, CrewUpdate, CrewResponse, BulkDeleteCrew
 from app.models.user import UserResponse, UserRole
 from app.services.crew_service import CrewService
 from app.core.security import get_current_user
+from app.repositories.crew_repository import CrewRepository
+import base64
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+async def check_passport_duplicate(
+    passport_number: str,
+    company_id: str
+) -> dict | None:
+    """
+    Check if passport already exists in the system
+    
+    Args:
+        passport_number: Passport number to check
+        company_id: Company UUID
+        
+    Returns:
+        dict with duplicate info if found, None otherwise
+    """
+    if not passport_number or not passport_number.strip():
+        return None
+    
+    passport_number = passport_number.strip().upper()
+    
+    existing_crew = await CrewRepository.find_by_passport(
+        passport_number,
+        company_id
+    )
+    
+    if existing_crew:
+        logger.warning(f"❌ Duplicate passport found: {passport_number}")
+        return {
+            "duplicate": True,
+            "error": "DUPLICATE_PASSPORT",
+            "message": f"Passport {passport_number} already exists for crew member {existing_crew.get('full_name', 'Unknown')}",
+            "existing_crew": {
+                "id": existing_crew.get('id'),
+                "full_name": existing_crew.get('full_name', 'Unknown'),
+                "passport": existing_crew.get('passport'),
+                "ship_sign_on": existing_crew.get('ship_sign_on', 'Unknown'),
+                "status": existing_crew.get('status', 'Unknown')
+            }
+        }
+    
+    logger.info(f"✅ No duplicate found for passport: {passport_number}")
+    return None
 
 def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has editor or higher permission"""
