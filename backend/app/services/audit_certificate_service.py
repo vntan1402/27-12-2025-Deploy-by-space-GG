@@ -223,20 +223,25 @@ class AuditCertificateService:
                     company_id = ship.get("company")
                     if company_id:
                         from app.services.gdrive_service import GDriveService
-                        background_tasks.add_task(
-                            delete_file_background,
-                            google_drive_file_id,
-                            company_id,
-                            "audit_certificate",
-                            cert_name,
-                            GDriveService
-                        )
-                        logger.info(f"📋 Scheduled background deletion for audit certificate file: {google_drive_file_id}")
                         
+                        # ⭐ Schedule deletion for all files (original + summary)
+                        for doc_type, file_id, file_desc in files_to_delete:
+                            background_tasks.add_task(
+                                delete_file_background,
+                                file_id,
+                                company_id,
+                                doc_type,
+                                file_desc,
+                                GDriveService
+                            )
+                            logger.info(f"📋 Scheduled background deletion for: {file_id} ({file_desc})")
+                        
+                        deletion_msg = f"Audit Certificate deleted successfully. {len(files_to_delete)} file(s) deletion in progress..."
                         return {
                             "success": True,
-                            "message": "Audit Certificate deleted successfully. File deletion in progress...",
-                            "background_deletion": True
+                            "message": deletion_msg,
+                            "background_deletion": True,
+                            "files_scheduled": len(files_to_delete)
                         }
         
         return {
