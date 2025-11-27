@@ -1,51 +1,71 @@
 <analysis>**original_problem_statement:**
-The user wants to migrate two missing API endpoints from a legacy V1 backend to the new V2 backend. These endpoints were discovered after frontend console logs showed 404 (Not Found) errors.
-
-PRODUCT REQUIREMENTS:
-1.  **Implement Upcoming Surveys Endpoint:** Create a  endpoint in the V2 backend. This endpoint should fetch certificates that are due for survey within a specified number of days. The logic must be migrated from the V1 backend.
-2.  **Implement Auto Rename File Endpoint:** Create a  endpoint in the V2 backend. This endpoint will handle the logic for automatically renaming the certificate file stored in Google Drive based on a standardized format. The logic must be migrated from the V1 backend.
+The user's initial request was to investigate if AI-generated summaries were being saved for Audit Certificates. The investigation found they were not, which led to a series of feature requests and bug fixes:
+1.  **Implement Summary Storage**: Save AI summaries for Audit Certificates during upload, mirroring the functionality of Audit Reports. This covered both the direct multi-file upload and the two-step analyze-then-create flows.
+2.  **Summary Lifecycle Management**:
+    *   Ensure the summary file is deleted when its parent certificate is deleted.
+    *   Ensure the summary file is renamed when the parent certificate's file is renamed.
+3.  **Dynamic Status Column**: The user requested to change the static Status column to be dynamically calculated based on the  and its window annotation (e.g., ±3M, ±6M), similar to another module in the application. The statuses are Valid (green), Due Soon (orange, for surveys due in ≤ 90 days), and Expired (red).
+4.  **UI/UX Enhancements & Bug Fixes**:
+    *   **Multi-upload Autofill**: Fixed a bug where uploading multiple files incorrectly auto-filled the manual entry form.
+    *   **Multi-upload Modals**: Implemented separate Processing and Results modals for a better multi-upload experience.
+    *   **Notes Display Bug**: Fixed an issue where editing a note for one certificate incorrectly updated the display for all notes in the list.
+    *   **Notes UI**: Added a hover-to-preview tooltip for the Note column.
+    *   **Notes Saving Bug**: Addressed a critical bug where notes were not being saved to the database.
 
 **User's preferred language**: Vietnamese
 
 **what currently exists?**
-The application is a full-stack React and FastAPI system for managing audit certificates. Most of the certificate management functionality (upload, AI analysis, delete, edit) has been successfully migrated to the V2 backend and debugged. The frontend calls two remaining V1 endpoints, which do not exist in the V2 backend, causing 404 errors. The agent has identified the missing endpoints and located the source code for them in the V1 backend file ().
+The application is a full-stack React/FastAPI system for managing audit certificates. All requested features related to summary storage, lifecycle management (delete/rename), and the dynamic status column have been implemented. The UI for multi-file uploads has been significantly improved with dedicated modals. Several critical bugs related to note editing, display, and persistence have been addressed. The last action taken was a fix for the note-saving mechanism by correcting the backend Pydantic models.
 
 **Last working item**:
--   **Last item agent was working:** The agent was preparing to migrate two missing API endpoints ( and ) from the V1 backend to the V2 backend. The last action was to locate the corresponding code in .
--   **Status:** NOT STARTED
--   **Agent Testing Done:** N
--   **Which testing method agent to use?**: backend testing agent
+-   **Last item agent was working:** Fixing a recurring bug where notes were not being saved to the database. The agent identified a mismatch between the frontend payload (sending , ) and the backend Pydantic response models (which were missing these fields). The fix involved updating  and  in .
+-   **Status:** USER VERIFICATION PENDING
+-   **Agent Testing Done:** N (The agent implemented the fix and restarted the backend, but end-to-end user flow testing has not been performed since the user's last report of failure.)
+-   **Which testing method agent to use?**: Manual testing by the user is required first. If the issue persists, the  should be used to simulate the user flow of editing a note, saving it, and verifying it persists after a page refresh.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-There are no outstanding bugs. The current task is to implement features that will resolve known 404 errors.
+-   **Issue 1: Notes are not being saved to the database (P0)**
+    -   **Attempted fixes:**
+        1.  Initial fix: Updated the  model to accept  (plural) instead of  (singular) after discovering the database uses the plural form. This did not resolve the issue.
+        2.  Current fix: Updated the  and  models to also include the  and  fields, suspecting a data serialization issue on the way back to the frontend.
+    -   **Next debug checklist:**
+        1.  Ask the user to test saving a note again.
+        2.  If it fails, open the browser's developer tools (Network tab) and inspect the  request payload when saving a note to confirm the frontend is sending the correct data (, ).
+        3.  Inspect the response to that  request to see what the backend returns.
+        4.  Check the backend logs () for any errors during the update operation in .
+    -   **Why fix this issue and what will be achieved with the fix?** This is a critical data integrity bug. Fixing it will allow users to correctly save important annotations for audit certificates.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** both
+    -   **Blocked on other issue:** None
 
 **In progress Task List**:
--   **Task 1: Migrate  and  endpoints (P0)**
-    -   **Where to resume:**
-        1.  Read the V1 backend code in  starting at lines 6166 () and 6250 ().
-        2.  Implement these two routes in the V2 router file: .
-        3.  Port the business logic, creating new service methods in  as needed. The  logic will likely require interaction with .
-    -   **What will be achieved with this?** This will resolve the 404 errors observed in the frontend and enable the Upcoming Surveys and Auto Rename File features, completing the V2 migration for this module.
-    -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** backend
-    -   **Blocked on something:** None
+-   None.
 
 **Upcoming and Future Tasks**
-- None.
+-   **Upcoming Tasks:**
+    -   **Task 1: Configure Google Apps Script URL (P0):** The  feature (which now also renames summaries) depends on a Google Apps Script URL. The user must be prompted to provide this URL to make the feature fully operational in production.
+    -   **Task 2: Verify  on New Upload (P1):** Although logic was added to save  in the analyze-then-create flow, a full end-to-end test of uploading a new certificate to confirm the value is correctly extracted by AI and saved to the database was not performed.
+-   **Future Tasks:**
+    -   **Refactor  (P1):** This component has become very large and complex. It should be broken down into smaller components and custom hooks to improve maintainability.
+    -   **Refactor  (P2):** This large page component manages significant state and would benefit from being broken down.
+    -   **Refactor  (P2):** The  function is complex and could be refactored into a more maintainable, rule-based engine.
 
 **Completed work in this session**
--   **UI Badge Relocation:** Moved certificate type badges (ISM, ISPS, etc.) to the Type column and arranged them horizontally.
--   **Context Menu/Double Click Fix:** Corrected bugs where the context menu appeared off-screen and double-clicking a certificate failed to open the file due to an incorrect property name ( vs. ).
--   **Selection State Fix:** Fixed a UI bug where the selected certificate count did not update after deleting a certificate.
--   **Bulk Delete Fix:** Resolved a 422 error during bulk deletion by aligning the frontend payload key () with the backend model ().
--   **AI Classification Logic Enhancements:**
-    -   **STATEMENT OF FACTS:** Certificates containing this phrase are now correctly typed as Other.
-    -   **DMLC I/II:** Implemented logic to set  to DMLC I or DMLC II and ensured the abbreviation is not shortened from this.
-    -   **ISPS Category:** Improved category detection to check , correctly classifying certificates with SSP in the abbreviation.
-    -   **Interim Certificate Date:** Added logic to auto-calculate the  for interim ISPS certificates (issue date + 6 months - 1 day).
--   **Batch Upload Reliability:**
-    -   Fixed multiple bugs where uploads failed due to overly strict  validation rules, especially after  was overridden to a shorter string like DMLC II. A redundant quality check was also removed.
+-   **Feature: Summary Storage & Lifecycle:**
+    -   Implemented saving of AI-generated summaries for Audit Certificates in both single and multi-upload flows (, ).
+    -   Added logic to delete summary files when a certificate is deleted ().
+    -   Added logic to rename summary files when the main file is renamed ().
+-   **Feature: Dynamic Status Calculation:**
+    -   Implemented dynamic status calculation (Valid, Due Soon, Expired) based on  and window annotations.
+    -   Logic is implemented in  (for filtering) and  (for display).
+    -   The Due Soon threshold was updated from 30 to 90 days.
+-   **UI/UX Fixes & Enhancements:**
+    -   **Multi-upload:** Fixed autofill bug and implemented new  and  components for a better user experience ().
+    -   **Notes Display:** Fixed a state management bug causing all notes to display the same content, and added a hover-to-preview tooltip (, ).
+-   **Bugfix: Note Persistence:**
+    -   Corrected backend Pydantic models () to properly handle  and  fields, which was preventing notes from being saved correctly.
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
@@ -76,6 +96,7 @@ There are no outstanding bugs. The current task is to implement features that wi
 ├── AUDIT_REPORT_ANALYSIS.md
 ├── AUDIT_REPORT_MIGRATION_PLAN.md
 ├── AUDIT_REPORT_NO_STATUS_LOGIC.md
+├── AUTO_RENAME_WITH_SUMMARY.md
 ├── Approval
 ├── BACKEND_MIGRATION_PLAN.md
 ├── BACKEND_V1_FILES_ANALYSIS.md
@@ -102,6 +123,7 @@ There are no outstanding bugs. The current task is to implement features that wi
 ├── Crewlist
 ├── DEBUGGING_GUIDE_API_KEY.md
 ├── DEFAULT_ANNOTATION_FALLBACK_IMPLEMENTATION.md
+├── DELETE_WITH_SUMMARY_FEATURE.md
 ├── DOCUMENT_AI_REFACTOR_DETAILED_GUIDE.md
 ├── DOCUMENT_AI_SYSTEM_AI_V2_PATTERN.md
 ├── ENDPOINT_CHECKLIST.md
@@ -114,6 +136,7 @@ There are no outstanding bugs. The current task is to implement features that wi
 ├── GOOGLE_APPS_SCRIPT_V3_SECURE.js
 ├── GOOGLE_DRIVE_MIGRATION_COMPLETE.md
 ├── Ho_chieu_pho_thong.jpg
+├── IMPLEMENTATION_COMPLETE.md
 ├── IMPORT_INSTRUCTIONS_FOR_SUPPORT.md
 ├── MARITIME_DOCUMENTS_AI_SCRIPT.js
 ├── MARITIME_V3_COMPATIBLE.js
@@ -140,8 +163,10 @@ There are no outstanding bugs. The current task is to implement features that wi
 ├── REUSABILITY_ANALYSIS.md
 ├── SELF_EDIT_PROFILE_FEATURE.md
 ├── SIMPLE_TEST_APPS_SCRIPT.js
+├── STATUS_CALCULATION_FEATURE.md
 ├── SUMMARY
 ├── SUMMARY_BASED_DOCUMENT_AI_SCRIPT.js
+├── SUMMARY_STORAGE_FEATURE.md
 ├── SURVEY_REPORT_FLOW_COMPLETE_ANALYSIS.md
 ├── Ship
 ├── Ship workflow. When a new ship is added, the system incorrectly reports Ship
@@ -297,9 +322,11 @@ There are no outstanding bugs. The current task is to implement features that wi
 │   │   │   │   ├── __init__.cpython-311.pyc
 │   │   │   │   ├── ai_config_service.cpython-311.pyc
 │   │   │   │   ├── approval_document_service.cpython-311.pyc
+│   │   │   │   ├── audit_certificate_analyze_service.cpython-311.pyc
 │   │   │   │   ├── audit_certificate_service.cpython-311.pyc
 │   │   │   │   ├── audit_report_analyze_service.cpython-311.pyc
 │   │   │   │   ├── audit_report_service.cpython-311.pyc
+│   │   │   │   ├── certificate_multi_upload_service.cpython-311.pyc
 │   │   │   │   ├── certificate_service.cpython-311.pyc
 │   │   │   │   ├── cleanup_service.cpython-311.pyc
 │   │   │   │   ├── company_service.cpython-311.pyc
@@ -312,6 +339,7 @@ There are no outstanding bugs. The current task is to implement features that wi
 │   │   │   │   ├── other_doc_service.cpython-311.pyc
 │   │   │   │   ├── ship_service.cpython-311.pyc
 │   │   │   │   ├── survey_report_service.cpython-311.pyc
+│   │   │   │   ├── test_report_analyze_service.cpython-311.pyc
 │   │   │   │   ├── test_report_service.cpython-311.pyc
 │   │   │   │   └── user_service.cpython-311.pyc
 │   │   │   ├── ai_config_service.py
@@ -344,26 +372,38 @@ There are no outstanding bugs. The current task is to implement features that wi
 │   │       ├── __pycache__
 │   │       │   ├── __init__.cpython-311.pyc
 │   │       │   ├── ai_helper.cpython-311.pyc
+│   │       │   ├── audit_certificate_ai.cpython-311.pyc
 │   │       │   ├── audit_report_ai.cpython-311.pyc
 │   │       │   ├── background_tasks.cpython-311.pyc
 │   │       │   ├── certificate_abbreviation.cpython-311.pyc
+│   │       │   ├── company_helper.cpython-311.pyc
+│   │       │   ├── date_parser.cpython-311.pyc
+│   │       │   ├── document_ai_helper.cpython-311.pyc
 │   │       │   ├── document_name_normalization.cpython-311.pyc
+│   │       │   ├── filename_helper.cpython-311.pyc
 │   │       │   ├── gdrive_folder_helper.cpython-311.pyc
+│   │       │   ├── gdrive_helper.cpython-311.pyc
 │   │       │   ├── issued_by_abbreviation.cpython-311.pyc
 │   │       │   ├── pdf_processor.cpython-311.pyc
 │   │       │   ├── pdf_splitter.cpython-311.pyc
-│   │       │   └── ship_calculations.cpython-311.pyc
+│   │       │   ├── ship_calculations.cpython-311.pyc
+│   │       │   ├── targeted_ocr.cpython-311.pyc
+│   │       │   ├── test_report_ai.cpython-311.pyc
+│   │       │   └── test_report_valid_date_calculator.cpython-311.pyc
 │   │       ├── ai_helper.py
 │   │       ├── approval_document_ai.py
 │   │       ├── audit_certificate_ai.py
 │   │       ├── audit_report_ai.py
 │   │       ├── background_tasks.py
 │   │       ├── certificate_abbreviation.py
+│   │       ├── company_helper.py
+│   │       ├── date_parser.py
 │   │       ├── document_ai_helper.py
 │   │       ├── document_ai_helper.py.backup
 │   │       ├── document_factory.py
 │   │       ├── document_name_normalization.py
 │   │       ├── drawing_manual_ai.py
+│   │       ├── filename_helper.py
 │   │       ├── gdrive_folder_helper.py
 │   │       ├── gdrive_helper.py
 │   │       ├── issued_by_abbreviation.py
@@ -50131,6 +50171,8 @@ There are no outstanding bugs. The current task is to implement features that wi
 │   │   │   │   ├── AuditCertificateNotesModal.jsx
 │   │   │   │   ├── AuditCertificateTable.jsx
 │   │   │   │   ├── AuditUpcomingSurveyModal.jsx
+│   │   │   │   ├── BatchProcessingModal.jsx
+│   │   │   │   ├── BatchResultsModal.jsx
 │   │   │   │   ├── DeleteAuditCertificateModal.jsx
 │   │   │   │   ├── EditAuditCertificateModal.jsx
 │   │   │   │   └── index.js
@@ -50350,12 +50392,17 @@ There are no outstanding bugs. The current task is to implement features that wi
 │       ├── EXPORT_USERS_FOR_PRODUCTION.py
 │       ├── debug_company_mismatch.py
 │       └── debug_upcoming_surveys.py
+├── test_auto_rename_with_summary.py
 ├── test_certificate.txt
 ├── test_certificate_analysis.txt
 ├── test_coc_certificate.pdf
 ├── test_crew_certificates_backend.sh
+├── test_delete_with_summary.py
+├── test_filename_generation.py
+├── test_full_term_30months.py
 ├── test_gmdss_certificate.pdf
 ├── test_modal_state.html
+├── test_next_survey_logic.py
 ├── test_passport.pdf
 ├── test_passport.txt
 ├── test_poor_quality_cert.pdf
@@ -50363,76 +50410,86 @@ There are no outstanding bugs. The current task is to implement features that wi
 ├── test_result.md
 ├── test_simple_cert_create.sh
 ├── test_simple_create.sh
+├── test_summary_feature_unit.py
+├── test_summary_storage.py
 ├── test_survey_report.pdf
 ├── test_survey_report.txt
+├── test_upcoming_surveys_logic.py
 ├── tests
 │   └── __init__.py
 ├── uploads
 ├── verify_fix.sh
 └── yarn.lock
 
-4660 directories, 45656 files
+4660 directories, 45686 files
 
 **Key Technical Concepts**
--   **Frameworks:** React.js, FastAPI
--   **Database:** MongoDB
--   **Backend Logic:** The core business logic for certificate classification is in  within . This function uses a combination of AI-extracted data and raw PDF text (via ) to make decisions.
--   **API Migration:** Porting routes and logic from a legacy Flask-like backend to a modern FastAPI structure.
+-   **Backend**: Pydantic model mismatches causing data persistence issues ( vs. ). Background task scheduling for file deletion.
+-   **Frontend**: React state management bugs (stale state in modals). Using a  prop to force component re-rendering and state reset. Implementing complex multi-modal user flows.
 
 **key DB schema**
 -   **audit_certificates**: 
 
 **changes in tech stack**
--   The backend now uses the  library to extract raw text from PDF files, which is used in parallel with Google's Document AI summary for more robust data analysis.
-
-**All files**
--   : Source file for the logic of the two endpoints to be migrated.
--   : The destination router file for the new V2 endpoints.
--   : The service layer where the business logic for the new endpoints will be implemented.
--   : The frontend page component that makes the calls to the missing endpoints.
-
-**Areas that need refactoring**:
--   The  function in  has grown very complex. It could be refactored into a more maintainable, rule-based system.
--   The  component is large and manages significant state and side effects. It would benefit from being broken down into smaller components and custom hooks.
-
-**key api endpoints**
--   
--   
--   **To be created:**
-    -   
-    -   
-
-**Critical Info for New Agent**
--   Your primary task is to migrate two features from V1 to V2: Upcoming Surveys and Auto Rename File.
--   The V1 source code is in  (line 6166 for  and 6250 for ).
--   You need to implement the new endpoints in  and the supporting logic in the service layer.
--   The Auto Rename functionality will require using the existing  to interact with Google Drive.
-
-**documents created in this job**
 -   None.
 
+**All files**
+-   : **Crucial file.** Heavily modified to add , , and  to multiple Pydantic models to fix data saving issues.
+-   : Contains all new business logic for creating, deleting, and renaming summary files alongside the main certificate files.
+-   : Modified all relevant endpoints (, , , ) to trigger the new summary logic.
+-   : **Crucial file.** Heavily refactored to implement the new multi-upload UI with separate modals and fix the autofill bug.
+-   : Modified to handle dynamic status filtering and pass a  to  to fix a state bug.
+-   : Modified to display dynamic, color-coded statuses and the new note preview tooltip.
+-   : Fixed a critical state bug that caused all notes to appear the same.
+-   , : New components created to provide a better multi-upload UX.
+
+**Areas that need refactoring**:
+-   : This component is now very large and handles multiple complex user flows (single vs. multi-upload, various modals). It is a high-priority candidate for being broken down into smaller components and custom hooks.
+-   : Remains a large page component managing significant state and could be simplified.
+
+**key api endpoints**
+-   : Modified to handle saving . **(Subject of the current bug)**
+-   : Modified to save .
+-   : Modified to save  and .
+-   : Modified to also delete the summary file.
+-   : Modified to also rename the summary file.
+
+**Critical Info for New Agent**
+-   You MUST respond to the user in **Vietnamese**.
+-   Your first priority is to address the pending issue: **Notes are not being saved**. You must ask the user to verify if the latest fix worked. Do not start any new tasks until this is resolved.
+-   The  feature is dependent on a Google Apps Script URL which has not been configured. This should be addressed after the notes bug is fixed.
+
+**documents created in this job**
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+
 **Last 5 User Messages and any pending user messages**
-1.  **User:** Implement the two missing endpoints (, ) by migrating them from the V1 backend. (PENDING)
-2.  **User:** After deleting a selected file, the selection count is not updated. (COMPLETED)
-3.  **User:** The  for an interim ISPS certificate is not being calculated automatically. (COMPLETED)
-4.  **User:** A DMLC II certificate still shows MLC as its abbreviation. (COMPLETED)
-5.  **User:** An ISPS-related certificate is being classified as Unknown. (COMPLETED)
+1.  **User:** Fix bug where editing a note for one row visually updates all notes in the column. (COMPLETED)
+2.  **User:** Implement a hover-to-preview tooltip for the Note column, like in another part of the app. (COMPLETED)
+3.  **User:** Notes are not being saved in either the Notes Modal or the Edit Modal. (IN PROGRESS)
+4.  **User:** Notes are still not being saved. (IN PROGRESS - Agent implemented a new fix for this).
+5.  **User (Pending action):** The user's last action was to report that notes are still not saving. They are waiting for a fix, which the previous agent has just deployed. The user needs to test this fix.
 
 **Project Health Check:**
--   **Broken:**
-    -   The Upcoming Surveys feature is non-functional (triggers a 404).
-    -   The Auto Rename File context menu option is non-functional (triggers a 404).
--   **Mocked:**
-    -   None.
+-   **Broken:** The Save Note functionality is potentially still broken and requires user verification.
+-   **Mocked:** None.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES
+-   **Testing agent used after significant changes:** YES (For backend, but it was not fully effective, leading to manual unit tests).
 -   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None
--   **Known regressions:** None
+-   **Test files created:** [, , , ]
+-   **Known regressions:** The Notes not saving bug is a regression that appeared during development.
 
 **Credentials to test flow:**
--   N/A
+-   Username: 
+-   Password: 
 
 **What agent forgot to execute**
--   Nothing. The agent is proceeding with the user's latest request.</analysis>
+-   The agent did not prompt the user for the **Google Apps Script URL** required for the auto-rename feature, which was an upcoming task from the previous fork. This remains an important configuration step to make the feature fully functional.</analysis>

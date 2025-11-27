@@ -768,7 +768,7 @@ const UserGuideModal = ({ isOpen, onClose, language }) => {
           ]}
         ],
         formula: {
-          title: 'Fee Calculation Formula (Base Fee Phase 1 is 900,000 VND)',
+          title: 'Fee Calculation Formula (Base Fee Phase 1 is 500,000 VND)',
           main: 'Monthly Fee = (Total Ships × Base Fee) + (Office Staff × 0.1 × Base Fee) + (Crew Members × 0.025 × Base Fee)',
           breakdown: [
             {
