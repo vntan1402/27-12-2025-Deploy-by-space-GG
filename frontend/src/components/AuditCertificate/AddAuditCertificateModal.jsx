@@ -840,6 +840,7 @@ export const AddAuditCertificateModal = ({
           // Clear states
           setCertificateFile(null);
           setValidationApproved(false);
+          setAnalyzeSummary(null);  // ⭐ Clear summary
           
           // Call onSuccess to refresh list
           if (onSuccess) {
