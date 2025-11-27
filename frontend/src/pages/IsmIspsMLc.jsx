@@ -2083,6 +2083,7 @@ const IsmIspsMLc = () => {
 
       {/* Notes Modal */}
       <AuditCertificateNotesModal
+        key={notesModal.certificate?.id || 'no-cert'}  {/* ⭐ Force re-render when certificate changes */}
         isOpen={notesModal.show}
         onClose={() => setNotesModal({ show: false, certificate: null, notes: '' })}
         onSave={handleSaveNotes}
