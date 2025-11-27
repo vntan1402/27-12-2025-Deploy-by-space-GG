@@ -130,7 +130,7 @@ Input Data:
 - Issue Date: "2024-06-30"
 
 Output Filename:
-PACIFIC GLORY_Full Term_IOPP_20240630.pdf
+PACIFIC GLORY_Full Term_IOPP_30-06-2024.pdf
 ```
 
 ---
