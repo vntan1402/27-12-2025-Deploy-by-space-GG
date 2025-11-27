@@ -113,7 +113,7 @@ Input Data:
 - Original File: "scan_001.pdf"
 
 Output Filename:
-MV OCEAN STAR_Interim_CSSC_20250115.pdf
+MV OCEAN STAR_Interim_CSSC_15-01-2025.pdf
 ```
 
 ---
