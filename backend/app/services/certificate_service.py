@@ -620,15 +620,15 @@ class CertificateService:
         
         cert_identifier = final_abbreviation
         
-        # Format issue date
+        # Format issue date to DD-MM-YYYY
         date_str = "NoDate"
         if issue_date:
             try:
                 if isinstance(issue_date, str):
                     date_obj = datetime.fromisoformat(issue_date.replace('Z', '+00:00'))
-                    date_str = date_obj.strftime("%Y%m%d")
+                    date_str = date_obj.strftime("%d-%m-%Y")  # ⭐ Changed to DD-MM-YYYY
                 elif isinstance(issue_date, datetime):
-                    date_str = issue_date.strftime("%Y%m%d")
+                    date_str = issue_date.strftime("%d-%m-%Y")  # ⭐ Changed to DD-MM-YYYY
             except Exception as e:
                 logger.warning(f"⚠️ Could not parse issue date: {e}")
                 date_str = "NoDate"
