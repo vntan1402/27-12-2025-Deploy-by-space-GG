@@ -15,7 +15,9 @@ class AuditCertificateBase(BaseModel):
     issued_by: Optional[str] = None
     issued_by_abbreviation: Optional[str] = None
     status: Optional[str] = "Valid"
-    note: Optional[str] = None
+    note: Optional[str] = None  # ⚠️ Deprecated - use 'notes'
+    notes: Optional[str] = None  # ⭐ Correct field name
+    has_notes: Optional[bool] = None  # ⭐ Flag for notes existence
     next_survey_date: Optional[Union[str, datetime]] = None
     next_survey: Optional[Union[str, datetime]] = None  # ISO datetime format
     next_survey_display: Optional[str] = None  # Display format with window annotation (e.g., "30/10/2025 (±3M)")
