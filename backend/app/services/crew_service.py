@@ -152,6 +152,20 @@ class CrewService:
         # Delete from database
         await CrewRepository.delete(crew_id)
         
+        # Log audit trail
+        await AuditTrailService.log_action(
+            user_id=current_user.id,
+            action="DELETE_CREW",
+            resource_type="crew_member",
+            resource_id=crew_id,
+            details={
+                "crew_name": crew.get('full_name'),
+                "passport": crew.get('passport'),
+                "ship": crew.get('ship_sign_on')
+            },
+            company_id=current_user.company
+        )
+        
         logger.info(f"✅ Crew member deleted from database: {crew_id}")
         
         return {"message": "Crew member deleted successfully"}
