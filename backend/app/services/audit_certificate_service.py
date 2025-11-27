@@ -884,8 +884,8 @@ class AuditCertificateService:
             
             logger.info(f"✅ Successfully auto-renamed audit certificate file to '{new_filename}'")
             
-            # 9. Return detailed response (like Class & Flag Certificate)
-            return {
+            # 10. Return detailed response (⭐ Enhanced with summary info)
+            response = {
                 "success": True,
                 "message": "Certificate file renamed successfully",
                 "certificate_id": cert_id,
@@ -900,6 +900,19 @@ class AuditCertificateService:
                 },
                 "renamed_timestamp": rename_result.get("renamed_timestamp", "")
             }
+            
+            # ⭐ Add summary rename info if applicable
+            if summary_file_id:
+                response["summary_file_id"] = summary_file_id
+                if summary_rename_result and summary_rename_result.get("success"):
+                    response["summary_renamed"] = True
+                    response["summary_new_name"] = summary_rename_result.get("new_name", "")
+                    response["message"] = "Certificate file and summary renamed successfully"
+                else:
+                    response["summary_renamed"] = False
+                    response["summary_error"] = summary_rename_result.get("message") if summary_rename_result else "Summary file not found"
+            
+            return response
             
         except HTTPException:
             raise
