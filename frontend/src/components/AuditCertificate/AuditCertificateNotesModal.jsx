@@ -12,14 +12,14 @@ export const AuditCertificateNotesModal = ({
   notes,
   language
 }) => {
-  const [currentNotes, setCurrentNotes] = useState(notes || '');
+  const [currentNotes, setCurrentNotes] = useState('');
 
-  // ⭐ FIX: Sync currentNotes with props when certificate changes
+  // ⭐ FIX: Update currentNotes when modal opens with new certificate
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && certificate) {
       setCurrentNotes(notes || '');
     }
-  }, [isOpen, notes, certificate?.id]); // Re-sync when modal opens or certificate changes
+  }, [isOpen, certificate?.id]); // Update when modal opens or certificate changes
 
   if (!isOpen) return null;
 
