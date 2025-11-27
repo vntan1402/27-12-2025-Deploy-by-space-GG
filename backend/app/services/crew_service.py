@@ -42,7 +42,7 @@ class CrewService:
     
     @staticmethod
     async def create_crew(crew_data: CrewCreate, current_user: UserResponse) -> CrewResponse:
-        """Create new crew member"""
+        """Create new crew member with comprehensive date handling"""
         # Check if passport exists for this company
         existing = await CrewRepository.find_by_passport(crew_data.passport, crew_data.company_id)
         if existing:
@@ -56,6 +56,14 @@ class CrewService:
         crew_dict["id"] = str(uuid.uuid4())
         crew_dict["created_at"] = datetime.now(timezone.utc)
         crew_dict["created_by"] = current_user.username
+        
+        # ✅ NEW: Convert all date fields to datetime objects
+        crew_dict = convert_dates_in_dict(crew_dict, CREW_DATE_FIELDS)
+        
+        # Log date conversions for debugging
+        for field in CREW_DATE_FIELDS:
+            if field in crew_dict and crew_dict[field]:
+                logger.info(f"✅ {field}: {crew_dict[field]}")
         
         await CrewRepository.create(crew_dict)
         
