@@ -658,12 +658,17 @@ async def create_audit_certificate_with_file_override(
                 logger.warning(f"⚠️ Failed to upload summary: {summary_error}")
                 # Don't fail the entire upload if summary fails
         
+        # ⭐ Extract ship_name from cert_payload (from AI analysis) to save as extracted_ship_name
+        extracted_ship_name = cert_payload.pop("ship_name", None)  # Remove to avoid conflict
+        extracted_ship_imo = cert_payload.pop("ship_imo", None)  # Remove to avoid conflict
+        
         # Create DB record
         cert_record = {
             "id": str(uuid.uuid4()),
             "ship_id": ship_id,
-            "ship_name": ship.get("name"),
+            "ship_name": ship.get("name"),  # Actual ship name from DB
             **cert_payload,
+            "extracted_ship_name": extracted_ship_name,  # ⭐ Ship name extracted by AI
             "google_drive_file_id": file_id,
             "summary_file_id": summary_file_id,  # ⭐ NEW: Store summary file ID
             "file_name": file.filename,
