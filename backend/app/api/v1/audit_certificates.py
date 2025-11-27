@@ -665,6 +665,7 @@ async def create_audit_certificate_with_file_override(
             "ship_name": ship.get("name"),
             **cert_payload,
             "google_drive_file_id": file_id,
+            "summary_file_id": summary_file_id,  # ⭐ NEW: Store summary file ID
             "file_name": file.filename,
             "created_at": datetime.now(timezone.utc),
             "company": company_id
