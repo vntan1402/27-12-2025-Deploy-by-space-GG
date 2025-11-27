@@ -712,3 +712,113 @@ class AuditCertificateService:
             logger.error(f"Error getting upcoming audit surveys: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
+
+    
+    @staticmethod
+    async def auto_rename_file(cert_id: str, current_user: UserResponse) -> dict:
+        """
+        Auto-rename audit certificate file on Google Drive
+        
+        New filename pattern:
+        {Shipname}_{CertType}_{CertAbbreviation}_{IssueDate_DDMMYYYY}.{ext}
+        
+        Example: VINASHIP_FullTerm_ISM-DOC_07052024.pdf
+        
+        Args:
+            cert_id: Certificate ID
+            current_user: Current user making the request
+            
+        Returns:
+            dict: {
+                "success": bool,
+                "message": str,
+                "old_name": str,
+                "new_name": str,
+                "file_id": str
+            }
+        """
+        try:
+            from app.services.gdrive_service import GDriveService
+            from app.utils.company_helper import resolve_company_id
+            from app.utils.filename_helper import generate_audit_certificate_filename
+            
+            logger.info(f"Auto-renaming file for certificate: {cert_id}")
+            
+            # 1. Get certificate from DB
+            cert = await mongo_db.find_one(AuditCertificateService.collection_name, {"id": cert_id})
+            
+            if not cert:
+                raise HTTPException(status_code=404, detail="Audit certificate not found")
+            
+            # 2. Validate has google_drive_file_id
+            file_id = cert.get("google_drive_file_id")
+            if not file_id:
+                raise HTTPException(
+                    status_code=404,
+                    detail="No file attached to this certificate"
+                )
+            
+            original_filename = cert.get("file_name", "certificate.pdf")
+            
+            # 3. Get ship info (for ship name)
+            ship_id = cert.get("ship_id")
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            
+            # Use extracted_ship_name if available, otherwise use ship DB name
+            ship_name = cert.get("extracted_ship_name")
+            if not ship_name and ship:
+                ship_name = ship.get("name", "Unknown")
+            
+            # 4. Generate new filename
+            new_filename = generate_audit_certificate_filename(
+                ship_name=ship_name,
+                cert_type=cert.get("cert_type"),
+                cert_abbreviation=cert.get("cert_abbreviation"),
+                issue_date=cert.get("issue_date"),
+                original_filename=original_filename
+            )
+            
+            logger.info(f"Generated new filename: {new_filename}")
+            
+            # 5. Resolve company_id
+            company_id = await resolve_company_id(current_user)
+            
+            # 6. Rename file via Apps Script
+            rename_result = await GDriveService.rename_file_via_apps_script(
+                file_id=file_id,
+                new_filename=new_filename,
+                company_id=company_id
+            )
+            
+            if not rename_result.get("success"):
+                raise HTTPException(
+                    status_code=500,
+                    detail=rename_result.get("message", "Failed to rename file")
+                )
+            
+            # 7. Update DB with new file_name
+            await mongo_db.update(
+                AuditCertificateService.collection_name,
+                {"id": cert_id},
+                {
+                    "file_name": new_filename,
+                    "updated_at": datetime.now(timezone.utc)
+                }
+            )
+            
+            logger.info(f"✅ File renamed successfully: {original_filename} → {new_filename}")
+            
+            return {
+                "success": True,
+                "message": "File renamed successfully",
+                "old_name": original_filename,
+                "new_name": new_filename,
+                "file_id": file_id
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error auto-renaming audit certificate file: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
+
