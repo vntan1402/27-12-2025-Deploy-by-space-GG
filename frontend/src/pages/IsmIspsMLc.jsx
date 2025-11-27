@@ -1912,24 +1912,29 @@ const IsmIspsMLc = () => {
             }
           </button>
 
+          <div className="border-t border-gray-200 my-1"></div>
+          
+          {/* Auto Rename File - works for single and multiple */}
+          <button
+            onClick={() => {
+              if (selectedCertificates.size > 1) {
+                handleBulkAutoRenameFiles();
+              } else if (contextMenu.certificate) {
+                handleAutoRenameFile(contextMenu.certificate);
+              }
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2"
+          >
+            <span>⚡</span>
+            {selectedCertificates.size > 1 
+              ? (language === 'vi' ? `Đổi tên tự động (${selectedCertificates.size} file)` : `Auto Rename (${selectedCertificates.size} files)`)
+              : (language === 'vi' ? 'Đổi tên file tự động' : 'Auto Rename File')
+            }
+          </button>
+
           {selectedCertificates.size === 1 && (
             <>
-              <div className="border-t border-gray-200 my-1"></div>
-              
-              {/* Auto Rename File - single file only */}
-              {(contextMenu.certificate?.file_id || contextMenu.certificate?.google_drive_file_id) && (
-                <button
-                  onClick={() => {
-                    handleAutoRenameFile(contextMenu.certificate);
-                    setContextMenu(null);
-                  }}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2"
-                >
-                  <span>⚡</span>
-                  <span>{language === 'vi' ? 'Đổi tên file tự động' : 'Auto Rename File'}</span>
-                </button>
-              )}
-              
               <div className="border-t border-gray-200 my-1"></div>
               
               {/* Edit - single only */}
