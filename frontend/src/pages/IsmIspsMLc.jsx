@@ -559,6 +559,12 @@ const IsmIspsMLc = () => {
   const handleCertificateRightClick = (e, cert) => {
     e.preventDefault();
     
+    // Auto-select the row if not already selected (when right-clicking on unselected row)
+    if (!selectedCertificates.has(cert.id)) {
+      // Clear previous selections and select only this certificate
+      setSelectedCertificates(new Set([cert.id]));
+    }
+    
     // Calculate position with boundary checks to prevent menu from going off-screen
     const menuWidth = 250; // Approximate context menu width
     const menuHeight = 400; // Approximate context menu height
