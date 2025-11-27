@@ -546,32 +546,52 @@ async def analyze_passport_file(
         import os
         emergent_key = os.getenv("EMERGENT_LLM_KEY", "sk-emergent-eEe35Fb1b449940199")
         
-        # Create AI prompt for passport field extraction from Document AI summary
-        prompt = f"""
-You are an AI assistant that extracts passport information from OCR text. Extract key information from the following Document AI summary.
+        # Create AI prompt for passport field extraction from Document AI summary (V1 format)
+        prompt = f"""You are an AI specialized in structured information extraction from maritime and identity documents.
 
-Document AI Summary:
-{document_summary}
+Your task:
+Analyze the following text summary of a passport and extract all key passport fields. 
+The text already contains all relevant information about the document, so focus only on extracting and normalizing it into a structured JSON format.
 
-Please extract and return ONLY a valid JSON object with the following fields:
+=== CRITICAL INSTRUCTIONS FOR VIETNAMESE NAMES ===
+**EXTREMELY IMPORTANT**: Vietnamese passports contain BOTH Vietnamese name (with diacritics) AND English name (without diacritics).
+- Surname: Extract the VIETNAMESE surname WITH Vietnamese diacritics (ĐỖ, VŨ, NGUYỄN, etc.) - NOT the English version
+- Given_Names: Extract the VIETNAMESE given names WITH Vietnamese diacritics (ÁNH BẢO, NGỌC TÂN, etc.) - NOT the English version
+- DO NOT extract English transliteration (DO, VU, NGUYEN without diacritics)
+- Vietnamese names are typically found in the main document content, NOT in the MRZ line
+- MRZ line contains English transliteration - DO NOT use it for name extraction
+
+=== INSTRUCTIONS ===
+1. Extract only the passport-related fields listed below.
+2. Return the output strictly in valid JSON format.
+3. If a field is not found, leave it as an empty string "".
+4. Normalize all dates to DD/MM/YYYY format.
+5. Use uppercase for country codes and names.
+6. Do not infer or fabricate any missing information.
+7. Ensure names are written in correct Vietnamese format WITH DIACRITICS (Surname first, Given names after).
+
+=== FIELDS TO EXTRACT ===
 {{
-  "full_name": "Full name from passport",
-  "passport_no": "Passport number",
-  "nationality": "Nationality/Country",
-  "date_of_birth": "Date of birth in DD/MM/YYYY format",
-  "issue_date": "Issue date in DD/MM/YYYY format",
-  "expiry_date": "Expiry date in DD/MM/YYYY format",
-  "place_of_birth": "Place of birth or null",
-  "sex": "M or F or null"
+  "Passport_Number": "",
+  "Type": "",
+  "Issuing_Country_Code": "",
+  "Country_Name": "",
+  "Surname": "",
+  "Given_Names": "",
+  "Sex": "",
+  "Date_of_Birth": "",
+  "Place_of_Birth": "",
+  "Nationality": "",
+  "Date_of_Issue": "",
+  "Date_of_Expiry": "",
+  "Place_of_Issue": "",
+  "Authority": ""
 }}
 
-IMPORTANT:
-- Return ONLY the JSON object, no additional text
-- Use DD/MM/YYYY format for all dates
-- If a field is not found, use null
-- Look for passport number patterns (alphanumeric, 6-12 characters)
-- Extract the full name as written on the passport
-"""
+=== TEXT INPUT (Passport Summary) ===
+{document_summary}
+
+Return ONLY the JSON output with extracted fields. Do not include any explanations or additional text."""
         
         logger.info(f"🤖 Extracting passport fields using {provider} {model}...")
         
