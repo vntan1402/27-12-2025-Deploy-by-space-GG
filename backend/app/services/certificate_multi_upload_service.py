@@ -243,78 +243,65 @@ class CertificateMultiUploadService:
         validation_note = None
         progress_message = None
         
-        logger.info(f"🔍 IMO/Ship Name Validation for {file.filename}:")
-        logger.info(f"   Extracted IMO: '{extracted_imo}' vs Current: '{current_ship_imo}'")
-        logger.info(f"   Extracted Ship: '{extracted_ship_name}' vs Current: '{current_ship_name}'")
+        # Prepare validation note (if ship name mismatch warning exists)
+        validation_note = None
+        progress_message = None
+        if validation_warning and not validation_warning.get("is_blocking"):
+            validation_note = validation_warning.get("override_note", "Chỉ để tham khảo")
+            progress_message = validation_warning.get("message")
+            logger.info(f"⚠️ Non-blocking validation warning: {progress_message}")
         
-        # Check IMO validation
-        if extracted_imo and current_ship_imo:
-            extracted_imo_clean = extracted_imo.replace(' ', '').replace('IMO', '').upper()
-            current_ship_imo_clean = current_ship_imo.replace(' ', '').replace('IMO', '').upper()
-            
-            if extracted_imo_clean != current_ship_imo_clean:
-                logger.warning(f"❌ IMO mismatch for {file.filename} - SKIPPING")
-                return {
-                    "filename": file.filename,
-                    "status": "error",
-                    "message": "Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại",
-                    "progress_message": "Giấy chứng nhận của tàu khác, không thể lưu vào dữ liệu tàu hiện tại",
-                    "analysis": analysis_result,
-                    "is_marine": True,
-                    "validation_error": {
-                        "type": "imo_mismatch",
-                        "extracted_imo": extracted_imo,
-                        "current_ship_imo": current_ship_imo
-                    }
-                }
-            
-            # IMO matches - check ship name for note
-            if extracted_ship_name and current_ship_name:
-                if extracted_ship_name.upper() != current_ship_name.upper():
-                    validation_note = "Chỉ để tham khảo"
-                    progress_message = "Giấy chứng nhận này có tên tàu khác với tàu hiện tại, thông tin chỉ để tham khảo"
-                    logger.info(f"⚠️ Ship name mismatch - adding reference note")
-        
-        # Check for duplicates
-        duplicates = await CertificateMultiUploadService._check_certificate_duplicates(
-            analysis_result, ship_id, db
-        )
-        
-        if duplicates:
-            existing_cert = duplicates[0]['certificate']
-            return {
-                "filename": file.filename,
-                "status": "pending_duplicate_resolution",
-                "message": f"Duplicate certificate detected: {existing_cert.get('cert_name', 'Unknown')}",
-                "analysis": analysis_result,
-                "duplicates": duplicates,
-                "is_marine": True,
-                "requires_user_choice": True,
-                "duplicate_info": {
-                    "existing_certificate": {
-                        "cert_name": existing_cert.get('cert_name'),
-                        "cert_no": existing_cert.get('cert_no'),
-                        "issue_date": existing_cert.get('issue_date'),
-                        "valid_date": existing_cert.get('valid_date')
-                    },
-                    "new_certificate": {
-                        "cert_name": analysis_result.get('cert_name'),
-                        "cert_no": analysis_result.get('cert_no'),
-                        "issue_date": analysis_result.get('issue_date'),
-                        "valid_date": analysis_result.get('valid_date')
-                    }
-                }
-            }
-        
-        # Upload to Google Drive
+        # Upload main certificate to Google Drive
         ship_name = ship.get("name", "Unknown_Ship")
         upload_result = await CertificateMultiUploadService._upload_to_gdrive(
             gdrive_config_doc, file_content, file.filename, ship_name, "Certificates"
         )
         
-        # Create certificate record
+        if not upload_result.get("success"):
+            return {
+                "filename": file.filename,
+                "status": "error",
+                "message": f"Failed to upload to Google Drive: {upload_result.get('message')}"
+            }
+        
+        # ⭐ NEW: Upload summary file to Google Drive (if available)
+        summary_file_id = None
+        if summary_text and summary_text.strip():
+            try:
+                logger.info(f"📋 Uploading summary file for {file.filename}")
+                
+                # Create summary filename
+                base_name = file.filename.rsplit('.', 1)[0] if '.' in file.filename else file.filename
+                summary_filename = f"{base_name}_Summary.txt"
+                
+                # Convert summary text to bytes
+                summary_bytes = summary_text.encode('utf-8')
+                
+                # Upload summary to GDrive
+                summary_upload_result = await CertificateMultiUploadService._upload_to_gdrive(
+                    gdrive_config_doc, summary_bytes, summary_filename, ship_name, "Certificates"
+                )
+                
+                if summary_upload_result.get("success"):
+                    summary_file_id = summary_upload_result.get("file_id")
+                    logger.info(f"✅ Summary file uploaded: {summary_file_id}")
+                else:
+                    logger.warning(f"⚠️ Summary upload failed: {summary_upload_result.get('message')}")
+            
+            except Exception as summary_error:
+                logger.warning(f"⚠️ Failed to upload summary: {summary_error}")
+                # Don't fail the entire upload if summary fails
+        
+        # Create certificate record with summary_file_id
         cert_result = await CertificateMultiUploadService._create_certificate_from_analysis(
-            analysis_result, upload_result, current_user, ship_id, validation_note, db
+            extracted_info, 
+            upload_result, 
+            current_user, 
+            ship_id, 
+            validation_note, 
+            db,
+            summary_file_id=summary_file_id,  # ⭐ NEW: Pass summary file ID
+            extracted_ship_name=extracted_ship_name  # ⭐ NEW: Pass extracted ship name
         )
         
         # Determine final status
