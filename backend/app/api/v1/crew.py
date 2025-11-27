@@ -15,13 +15,19 @@ router = APIRouter()
 
 def parse_passport_response(response_text: str) -> dict:
     """
-    Parse AI response for passport data extraction
+    Parse AI response for passport data extraction (V1 format)
+    
+    Maps from V1 format to V2 format:
+    - Passport_Number → passport_no
+    - Surname + Given_Names → full_name
+    - Date_of_Birth → date_of_birth
+    - etc.
     
     Args:
-        response_text: Raw AI response text containing JSON
+        response_text: Raw AI response text containing JSON (V1 format)
         
     Returns:
-        Dict with passport fields
+        Dict with passport fields (V2 format)
     """
     import re
     import json
@@ -36,17 +42,25 @@ def parse_passport_response(response_text: str) -> dict:
             # If no JSON found, try to parse the whole response
             data = json.loads(response_text)
         
-        # Extract passport fields only
+        # ✅ Map V1 format to V2 format
+        surname = data.get("Surname", "")
+        given_names = data.get("Given_Names", "")
+        
+        # Combine surname and given names for full_name
+        full_name = f"{surname} {given_names}".strip() if (surname or given_names) else ""
+        
         passport_data = {
-            "full_name": data.get("full_name"),
-            "passport_no": data.get("passport_no"),
-            "nationality": data.get("nationality"),
-            "date_of_birth": data.get("date_of_birth"),
-            "issue_date": data.get("issue_date"),
-            "expiry_date": data.get("expiry_date"),
-            "place_of_birth": data.get("place_of_birth"),
-            "sex": data.get("sex")
+            "full_name": full_name,
+            "passport_no": data.get("Passport_Number", ""),
+            "nationality": data.get("Nationality", ""),
+            "date_of_birth": data.get("Date_of_Birth", ""),
+            "issue_date": data.get("Date_of_Issue", ""),
+            "expiry_date": data.get("Date_of_Expiry", ""),
+            "place_of_birth": data.get("Place_of_Birth", ""),
+            "sex": data.get("Sex", "")
         }
+        
+        logger.info(f"✅ Parsed passport data: {passport_data.get('full_name')} - {passport_data.get('passport_no')}")
         
         return passport_data
         
