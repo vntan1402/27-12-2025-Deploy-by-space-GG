@@ -717,12 +717,17 @@ class AuditCertificateService:
     @staticmethod
     async def auto_rename_file(cert_id: str, current_user: UserResponse) -> dict:
         """
-        Auto-rename audit certificate file on Google Drive
+        Auto-rename audit certificate file on Google Drive (matches Class & Flag Certificate implementation)
         
-        New filename pattern:
-        {Shipname}_{CertType}_{CertAbbreviation}_{IssueDate_DDMMYYYY}.{ext}
+        Filename pattern:
+        {Ship Name}_{Cert Type}_{Cert Abbreviation}_{Issue Date}.{ext}
         
-        Example: VINASHIP_FullTerm_ISM-DOC_07052024.pdf
+        Example: VINASHIP HARMONY_Full Term_ISM-DOC_20240507.pdf
+        
+        Priority for Certificate Abbreviation:
+        1. User-defined mapping (from certificate_abbreviation_mappings collection)
+        2. Database cert_abbreviation field
+        3. Fallback to "CERT"
         
         Args:
             cert_id: Certificate ID
@@ -732,9 +737,12 @@ class AuditCertificateService:
             dict: {
                 "success": bool,
                 "message": str,
+                "certificate_id": str,
+                "file_id": str,
                 "old_name": str,
                 "new_name": str,
-                "file_id": str
+                "naming_convention": dict,
+                "renamed_timestamp": str
             }
         """
         try:
@@ -742,7 +750,7 @@ class AuditCertificateService:
             from app.utils.company_helper import resolve_company_id
             from app.utils.filename_helper import generate_audit_certificate_filename
             
-            logger.info(f"Auto-renaming file for certificate: {cert_id}")
+            logger.info(f"🔄 Auto-renaming file for audit certificate: {cert_id}")
             
             # 1. Get certificate from DB
             cert = await mongo_db.find_one(AuditCertificateService.collection_name, {"id": cert_id})
@@ -750,44 +758,71 @@ class AuditCertificateService:
             if not cert:
                 raise HTTPException(status_code=404, detail="Audit certificate not found")
             
-            # 2. Validate has google_drive_file_id
-            file_id = cert.get("google_drive_file_id")
+            # 2. Validate has file_id
+            file_id = cert.get("file_id") or cert.get("google_drive_file_id")
             if not file_id:
                 raise HTTPException(
-                    status_code=404,
-                    detail="No file attached to this certificate"
+                    status_code=400,
+                    detail="Certificate has no associated Google Drive file"
                 )
             
             original_filename = cert.get("file_name", "certificate.pdf")
             
-            # 3. Get ship info (for ship name)
+            # 3. Get ship info
             ship_id = cert.get("ship_id")
             ship = await mongo_db.find_one("ships", {"id": ship_id})
             
-            # Use extracted_ship_name if available, otherwise use ship DB name
-            ship_name = cert.get("extracted_ship_name")
-            if not ship_name and ship:
-                ship_name = ship.get("name", "Unknown")
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found for certificate")
             
-            # 4. Generate new filename
+            # Use extracted_ship_name if available, otherwise use ship DB name
+            ship_name = cert.get("extracted_ship_name") or ship.get("name", "Unknown Ship")
+            
+            # 4. Get certificate metadata
+            cert_type = cert.get("cert_type", "Unknown Type")
+            cert_name = cert.get("cert_name", "Unknown Certificate")
+            cert_abbreviation = cert.get("cert_abbreviation", "")
+            issue_date = cert.get("issue_date")
+            
+            # ========== PRIORITY LOGIC FOR ABBREVIATION (like Class & Flag Certificate) ==========
+            # Priority 1: Check user-defined abbreviation mappings FIRST
+            user_defined_abbr = await mongo_db.find_one(
+                "certificate_abbreviation_mappings",
+                {"cert_name": cert_name}
+            )
+            
+            if user_defined_abbr and user_defined_abbr.get("abbreviation"):
+                final_abbreviation = user_defined_abbr.get("abbreviation")
+                logger.info(f"🔄 AUTO-RENAME - PRIORITY 1: Using user-defined mapping '{cert_name}' → '{final_abbreviation}'")
+            elif cert_abbreviation:
+                # Priority 2: Use database cert_abbreviation
+                final_abbreviation = cert_abbreviation
+                logger.info(f"🔄 AUTO-RENAME - PRIORITY 2: Using database abbreviation '{final_abbreviation}'")
+            else:
+                # Priority 3: Fallback
+                final_abbreviation = "CERT"
+                logger.info(f"🔄 AUTO-RENAME - PRIORITY 3: Using fallback abbreviation '{final_abbreviation}'")
+            
+            # 5. Generate new filename
             new_filename = generate_audit_certificate_filename(
                 ship_name=ship_name,
-                cert_type=cert.get("cert_type"),
-                cert_abbreviation=cert.get("cert_abbreviation"),
-                issue_date=cert.get("issue_date"),
+                cert_type=cert_type,
+                cert_abbreviation=final_abbreviation,
+                issue_date=issue_date,
                 original_filename=original_filename
             )
             
-            logger.info(f"Generated new filename: {new_filename}")
+            logger.info(f"📝 Generated new filename: {new_filename}")
             
-            # 5. Resolve company_id
+            # 6. Resolve company_id
             company_id = await resolve_company_id(current_user)
             
-            # 6. Rename file via Apps Script
+            # 7. Rename file via Apps Script (with capability check)
             rename_result = await GDriveService.rename_file_via_apps_script(
                 file_id=file_id,
                 new_filename=new_filename,
-                company_id=company_id
+                company_id=company_id,
+                check_capability=True  # Enable capability check
             )
             
             if not rename_result.get("success"):
@@ -796,7 +831,7 @@ class AuditCertificateService:
                     detail=rename_result.get("message", "Failed to rename file")
                 )
             
-            # 7. Update DB with new file_name
+            # 8. Update DB with new file_name
             await mongo_db.update(
                 AuditCertificateService.collection_name,
                 {"id": cert_id},
@@ -806,19 +841,28 @@ class AuditCertificateService:
                 }
             )
             
-            logger.info(f"✅ File renamed successfully: {original_filename} → {new_filename}")
+            logger.info(f"✅ Successfully auto-renamed audit certificate file to '{new_filename}'")
             
+            # 9. Return detailed response (like Class & Flag Certificate)
             return {
                 "success": True,
-                "message": "File renamed successfully",
-                "old_name": original_filename,
+                "message": "Certificate file renamed successfully",
+                "certificate_id": cert_id,
+                "file_id": file_id,
+                "old_name": rename_result.get("old_name", original_filename),
                 "new_name": new_filename,
-                "file_id": file_id
+                "naming_convention": {
+                    "ship_name": ship_name,
+                    "cert_type": cert_type,
+                    "cert_identifier": final_abbreviation,
+                    "issue_date": issue_date
+                },
+                "renamed_timestamp": rename_result.get("renamed_timestamp", "")
             }
             
         except HTTPException:
             raise
         except Exception as e:
-            logger.error(f"Error auto-renaming audit certificate file: {e}")
+            logger.error(f"❌ Error auto-renaming audit certificate file: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
