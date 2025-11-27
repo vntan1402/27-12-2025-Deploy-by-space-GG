@@ -86,30 +86,32 @@ def generate_audit_certificate_filename(
         return f"audit_cert_{timestamp}.{file_ext}"
 
 
-def _clean_filename_component(text: str) -> str:
+def _clean_filename_component(text: str, keep_spaces: bool = True) -> str:
     """
-    Clean text for use in filename
+    Clean text for use in filename (matches Class & Flag Certificate logic)
     
     Rules:
-    - Remove special characters except alphanumeric, spaces, hyphens
-    - Replace spaces with underscores
-    - Remove multiple consecutive underscores
-    - Strip leading/trailing underscores
+    - Remove special characters except alphanumeric, spaces, underscores, hyphens, dots
+    - Keep spaces if keep_spaces=True (default)
+    - Normalize multiple spaces to single space
+    - Strip leading/trailing spaces/underscores
     """
     if not text:
         return "Unknown"
     
-    # Remove special characters (keep alphanumeric, spaces, hyphens)
-    cleaned = re.sub(r'[^\w\s-]', '', text)
+    # Remove special characters but KEEP spaces, underscores, hyphens, dots
+    # Only allow: letters, numbers, spaces, underscores, hyphens, and dots
+    cleaned = re.sub(r'[^a-zA-Z0-9 ._-]', '', text)
     
-    # Replace spaces with underscores
-    cleaned = cleaned.replace(' ', '_')
-    
-    # Remove multiple consecutive underscores
-    cleaned = re.sub(r'_+', '_', cleaned)
-    
-    # Strip leading/trailing underscores
-    cleaned = cleaned.strip('_')
+    if keep_spaces:
+        # Keep spaces, just normalize multiple spaces to single
+        cleaned = re.sub(r'\s+', ' ', cleaned)
+        cleaned = cleaned.strip()
+    else:
+        # Replace spaces with underscores (legacy behavior)
+        cleaned = cleaned.replace(' ', '_')
+        cleaned = re.sub(r'_+', '_', cleaned)
+        cleaned = cleaned.strip('_')
     
     return cleaned if cleaned else "Unknown"
 
