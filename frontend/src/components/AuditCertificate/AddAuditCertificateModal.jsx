@@ -1517,10 +1517,14 @@ export const AddAuditCertificateModal = ({
       <BatchResultsModal
         isOpen={showBatchResults}
         onClose={() => {
+          // Clean up batch states
           setShowBatchResults(false);
           setBatchResults([]);
           setMultiCertUploads([]);
           setUploadSummary({ success: 0, failed: 0, total: 0 });
+          
+          // ⭐ Also close Add Audit Certificate modal
+          handleClose();
         }}
         results={batchResults}
         summary={uploadSummary}
