@@ -2,7 +2,7 @@
  * Audit Certificate Table Component
  * Displays audit certificates in a sortable, filterable table
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 
 export const AuditCertificateTable = ({
@@ -18,6 +18,14 @@ export const AuditCertificateTable = ({
   onSurveyTypeRightClick,
   onNotesClick,
 }) => {
+  // ⭐ NEW: Note tooltip state (giống Class & Flag)
+  const [noteTooltip, setNoteTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    width: 300,
+    content: ''
+  });
   // Get sort icon for column
   const getSortIcon = (column) => {
     if (sortConfig.column !== column) {
