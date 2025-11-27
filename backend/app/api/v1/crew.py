@@ -467,8 +467,9 @@ async def analyze_passport_file(
                 "analysis": None
             }
         
-        # Get summary from Document AI
-        document_summary = doc_ai_result.get("summary", "")
+        # Get summary from Document AI (nested in "data" key)
+        data = doc_ai_result.get("data", {})
+        document_summary = data.get("summary", "")
         
         # Strip whitespace and check if meaningful content exists
         document_summary = document_summary.strip() if document_summary else ""
