@@ -4,7 +4,6 @@
  */
 import React from 'react';
 import { formatDateDisplay } from '../../utils/dateHelpers';
-import { detectCertificateCategory, getCategoryBadgeColor } from '../../utils/auditCertificateCategory';
 
 export const AuditCertificateTable = ({
   certificates = [],
