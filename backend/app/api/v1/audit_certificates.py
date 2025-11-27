@@ -446,7 +446,6 @@ async def multi_upload_audit_certificates(
                 cert_data = {
                     "id": str(uuid.uuid4()),
                     "ship_id": ship_id,
-                    "ship_name": ship.get("name"),
                     "cert_name": extracted_info.get("cert_name"),
                     "cert_abbreviation": extracted_info.get("cert_abbreviation", ""),
                     "cert_no": extracted_info.get("cert_no"),
@@ -458,6 +457,7 @@ async def multi_upload_audit_certificates(
                     "next_survey_type": extracted_info.get("next_survey_type"),
                     "issued_by": extracted_info.get("issued_by", ""),
                     "issued_by_abbreviation": extracted_info.get("issued_by_abbreviation", ""),
+                    "extracted_ship_name": extracted_info.get("ship_name", ""),  # Ship name extracted by AI
                     "notes": validation_note if validation_note else "",
                     "google_drive_file_id": upload_result.get("file_id"),
                     "file_name": file.filename,
