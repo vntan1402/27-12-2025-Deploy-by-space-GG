@@ -555,8 +555,8 @@ IMPORTANT:
         # Call AI
         ai_response = await llm_chat.send_message(UserMessage(text=prompt))
         
-        # Parse response
-        passport_data = AIHelper.parse_ai_response(ai_response)
+        # Parse response - extract passport fields (NOT ship certificate fields)
+        passport_data = parse_passport_response(ai_response)
         
         if not passport_data:
             return {
