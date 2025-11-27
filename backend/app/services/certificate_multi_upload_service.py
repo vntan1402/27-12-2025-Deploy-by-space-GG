@@ -631,7 +631,8 @@ IMPORTANT DATE EXAMPLES:
         file_content: bytes,
         filename: str,
         ship_name: str,
-        folder: str
+        folder: str,
+        content_type: str = None  # ⭐ NEW: Optional MIME type
     ) -> Dict[str, Any]:
         """Upload file to Google Drive"""
         try:
@@ -639,7 +640,7 @@ IMPORTANT DATE EXAMPLES:
             from app.utils.gdrive_helper import upload_file_to_ship_folder
             
             result = await upload_file_to_ship_folder(
-                gdrive_config, file_content, filename, ship_name, folder
+                gdrive_config, file_content, filename, ship_name, folder, content_type
             )
             
             if result.get("success"):
