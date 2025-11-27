@@ -493,6 +493,7 @@ async def multi_upload_audit_certificates(
                     "extracted_ship_name": extracted_info.get("ship_name", ""),  # Ship name extracted by AI
                     "notes": validation_note if validation_note else "",
                     "google_drive_file_id": upload_result.get("file_id"),
+                    "summary_file_id": summary_file_id,  # ⭐ NEW: Store summary file ID
                     "file_name": file.filename,
                     "created_at": datetime.now(timezone.utc),
                     "company": company_id
