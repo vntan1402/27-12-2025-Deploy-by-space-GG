@@ -427,59 +427,48 @@ async def analyze_passport_file(
                 "analysis": None
             }
         
-        # Call Google Apps Script to analyze passport with Document AI
-        from app.utils.google_drive_helper import GoogleDriveHelper
-        import asyncio
+        # ✅ Call Document AI using the same helper as Ship Certificate
+        from app.utils.document_ai_helper import analyze_document_with_document_ai
         
-        drive_helper = GoogleDriveHelper(company_id)
+        logger.info(f"🤖 Calling Document AI for passport analysis...")
         
-        # Load Google Drive configuration
-        try:
-            await drive_helper.load_config()
-        except ValueError as e:
-            logger.error(f"❌ Google Drive configuration error: {e}")
+        # Get Apps Script URL from document_ai_config
+        apps_script_url = document_ai_config.get("apps_script_url")
+        
+        if not apps_script_url:
+            logger.error("❌ Apps Script URL not configured in Document AI settings")
             return {
                 "success": False,
-                "message": f"Google Drive configuration error: {str(e)}. Please configure Google Apps Script URL in company settings.",
+                "message": "Apps Script URL not configured. Please configure Apps Script URL in Document AI settings (System AI).",
                 "analysis": None
             }
         
-        apps_script_payload = {
-            "action": "analyze_passport_document_ai",
-            "file_content": base64.b64encode(file_content).decode('utf-8'),
-            "filename": passport_file.filename,
-            "content_type": passport_file.content_type or 'application/octet-stream',
-            "project_id": document_ai_config.get("project_id"),
-            "location": document_ai_config.get("location", "us"),
-            "processor_id": document_ai_config.get("processor_id")
+        # Add apps_script_url to config for document_ai_helper
+        document_ai_config_with_url = {
+            **document_ai_config,
+            "apps_script_url": apps_script_url
         }
         
-        logger.info(f"📞 Calling Google Apps Script for Document AI analysis...")
+        # Call Document AI
+        doc_ai_result = await analyze_document_with_document_ai(
+            file_content=file_content,
+            filename=passport_file.filename,
+            content_type=passport_file.content_type or 'application/pdf',
+            document_ai_config=document_ai_config_with_url,
+            document_type='other'  # Passport is general document type
+        )
         
-        # Make request with timeout
-        try:
-            analysis_response = await asyncio.wait_for(
-                drive_helper.call_apps_script(apps_script_payload, timeout=90.0),
-                timeout=90.0
-            )
-        except asyncio.TimeoutError:
-            logger.error("❌ Document AI analysis timed out after 90 seconds")
+        if not doc_ai_result or not doc_ai_result.get("success"):
+            error_msg = doc_ai_result.get("message", "Unknown error") if doc_ai_result else "No response from Document AI"
+            logger.error(f"❌ Document AI failed: {error_msg}")
             return {
                 "success": False,
-                "message": "Document AI analysis timed out. The file may be too large or complex.",
-                "analysis": None
-            }
-        
-        if not analysis_response.get("success"):
-            logger.error(f"❌ Document AI failed: {analysis_response.get('message')}")
-            return {
-                "success": False,
-                "message": f"Document AI analysis failed: {analysis_response.get('message', 'Unknown error')}",
+                "message": f"Document AI analysis failed: {error_msg}",
                 "analysis": None
             }
         
         # Get summary from Document AI
-        document_summary = analysis_response.get("data", {}).get("summary", "")
+        document_summary = doc_ai_result.get("summary", "")
         
         if not document_summary:
             logger.warning("Document AI returned empty summary")
