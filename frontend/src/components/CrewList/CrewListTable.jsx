@@ -938,9 +938,14 @@ export const CrewListTable = ({
         place_of_birth_en: analysis.place_of_birth_en || autoFillEnglishField(vietnamesePlaceOfBirth),
         passport: analysis.passport_no || analysis.passport_number || analysis.passport,
         nationality: analysis.nationality || '',
-        passport_expiry_date: analysis.passport_expiry_date?.includes('/')
-          ? analysis.passport_expiry_date.split('/').reverse().join('-')
-          : analysis.passport_expiry_date?.split('T')[0] || '',
+        passport_expiry_date: (() => {
+          const expiryDate = analysis.expiry_date || analysis.passport_expiry_date;
+          if (!expiryDate) return '';
+          if (expiryDate.includes('/')) {
+            return expiryDate.split('/').reverse().join('-');
+          }
+          return expiryDate.split('T')[0];
+        })(),
         rank: '',
         seamen_book: '',
         status: crewStatus,
