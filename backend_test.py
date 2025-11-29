@@ -137,6 +137,50 @@ class BackendTester:
             self.log_test("AI Config GET", False, f"Exception: {str(e)}")
             return None
     
+    def find_brother_36_ship(self):
+        """Find BROTHER 36 ship as specified in review request"""
+        print("\n🚢 Finding BROTHER 36 ship...")
+        
+        try:
+            response = self.session.get(f"{BACKEND_URL}/ships")
+            
+            if response.status_code == 200:
+                ships = response.json()
+                
+                # Look for BROTHER 36 ship
+                brother_36_ship = None
+                for ship in ships:
+                    ship_name = ship.get("name", "").upper()
+                    if "BROTHER 36" in ship_name:
+                        brother_36_ship = ship
+                        break
+                
+                if brother_36_ship:
+                    ship_id = brother_36_ship.get("id")
+                    ship_name = brother_36_ship.get("name")
+                    self.log_test("Find BROTHER 36 Ship", True, 
+                                 f"Found ship: {ship_name} (ID: {ship_id})")
+                    return brother_36_ship
+                else:
+                    # Use first available ship if BROTHER 36 not found
+                    if ships:
+                        fallback_ship = ships[0]
+                        ship_name = fallback_ship.get("name")
+                        self.log_test("Find BROTHER 36 Ship", False, 
+                                     f"BROTHER 36 not found, using fallback: {ship_name}")
+                        return fallback_ship
+                    else:
+                        self.log_test("Find BROTHER 36 Ship", False, "No ships found")
+                        return None
+            else:
+                self.log_test("Find BROTHER 36 Ship", False, 
+                             f"Failed to get ships: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            self.log_test("Find BROTHER 36 Ship", False, f"Exception: {str(e)}")
+            return None
+    
     def test_ai_config_update(self):
         """Test PUT /api/ai-config endpoint"""
         print("\n🔧 Testing AI Configuration UPDATE...")
