@@ -3306,8 +3306,8 @@ class BackendTester:
             return False
 
     def run_all_tests(self):
-        """Run crew member creation 422 error debug tests"""
-        print("🚀 Starting Crew Member Creation 422 Error Debug Suite...")
+        """Run crew creation WITHOUT company_id test - Review Request"""
+        print("🚀 Starting Crew Creation WITHOUT company_id Test Suite...")
         print(f"Backend URL: {BACKEND_URL}")
         print(f"Test User: {TEST_USERNAME}")
         print("="*80)
@@ -3317,14 +3317,15 @@ class BackendTester:
             print("❌ Authentication failed. Cannot proceed with tests.")
             return
         
-        # Test crew creation with exact data from screenshot - Main focus
+        # Test crew creation WITHOUT company_id - Main focus from review request
         print("\n" + "="*80)
-        print("🎯 MAIN FOCUS: Crew Member Creation 422 Error Debug")
+        print("🎯 MAIN FOCUS: Crew Creation WITHOUT company_id - Auto-set from current_user")
         print("="*80)
         
-        self.test_crew_creation_422_debug()
+        self.test_crew_creation_without_company_id()
+        
+        # Additional verification test
         self.test_crew_creation_minimal_fields()
-        self.test_crew_creation_field_by_field()
         
         # Check backend logs for more details
         self.check_backend_logs()
