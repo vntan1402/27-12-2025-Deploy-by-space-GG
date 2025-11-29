@@ -594,7 +594,7 @@ export const AddCrewModal = ({
                           </div>
                           <div>
                             <p className="text-gray-600 font-medium">{language === 'vi' ? 'Hộ chiếu:' : 'Passport:'}</p>
-                            <p className="text-gray-900 font-semibold">{analyzedData.passport_number || 'N/A'}</p>
+                            <p className="text-gray-900 font-semibold">{analyzedData.passport_no || analyzedData.passport_number || 'N/A'}</p>
                           </div>
                         </>
                       )}
