@@ -1,33 +1,31 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Crew Member Creation 422 Error Debug
+Backend Testing Script for Google Drive Configuration Investigation
 
-Tests the Crew Member Creation Endpoint with exact data from screenshot:
+Tests Google Drive Configuration for Company - Compare with Audit Certificate:
+
+**Context**: Need to check if company has Google Drive configuration similar to how Audit Certificate module uses it.
+
+**Investigation Required**:
 1. Login with admin1/123456
-2. Test POST /api/crew endpoint with exact data structure from review request
-3. Debug the 422 Unprocessable Entity error
-4. Check backend logs for detailed error messages
-5. Identify which field or validation is causing the issue
+2. Check current user's company information
+3. Query companies collection to see google_drive_config structure
+4. Check if there's a separate collection for Google Drive config (like company_gdrive_config)
+5. Compare with how Audit Certificate accesses Google Drive config
 
-Test Data from Screenshot:
-- Full Name (Vietnamese): Nguyễn Văn Chiến
-- Full Name (English): Nguyen Van Chien
-- Date of Birth: 05-Feb-1988 (should be 1988-02-05)
-- Passport: C9960594
-- Passport Expiry Date: 10-Jan-2032 (should be 2032-01-10)
-- Place of Birth (Vietnamese): Thái Bình
-- Place of Birth (English): Thai Binh
-- Sex: M
-- Nationality: VNM
-- Status: Standby
-- Rank: CE, 2/E, C/O, Master...
-- Ship Sign On: - (dash for standby)
+**Specific Checks**:
+1. Does company document have `google_drive_config` field?
+2. What fields are in `google_drive_config`: `apps_script_url`, `folder_id`, `main_folder_id`?
+3. Is there a separate `company_gdrive_config` collection?
+4. How does Audit Certificate module fetch Google Drive config vs Crew module?
 
-Success Criteria:
-- ✅ Identify exact field causing 422 error
-- ✅ Get detailed error message from backend
-- ✅ Test with minimal required fields to isolate issue
-- ✅ Provide fix recommendations
+**Expected Information**:
+- Company ID
+- Current google_drive_config structure
+- Whether config exists for current company
+- What values are set/missing
+
+This will help identify what needs to be configured to fix the file upload error.
 """
 
 import requests
