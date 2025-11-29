@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Test Report Migration - Phase 2 Backend Testing
+Backend Testing Script for Crew Passport Analysis Endpoint Testing
 
-Tests the complete Test Report functionality as requested:
+Tests the Crew Passport Analysis Endpoint with comprehensive verification:
 1. Login with admin1/123456
-2. Test Report Analyze Endpoint (POST /api/test-reports/analyze-file)
-3. Test Report Upload Files Endpoint (POST /api/test-reports/{report_id}/upload-files)
-4. Valid Date Calculator Tests
-5. Integration Tests
-6. Error Handling
+2. Select ship "BROTHER 36" for testing
+3. Create a mock/test passport file (PDF or image) with sample passport data
+4. Test POST /api/crew/analyze-passport endpoint with the test file
+5. Verify the AI response is being parsed correctly by the parse_passport_response function
+6. Check backend logs for AI prompt usage, AI response format, parser execution, and final parsed data
 
 Success Criteria:
-- ✅ Analyze endpoint returns analysis with all expected fields
-- ✅ Valid date calculated correctly based on equipment type
-- ✅ issued_by normalized to standard abbreviation
-- ✅ Ship validation works (60% similarity threshold)
-- ✅ Upload endpoint successfully uploads files
-- ✅ Database updated with file IDs
-- ✅ Complete flow works end-to-end
+- ✅ Endpoint returns success: true
+- ✅ Analysis contains passport fields (full_name, passport_no, nationality, date_of_birth, issue_date, expiry_date, place_of_birth, sex)
+- ✅ Parser correctly maps V1 format to V2 format
+- ✅ No errors about missing fields or incorrect data
+- ✅ AI uses passport prompt (not certificate prompt)
 """
 
 import requests
