@@ -513,6 +513,57 @@ class BackendTester:
             self.log_test("Field Analysis - Exception", False, f"Exception: {str(e)}")
             return False
     
+    def check_backend_logs(self):
+        """Check backend logs for detailed error messages"""
+        print("\n📋 Checking Backend Logs for Error Details...")
+        
+        try:
+            import subprocess
+            
+            # Check supervisor backend logs
+            result = subprocess.run(
+                ["tail", "-n", "100", "/var/log/supervisor/backend.err.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0 and result.stdout.strip():
+                print(f"   📄 Backend Error Log (last 100 lines):")
+                print(f"   {'-'*60}")
+                for line in result.stdout.strip().split('\n')[-20:]:  # Show last 20 lines
+                    if line.strip():
+                        print(f"   {line}")
+                print(f"   {'-'*60}")
+                
+                self.log_test("Backend Logs - Error Log", True, "Backend error log checked")
+            else:
+                self.log_test("Backend Logs - Error Log", False, "No backend error log found or empty")
+            
+            # Also check stdout log
+            result = subprocess.run(
+                ["tail", "-n", "50", "/var/log/supervisor/backend.out.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0 and result.stdout.strip():
+                print(f"   📄 Backend Output Log (last 50 lines):")
+                print(f"   {'-'*60}")
+                for line in result.stdout.strip().split('\n')[-10:]:  # Show last 10 lines
+                    if line.strip():
+                        print(f"   {line}")
+                print(f"   {'-'*60}")
+                
+                self.log_test("Backend Logs - Output Log", True, "Backend output log checked")
+            else:
+                self.log_test("Backend Logs - Output Log", False, "No backend output log found or empty")
+                
+        except Exception as e:
+            self.log_test("Backend Logs - Check", False, f"Exception checking logs: {str(e)}")
+            print(f"   ❌ Could not check backend logs: {e}")
+    
     def test_passport_parser_function(self):
         """Test the parse_passport_response function mapping V1 to V2 format"""
         print("\n🔄 Testing Passport Parser Function...")
