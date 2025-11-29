@@ -1,21 +1,33 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Crew Passport Analysis Endpoint Testing
+Backend Testing Script for Crew Member Creation 422 Error Debug
 
-Tests the Crew Passport Analysis Endpoint with comprehensive verification:
+Tests the Crew Member Creation Endpoint with exact data from screenshot:
 1. Login with admin1/123456
-2. Select ship "BROTHER 36" for testing
-3. Create a mock/test passport file (PDF or image) with sample passport data
-4. Test POST /api/crew/analyze-passport endpoint with the test file
-5. Verify the AI response is being parsed correctly by the parse_passport_response function
-6. Check backend logs for AI prompt usage, AI response format, parser execution, and final parsed data
+2. Test POST /api/crew endpoint with exact data structure from review request
+3. Debug the 422 Unprocessable Entity error
+4. Check backend logs for detailed error messages
+5. Identify which field or validation is causing the issue
+
+Test Data from Screenshot:
+- Full Name (Vietnamese): Nguyễn Văn Chiến
+- Full Name (English): Nguyen Van Chien
+- Date of Birth: 05-Feb-1988 (should be 1988-02-05)
+- Passport: C9960594
+- Passport Expiry Date: 10-Jan-2032 (should be 2032-01-10)
+- Place of Birth (Vietnamese): Thái Bình
+- Place of Birth (English): Thai Binh
+- Sex: M
+- Nationality: VNM
+- Status: Standby
+- Rank: CE, 2/E, C/O, Master...
+- Ship Sign On: - (dash for standby)
 
 Success Criteria:
-- ✅ Endpoint returns success: true
-- ✅ Analysis contains passport fields (full_name, passport_no, nationality, date_of_birth, issue_date, expiry_date, place_of_birth, sex)
-- ✅ Parser correctly maps V1 format to V2 format
-- ✅ No errors about missing fields or incorrect data
-- ✅ AI uses passport prompt (not certificate prompt)
+- ✅ Identify exact field causing 422 error
+- ✅ Get detailed error message from backend
+- ✅ Test with minimal required fields to isolate issue
+- ✅ Provide fix recommendations
 """
 
 import requests
