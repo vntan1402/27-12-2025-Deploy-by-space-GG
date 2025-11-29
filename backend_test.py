@@ -232,122 +232,141 @@ class BackendTester:
             self.log_test("Mock Passport File - Error", False, f"Exception: {str(e)}")
             return None
     
-    def test_crew_creation_without_company_id(self):
-        """Test POST /api/crew endpoint WITHOUT company_id - Verify auto-set from current_user"""
-        print("\n👥 Testing Crew Creation WITHOUT company_id - Auto-set from current_user...")
+    def test_google_drive_config_investigation(self):
+        """Investigate Google Drive Configuration for Company - Compare with Audit Certificate"""
+        print("\n🔍 Testing Google Drive Configuration Investigation...")
         
         try:
-            # Get user's company_id from authentication for verification
-            expected_company_id = self.user_info.get("company")
-            if not expected_company_id:
-                self.log_test("Crew Creation - User Company ID", False, "No company_id found in user info")
+            # Get user's company information
+            company_id = self.user_info.get("company")
+            if not company_id:
+                self.log_test("GDrive Config - User Company ID", False, "No company_id found in user info")
                 return False
             
-            self.log_test("Crew Creation - User Company ID", True, f"Expected company_id: {expected_company_id}")
+            self.log_test("GDrive Config - User Company ID", True, f"Company ID: {company_id}")
             
-            # Generate unique passport number for testing
-            import time
-            unique_passport = f"TEST{int(time.time())}"[-8:]  # Use last 8 digits of timestamp
+            print(f"   📋 Current User Information:")
+            print(f"      Username: {self.user_info.get('username')}")
+            print(f"      Role: {self.user_info.get('role')}")
+            print(f"      Company ID: {company_id}")
+            print(f"      User ID: {self.user_info.get('id')}")
             
-            # Test data WITHOUT company_id - as per review request
-            crew_data = {
-                # NO company_id field - should be auto-set from current_user
-                "full_name": "VŨ Văn Trung",
-                "full_name_en": "VU Van Trung", 
-                "sex": "M",
-                "date_of_birth": "1989-10-10",
-                "place_of_birth": "Nam Định",
-                "place_of_birth_en": "Nam Dinh",
-                "passport": unique_passport,  # Use unique passport to avoid duplicates
-                "nationality": "VIETNAMESE",
-                "passport_expiry_date": "2029-02-13",
-                "status": "Standby",
-                "ship_sign_on": "-"
-            }
+            # 1. Check company document structure
+            print(f"\n   🏢 Checking Company Document Structure...")
+            company_response = self.session.get(f"{BACKEND_URL}/companies/{company_id}")
             
-            print(f"   📋 Test Data Structure (WITHOUT company_id):")
-            for key, value in crew_data.items():
-                print(f"      {key}: {value}")
-            
-            # Test: Crew creation WITHOUT company_id
-            response = self.session.post(f"{BACKEND_URL}/crew", json=crew_data)
-            
-            print(f"   📤 POST /api/crew (without company_id)")
-            print(f"   📊 Response Status: {response.status_code}")
-            
-            if response.status_code == 422:
-                # Parse validation error details
-                try:
-                    error_data = response.json()
-                    print(f"   ❌ 422 Validation Error Details:")
-                    print(f"      Response: {error_data}")
-                    
-                    # Check for FastAPI validation error format
-                    if "detail" in error_data:
-                        detail = error_data["detail"]
-                        if isinstance(detail, list):
-                            for error in detail:
-                                field = error.get("loc", ["unknown"])[-1]  # Get field name
-                                msg = error.get("msg", "Unknown error")
-                                error_type = error.get("type", "Unknown type")
-                                input_value = error.get("input", "N/A")
-                                
-                                print(f"      🔍 Field: {field}")
-                                print(f"         Error: {msg}")
-                                print(f"         Type: {error_type}")
-                                print(f"         Input: {input_value}")
-                        else:
-                            print(f"      Detail: {detail}")
-                    
-                    self.log_test("Crew Creation WITHOUT company_id - 422 Error", False, 
-                                 f"Still getting 422 error: {len(error_data.get('detail', []))} validation errors")
-                    
-                except Exception as e:
-                    print(f"   ❌ Could not parse 422 error: {e}")
-                    print(f"   Raw response: {response.text}")
-                    self.log_test("Crew Creation WITHOUT company_id - 422 Error Parsing", False, f"Could not parse error: {e}")
+            if company_response.status_code == 200:
+                company_data = company_response.json()
                 
-                return False
-                
-            elif response.status_code == 200:
-                response_data = response.json()
-                crew_id = response_data.get("id")
-                actual_company_id = response_data.get("company_id")
-                
-                print(f"   ✅ SUCCESS: Crew created with ID: {crew_id}")
-                print(f"   📋 Auto-set company_id: {actual_company_id}")
-                print(f"   📋 Expected company_id: {expected_company_id}")
-                
-                # Verify company_id was auto-set correctly
-                if actual_company_id == expected_company_id:
-                    self.log_test("Crew Creation WITHOUT company_id - Auto-set Verification", True, 
-                                 f"company_id correctly auto-set to: {actual_company_id}")
-                else:
-                    self.log_test("Crew Creation WITHOUT company_id - Auto-set Verification", False, 
-                                 f"company_id mismatch: expected {expected_company_id}, got {actual_company_id}")
-                
-                self.log_test("Crew Creation WITHOUT company_id - Success", True, 
-                             f"Crew created successfully without company_id: {crew_id}")
-                
-                # Clean up - delete the test crew
-                try:
-                    delete_response = self.session.delete(f"{BACKEND_URL}/crew/{crew_id}")
-                    if delete_response.status_code == 200:
-                        self.log_test("Crew Creation WITHOUT company_id - Cleanup", True, "Test crew deleted successfully")
+                print(f"   📋 Company Document Fields:")
+                for key, value in company_data.items():
+                    if key == "google_drive_config":
+                        print(f"      ✅ {key}: {value}")
                     else:
-                        self.log_test("Crew Creation WITHOUT company_id - Cleanup", False, f"Failed to delete test crew: {delete_response.status_code}")
-                except:
-                    pass  # Ignore cleanup errors
+                        print(f"      {key}: {value}")
                 
-                return True
+                # Check if company has google_drive_config field
+                has_gdrive_config = "google_drive_config" in company_data
+                gdrive_config_value = company_data.get("google_drive_config")
+                
+                self.log_test("GDrive Config - Company Document Field", has_gdrive_config, 
+                             f"google_drive_config field present: {has_gdrive_config}, Value: {gdrive_config_value}")
                 
             else:
-                self.log_test("Crew Creation WITHOUT company_id - Unexpected Status", False, 
-                             f"Unexpected status code: {response.status_code}, Response: {response.text}")
+                self.log_test("GDrive Config - Company Document", False, 
+                             f"Failed to get company: {company_response.status_code}")
                 return False
+            
+            # 2. Check separate company_gdrive_config collection
+            print(f"\n   📊 Checking company_gdrive_config Collection...")
+            gdrive_config_response = self.session.get(f"{BACKEND_URL}/companies/{company_id}/gdrive/config")
+            
+            if gdrive_config_response.status_code == 200:
+                gdrive_config_data = gdrive_config_response.json()
+                
+                print(f"   📋 company_gdrive_config Collection Response:")
+                print(f"      Success: {gdrive_config_data.get('success')}")
+                print(f"      Company Name: {gdrive_config_data.get('company_name')}")
+                
+                config = gdrive_config_data.get("config", {})
+                print(f"   📋 Google Drive Config Fields:")
+                for key, value in config.items():
+                    print(f"      {key}: {value}")
+                
+                # Check specific fields mentioned in review request
+                has_apps_script_url = bool(config.get("web_app_url"))
+                has_folder_id = bool(config.get("folder_id"))
+                has_main_folder_id = bool(config.get("main_folder_id"))  # Check if this field exists
+                
+                self.log_test("GDrive Config - Separate Collection", True, 
+                             f"company_gdrive_config collection exists with {len(config)} fields")
+                self.log_test("GDrive Config - Apps Script URL", has_apps_script_url, 
+                             f"web_app_url configured: {has_apps_script_url}")
+                self.log_test("GDrive Config - Folder ID", has_folder_id, 
+                             f"folder_id configured: {has_folder_id}")
+                self.log_test("GDrive Config - Main Folder ID", has_main_folder_id, 
+                             f"main_folder_id field exists: {has_main_folder_id}")
+                
+            else:
+                self.log_test("GDrive Config - Separate Collection", False, 
+                             f"Failed to get gdrive config: {gdrive_config_response.status_code}")
+            
+            # 3. Test how Audit Certificate accesses Google Drive config
+            print(f"\n   🔍 Testing Audit Certificate Google Drive Access...")
+            
+            # Check if there are any audit certificates to test with
+            audit_certs_response = self.session.get(f"{BACKEND_URL}/audit-certificates")
+            
+            if audit_certs_response.status_code == 200:
+                audit_certs = audit_certs_response.json()
+                
+                self.log_test("Audit Certificate - Access Test", True, 
+                             f"Found {len(audit_certs)} audit certificates")
+                
+                if audit_certs:
+                    # Check first audit certificate structure
+                    first_cert = audit_certs[0]
+                    print(f"   📋 Sample Audit Certificate Fields:")
+                    for key, value in first_cert.items():
+                        if "file" in key.lower() or "gdrive" in key.lower():
+                            print(f"      ✅ {key}: {value}")
+                        else:
+                            print(f"      {key}: {str(value)[:50]}...")
+                
+            else:
+                self.log_test("Audit Certificate - Access Test", False, 
+                             f"Failed to get audit certificates: {audit_certs_response.status_code}")
+            
+            # 4. Test GDrive service endpoint
+            print(f"\n   🔧 Testing GDrive Service Endpoint...")
+            gdrive_service_response = self.session.get(f"{BACKEND_URL}/gdrive/config")
+            
+            if gdrive_service_response.status_code == 200:
+                gdrive_service_data = gdrive_service_response.json()
+                
+                print(f"   📋 GDrive Service Response:")
+                for key, value in gdrive_service_data.items():
+                    print(f"      {key}: {value}")
+                
+                self.log_test("GDrive Service - Endpoint Access", True, 
+                             f"GDrive service accessible with {len(gdrive_service_data)} fields")
+                
+            else:
+                self.log_test("GDrive Service - Endpoint Access", False, 
+                             f"GDrive service failed: {gdrive_service_response.status_code}")
+            
+            # 5. Summary of findings
+            print(f"\n   📊 INVESTIGATION SUMMARY:")
+            print(f"      Company ID: {company_id}")
+            print(f"      Company Document google_drive_config: {gdrive_config_value}")
+            print(f"      Separate company_gdrive_config collection: {'EXISTS' if gdrive_config_response.status_code == 200 else 'NOT FOUND'}")
+            print(f"      Apps Script URL configured: {has_apps_script_url if 'has_apps_script_url' in locals() else 'UNKNOWN'}")
+            print(f"      Folder ID configured: {has_folder_id if 'has_folder_id' in locals() else 'UNKNOWN'}")
+            
+            return True
                 
         except Exception as e:
-            self.log_test("Crew Creation WITHOUT company_id - Exception", False, f"Exception: {str(e)}")
+            self.log_test("GDrive Config Investigation - Exception", False, f"Exception: {str(e)}")
             return False
     
     def test_crew_creation_minimal_fields(self):
