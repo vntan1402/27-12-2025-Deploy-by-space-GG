@@ -33,6 +33,83 @@
 
 ## 🗂️ TESTING RESULTS
 
+### Crew Creation WITHOUT company_id Field - Auto-set from current_user Testing
+
+**Status:** ✅ WORKING (Fix Verified Successfully)
+**Date:** 2025-01-17
+**Testing Agent:** testing_subagent
+
+**Test Coverage Completed:**
+- Authentication with admin1/123456 ✅
+- Crew Creation WITHOUT company_id in request body (POST /api/crew) ✅
+- Auto-set company_id verification from current_user ✅
+- Response validation (200 OK, not 422) ✅
+- Backend logs confirmation ✅
+
+**Success Rate:** 100.0% (8/8 tests passed)
+
+**✅ WORKING COMPONENTS:**
+
+1. **Crew Creation WITHOUT company_id (POST /api/crew):**
+   - ✅ Request body WITHOUT company_id field processed successfully
+   - ✅ Response status: 200 OK (not 422 Unprocessable Entity)
+   - ✅ Crew created successfully with auto-set company_id
+   - ✅ No validation errors detected
+
+2. **Auto-set company_id Logic:**
+   - ✅ Backend correctly auto-sets company_id from current_user.company
+   - ✅ Expected company_id: 0a6eaf96-0aaf-4793-89be-65d62cb7953c
+   - ✅ Actual company_id: 0a6eaf96-0aaf-4793-89be-65d62cb7953c (MATCH)
+   - ✅ CrewCreate model accepts optional company_id field
+   - ✅ CrewService.create_crew auto-sets company_id when not provided
+
+3. **Backend Logs Verification:**
+   - ✅ Crew creation logs show successful operations
+   - ✅ Date parsing working correctly: "date_of_birth: 1989-10-10 00:00:00+00:00"
+   - ✅ Audit trail creation working correctly
+   - ✅ No validation errors or exceptions in logs
+   - ✅ Company_id auto-assignment confirmed in service layer
+
+**📋 TEST DATA USED (WITHOUT company_id):**
+```json
+{
+  "full_name": "VŨ Văn Trung",
+  "full_name_en": "VU Van Trung",
+  "sex": "M",
+  "date_of_birth": "1989-10-10",
+  "place_of_birth": "Nam Định",
+  "place_of_birth_en": "Nam Dinh",
+  "passport": "64410773",
+  "nationality": "VIETNAMESE",
+  "passport_expiry_date": "2029-02-13",
+  "status": "Standby",
+  "ship_sign_on": "-"
+}
+```
+
+**✅ SUCCESSFUL OPERATIONS VERIFIED:**
+- Crew ID: 4f4d0abb-be3a-4c46-8c7c-7ae6009b64fa created successfully
+- All fields accepted and stored correctly
+- company_id auto-set to: 0a6eaf96-0aaf-4793-89be-65d62cb7953c
+- Cleanup (deletion) working properly
+- No 422 validation errors at any stage
+
+**🎯 CONCLUSION:**
+The crew creation fix is working correctly. The backend successfully:
+1. Made `company_id` optional in CrewCreate model
+2. Auto-sets company_id from current_user.company when not provided
+3. Returns 200 OK response (not 422 error)
+4. Creates crew with correct company_id assignment
+
+**REVIEW REQUEST REQUIREMENTS FULLY SATISFIED:**
+- ✅ Login with admin1/123456 successful
+- ✅ POST /api/crew WITHOUT company_id returns 200 OK (not 422)
+- ✅ Crew created successfully with auto-set company_id
+- ✅ Backend logs confirm company_id was auto-added
+- ✅ company_id matches current_user.company
+
+---
+
 ### Crew Member Creation 422 Error Debug Testing
 
 **Status:** ✅ NO BUG FOUND (Crew Creation Working Correctly)
