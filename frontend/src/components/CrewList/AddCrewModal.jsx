@@ -265,7 +265,7 @@ export const AddCrewModal = ({
       place_of_birth: vietnamesePlaceOfBirth,
       // Auto-fill English place: use AI result if available, otherwise remove diacritics from Vietnamese
       place_of_birth_en: analysis.place_of_birth_en || autoFillEnglishField(vietnamesePlaceOfBirth),
-      passport: analysis.passport_number || analysis.passport || prev.passport,
+      passport: analysis.passport_no || analysis.passport_number || analysis.passport || prev.passport,
       nationality: analysis.nationality || prev.nationality,
       passport_expiry_date: analysis.passport_expiry_date || analysis.expiry_date ? 
         (analysis.passport_expiry_date?.includes('/') ? 
