@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://marineai-cert.preview.emergentagent.com/api"
+API_URL="https://crew-passport-port.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
