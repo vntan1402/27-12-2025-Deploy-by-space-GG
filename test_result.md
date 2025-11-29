@@ -33,6 +33,116 @@
 
 ## 🗂️ TESTING RESULTS
 
+### Google Drive Configuration Investigation for Company
+
+**Status:** ✅ INVESTIGATION COMPLETED (Configuration Structure Identified)
+**Date:** 2025-01-17
+**Testing Agent:** testing_subagent
+
+**Test Coverage Completed:**
+- Authentication with admin1/123456 ✅
+- Current user's company information retrieval ✅
+- Company document structure analysis ✅
+- company_gdrive_config collection investigation ✅
+- Audit Certificate Google Drive access comparison ✅
+- GDrive service endpoint testing ✅
+
+**Success Rate:** 66.7% (6/9 tests passed)
+
+**✅ WORKING COMPONENTS:**
+
+1. **User Authentication & Company Access:**
+   - ✅ Login successful with admin1/123456
+   - ✅ Company ID retrieved: 0a6eaf96-0aaf-4793-89be-65d62cb7953c
+   - ✅ User role: admin with proper permissions
+
+2. **Company Document Structure:**
+   - ✅ Company document exists in companies collection
+   - ❌ **CRITICAL FINDING**: Company document does NOT have `google_drive_config` field
+   - ✅ Company has standard fields: name_vn, name_en, address_vn, address_en, tax_id, etc.
+
+3. **Separate company_gdrive_config Collection:**
+   - ✅ **CONFIRMED**: Separate `company_gdrive_config` collection EXISTS
+   - ✅ Configuration document found for company
+   - ✅ Contains required fields: web_app_url, folder_id, auth_method
+   - ❌ **MISSING**: No `main_folder_id` field (uses `folder_id` instead)
+
+4. **Google Drive Configuration Fields:**
+   - ✅ `web_app_url` (Apps Script URL): https://script.google.com/macros/s/AKfycbxLvaVorp8afBDAfMN4531hk7vfnHCx66mib9-ivUJKwUGGSvhKs5qGk05nqwDERn2H/exec
+   - ✅ `folder_id`: 1mqi-BCcUXc_wN9QAUqnwik3KWTKZjelG
+   - ✅ `auth_method`: apps_script
+   - ✅ Additional fields: service_account_email, project_id, last_tested, test_result
+
+5. **Audit Certificate Google Drive Access:**
+   - ✅ Audit certificates accessible via GET /api/audit-certificates
+   - ✅ Found 5 audit certificates with Google Drive integration
+   - ✅ Audit certificates have file_id and file_name fields populated
+   - ✅ Sample audit certificate shows proper Google Drive file integration
+
+**❌ ISSUES IDENTIFIED:**
+
+1. **GDrive Service Endpoint Error:**
+   - ❌ GET /api/gdrive/config returns 500 Internal Server Error
+   - **Root Cause**: Pydantic validation error in GDriveConfigResponse model
+   - **Error Details**: Missing required fields: id, company, created_at
+   - **Impact**: GDrive service cannot properly return configuration
+
+2. **Field Name Differences:**
+   - ❌ Review request mentions `apps_script_url` but actual field is `web_app_url`
+   - ❌ Review request mentions `main_folder_id` but actual field is `folder_id`
+
+**🔍 CONFIGURATION STRUCTURE COMPARISON:**
+
+**Audit Certificate Module Access Pattern:**
+- Uses `company_gdrive_config` collection
+- Accesses via `GDriveConfigRepository.get_by_company(company_id)`
+- Fields: web_app_url, folder_id, auth_method
+
+**Expected vs Actual Field Names:**
+- ✅ `apps_script_url` → `web_app_url` (different name, same purpose)
+- ✅ `folder_id` → `folder_id` (exact match)
+- ❌ `main_folder_id` → Not present (uses `folder_id` instead)
+
+**📋 DATABASE STRUCTURE FINDINGS:**
+
+**companies collection:**
+```json
+{
+  "id": "0a6eaf96-0aaf-4793-89be-65d62cb7953c",
+  "name_vn": "Công ty TNHH MTV Phát Triển Công nghệ Hàng Hải",
+  "name_en": "Maritime Technology Development Co., Ltd.",
+  // NO google_drive_config field
+}
+```
+
+**company_gdrive_config collection:**
+```json
+{
+  "company_id": "0a6eaf96-0aaf-4793-89be-65d62cb7953c",
+  "web_app_url": "https://script.google.com/macros/s/AKfycbx.../exec",
+  "folder_id": "1mqi-BCcUXc_wN9QAUqnwik3KWTKZjelG",
+  "auth_method": "apps_script",
+  "service_account_email": "",
+  "project_id": "",
+  "last_tested": "2025-11-15T11:41:31.496788+00:00",
+  "test_result": "success"
+}
+```
+
+**🎯 CONCLUSION:**
+
+The Google Drive configuration investigation reveals that:
+
+1. **Configuration EXISTS**: Company has Google Drive properly configured in separate `company_gdrive_config` collection
+2. **No Embedded Config**: Company document does NOT have embedded `google_drive_config` field
+3. **Audit Certificate Pattern**: Uses same `company_gdrive_config` collection as Audit Certificate module
+4. **Field Mapping**: `web_app_url` = Apps Script URL, `folder_id` = Main folder ID
+5. **Service Issue**: GDrive service endpoint has Pydantic validation error preventing proper access
+
+**RECOMMENDATION**: The file upload error is likely NOT due to missing Google Drive configuration, as the configuration exists and is properly set up. The issue may be in the GDrive service endpoint validation or in how the Crew module accesses the configuration compared to Audit Certificate module.
+
+---
+
 ### Crew Creation WITHOUT company_id Field - Auto-set from current_user Testing
 
 **Status:** ✅ WORKING (Fix Verified Successfully)
