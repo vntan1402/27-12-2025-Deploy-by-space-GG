@@ -936,7 +936,7 @@ export const CrewListTable = ({
           : analysis.date_of_birth?.split('T')[0],
         place_of_birth: vietnamesePlaceOfBirth,
         place_of_birth_en: analysis.place_of_birth_en || autoFillEnglishField(vietnamesePlaceOfBirth),
-        passport: analysis.passport_number || analysis.passport,
+        passport: analysis.passport_no || analysis.passport_number || analysis.passport,
         nationality: analysis.nationality || '',
         passport_expiry_date: analysis.passport_expiry_date?.includes('/')
           ? analysis.passport_expiry_date.split('/').reverse().join('-')
