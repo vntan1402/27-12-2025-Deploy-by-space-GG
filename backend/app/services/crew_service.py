@@ -44,8 +44,13 @@ class CrewService:
     @staticmethod
     async def create_crew(crew_data: CrewCreate, current_user: UserResponse) -> CrewResponse:
         """Create new crew member with comprehensive date handling"""
+        # Auto-set company_id from current_user if not provided
+        company_id = crew_data.company_id or current_user.company
+        if not company_id:
+            raise HTTPException(status_code=400, detail="Company ID is required")
+        
         # Check if passport exists for this company
-        existing = await CrewRepository.find_by_passport(crew_data.passport, crew_data.company_id)
+        existing = await CrewRepository.find_by_passport(crew_data.passport, company_id)
         if existing:
             raise HTTPException(
                 status_code=400, 
@@ -55,6 +60,7 @@ class CrewService:
         # Create crew document
         crew_dict = crew_data.dict()
         crew_dict["id"] = str(uuid.uuid4())
+        crew_dict["company_id"] = company_id  # Ensure company_id is set
         crew_dict["created_at"] = datetime.now(timezone.utc)
         crew_dict["created_by"] = current_user.username
         
