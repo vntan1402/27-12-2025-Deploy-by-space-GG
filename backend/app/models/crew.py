@@ -24,7 +24,7 @@ class CrewBase(BaseModel):
     summary_file_id: Optional[str] = None
 
 class CrewCreate(CrewBase):
-    company_id: str
+    company_id: Optional[str] = None  # Will be set automatically from current_user if not provided
 
 class CrewUpdate(BaseModel):
     full_name: Optional[str] = None
