@@ -247,6 +247,10 @@ class BackendTester:
             
             self.log_test("Crew Creation - User Company ID", True, f"Expected company_id: {expected_company_id}")
             
+            # Generate unique passport number for testing
+            import time
+            unique_passport = f"TEST{int(time.time())}"[-8:]  # Use last 8 digits of timestamp
+            
             # Test data WITHOUT company_id - as per review request
             crew_data = {
                 # NO company_id field - should be auto-set from current_user
@@ -256,7 +260,7 @@ class BackendTester:
                 "date_of_birth": "1989-10-10",
                 "place_of_birth": "Nam Định",
                 "place_of_birth_en": "Nam Dinh",
-                "passport": "C6667811",
+                "passport": unique_passport,  # Use unique passport to avoid duplicates
                 "nationality": "VIETNAMESE",
                 "passport_expiry_date": "2029-02-13",
                 "status": "Standby",
