@@ -181,48 +181,37 @@ class BackendTester:
             self.log_test("Find BROTHER 36 Ship", False, f"Exception: {str(e)}")
             return None
     
-    def test_ai_config_update(self):
-        """Test PUT /api/ai-config endpoint"""
-        print("\n🔧 Testing AI Configuration UPDATE...")
+    def create_mock_passport_file(self):
+        """Create a mock passport file for testing"""
+        print("\n📄 Creating mock passport file...")
         
         try:
-            # First get current config
-            current_config = self.test_ai_config_get()
-            if not current_config:
-                self.log_test("AI Config UPDATE - Prerequisites", False, "Could not get current config")
-                return False
-            
-            # Test update with new settings
-            update_data = {
-                "provider": "google",
-                "model": "gemini-2.0-flash",
-                "api_key": "test-key-update",
-                "temperature": 0.7,
-                "max_tokens": 4000
-            }
-            
-            response = self.session.put(f"{BACKEND_URL}/ai-config", json=update_data)
+            # Download test passport image
+            response = requests.get(TEST_PASSPORT_URL, timeout=30)
             
             if response.status_code == 200:
-                data = response.json()
-                
-                # Verify update
-                if (data.get("provider") == update_data["provider"] and 
-                    data.get("model") == update_data["model"]):
-                    self.log_test("AI Config UPDATE", True, 
-                                 f"Updated to Provider: {data.get('provider')}, Model: {data.get('model')}")
-                    return True
-                else:
-                    self.log_test("AI Config UPDATE", False, "Update not reflected in response")
-                    return False
+                passport_content = response.content
+                self.log_test("Mock Passport File - Download", True, 
+                             f"Downloaded passport file: {len(passport_content)} bytes")
+                return passport_content
             else:
-                self.log_test("AI Config UPDATE", False, 
-                             f"Status: {response.status_code}, Response: {response.text}")
-                return False
+                self.log_test("Mock Passport File - Download", False, 
+                             f"Failed to download: {response.status_code}")
+                
+                # Create a simple mock image file as fallback
+                mock_content = b"Mock passport image content for testing"
+                self.log_test("Mock Passport File - Fallback", True, 
+                             f"Created mock content: {len(mock_content)} bytes")
+                return mock_content
                 
         except Exception as e:
-            self.log_test("AI Config UPDATE", False, f"Exception: {str(e)}")
-            return False
+            self.log_test("Mock Passport File - Download", False, f"Exception: {str(e)}")
+            
+            # Create a simple mock as fallback
+            mock_content = b"Mock passport image content for testing"
+            self.log_test("Mock Passport File - Fallback", True, 
+                         f"Created mock content: {len(mock_content)} bytes")
+            return mock_content
     
     def test_test_report_analyze_file(self):
         """Test POST /api/test-reports/analyze-file endpoint"""
