@@ -909,7 +909,7 @@ export const CrewListTable = ({
       const analysis = analysisData.analysis;
       
       // Validate required fields
-      if (!analysis.full_name || !analysis.passport_number || !analysis.date_of_birth) {
+      if (!analysis.full_name || !(analysis.passport_no || analysis.passport_number) || !analysis.date_of_birth) {
         return {
           success: false,
           filename: file.name,
