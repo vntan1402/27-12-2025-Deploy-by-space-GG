@@ -186,7 +186,16 @@ class BackendTester:
         print("\n📄 Creating mock passport file...")
         
         try:
-            # Download test passport image
+            # First try to use local passport file
+            local_passport_path = "/app/Ho_chieu_pho_thong.jpg"
+            if os.path.exists(local_passport_path):
+                with open(local_passport_path, 'rb') as f:
+                    passport_content = f.read()
+                self.log_test("Mock Passport File - Local File", True, 
+                             f"Using local passport file: {len(passport_content)} bytes")
+                return passport_content
+            
+            # Fallback: Download test passport image
             response = requests.get(TEST_PASSPORT_URL, timeout=30)
             
             if response.status_code == 200:
@@ -198,20 +207,20 @@ class BackendTester:
                 self.log_test("Mock Passport File - Download", False, 
                              f"Failed to download: {response.status_code}")
                 
-                # Create a simple mock image file as fallback
-                mock_content = b"Mock passport image content for testing"
-                self.log_test("Mock Passport File - Fallback", True, 
-                             f"Created mock content: {len(mock_content)} bytes")
-                return mock_content
+                # Try test_passport.pdf as fallback
+                test_pdf_path = "/app/test_passport.pdf"
+                if os.path.exists(test_pdf_path):
+                    with open(test_pdf_path, 'rb') as f:
+                        passport_content = f.read()
+                    self.log_test("Mock Passport File - PDF Fallback", True, 
+                                 f"Using test PDF: {len(passport_content)} bytes")
+                    return passport_content
+                
+                return None
                 
         except Exception as e:
-            self.log_test("Mock Passport File - Download", False, f"Exception: {str(e)}")
-            
-            # Create a simple mock as fallback
-            mock_content = b"Mock passport image content for testing"
-            self.log_test("Mock Passport File - Fallback", True, 
-                         f"Created mock content: {len(mock_content)} bytes")
-            return mock_content
+            self.log_test("Mock Passport File - Error", False, f"Exception: {str(e)}")
+            return None
     
     def test_crew_passport_analyze_endpoint(self):
         """Test POST /api/crew/analyze-passport endpoint - Main Review Request"""
