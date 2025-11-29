@@ -234,143 +234,283 @@ class BackendTester:
             self.log_test("Mock Passport File - Error", False, f"Exception: {str(e)}")
             return None
     
-    def test_crew_passport_analyze_endpoint(self):
-        """Test POST /api/crew/analyze-passport endpoint - Main Review Request"""
-        print("\n🛂 Testing Crew Passport Analysis Endpoint...")
+    def test_crew_creation_422_debug(self):
+        """Test POST /api/crew endpoint with exact data from screenshot - Debug 422 Error"""
+        print("\n👥 Testing Crew Member Creation - 422 Error Debug...")
         
         try:
-            # Step 1: Find BROTHER 36 ship
-            brother_36_ship = self.find_brother_36_ship()
-            if not brother_36_ship:
-                self.log_test("Crew Passport Analysis - Ship Selection", False, "Could not find test ship")
+            # Get user's company_id from authentication
+            company_id = self.user_info.get("company")
+            if not company_id:
+                self.log_test("Crew Creation - Company ID", False, "No company_id found in user info")
                 return False
             
-            ship_name = brother_36_ship.get("name")
+            self.log_test("Crew Creation - Company ID", True, f"Using company_id: {company_id}")
             
-            # Step 2: Create mock passport file
-            passport_content = self.create_mock_passport_file()
-            if not passport_content:
-                self.log_test("Crew Passport Analysis - File Preparation", False, "Could not create passport file")
+            # Test data from screenshot - EXACT structure expected by CrewCreate model
+            crew_data = {
+                "company_id": company_id,
+                "full_name": "Nguyễn Văn Chiến",
+                "full_name_en": "Nguyen Van Chien",
+                "sex": "M",
+                "date_of_birth": "1988-02-05",  # Converted from 05-Feb-1988
+                "place_of_birth": "Thái Bình",
+                "place_of_birth_en": "Thai Binh",
+                "passport": "C9960594",
+                "nationality": "VNM",
+                "passport_expiry_date": "2032-01-10",  # Converted from 10-Jan-2032
+                "rank": "CE, 2/E, C/O, Master...",
+                "seamen_book": None,
+                "status": "Standby",
+                "ship_sign_on": "-",
+                "place_sign_on": None,
+                "date_sign_on": None,
+                "date_sign_off": None
+            }
+            
+            print(f"   📋 Test Data Structure:")
+            for key, value in crew_data.items():
+                print(f"      {key}: {value}")
+            
+            # Test 1: Full data from screenshot
+            response = self.session.post(f"{BACKEND_URL}/crew", json=crew_data)
+            
+            print(f"   📤 POST /api/crew")
+            print(f"   📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 422:
+                # Parse validation error details
+                try:
+                    error_data = response.json()
+                    print(f"   ❌ 422 Validation Error Details:")
+                    print(f"      Response: {error_data}")
+                    
+                    # Check for FastAPI validation error format
+                    if "detail" in error_data:
+                        detail = error_data["detail"]
+                        if isinstance(detail, list):
+                            for error in detail:
+                                field = error.get("loc", ["unknown"])[-1]  # Get field name
+                                msg = error.get("msg", "Unknown error")
+                                error_type = error.get("type", "Unknown type")
+                                input_value = error.get("input", "N/A")
+                                
+                                print(f"      🔍 Field: {field}")
+                                print(f"         Error: {msg}")
+                                print(f"         Type: {error_type}")
+                                print(f"         Input: {input_value}")
+                        else:
+                            print(f"      Detail: {detail}")
+                    
+                    self.log_test("Crew Creation - 422 Error Analysis", True, 
+                                 f"422 error captured and analyzed: {len(error_data.get('detail', []))} validation errors")
+                    
+                except Exception as e:
+                    print(f"   ❌ Could not parse 422 error: {e}")
+                    print(f"   Raw response: {response.text}")
+                    self.log_test("Crew Creation - 422 Error Parsing", False, f"Could not parse error: {e}")
+                
                 return False
-            
-            # Step 3: Test the analyze-passport endpoint
-            files = {
-                "passport_file": ("test_passport.jpg", passport_content, "image/jpeg")
-            }
-            data = {
-                "ship_name": ship_name
-            }
-            
-            response = self.session.post(f"{BACKEND_URL}/crew/analyze-passport", 
-                                       files=files, data=data)
-            
-            if response.status_code == 200:
+                
+            elif response.status_code == 200:
                 response_data = response.json()
+                crew_id = response_data.get("id")
                 
-                # Check basic response structure
-                expected_fields = ["success", "message"]
-                missing_fields = [field for field in expected_fields if field not in response_data]
+                self.log_test("Crew Creation - Full Data Success", True, 
+                             f"Crew created successfully: {crew_id}")
                 
-                if not missing_fields:
-                    success = response_data.get("success", False)
-                    message = response_data.get("message", "")
-                    
-                    self.log_test("Crew Passport Analysis - Response Structure", True, 
-                                 f"Success: {success}, Message: {message}")
-                    
-                    if success:
-                        analysis = response_data.get("analysis", {})
-                        
-                        if analysis:
-                            # Check for expected passport fields (V2 format)
-                            expected_passport_fields = [
-                                "full_name", "passport_no", "nationality", 
-                                "date_of_birth", "issue_date", "expiry_date", 
-                                "place_of_birth", "sex"
-                            ]
-                            
-                            found_fields = []
-                            field_values = {}
-                            
-                            for field in expected_passport_fields:
-                                value = analysis.get(field)
-                                if value and str(value).strip():
-                                    found_fields.append(field)
-                                    field_values[field] = value
-                            
-                            self.log_test("Crew Passport Analysis - Field Extraction", True, 
-                                         f"Extracted {len(found_fields)}/{len(expected_passport_fields)} fields: {found_fields}")
-                            
-                            # Log extracted values for verification
-                            if field_values:
-                                print(f"   📋 Extracted Passport Data:")
-                                for field, value in field_values.items():
-                                    print(f"      {field}: {value}")
-                            
-                            # Test specific requirements from review request
-                            
-                            # 1. Verify parser correctly maps V1 to V2 format
-                            if "full_name" in found_fields:
-                                self.log_test("Crew Passport Analysis - V1 to V2 Mapping", True, 
-                                             f"Full name mapped correctly: {field_values.get('full_name')}")
-                            
-                            # 2. Verify passport number extraction
-                            if "passport_no" in found_fields:
-                                self.log_test("Crew Passport Analysis - Passport Number", True, 
-                                             f"Passport number extracted: {field_values.get('passport_no')}")
-                            
-                            # 3. Verify date fields
-                            date_fields = ["date_of_birth", "issue_date", "expiry_date"]
-                            extracted_dates = [field for field in date_fields if field in found_fields]
-                            
-                            if extracted_dates:
-                                self.log_test("Crew Passport Analysis - Date Extraction", True, 
-                                             f"Date fields extracted: {extracted_dates}")
-                            
-                            # 4. Check for file content storage (for later upload)
-                            if "_file_content" in analysis:
-                                self.log_test("Crew Passport Analysis - File Content Storage", True, 
-                                             "File content stored for later upload")
-                            
-                            # 5. Check for summary text from Document AI
-                            if "_summary_text" in analysis:
-                                summary_length = len(analysis.get("_summary_text", ""))
-                                self.log_test("Crew Passport Analysis - Document AI Summary", True, 
-                                             f"Summary text extracted: {summary_length} characters")
-                            
-                            # Overall success criteria
-                            if len(found_fields) >= 4:  # At least 4 out of 8 fields
-                                self.log_test("Crew Passport Analysis - Overall Success", True, 
-                                             f"Successfully extracted {len(found_fields)} passport fields")
-                                return True
-                            else:
-                                self.log_test("Crew Passport Analysis - Overall Success", False, 
-                                             f"Only extracted {len(found_fields)} fields, expected at least 4")
-                                return False
-                        else:
-                            self.log_test("Crew Passport Analysis - Analysis Data", False, 
-                                         "No analysis data in response")
-                            return False
+                # Clean up - delete the test crew
+                try:
+                    delete_response = self.session.delete(f"{BACKEND_URL}/crew/{crew_id}")
+                    if delete_response.status_code == 200:
+                        self.log_test("Crew Creation - Cleanup", True, "Test crew deleted successfully")
                     else:
-                        # Check for specific error types
-                        if "duplicate" in response_data:
-                            self.log_test("Crew Passport Analysis - Duplicate Detection", True, 
-                                         f"Duplicate passport detected: {response_data.get('message')}")
-                        else:
-                            self.log_test("Crew Passport Analysis - Processing", False, 
-                                         f"Analysis failed: {message}")
-                        return False
-                else:
-                    self.log_test("Crew Passport Analysis - Response Structure", False, 
-                                 f"Missing fields: {missing_fields}")
-                    return False
+                        self.log_test("Crew Creation - Cleanup", False, f"Failed to delete test crew: {delete_response.status_code}")
+                except:
+                    pass  # Ignore cleanup errors
+                
+                return True
+                
             else:
-                self.log_test("Crew Passport Analysis - Endpoint Access", False, 
+                self.log_test("Crew Creation - Unexpected Status", False, 
+                             f"Unexpected status code: {response.status_code}, Response: {response.text}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Crew Creation - Exception", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_crew_creation_minimal_fields(self):
+        """Test crew creation with minimal required fields to isolate the issue"""
+        print("\n👥 Testing Crew Creation - Minimal Required Fields...")
+        
+        try:
+            company_id = self.user_info.get("company")
+            if not company_id:
+                self.log_test("Minimal Crew Creation - Company ID", False, "No company_id found")
+                return False
+            
+            # Test with only absolutely required fields
+            minimal_data = {
+                "company_id": company_id,
+                "full_name": "Test User",
+                "sex": "M",
+                "date_of_birth": "1990-01-01",
+                "place_of_birth": "Test City",
+                "passport": "TEST123456",
+                "status": "Standby"
+            }
+            
+            print(f"   📋 Minimal Test Data:")
+            for key, value in minimal_data.items():
+                print(f"      {key}: {value}")
+            
+            response = self.session.post(f"{BACKEND_URL}/crew", json=minimal_data)
+            
+            print(f"   📤 POST /api/crew (minimal)")
+            print(f"   📊 Response Status: {response.status_code}")
+            
+            if response.status_code == 422:
+                try:
+                    error_data = response.json()
+                    print(f"   ❌ 422 Error with minimal data:")
+                    print(f"      Response: {error_data}")
+                    
+                    self.log_test("Minimal Crew Creation - 422 Error", True, 
+                                 "422 error even with minimal fields - indicates model validation issue")
+                except:
+                    print(f"   Raw response: {response.text}")
+                    self.log_test("Minimal Crew Creation - 422 Error", False, "Could not parse minimal error")
+                
+                return False
+                
+            elif response.status_code == 200:
+                response_data = response.json()
+                crew_id = response_data.get("id")
+                
+                self.log_test("Minimal Crew Creation - Success", True, 
+                             f"Minimal crew created: {crew_id}")
+                
+                # Clean up
+                try:
+                    self.session.delete(f"{BACKEND_URL}/crew/{crew_id}")
+                except:
+                    pass
+                
+                return True
+                
+            else:
+                self.log_test("Minimal Crew Creation - Unexpected Status", False, 
                              f"Status: {response.status_code}, Response: {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_test("Crew Passport Analysis", False, f"Exception: {str(e)}")
+            self.log_test("Minimal Crew Creation - Exception", False, f"Exception: {str(e)}")
+            return False
+    
+    def test_crew_creation_field_by_field(self):
+        """Test crew creation by adding fields one by one to identify problematic field"""
+        print("\n👥 Testing Crew Creation - Field by Field Analysis...")
+        
+        try:
+            company_id = self.user_info.get("company")
+            if not company_id:
+                return False
+            
+            # Base required fields
+            base_data = {
+                "company_id": company_id,
+                "full_name": "Nguyễn Văn Chiến",
+                "sex": "M",
+                "date_of_birth": "1988-02-05",
+                "place_of_birth": "Thái Bình",
+                "passport": "C9960594",
+                "status": "Standby"
+            }
+            
+            # Additional fields to test one by one
+            additional_fields = {
+                "full_name_en": "Nguyen Van Chien",
+                "place_of_birth_en": "Thai Binh",
+                "nationality": "VNM",
+                "passport_expiry_date": "2032-01-10",
+                "rank": "CE, 2/E, C/O, Master...",
+                "seamen_book": None,
+                "ship_sign_on": "-",
+                "place_sign_on": None,
+                "date_sign_on": None,
+                "date_sign_off": None
+            }
+            
+            # Test base data first
+            print(f"   🧪 Testing base required fields...")
+            response = self.session.post(f"{BACKEND_URL}/crew", json=base_data)
+            
+            if response.status_code == 200:
+                # Base works, clean up
+                crew_id = response.json().get("id")
+                try:
+                    self.session.delete(f"{BACKEND_URL}/crew/{crew_id}")
+                except:
+                    pass
+                
+                self.log_test("Field Analysis - Base Fields", True, "Base required fields work")
+                
+                # Now test adding each additional field
+                for field_name, field_value in additional_fields.items():
+                    test_data = base_data.copy()
+                    test_data[field_name] = field_value
+                    
+                    print(f"   🧪 Testing with added field: {field_name} = {field_value}")
+                    
+                    response = self.session.post(f"{BACKEND_URL}/crew", json=test_data)
+                    
+                    if response.status_code == 422:
+                        try:
+                            error_data = response.json()
+                            self.log_test(f"Field Analysis - {field_name}", False, 
+                                         f"Field {field_name} causes 422 error: {error_data}")
+                            print(f"      ❌ PROBLEMATIC FIELD FOUND: {field_name}")
+                            print(f"      Error details: {error_data}")
+                            return False
+                        except:
+                            self.log_test(f"Field Analysis - {field_name}", False, 
+                                         f"Field {field_name} causes 422 error (unparseable)")
+                            return False
+                    elif response.status_code == 200:
+                        # Success, clean up
+                        crew_id = response.json().get("id")
+                        try:
+                            self.session.delete(f"{BACKEND_URL}/crew/{crew_id}")
+                        except:
+                            pass
+                        
+                        self.log_test(f"Field Analysis - {field_name}", True, 
+                                     f"Field {field_name} works correctly")
+                    else:
+                        self.log_test(f"Field Analysis - {field_name}", False, 
+                                     f"Field {field_name} unexpected status: {response.status_code}")
+                
+                self.log_test("Field Analysis - Complete", True, "All fields tested individually")
+                return True
+                
+            else:
+                # Base fields don't work
+                if response.status_code == 422:
+                    try:
+                        error_data = response.json()
+                        self.log_test("Field Analysis - Base Fields", False, 
+                                     f"Base fields cause 422: {error_data}")
+                    except:
+                        self.log_test("Field Analysis - Base Fields", False, 
+                                     f"Base fields cause 422 (unparseable): {response.text}")
+                else:
+                    self.log_test("Field Analysis - Base Fields", False, 
+                                 f"Base fields unexpected status: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            self.log_test("Field Analysis - Exception", False, f"Exception: {str(e)}")
             return False
     
     def test_passport_parser_function(self):
