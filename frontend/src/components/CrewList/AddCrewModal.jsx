@@ -267,12 +267,16 @@ export const AddCrewModal = ({
       place_of_birth_en: analysis.place_of_birth_en || autoFillEnglishField(vietnamesePlaceOfBirth),
       passport: analysis.passport_no || analysis.passport_number || analysis.passport || prev.passport,
       nationality: analysis.nationality || prev.nationality,
-      passport_expiry_date: analysis.passport_expiry_date || analysis.expiry_date ? 
-        (analysis.passport_expiry_date?.includes('/') ? 
-          // Convert DD/MM/YYYY to YYYY-MM-DD
-          (analysis.passport_expiry_date || analysis.expiry_date).split('/').reverse().join('-') : 
-          (analysis.passport_expiry_date || analysis.expiry_date).split('T')[0]
-        ) : prev.passport_expiry_date
+      passport_expiry_date: (() => {
+        const expiryDate = analysis.expiry_date || analysis.passport_expiry_date;
+        if (!expiryDate) return prev.passport_expiry_date;
+        // Convert DD/MM/YYYY to YYYY-MM-DD
+        if (expiryDate.includes('/')) {
+          return expiryDate.split('/').reverse().join('-');
+        }
+        // Handle ISO format
+        return expiryDate.split('T')[0];
+      })()
     }));
     
     // Note: Success message is now shown in the AI Analysis section, not as toast
