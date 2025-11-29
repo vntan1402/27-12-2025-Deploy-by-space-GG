@@ -234,48 +234,43 @@ class BackendTester:
             self.log_test("Mock Passport File - Error", False, f"Exception: {str(e)}")
             return None
     
-    def test_crew_creation_422_debug(self):
-        """Test POST /api/crew endpoint with exact data from screenshot - Debug 422 Error"""
-        print("\n👥 Testing Crew Member Creation - 422 Error Debug...")
+    def test_crew_creation_without_company_id(self):
+        """Test POST /api/crew endpoint WITHOUT company_id - Verify auto-set from current_user"""
+        print("\n👥 Testing Crew Creation WITHOUT company_id - Auto-set from current_user...")
         
         try:
-            # Get user's company_id from authentication
-            company_id = self.user_info.get("company")
-            if not company_id:
-                self.log_test("Crew Creation - Company ID", False, "No company_id found in user info")
+            # Get user's company_id from authentication for verification
+            expected_company_id = self.user_info.get("company")
+            if not expected_company_id:
+                self.log_test("Crew Creation - User Company ID", False, "No company_id found in user info")
                 return False
             
-            self.log_test("Crew Creation - Company ID", True, f"Using company_id: {company_id}")
+            self.log_test("Crew Creation - User Company ID", True, f"Expected company_id: {expected_company_id}")
             
-            # Test data from screenshot - EXACT structure expected by CrewCreate model
+            # Test data WITHOUT company_id - as per review request
             crew_data = {
-                "company_id": company_id,
-                "full_name": "Nguyễn Văn Chiến",
-                "full_name_en": "Nguyen Van Chien",
+                # NO company_id field - should be auto-set from current_user
+                "full_name": "VŨ Văn Trung",
+                "full_name_en": "VU Van Trung", 
                 "sex": "M",
-                "date_of_birth": "1988-02-05",  # Converted from 05-Feb-1988
-                "place_of_birth": "Thái Bình",
-                "place_of_birth_en": "Thai Binh",
-                "passport": "C9960594",
-                "nationality": "VNM",
-                "passport_expiry_date": "2032-01-10",  # Converted from 10-Jan-2032
-                "rank": "CE, 2/E, C/O, Master...",
-                "seamen_book": None,
+                "date_of_birth": "1989-10-10",
+                "place_of_birth": "Nam Định",
+                "place_of_birth_en": "Nam Dinh",
+                "passport": "C6667811",
+                "nationality": "VIETNAMESE",
+                "passport_expiry_date": "2029-02-13",
                 "status": "Standby",
-                "ship_sign_on": "-",
-                "place_sign_on": None,
-                "date_sign_on": None,
-                "date_sign_off": None
+                "ship_sign_on": "-"
             }
             
-            print(f"   📋 Test Data Structure:")
+            print(f"   📋 Test Data Structure (WITHOUT company_id):")
             for key, value in crew_data.items():
                 print(f"      {key}: {value}")
             
-            # Test 1: Full data from screenshot
+            # Test: Crew creation WITHOUT company_id
             response = self.session.post(f"{BACKEND_URL}/crew", json=crew_data)
             
-            print(f"   📤 POST /api/crew")
+            print(f"   📤 POST /api/crew (without company_id)")
             print(f"   📊 Response Status: {response.status_code}")
             
             if response.status_code == 422:
@@ -302,42 +297,55 @@ class BackendTester:
                         else:
                             print(f"      Detail: {detail}")
                     
-                    self.log_test("Crew Creation - 422 Error Analysis", True, 
-                                 f"422 error captured and analyzed: {len(error_data.get('detail', []))} validation errors")
+                    self.log_test("Crew Creation WITHOUT company_id - 422 Error", False, 
+                                 f"Still getting 422 error: {len(error_data.get('detail', []))} validation errors")
                     
                 except Exception as e:
                     print(f"   ❌ Could not parse 422 error: {e}")
                     print(f"   Raw response: {response.text}")
-                    self.log_test("Crew Creation - 422 Error Parsing", False, f"Could not parse error: {e}")
+                    self.log_test("Crew Creation WITHOUT company_id - 422 Error Parsing", False, f"Could not parse error: {e}")
                 
                 return False
                 
             elif response.status_code == 200:
                 response_data = response.json()
                 crew_id = response_data.get("id")
+                actual_company_id = response_data.get("company_id")
                 
-                self.log_test("Crew Creation - Full Data Success", True, 
-                             f"Crew created successfully: {crew_id}")
+                print(f"   ✅ SUCCESS: Crew created with ID: {crew_id}")
+                print(f"   📋 Auto-set company_id: {actual_company_id}")
+                print(f"   📋 Expected company_id: {expected_company_id}")
+                
+                # Verify company_id was auto-set correctly
+                if actual_company_id == expected_company_id:
+                    self.log_test("Crew Creation WITHOUT company_id - Auto-set Verification", True, 
+                                 f"company_id correctly auto-set to: {actual_company_id}")
+                else:
+                    self.log_test("Crew Creation WITHOUT company_id - Auto-set Verification", False, 
+                                 f"company_id mismatch: expected {expected_company_id}, got {actual_company_id}")
+                
+                self.log_test("Crew Creation WITHOUT company_id - Success", True, 
+                             f"Crew created successfully without company_id: {crew_id}")
                 
                 # Clean up - delete the test crew
                 try:
                     delete_response = self.session.delete(f"{BACKEND_URL}/crew/{crew_id}")
                     if delete_response.status_code == 200:
-                        self.log_test("Crew Creation - Cleanup", True, "Test crew deleted successfully")
+                        self.log_test("Crew Creation WITHOUT company_id - Cleanup", True, "Test crew deleted successfully")
                     else:
-                        self.log_test("Crew Creation - Cleanup", False, f"Failed to delete test crew: {delete_response.status_code}")
+                        self.log_test("Crew Creation WITHOUT company_id - Cleanup", False, f"Failed to delete test crew: {delete_response.status_code}")
                 except:
                     pass  # Ignore cleanup errors
                 
                 return True
                 
             else:
-                self.log_test("Crew Creation - Unexpected Status", False, 
+                self.log_test("Crew Creation WITHOUT company_id - Unexpected Status", False, 
                              f"Unexpected status code: {response.status_code}, Response: {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_test("Crew Creation - Exception", False, f"Exception: {str(e)}")
+            self.log_test("Crew Creation WITHOUT company_id - Exception", False, f"Exception: {str(e)}")
             return False
     
     def test_crew_creation_minimal_fields(self):
