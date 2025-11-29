@@ -77,6 +77,7 @@ class GoogleDriveHelper:
                 
                 if result.get('success'):
                     logger.info(f"✅ Apps Script response: SUCCESS")
+                    logger.info(f"   📦 Response data: {result}")
                 else:
                     logger.warning(f"⚠️ Apps Script response: {result.get('message', 'Unknown error')}")
                 
