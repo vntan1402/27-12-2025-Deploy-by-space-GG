@@ -3086,11 +3086,11 @@ class BackendTester:
             return False
 
     def run_all_tests(self):
-        """Run all backend tests for Test Report Migration - Phase 2"""
-        print("🚀 Starting Test Report Backend Testing Suite...")
+        """Run all crew passport analysis tests"""
+        print("🚀 Starting Crew Passport Analysis Testing Suite...")
         print(f"Backend URL: {BACKEND_URL}")
         print(f"Test User: {TEST_USERNAME}")
-        print(f"Test PDF: {TEST_PDF_URL}")
+        print(f"Test Passport: {TEST_PASSPORT_URL}")
         print("="*80)
         
         # Authentication
@@ -3098,24 +3098,14 @@ class BackendTester:
             print("❌ Authentication failed. Cannot proceed with tests.")
             return
         
-        # Test Report Analysis Tests
-        self.test_test_report_analyze_file()
+        # Test AI Configuration (prerequisite)
+        self.test_ai_config_get()
         
-        # Test Report Upload Tests
-        self.test_test_report_upload_files()
-        
-        # Valid Date Calculator Tests
-        self.test_valid_date_calculator()
-        
-        # Integration Tests
-        self.test_integration_flow()
-        
-        # Test Report Delete with File Cleanup Tests (NEW)
-        self.test_test_report_delete_with_file_cleanup()
-        self.test_test_report_delete_edge_cases()
-        
-        # Error Handling Tests
-        self.test_error_handling()
+        # Main Crew Passport Analysis Tests
+        self.test_crew_passport_analyze_endpoint()
+        self.test_passport_parser_function()
+        self.test_ai_prompt_verification()
+        self.test_document_ai_integration()
         
         # Print summary
         self.print_test_summary()
