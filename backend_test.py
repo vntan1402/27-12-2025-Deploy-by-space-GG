@@ -3373,45 +3373,29 @@ class BackendTester:
                     print(f"   - {result['test']}: {result['details']}")
         
         # Show key results for review request
-        print("\n🎯 KEY RESULTS FOR TEST REPORT MIGRATION - PHASE 2:")
+        print("\n🎯 KEY RESULTS FOR GOOGLE DRIVE CONFIGURATION INVESTIGATION:")
         
-        # Test Report Analysis Tests
-        analysis_tests = [r for r in self.test_results if "Test Report Analysis" in r["test"]]
-        if analysis_tests:
-            print("   Test Report Analysis:")
-            for test in analysis_tests:
+        # Google Drive Config Tests
+        gdrive_tests = [r for r in self.test_results if "GDrive Config" in r["test"]]
+        if gdrive_tests:
+            print("   Google Drive Configuration:")
+            for test in gdrive_tests:
                 status = "✅" if test["success"] else "❌"
                 print(f"     {status} {test['test']}")
         
-        # Upload Tests
-        upload_tests = [r for r in self.test_results if "Test Report Upload" in r["test"]]
-        if upload_tests:
-            print("   Test Report Upload:")
-            for test in upload_tests:
+        # Audit Certificate Tests
+        audit_tests = [r for r in self.test_results if "Audit Certificate" in r["test"]]
+        if audit_tests:
+            print("   Audit Certificate Access:")
+            for test in audit_tests:
                 status = "✅" if test["success"] else "❌"
                 print(f"     {status} {test['test']}")
         
-        # Valid Date Calculator Tests
-        calc_tests = [r for r in self.test_results if "Valid Date Calculator" in r["test"]]
-        if calc_tests:
-            print("   Valid Date Calculator:")
-            for test in calc_tests:
-                status = "✅" if test["success"] else "❌"
-                print(f"     {status} {test['test']}")
-        
-        # Integration Tests
-        integration_tests = [r for r in self.test_results if "Integration Flow" in r["test"]]
-        if integration_tests:
-            print("   Integration Tests:")
-            for test in integration_tests:
-                status = "✅" if test["success"] else "❌"
-                print(f"     {status} {test['test']}")
-        
-        # Error Handling Tests
-        error_tests = [r for r in self.test_results if "Error Handling" in r["test"]]
-        if error_tests:
-            print("   Error Handling:")
-            for test in error_tests:
+        # GDrive Service Tests
+        service_tests = [r for r in self.test_results if "GDrive Service" in r["test"]]
+        if service_tests:
+            print("   GDrive Service:")
+            for test in service_tests:
                 status = "✅" if test["success"] else "❌"
                 print(f"     {status} {test['test']}")
         
