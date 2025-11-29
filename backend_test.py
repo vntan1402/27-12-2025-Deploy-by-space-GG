@@ -3327,8 +3327,8 @@ class BackendTester:
             return False
 
     def run_all_tests(self):
-        """Run crew creation WITHOUT company_id test - Review Request"""
-        print("🚀 Starting Crew Creation WITHOUT company_id Test Suite...")
+        """Run Google Drive Configuration Investigation - Review Request"""
+        print("🚀 Starting Google Drive Configuration Investigation...")
         print(f"Backend URL: {BACKEND_URL}")
         print(f"Test User: {TEST_USERNAME}")
         print("="*80)
@@ -3336,23 +3336,19 @@ class BackendTester:
         # Authentication
         if not self.authenticate():
             print("❌ Authentication failed. Cannot proceed with tests.")
-            return
+            return False
         
-        # Test crew creation WITHOUT company_id - Main focus from review request
+        # Main focus: Google Drive Configuration Investigation
         print("\n" + "="*80)
-        print("🎯 MAIN FOCUS: Crew Creation WITHOUT company_id - Auto-set from current_user")
+        print("🎯 MAIN FOCUS: Google Drive Configuration Investigation")
         print("="*80)
         
-        self.test_crew_creation_without_company_id()
-        
-        # Additional verification test
-        self.test_crew_creation_minimal_fields()
-        
-        # Check backend logs for more details
-        self.check_backend_logs()
+        success = self.test_google_drive_config_investigation()
         
         # Print summary
         self.print_test_summary()
+        
+        return success
     
     def print_test_summary(self):
         """Print test summary"""
