@@ -28,16 +28,16 @@ class GoogleDriveHelper:
         """Load Google Drive configuration from database"""
         from app.db.mongodb import mongo_db
         
-        # Get company's Google Drive configuration
-        company = await mongo_db.find_one("companies", {"id": self.company_id})
+        # Get company's Google Drive configuration from company_gdrive_config collection
+        # This matches how Audit Certificate module accesses the config
+        gdrive_config = await mongo_db.find_one("company_gdrive_config", {"company_id": self.company_id})
         
-        if not company:
-            raise ValueError(f"Company {self.company_id} not found")
+        if not gdrive_config:
+            raise ValueError(f"Google Drive configuration not found for company {self.company_id}")
         
-        gdrive_config = company.get('google_drive_config', {})
-        
-        self.apps_script_url = gdrive_config.get('apps_script_url')
-        self.folder_id = gdrive_config.get('folder_id') or gdrive_config.get('main_folder_id')
+        # Use web_app_url (actual field name in DB) not apps_script_url
+        self.apps_script_url = gdrive_config.get('web_app_url')
+        self.folder_id = gdrive_config.get('folder_id')
         
         if not self.apps_script_url:
             raise ValueError("Google Apps Script URL not configured for company")
