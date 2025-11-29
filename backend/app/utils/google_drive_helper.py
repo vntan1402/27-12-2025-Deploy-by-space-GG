@@ -66,7 +66,7 @@ class GoogleDriveHelper:
         try:
             logger.info(f"📞 Calling Apps Script: {payload.get('action')}")
             
-            async with httpx.AsyncClient(timeout=timeout) as client:
+            async with httpx.AsyncClient(timeout=timeout, follow_redirects=True) as client:
                 response = await client.post(
                     self.apps_script_url,
                     json=payload
