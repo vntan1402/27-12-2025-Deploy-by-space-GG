@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://crew-passport-port.preview.emergentagent.com/api"
+API_URL="https://crew-cert-analyze.preview.emergentagent.com/api"
 
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
   -H "Content-Type: application/json" \
