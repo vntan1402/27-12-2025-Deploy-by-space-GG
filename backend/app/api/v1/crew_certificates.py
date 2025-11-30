@@ -174,39 +174,59 @@ async def upload_crew_certificate_files(
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
-    Upload multiple files for a crew certificate (Editor+ role required)
+    Upload crew certificate files to Google Drive (Editor+ role required)
     """
     try:
-        import os
-        from pathlib import Path
+        from app.services.crew_certificate_drive_service import CrewCertificateDriveService
         
         # Verify certificate exists
         cert = await CrewCertificateService.get_crew_certificate_by_id(cert_id, current_user)
         if not cert:
             raise HTTPException(status_code=404, detail="Crew certificate not found")
         
-        # Create upload directory
-        upload_dir = Path(f"/app/uploads/crew-certificates/{cert_id}")
-        upload_dir.mkdir(parents=True, exist_ok=True)
+        # Get crew_id from certificate
+        crew_id = cert.crew_id
+        company_id = current_user.company
         
         uploaded_files = []
+        cert_file_id = None
+        
         for file in files:
-            # Save file
-            file_path = upload_dir / file.filename
+            # Read file content
             content = await file.read()
-            with open(file_path, "wb") as f:
-                f.write(content)
+            
+            # Upload to Google Drive
+            result = await CrewCertificateDriveService.upload_certificate_file(
+                company_id=company_id,
+                crew_id=crew_id,
+                file_content=content,
+                filename=file.filename,
+                mime_type=file.content_type or 'application/octet-stream'
+            )
+            
+            # Store first file as main certificate file
+            if not cert_file_id:
+                cert_file_id = result['file_id']
             
             uploaded_files.append({
-                "filename": file.filename,
-                "path": f"/uploads/crew-certificates/{cert_id}/{file.filename}",
+                "filename": result['filename'],
+                "file_id": result['file_id'],
+                "folder_path": result['folder_path'],
                 "size": len(content)
             })
         
-        logger.info(f"✅ Uploaded {len(uploaded_files)} files for crew certificate {cert_id}")
+        # Update certificate with file_id
+        if cert_file_id:
+            from app.services.crew_certificate_service import CrewCertificateService
+            from app.models.crew_certificate import CrewCertificateUpdate
+            
+            update_data = CrewCertificateUpdate(crew_cert_file_id=cert_file_id)
+            await CrewCertificateService.update_crew_certificate(cert_id, update_data, current_user)
+        
+        logger.info(f"✅ Uploaded {len(uploaded_files)} files to Google Drive for crew certificate {cert_id}")
         
         return {
-            "message": f"Successfully uploaded {len(uploaded_files)} files",
+            "message": f"Successfully uploaded {len(uploaded_files)} files to Google Drive",
             "files": uploaded_files
         }
     except HTTPException:
