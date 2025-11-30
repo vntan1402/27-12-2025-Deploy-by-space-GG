@@ -6,7 +6,8 @@ from app.models.crew_certificate import (
     CrewCertificateCreate,
     CrewCertificateUpdate,
     CrewCertificateResponse,
-    BulkDeleteCrewCertificateRequest
+    BulkDeleteCrewCertificateRequest,
+    CrewCertificateCheckDuplicate
 )
 from app.models.user import UserResponse, UserRole
 from app.services.crew_certificate_service import CrewCertificateService
