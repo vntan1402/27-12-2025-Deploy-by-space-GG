@@ -341,7 +341,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
               cert_no: analysisData.cert_no || '',
               issued_by: analysisData.issued_by || '',
               issued_date: analysisData.issued_date || '',
-              cert_expiry: analysisData.expiry_date || '',  // Backend returns "expiry_date", not "cert_expiry"
+              cert_expiry: analysisData.cert_expiry || analysisData.expiry_date || '',  // Try both field names
               note: analysisData.note || ''
             };
 
