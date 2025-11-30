@@ -388,9 +388,30 @@ class CrewCertificateService:
             
             logger.info(f"👤 Analyzing certificate for: {crew_name} (Passport: {passport})")
             
-            # Step 1: Call Document AI for OCR
-            doc_ai_helper = DocumentAIHelper()
-            doc_ai_result = await doc_ai_helper.process_document(file_content, file.content_type)
+            # Step 1: Get Document AI configuration
+            ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+            if not ai_config_doc:
+                raise HTTPException(status_code=404, detail="AI configuration not found")
+            
+            document_ai_config = ai_config_doc.get("document_ai", {})
+            if not document_ai_config.get("enabled", False):
+                raise HTTPException(status_code=400, detail="Google Document AI is not enabled")
+            
+            # Add apps_script_url to config for document_ai_helper
+            gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": current_user.company})
+            if gdrive_config_doc and gdrive_config_doc.get("web_app_url"):
+                document_ai_config["apps_script_url"] = gdrive_config_doc.get("web_app_url")
+            
+            # Step 2: Call Document AI for OCR
+            from app.utils.document_ai_helper import analyze_document_with_document_ai
+            
+            doc_ai_result = await analyze_document_with_document_ai(
+                file_content=file_content,
+                filename=file.filename,
+                content_type=file.content_type,
+                document_ai_config=document_ai_config,
+                document_type='other'  # Generic document type for certificates
+            )
             
             if not doc_ai_result or not doc_ai_result.get("success"):
                 error_msg = doc_ai_result.get("message", "Unknown error") if doc_ai_result else "No response from Document AI"
