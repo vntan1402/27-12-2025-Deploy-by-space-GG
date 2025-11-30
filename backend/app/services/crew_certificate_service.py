@@ -358,7 +358,6 @@ class CrewCertificateService:
         """Analyze crew certificate file using Document AI + LLM extraction"""
         import base64
         import os
-        from app.utils.document_ai_helper import DocumentAIHelper
         from app.utils.ai_helper import AIHelper
         from app.services.ai_config_service import AIConfigService
         from app.db.mongodb import mongo_db
