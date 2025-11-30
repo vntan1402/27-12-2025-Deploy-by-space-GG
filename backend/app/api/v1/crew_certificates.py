@@ -153,16 +153,15 @@ async def delete_crew_certificate(
 
 @router.post("/check-duplicate")
 async def check_duplicate_crew_certificate(
-    crew_id: str = Form(...),
-    cert_name: str = Form(...),
-    cert_no: Optional[str] = Form(None),
+    crew_id: str,
+    cert_no: str,
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
-    Check if crew certificate is duplicate (accepts Form data)
+    Check if crew certificate is duplicate (accepts JSON body)
     """
     try:
-        return await CrewCertificateService.check_duplicate(crew_id, cert_name, cert_no, current_user)
+        return await CrewCertificateService.check_duplicate(crew_id, None, cert_no, current_user)
     except Exception as e:
         logger.error(f"❌ Error checking duplicate: {e}")
         raise HTTPException(status_code=500, detail="Failed to check duplicate")
