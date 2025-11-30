@@ -646,6 +646,98 @@ Return ONLY the JSON object with extracted fields. No additional text."""
                     "analysis": None
                 }
             
+            # Post-processing: Ensure cert_name matches standard types
+            extracted_cert_name = parsed_data.get('cert_name', '').strip()
+            if extracted_cert_name:
+                # Check if it's already an exact match (case-insensitive)
+                matched = False
+                for standard_name in STANDARD_CERT_NAMES:
+                    if extracted_cert_name.lower() == standard_name.lower():
+                        parsed_data['cert_name'] = standard_name  # Use standard format
+                        matched = True
+                        logger.info(f"✅ Cert name exact match: {standard_name}")
+                        break
+                
+                # If no exact match, try fuzzy matching based on keywords
+                if not matched:
+                    logger.info(f"⚠️ No exact match for: {extracted_cert_name}")
+                    extracted_lower = extracted_cert_name.lower()
+                    
+                    # Fuzzy matching logic based on keywords
+                    if any(keyword in extracted_lower for keyword in ['competency', 'competence', 'coc', 'master', 'officer certificate']):
+                        parsed_data['cert_name'] = 'Certificate of Competency (COC)'
+                        logger.info(f"🔍 Fuzzy matched to: Certificate of Competency (COC)")
+                    elif any(keyword in extracted_lower for keyword in ['endorsement', 'coe', 'recognition']):
+                        parsed_data['cert_name'] = 'Certificate of Endorsement (COE)'
+                        logger.info(f"🔍 Fuzzy matched to: Certificate of Endorsement (COE)")
+                    elif any(keyword in extracted_lower for keyword in ['medical', 'fitness', 'health']):
+                        parsed_data['cert_name'] = 'Medical Certificate'
+                        logger.info(f"🔍 Fuzzy matched to: Medical Certificate")
+                    elif any(keyword in extracted_lower for keyword in ['gmdss', 'radio', 'communication']):
+                        parsed_data['cert_name'] = 'GMDSS Certificate'
+                        logger.info(f"🔍 Fuzzy matched to: GMDSS Certificate")
+                    elif any(keyword in extracted_lower for keyword in ['basic safety', 'bst', 'stcw basic']):
+                        parsed_data['cert_name'] = 'Basic Safety Training (BST)'
+                        logger.info(f"🔍 Fuzzy matched to: Basic Safety Training (BST)")
+                    elif any(keyword in extracted_lower for keyword in ['fire fighting', 'aff', 'advanced fire']):
+                        parsed_data['cert_name'] = 'Advanced Fire Fighting (AFF)'
+                        logger.info(f"🔍 Fuzzy matched to: Advanced Fire Fighting (AFF)")
+                    elif any(keyword in extracted_lower for keyword in ['sso', 'ship security officer']):
+                        parsed_data['cert_name'] = 'Ship Security Officer (SSO)'
+                        logger.info(f"🔍 Fuzzy matched to: Ship Security Officer (SSO)")
+                    elif any(keyword in extracted_lower for keyword in ['ecdis', 'electronic chart']):
+                        parsed_data['cert_name'] = 'ECDIS'
+                        logger.info(f"🔍 Fuzzy matched to: ECDIS")
+                    elif any(keyword in extracted_lower for keyword in ['bridge resource', 'brm']):
+                        parsed_data['cert_name'] = 'Bridge Resource Management (BRM)'
+                        logger.info(f"🔍 Fuzzy matched to: Bridge Resource Management (BRM)")
+                    elif any(keyword in extracted_lower for keyword in ['engine resource', 'erm']):
+                        parsed_data['cert_name'] = 'Engine Resource Management (ERM)'
+                        logger.info(f"🔍 Fuzzy matched to: Engine Resource Management (ERM)")
+                    elif any(keyword in extracted_lower for keyword in ['oil tanker', 'tanker oil']):
+                        if 'advanced' in extracted_lower:
+                            parsed_data['cert_name'] = 'Oil Tanker Advanced'
+                            logger.info(f"🔍 Fuzzy matched to: Oil Tanker Advanced")
+                        else:
+                            parsed_data['cert_name'] = 'Oil Tanker Familiarization'
+                            logger.info(f"🔍 Fuzzy matched to: Oil Tanker Familiarization")
+                    elif any(keyword in extracted_lower for keyword in ['chemical tanker', 'tanker chemical']):
+                        if 'advanced' in extracted_lower:
+                            parsed_data['cert_name'] = 'Chemical Tanker Advanced'
+                            logger.info(f"🔍 Fuzzy matched to: Chemical Tanker Advanced")
+                        else:
+                            parsed_data['cert_name'] = 'Chemical Tanker Familiarization'
+                            logger.info(f"🔍 Fuzzy matched to: Chemical Tanker Familiarization")
+                    elif any(keyword in extracted_lower for keyword in ['gas tanker', 'lng', 'liquefied gas']):
+                        if 'advanced' in extracted_lower:
+                            parsed_data['cert_name'] = 'Liquefied Gas Tanker Advanced'
+                            logger.info(f"🔍 Fuzzy matched to: Liquefied Gas Tanker Advanced")
+                        else:
+                            parsed_data['cert_name'] = 'Liquefied Gas Tanker Familiarization'
+                            logger.info(f"🔍 Fuzzy matched to: Liquefied Gas Tanker Familiarization")
+                    elif any(keyword in extracted_lower for keyword in ['survival craft', 'rescue boat', 'lifeboat']):
+                        parsed_data['cert_name'] = 'Proficiency in Survival Craft and Rescue Boats'
+                        logger.info(f"🔍 Fuzzy matched to: Proficiency in Survival Craft and Rescue Boats")
+                    elif any(keyword in extracted_lower for keyword in ['crowd management', 'crowd control']):
+                        parsed_data['cert_name'] = 'Crowd Management'
+                        logger.info(f"🔍 Fuzzy matched to: Crowd Management")
+                    elif any(keyword in extracted_lower for keyword in ['welding', 'welder']):
+                        parsed_data['cert_name'] = 'Welding Certificate'
+                        logger.info(f"🔍 Fuzzy matched to: Welding Certificate")
+                    elif any(keyword in extracted_lower for keyword in ['radar', 'arpa']):
+                        parsed_data['cert_name'] = 'Radar Certificate'
+                        logger.info(f"🔍 Fuzzy matched to: Radar Certificate")
+                    elif any(keyword in extracted_lower for keyword in ['seaman book', 'discharge book', 'seamans book']):
+                        if 'gmdss' in extracted_lower:
+                            parsed_data['cert_name'] = 'Seaman book for GMDSS'
+                            logger.info(f"🔍 Fuzzy matched to: Seaman book for GMDSS")
+                        else:
+                            parsed_data['cert_name'] = 'Seaman Book for COC'
+                            logger.info(f"🔍 Fuzzy matched to: Seaman Book for COC")
+                    else:
+                        # No fuzzy match - keep original but log it
+                        logger.warning(f"⚠️ No standard match found for: {extracted_cert_name} - keeping original")
+            
             # Add file content for later upload
             parsed_data['_file_content'] = base64.b64encode(file_content).decode('utf-8')
             parsed_data['_filename'] = file.filename
