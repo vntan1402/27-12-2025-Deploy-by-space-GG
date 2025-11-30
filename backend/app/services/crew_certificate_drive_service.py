@@ -94,6 +94,103 @@ class CrewCertificateDriveService:
             )
     
     @staticmethod
+    async def upload_certificate_files(
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        summary_text: str,
+        cert_id: str,
+        crew_name: str,
+        cert_name: str,
+        cert_no: str
+    ) -> Dict[str, str]:
+        """
+        Upload crew certificate file and summary to Google Drive
+        Similar to passport upload but for certificates
+        
+        Args:
+            file_content: Certificate file content in bytes
+            filename: Original filename
+            content_type: MIME type
+            summary_text: OCR extracted text for summary file
+            cert_id: Certificate ID
+            crew_name: Crew member name
+            cert_name: Certificate name
+            cert_no: Certificate number
+            
+        Returns:
+            Dict with cert_file_id and summary_file_id
+        """
+        from app.utils.google_drive_helper import GoogleDriveHelper
+        from app.repositories.crew_certificate_repository import CrewCertificateRepository
+        
+        try:
+            # Get certificate to find crew_id and company_id
+            cert = await CrewCertificateRepository.find_by_id(cert_id)
+            if not cert:
+                raise HTTPException(status_code=404, detail="Certificate not found")
+            
+            crew_id = cert.get('crew_id')
+            company_id = cert.get('company_id')
+            
+            # Get crew information to determine folder
+            crew = await CrewRepository.find_by_id(crew_id)
+            if not crew:
+                raise HTTPException(status_code=404, detail="Crew member not found")
+            
+            # Determine folder path
+            ship_sign_on = crew.get('ship_sign_on', '-')
+            
+            if ship_sign_on and ship_sign_on != '-':
+                folder_path = f"{ship_sign_on}/Crew Records/Crew Cert"
+                logger.info(f"📤 Uploading to: {folder_path}")
+            else:
+                folder_path = "COMPANY DOCUMENT/Standby Crew/Crew Cert"
+                logger.info(f"📤 Uploading to Standby: {folder_path}")
+            
+            # Initialize Google Drive helper
+            drive_helper = GoogleDriveHelper(company_id)
+            await drive_helper.load_config()
+            
+            # Upload original certificate file
+            cert_file_id = await drive_helper.upload_file(
+                file_content=file_content,
+                filename=filename,
+                folder_path=folder_path,
+                mime_type=content_type
+            )
+            
+            logger.info(f"✅ Certificate file uploaded: {filename} (ID: {cert_file_id})")
+            
+            # Upload summary file if summary text exists
+            summary_file_id = None
+            if summary_text and summary_text.strip():
+                summary_filename = f"{crew_name}_{cert_name}_{cert_no}_summary.txt"
+                summary_file_id = await drive_helper.upload_file(
+                    file_content=summary_text.encode('utf-8'),
+                    filename=summary_filename,
+                    folder_path=folder_path,
+                    mime_type='text/plain'
+                )
+                logger.info(f"✅ Summary file uploaded: {summary_filename} (ID: {summary_file_id})")
+            
+            return {
+                "cert_file_id": cert_file_id,
+                "summary_file_id": summary_file_id
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading crew certificate files: {e}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to upload certificate files: {str(e)}"
+            )
+    
+    @staticmethod
     async def delete_certificate_file(
         company_id: str,
         file_id: str
