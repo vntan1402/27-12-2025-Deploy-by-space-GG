@@ -118,6 +118,7 @@ async def analyze_document_with_document_ai(
                         logger.info(f"✅ Document AI completed for {document_type}")
                         logger.info(f"   Summary length: {len(summary)} characters")
                         logger.info(f"   Confidence: {confidence}")
+                        logger.info(f"   Full response: {result}")
                         
                         return {
                             "success": True,
