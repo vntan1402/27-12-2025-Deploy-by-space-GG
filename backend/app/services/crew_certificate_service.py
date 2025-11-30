@@ -107,6 +107,12 @@ class CrewCertificateService:
         # This ensures consistency - all certificates for same crew show same rank
         cert_dict["rank"] = crew.get("rank", "") or cert_dict.get("rank", "")
         
+        # Generate issued_by_abbreviation for display (like Class & Flag Cert)
+        if cert_dict.get("issued_by"):
+            from app.utils.issued_by_abbreviation import generate_organization_abbreviation
+            cert_dict["issued_by_abbreviation"] = generate_organization_abbreviation(cert_dict["issued_by"])
+            logger.info(f"📋 Generated abbreviation: {cert_dict['issued_by']} → {cert_dict['issued_by_abbreviation']}")
+        
         cert_dict["created_at"] = datetime.now(timezone.utc)
         cert_dict["created_by"] = current_user.username
         
