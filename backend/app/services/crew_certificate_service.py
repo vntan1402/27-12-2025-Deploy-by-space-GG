@@ -671,6 +671,16 @@ Return ONLY the JSON object with extracted fields. No additional text."""
             
             # Post-processing: Ensure cert_name matches standard types
             extracted_cert_name = parsed_data.get('cert_name', '').strip()
+            extracted_note = parsed_data.get('note', '').lower()
+            
+            # CRITICAL: Check note field for GMDSS indicators that AI might miss in cert_name
+            # Example: "Seaman Book for COC" but note says "GMDSS qualification"
+            if extracted_cert_name and ('seaman book' in extracted_cert_name.lower() or 'seamans book' in extracted_cert_name.lower()):
+                if any(kw in extracted_note for kw in ['gmdss', 'general operator', 'radio operator', 'restricted operator']):
+                    parsed_data['cert_name'] = 'Seaman book for GMDSS'
+                    logger.info(f"🔍 GMDSS detected in note field - corrected to: Seaman book for GMDSS")
+                    extracted_cert_name = 'Seaman book for GMDSS'  # Update for further processing
+            
             if extracted_cert_name:
                 # Check if it's already an exact match (case-insensitive)
                 matched = False
