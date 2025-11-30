@@ -12,6 +12,7 @@ class CrewCertificateBase(BaseModel):
     cert_name: str
     cert_no: str
     issued_by: Optional[str] = None
+    issued_by_abbreviation: Optional[str] = None  # Abbreviation for display
     issued_date: Optional[Union[str, datetime]] = None
     cert_expiry: Optional[Union[str, datetime]] = None
     status: Optional[str] = "Valid"  # Valid, Expiring Soon, Expired
