@@ -52,3 +52,8 @@ class CrewCertificateResponse(CrewCertificateBase):
 class BulkDeleteCrewCertificateRequest(BaseModel):
     """Request model for bulk delete crew certificate operations"""
     certificate_ids: List[str]
+
+class CrewCertificateCheckDuplicate(BaseModel):
+    """Request model for checking duplicate crew certificates"""
+    crew_id: str
+    cert_no: str
