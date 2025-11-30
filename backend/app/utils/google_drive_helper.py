@@ -132,22 +132,16 @@ class GoogleDriveHelper:
         logger.info(f"   🎭 MIME type: {mime_type}")
         
         # Parse folder_path to match Apps Script expected format
-        # Expected: "ShipName/ParentCategory/Category" e.g. "BROTHER 36/Crew Records/Crew List"
+        # Expected: "ShipName/ParentCategory/Category" 
+        # e.g. "BROTHER 36/Crew Records/Crew List"
+        # e.g. "COMPANY DOCUMENT/Standby Crew/Crew Passport"
         path_parts = folder_path.split('/')
         if len(path_parts) >= 3:
             ship_name = path_parts[0]
             parent_category = path_parts[1]
             category = path_parts[2]
-        elif len(path_parts) == 2:
-            # For COMPANY DOCUMENT/Standby Crew
-            # Treat as: COMPANY DOCUMENT/Standby Crew/(empty)
-            # This creates structure: COMPANY DOCUMENT/Standby Crew/
-            ship_name = path_parts[0]      # "COMPANY DOCUMENT"
-            parent_category = path_parts[1] # "Standby Crew"
-            category = path_parts[1]        # "Standby Crew" again to ensure file goes into this folder
-            logger.info(f"📁 Special case: 2-level path {folder_path} → ship={ship_name}, parent={parent_category}, category={category}")
         else:
-            raise ValueError(f"Invalid folder_path format: {folder_path}")
+            raise ValueError(f"Invalid folder_path format: {folder_path}. Expected 3 parts: ShipName/ParentCategory/Category")
         
         payload = {
             "action": "upload_file_with_folder_creation",
