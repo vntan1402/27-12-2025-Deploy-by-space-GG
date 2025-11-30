@@ -140,13 +140,12 @@ class GoogleDriveHelper:
             category = path_parts[2]
         elif len(path_parts) == 2:
             # For COMPANY DOCUMENT/Standby Crew
-            # V1 behavior: ship_name="" and category="Standby Crew" (no parent_category)
-            ship_name = ""
-            parent_category = ""
-            category = path_parts[1]  # "Standby Crew"
-            # Override parent_folder_id to COMPANY DOCUMENT folder
-            # Need to get COMPANY DOCUMENT folder ID from parent
-            logger.info(f"📁 Special case: 2-level path for {folder_path}")
+            # Treat as: COMPANY DOCUMENT/Standby Crew/(empty)
+            # This creates structure: COMPANY DOCUMENT/Standby Crew/
+            ship_name = path_parts[0]      # "COMPANY DOCUMENT"
+            parent_category = path_parts[1] # "Standby Crew"
+            category = path_parts[1]        # "Standby Crew" again to ensure file goes into this folder
+            logger.info(f"📁 Special case: 2-level path {folder_path} → ship={ship_name}, parent={parent_category}, category={category}")
         else:
             raise ValueError(f"Invalid folder_path format: {folder_path}")
         
