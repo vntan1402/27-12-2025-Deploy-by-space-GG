@@ -158,6 +158,12 @@ class CrewCertificateService:
         update_data["updated_at"] = datetime.now(timezone.utc)
         update_data["updated_by"] = current_user.username
         
+        # If issued_by is updated, regenerate abbreviation
+        if "issued_by" in update_data and update_data["issued_by"]:
+            from app.utils.issued_by_abbreviation import generate_organization_abbreviation
+            update_data["issued_by_abbreviation"] = generate_organization_abbreviation(update_data["issued_by"])
+            logger.info(f"📋 Regenerated abbreviation: {update_data['issued_by']} → {update_data['issued_by_abbreviation']}")
+        
         if update_data:
             await CrewCertificateRepository.update(cert_id, update_data)
         
