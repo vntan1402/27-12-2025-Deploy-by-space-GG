@@ -136,7 +136,9 @@ class CrewCertificateService:
     
     @staticmethod
     async def delete_crew_certificate(cert_id: str, current_user: UserResponse) -> dict:
-        """Delete crew certificate"""
+        """Delete crew certificate including associated Google Drive files"""
+        from app.services.crew_certificate_drive_service import CrewCertificateDriveService
+        
         cert = await CrewCertificateRepository.find_by_id(cert_id)
         if not cert:
             raise HTTPException(status_code=404, detail="Crew certificate not found")
@@ -146,11 +148,46 @@ class CrewCertificateService:
             if cert.get('company_id') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
         
+        # Delete Google Drive files if they exist
+        files_deleted = 0
+        company_id = cert.get('company_id')
+        
+        cert_file_id = cert.get('crew_cert_file_id')
+        summary_file_id = cert.get('crew_cert_summary_file_id')
+        
+        if cert_file_id or summary_file_id:
+            try:
+                if cert_file_id:
+                    result = await CrewCertificateDriveService.delete_certificate_file(
+                        company_id=company_id,
+                        file_id=cert_file_id
+                    )
+                    if result.get('success'):
+                        files_deleted += 1
+                        logger.info(f"✅ Deleted certificate file: {cert_file_id}")
+                
+                if summary_file_id:
+                    result = await CrewCertificateDriveService.delete_certificate_file(
+                        company_id=company_id,
+                        file_id=summary_file_id
+                    )
+                    if result.get('success'):
+                        files_deleted += 1
+                        logger.info(f"✅ Deleted summary file: {summary_file_id}")
+            except Exception as e:
+                logger.warning(f"⚠️ Error deleting files from Google Drive: {e}")
+                # Continue with database deletion even if file deletion fails
+        
+        # Delete from database
         await CrewCertificateRepository.delete(cert_id)
+        
+        message = f"Crew certificate deleted successfully"
+        if files_deleted > 0:
+            message += f" ({files_deleted} file(s) deleted from Google Drive)"
         
         logger.info(f"✅ Crew certificate deleted: {cert_id}")
         
-        return {"message": "Crew certificate deleted successfully"}
+        return {"message": message, "files_deleted": files_deleted}
     
     @staticmethod
     async def bulk_delete_crew_certificates(
