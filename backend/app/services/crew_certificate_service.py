@@ -580,8 +580,14 @@ Expected Rank: {rank}
   "crew_name": "",           // Name on certificate (should match expected crew)
   "passport": "",            // Passport number if mentioned
   "date_of_birth": "",       // Date of birth if mentioned
-  "note": ""                 // Any additional important info (limitations, restrictions, etc.)
+  "note": ""                 // Any additional important info (limitations, restrictions, GMDSS qualification, radio operator level, etc.)
 }}
+
+**CRITICAL GMDSS DETECTION**:
+- If you see "GMDSS", "General Operator", "Restricted Operator", "Radio Operator", or "Radiocommunication" ANYWHERE in the document
+- Even if it's an "Endorsement" document type
+- You MUST classify cert_name as "GMDSS Certificate" or "Seaman book for GMDSS" (if it's a seaman book)
+- Include GMDSS qualification details in the "note" field
 
 === TEXT TO ANALYZE ===
 {document_summary}
