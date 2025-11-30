@@ -131,13 +131,30 @@ class GoogleDriveHelper:
         logger.info(f"   📊 Size: {len(file_content)} bytes")
         logger.info(f"   🎭 MIME type: {mime_type}")
         
+        # Parse folder_path to match Apps Script expected format
+        # Expected: "ShipName/ParentCategory/Category" e.g. "BROTHER 36/Crew Records/Crew List"
+        path_parts = folder_path.split('/')
+        if len(path_parts) >= 3:
+            ship_name = path_parts[0]
+            parent_category = path_parts[1]
+            category = path_parts[2]
+        elif len(path_parts) == 2:
+            # For COMPANY DOCUMENT/Standby Crew
+            ship_name = path_parts[0]
+            parent_category = path_parts[1]
+            category = ""
+        else:
+            raise ValueError(f"Invalid folder_path format: {folder_path}")
+        
         payload = {
             "action": "upload_file_with_folder_creation",
             "parent_folder_id": self.folder_id,
-            "folder_path": folder_path,
+            "ship_name": ship_name,
+            "parent_category": parent_category,
+            "category": category,
             "filename": filename,
             "file_content": base64.b64encode(file_content).decode('utf-8'),
-            "mime_type": mime_type
+            "content_type": mime_type
         }
         
         result = await self.call_apps_script(payload, timeout=120.0)
