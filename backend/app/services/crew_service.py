@@ -110,8 +110,31 @@ class CrewService:
         update_data["updated_at"] = datetime.now(timezone.utc)
         update_data["updated_by"] = current_user.username
         
+        # Check if rank is being updated
+        rank_updated = 'rank' in update_data and update_data['rank'] != crew.get('rank')
+        new_rank = update_data.get('rank') if rank_updated else None
+        
         if update_data:
             await CrewRepository.update(crew_id, update_data)
+        
+        # If rank was updated, sync to all crew certificates
+        if rank_updated and new_rank:
+            try:
+                from app.db.mongodb import mongo_db
+                
+                result = await mongo_db.update_many(
+                    "crew_certificates",
+                    {"crew_id": crew_id},
+                    {"$set": {"rank": new_rank}}
+                )
+                
+                if result.modified_count > 0:
+                    logger.info(f"✅ Synced rank '{new_rank}' to {result.modified_count} certificates for crew {crew_id}")
+                else:
+                    logger.info(f"ℹ️ No certificates to update for crew {crew_id}")
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to sync rank to certificates: {e}")
+                # Don't fail the whole operation if certificate sync fails
         
         # Get updated crew
         updated_crew = await CrewRepository.find_by_id(crew_id)
