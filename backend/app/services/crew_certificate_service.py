@@ -586,6 +586,22 @@ Return ONLY the JSON object with extracted fields. No additional text."""
             
             logger.info(f"📝 Response text length: {len(response_text) if response_text else 0}")
             
+            # Clean response text - remove markdown code fences if present
+            if response_text:
+                response_text = response_text.strip()
+                # Remove ```json ... ``` or ``` ... ``` markdown formatting
+                if response_text.startswith('```'):
+                    # Find first newline after opening fence
+                    first_newline = response_text.find('\n')
+                    if first_newline != -1:
+                        response_text = response_text[first_newline + 1:]
+                    # Remove closing fence
+                    if response_text.endswith('```'):
+                        response_text = response_text[:-3]
+                    response_text = response_text.strip()
+                
+                logger.info(f"✂️ Cleaned response length: {len(response_text)}")
+            
             try:
                 parsed_data = json.loads(response_text) if response_text else {}
             except json.JSONDecodeError as e:
