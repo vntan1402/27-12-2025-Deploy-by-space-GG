@@ -385,44 +385,63 @@ class CrewCertificateService:
             
             logger.info(f"👤 Analyzing certificate for: {crew_name} (Passport: {passport})")
             
-            # Step 1: Get Document AI configuration from system_ai
+            # Step 1: Get Document AI configuration (EXACT MATCH with passport)
             ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
             if not ai_config_doc:
-                raise HTTPException(status_code=404, detail="AI configuration not found")
+                return {
+                    "success": False,
+                    "message": "AI configuration not found",
+                    "analysis": None
+                }
             
             document_ai_config = ai_config_doc.get("document_ai", {})
+            
             if not document_ai_config.get("enabled", False):
-                raise HTTPException(status_code=400, detail="Google Document AI is not enabled")
+                return {
+                    "success": False,
+                    "message": "Google Document AI is not enabled in System Settings",
+                    "analysis": None
+                }
             
-            # Get Apps Script URL - Try multiple sources (match crew passport pattern)
+            # Validate required Document AI configuration
+            if not all([
+                document_ai_config.get("project_id"),
+                document_ai_config.get("processor_id")
+            ]):
+                return {
+                    "success": False,
+                    "message": "Incomplete Google Document AI configuration. Please check Project ID and Processor ID.",
+                    "analysis": None
+                }
+            
+            # Get Apps Script URL from document_ai_config
             apps_script_url = document_ai_config.get("apps_script_url")
-            
-            # If not in system_ai, try company_gdrive_config as fallback
-            if not apps_script_url:
-                gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": current_user.company})
-                if gdrive_config_doc:
-                    apps_script_url = gdrive_config_doc.get("web_app_url")
             
             if not apps_script_url:
                 logger.error("❌ Apps Script URL not configured in Document AI settings")
-                raise HTTPException(
-                    status_code=400,
-                    detail="Apps Script URL not configured. Please configure Apps Script URL in Document AI settings (System AI)."
-                )
+                return {
+                    "success": False,
+                    "message": "Apps Script URL not configured. Please configure Apps Script URL in Document AI settings (System AI).",
+                    "analysis": None
+                }
             
-            # Add apps_script_url to config
-            document_ai_config["apps_script_url"] = apps_script_url
-            logger.info(f"📤 Using Apps Script URL: {apps_script_url[:50]}...")
+            # Add apps_script_url to config for document_ai_helper
+            document_ai_config_with_url = {
+                **document_ai_config,
+                "apps_script_url": apps_script_url
+            }
             
-            # Step 2: Call Document AI for OCR
+            # Step 2: Call Document AI (EXACT MATCH with passport)
             from app.utils.document_ai_helper import analyze_document_with_document_ai
+            
+            logger.info(f"🤖 Calling Document AI for certificate analysis...")
             
             doc_ai_result = await analyze_document_with_document_ai(
                 file_content=file_content,
                 filename=file.filename,
-                content_type=file.content_type,
-                document_ai_config=document_ai_config,
-                document_type='other'  # Generic document type for certificates
+                content_type=file.content_type or 'application/pdf',
+                document_ai_config=document_ai_config_with_url,
+                document_type='other'  # Certificate is general document type
             )
             
             if not doc_ai_result or not doc_ai_result.get("success"):
