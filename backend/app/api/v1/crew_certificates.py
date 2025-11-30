@@ -71,6 +71,7 @@ async def get_crew_certificate_by_id(
 @router.post("/manual", response_model=CrewCertificateResponse)
 async def create_crew_certificate_manual(
     cert_data: CrewCertificateCreate,
+    ship_id: Optional[str] = Query(None),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
@@ -78,6 +79,10 @@ async def create_crew_certificate_manual(
     Ship/Folder is determined automatically based on crew's ship_sign_on field
     """
     try:
+        # Auto-set company_id from current_user if not provided
+        if not cert_data.company_id:
+            cert_data.company_id = current_user.company
+        
         logger.info(f"📋 Creating crew certificate manually for crew: {cert_data.crew_name}")
         return await CrewCertificateService.create_crew_certificate(cert_data, current_user)
     except HTTPException:
