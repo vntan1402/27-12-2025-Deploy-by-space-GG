@@ -88,6 +88,11 @@ class CrewCertificateService:
         """Create new crew certificate"""
         from app.services.audit_trail_service import AuditTrailService
         
+        # Auto-set company_id from current_user if not provided
+        company_id = cert_data.company_id or current_user.company
+        if not company_id:
+            raise HTTPException(status_code=400, detail="Company ID is required")
+        
         # Verify crew exists
         crew = await CrewRepository.find_by_id(cert_data.crew_id)
         if not crew:
@@ -96,6 +101,7 @@ class CrewCertificateService:
         # Create certificate document
         cert_dict = cert_data.dict()
         cert_dict["id"] = str(uuid.uuid4())
+        cert_dict["company_id"] = company_id  # Ensure company_id is set
         cert_dict["created_at"] = datetime.now(timezone.utc)
         cert_dict["created_by"] = current_user.username
         
