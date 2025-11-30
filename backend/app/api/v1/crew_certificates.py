@@ -1,6 +1,6 @@
 import logging
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Form, Body
 
 from app.models.crew_certificate import (
     CrewCertificateCreate,
