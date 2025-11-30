@@ -288,6 +288,23 @@ class CrewCertificateService:
                 # Delete from database
                 await mongo_db.delete("crew_certificates", {"id": cert_id})
                 deleted_count += 1
+                
+                # Log audit trail
+                from app.services.audit_trail_service import AuditTrailService
+                await AuditTrailService.log_action(
+                    user_id=current_user.id,
+                    action="DELETE_CREW_CERTIFICATE",
+                    resource_type="crew_certificate",
+                    resource_id=cert_id,
+                    details={
+                        "crew_name": cert.get('crew_name'),
+                        "cert_name": cert.get('cert_name'),
+                        "cert_no": cert.get('cert_no'),
+                        "bulk_delete": True
+                    },
+                    company_id=company_id
+                )
+                
                 logger.info(f"✅ Crew certificate deleted: {cert_id}")
                 
             except Exception as e:
