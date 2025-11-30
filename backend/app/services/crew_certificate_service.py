@@ -517,13 +517,28 @@ Return ONLY the JSON object with extracted fields. No additional text."""
 
             logger.info("🤖 Calling LLM AI to extract certificate fields...")
             
-            ai_response = await AIHelper.get_completion(
-                prompt=prompt,
-                provider=provider,
+            # Use emergentintegrations to call LLM
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            
+            # Map provider to correct format
+            provider_mapping = {
+                "google": "google",
+                "openai": "openai",
+                "anthropic": "anthropic"
+            }
+            
+            mapped_provider = provider_mapping.get(provider.lower(), "google")
+            
+            llm_chat = LlmChat(
+                provider=mapped_provider,
                 model=model,
                 api_key=emergent_key,
                 temperature=0.0,
-                response_format="json"
+                response_format="json_object"
+            )
+            
+            ai_response = await llm_chat.send_message_async(
+                messages=[UserMessage(content=prompt)]
             )
             
             if not ai_response:
