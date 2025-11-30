@@ -355,11 +355,9 @@ class CrewCertificateService:
         crew_id: str,
         current_user: UserResponse
     ) -> dict:
-        """Analyze crew certificate file using Document AI + LLM extraction"""
+        """Analyze crew certificate file using Document AI + LLM extraction (matches passport pattern)"""
         import base64
         import os
-        from app.utils.ai_helper import AIHelper
-        from app.services.ai_config_service import AIConfigService
         from app.db.mongodb import mongo_db
         
         # Validate file type
