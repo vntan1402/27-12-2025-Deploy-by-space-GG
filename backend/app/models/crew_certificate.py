@@ -22,7 +22,7 @@ class CrewCertificateBase(BaseModel):
 
 class CrewCertificateCreate(CrewCertificateBase):
     ship_id: Optional[str] = None  # Optional for Standby crew
-    company_id: str
+    company_id: Optional[str] = None  # Auto-set from current_user in endpoint
 
 class CrewCertificateUpdate(BaseModel):
     crew_name: Optional[str] = None
