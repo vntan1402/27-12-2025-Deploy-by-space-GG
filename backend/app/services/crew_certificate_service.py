@@ -557,6 +557,9 @@ Return ONLY the JSON object with extracted fields. No additional text."""
             # Call AI
             ai_response = await llm_chat.send_message(UserMessage(text=prompt))
             
+            logger.info(f"📦 AI response type: {type(ai_response)}")
+            logger.info(f"📦 AI response value: {str(ai_response)[:500]}")
+            
             if not ai_response:
                 logger.error("❌ AI returned no response")
                 return {
@@ -569,10 +572,25 @@ Return ONLY the JSON object with extracted fields. No additional text."""
             
             # Parse AI response
             import json
+            
+            # Handle different response types
+            response_text = None
+            if isinstance(ai_response, str):
+                response_text = ai_response
+            elif hasattr(ai_response, 'content'):
+                response_text = ai_response.content
+            elif hasattr(ai_response, 'text'):
+                response_text = ai_response.text
+            else:
+                response_text = str(ai_response)
+            
+            logger.info(f"📝 Response text length: {len(response_text) if response_text else 0}")
+            
             try:
-                parsed_data = json.loads(ai_response) if isinstance(ai_response, str) else ai_response
+                parsed_data = json.loads(response_text) if response_text else {}
             except json.JSONDecodeError as e:
                 logger.error(f"❌ Failed to parse AI response as JSON: {e}")
+                logger.error(f"   Response text: {response_text[:200]}")
                 return {
                     "success": False,
                     "message": "Failed to parse AI response",
