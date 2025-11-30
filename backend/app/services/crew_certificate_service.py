@@ -242,14 +242,17 @@ class CrewCertificateService:
         crew_id: str,
         current_user: UserResponse
     ) -> dict:
-        """Analyze crew certificate file using AI (simplified version)"""
-        # Validate file type
-        if file.content_type != "application/pdf":
-            raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+        """Analyze crew certificate file using Document AI + LLM extraction"""
+        import base64
+        import os
+        from app.utils.document_ai_helper import DocumentAIHelper
+        from app.utils.ai_helper import AIHelper
+        from app.services.ai_config_service import AIConfigService
+        from app.db.mongodb import mongo_db
         
-        # Validate file size (10MB limit)
-        if file.size and file.size > 10 * 1024 * 1024:
-            raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB")
+        # Validate file type
+        if not file.content_type or not (file.content_type == "application/pdf" or file.content_type.startswith("image/")):
+            raise HTTPException(status_code=400, detail="Only PDF or image files are allowed")
         
         # Read file content
         file_content = await file.read()
@@ -258,20 +261,160 @@ class CrewCertificateService:
         
         logger.info(f"📄 Analyzing crew certificate file: {file.filename} ({len(file_content)} bytes)")
         
-        # TODO: Implement actual AI analysis
-        # For now, return mock data
-        
-        return {
-            "success": True,
-            "message": "Crew certificate analyzed successfully (mock data)",
-            "analysis": {
-                "crew_name": "Nguyen Van A",
-                "passport": "N1234567",
-                "cert_name": "CERTIFICATE OF COMPETENCY",
-                "cert_no": "COC-2024-001",
-                "issued_date": "15/01/2024",
-                "cert_expiry": "15/01/2029",
-                "issued_by": "Vietnam Maritime Administration",
-                "rank": "Chief Engineer"
+        try:
+            # Get crew information
+            crew = await CrewRepository.find_by_id(crew_id)
+            if not crew:
+                raise HTTPException(status_code=404, detail="Crew member not found")
+            
+            crew_name = crew.get('full_name', 'Unknown')
+            crew_name_en = crew.get('full_name_en', '')
+            passport = crew.get('passport', 'Unknown')
+            rank = crew.get('rank', '')
+            date_of_birth = crew.get('date_of_birth')
+            
+            logger.info(f"👤 Analyzing certificate for: {crew_name} (Passport: {passport})")
+            
+            # Step 1: Call Document AI for OCR
+            doc_ai_helper = DocumentAIHelper()
+            doc_ai_result = await doc_ai_helper.process_document(file_content, file.content_type)
+            
+            if not doc_ai_result or not doc_ai_result.get("success"):
+                error_msg = doc_ai_result.get("message", "Unknown error") if doc_ai_result else "No response from Document AI"
+                logger.error(f"❌ Document AI failed: {error_msg}")
+                return {
+                    "success": False,
+                    "message": f"Document AI analysis failed: {error_msg}",
+                    "analysis": None
+                }
+            
+            # Get summary from Document AI
+            data = doc_ai_result.get("data", {})
+            document_summary = data.get("summary", "").strip()
+            
+            logger.info(f"📄 Document AI summary length: {len(document_summary)} characters")
+            
+            if not document_summary or len(document_summary) < 20:
+                logger.warning(f"⚠️ Document AI returned insufficient text: {len(document_summary)} characters")
+                return {
+                    "success": False,
+                    "message": "Could not extract sufficient text from certificate using Document AI",
+                    "analysis": None
+                }
+            
+            logger.info(f"✅ Document AI extracted {len(document_summary)} characters")
+            
+            # Step 2: Use LLM AI to extract certificate fields from summary
+            try:
+                ai_config = await AIConfigService.get_ai_config(current_user)
+                provider = ai_config.provider
+                model = ai_config.model
+            except:
+                ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+                provider = ai_config_doc.get("provider", "google") if ai_config_doc else "google"
+                model = ai_config_doc.get("model", "gemini-2.0-flash") if ai_config_doc else "gemini-2.0-flash"
+            
+            emergent_key = os.getenv("EMERGENT_LLM_KEY", "sk-emergent-eEe35Fb1b449940199")
+            
+            # Create AI prompt for crew certificate field extraction
+            prompt = f"""You are an AI specialized in extracting structured information from maritime crew certificates.
+
+Your task:
+Analyze the following text summary of a crew certificate and extract all key certificate fields.
+The text contains information about the document, so focus on extracting and normalizing it into structured JSON format.
+
+=== CREW INFORMATION ===
+Expected Crew Name: {crew_name}
+Expected Passport: {passport}
+Expected Rank: {rank}
+
+=== INSTRUCTIONS ===
+1. Extract only the certificate-related fields listed below.
+2. Return the output strictly in valid JSON format.
+3. If a field is not found, leave it as an empty string "".
+4. Normalize all dates to DD/MM/YYYY format.
+5. Use uppercase for official names and codes.
+6. Do not infer or fabricate any missing information.
+
+=== CERTIFICATE TYPES ===
+Common maritime certificates:
+- CERTIFICATE OF COMPETENCY (COC)
+- CERTIFICATE OF ENDORSEMENT (COE)
+- STCW certificates (Basic Safety, Advanced Fire Fighting, etc.)
+- Medical Certificate (Medical Fitness Certificate)
+- Passport
+- Seaman Book / Discharge Book
+- Flag State Endorsement
+- GMDSS certificates
+- Tanker certificates (Oil/Chemical/Gas)
+
+=== FIELDS TO EXTRACT ===
+{{
+  "cert_name": "",           // Full certificate name (e.g., "CERTIFICATE OF COMPETENCY")
+  "cert_no": "",             // Certificate number/ID
+  "issued_by": "",           // Issuing authority (e.g., "Vietnam Maritime Administration", "Panama Maritime Authority")
+  "issued_date": "",         // Issue date in DD/MM/YYYY format
+  "cert_expiry": "",         // Expiry date in DD/MM/YYYY format
+  "rank": "",                // Rank/capacity authorized (e.g., "Chief Engineer", "Master Mariner")
+  "crew_name": "",           // Name on certificate (should match expected crew)
+  "passport": "",            // Passport number if mentioned
+  "date_of_birth": "",       // Date of birth if mentioned
+  "note": ""                 // Any additional important info (limitations, restrictions, etc.)
+}}
+
+=== TEXT TO ANALYZE ===
+{document_summary}
+
+Return ONLY the JSON object with extracted fields. No additional text."""
+
+            logger.info("🤖 Calling LLM AI to extract certificate fields...")
+            
+            ai_response = await AIHelper.get_completion(
+                prompt=prompt,
+                provider=provider,
+                model=model,
+                api_key=emergent_key,
+                temperature=0.0,
+                response_format="json"
+            )
+            
+            if not ai_response:
+                logger.error("❌ AI returned no response")
+                return {
+                    "success": False,
+                    "message": "AI extraction failed - no response",
+                    "analysis": None
+                }
+            
+            logger.info(f"✅ AI extraction completed")
+            
+            # Parse AI response
+            import json
+            try:
+                parsed_data = json.loads(ai_response) if isinstance(ai_response, str) else ai_response
+            except json.JSONDecodeError as e:
+                logger.error(f"❌ Failed to parse AI response as JSON: {e}")
+                return {
+                    "success": False,
+                    "message": "Failed to parse AI response",
+                    "analysis": None
+                }
+            
+            # Add file content for later upload
+            parsed_data['_file_content'] = base64.b64encode(file_content).decode('utf-8')
+            parsed_data['_filename'] = file.filename
+            parsed_data['_content_type'] = file.content_type
+            
+            logger.info(f"✅ Certificate analysis successful: {parsed_data.get('cert_name', 'Unknown')}")
+            
+            return {
+                "success": True,
+                "message": "Crew certificate analyzed successfully",
+                "analysis": parsed_data
             }
-        }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error analyzing crew certificate: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to analyze certificate: {str(e)}")
