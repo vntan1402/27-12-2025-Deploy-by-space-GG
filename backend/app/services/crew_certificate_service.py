@@ -558,7 +558,13 @@ Expected Rank: {rank}
 4. Normalize all dates to DD/MM/YYYY format.
 5. Use uppercase for official names and codes.
 6. Do not infer or fabricate any missing information.
-7. **IMPORTANT**: For cert_name, you MUST classify and match to ONE of the standard certificate types listed below. If you cannot find an exact match, choose the closest/most similar one. Only if absolutely none match, you may use the original name from the document.
+7. **IMPORTANT - Certificate Classification Rules**:
+   - For cert_name, you MUST classify to ONE of the standard types below
+   - **PRIORITY**: Look for FUNCTIONAL qualification, not just document type
+   - Example: "Endorsement of GMDSS Certificate" → classify as "GMDSS Certificate" (NOT "Certificate of Endorsement")
+   - Example: "Endorsement of COC for Master" → classify as "Certificate of Competency (COC)" (NOT "Certificate of Endorsement")
+   - If document mentions "GMDSS", "radio operator", or "radiocommunication" → classify as "GMDSS Certificate"
+   - Only use "Certificate of Endorsement (COE)" if NO specific functional qualification is mentioned
 
 === STANDARD CERTIFICATE TYPES (Choose from this list) ===
 {standard_certs_list}
