@@ -132,7 +132,7 @@ class GoogleDriveHelper:
         logger.info(f"   🎭 MIME type: {mime_type}")
         
         payload = {
-            "action": "upload_file",
+            "action": "upload_file_with_folder_creation",
             "parent_folder_id": self.folder_id,
             "folder_path": folder_path,
             "filename": filename,
