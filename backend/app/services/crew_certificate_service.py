@@ -548,7 +548,7 @@ Expected Rank: {rank}
 
 === FIELDS TO EXTRACT ===
 {{
-  "cert_name": "",           // Full certificate name (e.g., "CERTIFICATE OF COMPETENCY")
+  "cert_name": "",           // **MUST be ONE of the standard certificate types listed above** (e.g., "Certificate of Competency (COC)", "Medical Certificate"). Classify the certificate from the document into the closest matching standard type.
   "cert_no": "",             // Certificate number/ID
   "issued_by": "",           // Issuing authority (e.g., "Vietnam Maritime Administration", "Panama Maritime Authority")
   "issued_date": "",         // Issue date in DD/MM/YYYY format
