@@ -387,7 +387,7 @@ class CrewCertificateService:
             
             logger.info(f"👤 Analyzing certificate for: {crew_name} (Passport: {passport})")
             
-            # Step 1: Get Document AI configuration
+            # Step 1: Get Document AI configuration from system_ai
             ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
             if not ai_config_doc:
                 raise HTTPException(status_code=404, detail="AI configuration not found")
@@ -396,10 +396,25 @@ class CrewCertificateService:
             if not document_ai_config.get("enabled", False):
                 raise HTTPException(status_code=400, detail="Google Document AI is not enabled")
             
-            # Add apps_script_url to config for document_ai_helper
-            gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": current_user.company})
-            if gdrive_config_doc and gdrive_config_doc.get("web_app_url"):
-                document_ai_config["apps_script_url"] = gdrive_config_doc.get("web_app_url")
+            # Get Apps Script URL - Try multiple sources (match crew passport pattern)
+            apps_script_url = document_ai_config.get("apps_script_url")
+            
+            # If not in system_ai, try company_gdrive_config as fallback
+            if not apps_script_url:
+                gdrive_config_doc = await mongo_db.find_one("company_gdrive_config", {"company_id": current_user.company})
+                if gdrive_config_doc:
+                    apps_script_url = gdrive_config_doc.get("web_app_url")
+            
+            if not apps_script_url:
+                logger.error("❌ Apps Script URL not configured in Document AI settings")
+                raise HTTPException(
+                    status_code=400,
+                    detail="Apps Script URL not configured. Please configure Apps Script URL in Document AI settings (System AI)."
+                )
+            
+            # Add apps_script_url to config
+            document_ai_config["apps_script_url"] = apps_script_url
+            logger.info(f"📤 Using Apps Script URL: {apps_script_url[:50]}...")
             
             # Step 2: Call Document AI for OCR
             from app.utils.document_ai_helper import analyze_document_with_document_ai
