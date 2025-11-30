@@ -67,6 +67,24 @@ async def get_crew_certificate_by_id(
         logger.error(f"❌ Error fetching crew certificate {cert_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch crew certificate")
 
+@router.post("/manual", response_model=CrewCertificateResponse)
+async def create_crew_certificate_manual(
+    cert_data: CrewCertificateCreate,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Create crew certificate manually without file upload (Editor+ role required)
+    Ship/Folder is determined automatically based on crew's ship_sign_on field
+    """
+    try:
+        logger.info(f"📋 Creating crew certificate manually for crew: {cert_data.crew_name}")
+        return await CrewCertificateService.create_crew_certificate(cert_data, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error creating crew certificate: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create crew certificate")
+
 @router.post("", response_model=CrewCertificateResponse)
 async def create_crew_certificate(
     cert_data: CrewCertificateCreate,
