@@ -159,12 +159,12 @@ async def delete_crew_certificate(
 
 @router.post("/check-duplicate")
 async def check_duplicate_crew_certificate(
-    crew_id: str,
-    cert_no: str,
+    crew_id: str = Body(...),
+    cert_no: str = Body(...),
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
-    Check if crew certificate is duplicate based on crew_id + cert_no
+    Check if crew certificate is duplicate based on crew_id + cert_no (accepts JSON body)
     """
     try:
         return await CrewCertificateService.check_duplicate(crew_id, None, cert_no, current_user)
