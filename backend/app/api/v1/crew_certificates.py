@@ -151,15 +151,20 @@ async def check_duplicate_crew_certificate(
 
 @router.post("/analyze-file")
 async def analyze_crew_certificate_file(
-    certificate_file: UploadFile = File(...),
+    cert_file: UploadFile = File(...),
     crew_id: str = Query(...),
+    ship_id: Optional[str] = Query(None),
+    bypass_validation: str = Query("false"),
+    bypass_dob_validation: str = Query("false"),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
     Analyze crew certificate file using AI (Editor+ role required)
+    Matches frontend pattern from AddCrewCertificateModal
     """
     try:
-        return await CrewCertificateService.analyze_crew_certificate_file(certificate_file, crew_id, current_user)
+        logger.info(f"📋 Analyze crew certificate request - crew_id: {crew_id}, ship_id: {ship_id}")
+        return await CrewCertificateService.analyze_crew_certificate_file(cert_file, crew_id, current_user)
     except HTTPException:
         raise
     except Exception as e:
