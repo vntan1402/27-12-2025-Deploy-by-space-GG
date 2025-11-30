@@ -102,6 +102,11 @@ class CrewCertificateService:
         cert_dict = cert_data.dict()
         cert_dict["id"] = str(uuid.uuid4())
         cert_dict["company_id"] = company_id  # Ensure company_id is set
+        
+        # Override rank with crew's current rank (not rank from certificate)
+        # This ensures consistency - all certificates for same crew show same rank
+        cert_dict["rank"] = crew.get("rank", "") or cert_dict.get("rank", "")
+        
         cert_dict["created_at"] = datetime.now(timezone.utc)
         cert_dict["created_by"] = current_user.username
         
