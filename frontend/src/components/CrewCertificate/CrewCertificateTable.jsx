@@ -1066,12 +1066,13 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
                       {cert.cert_no}
                     </td>
                     <td 
-                      className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 cursor-help"
+                      className="px-4 py-4 whitespace-nowrap text-sm font-semibold text-blue-700 border-r border-gray-200 cursor-help"
                       title={cert.issued_by || ''}
                     >
-                      <span className="font-medium">
-                        {getAbbreviation(cert.issued_by)}
-                      </span>
+                      {cert.issued_by_abbreviation || (cert.issued_by ? 
+                        (cert.issued_by.length > 8 ? `${cert.issued_by.substring(0, 8)}...` : cert.issued_by)
+                        : '-'
+                      )}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
                       {formatDateDisplay(cert.issued_date) || '-'}
