@@ -143,7 +143,14 @@ export const CrewListTable = ({
     
     // Apply ship sign on filter
     if (filters.ship_sign_on && filters.ship_sign_on !== 'All') {
-      filtered = filtered.filter(crew => crew.ship_sign_on === filters.ship_sign_on);
+      if (filters.ship_sign_on === 'Standby') {
+        // Show crew with ship_sign_on = "-" or status = "Standby"
+        filtered = filtered.filter(crew => 
+          crew.ship_sign_on === '-' || crew.status === 'Standby'
+        );
+      } else {
+        filtered = filtered.filter(crew => crew.ship_sign_on === filters.ship_sign_on);
+      }
     }
     
     // Apply status filter
