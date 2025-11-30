@@ -598,16 +598,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
   };
 
   // Get abbreviation from full organization name
-  const getAbbreviation = (fullName) => {
-    if (!fullName || fullName === '-') return '-';
-    
-    const words = fullName.trim().split(/\s+/);
-    const abbreviation = words
-      .map(word => word.charAt(0).toUpperCase())
-      .join('');
-    
-    return abbreviation;
-  };
+  // Removed getAbbreviation - now using issued_by_abbreviation from backend (like Class & Flag Cert)
 
   // Handle sort
   const handleSort = (column) => {
