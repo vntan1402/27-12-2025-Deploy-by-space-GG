@@ -91,6 +91,118 @@ async def create_crew_certificate_manual(
         logger.error(f"❌ Error creating crew certificate: {e}")
         raise HTTPException(status_code=500, detail="Failed to create crew certificate")
 
+@router.post("/{cert_id}/upload-files")
+async def upload_crew_certificate_files(
+    cert_id: str,
+    file_data: dict = Body(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload crew certificate files to Google Drive AFTER successful certificate creation
+    
+    Request Body:
+    {
+        "file_content": "base64_encoded_file_content",
+        "filename": "certificate.pdf",
+        "content_type": "application/pdf",
+        "summary_text": "OCR extracted text"
+    }
+    
+    Returns:
+    {
+        "success": true,
+        "message": "Files uploaded successfully",
+        "cert_file_id": "gdrive-file-id-xxx",
+        "summary_file_id": "gdrive-file-id-yyy"
+    }
+    """
+    import base64
+    from app.services.crew_certificate_drive_service import CrewCertificateDriveService
+    from app.repositories.crew_certificate_repository import CrewCertificateRepository
+    
+    try:
+        logger.info(f"📤 Upload crew certificate files request for cert: {cert_id}")
+        
+        # 1. Verify certificate exists
+        cert = await CrewCertificateRepository.find_by_id(cert_id)
+        if not cert:
+            raise HTTPException(status_code=404, detail=f"Certificate {cert_id} not found")
+        
+        # Check access permission
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
+            if cert.get('company_id') != current_user.company:
+                raise HTTPException(status_code=403, detail="Access denied")
+        
+        # 2. Validate required fields
+        required_fields = ['file_content', 'filename']
+        missing_fields = [f for f in required_fields if f not in file_data]
+        if missing_fields:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing required fields: {', '.join(missing_fields)}"
+            )
+        
+        # 3. Decode file content
+        try:
+            file_content = base64.b64decode(file_data['file_content'])
+            logger.info(f"✅ Decoded file content: {len(file_content)} bytes")
+        except Exception as e:
+            logger.error(f"❌ Failed to decode base64: {e}")
+            raise HTTPException(status_code=400, detail=f"Invalid base64 file content: {str(e)}")
+        
+        # Validate file size (max 10MB)
+        file_size_mb = len(file_content) / (1024 * 1024)
+        if file_size_mb > 10:
+            raise HTTPException(status_code=413, detail=f"File too large: {file_size_mb:.2f}MB (max 10MB)")
+        
+        # 4. Prepare upload data
+        upload_data = {
+            'file_content': file_content,
+            'filename': file_data['filename'],
+            'content_type': file_data.get('content_type', 'application/octet-stream'),
+            'summary_text': file_data.get('summary_text', ''),
+            'cert_id': cert_id,
+            'crew_name': cert.get('crew_name', ''),
+            'cert_name': cert.get('cert_name', ''),
+            'cert_no': cert.get('cert_no', '')
+        }
+        
+        # 5. Upload files to Google Drive via service
+        drive_service = CrewCertificateDriveService()
+        upload_result = await drive_service.upload_certificate_files(**upload_data)
+        
+        # 6. Update certificate with file IDs
+        cert_file_id = upload_result.get('cert_file_id')
+        summary_file_id = upload_result.get('summary_file_id')
+        
+        if cert_file_id or summary_file_id:
+            update_data = {}
+            if cert_file_id:
+                update_data['crew_cert_file_id'] = cert_file_id
+            if summary_file_id:
+                update_data['crew_cert_summary_file_id'] = summary_file_id
+            
+            await CrewCertificateRepository.update(cert_id, update_data)
+            logger.info(f"✅ Updated certificate {cert_id} with file IDs")
+        
+        return {
+            "success": True,
+            "message": "Files uploaded successfully to Google Drive",
+            "cert_file_id": cert_file_id,
+            "summary_file_id": summary_file_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading crew certificate files: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to upload crew certificate files: {str(e)}"
+        )
+
 @router.post("", response_model=CrewCertificateResponse)
 async def create_crew_certificate(
     cert_data: CrewCertificateCreate,
