@@ -59,6 +59,11 @@ COMPANY_ABBREVIATIONS = {
     "vietnam register": "VR",
     "vr": "VR",
     
+    # Panama Maritime Authorities (all variations map to PMA)
+    "panama maritime authority": "PMA",
+    "maritime authority of panama": "PMA",
+    "pma": "PMA",
+    
     # Panama Companies
     "panama maritime documentation services": "PMDS",
     "panama maritime documentation services inc": "PMDS",
