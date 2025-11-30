@@ -152,10 +152,10 @@ async def check_duplicate_crew_certificate(
 @router.post("/analyze-file")
 async def analyze_crew_certificate_file(
     cert_file: UploadFile = File(...),
-    crew_id: str = Query(...),
-    ship_id: Optional[str] = Query(None),
-    bypass_validation: str = Query("false"),
-    bypass_dob_validation: str = Query("false"),
+    crew_id: str = Form(...),
+    ship_id: Optional[str] = Form(None),
+    bypass_validation: str = Form("false"),
+    bypass_dob_validation: str = Form("false"),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
