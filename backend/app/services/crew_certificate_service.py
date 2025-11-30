@@ -86,6 +86,8 @@ class CrewCertificateService:
     @staticmethod
     async def create_crew_certificate(cert_data: CrewCertificateCreate, current_user: UserResponse) -> CrewCertificateResponse:
         """Create new crew certificate"""
+        from app.services.audit_trail_service import AuditTrailService
+        
         # Verify crew exists
         crew = await CrewRepository.find_by_id(cert_data.crew_id)
         if not crew:
@@ -98,6 +100,21 @@ class CrewCertificateService:
         cert_dict["created_by"] = current_user.username
         
         await CrewCertificateRepository.create(cert_dict)
+        
+        # Log audit trail
+        await AuditTrailService.log_action(
+            user_id=current_user.id,
+            action="CREATE_CREW_CERTIFICATE",
+            resource_type="crew_certificate",
+            resource_id=cert_dict["id"],
+            details={
+                "crew_name": cert_data.crew_name,
+                "cert_name": cert_data.cert_name,
+                "cert_no": cert_data.cert_no,
+                "ship_id": cert_data.ship_id
+            },
+            company_id=current_user.company
+        )
         
         logger.info(f"✅ Crew certificate created: {cert_dict['cert_name']} for crew {cert_data.crew_id}")
         
