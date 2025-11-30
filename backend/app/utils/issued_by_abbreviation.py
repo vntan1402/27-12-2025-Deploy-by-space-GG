@@ -155,6 +155,7 @@ def generate_organization_abbreviation(org_name: str) -> str:
         'PANAMA MARITIME DOCUMENTATION SERVICES': 'PMDS',
         'PANAMA MARITIME DOCUMENTATION SERVICES INC': 'PMDS',
         'PANAMA MARITIME AUTHORITY': 'PMA',
+        'MARITIME AUTHORITY OF PANAMA': 'PMA',
         
         # Major Classification Societies (IACS Members)
         'DET NORSKE VERITAS': 'DNV',
