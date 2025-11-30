@@ -198,6 +198,22 @@ class CrewCertificateService:
         # Delete from database
         await CrewCertificateRepository.delete(cert_id)
         
+        # Log audit trail
+        from app.services.audit_trail_service import AuditTrailService
+        await AuditTrailService.log_action(
+            user_id=current_user.id,
+            action="DELETE_CREW_CERTIFICATE",
+            resource_type="crew_certificate",
+            resource_id=cert_id,
+            details={
+                "crew_name": cert.get('crew_name'),
+                "cert_name": cert.get('cert_name'),
+                "cert_no": cert.get('cert_no'),
+                "files_deleted": files_deleted
+            },
+            company_id=company_id
+        )
+        
         message = f"Crew certificate deleted successfully"
         if files_deleted > 0:
             message += f" ({files_deleted} file(s) deleted from Google Drive)"
