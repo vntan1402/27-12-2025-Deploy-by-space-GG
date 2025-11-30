@@ -48,7 +48,11 @@ COMPANY_ABBREVIATIONS = {
     "indian register of shipping": "IRS",
     "irs": "IRS",
     
-    # Common Vietnamese Companies
+    # Common Vietnamese Companies & Authorities
+    "vietnam maritime administration": "VINAMARINE",
+    "vietnam maritime": "VINAMARINE",
+    "vinamarine": "VINAMARINE",
+    
     "viet tech": "VITECH",
     "vitech": "VITECH",
     
