@@ -798,10 +798,24 @@ Return ONLY the JSON object with extracted fields. No additional text."""
             
             logger.info(f"✅ Certificate analysis successful: {parsed_data.get('cert_name', 'Unknown')}")
             
+            # Fetch crew info for batch upload (passport, rank, date_of_birth)
+            crew = await CrewRepository.find_by_id(crew_id)
+            crew_info = {}
+            if crew:
+                crew_info = {
+                    "crew_name": crew.get("full_name", ""),
+                    "crew_name_en": crew.get("full_name_en", ""),
+                    "passport": crew.get("passport", ""),
+                    "rank": crew.get("rank", ""),
+                    "date_of_birth": crew.get("date_of_birth", "")
+                }
+            
             return {
                 "success": True,
                 "message": "Crew certificate analyzed successfully",
-                "analysis": parsed_data
+                "analysis": parsed_data,
+                # Include crew info for batch upload (root level for easy access)
+                **crew_info
             }
             
         except HTTPException:
