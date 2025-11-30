@@ -141,6 +141,16 @@ export const CrewListTable = ({
   const getFilteredCrewData = () => {
     let filtered = [...crewList];
     
+    // Apply ship sign on filter
+    if (filters.ship_sign_on && filters.ship_sign_on !== 'All') {
+      filtered = filtered.filter(crew => crew.ship_sign_on === filters.ship_sign_on);
+    }
+    
+    // Apply status filter
+    if (filters.status && filters.status !== 'All') {
+      filtered = filtered.filter(crew => crew.status === filters.status);
+    }
+    
     // Apply search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
