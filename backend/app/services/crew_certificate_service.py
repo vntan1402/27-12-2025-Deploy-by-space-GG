@@ -759,6 +759,7 @@ Return ONLY the JSON object with extracted fields. No additional text."""
             parsed_data['_file_content'] = base64.b64encode(file_content).decode('utf-8')
             parsed_data['_filename'] = file.filename
             parsed_data['_content_type'] = file.content_type
+            parsed_data['_summary_text'] = document_summary  # Add summary for upload to Google Drive
             
             logger.info(f"✅ Certificate analysis successful: {parsed_data.get('cert_name', 'Unknown')}")
             
