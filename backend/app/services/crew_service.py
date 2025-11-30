@@ -178,12 +178,77 @@ class CrewService:
     
     @staticmethod
     async def bulk_delete_crew(request: BulkDeleteCrewRequest, current_user: UserResponse) -> dict:
-        """Bulk delete crew members"""
+        """Bulk delete crew members and associated files"""
+        deleted_files_count = 0
+        failed_deletions = []
+        
+        # First, get all crew members and delete their Google Drive files
+        for crew_id in request.crew_ids:
+            try:
+                crew = await CrewRepository.find_by_id(crew_id)
+                if not crew:
+                    logger.warning(f"⚠️ Crew member not found: {crew_id}")
+                    failed_deletions.append(crew_id)
+                    continue
+                
+                # Check access permission
+                if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
+                    if crew.get('company_id') != current_user.company:
+                        logger.warning(f"⚠️ Access denied for crew: {crew_id}")
+                        failed_deletions.append(crew_id)
+                        continue
+                
+                # Delete files from Google Drive
+                passport_file_id = crew.get('passport_file_id')
+                summary_file_id = crew.get('summary_file_id')
+                
+                if passport_file_id or summary_file_id:
+                    try:
+                        from app.services.google_drive_service import GoogleDriveService
+                        
+                        drive_service = GoogleDriveService()
+                        delete_result = await drive_service.delete_passport_files(
+                            company_id=current_user.company,
+                            passport_file_id=passport_file_id,
+                            summary_file_id=summary_file_id
+                        )
+                        
+                        if delete_result.get('success'):
+                            deleted_files_count += delete_result.get('deleted_count', 0)
+                            logger.info(f"✅ Deleted {delete_result.get('deleted_count')} files for crew {crew_id}")
+                        else:
+                            logger.warning(f"⚠️ File deletion failed for crew {crew_id}: {delete_result.get('message')}")
+                    except Exception as e:
+                        logger.error(f"❌ Error deleting files for crew {crew_id}: {e}")
+                        # Continue with database deletion even if Drive deletion fails
+                
+                # Log audit trail
+                await AuditTrailService.log_action(
+                    user_id=current_user.id,
+                    action="DELETE_CREW",
+                    resource_type="crew_member",
+                    resource_id=crew_id,
+                    details={
+                        "crew_name": crew.get('full_name'),
+                        "passport": crew.get('passport'),
+                        "ship": crew.get('ship_sign_on'),
+                        "bulk_delete": True
+                    },
+                    company_id=current_user.company
+                )
+                
+            except Exception as e:
+                logger.error(f"❌ Error processing crew {crew_id}: {e}")
+                failed_deletions.append(crew_id)
+        
+        # Delete from database
         deleted_count = await CrewRepository.bulk_delete(request.crew_ids)
         
-        logger.info(f"✅ Bulk deleted {deleted_count} crew members")
+        logger.info(f"✅ Bulk deleted {deleted_count} crew members and {deleted_files_count} files")
         
         return {
-            "message": f"Successfully deleted {deleted_count} crew members",
-            "deleted_count": deleted_count
+            "message": f"Successfully deleted {deleted_count} crew members and {deleted_files_count} files",
+            "deleted_count": deleted_count,
+            "deleted_files_count": deleted_files_count,
+            "failed_deletions": failed_deletions
         }
