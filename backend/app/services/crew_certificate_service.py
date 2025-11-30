@@ -223,8 +223,34 @@ class CrewCertificateService:
                     errors.append(f"Certificate {cert_id} not found")
                     continue
                 
-                # TODO: Delete Google Drive files if configured
-                # For now, just delete from database
+                # Delete Google Drive files if they exist
+                from app.services.crew_certificate_drive_service import CrewCertificateDriveService
+                
+                cert_file_id = cert.get('crew_cert_file_id')
+                summary_file_id = cert.get('crew_cert_summary_file_id')
+                
+                if cert_file_id or summary_file_id:
+                    try:
+                        if cert_file_id:
+                            result = await CrewCertificateDriveService.delete_certificate_file(
+                                company_id=company_id,
+                                file_id=cert_file_id
+                            )
+                            if result.get('success'):
+                                files_deleted += 1
+                                logger.info(f"✅ Deleted certificate file: {cert_file_id}")
+                        
+                        if summary_file_id:
+                            result = await CrewCertificateDriveService.delete_certificate_file(
+                                company_id=company_id,
+                                file_id=summary_file_id
+                            )
+                            if result.get('success'):
+                                files_deleted += 1
+                                logger.info(f"✅ Deleted summary file: {summary_file_id}")
+                    except Exception as e:
+                        logger.warning(f"⚠️ Error deleting files for cert {cert_id}: {e}")
+                        # Continue with database deletion
                 
                 # Delete from database
                 await mongo_db.delete("crew_certificates", {"id": cert_id})
