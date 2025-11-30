@@ -122,8 +122,8 @@ class CrewService:
             try:
                 from app.db.mongodb import mongo_db
                 
-                result = await mongo_db.update_many(
-                    "crew_certificates",
+                # Access database directly for update_many
+                result = await mongo_db.database.crew_certificates.update_many(
                     {"crew_id": crew_id},
                     {"$set": {"rank": new_rank}}
                 )
