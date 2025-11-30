@@ -50,9 +50,23 @@ class CrewCertificateRepository:
         return deleted_count
     
     @staticmethod
-    async def check_duplicate(crew_id: str, cert_name: str, cert_no: Optional[str] = None) -> Optional[Dict[str, Any]]:
-        """Check if crew certificate already exists"""
-        query = {"crew_id": crew_id, "cert_name": cert_name}
-        if cert_no:
+    async def check_duplicate(crew_id: str, cert_name: Optional[str] = None, cert_no: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """
+        Check if crew certificate already exists
+        - If cert_name is provided: checks crew_id + cert_name (+ optional cert_no)
+        - If only crew_id + cert_no: checks crew_id + cert_no (V1 pattern)
+        """
+        query = {"crew_id": crew_id}
+        
+        if cert_name:
+            query["cert_name"] = cert_name
+            if cert_no:
+                query["cert_no"] = cert_no
+        elif cert_no:
+            # V1 pattern: only crew_id + cert_no
             query["cert_no"] = cert_no
+        else:
+            # Need at least one of cert_name or cert_no
+            return None
+            
         return await mongo_db.find_one("crew_certificates", query)
