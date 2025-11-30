@@ -178,6 +178,7 @@ def generate_organization_abbreviation(org_name: str) -> str:
         'HONG KONG MARINE DEPARTMENT': 'MARDEP',
         
         # Government Maritime Administrations
+        'VIETNAM MARITIME ADMINISTRATION': 'VINAMARINE',
         'MARITIME SAFETY ADMINISTRATION': 'MSA',
         'COAST GUARD': 'CG',
         'PORT STATE CONTROL': 'PSC',
