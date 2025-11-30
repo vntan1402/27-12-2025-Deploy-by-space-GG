@@ -517,29 +517,28 @@ Return ONLY the JSON object with extracted fields. No additional text."""
 
             logger.info("🤖 Calling LLM AI to extract certificate fields...")
             
-            # Use emergentintegrations to call LLM
+            # Use emergentintegrations to call LLM (match crew passport pattern)
             from emergentintegrations.llm.chat import LlmChat, UserMessage
             
-            # Map provider to correct format
-            provider_mapping = {
-                "google": "google",
-                "openai": "openai",
-                "anthropic": "anthropic"
-            }
-            
-            mapped_provider = provider_mapping.get(provider.lower(), "google")
-            
             llm_chat = LlmChat(
-                provider=mapped_provider,
-                model=model,
                 api_key=emergent_key,
-                temperature=0.0,
-                response_format="json_object"
+                session_id="crew_certificate_analysis",
+                system_message="You are an AI assistant that extracts crew certificate information from OCR text."
             )
             
-            ai_response = await llm_chat.send_message_async(
-                messages=[UserMessage(content=prompt)]
-            )
+            # Map provider to correct format for emergentintegrations
+            if provider in ["google", "emergent"]:
+                llm_chat = llm_chat.with_model("gemini", model)
+            elif provider == "anthropic":
+                llm_chat = llm_chat.with_model("claude", model)
+            elif provider == "openai":
+                llm_chat = llm_chat.with_model("openai", model)
+            else:
+                logger.warning(f"Unknown provider {provider}, using gemini as fallback")
+                llm_chat = llm_chat.with_model("gemini", model)
+            
+            # Call AI
+            ai_response = await llm_chat.send_message(UserMessage(text=prompt))
             
             if not ai_response:
                 logger.error("❌ AI returned no response")
