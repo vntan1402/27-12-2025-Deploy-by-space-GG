@@ -1211,7 +1211,6 @@ export const CrewListTable = ({
               {ships.map(ship => (
                 <option key={ship.id} value={ship.name}>{ship.name}</option>
               ))}
-              <option value="-">-</option>
             </select>
           </div>
 
