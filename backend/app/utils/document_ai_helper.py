@@ -109,6 +109,8 @@ async def analyze_document_with_document_ai(
                 if response.status == 200:
                     result = await response.json()
                     
+                    logger.info(f"📦 Apps Script response keys: {list(result.keys())}")
+                    
                     if result.get("success"):
                         summary = result.get("data", {}).get("summary", "")
                         confidence = result.get("data", {}).get("confidence", 0.0)
