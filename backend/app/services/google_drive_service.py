@@ -70,14 +70,14 @@ class GoogleDriveService:
             
             # ✅ V1 STRUCTURE: Determine folder path matching Backend V1
             # Normal crew: {Ship Name}/Crew Records/Crew List/
-            # Standby crew: COMPANY DOCUMENT/Standby Crew/Crew Passport/
+            # Standby crew: COMPANY DOCUMENT/Standby Crew/Crew Doc/
             if ship_name and ship_name != '-':
                 # Normal crew with ship
                 folder_path = f"{ship_name}/Crew Records/Crew List"
                 logger.info(f"📤 Uploading passport file (Normal): {folder_path}/{filename}")
             else:
                 # Standby crew
-                folder_path = "COMPANY DOCUMENT/Standby Crew/Crew Passport"
+                folder_path = "COMPANY DOCUMENT/Standby Crew/Crew Doc"
                 logger.info(f"📤 Uploading passport file (Standby): {folder_path}/{filename}")
             
             logger.info(f"📁 Target folder: {folder_path}")
