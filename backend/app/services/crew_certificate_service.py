@@ -487,7 +487,42 @@ class CrewCertificateService:
             
             emergent_key = os.getenv("EMERGENT_LLM_KEY", "sk-emergent-eEe35Fb1b449940199")
             
-            # Create AI prompt for crew certificate field extraction
+            # Define standard certificate names (must match frontend dropdown)
+            STANDARD_CERT_NAMES = [
+                'Certificate of Competency (COC)',
+                'Certificate of Endorsement (COE)',
+                'Seaman Book for COC',
+                'Seaman book for GMDSS',
+                'GMDSS Certificate',
+                'Medical Certificate',
+                'Basic Safety Training (BST)',
+                'Advanced Fire Fighting (AFF)',
+                'Ship Security Officer (SSO)',
+                'Ship Security Awareness',
+                'Proficiency in Survival Craft and Rescue Boats',
+                'Crowd Management',
+                'Crisis Management and Human Behavior',
+                'Passenger Ship Safety',
+                'ECDIS',
+                'Bridge Resource Management (BRM)',
+                'Engine Resource Management (ERM)',
+                'High Voltage Certificate',
+                'Ratings Forming Part of a Watch',
+                'Ratings as Able Seafarer Deck',
+                'Ratings as Able Seafarer Engine',
+                'Oil Tanker Familiarization',
+                'Chemical Tanker Familiarization',
+                'Liquefied Gas Tanker Familiarization',
+                'Oil Tanker Advanced',
+                'Chemical Tanker Advanced',
+                'Liquefied Gas Tanker Advanced',
+                'Welding Certificate',
+                'Radar Certificate'
+            ]
+            
+            # Create AI prompt for crew certificate field extraction with classification
+            standard_certs_list = '\n'.join([f"- {name}" for name in STANDARD_CERT_NAMES])
+            
             prompt = f"""You are an AI specialized in extracting structured information from maritime crew certificates.
 
 Your task:
@@ -506,18 +541,10 @@ Expected Rank: {rank}
 4. Normalize all dates to DD/MM/YYYY format.
 5. Use uppercase for official names and codes.
 6. Do not infer or fabricate any missing information.
+7. **IMPORTANT**: For cert_name, you MUST classify and match to ONE of the standard certificate types listed below. If you cannot find an exact match, choose the closest/most similar one. Only if absolutely none match, you may use the original name from the document.
 
-=== CERTIFICATE TYPES ===
-Common maritime certificates:
-- CERTIFICATE OF COMPETENCY (COC)
-- CERTIFICATE OF ENDORSEMENT (COE)
-- STCW certificates (Basic Safety, Advanced Fire Fighting, etc.)
-- Medical Certificate (Medical Fitness Certificate)
-- Passport
-- Seaman Book / Discharge Book
-- Flag State Endorsement
-- GMDSS certificates
-- Tanker certificates (Oil/Chemical/Gas)
+=== STANDARD CERTIFICATE TYPES (Choose from this list) ===
+{standard_certs_list}
 
 === FIELDS TO EXTRACT ===
 {{
