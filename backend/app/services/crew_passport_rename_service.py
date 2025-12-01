@@ -59,7 +59,7 @@ class CrewPassportRenameService:
             if not new_filename:
                 raise HTTPException(
                     status_code=400,
-                    detail="Cannot generate filename: Missing required fields (rank, full_name_en, or passport)"
+                    detail="Cannot generate filename: Missing required fields (rank or full_name_en)"
                 )
             
             # Get Google Drive config
