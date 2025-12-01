@@ -897,6 +897,85 @@ export const CrewListTable = ({
     }
   };
   
+  // Bulk auto-rename passport files
+  const handleBulkAutoRenamePassport = async () => {
+    const crewIds = Array.from(selectedCrewMembers);
+    if (crewIds.length === 0) return;
+    
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+    
+    try {
+      // Show loading toast
+      const loadingToast = toast.loading(
+        language === 'vi' 
+          ? `🔄 Đang đổi tên file hộ chiếu cho ${crewIds.length} thuyền viên...`
+          : `🔄 Renaming passport files for ${crewIds.length} crew members...`
+      );
+      
+      let successCount = 0;
+      let failCount = 0;
+      const results = [];
+      
+      // Process each crew member
+      for (const crewId of crewIds) {
+        const crew = sortedCrewData.find(c => c.id === crewId);
+        if (!crew) continue;
+        
+        try {
+          const result = await crewService.autoRenamePassport(crewId);
+          successCount++;
+          results.push({
+            crew: crew.full_name,
+            success: true,
+            filename: result.new_filename || 'files'
+          });
+        } catch (error) {
+          failCount++;
+          results.push({
+            crew: crew.full_name,
+            success: false,
+            error: error.response?.data?.detail || error.message
+          });
+        }
+      }
+      
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+      
+      // Show results
+      if (successCount > 0) {
+        toast.success(
+          language === 'vi' 
+            ? `✅ Đã đổi tên file cho ${successCount} thuyền viên${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
+            : `✅ Renamed files for ${successCount} crew member(s)${failCount > 0 ? ` (${failCount} failed)` : ''}`,
+          { duration: 5000 }
+        );
+      }
+      
+      if (failCount > 0) {
+        const failedCrew = results.filter(r => !r.success).map(r => r.crew).join(', ');
+        toast.error(
+          language === 'vi' 
+            ? `❌ Thất bại: ${failedCrew}`
+            : `❌ Failed: ${failedCrew}`,
+          { duration: 7000 }
+        );
+      }
+      
+      // Refresh crew list to reflect any changes
+      fetchCrewList();
+      
+    } catch (error) {
+      console.error('Error in bulk rename:', error);
+      toast.error(
+        language === 'vi' 
+          ? `❌ Lỗi đổi tên file hàng loạt`
+          : `❌ Bulk rename error`,
+        { duration: 7000 }
+      );
+    }
+  };
+  
   // Rank context menu handler
   const handleRankRightClick = (e, crew) => {
     e.preventDefault();
