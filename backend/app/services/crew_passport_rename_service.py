@@ -202,11 +202,14 @@ class CrewPassportRenameService:
             
             # Clean and format components
             # Remove special characters that are not allowed in filenames
-            name_clean = full_name_en.replace("/", "-").replace("\\", "-").replace(":", "")
+            # Keep "/" in rank (e.g., "C/O" should stay "C/O", not "C-O")
+            # Only replace backslash and colon in name
+            name_clean = full_name_en.replace("\\", "-").replace(":", "").replace("/", "-")
             
             # Generate filename with "Passport" as literal text
             if rank:
-                rank_clean = rank.replace("/", "-").replace("\\", "-").replace(":", "")
+                # Keep "/" in rank (e.g., C/O, 2/O), only replace backslash and colon
+                rank_clean = rank.replace("\\", "-").replace(":", "")
                 filename = f"{rank_clean}_{name_clean}_Passport.pdf"
             else:
                 # No rank - skip rank part
