@@ -546,23 +546,86 @@ export const CrewListTable = ({
     const crewIds = Array.from(selectedCrewMembers);
     const isClearingDate = !bulkDateSignOff || bulkDateSignOff.trim() === '';
     
-    let updates;
-    if (isClearingDate) {
-      // Clear Date Sign Off only (don't change status or ship)
-      updates = {
-        date_sign_off: null
-      };
-    } else {
-      // Auto-update Status and Ship Sign On when Date Sign Off is filled
-      updates = {
-        date_sign_off: bulkDateSignOff,
-        status: 'Standby', // Auto-set to Standby when crew signs off
-        ship_sign_on: '-' // Clear ship assignment when crew signs off
-      };
+    try {
+      let successCount = 0;
+      let failCount = 0;
+      let totalFilesMoved = 0;
+      
+      if (isClearingDate) {
+        // Clear Date Sign Off only (don't change status or ship)
+        for (const crewId of crewIds) {
+          try {
+            await crewService.update(crewId, { date_sign_off: null });
+            successCount++;
+          } catch (error) {
+            console.error(`Failed to clear date for crew ${crewId}:`, error);
+            failCount++;
+          }
+        }
+      } else {
+        // Sign Off flow: Call new API to move files
+        for (const crewId of crewIds) {
+          const crew = crewList.find(c => c.id === crewId);
+          if (!crew) continue;
+          
+          const currentStatus = crew.status;
+          
+          try {
+            if (currentStatus === 'Sign on') {
+              // Sign off flow: Ship → Standby
+              const result = await crewService.signOff(crewId, {
+                sign_off_date: bulkDateSignOff,
+                notes: `Bulk sign off via Date Sign Off edit`
+              });
+              
+              if (result.success) {
+                successCount++;
+                const filesCount = (result.files_moved?.passport_moved ? 1 : 0) + 
+                                  (result.files_moved?.certificates_moved || 0) + 
+                                  (result.files_moved?.summaries_moved || 0);
+                totalFilesMoved += filesCount;
+              } else {
+                failCount++;
+              }
+            } else {
+              // Already standby or other status, just update date
+              await crewService.update(crewId, {
+                date_sign_off: bulkDateSignOff,
+                status: 'Standby',
+                ship_sign_on: '-'
+              });
+              successCount++;
+            }
+            
+          } catch (error) {
+            console.error(`Failed to sign off crew ${crewId}:`, error);
+            failCount++;
+          }
+        }
+      }
+      
+      // Show result
+      if (successCount > 0) {
+        const message = isClearingDate
+          ? (language === 'vi' 
+              ? `✅ Đã xóa ngày xuống tàu cho ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}`
+              : `✅ Cleared date for ${successCount} crew member(s)${failCount > 0 ? `, ${failCount} failed` : ''}`)
+          : (language === 'vi'
+              ? `✅ Đã sign off ${successCount} thuyền viên${totalFilesMoved > 0 ? ` và di chuyển ${totalFilesMoved} files về Standby` : ''}${failCount > 0 ? `, ${failCount} thất bại` : ''}`
+              : `✅ Signed off ${successCount} crew member(s)${totalFilesMoved > 0 ? ` and moved ${totalFilesMoved} files to Standby` : ''}${failCount > 0 ? `, ${failCount} failed` : ''}`);
+        
+        toast.success(message, { duration: 5000 });
+        fetchCrewList();
+      } else {
+        toast.error(language === 'vi' ? 'Không thể cập nhật' : 'Failed to update');
+      }
+      
+      setShowBulkEditDateSignOff(false);
+      
+    } catch (error) {
+      console.error('Bulk date sign off error:', error);
+      toast.error(language === 'vi' ? 'Lỗi cập nhật hàng loạt' : 'Bulk update error');
     }
-    
-    await bulkUpdateMultipleFields(updates, crewIds, isClearingDate ? 'clear_date_sign_off' : 'date_sign_off');
-    setShowBulkEditDateSignOff(false);
   };
   
   // Bulk update field helper
