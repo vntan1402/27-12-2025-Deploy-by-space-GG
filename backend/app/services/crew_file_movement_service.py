@@ -461,7 +461,7 @@ class CrewFileMovementService:
         folder_path: str
     ) -> Optional[str]:
         """
-        Find folder ID by path using Apps Script
+        Find folder ID by traversing path using debug_folder_structure (V1 approach)
         
         Args:
             drive_helper: Initialized GoogleDriveHelper instance
@@ -479,22 +479,45 @@ class CrewFileMovementService:
                 logger.error(f"Invalid folder path: {folder_path}")
                 return None
             
-            # Call Apps Script to find folder
-            payload = {
-                "action": "find_folder_by_path",
-                "parent_folder_id": drive_helper.folder_id,
-                "folder_path": folder_path
-            }
+            logger.info(f"   Path parts: {path_parts}")
             
-            result = await drive_helper.call_apps_script(payload, timeout=30.0)
+            # Start from root folder
+            current_folder_id = drive_helper.folder_id
             
-            if result.get('success') and result.get('folder_id'):
-                folder_id = result.get('folder_id')
-                logger.info(f"✅ Found folder ID: {folder_id}")
-                return folder_id
-            else:
-                logger.warning(f"⚠️ Folder not found: {folder_path}")
-                return None
+            # Traverse path
+            for i, folder_name in enumerate(path_parts):
+                logger.info(f"   Step {i+1}/{len(path_parts)}: Looking for '{folder_name}' in {current_folder_id}")
+                
+                # Use debug_folder_structure to list folders
+                payload = {
+                    "action": "debug_folder_structure",
+                    "parent_folder_id": current_folder_id
+                }
+                
+                result = await drive_helper.call_apps_script(payload, timeout=30.0)
+                
+                if not result.get('success'):
+                    logger.error(f"❌ Failed to list folders: {result.get('message')}")
+                    return None
+                
+                # Find matching folder
+                folders = result.get('folders', [])
+                found = False
+                
+                for folder in folders:
+                    if folder.get('name', '').strip().lower() == folder_name.lower():
+                        current_folder_id = folder.get('id')
+                        logger.info(f"   ✅ Found '{folder_name}': {current_folder_id}")
+                        found = True
+                        break
+                
+                if not found:
+                    logger.warning(f"   ❌ Folder not found: '{folder_name}'")
+                    logger.info(f"   Available folders: {[f.get('name') for f in folders]}")
+                    return None
+            
+            logger.info(f"✅ Final folder ID: {current_folder_id}")
+            return current_folder_id
                 
         except Exception as e:
             logger.error(f"❌ Error finding folder: {e}")
