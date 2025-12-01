@@ -2156,16 +2156,49 @@ export const CrewListTable = ({
           
           {/* Bulk actions - show when multiple selected */}
           {selectedCrewMembers.size > 1 && (
-            <button
-              onClick={handleBulkAutoRenamePassport}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
-            >
-              <div className="flex items-center space-x-2">
+            <>
+              <button
+                onClick={handleBulkViewPassport}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-2">
+                  <span>👁️</span>
+                  <span>{language === 'vi' ? 'Xem file hàng loạt' : 'Bulk View Files'}</span>
+                </div>
+                <span>📄</span>
+              </button>
+              <button
+                onClick={handleBulkCopyPassportLink}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-2">
+                  <span>📋</span>
+                  <span>{language === 'vi' ? 'Sao chép link hàng loạt' : 'Bulk Copy Links'}</span>
+                </div>
+                <span>🔗</span>
+              </button>
+              <button
+                onClick={handleBulkDownloadPassport}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-2">
+                  <span>📥</span>
+                  <span>{language === 'vi' ? 'Tải xuống hàng loạt' : 'Bulk Download Files'}</span>
+                </div>
+                <span>💾</span>
+              </button>
+              <div className="border-t border-gray-200 my-1"></div>
+              <button
+                onClick={handleBulkAutoRenamePassport}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-2">
+                  <span>⚡</span>
+                  <span>{language === 'vi' ? 'Tự động đổi tên file hàng loạt' : 'Bulk Auto Rename Files'}</span>
+                </div>
                 <span>⚡</span>
-                <span>{language === 'vi' ? 'Tự động đổi tên file hàng loạt' : 'Bulk Auto Rename Files'}</span>
-              </div>
-              <span>⚡</span>
-            </button>
+              </button>
+            </>
           )}
         </div>
       )}
