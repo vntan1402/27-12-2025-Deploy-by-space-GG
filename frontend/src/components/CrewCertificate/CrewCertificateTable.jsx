@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUploadGuard } from '../../hooks/useUploadGuard';
 import { toast } from 'sonner';
 import api from '../../services/api';
 import { crewCertificateService } from '../../services/crewCertificateService';
@@ -15,6 +16,7 @@ import { BatchResultsModal } from './BatchResultsModal';
 
 const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipSelect, initialCrewFilter }) => {
   const { language, user } = useAuth();
+  const { checkAndWarn } = useUploadGuard();
   
   // State
   const [certificates, setCertificates] = useState([]);
