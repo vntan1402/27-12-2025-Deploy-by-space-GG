@@ -399,8 +399,8 @@ class CrewFileMovementService:
             
             # 4. Move each certificate
             for cert in certificates:
-                cert_file_id = cert.get('cert_file_id')
-                cert_summary_file_id = cert.get('summary_file_id')
+                cert_file_id = cert.get('crew_cert_file_id')  # ✅ Correct field name
+                cert_summary_file_id = cert.get('crew_cert_summary_file_id')  # ✅ Correct field name
                 cert_name = cert.get('cert_name', 'unknown')
                 cert_no = cert.get('cert_no', 'unknown')
                 
