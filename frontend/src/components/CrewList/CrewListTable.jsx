@@ -461,6 +461,10 @@ export const CrewListTable = ({
         const currentShip = crew.ship_sign_on;
         
         try {
+          // Normalize ship names for comparison (trim and lowercase)
+          const normalizedCurrentShip = (currentShip || '').trim().toLowerCase();
+          const normalizedBulkShip = (bulkShipSignOn || '').trim().toLowerCase();
+          
           // Determine action based on current status
           if (currentStatus === 'Standby') {
             // Sign On flow: Standby → Ship
@@ -481,8 +485,8 @@ export const CrewListTable = ({
               failCount++;
             }
             
-          } else if (currentStatus === 'Sign on' && currentShip !== bulkShipSignOn) {
-            // Transfer flow: Ship A → Ship B
+          } else if (currentStatus === 'Sign on' && normalizedCurrentShip !== normalizedBulkShip && normalizedCurrentShip !== '' && normalizedCurrentShip !== '-') {
+            // Transfer flow: Ship A → Ship B (only if different ships)
             const result = await crewService.transferShip(crewId, {
               to_ship_name: bulkShipSignOn,
               transfer_date: new Date().toISOString().split('T')[0],
@@ -500,7 +504,9 @@ export const CrewListTable = ({
             }
             
           } else {
-            // No status change needed, just update field (e.g., same ship)
+            // No file movement needed:
+            // - Crew already on same ship (Sign on + same ship)
+            // - Just updating field for other cases
             await crewService.update(crewId, {
               ship_sign_on: bulkShipSignOn,
               status: 'Sign on',
