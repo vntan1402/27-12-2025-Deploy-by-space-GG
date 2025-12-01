@@ -243,6 +243,12 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
   const handleBatchUpload = async (files, preSelectedCrewId = null) => {
     if (!files || files.length === 0) return;
     
+    // CRITICAL: Check software expiry before batch upload (same as V1)
+    if (!checkAndWarn()) {
+      console.log('🚫 [BatchUpload] Software expired - batch upload blocked');
+      return;
+    }
+    
     // Validate file count (max 10)
     if (files.length > 10) {
       toast.error(language === 'vi' 
