@@ -605,15 +605,25 @@ class CrewFileMovementService:
                 folder_id = result.get('folder_id')
                 logger.info(f"✅ Folder ready: {folder_id}")
                 
-                # Delete marker file (optional - keep it as indicator)
+                # Delete marker file immediately after getting folder_id
                 marker_file_id = result.get('file_id')
                 if marker_file_id:
+                    logger.info(f"🗑️ Deleting marker file: {marker_file_id}")
                     delete_payload = {
                         "action": "delete_file",
                         "file_id": marker_file_id,
                         "permanent_delete": True
                     }
-                    await drive_helper.call_apps_script(delete_payload, timeout=30.0)
+                    
+                    delete_result = await drive_helper.call_apps_script(delete_payload, timeout=30.0)
+                    
+                    if delete_result.get('success'):
+                        logger.info(f"✅ Marker file deleted successfully")
+                    else:
+                        logger.warning(f"⚠️ Failed to delete marker file: {delete_result.get('message')}")
+                        logger.warning(f"   Marker file still exists: .folder_marker (ID: {marker_file_id})")
+                else:
+                    logger.warning(f"⚠️ No marker file_id returned from upload")
                 
                 return folder_id
             else:
