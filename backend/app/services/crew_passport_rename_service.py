@@ -63,7 +63,7 @@ class CrewPassportRenameService:
                 )
             
             # Get Google Drive config
-            gdrive_repo = CompanyGDriveConfigRepository()
+            gdrive_repo = GDriveConfigRepository()
             gdrive_config = await gdrive_repo.find_one({
                 "company_id": current_user.company_id
             })
