@@ -907,11 +907,11 @@ async def auto_rename_crew_passport(
 ):
     """
     Auto rename crew passport and summary files on Google Drive using naming convention:
-    {Rank}_{Full Name (Eng)}_{Passport}.pdf
+    {Rank}_{Full Name (Eng)}_Passport.pdf
     
-    Example: Master_NGUYEN VAN A_ABC123456.pdf
+    Example: Master_NGUYEN VAN A_Passport.pdf
     
-    Summary file: {Rank}_{Full Name (Eng)}_{Passport}_Summary.txt
+    Summary file: {Rank}_{Full Name (Eng)}_Passport_Summary.txt
     
     Response:
     {
