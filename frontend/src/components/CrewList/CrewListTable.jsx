@@ -1417,7 +1417,7 @@ export const CrewListTable = ({
                       {language === 'vi' ? crew.full_name : (crew.full_name_en || crew.full_name)}
                     </td>
                     <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
-                      {crew.sex}
+                      {crew.sex ? (crew.sex.toLowerCase().startsWith('m') ? 'M' : crew.sex.toLowerCase().startsWith('f') ? 'F' : crew.sex) : '-'}
                     </td>
                     <td 
                       className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200"
