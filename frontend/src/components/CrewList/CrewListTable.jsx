@@ -2084,7 +2084,7 @@ export const CrewListTable = ({
               >
                 <div className="flex items-center space-x-2">
                   <span>👁️</span>
-                  <span>{language === 'vi' ? 'Xem file hàng loạt' : 'Bulk View Files'}</span>
+                  <span>{language === 'vi' ? `Xem file (${selectedCrewMembers.size})` : `View Files (${selectedCrewMembers.size})`}</span>
                 </div>
                 <span>📄</span>
               </button>
@@ -2094,7 +2094,7 @@ export const CrewListTable = ({
               >
                 <div className="flex items-center space-x-2">
                   <span>📋</span>
-                  <span>{language === 'vi' ? 'Sao chép link hàng loạt' : 'Bulk Copy Links'}</span>
+                  <span>{language === 'vi' ? `Sao chép link (${selectedCrewMembers.size})` : `Copy Links (${selectedCrewMembers.size})`}</span>
                 </div>
                 <span>🔗</span>
               </button>
@@ -2104,7 +2104,7 @@ export const CrewListTable = ({
               >
                 <div className="flex items-center space-x-2">
                   <span>📥</span>
-                  <span>{language === 'vi' ? 'Tải xuống hàng loạt' : 'Bulk Download Files'}</span>
+                  <span>{language === 'vi' ? `Tải xuống (${selectedCrewMembers.size})` : `Download Files (${selectedCrewMembers.size})`}</span>
                 </div>
                 <span>💾</span>
               </button>
@@ -2115,7 +2115,7 @@ export const CrewListTable = ({
               >
                 <div className="flex items-center space-x-2">
                   <span>⚡</span>
-                  <span>{language === 'vi' ? 'Tự động đổi tên file hàng loạt' : 'Bulk Auto Rename Files'}</span>
+                  <span>{language === 'vi' ? `Tự động đổi tên file (${selectedCrewMembers.size})` : `Auto Rename Files (${selectedCrewMembers.size})`}</span>
                 </div>
                 <span>⚡</span>
               </button>
