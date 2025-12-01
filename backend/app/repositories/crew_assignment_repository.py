@@ -52,8 +52,7 @@ class CrewAssignmentRepository:
             Assignment record or None
         """
         try:
-            assignment = await mongo_db.find_one(
-                CrewAssignmentRepository.collection_name,
+            assignment = await mongo_db.database[CrewAssignmentRepository.collection_name].find_one(
                 {"id": assignment_id},
                 {"_id": 0}
             )
