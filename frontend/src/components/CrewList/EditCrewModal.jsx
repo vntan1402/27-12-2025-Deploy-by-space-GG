@@ -85,19 +85,46 @@ export const EditCrewModal = ({
       const newShip = (formData.ship_sign_on || '').trim().toLowerCase();
       
       // Determine which flow to use based on status and ship changes
-      let apiCallMade = false;
+      let needsFileMovement = false;
       
       // Case 1: Sign Off Flow
       // Original status was "Sign on" and new status is "Standby" (ship changed to "-")
       if (originalStatus === 'Sign on' && newStatus === 'Standby' && newShip === '-') {
         console.log('🔄 Sign Off Flow detected');
+        needsFileMovement = true;
         
-        await crewService.signOff(crew.id, {
+        // Call API without await - let it run in background
+        crewService.signOff(crew.id, {
           sign_off_date: formData.date_sign_off || new Date().toISOString().split('T')[0],
           notes: `Sign off via Edit Crew Member modal`
+        }).catch(error => {
+          console.error('Background sign off error:', error);
+          toast.error(
+            language === 'vi' 
+              ? '❌ Lỗi khi sign off. Vui lòng kiểm tra lại.'
+              : '❌ Sign off error. Please check again.'
+          );
         });
         
-        apiCallMade = true;
+        // Update basic info fields immediately
+        const basicUpdateData = {
+          full_name: formData.full_name,
+          full_name_en: formData.full_name_en || null,
+          sex: formData.sex,
+          date_of_birth: formData.date_of_birth,
+          place_of_birth: formData.place_of_birth,
+          place_of_birth_en: formData.place_of_birth_en || null,
+          passport: formData.passport,
+          nationality: formData.nationality || null,
+          passport_expiry_date: formData.passport_expiry_date || null,
+          rank: formData.rank || null,
+          seamen_book: formData.seamen_book || null,
+          place_sign_on: formData.place_sign_on || null,
+          date_sign_on: formData.date_sign_on || null,
+          date_sign_off: formData.date_sign_off || null
+        };
+        
+        await crewService.update(crew.id, basicUpdateData);
         
         toast.success(
           language === 'vi' 
@@ -111,15 +138,42 @@ export const EditCrewModal = ({
       // Original status was "Standby" and new status is "Sign on" (ship changed from "-" to a ship)
       else if (originalStatus === 'Standby' && newStatus === 'Sign on' && newShip !== '-' && newShip !== '') {
         console.log('🔄 Sign On Flow detected');
+        needsFileMovement = true;
         
-        await crewService.signOn(crew.id, {
+        // Call API without await - let it run in background
+        crewService.signOn(crew.id, {
           ship_name: formData.ship_sign_on,
           sign_on_date: formData.date_sign_on || new Date().toISOString().split('T')[0],
           place_sign_on: formData.place_sign_on || null,
           notes: `Sign on via Edit Crew Member modal to ${formData.ship_sign_on}`
+        }).catch(error => {
+          console.error('Background sign on error:', error);
+          toast.error(
+            language === 'vi' 
+              ? '❌ Lỗi khi sign on. Vui lòng kiểm tra lại.'
+              : '❌ Sign on error. Please check again.'
+          );
         });
         
-        apiCallMade = true;
+        // Update basic info fields immediately
+        const basicUpdateData = {
+          full_name: formData.full_name,
+          full_name_en: formData.full_name_en || null,
+          sex: formData.sex,
+          date_of_birth: formData.date_of_birth,
+          place_of_birth: formData.place_of_birth,
+          place_of_birth_en: formData.place_of_birth_en || null,
+          passport: formData.passport,
+          nationality: formData.nationality || null,
+          passport_expiry_date: formData.passport_expiry_date || null,
+          rank: formData.rank || null,
+          seamen_book: formData.seamen_book || null,
+          place_sign_on: formData.place_sign_on || null,
+          date_sign_on: formData.date_sign_on || null,
+          date_sign_off: formData.date_sign_off || null
+        };
+        
+        await crewService.update(crew.id, basicUpdateData);
         
         toast.success(
           language === 'vi' 
@@ -136,14 +190,41 @@ export const EditCrewModal = ({
                originalShip !== '' && originalShip !== '-' &&
                newShip !== '' && newShip !== '-') {
         console.log('🔄 Transfer Flow detected');
+        needsFileMovement = true;
         
-        await crewService.transferShip(crew.id, {
+        // Call API without await - let it run in background
+        crewService.transferShip(crew.id, {
           to_ship_name: formData.ship_sign_on,
           transfer_date: new Date().toISOString().split('T')[0],
           notes: `Transfer via Edit Crew Member modal from ${crew.ship_sign_on} to ${formData.ship_sign_on}`
+        }).catch(error => {
+          console.error('Background transfer error:', error);
+          toast.error(
+            language === 'vi' 
+              ? '❌ Lỗi khi chuyển tàu. Vui lòng kiểm tra lại.'
+              : '❌ Transfer error. Please check again.'
+          );
         });
         
-        apiCallMade = true;
+        // Update basic info fields immediately
+        const basicUpdateData = {
+          full_name: formData.full_name,
+          full_name_en: formData.full_name_en || null,
+          sex: formData.sex,
+          date_of_birth: formData.date_of_birth,
+          place_of_birth: formData.place_of_birth,
+          place_of_birth_en: formData.place_of_birth_en || null,
+          passport: formData.passport,
+          nationality: formData.nationality || null,
+          passport_expiry_date: formData.passport_expiry_date || null,
+          rank: formData.rank || null,
+          seamen_book: formData.seamen_book || null,
+          place_sign_on: formData.place_sign_on || null,
+          date_sign_on: formData.date_sign_on || null,
+          date_sign_off: formData.date_sign_off || null
+        };
+        
+        await crewService.update(crew.id, basicUpdateData);
         
         toast.success(
           language === 'vi' 
@@ -178,32 +259,9 @@ export const EditCrewModal = ({
           : 'Crew member updated successfully!');
       }
       
-      // If API call was made (sign on/off/transfer), update other basic fields separately
-      if (apiCallMade) {
-        // Update basic info fields that don't relate to assignment
-        const basicUpdateData = {
-          full_name: formData.full_name,
-          full_name_en: formData.full_name_en || null,
-          sex: formData.sex,
-          date_of_birth: formData.date_of_birth,
-          place_of_birth: formData.place_of_birth,
-          place_of_birth_en: formData.place_of_birth_en || null,
-          passport: formData.passport,
-          nationality: formData.nationality || null,
-          passport_expiry_date: formData.passport_expiry_date || null,
-          rank: formData.rank || null,
-          seamen_book: formData.seamen_book || null,
-          place_sign_on: formData.place_sign_on || null,
-          date_sign_on: formData.date_sign_on || null,
-          date_sign_off: formData.date_sign_off || null
-        };
-        
-        await crewService.update(crew.id, basicUpdateData);
-      }
-      
-      // Callback and close
-      onSuccess();
+      // Close modal immediately and refresh table
       onClose();
+      onSuccess();
       
     } catch (error) {
       console.error('Error updating crew member:', error);
