@@ -714,29 +714,41 @@ Return ONLY the JSON object with extracted fields. No additional text."""
                         break
                 
                 # If no exact match, try fuzzy matching based on keywords
-                # IMPORTANT: Order matters! More specific checks first (GMDSS, tankers, etc.)
-                # before generic checks (endorsement, competency)
+                # IMPORTANT: Order matters! Check DOCUMENT TYPE first (Seaman Book vs Certificate)
+                # then check QUALIFICATION (GMDSS, COC, etc.)
                 if not matched:
                     logger.info(f"⚠️ No exact match for: {extracted_cert_name}")
                     extracted_lower = extracted_cert_name.lower()
                     
-                    # PRIORITY 1: Check COC/Officer competency FIRST (before GMDSS)
+                    # PRIORITY 1: Check if it's a SEAMAN BOOK first (document type)
+                    is_seaman_book = any(kw in extracted_lower for kw in ['seaman book', 'seamans book', 'seaman\'s book', 'libreta', 'discharge book', 'service book'])
+                    
+                    if is_seaman_book:
+                        # It's a seaman book - check qualification
+                        if any(kw in extracted_lower for kw in ['gmdss', 'general operator', 'restricted operator', 'radio operator', 'goc', 'roc', 'iv/2']):
+                            parsed_data['cert_name'] = 'Seaman book for GMDSS'
+                            logger.info(f"🔍 Fuzzy matched to: Seaman book for GMDSS (detected seaman book + GMDSS qualification)")
+                        elif any(kw in extracted_lower for kw in ['coc', 'competency', 'competence', 'master', 'officer', 'deck', 'engineer', 'ii/1', 'ii/2', 'ii/3', 'iii/1', 'iii/2', 'iii/3']):
+                            parsed_data['cert_name'] = 'Seaman Book for COC'
+                            logger.info(f"🔍 Fuzzy matched to: Seaman Book for COC")
+                        else:
+                            parsed_data['cert_name'] = 'Seaman Book'
+                            logger.info(f"🔍 Fuzzy matched to: Seaman Book (generic)")
+                    
+                    # PRIORITY 2: NOT a seaman book - check if it's COC/Officer competency
                     # Many COC certificates mention "radiocommunications" as ONE of many functions
                     # but they are NOT dedicated GMDSS certificates
-                    if any(keyword in extracted_lower for keyword in ['competency', 'competence', 'coc', 'master', 'chief engineer', 'deck officer', 'engineer officer', 'officer certificate', 'ii/1', 'ii/2', 'ii/3', 'iii/1', 'iii/2', 'iii/3']):
+                    elif any(keyword in extracted_lower for keyword in ['competency', 'competence', 'coc', 'master', 'chief engineer', 'deck officer', 'engineer officer', 'officer certificate', 'ii/1', 'ii/2', 'ii/3', 'iii/1', 'iii/2', 'iii/3']):
                         parsed_data['cert_name'] = 'Certificate of Competency (COC)'
                         logger.info(f"🔍 Fuzzy matched to: Certificate of Competency (COC)")
-                    # PRIORITY 2: Check GMDSS (only if PRIMARY purpose is radio operations)
+                    
+                    # PRIORITY 3: Check GMDSS Certificate (standalone certificate, not seaman book)
                     # True GMDSS certs have explicit "GMDSS Certificate" or "Radio Operator Certificate" in title
                     elif 'gmdss certificate' in extracted_lower or 'radio operator certificate' in extracted_lower or ('gmdss' in extracted_lower and 'certificate' in extracted_lower and 'competency' not in extracted_lower):
-                        # Check if it's a seaman book for GMDSS
-                        if any(kw in extracted_lower for kw in ['seaman book', 'seamans book', 'discharge book']):
-                            parsed_data['cert_name'] = 'Seaman book for GMDSS'
-                            logger.info(f"🔍 Fuzzy matched to: Seaman book for GMDSS")
-                        else:
-                            parsed_data['cert_name'] = 'GMDSS Certificate'
-                            logger.info(f"🔍 Fuzzy matched to: GMDSS Certificate")
-                    # PRIORITY 3: Standalone radio operator (if no COC/competency mention)
+                        parsed_data['cert_name'] = 'GMDSS Certificate'
+                        logger.info(f"🔍 Fuzzy matched to: GMDSS Certificate")
+                    
+                    # PRIORITY 4: Standalone radio operator (if no COC/competency mention)
                     elif any(keyword in extracted_lower for keyword in ['general operator certificate', 'restricted operator certificate', 'goc', 'roc']) and 'competency' not in extracted_lower:
                         parsed_data['cert_name'] = 'GMDSS Certificate'
                         logger.info(f"🔍 Fuzzy matched to: GMDSS Certificate (dedicated radio operator)")
