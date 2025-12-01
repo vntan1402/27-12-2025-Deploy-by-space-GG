@@ -37,7 +37,7 @@ const CertificateContextMenu = ({
       
       {/* Context Menu */}
       <div
-        className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-50 min-w-[220px]"
+        className="fixed bg-white rounded-lg shadow-2xl border border-gray-200 py-2 z-50 min-w-[220px] max-h-[80vh] overflow-y-auto"
         style={{
           left: `${position.x}px`,
           top: `${position.y}px`,
