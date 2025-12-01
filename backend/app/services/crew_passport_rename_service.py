@@ -61,10 +61,9 @@ class CrewPassportRenameService:
                 )
             
             # Get Google Drive config
-            gdrive_repo = GDriveConfigRepository()
-            gdrive_config = await gdrive_repo.find_one({
+            gdrive_config = await mongo_db.find_one("company_gdrive_config", {
                 "company_id": current_user.company_id
-            })
+            }, {"_id": 0})
             
             if not gdrive_config:
                 raise HTTPException(
