@@ -21,9 +21,9 @@ class CrewPassportRenameService:
     ) -> Dict:
         """
         Auto rename crew passport and summary files using naming convention:
-        {Rank}_{Full Name (Eng)}_{Passport}.pdf
+        {Rank}_{Full Name (Eng)}_Passport.pdf
         
-        Example: Master_NGUYEN VAN A_ABC123456.pdf
+        Example: Master_NGUYEN VAN A_Passport.pdf
         
         Args:
             crew_id: Crew member ID
