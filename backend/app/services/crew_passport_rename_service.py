@@ -39,7 +39,7 @@ class CrewPassportRenameService:
             crew = await mongo_db.find_one("crew", {
                 "id": crew_id,
                 "company_id": company_id
-            }, {"_id": 0})
+            })
             
             if not crew:
                 raise HTTPException(status_code=404, detail="Crew member not found")
@@ -66,7 +66,7 @@ class CrewPassportRenameService:
             # Get Google Drive config
             gdrive_config = await mongo_db.find_one("company_gdrive_config", {
                 "company_id": company_id
-            }, {"_id": 0})
+            })
             
             if not gdrive_config:
                 raise HTTPException(
