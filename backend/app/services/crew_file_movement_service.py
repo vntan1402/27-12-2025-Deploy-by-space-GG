@@ -464,17 +464,19 @@ class CrewFileMovementService:
     @staticmethod
     async def _find_folder_id_by_path(
         drive_helper: GoogleDriveHelper,
-        folder_path: str
+        folder_path: str,
+        auto_create: bool = True
     ) -> Optional[str]:
         """
-        Find folder ID by traversing path using debug_folder_structure (V1 approach)
+        Find folder ID by traversing path, auto-create if not exists
         
         Args:
             drive_helper: Initialized GoogleDriveHelper instance
-            folder_path: Folder path (e.g., "BROTHER 36/Crew Records/Crew List")
+            folder_path: Folder path (e.g., "BROTHER 36/Crew Records/Crew Cert")
+            auto_create: Auto-create folder if not exists (default: True)
             
         Returns:
-            Folder ID if found, None otherwise
+            Folder ID if found/created, None otherwise
         """
         logger.info(f"🔍 Finding folder ID for path: {folder_path}")
         
@@ -520,13 +522,35 @@ class CrewFileMovementService:
                 if not found:
                     logger.warning(f"   ❌ Folder not found: '{folder_name}'")
                     logger.info(f"   Available folders: {[f.get('name') for f in folders]}")
-                    return None
+                    
+                    # Auto-create folder if enabled
+                    if auto_create:
+                        logger.info(f"   🆕 Auto-creating folder: '{folder_name}'")
+                        
+                        # Create folder using Google Drive API via helper
+                        create_payload = {
+                            "action": "create_folder",
+                            "parent_folder_id": current_folder_id,
+                            "folder_name": folder_name
+                        }
+                        
+                        create_result = await drive_helper.call_apps_script(create_payload, timeout=30.0)
+                        
+                        if create_result.get('success'):
+                            new_folder_id = create_result.get('folder_id')
+                            logger.info(f"   ✅ Created folder '{folder_name}': {new_folder_id}")
+                            current_folder_id = new_folder_id
+                        else:
+                            logger.error(f"   ❌ Failed to create folder: {create_result.get('message')}")
+                            return None
+                    else:
+                        return None
             
             logger.info(f"✅ Final folder ID: {current_folder_id}")
             return current_folder_id
                 
         except Exception as e:
-            logger.error(f"❌ Error finding folder: {e}")
+            logger.error(f"❌ Error finding/creating folder: {e}")
             return None
     
     @staticmethod
