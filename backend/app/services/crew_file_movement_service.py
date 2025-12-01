@@ -554,6 +554,77 @@ class CrewFileMovementService:
             return None
     
     @staticmethod
+    async def _ensure_folder_exists(
+        drive_helper: GoogleDriveHelper,
+        folder_path: str
+    ) -> Optional[str]:
+        """
+        Ensure folder exists by uploading a tiny marker file (triggers folder creation)
+        
+        Uses existing "upload_file_with_folder_creation" action to create folder structure
+        
+        Args:
+            drive_helper: Initialized GoogleDriveHelper instance
+            folder_path: Folder path (e.g., "BROTHER 36/Crew Records/Crew Cert")
+            
+        Returns:
+            Folder ID if successful, None otherwise
+        """
+        try:
+            # Parse folder path
+            path_parts = folder_path.split('/')
+            if len(path_parts) >= 3:
+                ship_name = path_parts[0]
+                parent_category = path_parts[1]
+                category = path_parts[2]
+            else:
+                logger.error(f"Invalid folder path: {folder_path}")
+                return None
+            
+            logger.info(f"🔍 Ensuring folder exists: {folder_path}")
+            
+            # Upload a tiny marker file to trigger folder creation
+            # Apps Script will auto-create folder structure
+            import base64
+            marker_content = b"folder_marker"  # Tiny 13 bytes
+            
+            payload = {
+                "action": "upload_file_with_folder_creation",
+                "parent_folder_id": drive_helper.folder_id,
+                "ship_name": ship_name,
+                "parent_category": parent_category,
+                "category": category,
+                "filename": ".folder_marker",
+                "file_content": base64.b64encode(marker_content).decode('utf-8'),
+                "content_type": "text/plain"
+            }
+            
+            result = await drive_helper.call_apps_script(payload, timeout=60.0)
+            
+            if result.get('success'):
+                folder_id = result.get('folder_id')
+                logger.info(f"✅ Folder ready: {folder_id}")
+                
+                # Delete marker file (optional - keep it as indicator)
+                marker_file_id = result.get('file_id')
+                if marker_file_id:
+                    delete_payload = {
+                        "action": "delete_file",
+                        "file_id": marker_file_id,
+                        "permanent_delete": True
+                    }
+                    await drive_helper.call_apps_script(delete_payload, timeout=30.0)
+                
+                return folder_id
+            else:
+                logger.error(f"❌ Failed to create folder: {result.get('message')}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"❌ Error ensuring folder exists: {e}")
+            return None
+    
+    @staticmethod
     async def _move_file(
         drive_helper: GoogleDriveHelper,
         file_id: str,
@@ -565,7 +636,7 @@ class CrewFileMovementService:
         Helper method to move a single file via Apps Script
         
         Strategy:
-        1. Use Apps Script upload logic to ensure target folder exists (auto-create)
+        1. Ensure target folder exists (create if needed using upload trick)
         2. Move file to target folder
         
         Args:
@@ -584,37 +655,14 @@ class CrewFileMovementService:
         logger.info(f"   File ID: {file_id}")
         
         try:
-            # Parse folder path (same as upload logic)
-            path_parts = to_folder_path.split('/')
-            if len(path_parts) >= 3:
-                ship_name = path_parts[0]
-                parent_category = path_parts[1]
-                category = path_parts[2]
-            else:
-                logger.error(f"Invalid folder path: {to_folder_path}")
-                return False
+            # Step 1: Ensure target folder exists (auto-create if needed)
+            target_folder_id = await CrewFileMovementService._ensure_folder_exists(
+                drive_helper,
+                to_folder_path
+            )
             
-            logger.info(f"   📁 Parsed: {ship_name}/{parent_category}/{category}")
-            
-            # Use get_folder_id action to get/create folder (Apps Script will auto-create if needed)
-            # This leverages the same folder creation logic as upload
-            get_folder_payload = {
-                "action": "get_folder_id",
-                "parent_folder_id": drive_helper.folder_id,
-                "ship_name": ship_name,
-                "parent_category": parent_category,
-                "category": category
-            }
-            
-            folder_result = await drive_helper.call_apps_script(get_folder_payload, timeout=60.0)
-            
-            if not folder_result.get('success'):
-                logger.error(f"❌ Failed to get/create folder: {folder_result.get('message')}")
-                return False
-            
-            target_folder_id = folder_result.get('folder_id')
             if not target_folder_id:
-                logger.error(f"❌ No folder_id returned")
+                logger.error(f"❌ Failed to create/find target folder: {to_folder_path}")
                 return False
             
             logger.info(f"✅ Target folder ID: {target_folder_id}")
