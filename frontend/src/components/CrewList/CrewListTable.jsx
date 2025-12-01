@@ -552,10 +552,22 @@ export const CrewListTable = ({
     const crewIds = Array.from(selectedCrewMembers);
     const isClearingDate = !bulkDateSignOff || bulkDateSignOff.trim() === '';
     
+    // Close modal immediately
+    setShowBulkEditDateSignOff(false);
+    
+    // Show processing toast
+    const processingToast = toast.loading(
+      language === 'vi' 
+        ? '🔄 Đang cập nhật...' 
+        : '🔄 Processing...'
+    );
+    
+    // Refresh table immediately (optimistic update)
+    fetchCrewList();
+    
     try {
       let successCount = 0;
       let failCount = 0;
-      let totalFilesMoved = 0;
       
       if (isClearingDate) {
         // Clear Date Sign Off only (don't change status or ship)
@@ -569,7 +581,7 @@ export const CrewListTable = ({
           }
         }
       } else {
-        // Sign Off flow: Call new API to move files
+        // Sign Off flow: Call new API (file movement in background)
         for (const crewId of crewIds) {
           const crew = crewList.find(c => c.id === crewId);
           if (!crew) continue;
@@ -578,21 +590,12 @@ export const CrewListTable = ({
           
           try {
             if (currentStatus === 'Sign on') {
-              // Sign off flow: Ship → Standby
-              const result = await crewService.signOff(crewId, {
+              // Sign off flow: Ship → Standby (files move in background)
+              await crewService.signOff(crewId, {
                 sign_off_date: bulkDateSignOff,
                 notes: `Bulk sign off via Date Sign Off edit`
               });
-              
-              if (result.success) {
-                successCount++;
-                const filesCount = (result.files_moved?.passport_moved ? 1 : 0) + 
-                                  (result.files_moved?.certificates_moved || 0) + 
-                                  (result.files_moved?.summaries_moved || 0);
-                totalFilesMoved += filesCount;
-              } else {
-                failCount++;
-              }
+              successCount++;
             } else {
               // Already standby or other status, just update date
               await crewService.update(crewId, {
@@ -610,27 +613,32 @@ export const CrewListTable = ({
         }
       }
       
+      // Dismiss processing toast
+      toast.dismiss(processingToast);
+      
+      // Refresh table again to show final state
+      fetchCrewList();
+      
       // Show result
       if (successCount > 0) {
         const message = isClearingDate
           ? (language === 'vi' 
-              ? `✅ Đã xóa ngày xuống tàu cho ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}`
+              ? `✅ Đã xóa ngày xuống tàu cho ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}` 
               : `✅ Cleared date for ${successCount} crew member(s)${failCount > 0 ? `, ${failCount} failed` : ''}`)
           : (language === 'vi'
-              ? `✅ Đã sign off ${successCount} thuyền viên${totalFilesMoved > 0 ? ` và di chuyển ${totalFilesMoved} files về Standby` : ''}${failCount > 0 ? `, ${failCount} thất bại` : ''}`
-              : `✅ Signed off ${successCount} crew member(s)${totalFilesMoved > 0 ? ` and moved ${totalFilesMoved} files to Standby` : ''}${failCount > 0 ? `, ${failCount} failed` : ''}`);
+              ? `✅ Đã sign off ${successCount} thuyền viên. Files đang được di chuyển...${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
+              : `✅ Signed off ${successCount} crew member(s). Files are being moved in background...${failCount > 0 ? ` (${failCount} failed)` : ''}`);
         
         toast.success(message, { duration: 5000 });
-        fetchCrewList();
       } else {
         toast.error(language === 'vi' ? 'Không thể cập nhật' : 'Failed to update');
       }
       
-      setShowBulkEditDateSignOff(false);
-      
     } catch (error) {
+      toast.dismiss(processingToast);
       console.error('Bulk date sign off error:', error);
       toast.error(language === 'vi' ? 'Lỗi cập nhật hàng loạt' : 'Bulk update error');
+      fetchCrewList();
     }
   };
   
