@@ -276,16 +276,26 @@ export const CrewListTable = ({
     
     // Calculate menu position (with boundary checking)
     const menuWidth = 280;
-    const menuHeight = 300;
+    // Estimate menu height based on number of items
+    // Single selection: Edit + 4 bulk options + Delete = ~6 items * 40px + padding = ~280px
+    // Multi selection: 4 bulk options + Delete = ~5 items * 40px + header + padding = ~260px
+    const estimatedMenuHeight = selectedCrewMembers.size === 1 ? 320 : 280;
     let x = e.clientX;
     let y = e.clientY;
     
-    // Adjust if menu would go off-screen
+    // Adjust if menu would go off-screen (right side)
     if (x + menuWidth > window.innerWidth) {
       x = window.innerWidth - menuWidth - 10;
     }
-    if (y + menuHeight > window.innerHeight) {
-      y = window.innerHeight - menuHeight - 10;
+    
+    // Adjust if menu would go off-screen (bottom)
+    if (y + estimatedMenuHeight > window.innerHeight) {
+      // Try to position above cursor instead
+      y = Math.max(10, y - estimatedMenuHeight);
+      // If still doesn't fit, position at top with some padding
+      if (y < 10) {
+        y = 10;
+      }
     }
     
     setCrewContextMenu({
