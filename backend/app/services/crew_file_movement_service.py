@@ -456,6 +456,51 @@ class CrewFileMovementService:
             }
     
     @staticmethod
+    async def _find_folder_id_by_path(
+        drive_helper: GoogleDriveHelper,
+        folder_path: str
+    ) -> Optional[str]:
+        """
+        Find folder ID by path using Apps Script
+        
+        Args:
+            drive_helper: Initialized GoogleDriveHelper instance
+            folder_path: Folder path (e.g., "BROTHER 36/Crew Records/Crew List")
+            
+        Returns:
+            Folder ID if found, None otherwise
+        """
+        logger.info(f"🔍 Finding folder ID for path: {folder_path}")
+        
+        try:
+            # Parse folder path
+            path_parts = folder_path.split('/')
+            if len(path_parts) < 1:
+                logger.error(f"Invalid folder path: {folder_path}")
+                return None
+            
+            # Call Apps Script to find folder
+            payload = {
+                "action": "find_folder_by_path",
+                "parent_folder_id": drive_helper.folder_id,
+                "folder_path": folder_path
+            }
+            
+            result = await drive_helper.call_apps_script(payload, timeout=30.0)
+            
+            if result.get('success') and result.get('folder_id'):
+                folder_id = result.get('folder_id')
+                logger.info(f"✅ Found folder ID: {folder_id}")
+                return folder_id
+            else:
+                logger.warning(f"⚠️ Folder not found: {folder_path}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"❌ Error finding folder: {e}")
+            return None
+    
+    @staticmethod
     async def _move_file(
         drive_helper: GoogleDriveHelper,
         file_id: str,
@@ -467,13 +512,13 @@ class CrewFileMovementService:
         Helper method to move a single file via Apps Script
         
         Strategy:
-        1. Call Apps Script with move_file action
-        2. Apps Script will handle the folder lookup and file movement
+        1. Find target folder ID by path
+        2. Call Apps Script move_file with target_folder_id
         
         Args:
             drive_helper: Initialized GoogleDriveHelper instance
             file_id: Google Drive file ID
-            from_folder_path: Source folder path (not used, kept for logging)
+            from_folder_path: Source folder path (for logging)
             to_folder_path: Destination folder path
             filename: Filename (for logging/debugging)
             
@@ -486,23 +531,23 @@ class CrewFileMovementService:
         logger.info(f"   File ID: {file_id}")
         
         try:
-            # Parse destination folder path
-            path_parts = to_folder_path.split('/')
-            if len(path_parts) >= 3:
-                ship_name = path_parts[0]
-                parent_category = path_parts[1]
-                category = path_parts[2]
-            else:
-                logger.error(f"Invalid folder path: {to_folder_path}")
+            # Step 1: Find target folder ID
+            target_folder_id = await CrewFileMovementService._find_folder_id_by_path(
+                drive_helper,
+                to_folder_path
+            )
+            
+            if not target_folder_id:
+                logger.error(f"❌ Target folder not found: {to_folder_path}")
                 return False
             
+            logger.info(f"✅ Target folder ID: {target_folder_id}")
+            
+            # Step 2: Move file using folder ID
             payload = {
                 "action": "move_file",
                 "file_id": file_id,
-                "parent_folder_id": drive_helper.folder_id,
-                "ship_name": ship_name,
-                "parent_category": parent_category,
-                "category": category
+                "target_folder_id": target_folder_id
             }
             
             result = await drive_helper.call_apps_script(payload, timeout=60.0)
