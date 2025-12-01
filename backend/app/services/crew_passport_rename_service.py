@@ -32,10 +32,13 @@ class CrewPassportRenameService:
             Dict with rename result
         """
         try:
+            # Get company_id from current_user
+            company_id = current_user.company
+            
             # Get crew member
             crew = await mongo_db.find_one("crew", {
                 "id": crew_id,
-                "company_id": current_user.company_id
+                "company_id": company_id
             }, {"_id": 0})
             
             if not crew:
@@ -62,7 +65,7 @@ class CrewPassportRenameService:
             
             # Get Google Drive config
             gdrive_config = await mongo_db.find_one("company_gdrive_config", {
-                "company_id": current_user.company_id
+                "company_id": company_id
             }, {"_id": 0})
             
             if not gdrive_config:
