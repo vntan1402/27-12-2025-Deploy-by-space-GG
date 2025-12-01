@@ -13,11 +13,13 @@
  */
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUploadGuard } from '../../hooks/useUploadGuard';
 import { auditReportService } from '../../services';
 import { toast } from 'sonner';
 
 export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdded, onStartBatchProcessing }) => {
   const { language } = useAuth();
+  const { checkAndWarn } = useUploadGuard();
   const [isSaving, setIsSaving] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadedFile, setUploadedFile] = useState(null);
