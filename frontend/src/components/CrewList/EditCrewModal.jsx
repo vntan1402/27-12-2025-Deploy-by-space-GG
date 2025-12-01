@@ -306,17 +306,6 @@ export const EditCrewModal = ({
               </div>
             </div>
             
-            {/* Info box for Ship Sign On behavior */}
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-xs text-blue-800 font-medium mb-1">
-                {language === 'vi' ? '📋 Cập nhật tự động khi thay đổi Tàu đăng ký:' : '📋 Auto-updates when changing Ship Sign On:'}
-              </p>
-              <ul className="text-xs text-blue-700 space-y-1">
-                <li>🚢 {language === 'vi' ? 'Chọn tàu → Trạng thái = "Sign on"' : 'Select ship → Status = "Sign on"'}</li>
-                <li>📤 {language === 'vi' ? 'Chọn "- (Sign off)" → Trạng thái = "Standby"' : 'Select "- (Sign off)" → Status = "Standby"'}</li>
-              </ul>
-            </div>
-            
             {/* Row 5: Ship Sign On, Place Sign On, Date Sign On */}
             <div className="grid grid-cols-3 gap-4">
               <div>
