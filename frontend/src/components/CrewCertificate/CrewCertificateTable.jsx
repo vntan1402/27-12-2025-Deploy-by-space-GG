@@ -114,9 +114,30 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
   // Context menu handlers
   const handleRowRightClick = (e, cert) => {
     e.preventDefault();
+    
+    // Calculate menu position with boundary checking
+    const menuWidth = 220;
+    const menuHeight = 320; // Estimate based on number of menu items
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Adjust if menu would go off-screen (right side)
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+    
+    // Adjust if menu would go off-screen (bottom)
+    if (y + menuHeight > window.innerHeight) {
+      // Try to position above cursor
+      y = Math.max(10, y - menuHeight);
+      if (y < 10) {
+        y = 10;
+      }
+    }
+    
     setContextMenu({
       certificate: cert,
-      position: { x: e.clientX, y: e.clientY }
+      position: { x, y }
     });
   };
 
