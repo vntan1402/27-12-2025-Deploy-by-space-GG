@@ -147,12 +147,34 @@ export const BulkEditShipSignOnModal = ({
         
         <div className="p-6">
           <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-4">
-              {language === 'vi' 
-                ? `Cập nhật tàu đăng ký cho ${selectedCount} thuyền viên đã chọn`
-                : `Update ship sign on for ${selectedCount} selected crew members`
-              }
-            </p>
+            <div className="text-sm text-gray-600 mb-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>
+                  {language === 'vi' 
+                    ? `Cập nhật tàu đăng ký cho ${selectedCount} thuyền viên được chọn`
+                    : `Update ship sign on for ${selectedCount} selected crew members`
+                  }
+                </span>
+              </div>
+              <div className="text-xs text-purple-700 font-medium space-y-1">
+                <div>
+                  {language === 'vi' 
+                    ? '🚢 Chọn tàu: Sign On và di chuyển files'
+                    : '🚢 Select ship: Sign On and move files'
+                  }
+                </div>
+                <div>
+                  {language === 'vi' 
+                    ? '📤 Chọn "-": Sign Off và chuyển về Standby'
+                    : '📤 Select "-": Sign Off and move to Standby'
+                  }
+                </div>
+              </div>
+            </div>
+            
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
             </label>
@@ -173,7 +195,7 @@ export const BulkEditShipSignOnModal = ({
                 {ships.map(ship => (
                   <option key={ship.id} value={ship.name}>{ship.name}</option>
                 ))}
-                <option value="-">-</option>
+                <option value="-">{language === 'vi' ? '- (Sign off)' : '- (Sign off)'}</option>
               </select>
             ) : (
               <input
@@ -186,7 +208,7 @@ export const BulkEditShipSignOnModal = ({
                     onSubmit();
                   }
                 }}
-                placeholder={language === 'vi' ? 'Nhập tên tàu hoặc "-" cho Standby' : 'Enter ship name or "-" for Standby'}
+                placeholder={language === 'vi' ? 'Nhập tên tàu hoặc "-" cho Sign off' : 'Enter ship name or "-" for Sign off'}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                 autoFocus
               />
@@ -196,9 +218,8 @@ export const BulkEditShipSignOnModal = ({
                 {language === 'vi' ? '📋 Cập nhật tự động:' : '📋 Auto-updates:'}
               </p>
               <ul className="text-xs text-blue-700 mt-1 space-y-1">
-                <li>✅ {language === 'vi' ? 'Tàu đăng ký → Tàu đã chọn' : 'Ship Sign On → Selected Ship'}</li>
-                <li>✅ {language === 'vi' ? 'Trạng thái → "Sign on"' : 'Status → "Sign on"'}</li>
-                <li>✅ {language === 'vi' ? 'Ngày rời tàu → Xóa (null)' : 'Date Sign Off → Cleared (null)'}</li>
+                <li>🚢 {language === 'vi' ? 'Chọn tàu → Sign On (files di chuyển tự động)' : 'Select ship → Sign On (files auto-move)'}</li>
+                <li>📤 {language === 'vi' ? 'Chọn "-" → Sign Off, Standby (files về Standby)' : 'Select "-" → Sign Off, Standby (files to Standby)'}</li>
               </ul>
             </div>
           </div>
