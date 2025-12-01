@@ -882,17 +882,24 @@ export const CrewListTable = ({
     e.preventDefault();
     e.stopPropagation();
     
-    // Calculate menu position
+    // Calculate menu position with smart positioning
     const menuWidth = 250;
-    const menuHeight = 300;
+    const menuHeight = 320; // Scrollable list + header, but cap at max-h-80
     let x = e.clientX;
     let y = e.clientY;
     
+    // Adjust if menu would go off-screen (right side)
     if (x + menuWidth > window.innerWidth) {
       x = window.innerWidth - menuWidth - 10;
     }
+    
+    // Adjust if menu would go off-screen (bottom)
     if (y + menuHeight > window.innerHeight) {
-      y = window.innerHeight - menuHeight - 10;
+      // Try to position above cursor
+      y = Math.max(10, y - menuHeight);
+      if (y < 10) {
+        y = 10;
+      }
     }
     
     setRankContextMenu({
