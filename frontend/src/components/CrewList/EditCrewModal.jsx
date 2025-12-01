@@ -319,7 +319,26 @@ export const EditCrewModal = ({
                 </label>
                 <select
                   value={formData.ship_sign_on}
-                  onChange={(e) => setFormData({...formData, ship_sign_on: e.target.value})}
+                  onChange={(e) => {
+                    const selectedShip = e.target.value;
+                    
+                    // Auto-update Status based on Ship selection
+                    if (selectedShip === '-') {
+                      // Sign off: Ship = "-" → Status = "Standby"
+                      setFormData({
+                        ...formData, 
+                        ship_sign_on: selectedShip,
+                        status: 'Standby'
+                      });
+                    } else {
+                      // Sign on: Ship selected → Status = "Sign on"
+                      setFormData({
+                        ...formData, 
+                        ship_sign_on: selectedShip,
+                        status: 'Sign on'
+                      });
+                    }
+                  }}
                   disabled={loadingShips}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
                 >
@@ -331,6 +350,7 @@ export const EditCrewModal = ({
                       {ship.name}
                     </option>
                   ))}
+                  <option value="-">{language === 'vi' ? '- (Sign off)' : '- (Sign off)'}</option>
                 </select>
               </div>
               <div>
