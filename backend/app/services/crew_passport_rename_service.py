@@ -193,7 +193,7 @@ class CrewPassportRenameService:
             
             # Validate required fields
             if not rank or not full_name_en or not passport:
-                logger.warning(f"⚠️ Missing required fields for filename generation:")
+                logger.warning("⚠️ Missing required fields for filename generation:")
                 logger.warning(f"   Rank: {rank}")
                 logger.warning(f"   Full Name (Eng): {full_name_en}")
                 logger.warning(f"   Passport: {passport}")
