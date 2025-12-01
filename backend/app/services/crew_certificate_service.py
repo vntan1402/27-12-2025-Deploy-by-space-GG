@@ -695,13 +695,20 @@ Return ONLY the JSON object with extracted fields. No additional text."""
             extracted_cert_name = parsed_data.get('cert_name', '').strip()
             extracted_note = parsed_data.get('note', '').lower()
             
-            # CRITICAL: Check note field for GMDSS indicators that AI might miss in cert_name
-            # Example: "Seaman Book for COC" but note says "GMDSS qualification"
-            if extracted_cert_name and ('seaman book' in extracted_cert_name.lower() or 'seamans book' in extracted_cert_name.lower()):
-                if any(kw in extracted_note for kw in ['gmdss', 'general operator', 'radio operator', 'restricted operator']):
+            # CRITICAL: Check note field and rank field for GMDSS indicators that AI might miss in cert_name
+            # Example: cert_name is "Seaman Book" but rank/note says "GMDSS General Operator"
+            extracted_rank = parsed_data.get('rank', '').lower()
+            
+            if extracted_cert_name and any(kw in extracted_cert_name.lower() for kw in ['seaman book', 'seamans book', 'seaman\'s book', 'libreta', 'discharge book']):
+                # It's a seaman book - check note/rank for qualification
+                if any(kw in extracted_note for kw in ['gmdss', 'general operator', 'radio operator', 'restricted operator', 'goc', 'roc', 'iv/2']):
                     parsed_data['cert_name'] = 'Seaman book for GMDSS'
                     logger.info(f"🔍 GMDSS detected in note field - corrected to: Seaman book for GMDSS")
-                    extracted_cert_name = 'Seaman book for GMDSS'  # Update for further processing
+                    extracted_cert_name = 'Seaman book for GMDSS'
+                elif any(kw in extracted_rank for kw in ['gmdss', 'general operator', 'radio operator', 'restricted operator', 'goc', 'roc', 'iv/2']):
+                    parsed_data['cert_name'] = 'Seaman book for GMDSS'
+                    logger.info(f"🔍 GMDSS detected in rank field - corrected to: Seaman book for GMDSS")
+                    extracted_cert_name = 'Seaman book for GMDSS'
             
             if extracted_cert_name:
                 # Check if it's already an exact match (case-insensitive)
