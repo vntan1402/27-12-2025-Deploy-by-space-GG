@@ -173,7 +173,11 @@ class CrewPassportRenameService:
         Generate filename for passport using naming convention:
         {Rank}_{Full Name (Eng)}_Passport.pdf
         
-        Example: Master_NGUYEN VAN A_Passport.pdf
+        If rank is missing: {Full Name (Eng)}_Passport.pdf
+        
+        Examples: 
+        - With rank: Master_NGUYEN VAN A_Passport.pdf
+        - Without rank: NGUYEN VAN A_Passport.pdf
         
         Args:
             crew: Crew member data
@@ -182,7 +186,7 @@ class CrewPassportRenameService:
             Generated filename string
         """
         try:
-            # Get required fields
+            # Get fields
             rank = crew.get("rank", "").strip()
             full_name_en = crew.get("full_name_en", "").strip()
             
@@ -190,20 +194,24 @@ class CrewPassportRenameService:
             if not full_name_en:
                 full_name_en = crew.get("full_name", "").strip()
             
-            # Validate required fields
-            if not rank or not full_name_en:
-                logger.warning("⚠️ Missing required fields for filename generation:")
-                logger.warning(f"   Rank: {rank}")
+            # Validate full_name is required
+            if not full_name_en:
+                logger.warning("⚠️ Missing required field for filename generation:")
                 logger.warning(f"   Full Name (Eng): {full_name_en}")
                 return ""
             
             # Clean and format components
             # Remove special characters that are not allowed in filenames
-            rank_clean = rank.replace("/", "-").replace("\\", "-").replace(":", "")
             name_clean = full_name_en.replace("/", "-").replace("\\", "-").replace(":", "")
             
             # Generate filename with "Passport" as literal text
-            filename = f"{rank_clean}_{name_clean}_Passport.pdf"
+            if rank:
+                rank_clean = rank.replace("/", "-").replace("\\", "-").replace(":", "")
+                filename = f"{rank_clean}_{name_clean}_Passport.pdf"
+            else:
+                # No rank - skip rank part
+                filename = f"{name_clean}_Passport.pdf"
+                logger.info("ℹ️ Rank is empty, generating filename without rank")
             
             logger.info(f"📝 Generated filename: {filename}")
             
