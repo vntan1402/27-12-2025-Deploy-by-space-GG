@@ -199,6 +199,14 @@ export const AddCrewModal = ({
   
   // AI Analysis
   const analyzeFile = async (file) => {
+    // CRITICAL: Check software expiry before AI analysis
+    if (!checkAndWarn()) {
+      console.log('🚫 [AddCrew] Software expired - AI analysis blocked');
+      setUploadedFile(null);
+      setIsAnalyzing(false);
+      return;
+    }
+    
     try {
       setIsAnalyzing(true);
       toast.info(language === 'vi' ? '🤖 Đang phân tích hộ chiếu với AI...' : '🤖 Analyzing passport with AI...');
