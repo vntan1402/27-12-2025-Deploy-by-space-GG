@@ -255,6 +255,15 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
 
   // Handle validation modal confirmation
   const handleValidationConfirm = async () => {
+    // CRITICAL: Check expiry again before retry (user might have delayed)
+    if (!checkAndWarn()) {
+      console.log('🚫 [AddAuditReport] Software expired - retry blocked');
+      setShowValidationModal(false);
+      setUploadedFile(null);
+      setIsAnalyzing(false);
+      return;
+    }
+    
     setShowValidationModal(false);
     setIsAnalyzing(true);
     
