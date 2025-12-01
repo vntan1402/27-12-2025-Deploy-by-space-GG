@@ -78,13 +78,13 @@ class CrewFileMovementService:
             summary_file_id = crew.get('summary_file_id')
             
             if passport_file_id:
-                # Move passport from: {ship}/Crew Records/Crew List
-                # To: COMPANY DOCUMENT/Standby Crew/Crew Doc (NOT Crew List!)
+                # Move passport from: {ship}/Crew Records/Crew Passport
+                # To: COMPANY DOCUMENT/Standby Crew/Crew Passport
                 success = await CrewFileMovementService._move_file(
                     drive_helper=drive_helper,
                     file_id=passport_file_id,
-                    from_folder_path=f"{from_ship_name}/Crew Records/Crew List",
-                    to_folder_path="COMPANY DOCUMENT/Standby Crew/Crew Doc",
+                    from_folder_path=f"{from_ship_name}/Crew Records/Crew Passport",
+                    to_folder_path="COMPANY DOCUMENT/Standby Crew/Crew Passport",
                     filename=f"passport_{crew.get('passport', 'unknown')}.pdf"
                 )
                 
@@ -97,8 +97,8 @@ class CrewFileMovementService:
                 success = await CrewFileMovementService._move_file(
                     drive_helper=drive_helper,
                     file_id=summary_file_id,
-                    from_folder_path=f"{from_ship_name}/Crew Records/Crew List",
-                    to_folder_path="COMPANY DOCUMENT/Standby Crew/Crew Doc",
+                    from_folder_path=f"{from_ship_name}/Crew Records/Crew Passport",
+                    to_folder_path="COMPANY DOCUMENT/Standby Crew/Crew Passport",
                     filename=f"passport_{crew.get('passport', 'unknown')}_summary.txt"
                 )
                 
