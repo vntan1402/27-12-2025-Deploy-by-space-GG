@@ -897,6 +897,147 @@ export const CrewListTable = ({
     }
   };
 
+  // Bulk view passport files
+  const handleBulkViewPassport = async () => {
+    const crewIds = Array.from(selectedCrewMembers);
+    if (crewIds.length === 0) return;
+    
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+    
+    let openedCount = 0;
+    
+    // Open each passport file in new tab
+    for (const crewId of crewIds) {
+      const crew = crewList.find(c => c.id === crewId);
+      if (!crew || !crew.passport_file_id) continue;
+      
+      const fileUrl = `https://drive.google.com/file/d/${crew.passport_file_id}/view`;
+      window.open(fileUrl, '_blank');
+      openedCount++;
+      
+      // Small delay between opening tabs to avoid browser blocking
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    if (openedCount > 0) {
+      toast.success(
+        language === 'vi' 
+          ? `✅ Đã mở ${openedCount} file hộ chiếu`
+          : `✅ Opened ${openedCount} passport file(s)`,
+        { duration: 3000 }
+      );
+    } else {
+      toast.warning(
+        language === 'vi' 
+          ? `⚠️ Không có file hộ chiếu để mở`
+          : `⚠️ No passport files to open`,
+        { duration: 3000 }
+      );
+    }
+  };
+
+  // Bulk copy passport links
+  const handleBulkCopyPassportLink = async () => {
+    const crewIds = Array.from(selectedCrewMembers);
+    if (crewIds.length === 0) return;
+    
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+    
+    const links = [];
+    
+    // Collect all passport links
+    for (const crewId of crewIds) {
+      const crew = crewList.find(c => c.id === crewId);
+      if (!crew || !crew.passport_file_id) continue;
+      
+      const fileUrl = `https://drive.google.com/file/d/${crew.passport_file_id}/view`;
+      links.push(`${crew.full_name}: ${fileUrl}`);
+    }
+    
+    if (links.length > 0) {
+      const allLinks = links.join('\n');
+      
+      try {
+        await navigator.clipboard.writeText(allLinks);
+        toast.success(
+          language === 'vi' 
+            ? `✅ Đã sao chép ${links.length} link file`
+            : `✅ Copied ${links.length} file link(s)`,
+          { duration: 3000 }
+        );
+      } catch (error) {
+        toast.error(
+          language === 'vi' 
+            ? `❌ Không thể sao chép link`
+            : `❌ Failed to copy links`,
+          { duration: 3000 }
+        );
+      }
+    } else {
+      toast.warning(
+        language === 'vi' 
+          ? `⚠️ Không có link để sao chép`
+          : `⚠️ No links to copy`,
+        { duration: 3000 }
+      );
+    }
+  };
+
+  // Bulk download passport files
+  const handleBulkDownloadPassport = async () => {
+    const crewIds = Array.from(selectedCrewMembers);
+    if (crewIds.length === 0) return;
+    
+    setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
+    
+    let downloadCount = 0;
+    
+    // Trigger download for each passport file
+    for (const crewId of crewIds) {
+      const crew = crewList.find(c => c.id === crewId);
+      if (!crew || !crew.passport_file_id) continue;
+      
+      try {
+        // Generate filename
+        const filename = crew.passport || `${crew.full_name}_Passport.pdf`;
+        
+        // Trigger download
+        const downloadUrl = `https://drive.google.com/uc?export=download&id=${crew.passport_file_id}`;
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        downloadCount++;
+        
+        // Small delay between downloads
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+      } catch (error) {
+        console.error(`Error downloading passport for ${crew.full_name}:`, error);
+      }
+    }
+    
+    if (downloadCount > 0) {
+      toast.success(
+        language === 'vi' 
+          ? `✅ Đang tải xuống ${downloadCount} file hộ chiếu`
+          : `✅ Downloading ${downloadCount} passport file(s)`,
+        { duration: 3000 }
+      );
+    } else {
+      toast.warning(
+        language === 'vi' 
+          ? `⚠️ Không có file để tải xuống`
+          : `⚠️ No files to download`,
+        { duration: 3000 }
+      );
+    }
+  };
+
   // Bulk auto-rename passport files
   const handleBulkAutoRenamePassport = async () => {
     const crewIds = Array.from(selectedCrewMembers);
