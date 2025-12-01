@@ -559,9 +559,12 @@ class CrewFileMovementService:
         folder_path: str
     ) -> Optional[str]:
         """
-        Ensure folder exists by uploading a tiny marker file (triggers folder creation)
+        Ensure folder exists, create only if needed
         
-        Uses existing "upload_file_with_folder_creation" action to create folder structure
+        Strategy:
+        1. Check if folder already exists (traverse path)
+        2. If exists: Return folder_id immediately (no marker upload)
+        3. If not exists: Upload marker file to trigger folder creation
         
         Args:
             drive_helper: Initialized GoogleDriveHelper instance
@@ -581,14 +584,52 @@ class CrewFileMovementService:
                 logger.error(f"Invalid folder path: {folder_path}")
                 return None
             
-            logger.info(f"🔍 Ensuring folder exists: {folder_path}")
+            logger.info(f"🔍 Checking if folder exists: {folder_path}")
             
-            # Upload a tiny marker file to trigger folder creation
-            # Apps Script will auto-create folder structure
+            # Step 1: Check if folder already exists (traverse path)
+            current_folder_id = drive_helper.folder_id
+            folder_exists = True
+            
+            for i, folder_name in enumerate(path_parts):
+                payload = {
+                    "action": "debug_folder_structure",
+                    "parent_folder_id": current_folder_id
+                }
+                
+                result = await drive_helper.call_apps_script(payload, timeout=30.0)
+                
+                if not result.get('success'):
+                    logger.warning(f"⚠️ Failed to check folder: {result.get('message')}")
+                    folder_exists = False
+                    break
+                
+                folders = result.get('folders', [])
+                found = False
+                
+                for folder in folders:
+                    if folder.get('name', '').strip().lower() == folder_name.lower():
+                        current_folder_id = folder.get('id')
+                        found = True
+                        break
+                
+                if not found:
+                    logger.info(f"   ❌ Folder '{folder_name}' not found at level {i+1}")
+                    folder_exists = False
+                    break
+            
+            # Step 2: If folder exists, return folder_id immediately
+            if folder_exists:
+                logger.info(f"✅ Folder already exists: {current_folder_id}")
+                logger.info(f"   No need to create - using existing folder")
+                return current_folder_id
+            
+            # Step 3: Folder doesn't exist - upload marker to create it
+            logger.info(f"🆕 Folder not found - creating via marker upload")
+            
             import base64
             marker_content = b"folder_marker"  # Tiny 13 bytes
             
-            payload = {
+            upload_payload = {
                 "action": "upload_file_with_folder_creation",
                 "parent_folder_id": drive_helper.folder_id,
                 "ship_name": ship_name,
@@ -599,14 +640,14 @@ class CrewFileMovementService:
                 "content_type": "text/plain"
             }
             
-            result = await drive_helper.call_apps_script(payload, timeout=60.0)
+            upload_result = await drive_helper.call_apps_script(upload_payload, timeout=60.0)
             
-            if result.get('success'):
-                folder_id = result.get('folder_id')
-                logger.info(f"✅ Folder ready: {folder_id}")
+            if upload_result.get('success'):
+                folder_id = upload_result.get('folder_id')
+                logger.info(f"✅ Folder created: {folder_id}")
                 
                 # Delete marker file immediately after getting folder_id
-                marker_file_id = result.get('file_id')
+                marker_file_id = upload_result.get('file_id')
                 if marker_file_id:
                     logger.info(f"🗑️ Deleting marker file: {marker_file_id}")
                     delete_payload = {
@@ -621,13 +662,12 @@ class CrewFileMovementService:
                         logger.info(f"✅ Marker file deleted successfully")
                     else:
                         logger.warning(f"⚠️ Failed to delete marker file: {delete_result.get('message')}")
-                        logger.warning(f"   Marker file still exists: .folder_marker (ID: {marker_file_id})")
                 else:
                     logger.warning(f"⚠️ No marker file_id returned from upload")
                 
                 return folder_id
             else:
-                logger.error(f"❌ Failed to create folder: {result.get('message')}")
+                logger.error(f"❌ Failed to create folder: {upload_result.get('message')}")
                 return None
                 
         except Exception as e:
