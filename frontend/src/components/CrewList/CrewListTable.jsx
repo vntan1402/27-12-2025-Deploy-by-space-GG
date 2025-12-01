@@ -859,21 +859,41 @@ export const CrewListTable = ({
     setPassportContextMenu({ show: false, x: 0, y: 0, crew: null });
     
     try {
-      toast.info(language === 'vi' 
-        ? `Đang đổi tên file hộ chiếu cho ${crew.full_name}...`
-        : `Renaming passport files for ${crew.full_name}...`);
+      // Show loading toast
+      const loadingToast = toast.loading(
+        language === 'vi' 
+          ? `🔄 Đang đổi tên file hộ chiếu cho ${crew.full_name}...`
+          : `🔄 Renaming passport files for ${crew.full_name}...`
+      );
       
-      await crewService.renameFiles(crew.id);
+      // Call auto rename API
+      const result = await crewService.autoRenamePassport(crew.id);
       
-      toast.success(language === 'vi' 
-        ? `Đã đổi tên file hộ chiếu thành công`
-        : `Passport files renamed successfully`);
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+      
+      // Show success with new filename
+      const newFilename = result.new_filename || 'files';
+      toast.success(
+        language === 'vi' 
+          ? `✅ Đã đổi tên thành: ${newFilename}`
+          : `✅ Renamed to: ${newFilename}`,
+        { duration: 5000 }
+      );
+      
+      // Refresh crew list to reflect any changes
+      fetchCrewList();
       
     } catch (error) {
       console.error('Error renaming files:', error);
-      toast.error(language === 'vi' 
-        ? `Lỗi đổi tên file: ${error.response?.data?.detail || error.message}`
-        : `Error renaming files: ${error.response?.data?.detail || error.message}`);
+      const errorDetail = error.response?.data?.detail || error.message;
+      
+      toast.error(
+        language === 'vi' 
+          ? `❌ Lỗi đổi tên file: ${errorDetail}`
+          : `❌ Error renaming files: ${errorDetail}`,
+        { duration: 7000 }
+      );
     }
   };
   
