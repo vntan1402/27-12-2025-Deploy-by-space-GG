@@ -33,11 +33,10 @@ class CrewPassportRenameService:
         """
         try:
             # Get crew member
-            crew_repo = CrewRepository()
-            crew = await crew_repo.find_one({
+            crew = await mongo_db.find_one("crew", {
                 "id": crew_id,
                 "company_id": current_user.company_id
-            })
+            }, {"_id": 0})
             
             if not crew:
                 raise HTTPException(status_code=404, detail="Crew member not found")
