@@ -272,6 +272,8 @@ class CrewFileMovementService:
                         files_moved["certificates_moved"] += 1
                         moved_details.append(f"Certificate: {cert_name}")
                         logger.info(f"✅ Certificate moved: {cert_name}")
+                else:
+                    logger.warning(f"⚠️ Certificate '{cert_name}' (No: {cert_no}) has no file - skipped")
                 
                 if cert_summary_file_id:
                     success = await CrewFileMovementService._move_file(
