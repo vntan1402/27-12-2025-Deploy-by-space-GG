@@ -167,6 +167,17 @@ export const crewService = {
   },
 
   /**
+   * Auto rename crew passport files on Google Drive
+   * Naming convention: {Rank}_{Full Name (Eng)}_{Passport}.pdf
+   * @param {string} crewId - Crew ID
+   * @returns {Promise} Rename result
+   */
+  autoRenamePassport: async (crewId) => {
+    const response = await api.post(`/api/crew/${crewId}/auto-rename-passport`);
+    return response.data;
+  },
+
+  /**
    * Sign off crew member (move files to Standby)
    * @param {string} crewId - Crew ID
    * @param {object} data - { sign_off_date, notes }
