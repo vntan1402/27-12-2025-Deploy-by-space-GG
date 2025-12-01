@@ -1683,7 +1683,7 @@ export const CrewListTable = ({
       {/* Row Context Menu */}
       {crewContextMenu.show && (
         <div
-          className="fixed bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50"
+          className="fixed bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 max-h-[80vh] overflow-y-auto"
           style={{
             top: `${crewContextMenu.y}px`,
             left: `${crewContextMenu.x}px`,
