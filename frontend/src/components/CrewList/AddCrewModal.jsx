@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useUploadGuard } from '../../hooks/useUploadGuard';
 import { toast } from 'sonner';
 import { crewService } from '../../services/crewService';
 import { autoFillEnglishField } from '../../utils/vietnameseHelpers';
@@ -14,6 +15,7 @@ export const AddCrewModal = ({
   onShipSelect  // Callback when ship is selected from dropdown
 }) => {
   const { language, user } = useAuth();
+  const { checkAndWarn } = useUploadGuard();
   
   // Form state
   const [formData, setFormData] = useState({
