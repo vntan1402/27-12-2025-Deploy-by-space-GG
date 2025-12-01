@@ -4,8 +4,7 @@ from typing import Dict, List
 from fastapi import HTTPException
 from datetime import datetime, timezone
 
-from app.repositories.crew_repository import CrewRepository
-from app.repositories.gdrive_config_repository import GDriveConfigRepository
+from app.db.mongodb import mongo_db
 from app.models.user import UserResponse
 
 logger = logging.getLogger(__name__)
