@@ -164,5 +164,49 @@ export const crewService = {
    */
   renameFiles: async (crewId) => {
     return api.post(`/api/crew/${crewId}/rename-files`);
+  },
+
+  /**
+   * Sign off crew member (move files to Standby)
+   * @param {string} crewId - Crew ID
+   * @param {object} data - { sign_off_date, notes }
+   * @returns {Promise} Sign off result
+   */
+  signOff: async (crewId, data) => {
+    const response = await api.post(`/api/crew/${crewId}/sign-off`, data);
+    return response.data;
+  },
+
+  /**
+   * Sign on crew member to ship (move files from Standby)
+   * @param {string} crewId - Crew ID
+   * @param {object} data - { ship_name, sign_on_date, place_sign_on, notes }
+   * @returns {Promise} Sign on result
+   */
+  signOn: async (crewId, data) => {
+    const response = await api.post(`/api/crew/${crewId}/sign-on`, data);
+    return response.data;
+  },
+
+  /**
+   * Transfer crew between ships
+   * @param {string} crewId - Crew ID
+   * @param {object} data - { to_ship_name, transfer_date, notes }
+   * @returns {Promise} Transfer result
+   */
+  transferShip: async (crewId, data) => {
+    const response = await api.post(`/api/crew/${crewId}/transfer-ship`, data);
+    return response.data;
+  },
+
+  /**
+   * Get crew assignment history
+   * @param {string} crewId - Crew ID
+   * @param {object} params - { limit, skip }
+   * @returns {Promise} Assignment history
+   */
+  getAssignmentHistory: async (crewId, params = {}) => {
+    const response = await api.get(`/api/crew/${crewId}/assignment-history`, { params });
+    return response.data;
   }
 };
