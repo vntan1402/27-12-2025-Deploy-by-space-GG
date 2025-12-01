@@ -141,6 +141,14 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
 
   // AI Analysis with Ship Validation
   const analyzeFile = async (file) => {
+    // CRITICAL: Check software expiry before AI analysis
+    if (!checkAndWarn()) {
+      console.log('🚫 [AddAuditReport] Software expired - AI analysis blocked');
+      setUploadedFile(null);
+      setIsAnalyzing(false);
+      return;
+    }
+    
     if (!selectedShip) {
       toast.error(language === 'vi' ? 'Không có tàu được chọn' : 'No ship selected');
       return;
