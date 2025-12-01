@@ -565,14 +565,14 @@ class CrewFileMovementService:
         Helper method to move a single file via Apps Script
         
         Strategy:
-        1. Find target folder ID by path
-        2. Call Apps Script move_file with target_folder_id
+        1. Use Apps Script upload logic to ensure target folder exists (auto-create)
+        2. Move file to target folder
         
         Args:
             drive_helper: Initialized GoogleDriveHelper instance
             file_id: Google Drive file ID
             from_folder_path: Source folder path (for logging)
-            to_folder_path: Destination folder path
+            to_folder_path: Destination folder path (e.g., "BROTHER 36/Crew Records/Crew Cert")
             filename: Filename (for logging/debugging)
             
         Returns:
@@ -584,26 +584,49 @@ class CrewFileMovementService:
         logger.info(f"   File ID: {file_id}")
         
         try:
-            # Step 1: Find target folder ID
-            target_folder_id = await CrewFileMovementService._find_folder_id_by_path(
-                drive_helper,
-                to_folder_path
-            )
+            # Parse folder path (same as upload logic)
+            path_parts = to_folder_path.split('/')
+            if len(path_parts) >= 3:
+                ship_name = path_parts[0]
+                parent_category = path_parts[1]
+                category = path_parts[2]
+            else:
+                logger.error(f"Invalid folder path: {to_folder_path}")
+                return False
             
+            logger.info(f"   📁 Parsed: {ship_name}/{parent_category}/{category}")
+            
+            # Use get_folder_id action to get/create folder (Apps Script will auto-create if needed)
+            # This leverages the same folder creation logic as upload
+            get_folder_payload = {
+                "action": "get_folder_id",
+                "parent_folder_id": drive_helper.folder_id,
+                "ship_name": ship_name,
+                "parent_category": parent_category,
+                "category": category
+            }
+            
+            folder_result = await drive_helper.call_apps_script(get_folder_payload, timeout=60.0)
+            
+            if not folder_result.get('success'):
+                logger.error(f"❌ Failed to get/create folder: {folder_result.get('message')}")
+                return False
+            
+            target_folder_id = folder_result.get('folder_id')
             if not target_folder_id:
-                logger.error(f"❌ Target folder not found: {to_folder_path}")
+                logger.error(f"❌ No folder_id returned")
                 return False
             
             logger.info(f"✅ Target folder ID: {target_folder_id}")
             
-            # Step 2: Move file using folder ID
-            payload = {
+            # Step 2: Move file to target folder
+            move_payload = {
                 "action": "move_file",
                 "file_id": file_id,
                 "target_folder_id": target_folder_id
             }
             
-            result = await drive_helper.call_apps_script(payload, timeout=60.0)
+            result = await drive_helper.call_apps_script(move_payload, timeout=60.0)
             
             if result.get('success'):
                 logger.info(f"✅ File moved successfully: {filename}")
