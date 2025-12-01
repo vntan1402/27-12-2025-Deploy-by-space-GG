@@ -583,14 +583,25 @@ Expected Rank: {rank}
   "note": ""                 // Any additional important info (limitations, restrictions, GMDSS qualification, radio operator level, etc.)
 }}
 
-**CRITICAL GMDSS DETECTION**:
-- GMDSS Certificate is for DEDICATED radio operator qualifications
+**CRITICAL CLASSIFICATION RULES**:
+
+**1. SEAMAN BOOK vs CERTIFICATE - CHECK DOCUMENT TYPE FIRST**:
+- If document is a "Seaman's Book", "Seaman Book", "Libreta de embarque", "Discharge Book", or "Service Book":
+  * Check the qualification/capacity field
+  * If qualification is for GMDSS, GOC, ROC, or radio operator → classify as "Seaman book for GMDSS"
+  * If qualification is for deck/engine officer, COC → classify as "Seaman Book for COC"
+  * If no specific qualification → classify as "Seaman Book"
+- If document is a standalone Certificate (not a seaman book):
+  * Then proceed to check if it's GMDSS, COC, Medical, etc.
+
+**2. GMDSS CERTIFICATE (only for standalone certificates, NOT seaman books)**:
+- GMDSS Certificate is for DEDICATED radio operator certificates (NOT seaman books)
 - If document is about "Master", "Chief Engineer", "Deck Officer", "Engineer Officer", or any COC/competency certificate
-  → classify as COC/competency, NOT GMDSS (even if it mentions "radiocommunications" as one of many functions)
-- ONLY classify as "GMDSS Certificate" if the PRIMARY purpose is radio operations:
+  → classify as COC/competency, NOT GMDSS (even if it mentions "radiocommunications")
+- ONLY classify as "GMDSS Certificate" if:
+  * Document is a CERTIFICATE (not seaman book)
   * Document title contains "GMDSS Certificate" or "Radio Operator Certificate"
   * Main qualification is "General Operator Certificate (GOC)" or "Restricted Operator Certificate (ROC)"
-  * Certificate is specifically for GMDSS/radio operations, not a general competency certificate
 - If it's a Master/Officer COC that includes radiocommunications → classify as "Certificate of Competency (COC)"
 - Include GMDSS/radio qualifications in the "note" field if mentioned
 
