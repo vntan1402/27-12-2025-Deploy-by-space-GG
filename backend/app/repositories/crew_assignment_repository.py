@@ -114,14 +114,12 @@ class CrewAssignmentRepository:
             if action_type:
                 query["action_type"] = action_type
             
-            assignments = await mongo_db.find(
-                CrewAssignmentRepository.collection_name,
+            cursor = mongo_db.database[CrewAssignmentRepository.collection_name].find(
                 query,
-                {"_id": 0},
-                sort=[("created_at", -1)],
-                limit=limit,
-                skip=skip
-            )
+                {"_id": 0}
+            ).sort("created_at", -1).limit(limit).skip(skip)
+            
+            assignments = await cursor.to_list(length=limit)
             return assignments
         except Exception as e:
             logger.error(f"❌ Error finding assignments for company {company_id}: {e}")
