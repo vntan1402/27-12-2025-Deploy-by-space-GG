@@ -137,8 +137,7 @@ class CrewAssignmentRepository:
             Count of records
         """
         try:
-            count = await mongo_db.count(
-                CrewAssignmentRepository.collection_name,
+            count = await mongo_db.database[CrewAssignmentRepository.collection_name].count_documents(
                 {"crew_id": crew_id}
             )
             return count
