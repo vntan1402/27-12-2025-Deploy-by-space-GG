@@ -171,9 +171,9 @@ class CrewPassportRenameService:
     async def _generate_passport_filename(crew: Dict) -> str:
         """
         Generate filename for passport using naming convention:
-        {Rank}_{Full Name (Eng)}_{Passport}.pdf
+        {Rank}_{Full Name (Eng)}_Passport.pdf
         
-        Example: Master_NGUYEN VAN A_ABC123456.pdf
+        Example: Master_NGUYEN VAN A_Passport.pdf
         
         Args:
             crew: Crew member data
@@ -185,28 +185,25 @@ class CrewPassportRenameService:
             # Get required fields
             rank = crew.get("rank", "").strip()
             full_name_en = crew.get("full_name_en", "").strip()
-            passport = crew.get("passport", "").strip()
             
             # If full_name_en is empty, use full_name
             if not full_name_en:
                 full_name_en = crew.get("full_name", "").strip()
             
             # Validate required fields
-            if not rank or not full_name_en or not passport:
+            if not rank or not full_name_en:
                 logger.warning("⚠️ Missing required fields for filename generation:")
                 logger.warning(f"   Rank: {rank}")
                 logger.warning(f"   Full Name (Eng): {full_name_en}")
-                logger.warning(f"   Passport: {passport}")
                 return ""
             
             # Clean and format components
             # Remove special characters that are not allowed in filenames
             rank_clean = rank.replace("/", "-").replace("\\", "-").replace(":", "")
             name_clean = full_name_en.replace("/", "-").replace("\\", "-").replace(":", "")
-            passport_clean = passport.replace("/", "-").replace("\\", "-").replace(":", "")
             
-            # Generate filename
-            filename = f"{rank_clean}_{name_clean}_{passport_clean}.pdf"
+            # Generate filename with "Passport" as literal text
+            filename = f"{rank_clean}_{name_clean}_Passport.pdf"
             
             logger.info(f"📝 Generated filename: {filename}")
             
