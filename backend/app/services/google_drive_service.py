@@ -68,16 +68,16 @@ class GoogleDriveService:
             drive_helper = GoogleDriveHelper(company_id)
             await drive_helper.load_config()
             
-            # ✅ V1 STRUCTURE: Determine folder path matching Backend V1
-            # Normal crew: {Ship Name}/Crew Records/Crew List/
-            # Standby crew: COMPANY DOCUMENT/Standby Crew/Crew Doc/
+            # ✅ UNIFIED STRUCTURE: Using "Crew Passport" folder for all passport files
+            # Normal crew: {Ship Name}/Crew Records/Crew Passport/
+            # Standby crew: COMPANY DOCUMENT/Standby Crew/Crew Passport/
             if ship_name and ship_name != '-':
                 # Normal crew with ship
-                folder_path = f"{ship_name}/Crew Records/Crew List"
+                folder_path = f"{ship_name}/Crew Records/Crew Passport"
                 logger.info(f"📤 Uploading passport file (Normal): {folder_path}/{filename}")
             else:
                 # Standby crew
-                folder_path = "COMPANY DOCUMENT/Standby Crew/Crew Doc"
+                folder_path = "COMPANY DOCUMENT/Standby Crew/Crew Passport"
                 logger.info(f"📤 Uploading passport file (Standby): {folder_path}/{filename}")
             
             logger.info(f"📁 Target folder: {folder_path}")
