@@ -165,7 +165,12 @@ class CrewCertificateDriveService:
             # Upload summary file if summary text exists
             summary_file_id = None
             if summary_text and summary_text.strip():
-                summary_filename = f"{crew_name}_{cert_name}_{cert_no}_summary.txt"
+                # Generate summary filename: {original_filename}_Summary.txt
+                # Example: "Certificate.pdf" -> "Certificate_Summary.txt"
+                import os
+                base_name = os.path.splitext(filename)[0]  # Remove extension
+                summary_filename = f"{base_name}_Summary.txt"
+                
                 summary_file_id = await drive_helper.upload_file(
                     file_content=summary_text.encode('utf-8'),
                     filename=summary_filename,
