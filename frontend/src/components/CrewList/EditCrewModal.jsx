@@ -78,26 +78,128 @@ export const EditCrewModal = ({
     try {
       setIsSubmitting(true);
       
-      // Update crew member
-      const updateData = {
-        ...formData,
-        // Convert empty strings to null for proper database update
-        full_name_en: formData.full_name_en || null,
-        place_of_birth_en: formData.place_of_birth_en || null,
-        nationality: formData.nationality || null,
-        passport_expiry_date: formData.passport_expiry_date || null,
-        rank: formData.rank || null,
-        seamen_book: formData.seamen_book || null,
-        place_sign_on: formData.place_sign_on || null,  // ✅ Changed to null
-        date_sign_on: formData.date_sign_on || null,    // ✅ Changed to null
-        date_sign_off: formData.date_sign_off || null   // ✅ Changed to null
-      };
+      // Get original values for comparison
+      const originalStatus = crew.status;
+      const originalShip = (crew.ship_sign_on || '').trim().toLowerCase();
+      const newStatus = formData.status;
+      const newShip = (formData.ship_sign_on || '').trim().toLowerCase();
       
-      await crewService.update(crew.id, updateData);
+      // Determine which flow to use based on status and ship changes
+      let apiCallMade = false;
       
-      toast.success(language === 'vi' 
-        ? 'Cập nhật thuyền viên thành công!'
-        : 'Crew member updated successfully!');
+      // Case 1: Sign Off Flow
+      // Original status was "Sign on" and new status is "Standby" (ship changed to "-")
+      if (originalStatus === 'Sign on' && newStatus === 'Standby' && newShip === '-') {
+        console.log('🔄 Sign Off Flow detected');
+        
+        await crewService.signOff(crew.id, {
+          sign_off_date: formData.date_sign_off || new Date().toISOString().split('T')[0],
+          notes: `Sign off via Edit Crew Member modal`
+        });
+        
+        apiCallMade = true;
+        
+        toast.success(
+          language === 'vi' 
+            ? '✅ Đã sign off thuyền viên. Files đang được di chuyển...'
+            : '✅ Crew signed off. Files are being moved in background...',
+          { duration: 5000 }
+        );
+        
+      }
+      // Case 2: Sign On Flow
+      // Original status was "Standby" and new status is "Sign on" (ship changed from "-" to a ship)
+      else if (originalStatus === 'Standby' && newStatus === 'Sign on' && newShip !== '-' && newShip !== '') {
+        console.log('🔄 Sign On Flow detected');
+        
+        await crewService.signOn(crew.id, {
+          ship_name: formData.ship_sign_on,
+          sign_on_date: formData.date_sign_on || new Date().toISOString().split('T')[0],
+          place_sign_on: formData.place_sign_on || null,
+          notes: `Sign on via Edit Crew Member modal to ${formData.ship_sign_on}`
+        });
+        
+        apiCallMade = true;
+        
+        toast.success(
+          language === 'vi' 
+            ? '✅ Đã sign on thuyền viên. Files đang được di chuyển...'
+            : '✅ Crew signed on. Files are being moved in background...',
+          { duration: 5000 }
+        );
+        
+      }
+      // Case 3: Transfer Flow
+      // Status remains "Sign on" but ship changed (from Ship A to Ship B)
+      else if (originalStatus === 'Sign on' && newStatus === 'Sign on' && 
+               originalShip !== newShip && 
+               originalShip !== '' && originalShip !== '-' &&
+               newShip !== '' && newShip !== '-') {
+        console.log('🔄 Transfer Flow detected');
+        
+        await crewService.transferShip(crew.id, {
+          to_ship_name: formData.ship_sign_on,
+          transfer_date: new Date().toISOString().split('T')[0],
+          notes: `Transfer via Edit Crew Member modal from ${crew.ship_sign_on} to ${formData.ship_sign_on}`
+        });
+        
+        apiCallMade = true;
+        
+        toast.success(
+          language === 'vi' 
+            ? '✅ Đã chuyển tàu. Files đang được di chuyển...'
+            : '✅ Ship transfer initiated. Files are being moved in background...',
+          { duration: 5000 }
+        );
+        
+      }
+      // Case 4: Regular Update (no file movement needed)
+      else {
+        console.log('🔄 Regular Update Flow');
+        
+        const updateData = {
+          ...formData,
+          // Convert empty strings to null for proper database update
+          full_name_en: formData.full_name_en || null,
+          place_of_birth_en: formData.place_of_birth_en || null,
+          nationality: formData.nationality || null,
+          passport_expiry_date: formData.passport_expiry_date || null,
+          rank: formData.rank || null,
+          seamen_book: formData.seamen_book || null,
+          place_sign_on: formData.place_sign_on || null,
+          date_sign_on: formData.date_sign_on || null,
+          date_sign_off: formData.date_sign_off || null
+        };
+        
+        await crewService.update(crew.id, updateData);
+        
+        toast.success(language === 'vi' 
+          ? 'Cập nhật thuyền viên thành công!'
+          : 'Crew member updated successfully!');
+      }
+      
+      // If API call was made (sign on/off/transfer), update other basic fields separately
+      if (apiCallMade) {
+        // Update basic info fields that don't relate to assignment
+        const basicUpdateData = {
+          full_name: formData.full_name,
+          full_name_en: formData.full_name_en || null,
+          sex: formData.sex,
+          date_of_birth: formData.date_of_birth,
+          place_of_birth: formData.place_of_birth,
+          place_of_birth_en: formData.place_of_birth_en || null,
+          passport: formData.passport,
+          nationality: formData.nationality || null,
+          passport_expiry_date: formData.passport_expiry_date || null,
+          rank: formData.rank || null,
+          seamen_book: formData.seamen_book || null,
+          place_sign_on: formData.place_sign_on || null,
+          date_sign_on: formData.date_sign_on || null,
+          date_sign_off: formData.date_sign_off || null
+        };
+        
+        await crewService.update(crew.id, basicUpdateData);
+      }
       
       // Callback and close
       onSuccess();
