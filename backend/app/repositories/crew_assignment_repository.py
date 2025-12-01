@@ -79,14 +79,12 @@ class CrewAssignmentRepository:
             List of assignment records, sorted by action_date descending
         """
         try:
-            assignments = await mongo_db.find(
-                CrewAssignmentRepository.collection_name,
+            cursor = mongo_db.database[CrewAssignmentRepository.collection_name].find(
                 {"crew_id": crew_id},
-                {"_id": 0},
-                sort=[("action_date", -1)],
-                limit=limit,
-                skip=skip
-            )
+                {"_id": 0}
+            ).sort("action_date", -1).limit(limit).skip(skip)
+            
+            assignments = await cursor.to_list(length=limit)
             return assignments
         except Exception as e:
             logger.error(f"❌ Error finding assignments for crew {crew_id}: {e}")
