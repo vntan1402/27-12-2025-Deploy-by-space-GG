@@ -182,12 +182,11 @@ class CrewAssignmentRepository:
             True if deleted, False otherwise
         """
         try:
-            result = await mongo_db.delete_one(
-                CrewAssignmentRepository.collection_name,
+            result = await mongo_db.database[CrewAssignmentRepository.collection_name].delete_one(
                 {"id": assignment_id}
             )
             
-            if result:
+            if result.deleted_count > 0:
                 logger.info(f"✅ Deleted assignment history: {assignment_id}")
                 return True
             return False
