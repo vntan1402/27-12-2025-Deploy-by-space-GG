@@ -447,51 +447,91 @@ export const CrewListTable = ({
     const crewIds = Array.from(selectedCrewMembers);
     if (!bulkShipSignOn) return;
     
-    // Auto-update status and clear date_sign_off
-    const updates = {
-      ship_sign_on: bulkShipSignOn,
-      status: 'Sign on',
-      date_sign_off: null
-    };
-    
-    // Check which crews are missing Place Sign On or Date Sign On
-    const crewsNeedingInfo = [];
-    for (const crewId of crewIds) {
-      const crew = crewList.find(c => c.id === crewId);
-      if (crew) {
-        const missingFields = [];
-        if (!crew.place_sign_on || crew.place_sign_on.trim() === '') {
-          missingFields.push(language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On');
-        }
-        if (!crew.date_sign_on) {
-          missingFields.push(language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On');
-        }
+    try {
+      let successCount = 0;
+      let failCount = 0;
+      let totalFilesMoved = 0;
+      
+      // Process each crew member
+      for (const crewId of crewIds) {
+        const crew = crewList.find(c => c.id === crewId);
+        if (!crew) continue;
         
-        if (missingFields.length > 0) {
-          crewsNeedingInfo.push({
-            name: crew.full_name,
-            fields: missingFields
-          });
+        const currentStatus = crew.status;
+        const currentShip = crew.ship_sign_on;
+        
+        try {
+          // Determine action based on current status
+          if (currentStatus === 'Standby') {
+            // Sign On flow: Standby → Ship
+            const result = await crewService.signOn(crewId, {
+              ship_name: bulkShipSignOn,
+              sign_on_date: crew.date_sign_on || new Date().toISOString().split('T')[0],
+              place_sign_on: crew.place_sign_on || null,
+              notes: `Bulk sign on via Ship Sign On edit to ${bulkShipSignOn}`
+            });
+            
+            if (result.success) {
+              successCount++;
+              const filesCount = (result.files_moved?.passport_moved ? 1 : 0) + 
+                                (result.files_moved?.certificates_moved || 0) + 
+                                (result.files_moved?.summaries_moved || 0);
+              totalFilesMoved += filesCount;
+            } else {
+              failCount++;
+            }
+            
+          } else if (currentStatus === 'Sign on' && currentShip !== bulkShipSignOn) {
+            // Transfer flow: Ship A → Ship B
+            const result = await crewService.transferShip(crewId, {
+              to_ship_name: bulkShipSignOn,
+              transfer_date: new Date().toISOString().split('T')[0],
+              notes: `Bulk transfer via Ship Sign On edit from ${currentShip} to ${bulkShipSignOn}`
+            });
+            
+            if (result.success) {
+              successCount++;
+              const filesCount = (result.files_moved?.passport_moved ? 1 : 0) + 
+                                (result.files_moved?.certificates_moved || 0) + 
+                                (result.files_moved?.summaries_moved || 0);
+              totalFilesMoved += filesCount;
+            } else {
+              failCount++;
+            }
+            
+          } else {
+            // No status change needed, just update field (e.g., same ship)
+            await crewService.update(crewId, {
+              ship_sign_on: bulkShipSignOn,
+              status: 'Sign on',
+              date_sign_off: null
+            });
+            successCount++;
+          }
+          
+        } catch (error) {
+          console.error(`Failed to update crew ${crewId}:`, error);
+          failCount++;
         }
       }
-    }
-    
-    await bulkUpdateMultipleFields(updates, crewIds);
-    setShowBulkEditShipSignOn(false);
-    
-    // Show reminder if some crews are missing info
-    if (crewsNeedingInfo.length > 0) {
-      setTimeout(() => {
-        const crewNames = crewsNeedingInfo.slice(0, 3).map(c => c.name).join(', ');
-        const moreCount = crewsNeedingInfo.length > 3 ? ` ${language === 'vi' ? 'và' : 'and'} ${crewsNeedingInfo.length - 3} ${language === 'vi' ? 'khác' : 'more'}` : '';
+      
+      // Show result
+      if (successCount > 0) {
+        const message = language === 'vi'
+          ? `✅ Đã cập nhật ${successCount} thuyền viên${totalFilesMoved > 0 ? ` và di chuyển ${totalFilesMoved} files` : ''}${failCount > 0 ? `, ${failCount} thất bại` : ''}`
+          : `✅ Updated ${successCount} crew member(s)${totalFilesMoved > 0 ? ` and moved ${totalFilesMoved} files` : ''}${failCount > 0 ? `, ${failCount} failed` : ''}`;
         
-        toast.warning(
-          language === 'vi'
-            ? `⚠️ Lưu ý: ${crewsNeedingInfo.length} thuyền viên chưa có đầy đủ thông tin xuống tàu (${crewNames}${moreCount}). Vui lòng cập nhật Nơi xuống tàu và Ngày xuống tàu.`
-            : `⚠️ Note: ${crewsNeedingInfo.length} crew member(s) missing sign on information (${crewNames}${moreCount}). Please update Place Sign On and Date Sign On.`,
-          { duration: 8000 }
-        );
-      }, 1500);
+        toast.success(message, { duration: 5000 });
+        fetchCrewList();
+      } else {
+        toast.error(language === 'vi' ? 'Không thể cập nhật' : 'Failed to update');
+      }
+      
+      setShowBulkEditShipSignOn(false);
+      
+    } catch (error) {
+      console.error('Bulk ship sign on error:', error);
+      toast.error(language === 'vi' ? 'Lỗi cập nhật hàng loạt' : 'Bulk update error');
     }
   };
   
