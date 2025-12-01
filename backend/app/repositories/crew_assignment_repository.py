@@ -25,12 +25,11 @@ class CrewAssignmentRepository:
             Created assignment record
         """
         try:
-            result = await mongo_db.insert_one(
-                CrewAssignmentRepository.collection_name,
+            result = await mongo_db.database[CrewAssignmentRepository.collection_name].insert_one(
                 assignment_data
             )
             
-            if result:
+            if result.inserted_id:
                 logger.info(f"✅ Created assignment history: {assignment_data['id']}")
                 return assignment_data
             else:
