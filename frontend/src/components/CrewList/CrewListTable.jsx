@@ -447,6 +447,9 @@ export const CrewListTable = ({
     const crewIds = Array.from(selectedCrewMembers);
     if (!bulkShipSignOn) return;
     
+    // Check if user selected "-" for Sign Off
+    const isSignOff = bulkShipSignOn.trim() === '-';
+    
     // Close modal immediately
     setShowBulkEditShipSignOn(false);
     
@@ -464,54 +467,89 @@ export const CrewListTable = ({
       let successCount = 0;
       let failCount = 0;
       
-      // Process each crew member
-      for (const crewId of crewIds) {
-        const crew = crewList.find(c => c.id === crewId);
-        if (!crew) continue;
-        
-        const currentStatus = crew.status;
-        const currentShip = crew.ship_sign_on;
-        
-        try {
-          // Normalize ship names for comparison (trim and lowercase)
-          const normalizedCurrentShip = (currentShip || '').trim().toLowerCase();
-          const normalizedBulkShip = (bulkShipSignOn || '').trim().toLowerCase();
+      if (isSignOff) {
+        // Sign Off flow: Call sign off API (similar to Date Sign Off)
+        for (const crewId of crewIds) {
+          const crew = crewList.find(c => c.id === crewId);
+          if (!crew) continue;
           
-          // Determine action based on current status
-          if (currentStatus === 'Standby') {
-            // Sign On flow: Standby → Ship (files move in background)
-            await crewService.signOn(crewId, {
-              ship_name: bulkShipSignOn,
-              sign_on_date: crew.date_sign_on || new Date().toISOString().split('T')[0],
-              place_sign_on: crew.place_sign_on || null,
-              notes: `Bulk sign on via Ship Sign On edit to ${bulkShipSignOn}`
-            });
-            successCount++;
+          const currentStatus = crew.status;
+          
+          try {
+            if (currentStatus === 'Sign on') {
+              // Sign off flow: Ship → Standby (files move in background)
+              await crewService.signOff(crewId, {
+                sign_off_date: crew.date_sign_off || new Date().toISOString().split('T')[0],
+                notes: `Bulk sign off via Ship Sign On edit (selected "-")`
+              });
+              successCount++;
+            } else {
+              // Already standby or other status, just update fields
+              await crewService.update(crewId, {
+                ship_sign_on: '-',
+                status: 'Standby',
+                date_sign_off: crew.date_sign_off || null
+              });
+              successCount++;
+            }
             
-          } else if (currentStatus === 'Sign on' && normalizedCurrentShip !== normalizedBulkShip && normalizedCurrentShip !== '' && normalizedCurrentShip !== '-') {
-            // Transfer flow: Ship A → Ship B (files move in background)
-            await crewService.transferShip(crewId, {
-              to_ship_name: bulkShipSignOn,
-              transfer_date: new Date().toISOString().split('T')[0],
-              notes: `Bulk transfer via Ship Sign On edit from ${currentShip} to ${bulkShipSignOn}`
-            });
-            successCount++;
-            
-          } else {
-            // No file movement needed:
-            // - Crew already on same ship (Sign on + same ship)
-            // - Just updating field for other cases
-            await crewService.update(crewId, {
-              ship_sign_on: bulkShipSignOn,
-              status: 'Sign on',
-              date_sign_off: null
-            });
-            successCount++;
+          } catch (error) {
+            console.error(`Failed to sign off crew ${crewId}:`, error);
+            failCount++;
           }
+        }
+        
+      } else {
+        // Normal Ship Sign On flow
+        // Process each crew member
+        for (const crewId of crewIds) {
+          const crew = crewList.find(c => c.id === crewId);
+          if (!crew) continue;
           
-        } catch (error) {
-          console.error(`Failed to update crew ${crewId}:`, error);
-          failCount++;
+          const currentStatus = crew.status;
+          const currentShip = crew.ship_sign_on;
+          
+          try {
+            // Normalize ship names for comparison (trim and lowercase)
+            const normalizedCurrentShip = (currentShip || '').trim().toLowerCase();
+            const normalizedBulkShip = (bulkShipSignOn || '').trim().toLowerCase();
+            
+            // Determine action based on current status
+            if (currentStatus === 'Standby') {
+              // Sign On flow: Standby → Ship (files move in background)
+              await crewService.signOn(crewId, {
+                ship_name: bulkShipSignOn,
+                sign_on_date: crew.date_sign_on || new Date().toISOString().split('T')[0],
+                place_sign_on: crew.place_sign_on || null,
+                notes: `Bulk sign on via Ship Sign On edit to ${bulkShipSignOn}`
+              });
+              successCount++;
+              
+            } else if (currentStatus === 'Sign on' && normalizedCurrentShip !== normalizedBulkShip && normalizedCurrentShip !== '' && normalizedCurrentShip !== '-') {
+              // Transfer flow: Ship A → Ship B (files move in background)
+              await crewService.transferShip(crewId, {
+                to_ship_name: bulkShipSignOn,
+                transfer_date: new Date().toISOString().split('T')[0],
+                notes: `Bulk transfer via Ship Sign On edit from ${currentShip} to ${bulkShipSignOn}`
+              });
+              successCount++;
+              
+            } else {
+              // No file movement needed:
+              // - Crew already on same ship (Sign on + same ship)
+              // - Just updating field for other cases
+              await crewService.update(crewId, {
+                ship_sign_on: bulkShipSignOn,
+                status: 'Sign on',
+                date_sign_off: null
+              });
+              successCount++;
+            }
+            
+          } catch (error) {
+            console.error(`Failed to update crew ${crewId}:`, error);
+            failCount++;
+          }
         }
       }
       
@@ -523,9 +561,13 @@ export const CrewListTable = ({
       
       // Show result
       if (successCount > 0) {
-        const message = language === 'vi'
-          ? `✅ Đã cập nhật ${successCount} thuyền viên. Files đang được di chuyển...${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
-          : `✅ Updated ${successCount} crew member(s). Files are being moved in background...${failCount > 0 ? ` (${failCount} failed)` : ''}`;
+        const message = isSignOff
+          ? (language === 'vi'
+              ? `✅ Đã sign off ${successCount} thuyền viên. Files đang được di chuyển...${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
+              : `✅ Signed off ${successCount} crew member(s). Files are being moved in background...${failCount > 0 ? ` (${failCount} failed)` : ''}`)
+          : (language === 'vi'
+              ? `✅ Đã cập nhật ${successCount} thuyền viên. Files đang được di chuyển...${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
+              : `✅ Updated ${successCount} crew member(s). Files are being moved in background...${failCount > 0 ? ` (${failCount} failed)` : ''}`);
         
         toast.success(message, { duration: 5000 });
       } else {
