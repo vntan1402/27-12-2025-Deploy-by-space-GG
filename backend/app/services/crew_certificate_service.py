@@ -713,20 +713,52 @@ Return ONLY the JSON object with extracted fields. No additional text."""
             # Post-processing: Ensure cert_name matches standard types
             extracted_cert_name = parsed_data.get('cert_name', '').strip()
             extracted_note = parsed_data.get('note', '').lower()
-            
-            # CRITICAL: Check note field and rank field for GMDSS indicators that AI might miss in cert_name
-            # Example: cert_name is "Seaman Book" but rank/note says "GMDSS General Operator"
             extracted_rank = parsed_data.get('rank', '').lower()
             
+            # CRITICAL: Check FULL DOCUMENT SUMMARY + note/rank fields for classification
+            # This is a fallback if AI didn't classify correctly
+            document_summary_lower = document_summary.lower()
+            
+            # Check if it's a Seaman Book by analyzing full document content
+            is_seaman_book_in_doc = any(kw in document_summary_lower for kw in [
+                'seaman book', 'seamans book', "seaman's book", 
+                'libreta de embarque', 'libreta', 
+                'discharge book', 'service book',
+                'seafarer identity', 'seafarers identity',
+                'maritime identity document'
+            ])
+            
+            # If cert_name is empty or generic, try to detect from full document
+            if not extracted_cert_name or extracted_cert_name.lower() in ['certificate', 'document', '']:
+                logger.info(f"⚠️ Cert name empty or generic, analyzing full document...")
+                
+                if is_seaman_book_in_doc:
+                    # Check for GMDSS qualification anywhere in document
+                    if any(kw in document_summary_lower for kw in ['gmdss', 'general operator', 'radio operator', 'restricted operator', 'goc', 'roc', 'iv/2']):
+                        parsed_data['cert_name'] = 'Seaman book for GMDSS'
+                        logger.info(f"🔍 Detected from full document: Seaman book for GMDSS")
+                        extracted_cert_name = 'Seaman book for GMDSS'
+                    elif any(kw in document_summary_lower for kw in ['master', 'chief engineer', 'officer', 'competency', 'coc']):
+                        parsed_data['cert_name'] = 'Seaman Book for COC'
+                        logger.info(f"🔍 Detected from full document: Seaman Book for COC")
+                        extracted_cert_name = 'Seaman Book for COC'
+                    else:
+                        parsed_data['cert_name'] = 'Seaman Book'
+                        logger.info(f"🔍 Detected from full document: Seaman Book (generic)")
+                        extracted_cert_name = 'Seaman Book'
+            
+            # If AI classified as generic "Seaman Book", refine using full document
             if extracted_cert_name and any(kw in extracted_cert_name.lower() for kw in ['seaman book', 'seamans book', 'seaman\'s book', 'libreta', 'discharge book']):
-                # It's a seaman book - check note/rank for qualification
-                if any(kw in extracted_note for kw in ['gmdss', 'general operator', 'radio operator', 'restricted operator', 'goc', 'roc', 'iv/2']):
+                # It's a seaman book - check full document + note/rank for qualification
+                has_gmdss = (
+                    any(kw in document_summary_lower for kw in ['gmdss', 'general operator', 'radio operator', 'restricted operator', 'goc', 'roc', 'iv/2']) or
+                    any(kw in extracted_note for kw in ['gmdss', 'general operator', 'radio operator', 'restricted operator', 'goc', 'roc', 'iv/2']) or
+                    any(kw in extracted_rank for kw in ['gmdss', 'general operator', 'radio operator', 'restricted operator', 'goc', 'roc', 'iv/2'])
+                )
+                
+                if has_gmdss and 'gmdss' not in extracted_cert_name.lower():
                     parsed_data['cert_name'] = 'Seaman book for GMDSS'
-                    logger.info(f"🔍 GMDSS detected in note field - corrected to: Seaman book for GMDSS")
-                    extracted_cert_name = 'Seaman book for GMDSS'
-                elif any(kw in extracted_rank for kw in ['gmdss', 'general operator', 'radio operator', 'restricted operator', 'goc', 'roc', 'iv/2']):
-                    parsed_data['cert_name'] = 'Seaman book for GMDSS'
-                    logger.info(f"🔍 GMDSS detected in rank field - corrected to: Seaman book for GMDSS")
+                    logger.info(f"🔍 GMDSS detected in full document/note/rank - corrected to: Seaman book for GMDSS")
                     extracted_cert_name = 'Seaman book for GMDSS'
             
             if extracted_cert_name:
