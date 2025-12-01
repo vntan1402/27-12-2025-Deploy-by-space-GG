@@ -789,17 +789,24 @@ export const CrewListTable = ({
     
     if (!crew.passport) return;
     
-    // Calculate menu position
+    // Calculate menu position with smart positioning
     const menuWidth = 300;
-    const menuHeight = 200;
+    const menuHeight = 220; // 4 menu items + header + padding
     let x = e.clientX;
     let y = e.clientY;
     
+    // Adjust if menu would go off-screen (right side)
     if (x + menuWidth > window.innerWidth) {
       x = window.innerWidth - menuWidth - 10;
     }
+    
+    // Adjust if menu would go off-screen (bottom)
     if (y + menuHeight > window.innerHeight) {
-      y = window.innerHeight - menuHeight - 10;
+      // Try to position above cursor
+      y = Math.max(10, y - menuHeight);
+      if (y < 10) {
+        y = 10;
+      }
     }
     
     setPassportContextMenu({
