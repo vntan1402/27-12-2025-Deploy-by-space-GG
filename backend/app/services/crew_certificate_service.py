@@ -584,10 +584,15 @@ Expected Rank: {rank}
 }}
 
 **CRITICAL GMDSS DETECTION**:
-- If you see "GMDSS", "General Operator", "Restricted Operator", "Radio Operator", or "Radiocommunication" ANYWHERE in the document
-- Even if it's an "Endorsement" document type
-- You MUST classify cert_name as "GMDSS Certificate" or "Seaman book for GMDSS" (if it's a seaman book)
-- Include GMDSS qualification details in the "note" field
+- GMDSS Certificate is for DEDICATED radio operator qualifications
+- If document is about "Master", "Chief Engineer", "Deck Officer", "Engineer Officer", or any COC/competency certificate
+  → classify as COC/competency, NOT GMDSS (even if it mentions "radiocommunications" as one of many functions)
+- ONLY classify as "GMDSS Certificate" if the PRIMARY purpose is radio operations:
+  * Document title contains "GMDSS Certificate" or "Radio Operator Certificate"
+  * Main qualification is "General Operator Certificate (GOC)" or "Restricted Operator Certificate (ROC)"
+  * Certificate is specifically for GMDSS/radio operations, not a general competency certificate
+- If it's a Master/Officer COC that includes radiocommunications → classify as "Certificate of Competency (COC)"
+- Include GMDSS/radio qualifications in the "note" field if mentioned
 
 === TEXT TO ANALYZE ===
 {document_summary}
