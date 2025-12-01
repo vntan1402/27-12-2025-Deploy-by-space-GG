@@ -899,6 +899,57 @@ async def transfer_crew_to_ship(
         )
 
 
+
+@router.post("/{crew_id}/auto-rename-passport")
+async def auto_rename_crew_passport(
+    crew_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Auto rename crew passport and summary files on Google Drive using naming convention:
+    {Rank}_{Full Name (Eng)}_{Passport}.pdf
+    
+    Example: Master_NGUYEN VAN A_ABC123456.pdf
+    
+    Summary file: {Rank}_{Full Name (Eng)}_{Passport}_Summary.txt
+    
+    Response:
+    {
+        "success": true,
+        "message": "Passport files renamed successfully",
+        "crew_id": "...",
+        "crew_name": "...",
+        "new_filename": "Master_NGUYEN VAN A_ABC123456.pdf",
+        "renamed_files": ["passport", "summary"]
+    }
+    """
+    try:
+        from app.services.crew_passport_rename_service import CrewPassportRenameService
+        
+        logger.info(f"🔄 Auto-rename passport request for crew: {crew_id}")
+        
+        # Call service
+        result = await CrewPassportRenameService.auto_rename_passport_files(
+            crew_id=crew_id,
+            current_user=current_user
+        )
+        
+        logger.info(f"✅ Auto-rename completed: {result.get('new_filename')}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Auto-rename passport endpoint error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to auto-rename passport files: {str(e)}"
+        )
+
+
 @router.get("/{crew_id}/assignment-history")
 async def get_crew_assignment_history(
     crew_id: str,
