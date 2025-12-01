@@ -680,3 +680,306 @@ Return ONLY the JSON output with extracted fields. Do not include any explanatio
     except Exception as e:
         logger.error(f"❌ Passport analysis error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to analyze passport: {str(e)}")
+
+
+# ============================================================================
+# CREW ASSIGNMENT ENDPOINTS (Sign On, Sign Off, Transfer)
+# ============================================================================
+
+@router.post("/{crew_id}/sign-off")
+async def sign_off_crew_member(
+    crew_id: str,
+    request_data: Dict = Body(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Sign off crew member and move files to Standby
+    
+    Request Body:
+    {
+        "sign_off_date": "2025-01-15" | "15/01/2025",  # ISO or DD/MM/YYYY
+        "notes": "Contract ended"  # Optional
+    }
+    
+    Response:
+    {
+        "success": true,
+        "message": "Crew signed off successfully. X files moved to Standby.",
+        "crew_id": "...",
+        "crew_name": "...",
+        "from_ship": "BROTHER 36",
+        "sign_off_date": "2025-01-15",
+        "files_moved": {
+            "passport_moved": true,
+            "certificates_moved": 3,
+            "summaries_moved": 3
+        },
+        "assignment_id": "..."
+    }
+    """
+    try:
+        from app.services.crew_assignment_service import CrewAssignmentService
+        from app.models.crew_assignment import SignOffRequest
+        
+        logger.info(f"🛑 Sign off request for crew: {crew_id}")
+        
+        # Validate request data
+        try:
+            sign_off_request = SignOffRequest(**request_data)
+        except Exception as e:
+            logger.error(f"❌ Invalid request data: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid request data: {str(e)}"
+            )
+        
+        # Call service
+        result = await CrewAssignmentService.sign_off_crew(
+            crew_id=crew_id,
+            sign_off_date=sign_off_request.sign_off_date,
+            notes=sign_off_request.notes,
+            current_user=current_user
+        )
+        
+        logger.info(f"✅ Sign off completed: {result.get('crew_name')}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Sign off endpoint error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Sign off failed: {str(e)}"
+        )
+
+
+@router.post("/{crew_id}/sign-on")
+async def sign_on_crew_member(
+    crew_id: str,
+    request_data: Dict = Body(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Sign on crew member to a ship and move files from Standby
+    
+    Request Body:
+    {
+        "ship_name": "BROTHER 36",  # Required
+        "sign_on_date": "2025-01-20" | "20/01/2025",  # ISO or DD/MM/YYYY
+        "place_sign_on": "Singapore",  # Optional
+        "notes": "New contract"  # Optional
+    }
+    
+    Response:
+    {
+        "success": true,
+        "message": "Crew signed on to BROTHER 36 successfully. X files moved.",
+        "crew_id": "...",
+        "crew_name": "...",
+        "to_ship": "BROTHER 36",
+        "sign_on_date": "2025-01-20",
+        "place_sign_on": "Singapore",
+        "files_moved": {...},
+        "assignment_id": "..."
+    }
+    """
+    try:
+        from app.services.crew_assignment_service import CrewAssignmentService
+        from app.models.crew_assignment import SignOnRequest
+        
+        logger.info(f"✅ Sign on request for crew: {crew_id}")
+        
+        # Validate request data
+        try:
+            sign_on_request = SignOnRequest(**request_data)
+        except Exception as e:
+            logger.error(f"❌ Invalid request data: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid request data: {str(e)}"
+            )
+        
+        # Call service
+        result = await CrewAssignmentService.sign_on_crew(
+            crew_id=crew_id,
+            ship_name=sign_on_request.ship_name,
+            sign_on_date=sign_on_request.sign_on_date,
+            place_sign_on=sign_on_request.place_sign_on,
+            notes=sign_on_request.notes,
+            current_user=current_user
+        )
+        
+        logger.info(f"✅ Sign on completed: {result.get('crew_name')} to {result.get('to_ship')}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Sign on endpoint error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Sign on failed: {str(e)}"
+        )
+
+
+@router.post("/{crew_id}/transfer-ship")
+async def transfer_crew_to_ship(
+    crew_id: str,
+    request_data: Dict = Body(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Transfer crew from current ship to another ship
+    
+    Request Body:
+    {
+        "to_ship_name": "BROTHER 37",  # Required
+        "transfer_date": "2025-01-25" | "25/01/2025",  # ISO or DD/MM/YYYY
+        "notes": "Temporary transfer"  # Optional
+    }
+    
+    Response:
+    {
+        "success": true,
+        "message": "Crew transferred from BROTHER 36 to BROTHER 37 successfully. X files moved.",
+        "crew_id": "...",
+        "crew_name": "...",
+        "from_ship": "BROTHER 36",
+        "to_ship": "BROTHER 37",
+        "transfer_date": "2025-01-25",
+        "files_moved": {...},
+        "assignment_id": "..."
+    }
+    """
+    try:
+        from app.services.crew_assignment_service import CrewAssignmentService
+        from app.models.crew_assignment import TransferRequest
+        
+        logger.info(f"🔄 Transfer request for crew: {crew_id}")
+        
+        # Validate request data
+        try:
+            transfer_request = TransferRequest(**request_data)
+        except Exception as e:
+            logger.error(f"❌ Invalid request data: {e}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid request data: {str(e)}"
+            )
+        
+        # Call service
+        result = await CrewAssignmentService.transfer_crew_between_ships(
+            crew_id=crew_id,
+            to_ship_name=transfer_request.to_ship_name,
+            transfer_date=transfer_request.transfer_date,
+            notes=transfer_request.notes,
+            current_user=current_user
+        )
+        
+        logger.info(f"✅ Transfer completed: {result.get('crew_name')} from {result.get('from_ship')} to {result.get('to_ship')}")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Transfer endpoint error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Transfer failed: {str(e)}"
+        )
+
+
+@router.get("/{crew_id}/assignment-history")
+async def get_crew_assignment_history(
+    crew_id: str,
+    limit: int = 50,
+    skip: int = 0,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get assignment history for a crew member
+    
+    Query Parameters:
+    - limit: Max records to return (default: 50)
+    - skip: Number of records to skip (default: 0)
+    
+    Response:
+    {
+        "success": true,
+        "crew_id": "...",
+        "total_count": 10,
+        "history": [
+            {
+                "id": "...",
+                "action_type": "SIGN_OFF",
+                "from_ship": "BROTHER 36",
+                "to_ship": null,
+                "from_status": "Sign on",
+                "to_status": "Standby",
+                "action_date": "2025-01-15T10:00:00Z",
+                "performed_by": "admin1",
+                "notes": "Contract ended",
+                "files_moved": {...},
+                "created_at": "2025-01-15T10:00:00Z"
+            },
+            ...
+        ]
+    }
+    """
+    try:
+        from app.repositories.crew_assignment_repository import CrewAssignmentRepository
+        
+        logger.info(f"📋 Getting assignment history for crew: {crew_id}")
+        
+        # Verify crew exists
+        crew = await CrewRepository.find_by_id(crew_id)
+        if not crew:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        # Check access permission
+        if current_user.role not in ["SYSTEM_ADMIN", "SUPER_ADMIN"]:
+            if crew.get('company_id') != current_user.company:
+                raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Get assignment history
+        history = await CrewAssignmentRepository.find_by_crew_id(
+            crew_id=crew_id,
+            limit=limit,
+            skip=skip
+        )
+        
+        # Get total count
+        total_count = await CrewAssignmentRepository.count_by_crew(crew_id)
+        
+        logger.info(f"✅ Found {len(history)} assignment records (total: {total_count})")
+        
+        return {
+            "success": True,
+            "crew_id": crew_id,
+            "crew_name": crew.get('full_name', 'Unknown'),
+            "total_count": total_count,
+            "returned_count": len(history),
+            "limit": limit,
+            "skip": skip,
+            "history": history
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Get assignment history error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to get assignment history: {str(e)}"
+        )
+
