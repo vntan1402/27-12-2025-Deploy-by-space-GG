@@ -543,8 +543,8 @@ class CrewCertificateService:
             prompt = f"""You are an AI specialized in extracting structured information from maritime crew certificates.
 
 Your task:
-Analyze the following text summary of a crew certificate and extract all key certificate fields.
-The text contains information about the document, so focus on extracting and normalizing it into structured JSON format.
+Analyze the COMPLETE text summary below to extract all key certificate fields.
+**IMPORTANT**: Read through the ENTIRE document content carefully before classifying the certificate type.
 
 === CREW INFORMATION ===
 Expected Crew Name: {crew_name}
@@ -552,60 +552,79 @@ Expected Passport: {passport}
 Expected Rank: {rank}
 
 === INSTRUCTIONS ===
-1. Extract only the certificate-related fields listed below.
-2. Return the output strictly in valid JSON format.
-3. If a field is not found, leave it as an empty string "".
-4. Normalize all dates to DD/MM/YYYY format.
-5. Use uppercase for official names and codes.
-6. Do not infer or fabricate any missing information.
-7. **IMPORTANT - Certificate Classification Rules**:
-   - For cert_name, you MUST classify to ONE of the standard types below
-   - **PRIORITY**: Look for FUNCTIONAL qualification, not just document type
-   - Example: "Endorsement of GMDSS Certificate" → classify as "GMDSS Certificate" (NOT "Certificate of Endorsement")
-   - Example: "Endorsement of COC for Master" → classify as "Certificate of Competency (COC)" (NOT "Certificate of Endorsement")
-   - If document mentions "GMDSS", "radio operator", or "radiocommunication" → classify as "GMDSS Certificate"
-   - Only use "Certificate of Endorsement (COE)" if NO specific functional qualification is mentioned
+1. **READ THE ENTIRE DOCUMENT SUMMARY** below before making any classification decision
+2. Extract only the certificate-related fields listed below
+3. Return the output strictly in valid JSON format
+4. If a field is not found, leave it as an empty string ""
+5. Normalize all dates to DD/MM/YYYY format
+6. Use uppercase for official names and codes
+7. Do not infer or fabricate any missing information
 
 === STANDARD CERTIFICATE TYPES (Choose from this list) ===
 {standard_certs_list}
 
 === FIELDS TO EXTRACT ===
 {{
-  "cert_name": "",           // **MUST be ONE of the standard certificate types listed above** (e.g., "Certificate of Competency (COC)", "Medical Certificate"). Classify the certificate from the document into the closest matching standard type.
+  "cert_name": "",           // **MUST be ONE of the standard certificate types listed above**. Analyze the FULL document content to determine the correct type.
   "cert_no": "",             // Certificate number/ID
   "issued_by": "",           // Issuing authority (e.g., "Vietnam Maritime Administration", "Panama Maritime Authority")
   "issued_date": "",         // Issue date in DD/MM/YYYY format
   "cert_expiry": "",         // Expiry date in DD/MM/YYYY format
-  "rank": "",                // Rank/capacity authorized (e.g., "Chief Engineer", "Master Mariner")
+  "rank": "",                // Rank/capacity/qualification authorized (e.g., "Chief Engineer", "Master Mariner", "GMDSS General Operator", "IV/2")
   "crew_name": "",           // Name on certificate (should match expected crew)
   "passport": "",            // Passport number if mentioned
   "date_of_birth": "",       // Date of birth if mentioned
-  "note": ""                 // Any additional important info (limitations, restrictions, GMDSS qualification, radio operator level, etc.)
+  "note": ""                 // Any additional important info (limitations, restrictions, specific qualifications)
 }}
 
-**CRITICAL CLASSIFICATION RULES**:
+**CRITICAL CLASSIFICATION RULES - ANALYZE FULL DOCUMENT CONTENT**:
 
-**1. SEAMAN BOOK vs CERTIFICATE - CHECK DOCUMENT TYPE FIRST**:
-- If document is a "Seaman's Book", "Seaman Book", "Libreta de embarque", "Discharge Book", or "Service Book":
-  * Check the qualification/capacity field
-  * If qualification is for GMDSS, GOC, ROC, or radio operator → classify as "Seaman book for GMDSS"
-  * If qualification is for deck/engine officer, COC → classify as "Seaman Book for COC"
-  * If no specific qualification → classify as "Seaman Book"
-- If document is a standalone Certificate (not a seaman book):
-  * Then proceed to check if it's GMDSS, COC, Medical, etc.
+**STEP 1: Identify Document Type from FULL CONTENT**
+Read through the entire document summary and look for these indicators:
+- Document title/header (e.g., "Seaman's Book", "Libreta de embarque", "Certificate", "Discharge Book")
+- Document structure and layout
+- Type of information presented (identity document vs qualification certificate)
+- Official stamps and authority names
 
-**2. GMDSS CERTIFICATE (only for standalone certificates, NOT seaman books)**:
-- GMDSS Certificate is for DEDICATED radio operator certificates (NOT seaman books)
-- If document is about "Master", "Chief Engineer", "Deck Officer", "Engineer Officer", or any COC/competency certificate
-  → classify as COC/competency, NOT GMDSS (even if it mentions "radiocommunications")
-- ONLY classify as "GMDSS Certificate" if:
-  * Document is a CERTIFICATE (not seaman book)
-  * Document title contains "GMDSS Certificate" or "Radio Operator Certificate"
-  * Main qualification is "General Operator Certificate (GOC)" or "Restricted Operator Certificate (ROC)"
-- If it's a Master/Officer COC that includes radiocommunications → classify as "Certificate of Competency (COC)"
-- Include GMDSS/radio qualifications in the "note" field if mentioned
+**STEP 2: If SEAMAN BOOK detected:**
+Look for these keywords ANYWHERE in the document:
+- "Seaman's Book", "Seaman Book", "Seamans Book"
+- "Libreta de embarque" (Spanish for Seaman's Book)
+- "Discharge Book", "Service Book"
+- "Seafarer's Identity Document"
 
-=== TEXT TO ANALYZE ===
+If it's a Seaman Book, check the **qualification/capacity/rank** field in the document:
+- If contains: "GMDSS", "General Operator", "GOC", "Restricted Operator", "ROC", "IV/2", "Radio Operator"
+  → Classify as: "Seaman book for GMDSS"
+- If contains: "Master", "Chief Engineer", "Officer", "II/1", "II/2", "III/1", "III/2", "COC", "Competency"
+  → Classify as: "Seaman Book for COC"
+- Otherwise (no specific qualification or generic seafarer)
+  → Classify as: "Seaman Book"
+
+**STEP 3: If STANDALONE CERTIFICATE detected:**
+If document is NOT a seaman book but a separate certificate:
+- Check document title and main content for qualification type
+- "Certificate of Competency", "COC", "Master", "Chief Engineer", "Deck Officer", "Engineer Officer"
+  → Classify as: "Certificate of Competency (COC)"
+- "GMDSS Certificate", "Radio Operator Certificate", "GOC", "ROC" (as main qualification, not seaman book)
+  → Classify as: "GMDSS Certificate"
+- "Medical Certificate", "Medical Fitness", "Health Certificate"
+  → Classify as: "Medical Certificate"
+- "Endorsement" or "Recognition" (ONLY if no other functional qualification)
+  → Classify as: "Certificate of Endorsement (COE)"
+- And so on for other certificate types...
+
+**CRITICAL NOTES:**
+1. **Context Matters**: A document mentioning "GMDSS" in different contexts should be classified differently:
+   - "Seaman's Book" with "GMDSS General Operator" capacity → "Seaman book for GMDSS"
+   - Standalone "GMDSS Certificate" document → "GMDSS Certificate"
+   - COC with radiocommunications function → "Certificate of Competency (COC)"
+
+2. **Look at Multiple Fields**: Don't rely on just one field - check title, document type, capacity/rank, and content
+3. **Put qualification details in rank field**: Extract the specific rank/capacity/qualification (e.g., "GMDSS GENERAL OPERATOR IV/2", "Master Mariner")
+4. **Put additional context in note field**: Any restrictions, limitations, or additional qualifications
+
+=== TEXT TO ANALYZE (FULL DOCUMENT CONTENT) ===
 {document_summary}
 
 Return ONLY the JSON object with extracted fields. No additional text."""
