@@ -290,11 +290,14 @@ export const EditCrewModal = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Trạng thái' : 'Status'}
+                  <span className="ml-2 text-xs text-blue-600">
+                    ({language === 'vi' ? 'Tự động' : 'Auto'})
+                  </span>
                 </label>
                 <select
                   value={formData.status}
-                  onChange={(e) => setFormData({...formData, status: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={true}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed text-gray-700"
                 >
                   <option value="Sign on">{language === 'vi' ? 'Đang làm việc' : 'Sign on'}</option>
                   <option value="Standby">{language === 'vi' ? 'Chờ' : 'Standby'}</option>
