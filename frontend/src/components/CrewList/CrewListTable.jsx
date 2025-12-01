@@ -1864,7 +1864,7 @@ export const CrewListTable = ({
       {/* Passport Context Menu */}
       {passportContextMenu.show && (
         <div
-          className="fixed bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50"
+          className="fixed bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 max-h-[80vh] overflow-y-auto"
           style={{
             top: `${passportContextMenu.y}px`,
             left: `${passportContextMenu.x}px`,
@@ -1872,54 +1872,81 @@ export const CrewListTable = ({
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-4 py-2 text-sm font-semibold text-gray-700 border-b border-gray-200">
-            {passportContextMenu.crew?.full_name} - {passportContextMenu.crew?.passport}
-          </div>
-          <button
-            onClick={handleViewPassport}
-            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
-            disabled={!passportContextMenu.crew?.passport_file_id}
-          >
-            <div className="flex items-center space-x-2">
-              <span>👁️</span>
-              <span>{language === 'vi' ? 'Xem file hộ chiếu gốc' : 'View Passport File'}</span>
+          {/* Header - show selection count if multiple selected */}
+          {selectedCrewMembers.size > 1 ? (
+            <div className="px-4 py-2 text-sm font-semibold text-gray-700 border-b border-gray-200">
+              {selectedCrewMembers.size} {language === 'vi' ? 'thuyền viên đã chọn' : 'crew members selected'}
             </div>
-            <span>📄</span>
-          </button>
-          <button
-            onClick={handleCopyPassportLink}
-            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
-            disabled={!passportContextMenu.crew?.passport_file_id}
-          >
-            <div className="flex items-center space-x-2">
-              <span>📋</span>
-              <span>{language === 'vi' ? 'Sao chép link file gốc' : 'Copy File Link'}</span>
+          ) : (
+            <div className="px-4 py-2 text-sm font-semibold text-gray-700 border-b border-gray-200">
+              {passportContextMenu.crew?.full_name} - {passportContextMenu.crew?.passport}
             </div>
-            <span>🔗</span>
-          </button>
-          <button
-            onClick={handleDownloadPassport}
-            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
-            disabled={!passportContextMenu.crew?.passport_file_id}
-          >
-            <div className="flex items-center space-x-2">
-              <span>📥</span>
-              <span>{language === 'vi' ? 'Tải xuống file gốc' : 'Download File'}</span>
-            </div>
-            <span>💾</span>
-          </button>
-          <div className="border-t border-gray-200 my-1"></div>
-          <button
-            onClick={handleAutoRenamePassport}
-            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
-            disabled={!passportContextMenu.crew?.passport_file_id}
-          >
-            <div className="flex items-center space-x-2">
+          )}
+          
+          {/* Single crew actions */}
+          {selectedCrewMembers.size === 1 && (
+            <>
+              <button
+                onClick={handleViewPassport}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
+                disabled={!passportContextMenu.crew?.passport_file_id}
+              >
+                <div className="flex items-center space-x-2">
+                  <span>👁️</span>
+                  <span>{language === 'vi' ? 'Xem file hộ chiếu gốc' : 'View Passport File'}</span>
+                </div>
+                <span>📄</span>
+              </button>
+              <button
+                onClick={handleCopyPassportLink}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
+                disabled={!passportContextMenu.crew?.passport_file_id}
+              >
+                <div className="flex items-center space-x-2">
+                  <span>📋</span>
+                  <span>{language === 'vi' ? 'Sao chép link file gốc' : 'Copy File Link'}</span>
+                </div>
+                <span>🔗</span>
+              </button>
+              <button
+                onClick={handleDownloadPassport}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
+                disabled={!passportContextMenu.crew?.passport_file_id}
+              >
+                <div className="flex items-center space-x-2">
+                  <span>📥</span>
+                  <span>{language === 'vi' ? 'Tải xuống file gốc' : 'Download File'}</span>
+                </div>
+                <span>💾</span>
+              </button>
+              <div className="border-t border-gray-200 my-1"></div>
+              <button
+                onClick={handleAutoRenamePassport}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
+                disabled={!passportContextMenu.crew?.passport_file_id}
+              >
+                <div className="flex items-center space-x-2">
+                  <span>⚡</span>
+                  <span>{language === 'vi' ? 'Tự động đổi tên file' : 'Auto Rename File'}</span>
+                </div>
+                <span>⚡</span>
+              </button>
+            </>
+          )}
+          
+          {/* Bulk actions - show when multiple selected */}
+          {selectedCrewMembers.size > 1 && (
+            <button
+              onClick={handleBulkAutoRenamePassport}
+              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center justify-between"
+            >
+              <div className="flex items-center space-x-2">
+                <span>⚡</span>
+                <span>{language === 'vi' ? 'Tự động đổi tên file hàng loạt' : 'Bulk Auto Rename Files'}</span>
+              </div>
               <span>⚡</span>
-              <span>{language === 'vi' ? 'Tự động đổi tên file' : 'Auto Rename File'}</span>
-            </div>
-            <span>⚡</span>
-          </button>
+            </button>
+          )}
         </div>
       )}
       
