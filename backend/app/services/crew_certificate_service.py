@@ -84,41 +84,116 @@ class CrewCertificateService:
         return CrewCertificateResponse(**cert)
     
     @staticmethod
+    async def check_duplicate(crew_id: str, cert_no: str, current_user: UserResponse) -> dict:
+        """
+        Check if a crew certificate is duplicate based on crew_id + cert_no
+        Returns existing certificate info if duplicate found
+        """
+        from app.db.mongodb import mongo_db
+        
+        company_id = current_user.company
+        
+        # Check if certificate already exists with same crew_id + cert_no
+        existing_cert = await mongo_db.find_one("crew_certificates", {
+            "company_id": company_id,
+            "crew_id": crew_id,
+            "cert_no": cert_no
+        })
+        
+        if existing_cert:
+            logger.warning(f"⚠️ Duplicate found: {existing_cert.get('cert_name')} - {cert_no}")
+            return {
+                "is_duplicate": True,
+                "existing_certificate": {
+                    "id": existing_cert.get("id"),
+                    "cert_name": existing_cert.get("cert_name"),
+                    "cert_no": existing_cert.get("cert_no"),
+                    "crew_name": existing_cert.get("crew_name"),
+                    "issued_date": existing_cert.get("issued_date"),
+                    "cert_expiry": existing_cert.get("cert_expiry"),
+                    "issued_by": existing_cert.get("issued_by")
+                },
+                "message": f"Certificate with number '{cert_no}' already exists for this crew member"
+            }
+        else:
+            logger.info("✅ No duplicate found")
+            return {
+                "is_duplicate": False,
+                "message": "No duplicate found"
+            }
+    
+    @staticmethod
     async def create_crew_certificate(cert_data: CrewCertificateCreate, current_user: UserResponse) -> CrewCertificateResponse:
-        """Create new crew certificate"""
+        """Create new crew certificate with V1 validations"""
         from app.services.audit_trail_service import AuditTrailService
+        from app.db.mongodb import mongo_db
+        
+        # 1. Validate crew_id is required
+        if not cert_data.crew_id:
+            raise HTTPException(status_code=400, detail="crew_id is required")
         
         # Auto-set company_id from current_user if not provided
         company_id = cert_data.company_id or current_user.company
         if not company_id:
             raise HTTPException(status_code=400, detail="Company ID is required")
         
-        # Verify crew exists
+        # 2. Verify crew exists
         crew = await CrewRepository.find_by_id(cert_data.crew_id)
         if not crew:
             raise HTTPException(status_code=404, detail="Crew member not found")
         
+        # 3. Auto-determine ship_id based on crew's ship_sign_on (V1 logic)
+        crew_ship_sign_on = crew.get("ship_sign_on", "-")
+        ship_id = None
+        ship_name = None
+        
+        if crew_ship_sign_on and crew_ship_sign_on != "-":
+            # Crew is assigned to a ship - find ship by name
+            ship = await mongo_db.find_one("ships", {
+                "name": crew_ship_sign_on,
+                "company_id": company_id
+            })
+            
+            if ship:
+                ship_id = ship.get("id")
+                ship_name = ship.get("name")
+                logger.info(f"✅ Found ship: {ship_name} (ID: {ship_id})")
+            else:
+                logger.warning(f"⚠️ Ship '{crew_ship_sign_on}' not found in database")
+                # Continue with ship_id = None (will upload to Standby folder)
+        else:
+            # Crew is Standby (ship_sign_on = "-")
+            logger.info("📍 Crew is Standby (ship_sign_on = '-'), certificate will go to Standby Crew")
+        
         # Create certificate document
         cert_dict = cert_data.dict()
         cert_dict["id"] = str(uuid.uuid4())
-        cert_dict["company_id"] = company_id  # Ensure company_id is set
+        cert_dict["company_id"] = company_id
+        cert_dict["ship_id"] = ship_id  # Auto-determined from crew's ship_sign_on
         
-        # Override rank with crew's current rank (not rank from certificate)
-        # This ensures consistency - all certificates for same crew show same rank
+        # Override rank with crew's current rank
         cert_dict["rank"] = crew.get("rank", "") or cert_dict.get("rank", "")
         
-        # Generate issued_by_abbreviation for display (like Class & Flag Cert)
+        # 4. Normalize issued_by (V1 logic)
         if cert_dict.get("issued_by"):
+            cert_dict["issued_by"] = CrewCertificateService._normalize_issued_by(cert_dict["issued_by"])
+            
+            # Generate abbreviation
             from app.utils.issued_by_abbreviation import generate_organization_abbreviation
             cert_dict["issued_by_abbreviation"] = generate_organization_abbreviation(cert_dict["issued_by"])
-            logger.info(f"📋 Generated abbreviation: {cert_dict['issued_by']} → {cert_dict['issued_by_abbreviation']}")
+            logger.info(f"📋 Normalized & abbreviated: {cert_dict['issued_by']} → {cert_dict['issued_by_abbreviation']}")
+        
+        # 5. Auto-calculate status from cert_expiry (V1 logic)
+        if cert_dict.get("cert_expiry"):
+            cert_dict["status"] = CrewCertificateService._calculate_certificate_status(cert_dict["cert_expiry"])
+            logger.info(f"🔄 Auto-calculated status: {cert_dict['status']}")
         
         cert_dict["created_at"] = datetime.now(timezone.utc)
         cert_dict["created_by"] = current_user.username
         
         await CrewCertificateRepository.create(cert_dict)
         
-        # Log audit trail
+        # 6. Log audit trail
         await AuditTrailService.log_action(
             user_id=current_user.id,
             action="CREATE_CREW_CERTIFICATE",
@@ -128,7 +203,7 @@ class CrewCertificateService:
                 "crew_name": cert_data.crew_name,
                 "cert_name": cert_data.cert_name,
                 "cert_no": cert_data.cert_no,
-                "ship_id": cert_data.ship_id
+                "ship_id": ship_id
             },
             company_id=current_user.company
         )
@@ -136,6 +211,64 @@ class CrewCertificateService:
         logger.info(f"✅ Crew certificate created: {cert_dict['cert_name']} for crew {cert_data.crew_id}")
         
         return CrewCertificateResponse(**cert_dict)
+    
+    @staticmethod
+    def _normalize_issued_by(issued_by: str) -> str:
+        """Normalize issued_by to standard maritime authority names (V1 logic)"""
+        if not issued_by:
+            return issued_by
+        
+        issued_lower = issued_by.lower()
+        
+        # Vietnam
+        if "vietnam" in issued_lower or "viet nam" in issued_lower:
+            return "Vietnam Maritime Administration"
+        # Panama
+        elif "panama" in issued_lower:
+            return "Panama Maritime Authority"
+        # Marshall Islands
+        elif "marshall" in issued_lower:
+            return "Marshall Islands Maritime Administrator"
+        # Liberia
+        elif "liberia" in issued_lower:
+            return "Liberia Maritime Authority"
+        # Singapore
+        elif "singapore" in issued_lower:
+            return "Maritime and Port Authority of Singapore"
+        # UK
+        elif "uk" in issued_lower or "united kingdom" in issued_lower or "british" in issued_lower:
+            return "UK Maritime and Coastguard Agency"
+        # Malaysia
+        elif "malaysia" in issued_lower:
+            return "Marine Department Malaysia"
+        else:
+            return issued_by
+    
+    @staticmethod
+    def _calculate_certificate_status(cert_expiry) -> str:
+        """Auto-calculate certificate status based on expiry date (V1 logic)"""
+        if not cert_expiry:
+            return "Unknown"
+        
+        # Convert to datetime if string
+        if isinstance(cert_expiry, str):
+            try:
+                cert_expiry = datetime.fromisoformat(cert_expiry.replace('Z', '+00:00'))
+            except:
+                return "Unknown"
+        
+        now = datetime.now(timezone.utc)
+        
+        # Check if expired
+        if cert_expiry < now:
+            return "Expired"
+        
+        # Check if expiring within 3 months
+        days_until_expiry = (cert_expiry - now).days
+        if days_until_expiry <= 90:  # 3 months
+            return "Expiring Soon"
+        
+        return "Valid"
     
     @staticmethod
     async def update_crew_certificate(
