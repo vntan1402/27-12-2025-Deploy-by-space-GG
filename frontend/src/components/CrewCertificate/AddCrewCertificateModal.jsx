@@ -316,21 +316,6 @@ const AddCrewCertificateModal = ({
       // Check if analysis succeeded
       if (data.success && data.analysis) {
         processAnalysisSuccess(data.analysis);
-        
-        // Check for name mismatch warning
-        if (data.name_mismatch_warning && data.name_mismatch_warning.detected) {
-          const warning = data.name_mismatch_warning;
-          
-          // Show warning modal
-          setTimeout(() => {
-            const message = language === 'vi'
-              ? `⚠️ Tên trong chứng chỉ không khớp với cơ sở dữ liệu\n\nTên trích xuất từ chứng chỉ: ${warning.ai_extracted}\nTên trong cơ sở dữ liệu: ${warning.database_name}${warning.database_name_en ? ` (${warning.database_name_en})` : ''}\n\nHệ thống sẽ sử dụng tên từ cơ sở dữ liệu. Vui lòng kiểm tra lại chứng chỉ nếu cần.`
-              : `⚠️ Name mismatch detected\n\nCertificate name: ${warning.ai_extracted}\nDatabase name: ${warning.database_name}${warning.database_name_en ? ` (${warning.database_name_en})` : ''}\n\nSystem will use database name. Please verify the certificate if needed.`;
-            
-            setWarningMessage(message);
-            setShowWarningModal(true);
-          }, 500);
-        }
       } else {
         console.log('⚠️ Analysis failed or no analysis data');
         toast.warning(language === 'vi' 
@@ -341,14 +326,45 @@ const AddCrewCertificateModal = ({
     } catch (error) {
       console.error('AI analysis error:', error);
       
-      // Handle name mismatch error
+      // Handle errors
       const errorDetail = error.response?.data?.detail;
       const errorStatus = error.response?.status;
       
       if (errorStatus === 400 && errorDetail) {
         const detailStr = typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail);
         
-        if (detailStr.includes('Certificate holder name')) {
+        // Check if it's a name mismatch error
+        if (detailStr.includes('Name mismatch') || detailStr.includes('Certificate name:')) {
+          // Name mismatch detected - BLOCK the flow
+          console.error('❌ Name mismatch detected - blocking flow');
+          
+          // Remove uploaded file
+          setUploadedFile(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          
+          // Clear any analyzed data
+          setAnalyzedData(null);
+          
+          // Show error modal with details
+          const message = language === 'vi'
+            ? `❌ TÊN KHÔNG KHỚP\n\n${detailStr}\n\nVui lòng:\n1. Kiểm tra lại thuyền viên đã chọn\n2. Xác nhận chứng chỉ đúng với thuyền viên này\n\nLưu ý: Hệ thống chấp nhận hoán vị tên (ví dụ: 'A TRAN VAN' khớp với 'TRAN VAN A')`
+            : `❌ NAME MISMATCH\n\n${detailStr}\n\nPlease:\n1. Verify the selected crew member\n2. Confirm the certificate belongs to this crew\n\nNote: System accepts name permutations (e.g., 'A TRAN VAN' matches 'TRAN VAN A')`;
+          
+          setWarningMessage(message);
+          setShowWarningModal(true);
+          
+          // Also show toast error
+          toast.error(
+            language === 'vi' 
+              ? '❌ Tên không khớp! File đã bị xóa. Vui lòng kiểm tra lại.' 
+              : '❌ Name mismatch! File removed. Please verify.',
+            { duration: 8000 }
+          );
+          
+        } else if (detailStr.includes('Certificate holder name')) {
+          // Legacy error handling
           toast.error(
             <div>
               <p className="font-bold">{language === 'vi' ? '⚠️ Tên không khớp' : '⚠️ Name Mismatch'}</p>
@@ -356,12 +372,21 @@ const AddCrewCertificateModal = ({
             </div>,
             { duration: 6000 }
           );
+          
+          // Remove uploaded file
+          setUploadedFile(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          
         } else {
+          // Other validation errors
           toast.error(language === 'vi' 
             ? `❌ Lỗi phân tích file: ${detailStr}` 
             : `❌ Analysis failed: ${detailStr}`);
         }
       } else {
+        // Generic error
         toast.error(language === 'vi' 
           ? '❌ Lỗi phân tích file. Vui lòng nhập thủ công.'
           : '❌ Analysis failed. Please enter manually.');
