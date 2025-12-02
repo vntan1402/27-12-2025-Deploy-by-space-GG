@@ -67,10 +67,12 @@ class CrewCertificateService:
             logger.info("📖 PRIORITY 0.5: Seaman Book detected, checking qualification...")
             
             # Check for GMDSS + Seaman Book → "Seaman book for GMDSS"
+            # NOTE: "RADIO COMMUNICATION" removed because COC certs often mention 
+            # "Radiocommunications" as a function, causing false positives
             GMDSS_KEYWORDS = [
                 'GMDSS', 'MDSS',  # MDSS = typo variant
                 'GLOBAL MARITIME DISTRESS',
-                'RADIO OPERATOR', 'RADIO COMMUNICATION',
+                'RADIO OPERATOR',  # Specific job title (not just function)
                 'MDSS GENERAL OPERATOR', 'GMDSS GENERAL OPERATOR',
                 'GOC', 'ROC'
             ]
