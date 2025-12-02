@@ -827,6 +827,7 @@ class CrewCertificateService:
             # Define standard certificate names (must match frontend dropdown)
             STANDARD_CERT_NAMES = [
                 'Certificate of Competency (COC)',
+                'COC Endorsement',
                 'Certificate of Endorsement (COE)',
                 'Seaman Book for COC',
                 'Seaman book for GMDSS',
