@@ -7,6 +7,7 @@ import api from '../../services/api';
 // Common certificate names (28+ options)
 const COMMON_CERT_NAMES = [
   'Certificate of Competency (COC)',
+  'COC Endorsement',
   'Certificate of Endorsement (COE)',
   'Seaman Book for COC',
   'Seaman book for GMDSS',
