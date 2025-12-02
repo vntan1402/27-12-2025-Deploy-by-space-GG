@@ -142,14 +142,14 @@ def format_name_mismatch_message(
         Formatted message string
     """
     if language == 'vi':
-        msg = f"⚠️ Tên trong chứng chỉ không khớp với cơ sở dữ liệu\n\n"
+        msg = "⚠️ Tên trong chứng chỉ không khớp với cơ sở dữ liệu\n\n"
         msg += f"Tên trích xuất từ chứng chỉ: {extracted_name}\n"
         msg += f"Tên trong cơ sở dữ liệu: {database_name}"
         if database_name_en:
             msg += f" ({database_name_en})"
         msg += "\n\nVui lòng kiểm tra lại chứng chỉ."
     else:
-        msg = f"⚠️ Name mismatch detected\n\n"
+        msg = "⚠️ Name mismatch detected\n\n"
         msg += f"Certificate name: {extracted_name}\n"
         msg += f"Database name: {database_name}"
         if database_name_en:
