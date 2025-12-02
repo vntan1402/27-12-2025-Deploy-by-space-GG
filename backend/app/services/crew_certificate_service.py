@@ -157,7 +157,9 @@ class CrewCertificateService:
                 return cert_name
         
         # ===================================================
-        # PRIORITY 3: Rank keywords → COC
+        # PRIORITY 3: Rank keywords → COC or COE
+        # If rank + endorsement keywords → COE
+        # If rank only → COC
         # ===================================================
         RANK_KEYWORDS = [
             'MASTER', 'CAPTAIN', 'CAPT',
@@ -172,10 +174,22 @@ class CrewCertificateService:
             'II/1', 'II/2', 'II/3', 'III/1', 'III/2', 'III/3'
         ]
         
+        ENDORSEMENT_KEYWORDS = [
+            'ENDORSEMENT', 'REFRENDO', 'RECOGNITION',
+            'RECONOCIMIENTO', 'ATTESTING'
+        ]
+        
         for rank_kw in RANK_KEYWORDS:
             if rank_kw in all_text:
-                logger.info(f"✅ PRIORITY 3: Found rank keyword '{rank_kw}' → COC")
-                return 'Certificate of Competency (COC)'
+                # Check if it's an endorsement certificate
+                has_endorsement = any(kw in all_text for kw in ENDORSEMENT_KEYWORDS)
+                
+                if has_endorsement:
+                    logger.info(f"✅ PRIORITY 3: Found rank '{rank_kw}' + endorsement → COE")
+                    return 'Certificate of Endorsement (COE)'
+                else:
+                    logger.info(f"✅ PRIORITY 3: Found rank keyword '{rank_kw}' → COC")
+                    return 'Certificate of Competency (COC)'
         
         # ===================================================
         # PRIORITY 3.5: BRM/ERM training certificates
