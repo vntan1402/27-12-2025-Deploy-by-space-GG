@@ -1011,6 +1011,8 @@ Return ONLY the JSON object with extracted fields. No additional text."""
             # Fetch crew info for batch upload (passport, rank, date_of_birth)
             crew = await CrewRepository.find_by_id(crew_id)
             crew_info = {}
+            name_mismatch_warning = None
+            
             if crew:
                 crew_info = {
                     "crew_name": crew.get("full_name", ""),
@@ -1019,11 +1021,68 @@ Return ONLY the JSON object with extracted fields. No additional text."""
                     "rank": crew.get("rank", ""),
                     "date_of_birth": crew.get("date_of_birth", "")
                 }
+                
+                # Check name mismatch with permutation support
+                ai_extracted_name = parsed_data.get('crew_name', '')
+                db_crew_name = crew.get('full_name', '')
+                db_crew_name_en = crew.get('full_name_en', '')
+                
+                if ai_extracted_name:
+                    from app.utils.name_matcher import check_name_match, format_name_mismatch_message
+                    
+                    is_match, similarity, matched_variant = check_name_match(
+                        extracted_name=ai_extracted_name,
+                        database_name=db_crew_name,
+                        database_name_en=db_crew_name_en
+                    )
+                    
+                    if not is_match:
+                        # Name mismatch detected
+                        logger.warning("⚠️ Name mismatch detected!")
+                        logger.warning(f"   AI extracted: {ai_extracted_name}")
+                        logger.warning(f"   Database: {db_crew_name} ({db_crew_name_en})")
+                        
+                        name_mismatch_warning = {
+                            "detected": True,
+                            "ai_extracted": ai_extracted_name,
+                            "database_name": db_crew_name,
+                            "database_name_en": db_crew_name_en,
+                            "message": format_name_mismatch_message(
+                                ai_extracted_name, 
+                                db_crew_name, 
+                                db_crew_name_en,
+                                language='en'
+                            )
+                        }
+                        
+                        # Add to parsed_data for frontend access
+                        parsed_data['_name_mismatch_warning'] = name_mismatch_warning
+                        
+                        # Log to audit trail
+                        from app.services.audit_trail_service import AuditTrailService
+                        await AuditTrailService.log_action(
+                            user_id=current_user.id,
+                            action="CREW_CERT_NAME_MISMATCH",
+                            resource_type="crew_certificate",
+                            resource_id=f"{crew_id}_pending",
+                            details={
+                                "ai_extracted": ai_extracted_name,
+                                "database_name": db_crew_name,
+                                "database_name_en": db_crew_name_en,
+                                "crew_id": crew_id,
+                                "filename": file.filename
+                            },
+                            company_id=current_user.company
+                        )
+                    else:
+                        # Name matches (exact or permutation)
+                        logger.info(f"✅ Name match confirmed: {ai_extracted_name} → {matched_variant}")
             
             return {
                 "success": True,
                 "message": "Crew certificate analyzed successfully",
                 "analysis": parsed_data,
+                "name_mismatch_warning": name_mismatch_warning,  # Add warning at root level
                 # Include crew info for batch upload (root level for easy access)
                 **crew_info
             }
