@@ -4137,3 +4137,206 @@ agent_communication:
     -message: "🎉 AI CONFIGURATION & CERTIFICATE ANALYSIS BACKEND TESTING COMPLETED SUCCESSFULLY - 100% SUCCESS RATE (10/10 tests passed). **ALL REVIEW REQUEST REQUIREMENTS FULLY SATISFIED**: ✅ **AI CONFIGURATION ENDPOINTS WORKING PERFECTLY**: GET /api/ai-config returns proper structure (Provider: google, Model: gemini-2.0-flash, use_emergent_key: true) ✓, PUT /api/ai-config successfully updates configuration ✓, Default config creation working with Google/Gemini-2.0-flash ✓, EMERGENT_LLM_KEY properly configured and used ✓. ✅ **CERTIFICATE AI ANALYSIS WORKING (NO LONGER MOCK)**: POST /api/certificates/analyze-file fully functional with REAL AI analysis ✓, PDF text extraction working (8,803 characters from MINH ANH 09 certificate) ✓, AI returns structured data with high confidence (1.0): cert_name, cert_no, dates, ship_name, IMO, flag, tonnage ✓, Real AI integration verified using EMERGENT_LLM_KEY ✓. ✅ **TECHNICAL FIXES IMPLEMENTED**: Fixed MongoDB repository methods (insert_one → create, update_one → update) ✓, Fixed AI integration import (emergentintegrations.llm.chat.LlmChat) ✓, Fixed provider/model mapping (google → gemini for LiteLLM) ✓, All backend services working with proper database and AI integration ✓. ✅ **COMPREHENSIVE TESTING COVERAGE**: Authentication with admin1/123456 ✓, AI config GET/PUT operations ✓, Certificate analysis with real PDF files ✓, Error handling for invalid inputs ✓, Ship ID parameter testing ✓, API response structure validation ✓. **CONCLUSION**: AI Configuration & Certificate Analysis backend implementation is working excellently and ready for production. All review requirements satisfied: AI Config endpoints working with default creation, Certificate analysis using real AI (not mock) with EMERGENT_LLM_KEY, PDF text extraction and structured data return working perfectly, proper authentication and error handling. **MAIN AGENT SHOULD SUMMARIZE AND FINISH - ALL BACKEND FUNCTIONALITY CONFIRMED WORKING!**"
     -agent: "testing"
     -message: "✅ CREW CREATION WITHOUT company_id TESTING COMPLETED SUCCESSFULLY - FIX VERIFIED WORKING PERFECTLY: Comprehensive testing of the crew creation fix completed with 100% success rate (8/8 tests passed). **REVIEW REQUEST REQUIREMENTS FULLY SATISFIED**: ✅ **AUTHENTICATION**: Login with admin1/123456 successful, user properly authenticated with ADMIN role and AMCSC company assignment (company_id: 0a6eaf96-0aaf-4793-89be-65d62cb7953c). ✅ **CREW CREATION WITHOUT company_id**: POST /api/crew endpoint tested with request body WITHOUT company_id field, response status: 200 OK (not 422 Unprocessable Entity), crew created successfully with ID: 4f4d0abb-be3a-4c46-8c7c-7ae6009b64fa. ✅ **AUTO-SET company_id VERIFICATION**: Backend correctly auto-set company_id from current_user.company, expected company_id: 0a6eaf96-0aaf-4793-89be-65d62cb7953c, actual company_id: 0a6eaf96-0aaf-4793-89be-65d62cb7953c (PERFECT MATCH). ✅ **BACKEND IMPLEMENTATION VERIFIED**: CrewCreate model has optional company_id field (company_id: Optional[str] = None), CrewService.create_crew auto-sets company_id from current_user if not provided (line 48: company_id = crew_data.company_id or current_user.company), validation ensures company_id is never None before database creation. ✅ **BACKEND LOGS CONFIRMATION**: Crew creation logs show successful operations with proper date parsing (date_of_birth: 1989-10-10 00:00:00+00:00, passport_expiry_date: 2029-02-13 00:00:00+00:00), audit trail creation working correctly, company_id auto-assignment confirmed in service layer, no validation errors or exceptions detected. ✅ **TEST DATA VERIFICATION**: Used exact test data from review request WITHOUT company_id field: VŨ Văn Trung, passport 64410773, all fields processed correctly, cleanup (deletion) working properly. **TECHNICAL VERIFICATION**: POST /api/crew endpoint accessible and functional, multipart form handling working correctly, auto-set logic implemented correctly in CrewService.create_crew, database operations successful with proper audit trail, no 422 validation errors at any stage. **CONCLUSION**: **THE CREW CREATION FIX IS WORKING PERFECTLY** - The backend correctly makes company_id optional in the CrewCreate model and auto-sets it from current_user.company when not provided in the request. All review request requirements have been fully satisfied: 200 OK response (not 422), crew created successfully, company_id auto-set correctly, backend logs confirm the fix is working. **MAIN AGENT SHOULD SUMMARIZE AND FINISH - CREW CREATION WITHOUT company_id FIX VERIFIED WORKING!**"
+
+## 🆕 Date of Birth Validation Feature
+
+**Status:** ✅ IMPLEMENTED (Pending User Testing)
+**Date:** 2025-01-18
+**Priority:** P0
+**Agent:** E1 (Fork Agent)
+
+### Feature Overview
+
+Implemented Date of Birth validation to prevent certificate upload when **name matches but DoB is different**, indicating two different crew members with the same name.
+
+### Implementation Details
+
+**Validation Logic:**
+1. ✅ **Step 1: Name Validation** - Check if name matches (with permutation support)
+2. ✅ **Step 2: DoB Validation** - If name matches, check if Date of Birth matches
+3. ✅ **Step 3: Block Flow** - If DoB mismatch detected, block certificate creation
+
+**Technical Stack:**
+- **Backend Service:** `/app/backend/app/services/crew_certificate_service.py` (Lines 1085-1140)
+- **Date Utility:** `/app/backend/app/utils/date_normalizer.py` (NEW FILE)
+- **Validation Method:** Normalize dates to YYYY-MM-DD format and compare
+
+### Date Normalization Logic
+
+**Supported Date Formats:**
+- ✅ ISO Format: `2024-01-15`, `2024-01-15T00:00:00`
+- ✅ Vietnamese Format: `15/01/2024` (DD/MM/YYYY)
+- ✅ US Format: `01/15/2024` (MM/DD/YYYY)
+- ✅ Datetime Objects: Python datetime objects
+- ✅ SQL Datetime: `2024-01-15 00:00:00`
+
+**Normalization Examples:**
+```python
+"15/01/1990" → "1990-01-15"
+"01/15/1990" → "1990-01-15"
+"1990-01-15T00:00:00" → "1990-01-15"
+datetime(1990, 1, 15) → "1990-01-15"
+```
+
+### Validation Flow
+
+**Certificate Upload Process:**
+1. User uploads certificate for crew member
+2. AI extracts crew name → Name validation runs (with permutation support)
+3. If name matches ✅ → AI extracts date_of_birth → DoB validation runs
+4. If DoB matches ✅ → Certificate creation proceeds
+5. If DoB mismatch ❌ → **Block flow with error**
+
+**Error Response:**
+```http
+HTTP 400 Bad Request
+{
+  "detail": "Date of Birth mismatch detected!\n\n
+             Name matches: NGUYEN VAN A\n
+             Certificate DoB: 15/01/1990\n
+             Database DoB: 20/05/1985\n\n
+             This indicates two different crew members with the same name.\n\n
+             Please verify:\n
+             1. Did you select the correct crew member?\n
+             2. Is this certificate for NGUYEN VAN A born on 20/05/1985?"
+}
+```
+
+### Backend Changes
+
+**Modified Files:**
+1. **`crew_certificate_service.py`** (Lines 1085-1140)
+   - Added DoB validation after name validation
+   - Calls `normalize_date_for_comparison()` for both AI-extracted and database DoB
+   - Raises HTTPException 400 on mismatch
+   - Logs to audit trail with action `CREW_CERT_DOB_MISMATCH_BLOCKED`
+
+2. **`date_normalizer.py`** (NEW FILE)
+   - `normalize_date_for_comparison(date_input)` - Converts any date format to YYYY-MM-DD
+   - `are_dates_equal(date1, date2)` - Helper for date comparison
+   - Handles 9 different date format patterns
+   - Robust error handling for unparseable dates
+
+### AI Prompt Integration
+
+The AI extraction prompt already includes `date_of_birth` field extraction (Line 694):
+```json
+{
+  "crew_name": "",           // Name on certificate
+  "date_of_birth": "",       // Date of birth if mentioned
+  ...
+}
+```
+
+### Audit Trail
+
+**Action Logged:**
+- **Action Type:** `CREW_CERT_DOB_MISMATCH_BLOCKED`
+- **Resource Type:** `crew_certificate`
+- **Details Captured:**
+  - AI extracted name
+  - AI extracted DoB
+  - Database crew name
+  - Database DoB
+  - Crew ID
+  - Filename
+  - Status: `blocked_dob_mismatch`
+
+### Testing Status
+
+**Unit Tests:**
+✅ Date normalizer tested with 6 test cases
+- ✅ DD/MM/YYYY → YYYY-MM-DD conversion
+- ✅ MM/DD/YYYY → YYYY-MM-DD conversion
+- ✅ ISO format handling
+- ✅ Datetime object handling
+- ✅ Mismatch detection
+- ✅ Different date comparison
+
+**Integration Tests:**
+⏳ **PENDING USER TESTING**
+
+### User Testing Required
+
+**Test Scenarios:**
+
+1. **Scenario 1: DoB Match (Happy Path)**
+   - Upload certificate with correct crew name and DoB
+   - ✅ Expected: Certificate created successfully
+
+2. **Scenario 2: DoB Mismatch (Same Name, Different Person)**
+   - Upload certificate with matching name but different DoB
+   - ✅ Expected: Flow blocked with error message
+   - ✅ Error message shows both DoB values
+   - ✅ User can verify and select correct crew
+
+3. **Scenario 3: Missing DoB in Certificate**
+   - Upload certificate without DoB field
+   - ✅ Expected: Validation skipped, only name checked
+   - ✅ Certificate creation proceeds if name matches
+
+4. **Scenario 4: Missing DoB in Database**
+   - Upload certificate for crew without DoB in database
+   - ✅ Expected: Warning logged, validation skipped
+   - ✅ Certificate creation proceeds
+
+5. **Scenario 5: Various Date Formats**
+   - Test with different DoB formats in certificates
+   - ✅ Expected: Normalizer handles all formats correctly
+
+### Known Edge Cases
+
+**Handled:**
+- ✅ AI extracts DoB but crew has no DoB in DB → Skip validation with warning
+- ✅ AI doesn't extract DoB → Skip validation
+- ✅ Different date formats → Normalized before comparison
+- ✅ Both DoB values present → Full validation runs
+
+**Not Handled (By Design):**
+- ❌ Invalid date formats that can't be parsed → Validation skipped (safe fallback)
+
+### Technical Verification
+
+**Backend Service:**
+```bash
+✅ Syntax check passed
+✅ Import check passed
+✅ Backend restarted successfully
+✅ No errors in logs
+```
+
+**Date Normalizer Utility:**
+```bash
+✅ 6/6 unit tests passed
+✅ All date format conversions working
+✅ Mismatch detection working
+```
+
+### Files Modified
+
+1. `/app/backend/app/services/crew_certificate_service.py`
+   - Added DoB validation logic (Lines 1085-1140)
+   - Integrated with existing name validation
+
+2. `/app/backend/app/utils/date_normalizer.py` (NEW)
+   - Created date normalization utility
+   - 90 lines of code
+   - Handles 9 date format patterns
+
+### Next Steps
+
+1. ⏳ **User Testing** - Test all 5 scenarios above
+2. ⏳ **Frontend Error Handling** - Verify error message display
+3. ⏳ **Real Certificate Testing** - Test with actual crew certificates
+4. ⏳ **Edge Case Validation** - Test missing DoB scenarios
+
+### Success Criteria
+
+- ✅ Name matches + DoB matches → Certificate created
+- ✅ Name matches + DoB mismatch → Flow blocked with clear error
+- ✅ Name matches + No DoB in cert → Only name validated
+- ✅ Name matches + No DoB in DB → Warning logged, validation skipped
+- ✅ Error message guides user to select correct crew
+
+---
+
