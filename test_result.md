@@ -4340,3 +4340,144 @@ The AI extraction prompt already includes `date_of_birth` field extraction (Line
 
 ---
 
+
+---
+
+## 🔄 DoB Mismatch Modal Display Update
+
+**Status:** ✅ FIXED
+**Date:** 2025-01-18
+**Priority:** P0
+
+### Issue Reported
+
+User nhận được lỗi "Date of Birth mismatch" hiển thị bằng **Toast**, nhưng yêu cầu hiển thị bằng **Modal** giống như Name Mismatch.
+
+### Changes Implemented
+
+**Backend Changes:**
+- **File:** `/app/backend/app/services/crew_certificate_service.py` (Line 1128)
+- **Change:** Updated error message format để consistent với Name Mismatch
+- **Old:** `Name matches: {ai_extracted_name}`
+- **New:** `Crew name: {ai_extracted_name}` (consistent format)
+
+**Frontend Changes:**
+- **File:** `/app/frontend/src/components/CrewCertificate/AddCrewCertificateModal.jsx` (Lines 336-383)
+- **Added:** DoB mismatch detection BEFORE name mismatch check
+- **Detection Keywords:** `'Date of Birth mismatch'` OR `'Certificate DoB:'`
+- **Behavior:** 
+  - ✅ Remove uploaded file
+  - ✅ Clear analyzed data
+  - ✅ Show modal with detailed message
+  - ✅ NO Toast error (return early)
+
+### Modal Message Format
+
+**Vietnamese:**
+```
+❌ NGÀY SINH KHÔNG KHỚP
+
+[Error details from backend]
+
+Đây là dấu hiệu của 2 thuyền viên khác nhau có cùng tên.
+
+Vui lòng:
+1. Kiểm tra lại thuyền viên đã chọn
+2. Xác nhận chứng chỉ đúng với thuyền viên này
+3. Kiểm tra ngày sinh trong database
+```
+
+**English:**
+```
+❌ DATE OF BIRTH MISMATCH
+
+[Error details from backend]
+
+This indicates two different crew members with the same name.
+
+Please:
+1. Verify the selected crew member
+2. Confirm the certificate belongs to this crew
+3. Check date of birth in database
+```
+
+### Backend Error Message Structure
+
+```
+Date of Birth mismatch detected!
+
+Crew name: NGUYEN VAN A
+Certificate DoB: 15/01/1990
+Database DoB: 20/05/1985
+
+This indicates two different crew members with the same name.
+
+Please verify:
+1. Did you select the correct crew member?
+2. Is this certificate for NGUYEN VAN A born on 20/05/1985?
+```
+
+### Detection Priority
+
+Frontend now checks in this order:
+1. **DoB Mismatch** (FIRST) → Modal + Remove file + Clear data
+2. **Name Mismatch** (SECOND) → Modal + Remove file + Clear data
+3. **Legacy errors** → Toast
+4. **Other errors** → Toast
+
+### Testing Status
+
+**Backend:**
+- ✅ Error message format updated
+- ✅ Backend restarted successfully
+- ✅ No errors in logs
+
+**Frontend:**
+- ✅ Detection logic added
+- ✅ Modal message prepared (Vi + En)
+- ✅ Toast removed for DoB mismatch
+- ⏳ User testing required
+
+### User Testing Scenarios
+
+1. **DoB Mismatch:**
+   - Upload cert with matching name but different DoB
+   - ✅ Expected: Modal appears (NOT toast)
+   - ✅ Expected: File removed automatically
+   - ✅ Expected: Analyzed data cleared
+
+2. **Name Mismatch:**
+   - Upload cert with different name
+   - ✅ Expected: Modal appears (NOT toast)
+   - ✅ Expected: File removed automatically
+
+3. **Other Errors:**
+   - Upload invalid file
+   - ✅ Expected: Toast error shown
+
+### Technical Details
+
+**Frontend Flow:**
+```javascript
+if (DoB mismatch detected) {
+  → Clear file
+  → Show modal
+  → return (no toast)
+}
+
+if (Name mismatch detected) {
+  → Clear file
+  → Show modal
+  → return (no toast)
+}
+
+// Other errors → Toast
+```
+
+**Consistency:**
+- Both Name and DoB mismatches now use SAME handling pattern
+- Both show modal + remove file + clear data
+- Both use `return;` to prevent toast
+
+---
+
