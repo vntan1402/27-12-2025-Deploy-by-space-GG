@@ -1123,9 +1123,10 @@ Return ONLY the JSON object with extracted fields. No additional text."""
                         )
                         
                         # Raise HTTPException to block the flow
+                        # Use consistent format with name mismatch for easier frontend detection
                         error_message = (
                             f"Date of Birth mismatch detected!\n\n"
-                            f"Name matches: {ai_extracted_name}\n"
+                            f"Crew name: {ai_extracted_name}\n"
                             f"Certificate DoB: {ai_extracted_dob}\n"
                             f"Database DoB: {db_crew_dob}\n\n"
                             f"This indicates two different crew members with the same name.\n\n"
