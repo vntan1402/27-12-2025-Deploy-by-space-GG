@@ -74,14 +74,7 @@ class CrewCertificateService:
                 'MDSS GENERAL OPERATOR', 'GMDSS GENERAL OPERATOR',
                 'GOC', 'ROC'
             ]
-            # Check for IV/2 separately with boundary check to avoid matching II/2, I/2
             has_gmdss = any(kw in all_text for kw in GMDSS_KEYWORDS)
-            
-            # Check for IV/2 (GMDSS code) but NOT II/2 or I/2 (Officer codes)
-            if not has_gmdss and 'IV/2' in all_text:
-                # Only match if IV/2 is standalone, not part of II/2 or III/2
-                if ' IV/2' in all_text or '\nIV/2' in all_text or 'IV/2 ' in all_text or 'IV/2\n' in all_text:
-                    has_gmdss = True
             
             if has_gmdss:
                 logger.info("✅ PRIORITY 0.5: Seaman Book + GMDSS → 'Seaman book for GMDSS'")
