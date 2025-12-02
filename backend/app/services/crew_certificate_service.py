@@ -178,6 +178,23 @@ class CrewCertificateService:
                 return 'Certificate of Competency (COC)'
         
         # ===================================================
+        # PRIORITY 3.5: BRM/ERM training certificates
+        # Checked AFTER rank keywords because COC certs often mention these
+        # Only classify as BRM/ERM if no rank keywords found
+        # ===================================================
+        RESOURCE_MANAGEMENT_KEYWORDS = {
+            'BRIDGE RESOURCE MANAGEMENT': 'Bridge Resource Management (BRM)',
+            'BRM TRAINING': 'Bridge Resource Management (BRM)',
+            'ENGINE RESOURCE MANAGEMENT': 'Engine Resource Management (ERM)',
+            'ERM TRAINING': 'Engine Resource Management (ERM)'
+        }
+        
+        for keyword, cert_name in RESOURCE_MANAGEMENT_KEYWORDS.items():
+            if keyword in all_text:
+                logger.info(f"✅ PRIORITY 3.5: Found resource mgmt keyword '{keyword}' → {cert_name}")
+                return cert_name
+        
+        # ===================================================
         # PRIORITY 4: Fallback to AI extracted name if exists
         # ===================================================
         if extracted_cert_name and extracted_cert_name.strip():
