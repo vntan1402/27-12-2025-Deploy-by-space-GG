@@ -1051,7 +1051,7 @@ const AddCrewCertificateModal = ({
             <div className="p-6 border-b border-gray-200 bg-red-50">
               <h3 className="text-xl font-bold text-gray-800 flex items-center">
                 <span className="text-2xl mr-2">⚠️</span>
-                {language === 'vi' ? 'Chứng chỉ trùng lặp' : 'Duplicate Certificate'}
+                THÔNG BÁO / NOTICE
               </h3>
             </div>
 
