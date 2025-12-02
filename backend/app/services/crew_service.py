@@ -155,6 +155,21 @@ class CrewService:
             if crew.get('company_id') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
         
+        # Check if crew has certificates
+        from app.db.mongodb import mongo_db
+        
+        cert_count = await mongo_db.count("crew_certificates", {
+            "crew_id": crew_id,
+            "company_id": current_user.company
+        })
+        
+        if cert_count > 0:
+            crew_name = crew.get('full_name', 'Unknown')
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot delete crew member '{crew_name}' because they have {cert_count} certificate(s). Please delete all certificates first."
+            )
+        
         # Delete files from Google Drive
         passport_file_id = crew.get('passport_file_id')
         summary_file_id = crew.get('summary_file_id')
