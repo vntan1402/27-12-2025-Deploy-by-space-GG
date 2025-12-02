@@ -1082,6 +1082,69 @@ Return ONLY the JSON object with extracted fields. No additional text."""
                     else:
                         # Name matches (exact or permutation)
                         logger.info(f"✅ Name match confirmed: {ai_extracted_name} → {matched_variant}")
+                
+                # Check Date of Birth mismatch AFTER name matches
+                # If name matches but DoB is different, it means two different crew members with same name
+                ai_extracted_dob = parsed_data.get('date_of_birth', '').strip()
+                db_crew_dob = crew.get('date_of_birth')
+                
+                if ai_extracted_dob and db_crew_dob:
+                    # Normalize both dates for comparison
+                    from app.utils.date_normalizer import normalize_date_for_comparison
+                    
+                    normalized_ai_dob = normalize_date_for_comparison(ai_extracted_dob)
+                    normalized_db_dob = normalize_date_for_comparison(db_crew_dob)
+                    
+                    logger.info(f"🔍 DoB Check - AI: {normalized_ai_dob}, DB: {normalized_db_dob}")
+                    
+                    if normalized_ai_dob and normalized_db_dob and normalized_ai_dob != normalized_db_dob:
+                        # Date of Birth mismatch detected - BLOCK the flow
+                        logger.error("❌ Date of Birth mismatch detected - BLOCKING analysis!")
+                        logger.error(f"   AI extracted DoB: {ai_extracted_dob} ({normalized_ai_dob})")
+                        logger.error(f"   Database DoB: {db_crew_dob} ({normalized_db_dob})")
+                        
+                        # Log to audit trail
+                        from app.services.audit_trail_service import AuditTrailService
+                        await AuditTrailService.log_action(
+                            user_id=current_user.id,
+                            action="CREW_CERT_DOB_MISMATCH_BLOCKED",
+                            resource_type="crew_certificate",
+                            resource_id=f"{crew_id}_dob_blocked",
+                            details={
+                                "ai_extracted_name": ai_extracted_name,
+                                "ai_extracted_dob": ai_extracted_dob,
+                                "database_name": db_crew_name,
+                                "database_dob": str(db_crew_dob),
+                                "crew_id": crew_id,
+                                "filename": file.filename,
+                                "status": "blocked_dob_mismatch"
+                            },
+                            company_id=current_user.company
+                        )
+                        
+                        # Raise HTTPException to block the flow
+                        error_message = (
+                            f"Date of Birth mismatch detected!\n\n"
+                            f"Name matches: {ai_extracted_name}\n"
+                            f"Certificate DoB: {ai_extracted_dob}\n"
+                            f"Database DoB: {db_crew_dob}\n\n"
+                            f"This indicates two different crew members with the same name.\n\n"
+                            f"Please verify:\n"
+                            f"1. Did you select the correct crew member?\n"
+                            f"2. Is this certificate for {db_crew_name} born on {db_crew_dob}?"
+                        )
+                        
+                        raise HTTPException(
+                            status_code=400,
+                            detail=error_message
+                        )
+                    else:
+                        # DoB matches or both are normalized successfully
+                        logger.info(f"✅ Date of Birth match confirmed: {normalized_ai_dob}")
+                elif ai_extracted_dob and not db_crew_dob:
+                    logger.warning(f"⚠️ AI extracted DoB ({ai_extracted_dob}) but crew has no DoB in database")
+                elif not ai_extracted_dob:
+                    logger.info(f"ℹ️ No Date of Birth extracted from certificate - skipping DoB validation")
             
             return {
                 "success": True,
