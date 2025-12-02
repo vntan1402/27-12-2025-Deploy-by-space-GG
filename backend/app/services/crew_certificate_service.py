@@ -491,21 +491,6 @@ class CrewCertificateService:
         }
     
     @staticmethod
-    async def check_duplicate(
-        crew_id: str, 
-        cert_name: str, 
-        cert_no: Optional[str],
-        current_user: UserResponse
-    ) -> dict:
-        """Check if crew certificate is duplicate"""
-        existing = await CrewCertificateRepository.check_duplicate(crew_id, cert_name, cert_no)
-        
-        return {
-            "is_duplicate": existing is not None,
-            "existing_certificate": CrewCertificateResponse(**existing).dict() if existing else None
-        }
-    
-    @staticmethod
     async def analyze_crew_certificate_file(
         file: UploadFile, 
         crew_id: str,
