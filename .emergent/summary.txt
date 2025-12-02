@@ -1,64 +1,95 @@
 <analysis>**original_problem_statement:**
-The user's initial goal was to migrate the Add Crew Certificate feature from a V1 backend to V2, replicating its AI analysis pipeline and Google Drive integration. During this process, several additional requirements and bugs were identified and addressed, including: improving AI classification for certificate types (especially GMDSS), ensuring data consistency for fields like 'Rank' and 'Sex', standardizing UI display for 'Issued By', fixing batch upload functionality, and retrofitting a critical software expiry check to prevent file uploads when the license is invalid. The final discovery was that a key piece of V1 business logic—moving crew files in Google Drive upon signing off a ship—was missing in V2.
+The initial goal was to replicate V1's crew file movement feature (Sign On, Sign Off, Ship-to-Ship transfer) and add an audit trail. This session expanded to include numerous UI/UX improvements, critical bug fixes for AI classification, and the implementation of several new features and backend validation rules based on user requests and V1 logic.
+
+**New requests during this session:**
+- Implement sign-off functionality in both the bulk edit and single edit crew modals.
+- Automate the sign-on/off/transfer API calls directly from the Edit Crew modal.
+- Fix AI misclassification of Seaman book for GMDSS.
+- Fix multiple context menus rendering off-screen.
+- Improve AI classification to use the full document summary.
+- Implement an Auto Rename feature for crew passports with a specific format: .
+- Implement bulk actions (Rename, View, Download, Copy Link) for selected crew members' passports.
+- Prevent deletion of a crew member if they have existing certificates.
+- Port several missing validation checks from V1 to V2 for certificate creation (duplicate check, status calculation, etc.).
+- Implement a strict name-matching validation (with permutation support) between the selected crew and the name extracted from an uploaded certificate, blocking creation on mismatch.
 
 **User's preferred language**: Vietnamese
 
 **what currently exists?**
-The Add Crew Certificate feature migration is now functionally complete and robust.
-- **Core Bug Fixes**: The initial 422 Unprocessable Entity errors on certificate creation have been resolved by aligning the backend API with frontend payloads.
-- **AI Classification**: The AI pipeline has been significantly improved. It now correctly classifies ambiguous certificates like GMDSS by prioritizing functional keywords, checking the 'note' field, and using fuzzy matching against a standard list.
-- **Data Consistency**:
-    - The 'Rank' in the certificate list is now consistently pulled from the crew member's profile and auto-syncs when the profile is updated.
-    - The 'Sex' field in the crew list has been normalized in both the database and UI to display 'M' or 'F'.
-    - The 'Issued By' column now mimics other tables, showing a standardized abbreviation with the full name on hover.
-- **File & Summary Upload**: The Google Drive upload process for crew certificates is now fully functional, correctly uploading both the certificate file and its AI-generated summary text file.
-- **Security**: A critical software expiry check () has been implemented across all relevant modules (Crew, Crew Certificates, Audit Reports) to block file uploads if the company's subscription has expired.
-- **Batch Upload**: The batch upload feature for crew certificates has been fixed and now works correctly.
+The application now includes a significantly enhanced crew and certificate management workflow.
+- **Crew Sign-On/Off:**
+    - The Bulk Edit Ship Sign On modal now supports signing off multiple crew members by selecting a  option.
+    - The Edit Crew Member modal now automatically triggers the correct , , or  API in the background based on changes to the crew's ship and status, providing a non-blocking UX. The status field is now read-only and derived from the ship assignment.
+- **Crew Passport Management:**
+    - A new Auto Rename feature is available for crew passports, renaming files to the format . It gracefully handles crew members without a rank.
+    - Bulk actions are now available in the passport context menu when multiple crew members are selected, allowing users to rename, view, download, or copy links for multiple passport files at once. The menu dynamically shows the number of selected items.
+- **AI Certificate Classification:**
+    - The logic was improved to correctly distinguish a Seaman book for GMDSS from a GMDSS Certificate by prioritizing Seaman Book keywords.
+    - The classification process was enhanced to analyze the full text of the AI-generated document summary, rather than just specific fields, for more accurate categorization.
+- **Backend Validation & Business Logic:**
+    - Deleting a crew member (individually or in bulk) is now blocked if they have any associated certificates, preventing orphaned data.
+    - Several validations from V1 have been ported to the V2 certificate creation flow, including a duplicate certificate check, automatic status calculation based on expiry date, and data normalization.
+    - A strict name mismatch validation has been implemented. When a certificate is uploaded, the AI-extracted name is compared against the selected crew member's name. It supports name permutations (e.g., TRAN VAN A matches VAN A TRAN). If a mismatch is detected, the creation process is blocked, and an error is shown to the user.
+- **UI Bug Fixes:**
+    - Fixed multiple context menus (, ) that were rendering partially off-screen by implementing dynamic positioning and vertical scrolling.
 
 **Last working item**:
-    - **Last item agent was working:** The agent was responding to a user query about the Date Sign off functionality. The agent investigated and discovered that a critical piece of V1 logic—moving a crew member's files (passport, certificates, summaries) in Google Drive from a ship-specific folder to a Standby Crew folder upon sign-off—was completely missing in the V2 implementation. The agent formulated a detailed, multi-phase plan to implement this missing feature. The user also inquired if a ship-to-ship transfer scenario was handled, which the agent identified as another unhandled case.
-    - **Status:** NOT STARTED
-    - **Agent Testing Done:** N/A (This is a new feature plan)
-    - **Which testing method agent to use?**: backend testing agent (to verify Drive API calls) and frontend testing agent (for the end-to-end flow).
-    - **User Testing Done:** N/A
+    - **Last item agent was working:** The agent was investigating whether the AI system extracts the 'Date of Birth' from certificate documents. This was a direct follow-up question from the user after the agent implemented several other validation checks for the certificate creation process.
+    - **Status:** IN PROGRESS
+    - **Agent Testing Done:** N
+    - **Which testing method agent to use?** NA (This is an investigation, not a feature implementation).
+    - **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-There are no pending bugs. The work has transitioned to new feature development.
+-   **Issue 1: Name Mismatch Validation (P0)**
+    -   **Description:** The feature to block certificate creation upon a name mismatch has been implemented but requires user testing to confirm it works correctly with various name permutations and correctly blocks the UI flow.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Should Test frontend/backend/both after fix?** Both
+-   **Issue 2: Prevent Crew Deletion with Certificates (P1)**
+    -   **Description:** The backend logic to prevent deleting a crew member who has certificates is implemented. User needs to test this by attempting to delete a crew member with and without certificates.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Should Test frontend/backend/both after fix?** Backend (tested via frontend action)
+-   **Issue 3: Crew Passport Auto-Rename & Bulk Actions (P1)**
+    -   **Description:** The single and bulk auto-rename feature for passports went through several backend bug fixes. The entire workflow needs to be tested by the user.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Should Test frontend/backend/both after fix?** Both
+-   **Issue 4: AI Classification Fix for Seaman book for GMDSS (P1)**
+    -   **Description:** The backend logic and AI prompt were updated to correctly classify GMDSS Seaman's Books. The user needs to re-upload the problematic file to verify the fix.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Should Test frontend/backend/both after fix?** Backend (tested via frontend action)
+-   **Issue 5: Sign-On/Off/Transfer from Edit Crew Modal (P1)**
+    -   **Description:** The logic to automatically trigger background file movement from the Edit Crew modal is implemented. User needs to test all three flows: Sign-on, Sign-off, and Ship-to-Ship transfer.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Should Test frontend/backend/both after fix?** Both
+-   **Issue 6: Context Menu Overflow Fixes (P2)**
+    -   **Description:** The UI fix for context menus on both the Crew List and Crew Certificate pages needs to be verified by the user, especially on smaller screens or at the bottom of the list.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Should Test frontend/backend/both after fix?** Frontend
 
 **In progress Task List**:
-- **Task 1: Implement Crew File Movement on Sign Off (P0)**
-    - **Where to resume:** Begin implementation based on the detailed plan created in the last user interaction. Start with Phase 1: creating the backend service logic.
-    - **What will be achieved with this?** This will bring V2 to feature parity with V1's crew management workflow, ensuring crew documents are correctly organized in Google Drive based on their assignment status (on-ship vs. standby).
-    - **Status:** NOT STARTED
-    - **Should Test frontend/backend/both after fix?** Both
-    - **Blocked on something:** None.
+-   **Task 1: Port V1 Validations to V2 Certificate Creation (P1)**
+    -   **Where to resume:** The agent has implemented duplicate checks, status calculation, and name mismatch validation. The last action was to start investigating 'Date of Birth' extraction as requested by the user. The next step is to get the user's requirements for what to do with the Date of Birth if it is extracted.
+    -   **What will be achieved with this?** This will make the V2 application's business logic as robust and reliable as the V1 system, ensuring higher data integrity.
+    -   **Status:** IN PROGRESS
 
 **Upcoming and Future Tasks**
-
 - **Upcoming Tasks:**
-    - **Task 1 (P1): Implement Ship-to-Ship Crew File Movement:** After completing the Sign Off logic, implement the related scenario where a crew member is moved directly from one ship to another, ensuring their files are moved between the respective ship folders in Google Drive.
-    - **Task 2 (P2): Full E2E Test of Crew Certificate Module:** The batch upload feature was fixed, but the full end-to-end flow has not been verified by the user or a testing agent since the fix. A comprehensive test should be run.
+    - **Task 1 (P1): Implement Frontend for Ship-to-Ship Transfer:** The backend API () and logic in the Edit modal exist, but there is no dedicated UI to trigger it from the main crew list (e.g., via context menu), which was part of the original plan.
+    - **Task 2 (P1): Implement and Display Audit Trail:** The  model/repository is the foundation for this, but the data needs to be displayed in the UI, likely in a new tab or modal on the crew details page.
+    - **Task 3 (P2): Full E2E User Verification:** A comprehensive end-to-end test by the user is required for the entire Sign On/Sign Off flow to confirm file movements are correct in all scenarios.
 
-- **Future Tasks:**
-    - **Task 3 (P2): Verify Ship Certificate Bulk Delete Fix:** A pending task from a previous job to verify that summary files for ship certificates are correctly deleted during bulk deletion still needs user verification.
-    - **Task 4 (P3): Add Summary Preview Tooltip:** Enhance certificate list tables to show a tooltip preview for AI-generated summaries.
-    - **Task 5 (P3): Refactor Frontend Components:** Refactor large components like  and  for better maintainability.
+- **Future Tasks (from previous job):**
+    - **Task 4 (P2): Verify Ship Certificate Bulk Delete Fix:** A pending task from a previous job to verify that summary files for ship certificates are correctly deleted during bulk deletion still needs user verification.
+    - **Task 5 (P3): Add Summary Preview Tooltip:** Enhance certificate list tables to show a tooltip preview for AI-generated summaries.
+    - **Task 6 (P3): Refactor Frontend Components:** Refactor large components like  and  for better maintainability.
 
 **Completed work in this session**
-- **Crew Certificate Module (V1 Parity):**
-  - **Bug Fix:** Resolved 422 errors on certificate creation by fixing backend/frontend payload mismatches.
-  - **Feature:** Implemented a fully functional Google Drive upload for both certificate files and their summary text files.
-  - **Feature:** Fixed and enabled the batch upload functionality.
-  - **AI Enhancement:** Dramatically improved AI classification to correctly identify GMDSS certificates by re-ordering fuzzy-matching logic and enhancing the LLM prompt.
-- **Data & UI Consistency:**
-  - **Rank Sync:** Ensured the 'Rank' field is always sourced from the crew profile and automatically updates across all certificates when the profile is edited.
-  - **'Issued By' Display:** Replicated the standard UI pattern (abbreviation + tooltip) for the 'Issued By' column.
-  - **'Sex' Field Normalization:** Standardized the 'Sex' field in the crew list database and UI.
-- **Security Enhancement:**
-  - **Upload Guard:** Retrofitted the software expiry check to block file uploads in the Add Crew Member, Crew Certificate Batch Upload, and Add Audit Report modals.
-
-**Earlier issues found/mentioned but not fixed**
-- The task to verify the bulk-delete fix for **ship certificates** remains unverified.
+- **Crew Management UX:** Implemented non-blocking sign-on/off/transfer from the Edit Crew modal.
+- **Passport Auto-Rename:** Created a complete frontend-to-backend feature for single and bulk renaming of passport files.
+- **Certificate Creation Validation:** Ported several critical validations from V1 to V2, including a strict, permutation-aware name mismatch check that blocks invalid uploads.
+- **Deletion Safeguard:** Implemented backend logic to prevent the deletion of crew members with existing certificates.
+- **AI Classification Fixes:** Improved AI logic for GMDSS and COC certificate types and made it analyze the full document summary.
+- **UI Bug Fixes:** Resolved context menu overflow issues on multiple pages.
 
 **Code Architecture**
 .
@@ -270,6 +301,7 @@ There are no pending bugs. The work has transitioned to new feature development.
 │   │   │   │   ├── certificate.cpython-311.pyc
 │   │   │   │   ├── company.cpython-311.pyc
 │   │   │   │   ├── crew.cpython-311.pyc
+│   │   │   │   ├── crew_assignment.cpython-311.pyc
 │   │   │   │   ├── crew_certificate.cpython-311.pyc
 │   │   │   │   ├── document.cpython-311.pyc
 │   │   │   │   ├── drawing_manual.cpython-311.pyc
@@ -287,6 +319,7 @@ There are no pending bugs. The work has transitioned to new feature development.
 │   │   │   ├── certificate.py
 │   │   │   ├── company.py
 │   │   │   ├── crew.py
+│   │   │   ├── crew_assignment.py
 │   │   │   ├── crew_certificate.py
 │   │   │   ├── document.py
 │   │   │   ├── drawing_manual.py
@@ -304,6 +337,7 @@ There are no pending bugs. The work has transitioned to new feature development.
 │   │   │   │   ├── ai_config_repository.cpython-311.pyc
 │   │   │   │   ├── certificate_repository.cpython-311.pyc
 │   │   │   │   ├── company_repository.cpython-311.pyc
+│   │   │   │   ├── crew_assignment_repository.cpython-311.pyc
 │   │   │   │   ├── crew_certificate_repository.cpython-311.pyc
 │   │   │   │   ├── crew_repository.cpython-311.pyc
 │   │   │   │   ├── gdrive_config_repository.cpython-311.pyc
@@ -312,6 +346,7 @@ There are no pending bugs. The work has transitioned to new feature development.
 │   │   │   ├── ai_config_repository.py
 │   │   │   ├── certificate_repository.py
 │   │   │   ├── company_repository.py
+│   │   │   ├── crew_assignment_repository.py
 │   │   │   ├── crew_certificate_repository.py
 │   │   │   ├── crew_repository.py
 │   │   │   ├── gdrive_config_repository.py
@@ -332,8 +367,11 @@ There are no pending bugs. The work has transitioned to new feature development.
 │   │   │   │   ├── certificate_service.cpython-311.pyc
 │   │   │   │   ├── cleanup_service.cpython-311.pyc
 │   │   │   │   ├── company_service.cpython-311.pyc
+│   │   │   │   ├── crew_assignment_service.cpython-311.pyc
 │   │   │   │   ├── crew_certificate_drive_service.cpython-311.pyc
 │   │   │   │   ├── crew_certificate_service.cpython-311.pyc
+│   │   │   │   ├── crew_file_movement_service.cpython-311.pyc
+│   │   │   │   ├── crew_passport_rename_service.cpython-311.pyc
 │   │   │   │   ├── crew_service.cpython-311.pyc
 │   │   │   │   ├── document_service.cpython-311.pyc
 │   │   │   │   ├── drawing_manual_service.cpython-311.pyc
@@ -359,8 +397,11 @@ There are no pending bugs. The work has transitioned to new feature development.
 │   │   │   ├── certificate_service.py
 │   │   │   ├── cleanup_service.py
 │   │   │   ├── company_service.py
+│   │   │   ├── crew_assignment_service.py
 │   │   │   ├── crew_certificate_drive_service.py
 │   │   │   ├── crew_certificate_service.py
+│   │   │   ├── crew_file_movement_service.py
+│   │   │   ├── crew_passport_rename_service.py
 │   │   │   ├── crew_service.py
 │   │   │   ├── document_service.py
 │   │   │   ├── drawing_manual_analyze_service.py
@@ -395,6 +436,7 @@ There are no pending bugs. The work has transitioned to new feature development.
 │   │       │   ├── gdrive_helper.cpython-311.pyc
 │   │       │   ├── google_drive_helper.cpython-311.pyc
 │   │       │   ├── issued_by_abbreviation.cpython-311.pyc
+│   │       │   ├── name_matcher.cpython-311.pyc
 │   │       │   ├── pdf_processor.cpython-311.pyc
 │   │       │   ├── pdf_splitter.cpython-311.pyc
 │   │       │   ├── ship_calculations.cpython-311.pyc
@@ -421,6 +463,7 @@ There are no pending bugs. The work has transitioned to new feature development.
 │   │       ├── gdrive_helper.py
 │   │       ├── google_drive_helper.py
 │   │       ├── issued_by_abbreviation.py
+│   │       ├── name_matcher.py
 │   │       ├── pdf_processor.py
 │   │       ├── pdf_splitter.py
 │   │       ├── pdf_splitter.py.backup
@@ -50436,61 +50479,49 @@ There are no pending bugs. The work has transitioned to new feature development.
 ├── verify_fix.sh
 └── yarn.lock
 
-4660 directories, 45714 files
+4660 directories, 45726 files
 
 **Key Technical Concepts**
-- **AI Prompt Engineering & Post-Processing:** Improved AI accuracy by refining LLM prompts and implementing post-processing logic (keyword priority, fuzzy matching) to correct the AI's output.
-- **Business Logic Discovery:** Identified critical missing business logic (file movement on sign-off) by comparing V2 behavior to user expectations and V1 documentation.
-- **System-wide Security Retrofitting:** Applied a security feature () consistently across multiple, independent application modules to close a security loophole.
-- **Data Normalization & Migration:** Wrote and executed one-off scripts to clean up and standardize inconsistent data (, , ) in the production database.
-- **Backend-Driven Frontend State:** Refactored the batch upload process to have the backend  endpoint return all necessary crew data, simplifying the frontend and making it more robust.
+- **Non-Blocking UI:** Frontend modals close immediately while backend processes (file movement) run in the background.
+- **Backend-Driven UI Blocking:** The backend can now return a specific error flag (e.g., ) that the frontend uses to block user actions like auto-filling a form or submitting it.
+- **Permutation-based Name Matching:** A new Python utility () normalizes and checks all permutations of a name to robustly compare a name from a document to a name in the database.
+- **Defensive Business Logic:** Implemented backend rules to prevent actions that would lead to data inconsistency, such as deleting a crew member who still has associated certificates.
 
-**key DB schema**
-- **crew_certificates**:
-  - :  - Added to store the abbreviated name of the issuing authority.
-
-**All files**
-- : Heavily modified for AI classification, rank handling, and summary text generation.
-- : Modified to add the rank-syncing logic upon crew profile updates.
-- : Added the crucial  endpoint and fixed other endpoints.
-- : Modified to fix batch upload payload and add the expiry guard.
-- : Modified to add the expiry guard.
-- : Modified to add the expiry guard.
-- : Updated with new mappings for issuing authorities.
+**All files of reference**
+- : Heavily modified to include new V1 validations and the name mismatch blocking logic.
+- : Heavily modified to add bulk passport actions and context menu fixes.
+- : Heavily modified to automate the sign-on/off/transfer flows.
+- : New file containing the logic for the passport auto-rename feature.
+- : New file containing the helper function for comparing name permutations.
+- : Modified to add the safeguard against deleting crew members with certificates.
 
 **key api endpoints**
-- : **NEW**. Uploads the certificate and summary file to Google Drive after creation.
-- : The service behind this endpoint was modified to trigger a rank sync to all related certificates.
+- : Renames the crew member's passport file(s) based on a defined format.
+- : Checks if a certificate with the given number already exists for a crew member.
 
 **Critical Info for New Agent**
 - **You MUST respond to the user in Vietnamese.**
-- The immediate priority is to implement the Crew File Movement on Sign Off feature. You should first confirm the multi-phase plan with the user before starting development.
-- After implementing the Sign Off feature, address the related ship-to-ship transfer scenario.
-- A full end-to-end test of the Add Crew Certificate module, especially batch uploads, is recommended to ensure all recent fixes work together seamlessly.
+- The user prefers to perform all testing themselves. Your role is to implement features/fixes and then present them for verification. Do not use automated testing agents unless explicitly asked.
+- The highest priority is to follow up on the user's last question about Date of Birth extraction and then ensure all the newly implemented features from this session are verified by the user, starting with the Name Mismatch feature (P0).
+- When implementing new logic, always consider how it was done in the V1 code () as the user often refers to it as the source of truth for business rules.
 
-**documents created in this job**
-- A detailed implementation plan for the Google Drive File Movement feature was formulated and presented to the user.
-
-**Last 5 User Messages and any pending user messages**
-1.  **User:** Requested to implement the Date Sign off file movement logic, add an audit trail, and provided a plan. - **IN PROGRESS** (Agent has a plan).
-2.  **User:** Asked if the ship-to-ship crew transfer scenario has been considered. - **PENDING** (Agent acknowledged it's unhandled, needs to be next).
-3.  **User:** Asks agent to check V1 for GMDSS classification rules. - **COMPLETED**
-4.  **User:** Reports summary file is not being uploaded. - **COMPLETED**
-5.  **User:** Uploads a GMDSS certificate that is being misclassified as a COE. - **COMPLETED**
+**Last 10 User Messages and any pending user messages**
+1.  **User:** Requested to check the V1 backend for validations on adding crew certificates. - **COMPLETED**
+2.  **User:** Requested to add the missing V1 validations to V2. - **COMPLETED**
+3.  **User:** Asked if the system checks for a name match between the certificate and the selected crew. - **COMPLETED** (Agent investigated and found it didn't).
+4.  **User:** Asked to check V1 for name variation checking. - **COMPLETED** (Agent found none).
+5.  **User:** Asked to check the frontend for name checking. - **COMPLETED** (Agent found none).
+6.  **User:** Asked if the AI extracts the crew name from the certificate. - **COMPLETED** (Agent confirmed it does).
+7.  **User:** Requested to implement name mismatch detection with a warning and support for name permutations. - **SUPERSEDED**
+8.  **User:** Clarified that a name mismatch should **BLOCK** the flow, not just warn. - **COMPLETED**
+9.  **User:** Asked if the system extracts the date of birth. - **PENDING (Current Task)**
 
 **Project Health Check:**
-- **Broken:** None. The project is stable.
+- **Broken:** Several major features and fixes have been implemented but are pending user verification. The application is in a state of flux and requires thorough testing before being considered stable.
 - **Mocked:** None.
 
 **Testing status**
-- **Testing agent used after significant changes:** YES (but it found an issue that was subsequently fixed, and was not re-run).
+- **Testing agent used after significant changes:** NO
 - **Troubleshoot agent used after agent stuck in loop:** NO
-- **Test files created:** Several one-off Python scripts were created in  to test backend logic and perform data migration. These are temporary and not part of the source code.
-- **Known regressions:** None.
-
-**Credentials to test flow:**
--   Username: 
--   Password: 
-
-**What agent forgot to execute**
-- The agent successfully identified and planned for a major piece of missing functionality (file movement on sign-off) rather than forgetting it. All direct user requests in this session were addressed.</analysis>
+- **Test files created:** None.
+- **Known regressions:** A syntax error was introduced and fixed ( duplicate). No other known regressions, but many new, untested features exist.</analysis>

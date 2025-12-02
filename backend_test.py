@@ -38,7 +38,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://shipfilehub.preview.emergentagent.com/api"
+BACKEND_URL = "https://crewlite.preview.emergentagent.com/api"
 TEST_USERNAME = "admin1"  # Use admin1 as per review request
 TEST_PASSWORD = "123456"
 # Test passport file for crew passport analysis
