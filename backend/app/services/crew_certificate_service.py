@@ -107,11 +107,13 @@ class CrewCertificateService:
         
         # ===================================================
         # PRIORITY 1: GMDSS standalone (not seaman book)
+        # NOTE: "RADIO COMMUNICATION" removed to avoid false positives with
+        # COC certificates that list "Radiocommunications" as a function
         # ===================================================
         GMDSS_KEYWORDS = [
             'GMDSS', 'MDSS',
             'GLOBAL MARITIME DISTRESS',
-            'RADIO OPERATOR', 'RADIO COMMUNICATION',
+            'RADIO OPERATOR',  # Specific job title only
             'MDSS GENERAL OPERATOR', 'GMDSS GENERAL OPERATOR'
         ]
         
