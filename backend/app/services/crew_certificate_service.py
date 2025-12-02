@@ -69,12 +69,14 @@ class CrewCertificateService:
             # Check for GMDSS + Seaman Book → "Seaman book for GMDSS"
             # NOTE: "RADIO COMMUNICATION" removed because COC certs often mention 
             # "Radiocommunications" as a function, causing false positives
+            # NOTE: 'GOC' and 'ROC' removed - too short (3 chars), cause false positives
+            # with words like "processing", "procedure", "document", etc.
+            # Real GMDSS certs always have explicit "GMDSS" or "RADIO OPERATOR"
             GMDSS_KEYWORDS = [
                 'GMDSS', 'MDSS',  # MDSS = typo variant
                 'GLOBAL MARITIME DISTRESS',
                 'RADIO OPERATOR',  # Specific job title (not just function)
-                'MDSS GENERAL OPERATOR', 'GMDSS GENERAL OPERATOR',
-                'GOC', 'ROC'
+                'MDSS GENERAL OPERATOR', 'GMDSS GENERAL OPERATOR'
             ]
             has_gmdss = False
             for kw in GMDSS_KEYWORDS:
