@@ -68,6 +68,40 @@ async def get_crew_certificate_by_id(
         logger.error(f"❌ Error fetching crew certificate {cert_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch crew certificate")
 
+@router.post("/check-duplicate")
+async def check_crew_certificate_duplicate(
+    check_data: dict = Body(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Check if a crew certificate is duplicate based on crew_id + cert_no
+    Returns existing certificate info if duplicate found
+    """
+    try:
+        crew_id = check_data.get('crew_id')
+        cert_no = check_data.get('cert_no')
+        
+        if not crew_id or not cert_no:
+            return {
+                "is_duplicate": False,
+                "message": "Missing crew_id or cert_no"
+            }
+        
+        logger.info(f"🔍 Checking duplicate for crew_id: {crew_id}, cert_no: {cert_no}")
+        
+        result = await CrewCertificateService.check_duplicate(
+            crew_id=crew_id,
+            cert_no=cert_no,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"❌ Error checking duplicate: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to check duplicate: {str(e)}")
+
+
 @router.post("/manual", response_model=CrewCertificateResponse)
 async def create_crew_certificate_manual(
     cert_data: CrewCertificateCreate,
