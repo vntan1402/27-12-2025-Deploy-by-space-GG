@@ -135,6 +135,8 @@ class CrewCertificateService:
         
         # ===================================================
         # PRIORITY 2: Specific training certificates
+        # NOTE: BRM/ERM removed from here - they should be checked AFTER rank keywords
+        # because COC certificates often mention these as part of competencies
         # ===================================================
         SPECIFIC_CERT_KEYWORDS = {
             'SHIP SECURITY OFFICER': 'Ship Security Officer (SSO)',
@@ -146,11 +148,7 @@ class CrewCertificateService:
             'MEDICAL CERTIFICATE': 'Medical Certificate',
             'MEDICAL EXAMINATION': 'Medical Certificate',
             'MEDICAL FITNESS': 'Medical Certificate',
-            'ECDIS': 'ECDIS',
-            'BRIDGE RESOURCE MANAGEMENT': 'Bridge Resource Management (BRM)',
-            'BRM': 'Bridge Resource Management (BRM)',
-            'ENGINE RESOURCE MANAGEMENT': 'Engine Resource Management (ERM)',
-            'ERM': 'Engine Resource Management (ERM)'
+            'ECDIS': 'ECDIS'
         }
         
         for keyword, cert_name in SPECIFIC_CERT_KEYWORDS.items():
