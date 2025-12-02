@@ -316,6 +316,21 @@ const AddCrewCertificateModal = ({
       // Check if analysis succeeded
       if (data.success && data.analysis) {
         processAnalysisSuccess(data.analysis);
+        
+        // Check for name mismatch warning
+        if (data.name_mismatch_warning && data.name_mismatch_warning.detected) {
+          const warning = data.name_mismatch_warning;
+          
+          // Show warning modal
+          setTimeout(() => {
+            const message = language === 'vi'
+              ? `⚠️ Tên trong chứng chỉ không khớp với cơ sở dữ liệu\n\nTên trích xuất từ chứng chỉ: ${warning.ai_extracted}\nTên trong cơ sở dữ liệu: ${warning.database_name}${warning.database_name_en ? ` (${warning.database_name_en})` : ''}\n\nHệ thống sẽ sử dụng tên từ cơ sở dữ liệu. Vui lòng kiểm tra lại chứng chỉ nếu cần.`
+              : `⚠️ Name mismatch detected\n\nCertificate name: ${warning.ai_extracted}\nDatabase name: ${warning.database_name}${warning.database_name_en ? ` (${warning.database_name_en})` : ''}\n\nSystem will use database name. Please verify the certificate if needed.`;
+            
+            setWarningMessage(message);
+            setShowWarningModal(true);
+          }, 500);
+        }
       } else {
         console.log('⚠️ Analysis failed or no analysis data');
         toast.warning(language === 'vi' 
