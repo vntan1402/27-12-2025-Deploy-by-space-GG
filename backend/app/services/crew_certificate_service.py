@@ -522,6 +522,13 @@ class CrewCertificateService:
             update_data["issued_by_abbreviation"] = generate_organization_abbreviation(update_data["issued_by"])
             logger.info(f"📋 Regenerated abbreviation: {update_data['issued_by']} → {update_data['issued_by_abbreviation']}")
         
+        # If cert_expiry is updated, recalculate status
+        if "cert_expiry" in update_data and update_data["cert_expiry"]:
+            old_status = cert.get("status", "Unknown")
+            new_status = CrewCertificateService._calculate_certificate_status(update_data["cert_expiry"])
+            update_data["status"] = new_status
+            logger.info(f"🔄 Status recalculated: {old_status} → {new_status}")
+        
         if update_data:
             await CrewCertificateRepository.update(cert_id, update_data)
         
