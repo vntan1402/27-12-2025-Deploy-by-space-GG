@@ -477,6 +477,11 @@ class CrewCertificateService:
             except:
                 return "Unknown"
         
+        # Ensure cert_expiry has timezone info
+        if cert_expiry.tzinfo is None:
+            # Assume UTC if no timezone
+            cert_expiry = cert_expiry.replace(tzinfo=timezone.utc)
+        
         now = datetime.now(timezone.utc)
         
         # Check if expired
