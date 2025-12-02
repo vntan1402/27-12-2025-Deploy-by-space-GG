@@ -1628,6 +1628,12 @@ export const CrewListTable = ({
                 const newShipName = e.target.value;
                 setFilters({...filters, ship_sign_on: newShipName});
                 
+                // Clear selected ship when choosing "All" or "Standby"
+                // to show Company Panel instead of Ship Info
+                if ((newShipName === 'All' || newShipName === 'Standby') && onShipSelect) {
+                  onShipSelect(null);
+                }
+                
                 // Callback to parent to sync selected ship
                 if (onShipFilterChange) {
                   onShipFilterChange(newShipName);
