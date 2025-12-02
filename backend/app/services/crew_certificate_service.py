@@ -76,7 +76,18 @@ class CrewCertificateService:
                 'MDSS GENERAL OPERATOR', 'GMDSS GENERAL OPERATOR',
                 'GOC', 'ROC'
             ]
-            has_gmdss = any(kw in all_text for kw in GMDSS_KEYWORDS)
+            has_gmdss = False
+            for kw in GMDSS_KEYWORDS:
+                if kw in all_text:
+                    has_gmdss = True
+                    logger.warning(f"🔍 GMDSS keyword matched: '{kw}' in Seaman Book")
+                    # Log context for debugging
+                    idx = all_text.find(kw)
+                    context_start = max(0, idx - 30)
+                    context_end = min(len(all_text), idx + len(kw) + 30)
+                    context = all_text[context_start:context_end]
+                    logger.warning(f"   Context: ...{context}...")
+                    break
             
             if has_gmdss:
                 logger.info("✅ PRIORITY 0.5: Seaman Book + GMDSS → 'Seaman book for GMDSS'")
