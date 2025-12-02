@@ -20,6 +20,179 @@ class CrewCertificateService:
     """Business logic for crew certificate management"""
     
     @staticmethod
+    def _classify_certificate_v1_logic(
+        extracted_cert_name: str,
+        note: str,
+        rank: str,
+        document_summary: str
+    ) -> str:
+        """
+        Classify certificate type using V1's priority-based logic
+        
+        Priority System (V1 Approach):
+        - PRIORITY 0.5: Seaman Book combinations (check document type FIRST)
+        - PRIORITY 1: GMDSS standalone
+        - PRIORITY 1.5: OIC keywords
+        - PRIORITY 2: Specific certificates (SSO, BST, Medical, etc.)
+        - PRIORITY 3: Rank keywords → COC
+        
+        Returns: Classified certificate name
+        """
+        # Convert all to uppercase for comparison
+        note_upper = note.upper()
+        rank_upper = rank.upper()
+        summary_upper = document_summary.upper()
+        cert_name_upper = extracted_cert_name.upper()
+        
+        # Combine all text for keyword search
+        all_text = f"{cert_name_upper} {note_upper} {rank_upper} {summary_upper}"
+        
+        # ===================================================
+        # PRIORITY 0.5: Seaman Book combinations (HIGHEST)
+        # Check document type FIRST before qualifications
+        # ===================================================
+        SEAMAN_BOOK_KEYWORDS = [
+            'SEAMAN BOOK', "SEAMAN'S BOOK", 'SEAMANS BOOK',
+            'LIBRETA DE EMBARQUE', 'LIBRETA',
+            'MERCHANT MARINER',
+            'P-NUMBER', 'P NUMBER', 'P-0', 'P0196554A',
+            'DOCUMENT OF IDENTITY', 'SEAFARER IDENTITY',
+            'DISCHARGE BOOK', 'SERVICE BOOK',
+            'REPUBLICA DE PANAMA'
+        ]
+        
+        has_seaman_book = any(kw in all_text for kw in SEAMAN_BOOK_KEYWORDS)
+        
+        if has_seaman_book:
+            logger.info("📖 PRIORITY 0.5: Seaman Book detected, checking qualification...")
+            
+            # Check for GMDSS + Seaman Book → "Seaman book for GMDSS"
+            GMDSS_KEYWORDS = [
+                'GMDSS', 'MDSS',  # MDSS = typo variant
+                'GLOBAL MARITIME DISTRESS',
+                'RADIO OPERATOR', 'RADIO COMMUNICATION',
+                'MDSS GENERAL OPERATOR', 'GMDSS GENERAL OPERATOR',
+                'GOC', 'ROC', 'IV/2'
+            ]
+            has_gmdss = any(kw in all_text for kw in GMDSS_KEYWORDS)
+            
+            if has_gmdss:
+                logger.info("✅ PRIORITY 0.5: Seaman Book + GMDSS → 'Seaman book for GMDSS'")
+                return 'Seaman book for GMDSS'
+            
+            # Check for Rank + Seaman Book → "Seaman Book for COC"
+            RANK_KEYWORDS = [
+                'MASTER', 'CAPTAIN', 'CAPT',
+                'CHIEF MATE', 'CHIEF OFFICER', 'C/MATE', 'C/M',
+                'SECOND MATE', 'SECOND OFFICER', '2ND MATE', '2/M',
+                'THIRD MATE', 'THIRD OFFICER', '3RD MATE', '3/M',
+                'CHIEF ENGINEER', 'C/E', 'C/ENG',
+                'SECOND ENGINEER', '2ND ENGINEER', '2/E',
+                'THIRD ENGINEER', '3RD ENGINEER', '3/E',
+                'DECK OFFICER', 'ENGINE OFFICER', 'OFFICER', 'OOW',
+                'CAPACITY', 'MASTER LIMITED', 'MASTER UNLIMITED',
+                'II/1', 'II/2', 'II/3', 'III/1', 'III/2', 'III/3'
+            ]
+            has_rank = any(kw in all_text for kw in RANK_KEYWORDS)
+            
+            if has_rank:
+                logger.info("✅ PRIORITY 0.5: Seaman Book + Rank → 'Seaman Book for COC'")
+                return 'Seaman Book for COC'
+            
+            # Generic Seaman Book (no specific qualification)
+            logger.info("✅ PRIORITY 0.5: Seaman Book (generic)")
+            return 'Seaman Book'
+        
+        # ===================================================
+        # PRIORITY 1: GMDSS standalone (not seaman book)
+        # ===================================================
+        GMDSS_KEYWORDS = [
+            'GMDSS', 'MDSS',
+            'GLOBAL MARITIME DISTRESS',
+            'RADIO OPERATOR', 'RADIO COMMUNICATION',
+            'MDSS GENERAL OPERATOR', 'GMDSS GENERAL OPERATOR'
+        ]
+        
+        for keyword in GMDSS_KEYWORDS:
+            if keyword in all_text:
+                logger.info(f"✅ PRIORITY 1: Found GMDSS keyword '{keyword}' → 'GMDSS Certificate'")
+                return 'GMDSS Certificate'
+        
+        # ===================================================
+        # PRIORITY 1.5: OIC keywords → COC
+        # ===================================================
+        OIC_KEYWORDS = [
+            'OFFICER IN CHARGE OF A NAVIGATIONAL WATCH',
+            'OFFICER IN CHARGE OF NAVIGATIONAL WATCH',
+            'OIC NAVIGATIONAL WATCH',
+            'OIC-NW', 'OICNW'
+        ]
+        
+        for keyword in OIC_KEYWORDS:
+            if keyword in all_text:
+                logger.info(f"✅ PRIORITY 1.5: Found OIC keyword '{keyword}' → COC")
+                return 'Certificate of Competency (COC)'
+        
+        # ===================================================
+        # PRIORITY 2: Specific training certificates
+        # ===================================================
+        SPECIFIC_CERT_KEYWORDS = {
+            'SHIP SECURITY OFFICER': 'Ship Security Officer (SSO)',
+            'SSO TRAINING': 'Ship Security Officer (SSO)',
+            'ADVANCED FIRE FIGHTING': 'Advanced Fire Fighting (AFF)',
+            'FIRE FIGHTING': 'Advanced Fire Fighting (AFF)',
+            'BASIC SAFETY TRAINING': 'Basic Safety Training (BST)',
+            'BASIC SAFETY': 'Basic Safety Training (BST)',
+            'MEDICAL CERTIFICATE': 'Medical Certificate',
+            'MEDICAL EXAMINATION': 'Medical Certificate',
+            'MEDICAL FITNESS': 'Medical Certificate',
+            'ECDIS': 'ECDIS',
+            'BRIDGE RESOURCE MANAGEMENT': 'Bridge Resource Management (BRM)',
+            'BRM': 'Bridge Resource Management (BRM)',
+            'ENGINE RESOURCE MANAGEMENT': 'Engine Resource Management (ERM)',
+            'ERM': 'Engine Resource Management (ERM)'
+        }
+        
+        for keyword, cert_name in SPECIFIC_CERT_KEYWORDS.items():
+            if keyword in all_text:
+                logger.info(f"✅ PRIORITY 2: Found specific cert keyword '{keyword}' → {cert_name}")
+                return cert_name
+        
+        # ===================================================
+        # PRIORITY 3: Rank keywords → COC
+        # ===================================================
+        RANK_KEYWORDS = [
+            'MASTER', 'CAPTAIN', 'CAPT',
+            'CHIEF MATE', 'CHIEF OFFICER', 'C/MATE', 'C/M',
+            'SECOND MATE', 'SECOND OFFICER', '2ND MATE', '2/M',
+            'THIRD MATE', 'THIRD OFFICER', '3RD MATE', '3/M',
+            'CHIEF ENGINEER', 'C/E', 'C/ENG',
+            'SECOND ENGINEER', '2ND ENGINEER', '2/E',
+            'THIRD ENGINEER', '3RD ENGINEER', '3/E',
+            'DECK OFFICER', 'ENGINE OFFICER', 'OFFICER', 'OOW',
+            'CAPACITY', 'MASTER LIMITED', 'MASTER UNLIMITED',
+            'II/1', 'II/2', 'II/3', 'III/1', 'III/2', 'III/3'
+        ]
+        
+        for rank_kw in RANK_KEYWORDS:
+            if rank_kw in all_text:
+                logger.info(f"✅ PRIORITY 3: Found rank keyword '{rank_kw}' → COC")
+                return 'Certificate of Competency (COC)'
+        
+        # ===================================================
+        # PRIORITY 4: Fallback to AI extracted name if exists
+        # ===================================================
+        if extracted_cert_name and extracted_cert_name.strip():
+            logger.info(f"⚠️ No priority match, using AI extracted: {extracted_cert_name}")
+            return extracted_cert_name
+        
+        # ===================================================
+        # Default: Unknown
+        # ===================================================
+        logger.warning("⚠️ No classification match found, returning 'Unknown'")
+        return 'Unknown'
+    
+    @staticmethod
     async def get_all_crew_certificates(
         crew_id: Optional[str],
         current_user: UserResponse
