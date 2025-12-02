@@ -409,6 +409,36 @@ async def upload_crew_certificate_files(
         logger.error(f"❌ Error uploading crew certificate files: {e}")
         raise HTTPException(status_code=500, detail="Failed to upload files")
 
+@router.post("/bulk-auto-rename")
+async def bulk_auto_rename_certificates(
+    request: dict,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Bulk auto-rename crew certificate files using naming convention:
+    {Rank}_{Full Name (Eng)}_{Certificate Name}.pdf
+    """
+    try:
+        from app.services.crew_certificate_rename_service import CrewCertificateRenameService
+        
+        certificate_ids = request.get("certificate_ids", [])
+        
+        if not certificate_ids:
+            raise HTTPException(status_code=400, detail="No certificate IDs provided")
+        
+        result = await CrewCertificateRenameService.bulk_auto_rename_certificate_files(
+            certificate_ids=certificate_ids,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error in bulk auto-rename endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/{cert_id}/file-link")
 async def get_crew_certificate_file_link(
     cert_id: str,
