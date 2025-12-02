@@ -298,14 +298,26 @@ class CrewService:
                 logger.error(f"❌ Error processing crew {crew_id}: {e}")
                 failed_deletions.append(crew_id)
         
-        # Delete from database
-        deleted_count = await CrewRepository.bulk_delete(request.crew_ids)
+        # Delete from database (only crew without certificates)
+        allowed_crew_ids = [cid for cid in request.crew_ids if cid not in failed_deletions]
+        deleted_count = await CrewRepository.bulk_delete(allowed_crew_ids)
         
         logger.info(f"✅ Bulk deleted {deleted_count} crew members and {deleted_files_count} files")
         
+        # Build response message
+        message = f"Successfully deleted {deleted_count} crew member(s)"
+        if deleted_files_count > 0:
+            message += f" and {deleted_files_count} file(s)"
+        
+        # Add warning about crew with certificates
+        if crew_with_certs:
+            cert_details = ", ".join([f"{c['name']} ({c['cert_count']} cert(s))" for c in crew_with_certs])
+            message += f". Skipped {len(crew_with_certs)} crew member(s) with certificates: {cert_details}"
+        
         return {
-            "message": f"Successfully deleted {deleted_count} crew members and {deleted_files_count} files",
+            "message": message,
             "deleted_count": deleted_count,
             "deleted_files_count": deleted_files_count,
-            "failed_deletions": failed_deletions
+            "failed_deletions": failed_deletions,
+            "crew_with_certificates": crew_with_certs
         }
