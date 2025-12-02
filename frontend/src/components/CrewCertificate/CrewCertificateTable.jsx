@@ -844,8 +844,16 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
             <select
               value={filters.shipSignOn}
               onChange={(e) => {
-                setFilters({...filters, shipSignOn: e.target.value, crewName: 'all'});
-                onShipFilterChange?.(e.target.value);
+                const newValue = e.target.value;
+                setFilters({...filters, shipSignOn: newValue, crewName: 'all'});
+                
+                // Clear selected ship when choosing "all" or "Standby" ("-")
+                // to show Company Panel instead of Ship Info
+                if ((newValue === 'all' || newValue === '-') && onShipSelect) {
+                  onShipSelect(null);
+                }
+                
+                onShipFilterChange?.(newValue);
               }}
               className="px-3 py-1.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
             >
