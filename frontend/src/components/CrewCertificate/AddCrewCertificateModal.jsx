@@ -333,6 +333,31 @@ const AddCrewCertificateModal = ({
       if (errorStatus === 400 && errorDetail) {
         const detailStr = typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail);
         
+        // Check if it's a Date of Birth mismatch error
+        if (detailStr.includes('Date of Birth mismatch') || detailStr.includes('Certificate DoB:')) {
+          // DoB mismatch detected - BLOCK the flow
+          console.error('❌ Date of Birth mismatch detected - blocking flow');
+          
+          // Remove uploaded file
+          setUploadedFile(null);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+          
+          // Clear any analyzed data
+          setAnalyzedData(null);
+          
+          // Show error modal with details
+          const message = language === 'vi'
+            ? `❌ NGÀY SINH KHÔNG KHỚP\n\n${detailStr}\n\nĐây là dấu hiệu của 2 thuyền viên khác nhau có cùng tên.\n\nVui lòng:\n1. Kiểm tra lại thuyền viên đã chọn\n2. Xác nhận chứng chỉ đúng với thuyền viên này\n3. Kiểm tra ngày sinh trong database`
+            : `❌ DATE OF BIRTH MISMATCH\n\n${detailStr}\n\nThis indicates two different crew members with the same name.\n\nPlease:\n1. Verify the selected crew member\n2. Confirm the certificate belongs to this crew\n3. Check date of birth in database`;
+          
+          setWarningMessage(message);
+          setShowWarningModal(true);
+          
+          return; // Exit early, don't show toast
+        }
+        
         // Check if it's a name mismatch error
         if (detailStr.includes('Name mismatch') || detailStr.includes('Certificate name:')) {
           // Name mismatch detected - BLOCK the flow
@@ -355,13 +380,7 @@ const AddCrewCertificateModal = ({
           setWarningMessage(message);
           setShowWarningModal(true);
           
-          // Also show toast error
-          toast.error(
-            language === 'vi' 
-              ? '❌ Tên không khớp! File đã bị xóa. Vui lòng kiểm tra lại.' 
-              : '❌ Name mismatch! File removed. Please verify.',
-            { duration: 8000 }
-          );
+          return; // Exit early, don't show toast
           
         } else if (detailStr.includes('Certificate holder name')) {
           // Legacy error handling
