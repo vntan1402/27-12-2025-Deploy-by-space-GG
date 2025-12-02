@@ -185,8 +185,8 @@ class CrewCertificateService:
                 has_endorsement = any(kw in all_text for kw in ENDORSEMENT_KEYWORDS)
                 
                 if has_endorsement:
-                    logger.info(f"✅ PRIORITY 3: Found rank '{rank_kw}' + endorsement → COE")
-                    return 'Certificate of Endorsement (COE)'
+                    logger.info(f"✅ PRIORITY 3: Found rank '{rank_kw}' + endorsement → COC Endorsement")
+                    return 'COC Endorsement'
                 else:
                     logger.info(f"✅ PRIORITY 3: Found rank keyword '{rank_kw}' → COC")
                     return 'Certificate of Competency (COC)'
