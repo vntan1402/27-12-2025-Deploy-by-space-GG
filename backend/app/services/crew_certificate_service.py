@@ -1037,42 +1037,47 @@ Return ONLY the JSON object with extracted fields. No additional text."""
                     )
                     
                     if not is_match:
-                        # Name mismatch detected
-                        logger.warning("⚠️ Name mismatch detected!")
-                        logger.warning(f"   AI extracted: {ai_extracted_name}")
-                        logger.warning(f"   Database: {db_crew_name} ({db_crew_name_en})")
-                        
-                        name_mismatch_warning = {
-                            "detected": True,
-                            "ai_extracted": ai_extracted_name,
-                            "database_name": db_crew_name,
-                            "database_name_en": db_crew_name_en,
-                            "message": format_name_mismatch_message(
-                                ai_extracted_name, 
-                                db_crew_name, 
-                                db_crew_name_en,
-                                language='en'
-                            )
-                        }
-                        
-                        # Add to parsed_data for frontend access
-                        parsed_data['_name_mismatch_warning'] = name_mismatch_warning
+                        # Name mismatch detected - BLOCK the flow
+                        logger.error("❌ Name mismatch detected - BLOCKING analysis!")
+                        logger.error(f"   AI extracted: {ai_extracted_name}")
+                        logger.error(f"   Database: {db_crew_name} ({db_crew_name_en})")
                         
                         # Log to audit trail
                         from app.services.audit_trail_service import AuditTrailService
                         await AuditTrailService.log_action(
                             user_id=current_user.id,
-                            action="CREW_CERT_NAME_MISMATCH",
+                            action="CREW_CERT_NAME_MISMATCH_BLOCKED",
                             resource_type="crew_certificate",
-                            resource_id=f"{crew_id}_pending",
+                            resource_id=f"{crew_id}_blocked",
                             details={
                                 "ai_extracted": ai_extracted_name,
                                 "database_name": db_crew_name,
                                 "database_name_en": db_crew_name_en,
                                 "crew_id": crew_id,
-                                "filename": file.filename
+                                "filename": file.filename,
+                                "status": "blocked"
                             },
                             company_id=current_user.company
+                        )
+                        
+                        # Raise HTTPException to block the flow
+                        error_message = (
+                            f"Name mismatch detected!\n\n"
+                            f"Certificate name: {ai_extracted_name}\n"
+                            f"Database name: {db_crew_name}"
+                        )
+                        if db_crew_name_en:
+                            error_message += f" ({db_crew_name_en})"
+                        error_message += (
+                            f"\n\nPlease verify:\n"
+                            f"1. Did you select the correct crew member?\n"
+                            f"2. Is the certificate for this crew member?\n\n"
+                            f"Note: System accepts name permutations (e.g., 'A TRAN VAN' matches 'TRAN VAN A')"
+                        )
+                        
+                        raise HTTPException(
+                            status_code=400,
+                            detail=error_message
                         )
                     else:
                         # Name matches (exact or permutation)
