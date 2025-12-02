@@ -217,8 +217,11 @@ class CrewService:
     @staticmethod
     async def bulk_delete_crew(request: BulkDeleteCrewRequest, current_user: UserResponse) -> dict:
         """Bulk delete crew members and associated files"""
+        from app.db.mongodb import mongo_db
+        
         deleted_files_count = 0
         failed_deletions = []
+        crew_with_certs = []
         
         # First, get all crew members and delete their Google Drive files
         for crew_id in request.crew_ids:
@@ -235,6 +238,22 @@ class CrewService:
                         logger.warning(f"⚠️ Access denied for crew: {crew_id}")
                         failed_deletions.append(crew_id)
                         continue
+                
+                # Check if crew has certificates
+                cert_count = await mongo_db.count("crew_certificates", {
+                    "crew_id": crew_id,
+                    "company_id": current_user.company
+                })
+                
+                if cert_count > 0:
+                    crew_name = crew.get('full_name', 'Unknown')
+                    logger.warning(f"⚠️ Cannot delete crew {crew_name} ({crew_id}) - has {cert_count} certificate(s)")
+                    crew_with_certs.append({
+                        "name": crew_name,
+                        "cert_count": cert_count
+                    })
+                    failed_deletions.append(crew_id)
+                    continue
                 
                 # Delete files from Google Drive
                 passport_file_id = crew.get('passport_file_id')
