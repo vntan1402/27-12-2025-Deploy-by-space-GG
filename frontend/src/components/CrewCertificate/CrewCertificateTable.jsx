@@ -194,10 +194,15 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     }
   };
 
-  const handleViewOriginal = (cert) => {
-    if (cert.crew_cert_file_id) {
-      window.open(`https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`, '_blank');
-    }
+  const handleViewOriginal = (certs) => {
+    // Support both single cert and array of certs
+    const certsArray = Array.isArray(certs) ? certs : [certs];
+    
+    certsArray.forEach(cert => {
+      if (cert.crew_cert_file_id) {
+        window.open(`https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`, '_blank');
+      }
+    });
   };
 
   const handleViewSummary = (cert) => {
@@ -206,18 +211,32 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     }
   };
 
-  const handleCopyLink = (cert) => {
-    if (cert.crew_cert_file_id) {
-      const link = `https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`;
-      navigator.clipboard.writeText(link);
-      toast.success(language === 'vi' ? '✅ Đã sao chép link' : '✅ Link copied');
+  const handleCopyLink = (certs) => {
+    // Support both single cert and array of certs
+    const certsArray = Array.isArray(certs) ? certs : [certs];
+    
+    const links = certsArray
+      .filter(cert => cert.crew_cert_file_id)
+      .map(cert => `https://drive.google.com/file/d/${cert.crew_cert_file_id}/view`);
+    
+    if (links.length > 0) {
+      const linkText = links.join('\n');
+      navigator.clipboard.writeText(linkText);
+      toast.success(language === 'vi' 
+        ? `✅ Đã sao chép ${links.length} link` 
+        : `✅ ${links.length} link(s) copied`);
     }
   };
 
-  const handleDownload = (cert) => {
-    if (cert.crew_cert_file_id) {
-      window.open(`https://drive.google.com/uc?export=download&id=${cert.crew_cert_file_id}`, '_blank');
-    }
+  const handleDownload = (certs) => {
+    // Support both single cert and array of certs
+    const certsArray = Array.isArray(certs) ? certs : [certs];
+    
+    certsArray.forEach(cert => {
+      if (cert.crew_cert_file_id) {
+        window.open(`https://drive.google.com/uc?export=download&id=${cert.crew_cert_file_id}`, '_blank');
+      }
+    });
   };
 
   // Note tooltip handlers
