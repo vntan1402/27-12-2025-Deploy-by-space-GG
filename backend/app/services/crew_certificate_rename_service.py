@@ -122,7 +122,7 @@ class CrewCertificateRenameService:
             cert = await mongo_db.find_one("crew_certificates", {
                 "id": cert_id,
                 "company_id": company_id
-            }, {"_id": 0})
+            })
             
             if not cert:
                 return {
