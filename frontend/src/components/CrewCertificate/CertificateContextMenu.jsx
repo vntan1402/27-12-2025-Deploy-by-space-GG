@@ -76,83 +76,75 @@ const CertificateContextMenu = ({
           </button>
         )}
 
-        {/* Divider - Only show if we have file actions */}
-        {!showBulkDelete && (certificate.crew_cert_file_id || certificate.crew_cert_summary_file_id) && (
-          <div className="border-t border-gray-200 my-2"></div>
+        {/* Divider */}
+        <div className="border-t border-gray-200 my-2"></div>
+
+        {/* View Original File - Available for single and bulk */}
+        <button
+          onClick={() => handleAction(onViewOriginal)}
+          className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-700 transition-colors"
+        >
+          <span className="text-lg">👁️</span>
+          <span>
+            {showBulkDelete 
+              ? (language === 'vi' ? `Xem ${selectedCount} file gốc` : `View ${selectedCount} Original Files`)
+              : (language === 'vi' ? 'Xem file gốc' : 'View Original File')}
+          </span>
+        </button>
+
+        {/* View Summary File - Only for single certificate */}
+        {!showBulkDelete && certificate.crew_cert_summary_file_id && (
+          <button
+            onClick={() => handleAction(onViewSummary)}
+            className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-700 transition-colors"
+          >
+            <span className="text-lg">📋</span>
+            <span>{language === 'vi' ? 'Xem file tóm tắt' : 'View Summary File'}</span>
+          </button>
         )}
 
-        {/* File actions - Only show for single certificate */}
-        {!showBulkDelete && (
-          <>
-            {/* View Original File */}
-            {certificate.crew_cert_file_id && (
-              <button
-                onClick={() => handleAction(onViewOriginal)}
-                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-700 transition-colors"
-              >
-                <span className="text-lg">👁️</span>
-                <span>{language === 'vi' ? 'Xem file gốc' : 'View Original File'}</span>
-              </button>
-            )}
+        {/* Copy File Link - Available for single and bulk */}
+        <button
+          onClick={() => handleAction(onCopyLink)}
+          className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-700 transition-colors"
+        >
+          <span className="text-lg">🔗</span>
+          <span>
+            {showBulkDelete 
+              ? (language === 'vi' ? `Sao chép ${selectedCount} link` : `Copy ${selectedCount} Links`)
+              : (language === 'vi' ? 'Sao chép link' : 'Copy File Link')}
+          </span>
+        </button>
 
-            {/* View Summary File */}
-            {certificate.crew_cert_summary_file_id && (
-              <button
-                onClick={() => handleAction(onViewSummary)}
-                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-700 transition-colors"
-              >
-                <span className="text-lg">📋</span>
-                <span>{language === 'vi' ? 'Xem file tóm tắt' : 'View Summary File'}</span>
-              </button>
-            )}
+        {/* Download File - Available for single and bulk */}
+        <button
+          onClick={() => handleAction(onDownload)}
+          className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-700 transition-colors"
+        >
+          <span className="text-lg">📥</span>
+          <span>
+            {showBulkDelete 
+              ? (language === 'vi' ? `Tải xuống ${selectedCount} file` : `Download ${selectedCount} Files`)
+              : (language === 'vi' ? 'Tải xuống' : 'Download File')}
+          </span>
+        </button>
 
-            {/* Copy File Link */}
-            {certificate.crew_cert_file_id && (
-              <button
-                onClick={() => handleAction(onCopyLink)}
-                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-700 transition-colors"
-              >
-                <span className="text-lg">🔗</span>
-                <span>{language === 'vi' ? 'Sao chép link' : 'Copy File Link'}</span>
-              </button>
-            )}
+        <div className="border-t border-gray-200 my-2"></div>
 
-            {/* Download File */}
-            {certificate.crew_cert_file_id && (
-              <button
-                onClick={() => handleAction(onDownload)}
-                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center space-x-3 text-gray-700 transition-colors"
-              >
-                <span className="text-lg">📥</span>
-                <span>{language === 'vi' ? 'Tải xuống' : 'Download File'}</span>
-              </button>
-            )}
-
-            <div className="border-t border-gray-200 my-2"></div>
-
-            {/* Auto Rename File */}
-            {certificate.crew_cert_file_id && (
-              <button
-                onClick={() => handleAction(onAutoRename)}
-                className="w-full px-4 py-2 text-left hover:bg-purple-50 flex items-center space-x-3 text-gray-700 hover:text-purple-600 transition-colors"
-              >
-                <span className="text-lg">⚡</span>
-                <div className="flex-1">
-                  <div className="font-medium">
-                    {language === 'vi' ? 'Đổi tên file tự động' : 'Auto Rename File'}
-                  </div>
-                  {selectedCount > 1 && (
-                    <div className="text-xs text-gray-500">
-                      {language === 'vi' 
-                        ? `${selectedCount} file được chọn` 
-                        : `${selectedCount} files selected`}
-                    </div>
-                  )}
-                </div>
-              </button>
-            )}
-          </>
-        )}
+        {/* Auto Rename File - Available for single and bulk */}
+        <button
+          onClick={() => handleAction(onAutoRename)}
+          className="w-full px-4 py-2 text-left hover:bg-purple-50 flex items-center space-x-3 text-gray-700 hover:text-purple-600 transition-colors"
+        >
+          <span className="text-lg">⚡</span>
+          <div className="flex-1">
+            <div className="font-medium">
+              {showBulkDelete 
+                ? (language === 'vi' ? `Đổi tên ${selectedCount} file tự động` : `Auto Rename ${selectedCount} Files`)
+                : (language === 'vi' ? 'Đổi tên file tự động' : 'Auto Rename File')}
+            </div>
+          </div>
+        </button>
       </div>
     </>
   );
