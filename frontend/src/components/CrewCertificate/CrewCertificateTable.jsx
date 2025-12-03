@@ -1244,12 +1244,52 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
             setShowDeleteModal(true);
             setContextMenu(null);
           }}
-          onViewOriginal={() => handleViewOriginal(contextMenu.certificate)}
+          onViewOriginal={() => {
+            if (selectedCertificates.size > 1) {
+              // Bulk action
+              const selectedCerts = filteredCertificates.filter(cert => 
+                selectedCertificates.has(cert.id)
+              );
+              handleViewOriginal(selectedCerts);
+            } else {
+              // Single action
+              handleViewOriginal(contextMenu.certificate);
+            }
+          }}
           onViewSummary={() => handleViewSummary(contextMenu.certificate)}
-          onCopyLink={() => handleCopyLink(contextMenu.certificate)}
-          onDownload={() => handleDownload(contextMenu.certificate)}
+          onCopyLink={() => {
+            if (selectedCertificates.size > 1) {
+              // Bulk action
+              const selectedCerts = filteredCertificates.filter(cert => 
+                selectedCertificates.has(cert.id)
+              );
+              handleCopyLink(selectedCerts);
+            } else {
+              // Single action
+              handleCopyLink(contextMenu.certificate);
+            }
+          }}
+          onDownload={() => {
+            if (selectedCertificates.size > 1) {
+              // Bulk action
+              const selectedCerts = filteredCertificates.filter(cert => 
+                selectedCertificates.has(cert.id)
+              );
+              handleDownload(selectedCerts);
+            } else {
+              // Single action
+              handleDownload(contextMenu.certificate);
+            }
+          }}
           onAutoRename={() => {
-            handleAutoRename(contextMenu.certificate.id);
+            if (selectedCertificates.size > 1) {
+              // Bulk action
+              const selectedIds = Array.from(selectedCertificates);
+              handleAutoRename(selectedIds);
+            } else {
+              // Single action
+              handleAutoRename(contextMenu.certificate.id);
+            }
             setContextMenu(null);
           }}
           selectedCount={selectedCertificates.size}
