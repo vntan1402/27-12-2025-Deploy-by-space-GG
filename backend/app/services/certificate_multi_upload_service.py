@@ -666,6 +666,29 @@ IMPORTANT DATE EXAMPLES:
         
         return duplicates
     
+    
+    @staticmethod
+    def _check_if_audit_certificate(cert_name: str) -> Optional[str]:
+        """
+        Check if certificate belongs to ISM/ISPS/MLC/CICA categories
+        
+        Returns:
+            Category name (ISM/ISPS/MLC/CICA) if match found, None otherwise
+        """
+        if not cert_name:
+            return None
+        
+        cert_name_upper = cert_name.upper().strip()
+        
+        # Check each category
+        for category, keywords in AUDIT_CERTIFICATE_CATEGORIES.items():
+            for keyword in keywords:
+                if keyword.upper() in cert_name_upper:
+                    logger.info(f"🚫 Detected {category} certificate: '{cert_name}' matches keyword '{keyword}'")
+                    return category
+        
+        return None
+
     @staticmethod
     async def _upload_to_gdrive(
         gdrive_config: Dict[str, Any],
