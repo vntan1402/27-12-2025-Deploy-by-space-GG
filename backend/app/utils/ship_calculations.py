@@ -393,16 +393,29 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                     # No last intermediate info = intermediate survey needed
                     next_survey_type = 'Intermediate Survey'
         
+        # ⚠️ CRITICAL VALIDATION: Next Survey cannot exceed Valid Date
+        # If next survey is after valid date, the certificate expires before survey date
+        # This is an invalid state - adjust to use valid_date as next_survey
+        if next_survey_date > valid_dt:
+            logger.warning(f"⚠️ Next Survey ({next_survey_date.strftime('%d/%m/%Y')}) > Valid Date ({valid_dt.strftime('%d/%m/%Y')})")
+            logger.warning(f"   Adjusting Next Survey to Valid Date to prevent invalid state")
+            next_survey_date = valid_dt
+            next_survey_type = 'Certificate Expiry (Before Anniversary)'
+            window_months = 0  # No window when using valid_date
+        
         # Format next survey date with window
         next_survey_formatted = next_survey_date.strftime('%d/%m/%Y')
         
         # Add window information
-        if next_survey_type == 'Special Survey':
+        if window_months == 0:
+            # No window for adjusted surveys
+            next_survey_with_window = next_survey_formatted
+        elif next_survey_type == 'Special Survey':
             window_text_en = f'-{window_months}M'
+            next_survey_with_window = f'{next_survey_formatted} ({window_text_en})'
         else:
             window_text_en = f'±{window_months}M'
-            
-        next_survey_with_window = f'{next_survey_formatted} ({window_text_en})'
+            next_survey_with_window = f'{next_survey_formatted} ({window_text_en})'
         
         return {
             'next_survey': next_survey_with_window,
