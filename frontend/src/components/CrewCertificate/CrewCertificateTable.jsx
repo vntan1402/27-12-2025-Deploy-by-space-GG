@@ -239,54 +239,39 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
       return;
     }
     
-    if (certsWithFiles.length > 1) {
-      toast.info(
-        language === 'vi' 
-          ? `📥 Đang tải xuống ${certsWithFiles.length} file...`
-          : `📥 Downloading ${certsWithFiles.length} files...`
-      );
-    }
-    
     let downloadedCount = 0;
     
+    // Use direct Google Drive URL for each file (same as Crew Passport bulk download)
     for (const cert of certsWithFiles) {
       try {
-        // Use Google Drive API endpoint with blob response (same as ship certificates)
-        const response = await api.get(`/api/gdrive/file/${cert.crew_cert_file_id}/download`, {
-          responseType: 'blob'
-        });
-        
-        // Create blob URL and download
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        
         // Generate filename
         const filename = `${cert.cert_name}_${cert.cert_no || 'certificate'}.pdf`;
-        link.setAttribute('download', filename);
         
+        // Use direct Google Drive download URL
+        const downloadUrl = `https://drive.google.com/uc?export=download&id=${cert.crew_cert_file_id}`;
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = filename;
+        link.target = '_blank';
         document.body.appendChild(link);
         link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
+        document.body.removeChild(link);
         
         downloadedCount++;
         
         // Small delay between downloads
-        if (certsWithFiles.length > 1) {
-          await new Promise(resolve => setTimeout(resolve, 300));
-        }
+        await new Promise(resolve => setTimeout(resolve, 200));
       } catch (error) {
         console.error('Download error:', error);
         toast.error(language === 'vi' ? '❌ Không thể tải file' : '❌ Failed to download file');
       }
     }
     
-    if (certsWithFiles.length > 1) {
+    if (downloadedCount > 0) {
       toast.success(
         language === 'vi'
-          ? `✅ Đã tải xuống ${downloadedCount}/${certsWithFiles.length} file`
-          : `✅ Downloaded ${downloadedCount}/${certsWithFiles.length} files`
+          ? `✅ Đang tải xuống ${downloadedCount} file`
+          : `✅ Downloading ${downloadedCount} file(s)`
       );
     }
   };
