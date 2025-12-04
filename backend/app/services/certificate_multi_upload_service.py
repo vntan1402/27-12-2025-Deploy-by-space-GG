@@ -20,6 +20,42 @@ from app.repositories.certificate_repository import CertificateRepository
 
 logger = logging.getLogger(__name__)
 
+# ⭐ ISM/ISPS/MLC/CICA Certificate Categories (from audit_certificate_ai.py)
+AUDIT_CERTIFICATE_CATEGORIES = {
+    "ISM": [
+        "SAFETY MANAGEMENT CERTIFICATE",
+        "INTERIM SAFETY MANAGEMENT CERTIFICATE",
+        "SMC",
+        "DOCUMENT OF COMPLIANCE",
+        "INTERIM DOCUMENT OF COMPLIANCE",
+        "DOC",
+    ],
+    "ISPS": [
+        "INTERNATIONAL SHIP SECURITY CERTIFICATE",
+        "INTERIM INTERNATIONAL SHIP SECURITY CERTIFICATE",
+        "ISSC",
+        "SHIP SECURITY PLAN",
+        "SSP",
+    ],
+    "MLC": [
+        "MARITIME LABOUR CERTIFICATE",
+        "INTERIM MARITIME LABOUR CERTIFICATE",
+        "MLC",
+        "DECLARATION OF MARITIME LABOUR COMPLIANCE",
+        "DMLC",
+        "DMLC PART I",
+        "DMLC PART II",
+    ],
+    "CICA": [
+        "CERTIFICATE OF INSPECTION",
+        "CREW ACCOMMODATION CERTIFICATE",
+        "STATEMENT OF COMPLIANCE OF CREW ACCOMMODATION",
+        "CERTIFICATE OF INSPECTION / STATEMENT OF COMPLIANCE OF CREW ACCOMMODATION",
+        "CREW ACCOMMODATION INSPECTION",
+        "CICA",
+    ]
+}
+
 class CertificateMultiUploadService:
     """Service for handling multi-certificate uploads with AI analysis"""
     
