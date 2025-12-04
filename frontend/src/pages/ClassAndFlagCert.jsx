@@ -484,6 +484,11 @@ const ClassAndFlagCert = () => {
   const handleCertificateRightClick = (e, cert) => {
     e.preventDefault();
     
+    // Auto-select the right-clicked certificate if not already selected
+    if (!selectedCertificates.has(cert.id)) {
+      setSelectedCertificates(new Set([cert.id]));
+    }
+    
     // Calculate position with boundary check
     const menuWidth = 250; // Approximate menu width
     const menuHeight = 400; // Approximate menu height
