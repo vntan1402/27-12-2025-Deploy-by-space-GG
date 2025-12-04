@@ -223,6 +223,11 @@ const OtherDocumentsTable = ({ selectedShip }) => {
   const handleContextMenu = (e, document) => {
     e.preventDefault();
     
+    // Auto-select the right-clicked document if not already selected
+    if (!selectedDocuments.has(document.id)) {
+      setSelectedDocuments(new Set([document.id]));
+    }
+    
     const { x, y } = calculateContextMenuPosition(e, 200, 350);
     
     setContextMenu({
