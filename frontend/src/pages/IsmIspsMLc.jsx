@@ -1643,10 +1643,10 @@ const IsmIspsMLc = () => {
       {/* Ship Selection Modal */}
       {showShipModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowShipModal(false)}>
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-gray-200">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-800">
+                <h2 className="text-xl font-bold text-gray-800">
                   {language === 'vi' ? 'Chọn tàu để xem thông tin chứng chỉ' : 'Select a ship to view certificate information'}
                 </h2>
                 <button
@@ -1660,7 +1660,7 @@ const IsmIspsMLc = () => {
               </div>
             </div>
             
-            <div className="p-6 overflow-y-auto max-h-[60vh]">
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
               {loading ? (
                 <div className="text-center py-8">
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -1671,33 +1671,32 @@ const IsmIspsMLc = () => {
                   <p>{language === 'vi' ? 'Không có tàu nào' : 'No ships available'}</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-5 gap-3">
                   {ships.map(ship => (
                     <div
                       key={ship.id}
-                      className="border-2 border-gray-200 rounded-lg p-4 hover:border-purple-500 transition-all cursor-pointer"
+                      className="border-2 border-gray-200 rounded-lg p-2.5 hover:border-purple-500 transition-all cursor-pointer"
                     >
-                      <div className="text-center mb-4">
-                        <div className="text-4xl mb-2">🚢</div>
-                        <h3 className="font-bold text-lg text-gray-800">{ship.name}</h3>
+                      <div className="text-center mb-2">
+                        <h3 className="font-bold text-sm text-gray-800 line-clamp-2 min-h-[2.5rem]">{ship.name}</h3>
                       </div>
-                      <div className="space-y-1 text-sm mb-4">
+                      <div className="space-y-0.5 text-xs mb-2">
                         <div className="flex justify-between">
                           <span className="text-gray-600">IMO:</span>
                           <span className="font-medium">{ship.imo || '-'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">{language === 'vi' ? 'Cờ:' : 'Flag:' }</span>
-                          <span className="font-medium">{ship.flag || '-'}</span>
+                          <span className="font-medium truncate ml-1">{ship.flag || '-'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">{language === 'vi' ? 'Đẳng kiểm:' : 'Class Society:'}</span>
-                          <span className="font-medium">{ship.class_society || '-'}</span>
+                          <span className="text-gray-600">{language === 'vi' ? 'Đẳng kiểm:' : 'Class:'}</span>
+                          <span className="font-medium truncate ml-1">{ship.class_society || '-'}</span>
                         </div>
                       </div>
                       <button
                         onClick={() => handleShipSelect(ship)}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 rounded-lg font-medium transition-all"
+                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-1 rounded-md text-xs font-medium transition-all"
                       >
                         {language === 'vi' ? 'Chọn' : 'Select'}
                       </button>
