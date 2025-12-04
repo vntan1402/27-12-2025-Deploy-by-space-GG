@@ -449,38 +449,27 @@ async def get_crew_certificate_file_link(
     Get file download link for crew certificate
     """
     try:
-        import os
-        from pathlib import Path
-        
-        # Verify certificate exists
+        # Get certificate
         cert = await CrewCertificateService.get_crew_certificate_by_id(cert_id, current_user)
         if not cert:
             raise HTTPException(status_code=404, detail="Crew certificate not found")
         
-        # Get file path
-        if filename:
-            file_path = f"/uploads/crew-certificates/{cert_id}/{filename}"
-        else:
-            # Return first file if no filename specified
-            cert_dir = Path(f"/app/uploads/crew-certificates/{cert_id}")
-            if cert_dir.exists():
-                files = list(cert_dir.iterdir())
-                if files:
-                    file_path = f"/uploads/crew-certificates/{cert_id}/{files[0].name}"
-                else:
-                    raise HTTPException(status_code=404, detail="No files found for certificate")
-            else:
-                raise HTTPException(status_code=404, detail="No files found for certificate")
+        file_id = cert.get('crew_cert_file_id')
+        if not file_id:
+            raise HTTPException(status_code=404, detail="Certificate has no file")
         
-        # Check if file exists
-        if not os.path.exists(f"/app{file_path}"):
-            raise HTTPException(status_code=404, detail="File not found")
+        # Generate proper Google Drive download link
+        # Use the export=download format with confirmation bypass
+        download_url = f"https://drive.google.com/uc?export=download&id={file_id}&confirm=t"
         
         return {
-            "file_url": file_path
+            "file_url": download_url,
+            "file_id": file_id,
+            "cert_name": cert.get('cert_name', 'certificate')
         }
+        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Error getting crew certificate file link: {e}")
+        logger.error(f"❌ Error getting file link: {e}")
         raise HTTPException(status_code=500, detail="Failed to get file link")
