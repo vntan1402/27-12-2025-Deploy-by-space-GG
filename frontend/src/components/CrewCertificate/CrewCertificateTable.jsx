@@ -232,28 +232,62 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     // Support both single cert and array of certs
     const certsArray = Array.isArray(certs) ? certs : [certs];
     
-    for (const cert of certsArray) {
-      if (cert.crew_cert_file_id) {
-        try {
-          // Use backend API to get proper download link
-          const response = await api.get(`/api/crew-certificates/${cert.id}/file-link`, {
-            params: {
-              filename: `${cert.cert_name}_${cert.cert_no || 'certificate'}.pdf`
-            }
-          });
-          
-          if (response.data && response.data.file_url) {
-            // Open download link in new tab
-            window.open(response.data.file_url, '_blank');
-          } else {
-            // Fallback to direct Google Drive link
-            window.open(`https://drive.google.com/uc?export=download&id=${cert.crew_cert_file_id}`, '_blank');
-          }
-        } catch (error) {
-          console.error('Download error:', error);
-          toast.error(language === 'vi' ? '❌ Không thể tải file' : '❌ Failed to download file');
+    const certsWithFiles = certsArray.filter(cert => cert.crew_cert_file_id);
+    
+    if (certsWithFiles.length === 0) {
+      toast.warning(language === 'vi' ? 'Không có file đính kèm' : 'No files attached');
+      return;
+    }
+    
+    if (certsWithFiles.length > 1) {
+      toast.info(
+        language === 'vi' 
+          ? `📥 Đang tải xuống ${certsWithFiles.length} file...`
+          : `📥 Downloading ${certsWithFiles.length} files...`
+      );
+    }
+    
+    let downloadedCount = 0;
+    
+    for (const cert of certsWithFiles) {
+      try {
+        // Use Google Drive API endpoint with blob response (same as ship certificates)
+        const response = await api.get(`/api/gdrive/file/${cert.crew_cert_file_id}/download`, {
+          responseType: 'blob'
+        });
+        
+        // Create blob URL and download
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Generate filename
+        const filename = `${cert.cert_name}_${cert.cert_no || 'certificate'}.pdf`;
+        link.setAttribute('download', filename);
+        
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        downloadedCount++;
+        
+        // Small delay between downloads
+        if (certsWithFiles.length > 1) {
+          await new Promise(resolve => setTimeout(resolve, 300));
         }
+      } catch (error) {
+        console.error('Download error:', error);
+        toast.error(language === 'vi' ? '❌ Không thể tải file' : '❌ Failed to download file');
       }
+    }
+    
+    if (certsWithFiles.length > 1) {
+      toast.success(
+        language === 'vi'
+          ? `✅ Đã tải xuống ${downloadedCount}/${certsWithFiles.length} file`
+          : `✅ Downloaded ${downloadedCount}/${certsWithFiles.length} files`
+      );
     }
   };
 
