@@ -446,7 +446,7 @@ async def get_crew_certificate_file_link(
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
-    Get file download link for crew certificate
+    Get Google Drive download link for crew certificate
     """
     try:
         # Get certificate
