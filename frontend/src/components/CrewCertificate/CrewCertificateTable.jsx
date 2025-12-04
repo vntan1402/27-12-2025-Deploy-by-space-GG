@@ -115,6 +115,11 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
   const handleRowRightClick = (e, cert) => {
     e.preventDefault();
     
+    // Auto-select the right-clicked certificate if not already selected
+    if (!selectedCertificates.has(cert.id)) {
+      setSelectedCertificates(new Set([cert.id]));
+    }
+    
     // Calculate menu position with boundary checking
     const menuWidth = 220;
     const menuHeight = 320; // Estimate based on number of menu items
