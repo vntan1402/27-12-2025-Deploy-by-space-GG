@@ -474,6 +474,15 @@ def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
                 'reasoning': 'No valid date available'
             }
         
+        # ⭐ NEW RULE: If certificate is expired, no Next Survey
+        today = datetime.now()
+        if valid_dt < today:
+            return {
+                'next_survey': '-',
+                'next_survey_type': '-',
+                'reasoning': 'Certificate expired - no next survey scheduled'
+            }
+        
         # Rule 4: Special documents (DMLC I, DMLC II, SSP) = N/A
         special_docs = ['DMLC I', 'DMLC II', 'DMLC PART I', 'DMLC PART II', 'SSP', 'SHIP SECURITY PLAN']
         if any(doc in cert_name for doc in special_docs):
