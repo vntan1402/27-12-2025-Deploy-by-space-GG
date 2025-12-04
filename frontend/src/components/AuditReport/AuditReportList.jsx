@@ -241,38 +241,21 @@ export const AuditReportList = ({
     }
 
     try {
-      // Use backend endpoint to download file
-      const downloadUrl = `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.audit_report_file_id}/download`;
-      
-      const response = await fetch(downloadUrl, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Download failed');
-      }
-
-      // Get blob from response
-      const blob = await response.blob();
-      
-      // Create filename from audit report info
+      // Use direct Google Drive download URL (same as other working components)
       const filename = report.audit_report_no 
         ? `${report.audit_report_no}_${report.audit_report_name || 'audit_report'}.pdf`
         : `${report.audit_report_name || 'audit_report'}.pdf`;
       
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const downloadUrl = `https://drive.google.com/uc?export=download&id=${report.audit_report_file_id}`;
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
       
-      toast.success(language === 'vi' ? '✅ Đã tải xuống file' : '✅ File downloaded');
+      toast.success(language === 'vi' ? '✅ Đang tải xuống file' : '✅ Downloading file');
     } catch (error) {
       console.error('Download error:', error);
       toast.error(language === 'vi' ? '❌ Lỗi khi tải xuống file' : '❌ Error downloading file');
