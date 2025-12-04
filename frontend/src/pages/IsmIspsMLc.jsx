@@ -573,7 +573,16 @@ const IsmIspsMLc = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const validDate = new Date(cert.valid_date);
+    // Parse valid_date correctly (handle dd/mm/yyyy format)
+    let validDate;
+    if (cert.valid_date.includes('/')) {
+      const [day, month, year] = cert.valid_date.split('/');
+      validDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    } else {
+      validDate = new Date(cert.valid_date);
+    }
+    
+    if (isNaN(validDate.getTime())) return 'Unknown';
     validDate.setHours(0, 0, 0, 0);
     
     if (validDate < today) return 'Expired';
