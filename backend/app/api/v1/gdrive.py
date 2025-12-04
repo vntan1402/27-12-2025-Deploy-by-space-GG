@@ -162,23 +162,70 @@ async def get_gdrive_file_view_url(
         return {"success": True, "view_url": view_url}
 
 @router.get("/file/{file_id}/download")
-async def get_gdrive_file_download_url(
+async def download_gdrive_file(
     file_id: str,
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
-    Get Google Drive file download URL
-    Returns a direct download URL for the file
+    Download Google Drive file content
+    Returns file content as streaming response
     """
     try:
-        return await GDriveService.get_file_download_url(file_id, current_user)
+        from fastapi.responses import StreamingResponse
+        import aiohttp
+        from app.db.mongodb import mongo_db
+        
+        # Get company's Google Drive config
+        company_id = current_user.company
+        gdrive_config = await mongo_db.find_one("company_gdrive_config", {
+            "company_id": company_id
+        })
+        
+        if not gdrive_config:
+            raise HTTPException(status_code=404, detail="Google Drive not configured")
+        
+        apps_script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+        
+        if not apps_script_url:
+            raise HTTPException(status_code=500, detail="Apps Script URL not found")
+        
+        # Call Apps Script to get file content
+        async with aiohttp.ClientSession() as session:
+            payload = {
+                "action": "get_file_content",
+                "file_id": file_id
+            }
+            
+            async with session.post(
+                apps_script_url,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=60)
+            ) as response:
+                
+                if response.status != 200:
+                    text = await response.text()
+                    logger.error(f"❌ Apps Script returned status {response.status}: {text}")
+                    raise HTTPException(status_code=500, detail="Failed to download file")
+                
+                # Get file content
+                file_data = await response.read()
+                
+                # Return as streaming response
+                return StreamingResponse(
+                    iter([file_data]),
+                    media_type="application/pdf",
+                    headers={
+                        "Content-Disposition": f'attachment; filename="certificate.pdf"'
+                    }
+                )
+        
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"❌ Error getting GDrive file download URL: {e}")
-        # Final fallback to standard Google Drive download URL
-        download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
-        return {"success": True, "download_url": download_url}
+        logger.error(f"❌ Error downloading file from GDrive: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to download file: {str(e)}")
 
 # OAuth endpoints placeholder (for future implementation)
 @router.post("/oauth/authorize")
