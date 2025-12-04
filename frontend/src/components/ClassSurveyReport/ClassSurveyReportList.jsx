@@ -586,41 +586,44 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     }
 
     try {
-      toast.info(language === 'vi' ? `📥 Đang tải xuống ${reportsWithFiles.length} file...` : `📥 Downloading ${reportsWithFiles.length} files...`);
-
       let downloadedCount = 0;
 
+      // Use direct Google Drive URL for each file (same as other working components)
       for (const report of reportsWithFiles) {
         try {
-          const response = await fetch(
-            `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/download`,
-            {
-              headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-            }
-          );
-
-          if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `${report.survey_report_name || report.survey_report_no || 'survey_report'}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-            
-            downloadedCount++;
-          }
+          const filename = `${report.survey_report_name || report.survey_report_no || 'survey_report'}.pdf`;
+          
+          const downloadUrl = `https://drive.google.com/uc?export=download&id=${report.survey_report_file_id}`;
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.download = filename;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          downloadedCount++;
           
           // Small delay between downloads
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise(resolve => setTimeout(resolve, 200));
         } catch (error) {
           console.error(`Download error for ${report.survey_report_no}:`, error);
         }
       }
 
-      toast.success(language === 'vi' ? `✅ Đã tải xuống ${downloadedCount}/${reportsWithFiles.length} file` : `✅ Downloaded ${downloadedCount}/${reportsWithFiles.length} files`);
+      if (downloadedCount > 0) {
+        toast.success(
+          language === 'vi' 
+            ? `✅ Đang tải xuống ${downloadedCount} file` 
+            : `✅ Downloading ${downloadedCount} file(s)`
+        );
+      } else {
+        toast.warning(
+          language === 'vi'
+            ? '⚠️ Không có file để tải xuống'
+            : '⚠️ No files to download'
+        );
+      }
     } catch (error) {
       console.error('Bulk download error:', error);
       toast.error(language === 'vi' ? '❌ Lỗi khi tải xuống file' : '❌ Error downloading files');
