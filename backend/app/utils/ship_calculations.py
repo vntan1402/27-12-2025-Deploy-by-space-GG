@@ -250,6 +250,15 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                 'reasoning': 'No valid date available'
             }
         
+        # ⭐ NEW RULE: If certificate is expired, no Next Survey
+        today = datetime.now()
+        if valid_dt < today:
+            return {
+                'next_survey': '-',
+                'next_survey_type': '-',
+                'reasoning': 'Certificate expired - no next survey scheduled'
+            }
+        
         # Rule 2: Condition certificates = valid_date
         if 'CONDITION' in cert_type:
             return {
