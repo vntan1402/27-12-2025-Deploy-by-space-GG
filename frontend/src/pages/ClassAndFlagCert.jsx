@@ -327,6 +327,24 @@ const ClassAndFlagCert = () => {
     return Array.from(types).sort();
   };
 
+  // Helper function to parse dd/mm/yyyy format
+  const parseDateDDMMYYYY = (dateStr) => {
+    if (!dateStr) return null;
+    
+    // Handle dd/mm/yyyy format
+    if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return null;
+      const [day, month, year] = parts;
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      return isNaN(date.getTime()) ? null : date;
+    }
+    
+    // Handle ISO format
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? null : date;
+  };
+
   // Get certificate status
   const getCertificateStatus = (cert) => {
     if (!cert.valid_date) return 'Unknown';
@@ -334,7 +352,9 @@ const ClassAndFlagCert = () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const validDate = new Date(cert.valid_date);
+    const validDate = parseDateDDMMYYYY(cert.valid_date);
+    if (!validDate) return 'Unknown';
+    
     validDate.setHours(0, 0, 0, 0);
     
     if (validDate < today) return 'Expired';
