@@ -831,44 +831,46 @@ const ClassAndFlagCert = () => {
         return;
       }
 
-      toast.info(
-        language === 'vi'
-          ? `📥 Đang tải xuống ${certsWithFiles.length} file...`
-          : `📥 Downloading ${certsWithFiles.length} files...`
-      );
-
       let downloadedCount = 0;
 
+      // Use direct Google Drive URL for each file (same as Crew Passport bulk download)
       for (const cert of certsWithFiles) {
         try {
-          const response = await api.get(`/api/gdrive/file/${cert.google_drive_file_id}/download`, {
-            responseType: 'blob'
-          });
+          // Generate filename
+          const filename = `${cert.cert_abbreviation || cert.cert_name}.pdf`;
           
-          // Create download link
-          const url = window.URL.createObjectURL(new Blob([response.data]));
+          // Use direct Google Drive download URL
+          const downloadUrl = `https://drive.google.com/uc?export=download&id=${cert.google_drive_file_id}`;
           const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', `${cert.cert_abbreviation || cert.cert_name}.pdf`);
+          link.href = downloadUrl;
+          link.download = filename;
+          link.target = '_blank';
           document.body.appendChild(link);
           link.click();
-          link.remove();
-          window.URL.revokeObjectURL(url);
+          document.body.removeChild(link);
           
           downloadedCount++;
           
           // Small delay between downloads
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise(resolve => setTimeout(resolve, 200));
         } catch (error) {
           console.error(`Download error for ${cert.cert_abbreviation}:`, error);
         }
       }
 
-      toast.success(
-        language === 'vi'
-          ? `✅ Đã tải xuống ${downloadedCount}/${certsWithFiles.length} file`
-          : `✅ Downloaded ${downloadedCount}/${certsWithFiles.length} files`
-      );
+      if (downloadedCount > 0) {
+        toast.success(
+          language === 'vi'
+            ? `✅ Đang tải xuống ${downloadedCount} file`
+            : `✅ Downloading ${downloadedCount} file(s)`
+        );
+      } else {
+        toast.warning(
+          language === 'vi'
+            ? '⚠️ Không có file để tải xuống'
+            : '⚠️ No files to download'
+        );
+      }
     } catch (error) {
       console.error('Bulk download error:', error);
       toast.error(
