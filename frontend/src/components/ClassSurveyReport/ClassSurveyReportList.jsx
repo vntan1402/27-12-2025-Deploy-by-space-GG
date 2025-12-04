@@ -311,6 +311,11 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
   const handleContextMenu = (e, report) => {
     e.preventDefault();
     
+    // Auto-select the right-clicked report if not already selected
+    if (!selectedReports.has(report.id)) {
+      setSelectedReports(new Set([report.id]));
+    }
+    
     const { x, y } = calculateContextMenuPosition(e, 200, 250);
     
     setContextMenu({
