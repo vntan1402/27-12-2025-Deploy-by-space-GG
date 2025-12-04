@@ -1633,7 +1633,15 @@ const ClassAndFlagCert = () => {
           {/* Download - works for single and multiple */}
           <button
             onClick={() => {
-              handleBulkDownload();
+              if (selectedCertificates.size > 1) {
+                handleBulkDownload();
+              } else {
+                // Single download: use direct Google Drive URL (same as Audit Certificate)
+                const fileId = contextMenu.certificate?.google_drive_file_id;
+                if (fileId) {
+                  window.open(`https://drive.google.com/uc?export=download&id=${fileId}`, '_blank');
+                }
+              }
               setContextMenu(null);
             }}
             className="w-full px-4 py-2 text-left hover:bg-gray-100 text-gray-700 flex items-center gap-2"
