@@ -271,6 +271,23 @@ class CertificateMultiUploadService:
                 "summary_text": summary_text  # ⭐ Pass summary for later use
             }
         
+        # ⭐ NEW: Check if certificate belongs to ISM/ISPS/MLC/CICA categories (BLOCKING)
+        cert_name = extracted_info.get('cert_name', '').strip()
+        audit_category = CertificateMultiUploadService._check_if_audit_certificate(cert_name)
+        if audit_category:
+            error_message = f"Giấy chứng nhận này thuộc danh mục {audit_category}, vui lòng upload vào đúng danh mục"
+            logger.error(f"🚫 Blocking: {file.filename} is {audit_category} certificate")
+            return {
+                "filename": file.filename,
+                "status": "error",
+                "message": error_message,
+                "category_error": {
+                    "detected_category": audit_category,
+                    "cert_name": cert_name,
+                    "message": error_message
+                }
+            }
+        
         # Extract key fields for further processing
         extracted_imo = extracted_info.get('imo_number', '').strip()
         extracted_ship_name = extracted_info.get('ship_name', '').strip()
