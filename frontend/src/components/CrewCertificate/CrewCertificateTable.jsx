@@ -228,15 +228,33 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     }
   };
 
-  const handleDownload = (certs) => {
+  const handleDownload = async (certs) => {
     // Support both single cert and array of certs
     const certsArray = Array.isArray(certs) ? certs : [certs];
     
-    certsArray.forEach(cert => {
+    for (const cert of certsArray) {
       if (cert.crew_cert_file_id) {
-        window.open(`https://drive.google.com/uc?export=download&id=${cert.crew_cert_file_id}`, '_blank');
+        try {
+          // Use backend API to get proper download link
+          const response = await api.get(`/api/crew-certificates/${cert.id}/file-link`, {
+            params: {
+              filename: `${cert.cert_name}_${cert.cert_no || 'certificate'}.pdf`
+            }
+          });
+          
+          if (response.data && response.data.file_url) {
+            // Open download link in new tab
+            window.open(response.data.file_url, '_blank');
+          } else {
+            // Fallback to direct Google Drive link
+            window.open(`https://drive.google.com/uc?export=download&id=${cert.crew_cert_file_id}`, '_blank');
+          }
+        } catch (error) {
+          console.error('Download error:', error);
+          toast.error(language === 'vi' ? '❌ Không thể tải file' : '❌ Failed to download file');
+        }
       }
-    });
+    }
   };
 
   // Note tooltip handlers
