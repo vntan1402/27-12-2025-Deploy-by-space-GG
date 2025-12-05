@@ -721,7 +721,7 @@ export const CrewListTable = ({
           }
         }
       } else {
-        // Sign Off flow: Call new API (file movement in background)
+        // Sign Off flow: Update DB immediately, file movement in background
         for (const crewId of crewIds) {
           const crew = crewList.find(c => c.id === crewId);
           if (!crew) continue;
@@ -729,26 +729,27 @@ export const CrewListTable = ({
           const currentStatus = crew.status;
           
           try {
+            // Update DB immediately
+            await crewService.update(crewId, {
+              date_sign_off: bulkDateSignOff,
+              status: 'Standby',
+              ship_sign_on: '-'
+            });
+            
+            // File movement and assignment history in background
             if (currentStatus === 'Sign on') {
               // Sign off flow: Ship → Standby (files move in background)
-              await crewService.signOff(crewId, {
+              crewService.signOff(crewId, {
                 sign_off_date: bulkDateSignOff,
                 notes: `Bulk sign off via Date Sign Off edit`
-              });
-              successCount++;
+              }).catch(error => console.error(`Background signOff error for ${crewId}:`, error));
             } else {
-              // Already standby or other status, just update date
-              await crewService.update(crewId, {
-                date_sign_off: bulkDateSignOff,
-                status: 'Standby',
-                ship_sign_on: '-'
-              });
-              
-              // Update assignment history
-              await crewService.updateAssignmentDates(crewId, { date_sign_off: bulkDateSignOff });
-              
-              successCount++;
+              // Already standby, just update assignment history in background
+              crewService.updateAssignmentDates(crewId, { date_sign_off: bulkDateSignOff })
+                .catch(error => console.error(`Background assignment history update error for ${crewId}:`, error));
             }
+            
+            successCount++;
             
           } catch (error) {
             console.error(`Failed to sign off crew ${crewId}:`, error);
