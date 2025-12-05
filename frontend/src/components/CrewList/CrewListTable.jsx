@@ -630,18 +630,32 @@ export const CrewListTable = ({
     const crewIds = Array.from(selectedCrewMembers);
     const value = bulkDateSignOn === '' ? null : bulkDateSignOn;
     
+    // Close modal immediately
+    setShowBulkEditDateSignOn(false);
+    
+    // Show processing toast
+    const processingToast = toast.loading(
+      language === 'vi' 
+        ? '🔄 Đang cập nhật...' 
+        : '🔄 Processing...'
+    );
+    
+    // Refresh table immediately (optimistic update)
+    fetchCrewList();
+    
     try {
       let successCount = 0;
       let failCount = 0;
       
       for (const crewId of crewIds) {
         try {
-          // Update crew date_sign_on
+          // Update crew date_sign_on in DB immediately
           await crewService.update(crewId, { date_sign_on: value });
           
-          // Update assignment history if date is not null
+          // Update assignment history in background (if date is not null)
           if (value) {
-            await crewService.updateAssignmentDates(crewId, { date_sign_on: value });
+            crewService.updateAssignmentDates(crewId, { date_sign_on: value })
+              .catch(error => console.error(`Background assignment history update error for ${crewId}:`, error));
           }
           
           successCount++;
@@ -651,22 +665,27 @@ export const CrewListTable = ({
         }
       }
       
+      // Dismiss processing toast
+      toast.dismiss(processingToast);
+      
+      // Refresh table again to show final state
+      fetchCrewList();
+      
       if (successCount > 0) {
         toast.success(
           language === 'vi' 
-            ? `Đã cập nhật ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}`
-            : `Updated ${successCount} crew member(s)${failCount > 0 ? `, ${failCount} failed` : ''}`
+            ? `✅ Đã cập nhật ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}`
+            : `✅ Updated ${successCount} crew member(s)${failCount > 0 ? `, ${failCount} failed` : ''}`
         );
-        fetchCrewList(); // Refresh list
       } else {
         toast.error(language === 'vi' ? 'Không thể cập nhật' : 'Failed to update');
       }
     } catch (error) {
+      toast.dismiss(processingToast);
       console.error('Bulk update date sign on error:', error);
       toast.error(language === 'vi' ? 'Lỗi cập nhật hàng loạt' : 'Bulk update error');
+      fetchCrewList();
     }
-    
-    setShowBulkEditDateSignOn(false);
   };
   
   const handleBulkUpdateDateSignOff = async () => {
