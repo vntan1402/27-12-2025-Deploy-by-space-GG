@@ -171,6 +171,74 @@ class CrewAssignmentRepository:
             return None
     
     @staticmethod
+    async def update(assignment_id: str, update_data: dict) -> bool:
+        """
+        Update assignment history record
+        
+        Args:
+            assignment_id: Assignment UUID
+            update_data: Dict with fields to update
+            
+        Returns:
+            True if updated, False otherwise
+        """
+        try:
+            result = await mongo_db.database[CrewAssignmentRepository.collection_name].update_one(
+                {"id": assignment_id},
+                {"$set": update_data}
+            )
+            
+            if result.modified_count > 0:
+                logger.info(f"✅ Updated assignment history: {assignment_id}")
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"❌ Error updating assignment {assignment_id}: {e}")
+            return False
+    
+    @staticmethod
+    async def update_latest_by_crew_and_type(
+        crew_id: str,
+        action_type: str,
+        update_data: dict
+    ) -> bool:
+        """
+        Update the latest assignment history record for a crew member by action type
+        
+        Args:
+            crew_id: Crew UUID
+            action_type: SIGN_ON, SIGN_OFF, or SHIP_TRANSFER
+            update_data: Dict with fields to update
+            
+        Returns:
+            True if updated, False otherwise
+        """
+        try:
+            # Find the latest record for this crew and action type
+            result = await mongo_db.database[CrewAssignmentRepository.collection_name].find_one(
+                {"crew_id": crew_id, "action_type": action_type},
+                {"_id": 0},
+                sort=[("action_date", -1)]
+            )
+            
+            if result:
+                assignment_id = result.get("id")
+                update_result = await mongo_db.database[CrewAssignmentRepository.collection_name].update_one(
+                    {"id": assignment_id},
+                    {"$set": update_data}
+                )
+                
+                if update_result.modified_count > 0:
+                    logger.info(f"✅ Updated latest {action_type} assignment for crew {crew_id}")
+                    return True
+            
+            logger.warning(f"⚠️ No {action_type} assignment found for crew {crew_id}")
+            return False
+        except Exception as e:
+            logger.error(f"❌ Error updating latest assignment: {e}")
+            return False
+    
+    @staticmethod
     async def delete(assignment_id: str) -> bool:
         """
         Delete assignment history record (rarely used)
