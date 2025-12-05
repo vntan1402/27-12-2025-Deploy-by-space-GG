@@ -2227,6 +2227,13 @@ export const CrewListTable = ({
             <span>{language === 'vi' ? 'Chỉnh sửa nơi xuống tàu' : 'Edit Place Sign On'}</span>
           </button>
           <button
+            onClick={() => handleBulkEditPlaceSignOff()}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
+          >
+            <span>📍</span>
+            <span>{language === 'vi' ? 'Chỉnh sửa nơi rời tàu' : 'Edit Place Sign Off'}</span>
+          </button>
+          <button
             onClick={() => handleBulkEditDateSignOn()}
             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
           >
