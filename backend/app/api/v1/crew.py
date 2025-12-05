@@ -774,7 +774,8 @@ async def sign_on_crew_member(
         "ship_name": "BROTHER 36",  # Required
         "sign_on_date": "2025-01-20" | "20/01/2025",  # ISO or DD/MM/YYYY
         "place_sign_on": "Singapore",  # Optional
-        "notes": "New contract"  # Optional
+        "notes": "New contract",  # Optional
+        "skip_validation": false  # Optional - Skip status validation if DB already updated
     }
     
     Response:
