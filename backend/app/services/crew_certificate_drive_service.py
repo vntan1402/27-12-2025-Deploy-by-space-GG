@@ -181,6 +181,7 @@ class CrewCertificateDriveService:
             
             return {
                 "cert_file_id": cert_file_id,
+                "cert_file_name": filename,  # ⭐ NEW: Include filename
                 "summary_file_id": summary_file_id
             }
             
