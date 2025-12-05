@@ -7,6 +7,7 @@ from typing import Dict, Optional
 from datetime import datetime, timezone
 from uuid import uuid4
 from fastapi import HTTPException
+import asyncio
 
 from app.repositories.crew_repository import CrewRepository
 from app.repositories.crew_assignment_repository import CrewAssignmentRepository
