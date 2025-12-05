@@ -142,6 +142,7 @@ export const EditCrewModal = ({
         // Call sign off API in background for file movement and audit trail
         crewService.signOff(crew.id, {
           sign_off_date: formData.date_sign_off || new Date().toISOString().split('T')[0],
+          place_sign_off: formData.place_sign_off || null,
           notes: `Sign off via Edit Crew Member modal`
         }).catch(error => {
           console.error('Background sign off error:', error);
