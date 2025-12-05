@@ -137,16 +137,8 @@ export const EditCrewModal = ({
         console.log('🔄 Sign On Flow detected');
         needsFileMovement = true;
         
-        // Call sign on API and wait for completion
-        await crewService.signOn(crew.id, {
-          ship_name: formData.ship_sign_on,
-          sign_on_date: formData.date_sign_on || new Date().toISOString().split('T')[0],
-          place_sign_on: formData.place_sign_on || null,
-          notes: `Sign on via Edit Crew Member modal to ${formData.ship_sign_on}`
-        });
-        
-        // Update other basic info fields (ship_sign_on, status, and date_sign_on already updated by signOn API)
-        const basicUpdateData = {
+        // Update DB immediately with all fields including ship_sign_on and status
+        const updateData = {
           full_name: formData.full_name,
           full_name_en: formData.full_name_en || null,
           sex: formData.sex,
@@ -157,17 +149,30 @@ export const EditCrewModal = ({
           nationality: formData.nationality || null,
           passport_expiry_date: formData.passport_expiry_date || null,
           rank: formData.rank || null,
-          seamen_book: formData.seamen_book || null
-          // Note: place_sign_on, date_sign_on, ship_sign_on, status already set by signOn API
-          // date_sign_off should be cleared by signOn API
+          seamen_book: formData.seamen_book || null,
+          ship_sign_on: formData.ship_sign_on,
+          status: 'Sign on',
+          place_sign_on: formData.place_sign_on || null,
+          date_sign_on: formData.date_sign_on || null,
+          date_sign_off: null  // Clear sign off date when signing on
         };
         
-        await crewService.update(crew.id, basicUpdateData);
+        await crewService.update(crew.id, updateData);
+        
+        // Call sign on API in background for file movement and audit trail
+        crewService.signOn(crew.id, {
+          ship_name: formData.ship_sign_on,
+          sign_on_date: formData.date_sign_on || new Date().toISOString().split('T')[0],
+          place_sign_on: formData.place_sign_on || null,
+          notes: `Sign on via Edit Crew Member modal to ${formData.ship_sign_on}`
+        }).catch(error => {
+          console.error('Background sign on error:', error);
+        });
         
         toast.success(
           language === 'vi' 
-            ? '✅ Đã sign on thuyền viên. Files đang được di chuyển...'
-            : '✅ Crew signed on. Files are being moved in background...',
+            ? '✅ Đã cập nhật thuyền viên. Files đang được di chuyển...'
+            : '✅ Crew updated. Files are being moved in background...',
           { duration: 5000 }
         );
         
