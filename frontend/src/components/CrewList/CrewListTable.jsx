@@ -65,6 +65,51 @@ export const CrewListTable = ({
       throw error;
     }
   };
+  
+  // Conflict dialog handlers
+  const handleConflictKeepCurrent = () => {
+    setConflictInfo(null);
+    setPendingUpdate(null);
+    fetchCrewList(); // Refresh to show current values
+    toast.info(
+      language === 'vi' 
+        ? 'Đã giữ giá trị hiện tại. Vui lòng thử lại.' 
+        : 'Current values kept. Please try again.'
+    );
+  };
+  
+  const handleConflictUseMyValue = async () => {
+    if (!pendingUpdate) return;
+    
+    const { crewId, updateData } = pendingUpdate;
+    
+    try {
+      // Force update without timestamp check
+      await crewService.update(crewId, updateData);
+      
+      setConflictInfo(null);
+      setPendingUpdate(null);
+      fetchCrewList();
+      
+      toast.success(
+        language === 'vi' 
+          ? '✅ Đã cập nhật với giá trị của bạn' 
+          : '✅ Updated with your values'
+      );
+    } catch (error) {
+      console.error('Force update error:', error);
+      toast.error(
+        language === 'vi' 
+          ? 'Lỗi khi cập nhật' 
+          : 'Update error'
+      );
+    }
+  };
+  
+  const handleConflictCancel = () => {
+    setConflictInfo(null);
+    setPendingUpdate(null);
+  };
   const [loading, setLoading] = useState(false);
   const [selectedCrewMembers, setSelectedCrewMembers] = useState(new Set());
   
