@@ -42,3 +42,5 @@ class CompanyUpdate(BaseModel):
 class CompanyResponse(CompanyBase):
     id: str
     created_at: datetime
+    total_ships: Optional[int] = 0
+    total_crew: Optional[int] = 0
