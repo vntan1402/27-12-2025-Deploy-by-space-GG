@@ -496,7 +496,7 @@ export const CrewListTable = ({
       let failCount = 0;
       
       if (isSignOff) {
-        // Sign Off flow: Call signOff API for those who are Sign on
+        // Sign Off flow: Update DB first, then call API with skip_validation
         for (const crewId of crewIds) {
           const crew = crewList.find(c => c.id === crewId);
           if (!crew) continue;
@@ -504,18 +504,21 @@ export const CrewListTable = ({
           const currentStatus = crew.status;
           
           try {
+            // Step 1: Update DB immediately
+            await crewService.update(crewId, {
+              ship_sign_on: '-',
+              status: 'Standby',
+              date_sign_off: crew.date_sign_off || new Date().toISOString().split('T')[0]
+            });
+            
+            // Step 2: Background file movement (only if was Sign on)
             if (currentStatus === 'Sign on') {
-              // Call signOff API - it will update DB and move files
-              await crewService.signOff(crewId, {
+              crewService.signOff(crewId, {
                 sign_off_date: crew.date_sign_off || new Date().toISOString().split('T')[0],
-                notes: `Bulk sign off via Ship Sign On edit (selected "-")`
-              });
-            } else {
-              // Already Standby, just update date if needed
-              await crewService.update(crewId, {
-                ship_sign_on: '-',
-                status: 'Standby',
-                date_sign_off: crew.date_sign_off || new Date().toISOString().split('T')[0]
+                notes: `Bulk sign off via Ship Sign On edit (selected "-")`,
+                skip_validation: true  // Skip validation since DB already updated
+              }).catch(error => {
+                console.error(`Background signOff error for ${crewId}:`, error);
               });
             }
             
