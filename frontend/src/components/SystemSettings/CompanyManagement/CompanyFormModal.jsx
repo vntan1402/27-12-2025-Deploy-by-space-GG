@@ -273,8 +273,8 @@ const CompanyFormModal = ({
               />
               <p className="text-xs text-gray-500 mt-1">
                 {language === 'vi' 
-                  ? '* Paste link Google Drive sẽ tự động chuyển sang định dạng hiển thị. Nếu có URL, file upload sẽ bị bỏ qua.'
-                  : '* Google Drive links will be auto-converted to viewable format. If URL is provided, file upload will be ignored.'}
+                  ? '* Paste link Google Drive (file, không phải folder). Link sẽ được lưu nguyên (full size). Nếu có URL, file upload sẽ bị bỏ qua.'
+                  : '* Paste Google Drive link (file, not folder). Link will be saved as-is (full size). If URL is provided, file upload will be ignored.'}
               </p>
             </div>
 
