@@ -1037,3 +1037,135 @@ async def get_crew_assignment_history(
             detail=f"Failed to get assignment history: {str(e)}"
         )
 
+
+@router.put("/{crew_id}/update-assignment-dates")
+async def update_crew_assignment_dates(
+    crew_id: str,
+    request_data: Dict = Body(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Update assignment history dates when user edits date_sign_on or date_sign_off
+    
+    This endpoint updates the action_date in the corresponding assignment history record
+    to match the new date entered by the user in Edit Crew Modal.
+    
+    Request Body:
+    {
+        "date_sign_on": "2024-12-20",  # Optional - if changed, update latest SIGN_ON/SHIP_TRANSFER
+        "date_sign_off": "2024-11-15"  # Optional - if changed, update latest SIGN_OFF
+    }
+    
+    Response:
+    {
+        "success": true,
+        "message": "Assignment dates updated successfully",
+        "updated": {
+            "sign_on": true,
+            "sign_off": false
+        }
+    }
+    """
+    try:
+        from app.repositories.crew_assignment_repository import CrewAssignmentRepository
+        
+        logger.info(f"📅 Update assignment dates request for crew: {crew_id}")
+        
+        # Verify crew exists
+        crew = await CrewRepository.find_by_id(crew_id)
+        if not crew:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        # Check access permission
+        if current_user.role not in ["SYSTEM_ADMIN", "SUPER_ADMIN", "ADMIN"]:
+            if crew.get('company_id') != current_user.company:
+                raise HTTPException(status_code=403, detail="Access denied")
+        
+        updated = {
+            "sign_on": False,
+            "sign_off": False
+        }
+        
+        # Update sign on date if provided
+        if "date_sign_on" in request_data and request_data["date_sign_on"]:
+            new_date_sign_on = request_data["date_sign_on"]
+            
+            # Try to parse the date
+            try:
+                if isinstance(new_date_sign_on, str):
+                    # Parse date
+                    from app.utils.date_helpers import parse_date_flexible
+                    parsed_date = parse_date_flexible(new_date_sign_on)
+                else:
+                    parsed_date = new_date_sign_on
+                
+                # Find and update the latest SIGN_ON or SHIP_TRANSFER record
+                # Try SHIP_TRANSFER first (most recent if crew was transferred)
+                success = await CrewAssignmentRepository.update_latest_by_crew_and_type(
+                    crew_id=crew_id,
+                    action_type="SHIP_TRANSFER",
+                    update_data={"action_date": parsed_date}
+                )
+                
+                if not success:
+                    # If no SHIP_TRANSFER found, try SIGN_ON
+                    success = await CrewAssignmentRepository.update_latest_by_crew_and_type(
+                        crew_id=crew_id,
+                        action_type="SIGN_ON",
+                        update_data={"action_date": parsed_date}
+                    )
+                
+                updated["sign_on"] = success
+                
+            except Exception as e:
+                logger.error(f"❌ Error parsing or updating sign on date: {e}")
+        
+        # Update sign off date if provided
+        if "date_sign_off" in request_data and request_data["date_sign_off"]:
+            new_date_sign_off = request_data["date_sign_off"]
+            
+            try:
+                if isinstance(new_date_sign_off, str):
+                    from app.utils.date_helpers import parse_date_flexible
+                    parsed_date = parse_date_flexible(new_date_sign_off)
+                else:
+                    parsed_date = new_date_sign_off
+                
+                # Update the latest SIGN_OFF record
+                success = await CrewAssignmentRepository.update_latest_by_crew_and_type(
+                    crew_id=crew_id,
+                    action_type="SIGN_OFF",
+                    update_data={"action_date": parsed_date}
+                )
+                
+                updated["sign_off"] = success
+                
+            except Exception as e:
+                logger.error(f"❌ Error parsing or updating sign off date: {e}")
+        
+        if updated["sign_on"] or updated["sign_off"]:
+            logger.info(f"✅ Assignment dates updated for crew {crew_id}: {updated}")
+            return {
+                "success": True,
+                "message": "Assignment dates updated successfully",
+                "updated": updated
+            }
+        else:
+            return {
+                "success": False,
+                "message": "No assignment history records found to update",
+                "updated": updated
+            }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Update assignment dates error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to update assignment dates: {str(e)}"
+        )
+
+
