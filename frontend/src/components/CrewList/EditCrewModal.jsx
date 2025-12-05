@@ -90,12 +90,21 @@ export const EditCrewModal = ({
       const newDateSignOn = formData.date_sign_on || null;
       const newDateSignOff = formData.date_sign_off || null;
       
+      console.log('📅 Date comparison:', {
+        originalDateSignOn,
+        newDateSignOn,
+        originalDateSignOff,
+        newDateSignOff
+      });
+      
       const dateChanges = {};
       if (originalDateSignOn !== newDateSignOn && newDateSignOn) {
         dateChanges.date_sign_on = newDateSignOn;
+        console.log('📅 Sign On date changed:', originalDateSignOn, '→', newDateSignOn);
       }
       if (originalDateSignOff !== newDateSignOff && newDateSignOff) {
         dateChanges.date_sign_off = newDateSignOff;
+        console.log('📅 Sign Off date changed:', originalDateSignOff, '→', newDateSignOff);
       }
       
       // Determine which flow to use based on status and ship changes
