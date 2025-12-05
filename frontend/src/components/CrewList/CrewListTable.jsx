@@ -2091,7 +2091,7 @@ export const CrewListTable = ({
             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
           >
             <span>🚢</span>
-            <span>{language === 'vi' ? 'Chỉnh sửa tàu đăng ký' : 'Edit Ship Sign On'}</span>
+            <span>{language === 'vi' ? 'SIGN ON' : 'SIGN ON'}</span>
           </button>
           <button
             onClick={() => handleBulkEditPlaceSignOn()}
