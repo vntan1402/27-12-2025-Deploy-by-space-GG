@@ -40,6 +40,7 @@ class CrewCertificateUpdate(BaseModel):
     status: Optional[str] = None
     note: Optional[str] = None
     crew_cert_file_id: Optional[str] = None
+    crew_cert_file_name: Optional[str] = None
     crew_cert_summary_file_id: Optional[str] = None
 
 class CrewCertificateResponse(CrewCertificateBase):
