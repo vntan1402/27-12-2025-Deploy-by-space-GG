@@ -18,6 +18,16 @@ from app.utils.date_helpers import parse_date_flexible
 logger = logging.getLogger(__name__)
 
 
+def run_async_file_movement(coro):
+    """
+    Run async file movement in background without blocking the response
+    """
+    try:
+        asyncio.create_task(coro)
+    except Exception as e:
+        logger.error(f"❌ Error creating background task: {e}")
+
+
 class CrewAssignmentService:
     """Service for managing crew assignments (sign on, sign off, transfers)"""
     
