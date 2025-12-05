@@ -193,7 +193,8 @@ class CrewAssignmentService:
         sign_on_date: str,
         place_sign_on: Optional[str],
         notes: Optional[str],
-        current_user: UserResponse
+        current_user: UserResponse,
+        skip_validation: bool = False
     ) -> Dict:
         """
         Sign on crew member to a ship and move files from Standby
