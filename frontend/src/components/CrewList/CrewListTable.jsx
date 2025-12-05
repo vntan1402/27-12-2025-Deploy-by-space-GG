@@ -634,14 +634,21 @@ export const CrewListTable = ({
               const finalDateSignOn = bulkShipSignOnDate || crew.date_sign_on || new Date().toISOString().split('T')[0];
               const finalPlaceSignOn = bulkShipSignOnPlace || crew.place_sign_on || null;
               
-              // Step 1: Update DB immediately (fast <1s)
-              await crewService.update(crewId, {
+              // Step 1: Update DB with conflict detection
+              const updateData = {
                 ship_sign_on: bulkShipSignOn,
                 status: 'Sign on',
                 date_sign_on: finalDateSignOn,
                 place_sign_on: finalPlaceSignOn,
                 date_sign_off: null
-              });
+              };
+              
+              const result = await updateCrewWithConflictDetection(crewId, updateData, crew);
+              
+              if (result.conflict) {
+                // Conflict detected - dialog will be shown
+                return; // Stop processing, wait for user decision
+              }
               
               // Step 2: Trigger file movement + assignment history in background with skip_validation
               crewService.signOn(crewId, {
