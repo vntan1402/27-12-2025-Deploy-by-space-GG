@@ -17,6 +17,7 @@ class CrewBase(BaseModel):
     ship_sign_on: Optional[str] = "-"
     place_sign_on: Optional[str] = None
     date_sign_on: Optional[Union[str, datetime]] = None
+    place_sign_off: Optional[str] = None
     date_sign_off: Optional[Union[str, datetime]] = None
     passport_issue_date: Optional[Union[str, datetime]] = None
     passport_expiry_date: Optional[Union[str, datetime]] = None
