@@ -272,9 +272,20 @@ export const EditCrewModal = ({
           : 'Crew member updated successfully!');
       }
       
-      // Update assignment history dates if date_sign_on or date_sign_off changed
-      if (Object.keys(dateChanges).length > 0) {
-        console.log('📅 Date changes detected, updating assignment history:', dateChanges);
+      // Update assignment history dates ONLY if:
+      // - Date changed
+      // - AND ship/status NOT changed (just correcting date entry, not a real operation)
+      if ((dateSignOnChanged || dateSignOffChanged) && !statusChanged && !shipChanged) {
+        console.log('📅 Case 1: Date correction detected (no ship/status change), updating assignment history');
+        
+        const dateChanges = {};
+        if (dateSignOnChanged && newDateSignOn) {
+          dateChanges.date_sign_on = newDateSignOn;
+        }
+        if (dateSignOffChanged && newDateSignOff) {
+          dateChanges.date_sign_off = newDateSignOff;
+        }
+        
         try {
           await crewService.updateAssignmentDates(crew.id, dateChanges);
           console.log('✅ Assignment history dates updated successfully');
@@ -282,6 +293,8 @@ export const EditCrewModal = ({
           console.error('❌ Error updating assignment dates:', error);
           // Don't block the modal from closing, but log the error
         }
+      } else if ((dateSignOnChanged || dateSignOffChanged) && (statusChanged || shipChanged)) {
+        console.log('📝 Case 2: Real operation detected (ship/status changed), new assignment record will be created by API');
       }
       
       // Close modal immediately and refresh table
