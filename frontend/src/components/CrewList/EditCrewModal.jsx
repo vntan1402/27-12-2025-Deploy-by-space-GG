@@ -186,15 +186,8 @@ export const EditCrewModal = ({
         console.log('🔄 Transfer Flow detected');
         needsFileMovement = true;
         
-        // Call transfer API and wait for completion
-        await crewService.transferShip(crew.id, {
-          to_ship_name: formData.ship_sign_on,
-          transfer_date: new Date().toISOString().split('T')[0],
-          notes: `Transfer via Edit Crew Member modal from ${crew.ship_sign_on} to ${formData.ship_sign_on}`
-        });
-        
-        // Update other basic info fields (ship_sign_on and date_sign_on already updated by transferShip API)
-        const basicUpdateData = {
+        // Update DB immediately with all fields including ship_sign_on
+        const updateData = {
           full_name: formData.full_name,
           full_name_en: formData.full_name_en || null,
           sex: formData.sex,
@@ -206,17 +199,28 @@ export const EditCrewModal = ({
           passport_expiry_date: formData.passport_expiry_date || null,
           rank: formData.rank || null,
           seamen_book: formData.seamen_book || null,
-          place_sign_on: formData.place_sign_on || null
-          // Note: ship_sign_on and date_sign_on already updated by transferShip API
-          // date_sign_off should remain as is (crew still Sign on)
+          ship_sign_on: formData.ship_sign_on,
+          status: 'Sign on',  // Status remains Sign on
+          place_sign_on: formData.place_sign_on || null,
+          date_sign_on: new Date().toISOString().split('T')[0],  // Update to transfer date
+          date_sign_off: formData.date_sign_off || null
         };
         
-        await crewService.update(crew.id, basicUpdateData);
+        await crewService.update(crew.id, updateData);
+        
+        // Call transfer API in background for file movement and audit trail
+        crewService.transferShip(crew.id, {
+          to_ship_name: formData.ship_sign_on,
+          transfer_date: new Date().toISOString().split('T')[0],
+          notes: `Transfer via Edit Crew Member modal from ${crew.ship_sign_on} to ${formData.ship_sign_on}`
+        }).catch(error => {
+          console.error('Background transfer error:', error);
+        });
         
         toast.success(
           language === 'vi' 
-            ? '✅ Đã chuyển tàu. Files đang được di chuyển...'
-            : '✅ Ship transfer initiated. Files are being moved in background...',
+            ? '✅ Đã cập nhật thuyền viên. Files đang được di chuyển...'
+            : '✅ Crew updated. Files are being moved in background...',
           { duration: 5000 }
         );
         
