@@ -178,6 +178,7 @@ export const EditCrewModal = ({
           status: 'Sign on',
           place_sign_on: formData.place_sign_on || null,
           date_sign_on: formData.date_sign_on || null,
+          place_sign_off: null,  // Clear sign off place when signing on
           date_sign_off: null  // Clear sign off date when signing on
         };
         
