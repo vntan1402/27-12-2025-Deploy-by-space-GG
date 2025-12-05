@@ -14,6 +14,7 @@ import {
   BatchProcessingModal, 
   BatchResultsModal,
   BulkEditPlaceSignOnModal,
+  BulkEditPlaceSignOffModal,
   BulkEditShipSignOnModal,
   BulkEditDateSignOnModal,
   BulkEditDateSignOffModal,
