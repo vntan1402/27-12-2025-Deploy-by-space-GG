@@ -84,28 +84,27 @@ export const EditCrewModal = ({
       const newStatus = formData.status;
       const newShip = (formData.ship_sign_on || '').trim().toLowerCase();
       
-      // Track date changes for assignment history update
+      // Track changes for logic determination
       const originalDateSignOn = crew.date_sign_on ? crew.date_sign_on.split('T')[0] : null;
       const originalDateSignOff = crew.date_sign_off ? crew.date_sign_off.split('T')[0] : null;
       const newDateSignOn = formData.date_sign_on || null;
       const newDateSignOff = formData.date_sign_off || null;
       
-      console.log('📅 Date comparison:', {
-        originalDateSignOn,
-        newDateSignOn,
-        originalDateSignOff,
-        newDateSignOff
-      });
+      const statusChanged = originalStatus !== newStatus;
+      const shipChanged = originalShip !== newShip;
+      const dateSignOnChanged = originalDateSignOn !== newDateSignOn;
+      const dateSignOffChanged = originalDateSignOff !== newDateSignOff;
       
-      const dateChanges = {};
-      if (originalDateSignOn !== newDateSignOn && newDateSignOn) {
-        dateChanges.date_sign_on = newDateSignOn;
-        console.log('📅 Sign On date changed:', originalDateSignOn, '→', newDateSignOn);
-      }
-      if (originalDateSignOff !== newDateSignOff && newDateSignOff) {
-        dateChanges.date_sign_off = newDateSignOff;
-        console.log('📅 Sign Off date changed:', originalDateSignOff, '→', newDateSignOff);
-      }
+      console.log('🔍 Change detection:', {
+        statusChanged,
+        shipChanged,
+        dateSignOnChanged,
+        dateSignOffChanged,
+        originalStatus, newStatus,
+        originalShip, newShip,
+        originalDateSignOn, newDateSignOn,
+        originalDateSignOff, newDateSignOff
+      });
       
       // Determine which flow to use based on status and ship changes
       let needsFileMovement = false;
