@@ -240,20 +240,72 @@ const CompanyFormModal = ({
                 type="url"
                 value={companyData.logo_url}
                 onChange={(e) => {
-                  setCompanyData(prev => ({ ...prev, logo_url: e.target.value }));
-                  if (e.target.value) {
-                    setLogoPreview(e.target.value);
+                  let url = e.target.value;
+                  
+                  // Auto-convert Google Drive URLs to viewable format
+                  if (url) {
+                    // Extract file ID from various Google Drive URL formats
+                    let fileId = null;
+                    
+                    // Format 1: https://drive.google.com/file/d/{ID}/view
+                    let match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+                    if (match) {
+                      fileId = match[1];
+                    }
+                    
+                    // Format 2: https://drive.google.com/open?id={ID}
+                    if (!fileId) {
+                      match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+                      if (match) {
+                        fileId = match[1];
+                      }
+                    }
+                    
+                    // Format 3: https://drive.google.com/uc?id={ID}
+                    if (!fileId) {
+                      match = url.match(/\/uc\?.*id=([a-zA-Z0-9_-]+)/);
+                      if (match) {
+                        fileId = match[1];
+                      }
+                    }
+                    
+                    // Format 4: Direct thumbnail link
+                    if (!fileId) {
+                      match = url.match(/\/thumbnail\?.*id=([a-zA-Z0-9_-]+)/);
+                      if (match) {
+                        fileId = match[1];
+                      }
+                    }
+                    
+                    // If we found a file ID, convert to standard viewable format
+                    if (fileId) {
+                      url = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
+                    }
+                  }
+                  
+                  setCompanyData(prev => ({ ...prev, logo_url: url }));
+                  if (url) {
+                    setLogoPreview(url);
                     setLogoFile(null);
                   }
                 }}
+                onBlur={(e) => {
+                  // Show warning if folder link is detected
+                  const url = e.target.value;
+                  if (url && url.includes('/folders/')) {
+                    alert(language === 'vi' 
+                      ? '⚠️ Link folder không thể hiển thị làm logo. Vui lòng sử dụng link file ảnh.'
+                      : '⚠️ Folder link cannot be displayed as logo. Please use an image file link.');
+                  }
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="https://example.com/logo.png"
+                placeholder="https://drive.google.com/file/d/{ID}/view hoặc https://example.com/logo.png"
                 disabled={loading}
               />
               <p className="text-xs text-gray-500 mt-1">
                 {language === 'vi' 
-                  ? '* Nếu có URL, file upload sẽ bị bỏ qua'
-                  : '* If URL is provided, file upload will be ignored'}
+                  ? '* Paste link Google Drive sẽ tự động chuyển sang định dạng hiển thị. Nếu có URL, file upload sẽ bị bỏ qua.'
+                  : '* Google Drive links will be auto-converted to viewable format. If URL is provided, file upload will be ignored.'}
               </p>
             </div>
 
