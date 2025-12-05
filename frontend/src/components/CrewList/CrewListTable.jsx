@@ -2018,6 +2018,15 @@ export const CrewListTable = ({
                   {getSortIcon('date_sign_on')}
                 </th>
                 
+                {/* Place Sign Off - NEW */}
+                <th 
+                  onClick={() => handleSort('place_sign_off')}
+                  className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
+                >
+                  {language === 'vi' ? 'Nơi rời tàu' : 'Place Sign Off'}
+                  {getSortIcon('place_sign_off')}
+                </th>
+                
                 {/* Date Sign Off */}
                 <th 
                   onClick={() => handleSort('date_sign_off')}
