@@ -421,7 +421,11 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
                           {assignment.ship_name}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-700 border-r border-gray-200">
-                          {formatDateDisplay(assignment.sign_on_date)}
+                          {assignment.sign_on_date ? formatDateDisplay(assignment.sign_on_date) : (
+                            <span className="text-gray-400 italic">
+                              {language === 'vi' ? 'Không rõ' : 'Unknown'}
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-600 border-r border-gray-200">
                           {assignment.sign_on_by || '-'}
