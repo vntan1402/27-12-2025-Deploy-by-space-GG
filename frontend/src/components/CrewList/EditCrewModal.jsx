@@ -580,8 +580,19 @@ export const EditCrewModal = ({
               </div>
             </div>
             
-            {/* Row 6: Date Sign Off */}
+            {/* Row 6: Place Sign Off, Date Sign Off */}
             <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Nơi rời tàu' : 'Place Sign Off'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.place_sign_off}
+                  onChange={(e) => setFormData({...formData, place_sign_off: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off'}
