@@ -266,6 +266,7 @@ export const EditCrewModal = ({
           seamen_book: formData.seamen_book || null,
           place_sign_on: formData.place_sign_on || null,
           date_sign_on: formData.date_sign_on || null,
+          place_sign_off: formData.place_sign_off || null,
           date_sign_off: formData.date_sign_off || null
         };
         
