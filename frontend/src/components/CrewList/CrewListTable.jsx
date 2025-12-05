@@ -492,7 +492,7 @@ export const CrewListTable = ({
       let failCount = 0;
       
       if (isSignOff) {
-        // Sign Off flow: Call sign off API (similar to Date Sign Off)
+        // Sign Off flow: Update DB immediately, file movement in background
         for (const crewId of crewIds) {
           const crew = crewList.find(c => c.id === crewId);
           if (!crew) continue;
@@ -500,22 +500,22 @@ export const CrewListTable = ({
           const currentStatus = crew.status;
           
           try {
+            // Update DB immediately
+            await crewService.update(crewId, {
+              ship_sign_on: '-',
+              status: 'Standby',
+              date_sign_off: crew.date_sign_off || new Date().toISOString().split('T')[0]
+            });
+            
+            // File movement in background (only if was Sign on)
             if (currentStatus === 'Sign on') {
-              // Sign off flow: Ship → Standby (files move in background)
-              await crewService.signOff(crewId, {
+              crewService.signOff(crewId, {
                 sign_off_date: crew.date_sign_off || new Date().toISOString().split('T')[0],
                 notes: `Bulk sign off via Ship Sign On edit (selected "-")`
-              });
-              successCount++;
-            } else {
-              // Already standby or other status, just update fields
-              await crewService.update(crewId, {
-                ship_sign_on: '-',
-                status: 'Standby',
-                date_sign_off: crew.date_sign_off || null
-              });
-              successCount++;
+              }).catch(error => console.error(`Background signOff error for ${crewId}:`, error));
             }
+            
+            successCount++;
             
           } catch (error) {
             console.error(`Failed to sign off crew ${crewId}:`, error);
