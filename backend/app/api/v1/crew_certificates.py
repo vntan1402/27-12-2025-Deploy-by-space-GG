@@ -205,19 +205,22 @@ async def upload_crew_certificate_files(
         drive_service = CrewCertificateDriveService()
         upload_result = await drive_service.upload_certificate_files(**upload_data)
         
-        # 6. Update certificate with file IDs
+        # 6. Update certificate with file IDs and filename
         cert_file_id = upload_result.get('cert_file_id')
+        cert_file_name = upload_result.get('cert_file_name')  # ⭐ NEW
         summary_file_id = upload_result.get('summary_file_id')
         
         if cert_file_id or summary_file_id:
             update_data = {}
             if cert_file_id:
                 update_data['crew_cert_file_id'] = cert_file_id
+            if cert_file_name:  # ⭐ NEW
+                update_data['crew_cert_file_name'] = cert_file_name
             if summary_file_id:
                 update_data['crew_cert_summary_file_id'] = summary_file_id
             
             await CrewCertificateRepository.update(cert_id, update_data)
-            logger.info(f"✅ Updated certificate {cert_id} with file IDs")
+            logger.info(f"✅ Updated certificate {cert_id} with file IDs and filename")
         
         return {
             "success": True,
