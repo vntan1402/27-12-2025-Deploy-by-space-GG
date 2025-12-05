@@ -85,15 +85,16 @@ class CrewAssignmentService:
             logger.info(f"   Crew: {crew_name}")
             logger.info(f"   Current Status: {current_status}")
             logger.info(f"   Current Ship: {current_ship}")
+            logger.info(f"   Skip Validation: {skip_validation}")
             
-            # Validate crew is on a ship
-            if current_status != "Sign on":
+            # Validate crew is on a ship (unless skip_validation=True)
+            if not skip_validation and current_status != "Sign on":
                 raise HTTPException(
                     status_code=400,
                     detail=f"Cannot sign off crew with status '{current_status}'. Crew must be 'Sign on'."
                 )
             
-            if not current_ship or current_ship in ["-", ""]:
+            if not skip_validation and (not current_ship or current_ship in ["-", ""]):
                 raise HTTPException(
                     status_code=400,
                     detail="Cannot sign off crew without ship assignment"
