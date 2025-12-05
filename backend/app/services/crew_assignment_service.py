@@ -238,9 +238,10 @@ class CrewAssignmentService:
             logger.info(f"   Crew: {crew_name}")
             logger.info(f"   Current Status: {current_status}")
             logger.info(f"   Target Ship: {ship_name}")
+            logger.info(f"   Skip Validation: {skip_validation}")
             
-            # Validate crew is on standby
-            if current_status != "Standby":
+            # Validate crew is on standby (unless skip_validation=True)
+            if not skip_validation and current_status != "Standby":
                 raise HTTPException(
                     status_code=400,
                     detail=f"Cannot sign on crew with status '{current_status}'. Crew must be 'Standby'."
