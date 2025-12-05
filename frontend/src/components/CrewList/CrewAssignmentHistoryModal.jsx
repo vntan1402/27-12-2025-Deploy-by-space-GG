@@ -63,6 +63,8 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
   const transformToShipAssignments = (history) => {
     if (!history || history.length === 0) return [];
 
+    console.log('📋 Raw history data:', history);
+
     // Sort history by action_date ascending (oldest first)
     const sortedHistory = [...history].sort((a, b) => 
       new Date(a.action_date) - new Date(b.action_date)
@@ -72,6 +74,8 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
 
     sortedHistory.forEach((record) => {
       const { action_type, from_ship, to_ship, action_date, performed_by } = record;
+      
+      console.log('Processing record:', { action_type, from_ship, to_ship, action_date });
 
       // Handle SIGN_ON: crew joins a ship
       if (action_type === 'SIGN_ON' && to_ship) {
@@ -115,6 +119,7 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
 
       // Handle SIGN_OFF: crew leaves the ship
       if (action_type === 'SIGN_OFF' && from_ship) {
+        // Try to find the ship assignment
         if (shipMap.has(from_ship)) {
           const assignment = shipMap.get(from_ship);
           if (!assignment.sign_off_date) {
@@ -122,9 +127,23 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
             assignment.sign_off_by = performed_by;
             assignment.action_type = action_type;
           }
+        } else {
+          // SIGN_OFF without prior SIGN_ON record (data inconsistency or missing SIGN_ON)
+          // Create a ship entry with sign off only
+          console.warn(`⚠️ SIGN_OFF for ${from_ship} but no prior SIGN_ON found. Creating entry.`);
+          shipMap.set(from_ship, {
+            ship_name: from_ship,
+            sign_on_date: null,  // Unknown
+            sign_on_by: null,
+            sign_off_date: action_date,
+            sign_off_by: performed_by,
+            action_type: action_type
+          });
         }
       }
     });
+
+    console.log('📊 Final shipMap:', Array.from(shipMap.values()));
 
     // Convert map to array and sort by sign_on_date descending (newest first)
     return Array.from(shipMap.values()).sort((a, b) => 
