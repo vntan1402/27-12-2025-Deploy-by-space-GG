@@ -30,6 +30,7 @@ export const EditCrewModal = ({
     ship_sign_on: crew.ship_sign_on || '-',
     place_sign_on: crew.place_sign_on || '',
     date_sign_on: crew.date_sign_on ? crew.date_sign_on.split('T')[0] : '',
+    place_sign_off: crew.place_sign_off || '',
     date_sign_off: crew.date_sign_off ? crew.date_sign_off.split('T')[0] : ''
   });
   
