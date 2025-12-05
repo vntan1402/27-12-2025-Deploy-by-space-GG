@@ -128,6 +128,13 @@ export const BulkEditShipSignOnModal = ({
   const { language } = useAuth();
   const [shipSearch, setShipSearch] = React.useState('');
   
+  // Reset search when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setShipSearch('');
+    }
+  }, [isOpen]);
+  
   if (!isOpen) return null;
   
   // Filter ships based on search
