@@ -1982,6 +1982,18 @@ export const CrewListTable = ({
                 <span>✏️</span>
                 <span>{language === 'vi' ? 'Chỉnh sửa thuyền viên' : 'Edit Crew Member'}</span>
               </button>
+              
+              {/* Show history menu item only for Editor+ roles */}
+              {user && ['company_officer', 'manager', 'admin', 'super_admin'].includes(user.role) && (
+                <button
+                  onClick={handleViewHistory}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center space-x-2"
+                >
+                  <span>📋</span>
+                  <span>{language === 'vi' ? 'Xem lịch sử' : 'View History'}</span>
+                </button>
+              )}
+              
               <div className="border-t border-gray-200 my-1"></div>
             </>
           )}
