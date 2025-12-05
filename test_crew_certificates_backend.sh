@@ -2,7 +2,7 @@
 
 # Test script for Crew Certificates Backend APIs (Steps 1-5)
 
-API_URL="https://vessel-docs-central.preview.emergentagent.com/api"
+API_URL="https://crew-audit-system.preview.emergentagent.com/api"
 
 echo "=========================================="
 echo "CREW CERTIFICATES BACKEND API TESTING"
