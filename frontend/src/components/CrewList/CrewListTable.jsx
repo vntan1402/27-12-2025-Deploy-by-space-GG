@@ -547,6 +547,12 @@ export const CrewListTable = ({
     setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
   };
   
+  const handleBulkEditPlaceSignOff = () => {
+    setBulkPlaceSignOff('');
+    setShowBulkEditPlaceSignOff(true);
+    setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
+  };
+  
   // Bulk update handlers
   const handleBulkUpdatePlaceSignOn = async () => {
     const crewIds = Array.from(selectedCrewMembers);
