@@ -727,24 +727,32 @@ export const CrewListTable = ({
           if (!crew) continue;
           
           const currentStatus = crew.status;
+          const currentShip = crew.ship_sign_on || '-';
           
           try {
-            // Update DB immediately
-            await crewService.update(crewId, {
-              date_sign_off: bulkDateSignOff,
-              status: 'Standby',
-              ship_sign_on: '-'
-            });
-            
-            // File movement and assignment history in background
             if (currentStatus === 'Sign on') {
-              // Sign off flow: Ship → Standby (files move in background)
+              // Case 2: Real Sign Off operation (Ship → Standby)
+              // Update DB immediately with status change
+              await crewService.update(crewId, {
+                date_sign_off: bulkDateSignOff,
+                status: 'Standby',
+                ship_sign_on: '-'
+              });
+              
+              // signOff API creates new assignment history record (background)
               crewService.signOff(crewId, {
                 sign_off_date: bulkDateSignOff,
                 notes: `Bulk sign off via Date Sign Off edit`
               }).catch(error => console.error(`Background signOff error for ${crewId}:`, error));
+              
             } else {
-              // Already standby, just update assignment history in background
+              // Case 1: Date correction (crew already Standby, just fixing date)
+              // Update DB immediately (no status/ship change)
+              await crewService.update(crewId, {
+                date_sign_off: bulkDateSignOff
+              });
+              
+              // Update existing assignment history record (background)
               crewService.updateAssignmentDates(crewId, { date_sign_off: bulkDateSignOff })
                 .catch(error => console.error(`Background assignment history update error for ${crewId}:`, error));
             }
@@ -752,7 +760,7 @@ export const CrewListTable = ({
             successCount++;
             
           } catch (error) {
-            console.error(`Failed to sign off crew ${crewId}:`, error);
+            console.error(`Failed to update crew ${crewId}:`, error);
             failCount++;
           }
         }
