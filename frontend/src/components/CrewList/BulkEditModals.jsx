@@ -119,7 +119,11 @@ export const BulkEditShipSignOnModal = ({
   onChange, 
   onSubmit, 
   selectedCount,
-  ships 
+  ships,
+  placeSignOn,
+  onPlaceSignOnChange,
+  dateSignOn,
+  onDateSignOnChange
 }) => {
   const { language } = useAuth();
   
