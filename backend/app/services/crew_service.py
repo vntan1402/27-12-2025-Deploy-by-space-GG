@@ -115,7 +115,6 @@ class CrewService:
             current_updated_at = crew.get('updated_at')
             
             # Parse expected timestamp
-            from datetime import datetime
             try:
                 expected_dt = datetime.fromisoformat(expected_last_modified_at.replace('Z', '+00:00'))
                 
