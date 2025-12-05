@@ -1829,7 +1829,10 @@ export const CrewListTable = ({
                     onDoubleClick={() => handleCrewDoubleClick(crew)}
                     title={language === 'vi' ? 'Nhấp đúp để xem chứng chỉ | Chuột phải để xem menu' : 'Double-click to view certificates | Right-click for menu'}
                   >
-                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200">
+                    <td 
+                      className="px-3 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200"
+                      title={crew.passport_file_name ? `File: ${crew.passport_file_name}` : (language === 'vi' ? 'Chưa có file' : 'No file')}
+                    >
                       <div className="flex items-center space-x-2">
                         <input
                           type="checkbox"
