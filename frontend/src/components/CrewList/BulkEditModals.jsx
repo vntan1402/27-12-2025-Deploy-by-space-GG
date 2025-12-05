@@ -126,8 +126,16 @@ export const BulkEditShipSignOnModal = ({
   onDateSignOnChange
 }) => {
   const { language } = useAuth();
+  const [shipSearch, setShipSearch] = React.useState('');
   
   if (!isOpen) return null;
+  
+  // Filter ships based on search
+  const filteredShips = ships && ships.length > 0 
+    ? ships.filter(ship => 
+        ship.name.toLowerCase().includes(shipSearch.toLowerCase())
+      )
+    : [];
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
