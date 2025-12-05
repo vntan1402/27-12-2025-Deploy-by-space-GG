@@ -177,21 +177,14 @@ export const EditCrewModal = ({
         console.log('🔄 Transfer Flow detected');
         needsFileMovement = true;
         
-        // Call API without await - let it run in background
-        crewService.transferShip(crew.id, {
+        // Call transfer API and wait for completion
+        await crewService.transferShip(crew.id, {
           to_ship_name: formData.ship_sign_on,
           transfer_date: new Date().toISOString().split('T')[0],
           notes: `Transfer via Edit Crew Member modal from ${crew.ship_sign_on} to ${formData.ship_sign_on}`
-        }).catch(error => {
-          console.error('Background transfer error:', error);
-          toast.error(
-            language === 'vi' 
-              ? '❌ Lỗi khi chuyển tàu. Vui lòng kiểm tra lại.'
-              : '❌ Transfer error. Please check again.'
-          );
         });
         
-        // Update basic info fields immediately
+        // Update other basic info fields (ship_sign_on and date_sign_on already updated by transferShip API)
         const basicUpdateData = {
           full_name: formData.full_name,
           full_name_en: formData.full_name_en || null,
@@ -204,9 +197,9 @@ export const EditCrewModal = ({
           passport_expiry_date: formData.passport_expiry_date || null,
           rank: formData.rank || null,
           seamen_book: formData.seamen_book || null,
-          place_sign_on: formData.place_sign_on || null,
-          date_sign_on: formData.date_sign_on || null,
-          date_sign_off: formData.date_sign_off || null
+          place_sign_on: formData.place_sign_on || null
+          // Note: ship_sign_on and date_sign_on already updated by transferShip API
+          // date_sign_off should remain as is (crew still Sign on)
         };
         
         await crewService.update(crew.id, basicUpdateData);
