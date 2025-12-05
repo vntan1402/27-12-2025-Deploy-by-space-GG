@@ -570,17 +570,22 @@ export const CrewListTable = ({
               
             } else if (currentStatus === 'Sign on' && normalizedCurrentShip !== normalizedBulkShip && normalizedCurrentShip !== '' && normalizedCurrentShip !== '-') {
               // Transfer flow: Ship A → Ship B
+              // Use bulk date or current date
+              const finalDateSignOn = bulkShipSignOnDate || new Date().toISOString().split('T')[0];
+              const finalPlaceSignOn = bulkShipSignOnPlace || crew.place_sign_on || null;
+              
               // Update DB immediately
               await crewService.update(crewId, {
                 ship_sign_on: bulkShipSignOn,
                 status: 'Sign on',
-                date_sign_on: new Date().toISOString().split('T')[0]
+                date_sign_on: finalDateSignOn,
+                place_sign_on: finalPlaceSignOn
               });
               
               // File movement in background
               crewService.transferShip(crewId, {
                 to_ship_name: bulkShipSignOn,
-                transfer_date: new Date().toISOString().split('T')[0],
+                transfer_date: finalDateSignOn,
                 notes: `Bulk transfer via Ship Sign On edit from ${currentShip} to ${bulkShipSignOn}`
               }).catch(error => console.error(`Background transferShip error for ${crewId}:`, error));
               
