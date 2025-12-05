@@ -1094,7 +1094,10 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
                     onContextMenu={(e) => handleRowRightClick(e, cert)}
                   >
                     {/* Checkbox + STT */}
-                    <td className="px-3 py-4 whitespace-nowrap border-r border-gray-200">
+                    <td 
+                      className="px-3 py-4 whitespace-nowrap border-r border-gray-200"
+                      title={cert.crew_cert_file_name ? `File: ${cert.crew_cert_file_name}` : (language === 'vi' ? 'Chưa có file' : 'No file')}
+                    >
                       <div className="flex items-center gap-3">
                         <input
                           type="checkbox"
