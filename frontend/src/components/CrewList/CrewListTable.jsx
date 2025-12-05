@@ -807,6 +807,13 @@ export const CrewListTable = ({
     }
   };
   
+  const handleBulkUpdatePlaceSignOff = async () => {
+    const crewIds = Array.from(selectedCrewMembers);
+    const value = bulkPlaceSignOff.trim() === '' ? null : bulkPlaceSignOff.trim();
+    await bulkUpdateField('place_sign_off', value, crewIds);
+    setShowBulkEditPlaceSignOff(false);
+  };
+  
   const handleBulkUpdateDateSignOff = async () => {
     const crewIds = Array.from(selectedCrewMembers);
     const isClearingDate = !bulkDateSignOff || bulkDateSignOff.trim() === '';
