@@ -33,6 +33,38 @@ export const CrewListTable = ({
   
   // State
   const [crewList, setCrewList] = useState([]);
+  
+  // Helper: Update crew with conflict detection
+  const updateCrewWithConflictDetection = async (crewId, updateData, crew) => {
+    try {
+      // Add timestamp for conflict detection
+      const dataWithTimestamp = {
+        ...updateData,
+        expected_last_modified_at: crew.updated_at || crew.created_at
+      };
+      
+      await crewService.update(crewId, dataWithTimestamp);
+      return { success: true };
+    } catch (error) {
+      // Handle 409 Conflict
+      if (error.response?.status === 409) {
+        const conflictDetail = error.response.data.detail;
+        
+        // Store conflict info and pending update
+        setConflictInfo(conflictDetail);
+        setPendingUpdate({
+          crewId,
+          updateData,
+          crew
+        });
+        
+        return { success: false, conflict: true };
+      }
+      
+      // Other errors
+      throw error;
+    }
+  };
   const [loading, setLoading] = useState(false);
   const [selectedCrewMembers, setSelectedCrewMembers] = useState(new Set());
   
