@@ -131,6 +131,7 @@ class CrewAssignmentService:
                 'status': 'Standby',
                 'ship_sign_on': '-',
                 'date_sign_off': parsed_date,
+                'place_sign_off': place_sign_off,
                 'updated_at': datetime.now(timezone.utc),
                 'updated_by': current_user.username
             }
