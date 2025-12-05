@@ -86,6 +86,10 @@ export const CrewListTable = ({
   const [bulkDateSignOn, setBulkDateSignOn] = useState('');
   const [bulkDateSignOff, setBulkDateSignOff] = useState('');
   
+  // Ship Sign On modal additional fields
+  const [bulkShipSignOnPlace, setBulkShipSignOnPlace] = useState('');
+  const [bulkShipSignOnDate, setBulkShipSignOnDate] = useState('');
+  
   // Assignment history modal state
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedCrewForHistory, setSelectedCrewForHistory] = useState(null);
