@@ -6,7 +6,8 @@ export { BatchProcessingModal } from './BatchProcessingModal';
 export { BatchResultsModal } from './BatchResultsModal';
 export { CrewAssignmentHistoryModal } from './CrewAssignmentHistoryModal';
 export { 
-  BulkEditPlaceSignOnModal, 
+  BulkEditPlaceSignOnModal,
+  BulkEditPlaceSignOffModal,
   BulkEditShipSignOnModal, 
   BulkEditDateSignOnModal, 
   BulkEditDateSignOffModal 
