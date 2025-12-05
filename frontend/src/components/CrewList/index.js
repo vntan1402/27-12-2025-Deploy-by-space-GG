@@ -4,6 +4,7 @@ export { EditCrewModal } from './EditCrewModal';
 export { DeleteCrewConfirmModal } from './DeleteCrewConfirmModal';
 export { BatchProcessingModal } from './BatchProcessingModal';
 export { BatchResultsModal } from './BatchResultsModal';
+export { CrewAssignmentHistoryModal } from './CrewAssignmentHistoryModal';
 export { 
   BulkEditPlaceSignOnModal, 
   BulkEditShipSignOnModal, 
