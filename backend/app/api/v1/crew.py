@@ -296,11 +296,12 @@ async def upload_passport_files(
                 detail=f"File upload failed: {upload_result.get('message', 'Unknown error')}"
             )
         
-        # 6. Extract file IDs
+        # 6. Extract file IDs and filename
         passport_file_id = upload_result.get('passport_file_id')
+        passport_file_name = upload_result.get('passport_file_name')  # ⭐ NEW
         summary_file_id = upload_result.get('summary_file_id')
         
-        # 7. Update crew record with file IDs
+        # 7. Update crew record with file IDs and filename
         update_data = {
             'updated_at': datetime.now(timezone.utc),
             'updated_by': current_user.username
@@ -308,6 +309,8 @@ async def upload_passport_files(
         
         if passport_file_id:
             update_data['passport_file_id'] = passport_file_id
+        if passport_file_name:  # ⭐ NEW
+            update_data['passport_file_name'] = passport_file_name
         if summary_file_id:
             update_data['summary_file_id'] = summary_file_id
         
