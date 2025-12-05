@@ -85,6 +85,10 @@ export const CrewListTable = ({
   const [bulkShipSignOn, setBulkShipSignOn] = useState('');
   const [bulkDateSignOn, setBulkDateSignOn] = useState('');
   const [bulkDateSignOff, setBulkDateSignOff] = useState('');
+  
+  // Assignment history modal state
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [selectedCrewForHistory, setSelectedCrewForHistory] = useState(null);
 
   // Fetch crew list whenever filters change
   useEffect(() => {
