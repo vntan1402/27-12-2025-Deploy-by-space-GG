@@ -575,12 +575,24 @@ export const CrewListTable = ({
               // Transfer flow: Ship A → Ship B
               // Use bulk date or current date
               const finalDateSignOn = bulkShipSignOnDate || new Date().toISOString().split('T')[0];
+              const finalPlaceSignOn = bulkShipSignOnPlace || crew.place_sign_on || null;
               
-              // Call transferShip API - it will update DB and move files
-              await crewService.transferShip(crewId, {
+              // Step 1: Update DB immediately
+              await crewService.update(crewId, {
+                ship_sign_on: bulkShipSignOn,
+                status: 'Sign on',
+                date_sign_on: finalDateSignOn,
+                place_sign_on: finalPlaceSignOn
+              });
+              
+              // Step 2: Background file movement with skip_validation
+              crewService.transferShip(crewId, {
                 to_ship_name: bulkShipSignOn,
                 transfer_date: finalDateSignOn,
-                notes: `Bulk transfer via Ship Sign On edit from ${currentShip} to ${bulkShipSignOn}`
+                notes: `Bulk transfer via Ship Sign On edit from ${currentShip} to ${bulkShipSignOn}`,
+                skip_validation: true  // Skip validation since DB already updated
+              }).catch(error => {
+                console.error(`Background transferShip error for ${crewId}:`, error);
               });
               
               successCount++;
