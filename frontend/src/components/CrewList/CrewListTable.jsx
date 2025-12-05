@@ -94,6 +94,10 @@ export const CrewListTable = ({
   // Assignment history modal state
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedCrewForHistory, setSelectedCrewForHistory] = useState(null);
+  
+  // Conflict detection state
+  const [conflictInfo, setConflictInfo] = useState(null);
+  const [pendingUpdate, setPendingUpdate] = useState(null);
 
   // Fetch crew list whenever filters change
   useEffect(() => {
