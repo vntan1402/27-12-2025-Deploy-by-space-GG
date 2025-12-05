@@ -355,7 +355,8 @@ class CrewAssignmentService:
         to_ship_name: str,
         transfer_date: str,
         notes: Optional[str],
-        current_user: UserResponse
+        current_user: UserResponse,
+        skip_validation: bool = False
     ) -> Dict:
         """
         Transfer crew from one ship to another (without going through Standby)
