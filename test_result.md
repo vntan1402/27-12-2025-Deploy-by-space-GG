@@ -1784,7 +1784,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Certificate Abbreviation Saving Functionality"
+    - "Crew Assignment History Modal Feature"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
