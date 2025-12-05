@@ -548,6 +548,14 @@ export const CrewListTable = ({
             // Determine action based on current status
             if (currentStatus === 'Standby') {
               // Sign On flow: Standby → Ship
+              
+              // VALIDATION: Check if crew can be signed on
+              if (currentStatus !== 'Standby') {
+                console.warn(`⚠️ Cannot sign on crew ${crewId} with status '${currentStatus}'`);
+                failCount++;
+                continue;
+              }
+              
               // Use bulk values or fallback to crew values or current date
               const finalDateSignOn = bulkShipSignOnDate || crew.date_sign_on || new Date().toISOString().split('T')[0];
               const finalPlaceSignOn = bulkShipSignOnPlace || crew.place_sign_on || null;
