@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     # AI
     EMERGENT_LLM_KEY: Optional[str] = os.getenv('EMERGENT_LLM_KEY')
     
+    # Admin Initialization (Auto-create admin on first startup)
+    INIT_ADMIN_USERNAME: str = os.getenv('INIT_ADMIN_USERNAME', 'system_admin')
+    INIT_ADMIN_EMAIL: str = os.getenv('INIT_ADMIN_EMAIL', 'admin@company.com')
+    INIT_ADMIN_PASSWORD: Optional[str] = os.getenv('INIT_ADMIN_PASSWORD')
+    INIT_ADMIN_FULL_NAME: str = os.getenv('INIT_ADMIN_FULL_NAME', 'System Administrator')
+    
     # Paths
     UPLOAD_DIR: Path = ROOT_DIR / "uploads"
     
