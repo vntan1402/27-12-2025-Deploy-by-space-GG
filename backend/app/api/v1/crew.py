@@ -166,14 +166,29 @@ async def create_crew(
 @router.put("/{crew_id}", response_model=CrewResponse)
 async def update_crew(
     crew_id: str,
-    crew_data: CrewUpdate,
+    request_data: Dict = Body(...),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
     Update crew member (Editor+ role required)
+    
+    Supports conflict detection:
+    - Send 'expected_last_modified_at' to detect concurrent edits
+    - Returns 409 if crew was modified by another user
     """
     try:
-        return await CrewService.update_crew(crew_id, crew_data, current_user)
+        # Extract conflict detection parameter
+        expected_last_modified_at = request_data.pop('expected_last_modified_at', None)
+        
+        # Parse crew data
+        crew_data = CrewUpdate(**request_data)
+        
+        return await CrewService.update_crew(
+            crew_id, 
+            crew_data, 
+            current_user,
+            expected_last_modified_at=expected_last_modified_at
+        )
     except HTTPException:
         raise
     except Exception as e:
