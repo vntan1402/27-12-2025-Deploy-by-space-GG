@@ -2527,6 +2527,16 @@ export const CrewListTable = ({
           }}
         />
       )}
+      
+      {/* Conflict Resolution Dialog */}
+      {conflictInfo && (
+        <ConflictDialog
+          conflict={conflictInfo}
+          onKeepCurrent={handleConflictKeepCurrent}
+          onUseMyValue={handleConflictUseMyValue}
+          onCancel={handleConflictCancel}
+        />
+      )}
     </div>
   );
 };
