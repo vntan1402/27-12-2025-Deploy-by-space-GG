@@ -754,10 +754,20 @@ export const CrewListTable = ({
           try {
             if (currentStatus === 'Sign on') {
               // Case 2: Real Sign Off operation (Ship → Standby)
-              // Call signOff API - it will update DB and move files
-              await crewService.signOff(crewId, {
+              // Step 1: Update DB immediately
+              await crewService.update(crewId, {
+                date_sign_off: bulkDateSignOff,
+                status: 'Standby',
+                ship_sign_on: '-'
+              });
+              
+              // Step 2: Background file movement with skip_validation
+              crewService.signOff(crewId, {
                 sign_off_date: bulkDateSignOff,
-                notes: `Bulk sign off via Date Sign Off edit`
+                notes: `Bulk sign off via Date Sign Off edit`,
+                skip_validation: true  // Skip validation since DB already updated
+              }).catch(error => {
+                console.error(`Background signOff error for ${crewId}:`, error);
               });
               
             } else {
