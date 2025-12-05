@@ -2317,6 +2317,17 @@ export const CrewListTable = ({
         onSubmit={handleBulkUpdateDateSignOff}
         selectedCount={selectedCrewMembers.size}
       />
+      
+      {/* Assignment History Modal */}
+      {showHistoryModal && selectedCrewForHistory && (
+        <CrewAssignmentHistoryModal
+          crew={selectedCrewForHistory}
+          onClose={() => {
+            setShowHistoryModal(false);
+            setSelectedCrewForHistory(null);
+          }}
+        />
+      )}
     </div>
   );
 };
