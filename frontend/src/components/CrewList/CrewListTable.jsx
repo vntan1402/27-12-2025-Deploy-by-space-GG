@@ -19,6 +19,7 @@ import {
   BulkEditDateSignOffModal,
   CrewAssignmentHistoryModal
 } from './index';
+import { ConflictDialog } from './ConflictDialog';
 
 export const CrewListTable = ({ 
   selectedShip,
