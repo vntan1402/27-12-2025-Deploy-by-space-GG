@@ -129,6 +129,7 @@ class GoogleDriveService:
             return {
                 "success": True,
                 "passport_file_id": passport_file_id,
+                "passport_file_name": filename,  # ⭐ NEW: Include filename
                 "summary_file_id": summary_file_id,
                 "message": "Files uploaded successfully"
             }
