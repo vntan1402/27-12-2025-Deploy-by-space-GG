@@ -609,7 +609,43 @@ export const CrewListTable = ({
   const handleBulkUpdateDateSignOn = async () => {
     const crewIds = Array.from(selectedCrewMembers);
     const value = bulkDateSignOn === '' ? null : bulkDateSignOn;
-    await bulkUpdateField('date_sign_on', value, crewIds);
+    
+    try {
+      let successCount = 0;
+      let failCount = 0;
+      
+      for (const crewId of crewIds) {
+        try {
+          // Update crew date_sign_on
+          await crewService.update(crewId, { date_sign_on: value });
+          
+          // Update assignment history if date is not null
+          if (value) {
+            await crewService.updateAssignmentDates(crewId, { date_sign_on: value });
+          }
+          
+          successCount++;
+        } catch (error) {
+          console.error(`Failed to update crew ${crewId}:`, error);
+          failCount++;
+        }
+      }
+      
+      if (successCount > 0) {
+        toast.success(
+          language === 'vi' 
+            ? `Đã cập nhật ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}`
+            : `Updated ${successCount} crew member(s)${failCount > 0 ? `, ${failCount} failed` : ''}`
+        );
+        fetchCrewList(); // Refresh list
+      } else {
+        toast.error(language === 'vi' ? 'Không thể cập nhật' : 'Failed to update');
+      }
+    } catch (error) {
+      console.error('Bulk update date sign on error:', error);
+      toast.error(language === 'vi' ? 'Lỗi cập nhật hàng loạt' : 'Bulk update error');
+    }
+    
     setShowBulkEditDateSignOn(false);
   };
   
