@@ -240,48 +240,7 @@ const CompanyFormModal = ({
                 type="url"
                 value={companyData.logo_url}
                 onChange={(e) => {
-                  let url = e.target.value;
-                  
-                  // Auto-convert Google Drive URLs to viewable format
-                  if (url) {
-                    // Extract file ID from various Google Drive URL formats
-                    let fileId = null;
-                    
-                    // Format 1: https://drive.google.com/file/d/{ID}/view
-                    let match = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-                    if (match) {
-                      fileId = match[1];
-                    }
-                    
-                    // Format 2: https://drive.google.com/open?id={ID}
-                    if (!fileId) {
-                      match = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-                      if (match) {
-                        fileId = match[1];
-                      }
-                    }
-                    
-                    // Format 3: https://drive.google.com/uc?id={ID}
-                    if (!fileId) {
-                      match = url.match(/\/uc\?.*id=([a-zA-Z0-9_-]+)/);
-                      if (match) {
-                        fileId = match[1];
-                      }
-                    }
-                    
-                    // Format 4: Direct thumbnail link
-                    if (!fileId) {
-                      match = url.match(/\/thumbnail\?.*id=([a-zA-Z0-9_-]+)/);
-                      if (match) {
-                        fileId = match[1];
-                      }
-                    }
-                    
-                    // If we found a file ID, convert to standard viewable format
-                    if (fileId) {
-                      url = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
-                    }
-                  }
+                  const url = e.target.value;
                   
                   setCompanyData(prev => ({ ...prev, logo_url: url }));
                   if (url) {
@@ -290,16 +249,22 @@ const CompanyFormModal = ({
                   }
                 }}
                 onBlur={(e) => {
-                  // Show warning if folder link is detected
                   const url = e.target.value;
+                  
+                  // Show warning if folder link is detected
                   if (url && url.includes('/folders/')) {
                     alert(language === 'vi' 
-                      ? '⚠️ Link folder không thể tự động convert!\n\nCách lấy link file đúng:\n1. Mở folder trong Google Drive\n2. Click vào file ảnh logo\n3. Click nút Share (Chia sẻ)\n4. Click "Copy link"\n5. Paste link đó vào đây\n\nLink file phải có dạng:\nhttps://drive.google.com/file/d/{ID}/view'
-                      : '⚠️ Folder link cannot be auto-converted!\n\nHow to get the correct file link:\n1. Open folder in Google Drive\n2. Click on the logo image file\n3. Click Share button\n4. Click "Copy link"\n5. Paste that link here\n\nFile link should look like:\nhttps://drive.google.com/file/d/{ID}/view');
+                      ? '⚠️ Link folder không thể hiển thị!\n\nCách lấy link file đúng:\n1. Mở folder trong Google Drive\n2. Click vào file ảnh logo\n3. Click nút Share (Chia sẻ)\n4. Click "Copy link"\n5. Paste link đó vào đây\n\nLink file phải có dạng:\nhttps://drive.google.com/file/d/{ID}/view'
+                      : '⚠️ Folder link cannot be displayed!\n\nHow to get the correct file link:\n1. Open folder in Google Drive\n2. Click on the logo image file\n3. Click Share button\n4. Click "Copy link"\n5. Paste that link here\n\nFile link should look like:\nhttps://drive.google.com/file/d/{ID}/view');
                     
                     // Clear the invalid folder link
                     setCompanyData(prev => ({ ...prev, logo_url: '' }));
                     setLogoPreview(null);
+                  }
+                  
+                  // Show info message for Google Drive file links
+                  if (url && url.includes('drive.google.com/file/')) {
+                    console.info('ℹ️ Google Drive file link detected. Link will be saved as-is (full size).');
                   }
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
