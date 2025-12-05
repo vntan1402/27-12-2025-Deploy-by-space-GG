@@ -19,10 +19,6 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
   // Filter state
   const [filterActionType, setFilterActionType] = useState('All');
 
-  useEffect(() => {
-    fetchAssignmentHistory();
-  }, [crew.id]);
-
   const fetchAssignmentHistory = async () => {
     try {
       setLoading(true);
