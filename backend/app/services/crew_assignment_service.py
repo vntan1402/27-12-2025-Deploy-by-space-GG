@@ -36,7 +36,8 @@ class CrewAssignmentService:
         crew_id: str,
         sign_off_date: str,
         notes: Optional[str],
-        current_user: UserResponse
+        current_user: UserResponse,
+        skip_validation: bool = False
     ) -> Dict:
         """
         Sign off crew member and move files to Standby
