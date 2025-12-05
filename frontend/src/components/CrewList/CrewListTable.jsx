@@ -16,7 +16,8 @@ import {
   BulkEditPlaceSignOnModal,
   BulkEditShipSignOnModal,
   BulkEditDateSignOnModal,
-  BulkEditDateSignOffModal
+  BulkEditDateSignOffModal,
+  CrewAssignmentHistoryModal
 } from './index';
 
 export const CrewListTable = ({ 
