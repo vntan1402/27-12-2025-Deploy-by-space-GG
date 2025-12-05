@@ -851,7 +851,8 @@ async def transfer_crew_to_ship(
     {
         "to_ship_name": "BROTHER 37",  # Required
         "transfer_date": "2025-01-25" | "25/01/2025",  # ISO or DD/MM/YYYY
-        "notes": "Temporary transfer"  # Optional
+        "notes": "Temporary transfer",  # Optional
+        "skip_validation": false  # Optional - Skip status validation if DB already updated
     }
     
     Response:
