@@ -294,8 +294,12 @@ const CompanyFormModal = ({
                   const url = e.target.value;
                   if (url && url.includes('/folders/')) {
                     alert(language === 'vi' 
-                      ? '⚠️ Link folder không thể hiển thị làm logo. Vui lòng sử dụng link file ảnh.'
-                      : '⚠️ Folder link cannot be displayed as logo. Please use an image file link.');
+                      ? '⚠️ Link folder không thể tự động convert!\n\nCách lấy link file đúng:\n1. Mở folder trong Google Drive\n2. Click vào file ảnh logo\n3. Click nút Share (Chia sẻ)\n4. Click "Copy link"\n5. Paste link đó vào đây\n\nLink file phải có dạng:\nhttps://drive.google.com/file/d/{ID}/view'
+                      : '⚠️ Folder link cannot be auto-converted!\n\nHow to get the correct file link:\n1. Open folder in Google Drive\n2. Click on the logo image file\n3. Click Share button\n4. Click "Copy link"\n5. Paste that link here\n\nFile link should look like:\nhttps://drive.google.com/file/d/{ID}/view');
+                    
+                    // Clear the invalid folder link
+                    setCompanyData(prev => ({ ...prev, logo_url: '' }));
+                    setLogoPreview(null);
                   }
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
