@@ -332,6 +332,15 @@ export const CrewListTable = ({
     }
   };
   
+  // Handle view assignment history
+  const handleViewHistory = () => {
+    if (crewContextMenu.crew) {
+      setSelectedCrewForHistory(crewContextMenu.crew);
+      setShowHistoryModal(true);
+      setCrewContextMenu({ show: false, x: 0, y: 0, crew: null });
+    }
+  };
+  
   // Handle delete crew
   const handleDeleteCrew = () => {
     if (selectedCrewMembers.size > 0) {
