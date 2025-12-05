@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://cert-download-fix.preview.emergentagent.com/api"
+API_URL="https://vessel-docs-central.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
