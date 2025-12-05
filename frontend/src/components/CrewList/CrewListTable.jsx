@@ -2399,6 +2399,10 @@ export const CrewListTable = ({
         onSubmit={handleBulkUpdateShipSignOn}
         selectedCount={selectedCrewMembers.size}
         ships={ships}
+        placeSignOn={bulkShipSignOnPlace}
+        onPlaceSignOnChange={setBulkShipSignOnPlace}
+        dateSignOn={bulkShipSignOnDate}
+        onDateSignOnChange={setBulkShipSignOnDate}
       />
       
       <BulkEditDateSignOnModal
