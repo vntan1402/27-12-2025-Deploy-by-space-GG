@@ -60,6 +60,10 @@ async def startup_event():
         await mongo_db.connect()
         logger.info("✅ Database connected")
         
+        # Initialize admin if needed (auto-create from .env)
+        from app.utils.init_admin import init_admin_if_needed
+        await init_admin_if_needed()
+        
         # Setup scheduled jobs
         # Run cleanup job daily at 2:00 AM
         scheduler.add_job(
