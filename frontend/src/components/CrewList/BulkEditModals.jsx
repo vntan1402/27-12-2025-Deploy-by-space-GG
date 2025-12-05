@@ -187,6 +187,30 @@ export const BulkEditShipSignOnModal = ({
               </div>
             </div>
             
+            {/* Ship Search Field */}
+            {ships && ships.length > 0 && (
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? '🔍 Tìm kiếm tàu' : '🔍 Ship Search'}
+                </label>
+                <input
+                  type="text"
+                  value={shipSearch}
+                  onChange={(e) => setShipSearch(e.target.value)}
+                  placeholder={language === 'vi' ? 'Nhập tên tàu để tìm kiếm...' : 'Type ship name to search...'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  autoFocus
+                />
+                {shipSearch && (
+                  <div className="mt-1 text-xs text-gray-600">
+                    {language === 'vi' 
+                      ? `Tìm thấy ${filteredShips.length} tàu` 
+                      : `Found ${filteredShips.length} ship(s)`}
+                  </div>
+                )}
+              </div>
+            )}
+            
             <label className="block text-sm font-medium text-gray-700 mb-2">
               {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
             </label>
@@ -201,10 +225,9 @@ export const BulkEditShipSignOnModal = ({
                   }
                 }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
-                autoFocus
               >
                 <option value="">{language === 'vi' ? '-- Chọn tàu --' : '-- Select Ship --'}</option>
-                {ships.map(ship => (
+                {filteredShips.map(ship => (
                   <option key={ship.id} value={ship.name}>{ship.name}</option>
                 ))}
                 <option value="-">{language === 'vi' ? '- (Sign off)' : '- (Sign off)'}</option>
