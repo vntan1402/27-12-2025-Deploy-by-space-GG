@@ -94,8 +94,13 @@ class CrewService:
         return CrewResponse(**crew_dict)
     
     @staticmethod
-    async def update_crew(crew_id: str, crew_data: CrewUpdate, current_user: UserResponse) -> CrewResponse:
-        """Update crew member"""
+    async def update_crew(
+        crew_id: str, 
+        crew_data: CrewUpdate, 
+        current_user: UserResponse,
+        expected_last_modified_at: Optional[str] = None
+    ) -> CrewResponse:
+        """Update crew member with conflict detection"""
         crew = await CrewRepository.find_by_id(crew_id)
         if not crew:
             raise HTTPException(status_code=404, detail="Crew member not found")
@@ -104,6 +109,36 @@ class CrewService:
         if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
             if crew.get('company_id') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Conflict detection
+        if expected_last_modified_at:
+            current_updated_at = crew.get('updated_at')
+            
+            # Parse expected timestamp
+            from datetime import datetime
+            try:
+                expected_dt = datetime.fromisoformat(expected_last_modified_at.replace('Z', '+00:00'))
+                
+                # Check if crew was modified after expected time
+                if current_updated_at and current_updated_at > expected_dt:
+                    # Conflict detected!
+                    logger.warning(f"⚠️ Conflict detected for crew {crew_id}: expected {expected_dt}, current {current_updated_at}")
+                    
+                    raise HTTPException(
+                        status_code=409,
+                        detail={
+                            "error": "conflict",
+                            "message": "Crew was modified by another user",
+                            "current_ship": crew.get('ship_sign_on'),
+                            "current_status": crew.get('status'),
+                            "current_updated_at": current_updated_at.isoformat() if current_updated_at else None,
+                            "updated_by": crew.get('updated_by'),
+                            "your_values": crew_data.dict(exclude_unset=True)
+                        }
+                    )
+            except ValueError as e:
+                logger.error(f"❌ Invalid timestamp format: {expected_last_modified_at}, error: {e}")
+                # Continue without conflict check if timestamp is invalid
         
         # Prepare update data
         update_data = crew_data.dict(exclude_unset=True)
