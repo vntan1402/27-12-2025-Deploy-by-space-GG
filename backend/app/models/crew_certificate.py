@@ -19,6 +19,7 @@ class CrewCertificateBase(BaseModel):
     note: Optional[str] = None
     # File references
     crew_cert_file_id: Optional[str] = None
+    crew_cert_file_name: Optional[str] = None  # File name stored on Google Drive
     crew_cert_summary_file_id: Optional[str] = None  # Summary file ID from Google Drive
 
 class CrewCertificateCreate(CrewCertificateBase):
