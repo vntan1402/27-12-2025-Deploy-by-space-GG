@@ -704,6 +704,10 @@ export const CrewListTable = ({
                 status: 'Standby',
                 ship_sign_on: '-'
               });
+              
+              // Update assignment history
+              await crewService.updateAssignmentDates(crewId, { date_sign_off: bulkDateSignOff });
+              
               successCount++;
             }
             
