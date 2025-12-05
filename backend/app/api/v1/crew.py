@@ -701,7 +701,8 @@ async def sign_off_crew_member(
     Request Body:
     {
         "sign_off_date": "2025-01-15" | "15/01/2025",  # ISO or DD/MM/YYYY
-        "notes": "Contract ended"  # Optional
+        "notes": "Contract ended",  # Optional
+        "skip_validation": false  # Optional - Skip status validation if DB already updated
     }
     
     Response:
