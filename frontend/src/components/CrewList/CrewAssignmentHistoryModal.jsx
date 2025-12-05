@@ -19,37 +19,42 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
   // Filter state
   const [filterActionType, setFilterActionType] = useState('All');
 
-  const fetchAssignmentHistory = async () => {
-    try {
-      setLoading(true);
-      const response = await crewService.getAssignmentHistory(crew.id, { limit: 100, skip: 0 });
-      
-      if (response.success && response.history) {
-        setHistoryData(response.history);
+  useEffect(() => {
+    const fetchAssignmentHistory = async () => {
+      try {
+        setLoading(true);
+        const response = await crewService.getAssignmentHistory(crew.id, { limit: 100, skip: 0 });
         
-        // Transform history into ship assignments
-        const assignments = transformToShipAssignments(response.history);
-        setShipAssignments(assignments);
-        setFilteredAssignments(assignments);
-      } else {
+        if (response.success && response.history) {
+          setHistoryData(response.history);
+          
+          // Transform history into ship assignments
+          const assignments = transformToShipAssignments(response.history);
+          setShipAssignments(assignments);
+          setFilteredAssignments(assignments);
+        } else {
+          setHistoryData([]);
+          setShipAssignments([]);
+          setFilteredAssignments([]);
+        }
+      } catch (error) {
+        console.error('Error fetching assignment history:', error);
+        toast.error(
+          language === 'vi'
+            ? 'Không thể tải lịch sử thay đổi'
+            : 'Failed to load assignment history'
+        );
         setHistoryData([]);
         setShipAssignments([]);
         setFilteredAssignments([]);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching assignment history:', error);
-      toast.error(
-        language === 'vi'
-          ? 'Không thể tải lịch sử thay đổi'
-          : 'Failed to load assignment history'
-      );
-      setHistoryData([]);
-      setShipAssignments([]);
-      setFilteredAssignments([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    
+    fetchAssignmentHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [crew.id]);
 
   /**
    * Transform history records into ship assignment rows
