@@ -225,7 +225,7 @@ export const EditCrewModal = ({
           ship_sign_on: formData.ship_sign_on,
           status: 'Sign on',  // Status remains Sign on
           place_sign_on: formData.place_sign_on || null,
-          date_sign_on: new Date().toISOString().split('T')[0],  // Update to transfer date
+          date_sign_on: formData.date_sign_on || new Date().toISOString().split('T')[0],  // Use user input or current date
           date_sign_off: formData.date_sign_off || null
         };
         
