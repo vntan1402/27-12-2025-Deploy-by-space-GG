@@ -2526,6 +2526,15 @@ export const CrewListTable = ({
         selectedCount={selectedCrewMembers.size}
       />
       
+      <BulkEditPlaceSignOffModal
+        isOpen={showBulkEditPlaceSignOff}
+        onClose={() => setShowBulkEditPlaceSignOff(false)}
+        value={bulkPlaceSignOff}
+        onChange={setBulkPlaceSignOff}
+        onSubmit={handleBulkUpdatePlaceSignOff}
+        selectedCount={selectedCrewMembers.size}
+      />
+      
       <BulkEditShipSignOnModal
         isOpen={showBulkEditShipSignOn}
         onClose={() => setShowBulkEditShipSignOn(false)}
