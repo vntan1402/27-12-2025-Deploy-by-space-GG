@@ -264,6 +264,14 @@ export const EditCrewModal = ({
           : 'Crew member updated successfully!');
       }
       
+      // Update assignment history dates if date_sign_on or date_sign_off changed
+      if (Object.keys(dateChanges).length > 0) {
+        crewService.updateAssignmentDates(crew.id, dateChanges).catch(error => {
+          console.error('Error updating assignment dates:', error);
+          // Don't show error to user, this is background operation
+        });
+      }
+      
       // Close modal immediately and refresh table
       onClose();
       onSuccess();
