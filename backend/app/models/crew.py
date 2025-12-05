@@ -21,6 +21,7 @@ class CrewBase(BaseModel):
     passport_issue_date: Optional[Union[str, datetime]] = None
     passport_expiry_date: Optional[Union[str, datetime]] = None
     passport_file_id: Optional[str] = None
+    passport_file_name: Optional[str] = None  # File name stored on Google Drive
     summary_file_id: Optional[str] = None
 
 class CrewCreate(CrewBase):
