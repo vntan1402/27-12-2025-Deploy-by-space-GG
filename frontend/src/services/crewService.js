@@ -219,5 +219,16 @@ export const crewService = {
   getAssignmentHistory: async (crewId, params = {}) => {
     const response = await api.get(`/api/crew/${crewId}/assignment-history`, { params });
     return response.data;
+  },
+
+  /**
+   * Update assignment history dates when user edits date_sign_on or date_sign_off
+   * @param {string} crewId - Crew ID
+   * @param {object} data - { date_sign_on?, date_sign_off? }
+   * @returns {Promise} Update result
+   */
+  updateAssignmentDates: async (crewId, data) => {
+    const response = await api.put(`/api/crew/${crewId}/update-assignment-dates`, data);
+    return response.data;
   }
 };
