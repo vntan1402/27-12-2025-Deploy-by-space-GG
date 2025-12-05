@@ -595,17 +595,23 @@ export const CrewListTable = ({
           const currentStatus = crew.status;
           
           try {
+            // Use values from modal or fallback to crew values or current date
+            const finalDateSignOff = bulkShipSignOnDate || crew.date_sign_off || new Date().toISOString().split('T')[0];
+            const finalPlaceSignOff = bulkShipSignOnPlace || crew.place_sign_off || null;
+            
             // Step 1: Update DB immediately
             await crewService.update(crewId, {
               ship_sign_on: '-',
               status: 'Standby',
-              date_sign_off: crew.date_sign_off || new Date().toISOString().split('T')[0]
+              date_sign_off: finalDateSignOff,
+              place_sign_off: finalPlaceSignOff
             });
             
             // Step 2: Background file movement (only if was Sign on)
             if (currentStatus === 'Sign on') {
               crewService.signOff(crewId, {
-                sign_off_date: crew.date_sign_off || new Date().toISOString().split('T')[0],
+                sign_off_date: finalDateSignOff,
+                place_sign_off: finalPlaceSignOff,
                 notes: `Bulk sign off via Ship Sign On edit (selected "-")`,
                 skip_validation: true  // Skip validation since DB already updated
               }).catch(error => {
