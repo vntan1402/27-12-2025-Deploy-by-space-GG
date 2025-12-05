@@ -2,19 +2,51 @@
 Name matching utility with support for Vietnamese name permutations
 """
 import re
+import unicodedata
 from itertools import permutations
 from typing import List, Tuple
+
+
+def remove_vietnamese_accents(text: str) -> str:
+    """
+    Remove Vietnamese accents from text.
+    Example: "CHƯƠNG SỸ HỌ" -> "CHUONG SY HO"
+    """
+    if not text:
+        return ""
+    
+    # Normalize to NFD (decomposed form) to separate base characters from accents
+    nfd_form = unicodedata.normalize('NFD', text)
+    
+    # Filter out combining characters (accents)
+    # Category 'Mn' = Mark, Nonspacing (accents, diacritics)
+    no_accents = ''.join(char for char in nfd_form if unicodedata.category(char) != 'Mn')
+    
+    # Handle special Vietnamese characters that don't decompose properly
+    replacements = {
+        'Đ': 'D', 'đ': 'd',
+        'Ð': 'D', 'ð': 'd'  # Alternative forms
+    }
+    
+    for viet_char, ascii_char in replacements.items():
+        no_accents = no_accents.replace(viet_char, ascii_char)
+    
+    return no_accents
 
 
 def normalize_name(name: str) -> str:
     """
     Normalize name for comparison:
+    - Remove Vietnamese accents
     - Remove extra spaces
     - Convert to uppercase
     - Remove special characters but keep spaces
     """
     if not name:
         return ""
+    
+    # Remove Vietnamese accents first
+    name = remove_vietnamese_accents(name)
     
     # Remove special characters except spaces
     name = re.sub(r'[^a-zA-Z\s]', '', name)
