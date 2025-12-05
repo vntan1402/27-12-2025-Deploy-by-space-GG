@@ -545,20 +545,24 @@ export const CrewListTable = ({
             // Determine action based on current status
             if (currentStatus === 'Standby') {
               // Sign On flow: Standby → Ship
+              // Use bulk values or fallback to crew values or current date
+              const finalDateSignOn = bulkShipSignOnDate || crew.date_sign_on || new Date().toISOString().split('T')[0];
+              const finalPlaceSignOn = bulkShipSignOnPlace || crew.place_sign_on || null;
+              
               // Update DB immediately
               await crewService.update(crewId, {
                 ship_sign_on: bulkShipSignOn,
                 status: 'Sign on',
-                date_sign_on: crew.date_sign_on || new Date().toISOString().split('T')[0],
-                place_sign_on: crew.place_sign_on || null,
+                date_sign_on: finalDateSignOn,
+                place_sign_on: finalPlaceSignOn,
                 date_sign_off: null
               });
               
               // File movement in background
               crewService.signOn(crewId, {
                 ship_name: bulkShipSignOn,
-                sign_on_date: crew.date_sign_on || new Date().toISOString().split('T')[0],
-                place_sign_on: crew.place_sign_on || null,
+                sign_on_date: finalDateSignOn,
+                place_sign_on: finalPlaceSignOn,
                 notes: `Bulk sign on via Ship Sign On edit to ${bulkShipSignOn}`
               }).catch(error => console.error(`Background signOn error for ${crewId}:`, error));
               
