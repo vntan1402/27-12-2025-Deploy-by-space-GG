@@ -266,24 +266,34 @@ export const BulkEditShipSignOnModal = ({
             </div>
           </div>
           
-          {/* Place Sign On Field */}
+          {/* Place Sign On/Off Field - Dynamic label based on selection */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On'}
+              {value === '-' 
+                ? (language === 'vi' ? 'Nơi rời tàu' : 'Place Sign Off')
+                : (language === 'vi' ? 'Nơi xuống tàu' : 'Place Sign On')
+              }
             </label>
             <input
               type="text"
               value={placeSignOn || ''}
               onChange={(e) => onPlaceSignOnChange(e.target.value)}
-              placeholder={language === 'vi' ? 'Nhập nơi xuống tàu (tùy chọn)' : 'Enter place sign on (optional)'}
+              placeholder={
+                value === '-'
+                  ? (language === 'vi' ? 'Nhập nơi rời tàu (tùy chọn)' : 'Enter place sign off (optional)')
+                  : (language === 'vi' ? 'Nhập nơi xuống tàu (tùy chọn)' : 'Enter place sign on (optional)')
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
           </div>
           
-          {/* Date Sign On Field */}
+          {/* Date Sign On/Off Field - Dynamic label based on selection */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On'}
+              {value === '-'
+                ? (language === 'vi' ? 'Ngày rời tàu' : 'Date Sign Off')
+                : (language === 'vi' ? 'Ngày xuống tàu' : 'Date Sign On')
+              }
             </label>
             <input
               type="date"
