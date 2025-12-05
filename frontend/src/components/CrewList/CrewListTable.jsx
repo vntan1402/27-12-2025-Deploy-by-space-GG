@@ -540,22 +540,42 @@ export const CrewListTable = ({
             
             // Determine action based on current status
             if (currentStatus === 'Standby') {
-              // Sign On flow: Standby → Ship (files move in background)
-              await crewService.signOn(crewId, {
+              // Sign On flow: Standby → Ship
+              // Update DB immediately
+              await crewService.update(crewId, {
+                ship_sign_on: bulkShipSignOn,
+                status: 'Sign on',
+                date_sign_on: crew.date_sign_on || new Date().toISOString().split('T')[0],
+                place_sign_on: crew.place_sign_on || null,
+                date_sign_off: null
+              });
+              
+              // File movement in background
+              crewService.signOn(crewId, {
                 ship_name: bulkShipSignOn,
                 sign_on_date: crew.date_sign_on || new Date().toISOString().split('T')[0],
                 place_sign_on: crew.place_sign_on || null,
                 notes: `Bulk sign on via Ship Sign On edit to ${bulkShipSignOn}`
-              });
+              }).catch(error => console.error(`Background signOn error for ${crewId}:`, error));
+              
               successCount++;
               
             } else if (currentStatus === 'Sign on' && normalizedCurrentShip !== normalizedBulkShip && normalizedCurrentShip !== '' && normalizedCurrentShip !== '-') {
-              // Transfer flow: Ship A → Ship B (files move in background)
-              await crewService.transferShip(crewId, {
+              // Transfer flow: Ship A → Ship B
+              // Update DB immediately
+              await crewService.update(crewId, {
+                ship_sign_on: bulkShipSignOn,
+                status: 'Sign on',
+                date_sign_on: new Date().toISOString().split('T')[0]
+              });
+              
+              // File movement in background
+              crewService.transferShip(crewId, {
                 to_ship_name: bulkShipSignOn,
                 transfer_date: new Date().toISOString().split('T')[0],
                 notes: `Bulk transfer via Ship Sign On edit from ${currentShip} to ${bulkShipSignOn}`
-              });
+              }).catch(error => console.error(`Background transferShip error for ${crewId}:`, error));
+              
               successCount++;
               
             } else {
