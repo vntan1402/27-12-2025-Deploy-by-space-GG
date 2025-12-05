@@ -558,18 +558,15 @@ export const CrewListTable = ({
                 date_sign_off: null
               });
               
-              // Step 2: Trigger file movement + assignment history in background
-              // Note: Will get 400 error because status already changed, but files will still move
+              // Step 2: Trigger file movement + assignment history in background with skip_validation
               crewService.signOn(crewId, {
                 ship_name: bulkShipSignOn,
                 sign_on_date: finalDateSignOn,
                 place_sign_on: finalPlaceSignOn,
-                notes: `Bulk sign on via Ship Sign On edit to ${bulkShipSignOn}`
+                notes: `Bulk sign on via Ship Sign On edit to ${bulkShipSignOn}`,
+                skip_validation: true  // Skip status check since DB already updated
               }).catch(error => {
-                // Expected 400 error - ignore it, DB already updated
-                if (error.response?.status !== 400) {
-                  console.error(`Unexpected signOn error for ${crewId}:`, error);
-                }
+                console.error(`Background signOn error for ${crewId}:`, error);
               });
               
               successCount++;
