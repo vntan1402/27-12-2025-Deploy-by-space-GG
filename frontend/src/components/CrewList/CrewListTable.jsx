@@ -727,18 +727,11 @@ export const CrewListTable = ({
           try {
             if (currentStatus === 'Sign on') {
               // Case 2: Real Sign Off operation (Ship → Standby)
-              // Update DB immediately with status change
-              await crewService.update(crewId, {
-                date_sign_off: bulkDateSignOff,
-                status: 'Standby',
-                ship_sign_on: '-'
-              });
-              
-              // signOff API creates new assignment history record (background)
-              crewService.signOff(crewId, {
+              // Call signOff API - it will update DB and move files
+              await crewService.signOff(crewId, {
                 sign_off_date: bulkDateSignOff,
                 notes: `Bulk sign off via Date Sign Off edit`
-              }).catch(error => console.error(`Background signOff error for ${crewId}:`, error));
+              });
               
             } else {
               // Case 1: Date correction (crew already Standby, just fixing date)
