@@ -808,13 +808,15 @@ async def sign_on_crew_member(
             )
         
         # Call service
+        skip_validation = request_data.get('skip_validation', False)
         result = await CrewAssignmentService.sign_on_crew(
             crew_id=crew_id,
             ship_name=sign_on_request.ship_name,
             sign_on_date=sign_on_request.sign_on_date,
             place_sign_on=sign_on_request.place_sign_on,
             notes=sign_on_request.notes,
-            current_user=current_user
+            current_user=current_user,
+            skip_validation=skip_validation
         )
         
         logger.info(f"✅ Sign on completed: {result.get('crew_name')} to {result.get('to_ship')}")
