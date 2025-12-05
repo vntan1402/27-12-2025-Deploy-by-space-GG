@@ -31,7 +31,7 @@ class CompanyService:
     
     @staticmethod
     async def get_company_by_id(company_id: str, current_user: UserResponse) -> CompanyResponse:
-        """Get company by ID"""
+        """Get company by ID with real-time ship and crew counts"""
         company = await CompanyRepository.find_by_id(company_id)
         
         if not company:
@@ -40,6 +40,22 @@ class CompanyService:
         # Fix company that doesn't have 'name' field
         if 'name' not in company:
             company['name'] = company.get('name_en') or company.get('name_vn') or 'Unknown Company'
+        
+        # ⭐ Calculate real-time counts
+        from app.db.mongodb import mongo_db
+        db = mongo_db.database
+        
+        # Ships collection uses "company" field (not "company_id")
+        total_ships = await db.ships.count_documents({"company": company_id})
+        
+        # Crew collection uses "company_id" field
+        total_crew = await db.crew.count_documents({"company_id": company_id})
+        
+        # Add counts to response
+        company['total_ships'] = total_ships
+        company['total_crew'] = total_crew
+        
+        logger.info(f"✅ Company {company.get('name')}: {total_ships} ships, {total_crew} crew")
         
         return CompanyResponse(**company)
     
