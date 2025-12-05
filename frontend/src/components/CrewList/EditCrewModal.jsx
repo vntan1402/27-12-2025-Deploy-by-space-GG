@@ -93,14 +93,8 @@ export const EditCrewModal = ({
         console.log('🔄 Sign Off Flow detected');
         needsFileMovement = true;
         
-        // Call sign off API and wait for completion
-        await crewService.signOff(crew.id, {
-          sign_off_date: formData.date_sign_off || new Date().toISOString().split('T')[0],
-          notes: `Sign off via Edit Crew Member modal`
-        });
-        
-        // Update other basic info fields (ship_sign_on and status already updated by signOff API)
-        const basicUpdateData = {
+        // Update DB immediately with all fields including ship_sign_on and status
+        const updateData = {
           full_name: formData.full_name,
           full_name_en: formData.full_name_en || null,
           sex: formData.sex,
@@ -112,17 +106,27 @@ export const EditCrewModal = ({
           passport_expiry_date: formData.passport_expiry_date || null,
           rank: formData.rank || null,
           seamen_book: formData.seamen_book || null,
+          ship_sign_on: '-',
+          status: 'Standby',
           place_sign_on: formData.place_sign_on || null,
-          date_sign_on: formData.date_sign_on || null
-          // Note: date_sign_off already set by signOff API
+          date_sign_on: formData.date_sign_on || null,
+          date_sign_off: formData.date_sign_off || null
         };
         
-        await crewService.update(crew.id, basicUpdateData);
+        await crewService.update(crew.id, updateData);
+        
+        // Call sign off API in background for file movement and audit trail
+        crewService.signOff(crew.id, {
+          sign_off_date: formData.date_sign_off || new Date().toISOString().split('T')[0],
+          notes: `Sign off via Edit Crew Member modal`
+        }).catch(error => {
+          console.error('Background sign off error:', error);
+        });
         
         toast.success(
           language === 'vi' 
-            ? '✅ Đã sign off thuyền viên. Files đang được di chuyển...'
-            : '✅ Crew signed off. Files are being moved in background...',
+            ? '✅ Đã cập nhật thuyền viên. Files đang được di chuyển...'
+            : '✅ Crew updated. Files are being moved in background...',
           { duration: 5000 }
         );
         
