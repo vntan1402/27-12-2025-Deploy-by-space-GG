@@ -38,7 +38,8 @@ class CrewAssignmentService:
         notes: Optional[str],
         current_user: UserResponse,
         skip_validation: bool = False,
-        place_sign_off: Optional[str] = None
+        place_sign_off: Optional[str] = None,
+        from_ship: Optional[str] = None
     ) -> Dict:
         """
         Sign off crew member and move files to Standby
