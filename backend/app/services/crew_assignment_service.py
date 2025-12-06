@@ -345,8 +345,8 @@ class CrewAssignmentService:
             await CrewRepository.update(crew_id, update_data)
             logger.info(f"✅ Crew status updated to Sign on")
             
-            # Step 4: Create audit trail
-            logger.info(f"📝 Creating audit trail...")
+            # Step 4: Create audit trail (sign on record)
+            logger.info(f"📝 Creating assignment history record...")
             
             assignment_data = {
                 'id': str(uuid4()),
@@ -358,10 +358,20 @@ class CrewAssignmentService:
                 'from_status': current_status,
                 'to_status': 'Sign on',
                 'action_date': parsed_date,
+                'sign_on_date': parsed_date,
+                'sign_on_place': place_sign_on,
+                'sign_on_by': current_user.username,
+                'sign_on_notes': notes or f"Sign on to {ship_name}",
+                'sign_off_date': None,  # Will be filled when sign off
+                'sign_off_place': None,
+                'sign_off_by': None,
+                'sign_off_notes': None,
                 'performed_by': current_user.username,
                 'notes': notes or f"Sign on to {ship_name}",
                 'files_moved': files_moved,
-                'created_at': datetime.now(timezone.utc)
+                'files_moved_on_sign_off': None,
+                'created_at': datetime.now(timezone.utc),
+                'updated_at': datetime.now(timezone.utc)
             }
             
             await CrewAssignmentRepository.create(assignment_data)
