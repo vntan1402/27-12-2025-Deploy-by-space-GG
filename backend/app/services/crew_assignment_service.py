@@ -84,9 +84,14 @@ class CrewAssignmentService:
             current_status = crew.get('status', '')
             current_ship = crew.get('ship_sign_on', '')
             
+            # Use from_ship if provided (original ship before DB update), otherwise use current
+            ship_to_search = from_ship if from_ship else current_ship
+            
             logger.info(f"   Crew: {crew_name}")
             logger.info(f"   Current Status: {current_status}")
-            logger.info(f"   Current Ship: {current_ship}")
+            logger.info(f"   Current Ship (from DB): {current_ship}")
+            logger.info(f"   Original Ship (from request): {from_ship}")
+            logger.info(f"   Ship to search in history: {ship_to_search}")
             logger.info(f"   Skip Validation: {skip_validation}")
             
             # Validate crew is on a ship (unless skip_validation=True)
