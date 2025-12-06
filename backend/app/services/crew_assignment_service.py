@@ -107,14 +107,14 @@ class CrewAssignmentService:
                     detail="Cannot sign off crew without ship assignment"
                 )
             
-            # Step 2: Move files to Standby
-            logger.info(f"📦 Moving files from {current_ship} to Standby...")
+            # Step 2: Move files to Standby (use ship_to_search for file movement)
+            logger.info(f"📦 Moving files from {ship_to_search} to Standby...")
             
             move_result = await CrewFileMovementService.move_crew_files_to_standby(
                 company_id=current_user.company,
                 crew_id=crew_id,
                 crew_name=crew_name,
-                from_ship_name=current_ship
+                from_ship_name=ship_to_search
             )
             
             if not move_result.get('success'):
