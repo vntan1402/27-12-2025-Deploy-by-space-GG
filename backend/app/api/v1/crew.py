@@ -1063,6 +1063,85 @@ async def get_crew_assignment_history(
         )
 
 
+@router.delete("/{crew_id}/assignment-history")
+async def clear_crew_assignment_history(
+    crew_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Clear all assignment history for a crew member
+    
+    WARNING: This permanently deletes all assignment records for the crew member.
+    This action cannot be undone.
+    
+    Response:
+    {
+        "success": true,
+        "message": "Cleared N assignment records for crew member X",
+        "crew_id": "...",
+        "crew_name": "...",
+        "records_deleted": 5
+    }
+    """
+    try:
+        from app.repositories.crew_assignment_repository import CrewAssignmentRepository
+        
+        logger.info(f"🗑️ Clearing assignment history for crew: {crew_id}")
+        
+        # Verify crew exists
+        crew = await CrewRepository.find_by_id(crew_id)
+        if not crew:
+            raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        # Check access permission
+        if current_user.role not in ["SYSTEM_ADMIN", "SUPER_ADMIN", "ADMIN"]:
+            if crew.get('company_id') != current_user.company:
+                raise HTTPException(status_code=403, detail="Access denied")
+        
+        crew_name = crew.get('full_name', 'Unknown')
+        
+        # Count records before deletion
+        count_before = await CrewAssignmentRepository.count_by_crew(crew_id)
+        logger.info(f"   Found {count_before} records to delete")
+        
+        if count_before == 0:
+            return {
+                "success": True,
+                "message": f"No assignment history to delete for {crew_name}",
+                "crew_id": crew_id,
+                "crew_name": crew_name,
+                "records_deleted": 0
+            }
+        
+        # Delete all assignment records for this crew
+        from app.db.mongodb import mongo_db
+        result = await mongo_db.database.crew_assignment_history.delete_many({
+            "crew_id": crew_id
+        })
+        
+        deleted_count = result.deleted_count
+        logger.info(f"✅ Deleted {deleted_count} assignment records")
+        
+        return {
+            "success": True,
+            "message": f"Cleared {deleted_count} assignment records for {crew_name}",
+            "crew_id": crew_id,
+            "crew_name": crew_name,
+            "records_deleted": deleted_count
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Clear assignment history error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to clear assignment history: {str(e)}"
+        )
+
+
 @router.put("/{crew_id}/update-assignment-dates")
 async def update_crew_assignment_dates(
     crew_id: str,
