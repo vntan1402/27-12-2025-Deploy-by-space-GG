@@ -161,7 +161,7 @@ class CrewAssignmentService:
                 # Update existing record with sign off info
                 logger.info(f"   Found existing SIGN_ON record: {existing_record['id']}")
                 
-                update_result = await mongo_db.database.crew_assignment_history.update_one(
+                await mongo_db.database.crew_assignment_history.update_one(
                     {'_id': existing_record['_id']},
                     {
                         '$set': {
