@@ -230,5 +230,15 @@ export const crewService = {
   updateAssignmentDates: async (crewId, data) => {
     const response = await api.put(`/api/crew/${crewId}/update-assignment-dates`, data);
     return response.data;
+  },
+
+  /**
+   * Clear all assignment history for a crew member
+   * @param {string} crewId - Crew ID
+   * @returns {Promise} Clear result
+   */
+  clearHistory: async (crewId) => {
+    const response = await api.delete(`/api/crew/${crewId}/assignment-history`);
+    return response.data;
   }
 };
