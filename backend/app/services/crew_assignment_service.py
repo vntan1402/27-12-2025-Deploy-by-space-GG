@@ -182,7 +182,7 @@ class CrewAssignmentService:
                             'sign_off_date': parsed_date,
                             'sign_off_place': place_sign_off,
                             'sign_off_by': current_user.username,
-                            'sign_off_notes': notes or f"Sign off from {current_ship}",
+                            'sign_off_notes': notes or f"Sign off from {ship_to_search}",
                             'files_moved_on_sign_off': files_moved,
                             'updated_at': datetime.now(timezone.utc)
                         }
