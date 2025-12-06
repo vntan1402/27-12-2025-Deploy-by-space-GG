@@ -139,27 +139,73 @@ class CrewAssignmentService:
             await CrewRepository.update(crew_id, update_data)
             logger.info(f"✅ Crew status updated to Standby")
             
-            # Step 4: Create audit trail
-            logger.info(f"📝 Creating audit trail...")
+            # Step 4: Update existing assignment record (not create new)
+            logger.info(f"📝 Updating assignment history with sign off info...")
             
-            assignment_data = {
-                'id': str(uuid4()),
-                'crew_id': crew_id,
-                'company_id': current_user.company,
-                'action_type': 'SIGN_OFF',
-                'from_ship': current_ship,
-                'to_ship': None,
-                'from_status': current_status,
-                'to_status': 'Standby',
-                'action_date': parsed_date,
-                'performed_by': current_user.username,
-                'notes': notes or f"Sign off from {current_ship}",
-                'files_moved': files_moved,
-                'created_at': datetime.now(timezone.utc)
-            }
+            # Find the most recent SIGN_ON record for this crew on this ship
+            from app.db.mongodb import mongo_db
             
-            await CrewAssignmentRepository.create(assignment_data)
-            logger.info(f"✅ Audit trail created: {assignment_data['id']}")
+            existing_record = await mongo_db.database.crew_assignment_history.find_one(
+                {
+                    'crew_id': crew_id,
+                    'to_ship': current_ship,
+                    'action_type': 'SIGN_ON',
+                    'sign_off_date': None  # Not yet signed off
+                },
+                sort=[('action_date', -1)]  # Get most recent
+            )
+            
+            assignment_id = None
+            
+            if existing_record:
+                # Update existing record with sign off info
+                logger.info(f"   Found existing SIGN_ON record: {existing_record['id']}")
+                
+                update_result = await mongo_db.database.crew_assignment_history.update_one(
+                    {'_id': existing_record['_id']},
+                    {
+                        '$set': {
+                            'sign_off_date': parsed_date,
+                            'sign_off_place': place_sign_off,
+                            'sign_off_by': current_user.username,
+                            'sign_off_notes': notes or f"Sign off from {current_ship}",
+                            'files_moved_on_sign_off': files_moved,
+                            'updated_at': datetime.now(timezone.utc)
+                        }
+                    }
+                )
+                
+                assignment_id = existing_record['id']
+                logger.info(f"✅ Assignment record updated with sign off info: {assignment_id}")
+                
+            else:
+                # Fallback: Create new record if no existing SIGN_ON found
+                # This handles edge cases where history was cleared or corrupted
+                logger.warning(f"⚠️ No existing SIGN_ON record found, creating new SIGN_OFF record")
+                
+                assignment_data = {
+                    'id': str(uuid4()),
+                    'crew_id': crew_id,
+                    'company_id': current_user.company,
+                    'action_type': 'SIGN_OFF',
+                    'from_ship': current_ship,
+                    'to_ship': None,
+                    'from_status': current_status,
+                    'to_status': 'Standby',
+                    'action_date': parsed_date,
+                    'sign_off_date': parsed_date,
+                    'sign_off_place': place_sign_off,
+                    'sign_off_by': current_user.username,
+                    'sign_off_notes': notes or f"Sign off from {current_ship}",
+                    'performed_by': current_user.username,
+                    'notes': notes or f"Sign off from {current_ship}",
+                    'files_moved': files_moved,
+                    'created_at': datetime.now(timezone.utc)
+                }
+                
+                await CrewAssignmentRepository.create(assignment_data)
+                assignment_id = assignment_data['id']
+                logger.info(f"✅ New SIGN_OFF record created: {assignment_id}")
             
             # Step 5: Return result
             total_files = (
