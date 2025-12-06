@@ -39,6 +39,7 @@ class CrewAssignmentResponse(CrewAssignmentBase):
 class SignOffRequest(BaseModel):
     """Request model for signing off crew"""
     sign_off_date: str  # ISO date string or DD/MM/YYYY
+    from_ship: Optional[str] = None  # Original ship name before DB update
     place_sign_off: Optional[str] = None
     notes: Optional[str] = None
 
