@@ -335,6 +335,7 @@ class CrewAssignmentService:
                 'ship_sign_on': ship_name,
                 'date_sign_on': parsed_date,
                 'date_sign_off': None,  # Clear sign off date
+                'place_sign_off': None,  # Clear sign off place
                 'updated_at': datetime.now(timezone.utc),
                 'updated_by': current_user.username
             }
