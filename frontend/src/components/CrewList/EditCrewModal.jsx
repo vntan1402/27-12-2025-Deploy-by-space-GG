@@ -154,6 +154,10 @@ export const EditCrewModal = ({
         console.log('🔄 Sign Off Flow detected');
         needsFileMovement = true;
         
+        // IMPORTANT: Save original ship BEFORE updating DB
+        const originalShipName = crew.ship_sign_on;
+        console.log('💾 Original ship before update:', originalShipName);
+        
         // Update DB immediately with all fields including ship_sign_on and status
         const updateData = {
           full_name: formData.full_name,
@@ -177,8 +181,9 @@ export const EditCrewModal = ({
         
         await crewService.update(crew.id, updateData);
         
-        // Call sign off API in background for file movement and audit trail
+        // Call sign off API in background with original ship name
         crewService.signOff(crew.id, {
+          from_ship: originalShipName,  // Pass original ship explicitly
           sign_off_date: formData.date_sign_off || new Date().toISOString().split('T')[0],
           place_sign_off: formData.place_sign_off || null,
           notes: `Sign off via Edit Crew Member modal`
