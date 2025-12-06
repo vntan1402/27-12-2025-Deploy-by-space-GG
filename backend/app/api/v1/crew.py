@@ -760,7 +760,8 @@ async def sign_off_crew_member(
             notes=sign_off_request.notes,
             current_user=current_user,
             skip_validation=skip_validation,
-            place_sign_off=sign_off_request.place_sign_off
+            place_sign_off=sign_off_request.place_sign_off,
+            from_ship=sign_off_request.from_ship
         )
         
         logger.info(f"✅ Sign off completed: {result.get('crew_name')}")
