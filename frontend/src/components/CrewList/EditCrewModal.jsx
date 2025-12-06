@@ -637,14 +637,26 @@ export const EditCrewModal = ({
             
             {/* Submit Buttons */}
             <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-              <button
-                type="button"
-                onClick={() => onDelete(crew)}
-                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-2"
-              >
-                <span>🗑️</span>
-                <span>{language === 'vi' ? 'Xóa' : 'Delete'}</span>
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={() => onDelete(crew)}
+                  className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                >
+                  <span>🗑️</span>
+                  <span>{language === 'vi' ? 'Xóa' : 'Delete'}</span>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={handleClearHistory}
+                  className="px-6 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition-colors flex items-center space-x-2"
+                  disabled={isSubmitting}
+                >
+                  <span>🗑️</span>
+                  <span>{language === 'vi' ? 'Xóa lịch sử' : 'Clear History'}</span>
+                </button>
+              </div>
               
               <div className="flex space-x-3">
                 <button
