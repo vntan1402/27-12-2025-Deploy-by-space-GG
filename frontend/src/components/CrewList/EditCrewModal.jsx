@@ -64,6 +64,44 @@ export const EditCrewModal = ({
     fetchShips();
   }, [language]);
   
+  // Handle clear history
+  const handleClearHistory = async () => {
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      language === 'vi'
+        ? `Bạn có chắc chắn muốn xóa tất cả lịch sử của ${crew.full_name}?\n\nHành động này không thể hoàn tác!`
+        : `Are you sure you want to clear all history for ${crew.full_name}?\n\nThis action cannot be undone!`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      setIsSubmitting(true);
+      
+      // Call API to clear history
+      await crewService.clearHistory(crew.id);
+      
+      toast.success(
+        language === 'vi'
+          ? '✅ Đã xóa lịch sử thành công!'
+          : '✅ History cleared successfully!'
+      );
+      
+      // Optionally refresh or close modal
+      onSuccess();
+      
+    } catch (error) {
+      console.error('Error clearing history:', error);
+      toast.error(
+        language === 'vi'
+          ? `❌ Lỗi khi xóa lịch sử: ${error.response?.data?.detail || error.message}`
+          : `❌ Error clearing history: ${error.response?.data?.detail || error.message}`
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
