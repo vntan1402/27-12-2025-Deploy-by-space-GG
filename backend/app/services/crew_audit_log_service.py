@@ -3,7 +3,7 @@ Crew Audit Log Service
 Business logic for audit logging
 """
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
 
