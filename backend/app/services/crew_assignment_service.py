@@ -235,7 +235,28 @@ class CrewAssignmentService:
                 assignment_id = assignment_data['id']
                 logger.info(f"✅ New SIGN_OFF record created: {assignment_id}")
             
-            # Step 5: Return result
+            # Step 5: Log crew audit
+            try:
+                audit_service = CrewAssignmentService.get_audit_log_service()
+                user_dict = {
+                    'id': current_user.id,
+                    'username': current_user.username,
+                    'full_name': current_user.full_name,
+                    'company': current_user.company
+                }
+                await audit_service.log_crew_sign_off(
+                    crew_id=crew_id,
+                    crew_name=crew_name,
+                    ship_name=ship_to_search,
+                    date_sign_off=parsed_date,
+                    place_sign_off=place_sign_off,
+                    user=user_dict,
+                    notes=notes or f"Signed off from {ship_to_search}"
+                )
+            except Exception as e:
+                logger.error(f"Failed to create sign-off audit log: {e}")
+            
+            # Step 6: Return result
             total_files = (
                 (1 if files_moved.get('passport_moved') else 0) +
                 files_moved.get('certificates_moved', 0) +
