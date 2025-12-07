@@ -164,13 +164,116 @@ const CrewAuditLogsPage = () => {
     setShowDetailModal(true);
   };
 
-  // Handle export
-  const handleExport = () => {
-    // TODO: Implement export functionality
-    alert(language === 'vi' 
-      ? 'Tính năng export đang được phát triển' 
-      : 'Export feature under development');
+  // Handle export CSV
+  const handleExportCSV = () => {
+    // Prepare CSV data
+    const headers = [
+      'Date',
+      'Time',
+      'Action',
+      'Crew Name',
+      'Ship',
+      'User',
+      'Changes',
+      'Notes'
+    ];
+
+    const rows = filteredLogs.map(log => {
+      const date = new Date(log.performed_at);
+      const dateStr = date.toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US');
+      const timeStr = date.toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US');
+      const changesStr = log.changes.map(c => 
+        `${c.field_label}: "${c.old_value}" → "${c.new_value}"`
+      ).join('; ');
+
+      return [
+        dateStr,
+        timeStr,
+        log.action,
+        log.entity_name,
+        log.ship_name || '-',
+        log.performed_by_name,
+        changesStr,
+        log.notes || ''
+      ];
+    });
+
+    // Create CSV content
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    // Download
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `crew_audit_logs_${timestamp}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
+
+  // Handle export Excel
+  const handleExportExcel = async () => {
+    try {
+      // Dynamic import of xlsx library
+      const XLSX = await import('xlsx');
+
+      // Prepare data for Excel
+      const data = filteredLogs.map(log => {
+        const date = new Date(log.performed_at);
+        const changesStr = log.changes.map(c => 
+          `${c.field_label}: "${c.old_value}" → "${c.new_value}"`
+        ).join('\n');
+
+        return {
+          'Date': date.toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US'),
+          'Time': date.toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US'),
+          'Action': log.action,
+          'Crew Name': log.entity_name,
+          'Ship': log.ship_name || '-',
+          'User': log.performed_by_name,
+          'Changes': changesStr,
+          'Notes': log.notes || ''
+        };
+      });
+
+      // Create worksheet
+      const ws = XLSX.utils.json_to_sheet(data);
+
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 12 },  // Date
+        { wch: 10 },  // Time
+        { wch: 15 },  // Action
+        { wch: 20 },  // Crew Name
+        { wch: 15 },  // Ship
+        { wch: 20 },  // User
+        { wch: 50 },  // Changes
+        { wch: 30 }   // Notes
+      ];
+
+      // Create workbook
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Crew Audit Logs');
+
+      // Download
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      XLSX.writeFile(wb, `crew_audit_logs_${timestamp}.xlsx`);
+    } catch (error) {
+      console.error('Export Excel error:', error);
+      alert(language === 'vi' 
+        ? 'Lỗi khi export Excel. Vui lòng thử lại.' 
+        : 'Error exporting Excel. Please try again.');
+    }
+  };
+
+  // Handle export menu
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   // Permission check
   useEffect(() => {
