@@ -2,7 +2,7 @@
 
 **Feature:** Audit Trail cho tất cả Crew CRUD operations  
 **Location:** System Settings > Admin Tools > Crew Audit Logs  
-**Retention:** 3 năm  
+**Retention:** 1 năm  
 **Priority:** HIGH
 
 ---
