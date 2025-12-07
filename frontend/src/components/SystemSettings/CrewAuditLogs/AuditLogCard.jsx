@@ -45,84 +45,67 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
   const hiddenCount = log.changes.length - visibleChanges.length;
 
   return (
-    <div className={`border-2 ${config.borderColor} ${config.bgColor} rounded-lg p-4 hover:shadow-md transition-all`}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          {/* Header */}
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl">{config.icon}</span>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`font-bold ${config.textColor} text-lg`}>
-                  {getActionLabel(log.action)}
-                </span>
-                <span className="text-gray-400">•</span>
-                <span className="text-sm text-gray-600 font-medium">{time}</span>
-              </div>
-            </div>
+    <div className={`border ${config.borderColor} ${config.bgColor} rounded-lg p-3 hover:shadow-md transition-all`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          {/* Header - Single compact line */}
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-xl">{config.icon}</span>
+            <span className={`font-bold ${config.textColor}`}>
+              {getActionLabel(log.action)}
+            </span>
+            <span className="text-gray-400 text-xs">•</span>
+            <span className="text-xs text-gray-600">{time}</span>
+            <span className="text-gray-400 text-xs">•</span>
+            <span className="text-xs text-gray-600">{log.performed_by_name}</span>
           </div>
 
-          {/* Crew Info */}
-          <div className="mb-3">
-            <div className="flex items-center gap-2 text-gray-900">
-              <span className="font-semibold">{language === 'vi' ? 'Crew:' : 'Crew:'}</span>
-              <span className="font-bold text-lg">{log.entity_name}</span>
-            </div>
-            {log.ship_name && log.ship_name !== '-' && (
-              <div className="flex items-center gap-2 text-gray-700 mt-1">
-                <span className="text-sm">{language === 'vi' ? 'Tàu:' : 'Ship:'}</span>
-                <span className="text-sm font-medium">{log.ship_name}</span>
-              </div>
-            )}
+          {/* Crew & Ship Info - Compact */}
+          <div className="mb-1.5">
+            <span className="text-sm text-gray-700">
+              <span className="font-semibold">{log.entity_name}</span>
+              {log.ship_name && log.ship_name !== '-' && (
+                <span className="text-gray-600"> • 🚢 {log.ship_name}</span>
+              )}
+            </span>
           </div>
 
-          {/* User Info */}
-          <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-            <span>{language === 'vi' ? 'Thực hiện bởi:' : 'By:'}</span>
-            <span className="font-medium">{log.performed_by_name}</span>
-            <span className="text-gray-400">({log.performed_by})</span>
-          </div>
-
-          {/* Changes Summary */}
+          {/* Changes Summary - Compact */}
           {visibleChanges.length > 0 && (
-            <div className="space-y-1 mb-3">
-              <div className="text-sm font-semibold text-gray-700 mb-1">
-                {language === 'vi' ? 'Thay đổi:' : 'Changes:'}
-              </div>
+            <div className="space-y-0.5">
               {visibleChanges.map((change, index) => (
-                <div key={index} className="text-sm text-gray-700 pl-3">
-                  • <span className="font-medium">{change.field_label}:</span>{' '}
+                <div key={index} className="text-xs text-gray-700">
+                  <span className="font-medium">{change.field_label}:</span>{' '}
                   <span className="text-gray-500">"{change.old_value || '-'}"</span>
                   {' → '}
                   <span className="text-gray-900 font-semibold">"{change.new_value || '-'}"</span>
                 </div>
               ))}
               {hiddenCount > 0 && (
-                <div className="text-sm text-gray-500 italic pl-3">
+                <div className="text-xs text-gray-500 italic">
                   {language === 'vi' 
-                    ? `+ ${hiddenCount} thay đổi khác...`
-                    : `+ ${hiddenCount} more change${hiddenCount > 1 ? 's' : ''}...`}
+                    ? `+${hiddenCount} thay đổi khác...`
+                    : `+${hiddenCount} more...`}
                 </div>
               )}
             </div>
           )}
 
-          {/* Notes */}
+          {/* Notes - Compact */}
           {log.notes && (
-            <div className="bg-white bg-opacity-50 border border-gray-200 rounded px-3 py-2 text-sm text-gray-700 mb-3">
-              <span className="font-medium">📝 </span>
-              {log.notes}
+            <div className="mt-1.5 text-xs text-gray-600 italic">
+              📝 {log.notes}
             </div>
           )}
         </div>
 
-        {/* View Details Button */}
+        {/* View Details Button - Compact */}
         <button
           onClick={() => onViewDetails(log)}
-          className="bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-gray-400 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex items-center gap-2"
+          className="bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 px-2 py-1 rounded text-xs font-medium transition-all whitespace-nowrap flex items-center gap-1 flex-shrink-0"
         >
           <span>{language === 'vi' ? 'Chi tiết' : 'Details'}</span>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
