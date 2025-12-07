@@ -83,10 +83,10 @@ async def get_crew_audit_log_by_id(
     Get single audit log by ID
     """
     # Check permissions
-    if current_user.get('role') not in ['admin', 'super_admin', 'system_admin']:
+    if current_user.role not in ['admin', 'super_admin', 'system_admin']:
         raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
     
-    company_id = current_user.get('company')
+    company_id = current_user.company_id
     
     log = await repository.get_log_by_id(log_id, company_id)
     
