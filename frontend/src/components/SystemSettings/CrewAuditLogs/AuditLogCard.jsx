@@ -60,44 +60,45 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
             <span className="text-xs text-gray-600">{log.performed_by_name}</span>
           </div>
 
-          {/* Crew & Ship Info - Compact */}
-          <div className="mb-0.5">
-            <span className="text-xs text-gray-700">
-              <span className="font-semibold">{log.entity_name}</span>
-              {log.ship_name && log.ship_name !== '-' && (
-                <span className="text-gray-600"> • 🚢 {log.ship_name}</span>
-              )}
-            </span>
+          {/* All Info in Single Line */}
+          <div className="text-xs text-gray-700 leading-tight">
+            {/* Crew & Ship */}
+            <span className="font-semibold">{log.entity_name}</span>
+            {log.ship_name && log.ship_name !== '-' && (
+              <span className="text-gray-600"> • 🚢 {log.ship_name}</span>
+            )}
+            
+            {/* Changes */}
+            {visibleChanges.length > 0 && (
+              <>
+                <span className="text-gray-400 mx-1">•</span>
+                {visibleChanges.map((change, index) => (
+                  <span key={index}>
+                    <span className="font-medium">{change.field_label}:</span>{' '}
+                    <span className="text-gray-500">"{change.old_value || '-'}"</span>
+                    {' → '}
+                    <span className="text-gray-900 font-semibold">"{change.new_value || '-'}"</span>
+                    {index < visibleChanges.length - 1 && <span className="text-gray-400 mx-1">•</span>}
+                  </span>
+                ))}
+                {hiddenCount > 0 && (
+                  <span className="text-gray-500 italic ml-1">
+                    {language === 'vi' 
+                      ? `+${hiddenCount} thay đổi khác...`
+                      : `+${hiddenCount} more...`}
+                  </span>
+                )}
+              </>
+            )}
+            
+            {/* Notes */}
+            {log.notes && (
+              <>
+                <span className="text-gray-400 mx-1">•</span>
+                <span className="text-gray-600 italic">📝 {log.notes}</span>
+              </>
+            )}
           </div>
-
-          {/* Changes Summary - Single Line */}
-          {visibleChanges.length > 0 && (
-            <div className="text-xs text-gray-700 leading-tight">
-              {visibleChanges.map((change, index) => (
-                <span key={index}>
-                  <span className="font-medium">{change.field_label}:</span>{' '}
-                  <span className="text-gray-500">"{change.old_value || '-'}"</span>
-                  {' → '}
-                  <span className="text-gray-900 font-semibold">"{change.new_value || '-'}"</span>
-                  {index < visibleChanges.length - 1 && <span className="text-gray-400 mx-1">•</span>}
-                </span>
-              ))}
-              {hiddenCount > 0 && (
-                <span className="text-gray-500 italic ml-1">
-                  {language === 'vi' 
-                    ? `+${hiddenCount} thay đổi khác...`
-                    : `+${hiddenCount} more...`}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Notes - Compact */}
-          {log.notes && (
-            <div className="mt-0.5 text-xs text-gray-600 italic">
-              📝 {log.notes}
-            </div>
-          )}
         </div>
 
         {/* View Details Button - Compact */}
