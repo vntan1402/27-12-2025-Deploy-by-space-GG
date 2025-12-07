@@ -132,20 +132,35 @@ const CrewAuditLogsPage = () => {
   };
 
   // Handle export CSV
-  const handleExportCSV = () => {
-    // Prepare CSV data
-    const headers = [
-      'Date',
-      'Time',
-      'Action',
-      'Crew Name',
-      'Ship',
-      'User',
-      'Changes',
-      'Notes'
-    ];
+  const handleExportCSV = async () => {
+    try {
+      // Fetch ALL logs for export (no pagination)
+      const response = await crewAuditLogService.getAuditLogs({
+        startDate: filters.customStartDate ? new Date(filters.customStartDate).toISOString() : null,
+        endDate: filters.customEndDate ? new Date(filters.customEndDate + 'T23:59:59').toISOString() : null,
+        action: filters.action,
+        performedBy: filters.user,
+        shipName: filters.ship,
+        search: filters.search,
+        skip: 0,
+        limit: 10000  // Get max logs for export
+      });
+      
+      const allLogs = response.logs || [];
+      
+      // Prepare CSV data
+      const headers = [
+        'Date',
+        'Time',
+        'Action',
+        'Crew Name',
+        'Ship',
+        'User',
+        'Changes',
+        'Notes'
+      ];
 
-    const rows = logs.map(log => {
+      const rows = allLogs.map(log => {
       const date = new Date(log.performed_at);
       const dateStr = date.toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US');
       const timeStr = date.toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US');
