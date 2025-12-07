@@ -21,6 +21,10 @@ export const AuditLogFilters = ({ filters, onFilterChange, uniqueUsers, uniqueSh
     onFilterChange({ search: e.target.value });
   };
 
+  const handleShipChange = (e) => {
+    onFilterChange({ ship: e.target.value });
+  };
+
   const handleCustomDateChange = (field, value) => {
     onFilterChange({ [field]: value });
   };
