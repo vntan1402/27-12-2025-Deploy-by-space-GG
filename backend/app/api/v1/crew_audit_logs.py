@@ -41,10 +41,10 @@ async def get_crew_audit_logs(
     Only admin, super_admin, and system_admin can access
     """
     # Check permissions
-    if current_user.get('role') not in ['admin', 'super_admin', 'system_admin']:
+    if current_user.role not in ['admin', 'super_admin', 'system_admin']:
         raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
     
-    company_id = current_user.get('company')
+    company_id = current_user.company_id
     
     # Parse dates if provided
     start_date_parsed = datetime.fromisoformat(start_date.replace('Z', '+00:00')) if start_date else None
