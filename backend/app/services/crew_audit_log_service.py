@@ -311,6 +311,18 @@ class CrewAuditLogService:
                 'value_type': 'string'
             })
         
+        # Determine action type
+        if old_ship and old_ship != ship_name:
+            action = 'SHIP_TRANSFER'
+            default_notes = f'Transferred from {old_ship} to {ship_name}'
+        elif old_ship:
+            # Same ship, just updating sign on details
+            action = 'UPDATE'
+            default_notes = f'Updated sign on details for {ship_name}'
+        else:
+            action = 'SIGN_ON'
+            default_notes = f'Signed on to {ship_name}'
+        
         log_data = {
             'id': str(uuid4()),
             'entity_type': 'crew',
@@ -318,14 +330,14 @@ class CrewAuditLogService:
             'entity_name': crew_name,
             'company_id': user.get('company'),
             'ship_name': ship_name,
-            'action': 'SHIP_TRANSFER' if old_ship else 'SIGN_ON',
+            'action': action,
             'action_category': 'STATUS_CHANGE',
             'performed_by': user.get('username'),
             'performed_by_id': user.get('id'),
             'performed_by_name': user.get('full_name'),
             'performed_at': datetime.utcnow(),
             'changes': changes,
-            'notes': notes or (f'Transferred from {old_ship} to {ship_name}' if old_ship else f'Signed on to {ship_name}'),
+            'notes': notes or default_notes,
             'source': 'WEB_UI'
         }
         
