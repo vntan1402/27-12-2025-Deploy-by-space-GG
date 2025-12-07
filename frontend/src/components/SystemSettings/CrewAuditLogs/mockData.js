@@ -265,6 +265,7 @@ export const generateMoreMockLogs = (count = 50) => {
     'Nguyễn Văn A', 'Trần Thị B', 'Lê Văn C', 'Phạm Minh D',
     'Hoàng Thị E', 'Võ Văn F', 'Đỗ Thị G', 'Bùi Văn H'
   ];
+  const ships = ['Ship ABC', 'Ship XYZ', 'Ship MNO', 'Ship PQR', 'Ship DEF', 'Ship GHI', '-'];
   const users = [
     { id: 'user_001', username: 'admin1', name: 'Admin User' },
     { id: 'user_002', username: 'user2', name: 'Editor User' },
@@ -284,6 +285,7 @@ export const generateMoreMockLogs = (count = 50) => {
       entity_id: `crew_${200 + i}`,
       entity_name: names[Math.floor(Math.random() * names.length)],
       company_id: 'company_1',
+      ship_name: ships[Math.floor(Math.random() * ships.length)],
       action,
       action_category: action === 'CREATE' || action === 'DELETE' ? 'LIFECYCLE' : 'DATA_CHANGE',
       performed_by: user.username,
