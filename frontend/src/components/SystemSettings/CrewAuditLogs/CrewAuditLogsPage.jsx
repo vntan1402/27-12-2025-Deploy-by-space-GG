@@ -208,11 +208,25 @@ const CrewAuditLogsPage = () => {
   // Handle export Excel
   const handleExportExcel = async () => {
     try {
+      // Fetch ALL logs for export (no pagination)
+      const response = await crewAuditLogService.getAuditLogs({
+        startDate: filters.customStartDate ? new Date(filters.customStartDate).toISOString() : null,
+        endDate: filters.customEndDate ? new Date(filters.customEndDate + 'T23:59:59').toISOString() : null,
+        action: filters.action,
+        performedBy: filters.user,
+        shipName: filters.ship,
+        search: filters.search,
+        skip: 0,
+        limit: 10000  // Get max logs for export
+      });
+      
+      const allLogs = response.logs || [];
+      
       // Dynamic import of xlsx library
       const XLSX = await import('xlsx');
 
       // Prepare data for Excel
-      const data = logs.map(log => {
+      const data = allLogs.map(log => {
         const date = new Date(log.performed_at);
         const changesStr = log.changes.map(c => 
           `${c.field_label}: "${c.old_value}" → "${c.new_value}"`
