@@ -34,6 +34,17 @@ def run_async_file_movement(coro):
 class CrewAssignmentService:
     """Service for managing crew assignments (sign on, sign off, transfers)"""
     
+    # Initialize audit log service
+    _audit_log_service = None
+    
+    @classmethod
+    def get_audit_log_service(cls):
+        """Get or create audit log service instance"""
+        if cls._audit_log_service is None:
+            repository = CrewAuditLogRepository(mongo_db.database)
+            cls._audit_log_service = CrewAuditLogService(repository)
+        return cls._audit_log_service
+    
     @staticmethod
     async def sign_off_crew(
         crew_id: str,
