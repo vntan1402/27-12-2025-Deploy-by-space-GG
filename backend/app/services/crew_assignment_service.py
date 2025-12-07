@@ -233,10 +233,10 @@ class CrewAssignmentService:
                 "message": f"Crew {crew_name} signed off successfully. {total_files} files moved to Standby.",
                 "crew_id": crew_id,
                 "crew_name": crew_name,
-                "from_ship": current_ship,
+                "from_ship": ship_to_search,
                 "sign_off_date": sign_off_date,
                 "files_moved": files_moved,
-                "assignment_id": assignment_data['id']
+                "assignment_id": assignment_id
             }
             
         except HTTPException:
