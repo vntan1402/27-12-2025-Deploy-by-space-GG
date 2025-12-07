@@ -166,7 +166,7 @@ class CrewAuditLogRepository:
         ).sort('performed_at', -1).limit(limit)
         
         logs = await cursor.to_list(length=limit)
-        return logs
+        return [self._add_timezone_to_log(log) for log in logs]
     
     async def get_logs_by_user(
         self,
