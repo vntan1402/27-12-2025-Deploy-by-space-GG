@@ -18,6 +18,17 @@ logger = logging.getLogger(__name__)
 class CrewService:
     """Business logic for crew management"""
     
+    # Initialize audit log service
+    _audit_log_service = None
+    
+    @classmethod
+    def get_audit_log_service(cls):
+        """Get or create audit log service instance"""
+        if cls._audit_log_service is None:
+            repository = CrewAuditLogRepository(mongo_db.database)
+            cls._audit_log_service = CrewAuditLogService(repository)
+        return cls._audit_log_service
+    
     @staticmethod
     async def get_all_crew(current_user: UserResponse) -> List[CrewResponse]:
         """Get all crew based on user's company"""
