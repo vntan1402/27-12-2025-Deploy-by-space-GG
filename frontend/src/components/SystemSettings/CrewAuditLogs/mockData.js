@@ -173,6 +173,7 @@ export const mockAuditLogs = [
     entity_id: 'crew_127',
     entity_name: 'Hoàng Thị E',
     company_id: 'company_1',
+    ship_name: '-',
     action: 'DELETE',
     action_category: 'LIFECYCLE',
     performed_by: 'admin1',
