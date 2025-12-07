@@ -69,7 +69,7 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
               {getActionLabel(log.action)}
             </span>
             <span className="text-gray-400 text-xs">//</span>
-            <span className="text-xs text-gray-600">{time}</span>
+            <span className="text-xs text-gray-600">{displayTime}</span>
             <span className="text-gray-400 text-xs">//</span>
             <span className="text-xs text-gray-600">{log.performed_by_name}</span>
           </div>
