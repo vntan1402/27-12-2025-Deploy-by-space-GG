@@ -863,6 +863,9 @@ export const CrewListTable = ({
         }
       } else {
         // Sign Off flow: Update DB immediately, file movement in background
+        let realSignOffCount = 0;  // Count real sign offs (file movement)
+        let dateCorrectionCount = 0;  // Count date corrections (no file movement)
+        
         for (const crewId of crewIds) {
           const crew = crewList.find(c => c.id === crewId);
           if (!crew) continue;
@@ -893,6 +896,8 @@ export const CrewListTable = ({
                 console.error(`Background signOff error for ${crewId}:`, error);
               });
               
+              realSignOffCount++;
+              
             } else {
               // Case 1: Date correction (crew already Standby, just fixing date)
               // Update DB immediately (no status/ship change)
@@ -903,6 +908,8 @@ export const CrewListTable = ({
               // Update existing assignment history record (background)
               crewService.updateAssignmentDates(crewId, { date_sign_off: bulkDateSignOff })
                 .catch(error => console.error(`Background assignment history update error for ${crewId}:`, error));
+              
+              dateCorrectionCount++;
             }
             
             successCount++;
