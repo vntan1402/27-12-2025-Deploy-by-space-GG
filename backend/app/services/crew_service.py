@@ -200,18 +200,29 @@ class CrewService:
         # Get updated crew
         updated_crew = await CrewRepository.find_by_id(crew_id)
         
-        # Log crew audit log
-        try:
-            audit_service = CrewService.get_audit_log_service()
-            user_dict = {
-                'id': current_user.id,
-                'username': current_user.username,
-                'full_name': current_user.full_name,
-                'company': current_user.company
-            }
-            await audit_service.log_crew_update(crew_id, crew, updated_crew, user_dict, notes="Updated crew information")
-        except Exception as e:
-            logger.error(f"Failed to create audit log: {e}")
+        # Detect if this is a sign on/off operation
+        # Skip general update log if it's a status change between "Sign on" and "Standby"
+        # because sign_on_crew() and sign_off_crew() will create specific logs
+        old_status = crew.get('status')
+        new_status = updated_crew.get('status')
+        is_sign_on_off_operation = (
+            (old_status == "Standby" and new_status == "Sign on") or
+            (old_status == "Sign on" and new_status == "Standby")
+        )
+        
+        # Log crew audit log (skip if it's sign on/off operation)
+        if not is_sign_on_off_operation:
+            try:
+                audit_service = CrewService.get_audit_log_service()
+                user_dict = {
+                    'id': current_user.id,
+                    'username': current_user.username,
+                    'full_name': current_user.full_name,
+                    'company': current_user.company
+                }
+                await audit_service.log_crew_update(crew_id, crew, updated_crew, user_dict, notes="Updated crew information")
+            except Exception as e:
+                logger.error(f"Failed to create audit log: {e}")
         
         logger.info(f"✅ Crew member updated: {crew_id}")
         
