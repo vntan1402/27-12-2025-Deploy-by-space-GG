@@ -609,7 +609,11 @@ export const CrewListTable = ({
             
             // Step 2: Background file movement (only if was Sign on)
             if (currentStatus === 'Sign on') {
+              // IMPORTANT: Pass original ship name before DB update
+              const originalShipName = crew.ship_sign_on;
+              
               crewService.signOff(crewId, {
+                from_ship: originalShipName,  // Pass original ship explicitly
                 sign_off_date: finalDateSignOff,
                 place_sign_off: finalPlaceSignOff,
                 notes: `Bulk sign off via Ship Sign On edit (selected "-")`,
