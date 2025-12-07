@@ -50,7 +50,7 @@ class CrewAuditLogResponse(CrewAuditLogBase):
     """Response model for audit log"""
     id: str = Field(..., description="Log ID")
     created_at: datetime = Field(..., description="When log was created")
-    expires_at: datetime = Field(..., description="When log will be auto-deleted (3 years)")
+    expires_at: datetime = Field(..., description="When log will be auto-deleted (1 year)")
 
     class Config:
         from_attributes = True
