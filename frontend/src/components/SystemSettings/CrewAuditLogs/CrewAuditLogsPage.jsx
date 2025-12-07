@@ -191,7 +191,7 @@ const CrewAuditLogsPage = () => {
       const XLSX = await import('xlsx');
 
       // Prepare data for Excel
-      const data = filteredLogs.map(log => {
+      const data = logs.map(log => {
         const date = new Date(log.performed_at);
         const changesStr = log.changes.map(c => 
           `${c.field_label}: "${c.old_value}" → "${c.new_value}"`
