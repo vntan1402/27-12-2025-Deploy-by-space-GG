@@ -62,7 +62,7 @@ class CrewAuditLogRepository:
             {'_id': 0}
         )
         
-        return created_log
+        return self._add_timezone_to_log(created_log)
     
     async def get_logs(
         self,
