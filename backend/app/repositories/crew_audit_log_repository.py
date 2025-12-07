@@ -25,8 +25,8 @@ class CrewAuditLogRepository:
         Returns:
             Created log with ID
         """
-        # Add timestamps
-        now = datetime.utcnow()
+        # Add timestamps with timezone
+        now = datetime.now(timezone.utc)
         log_data['created_at'] = now
         
         # Set expiration date (1 year from now)
