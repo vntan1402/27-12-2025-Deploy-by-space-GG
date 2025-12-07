@@ -6,10 +6,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { MainLayout } from '../../Layout';
-import { allMockLogs } from './mockData';
 import { AuditLogFilters } from './AuditLogFilters';
 import { AuditLogList } from './AuditLogList';
 import { AuditLogDetailModal } from './AuditLogDetailModal';
+import crewAuditLogService from '../../../services/crewAuditLogService';
 
 const CrewAuditLogsPage = () => {
   const navigate = useNavigate();
