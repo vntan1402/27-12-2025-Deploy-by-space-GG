@@ -95,6 +95,7 @@ export const mockAuditLogs = [
     entity_id: 'crew_125',
     entity_name: 'Lê Văn C',
     company_id: 'company_1',
+    ship_name: 'Ship MNO',
     action: 'SIGN_ON',
     action_category: 'STATUS_CHANGE',
     performed_by: 'admin1',
