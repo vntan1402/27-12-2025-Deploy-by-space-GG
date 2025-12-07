@@ -368,6 +368,7 @@ const CrewAuditLogsPage = () => {
             filters={filters}
             onFilterChange={handleFilterChange}
             uniqueUsers={uniqueUsers}
+            uniqueShips={uniqueShips}
             language={language}
           />
         </div>
