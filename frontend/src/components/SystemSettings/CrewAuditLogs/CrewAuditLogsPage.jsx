@@ -358,7 +358,7 @@ const CrewAuditLogsPage = () => {
                 {language === 'vi' ? 'Đang tải...' : 'Loading...'}
               </p>
             </div>
-          ) : paginatedLogs.length === 0 ? (
+          ) : logs.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📋</div>
               <p className="text-gray-600 text-lg">
