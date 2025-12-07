@@ -141,6 +141,17 @@ const CrewAuditLogsPage = () => {
     return unique;
   }, [logs]);
 
+  // Get unique ships for filter dropdown
+  const uniqueShips = useMemo(() => {
+    const ships = logs.map(log => log.ship_name);
+    
+    // Remove duplicates and sort
+    const unique = [...new Set(ships)].filter(ship => ship && ship !== '-');
+    unique.sort();
+    
+    return unique;
+  }, [logs]);
+
   // Handle filter change
   const handleFilterChange = (newFilters) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
