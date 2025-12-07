@@ -121,6 +121,9 @@ class CrewAuditLogRepository:
         cursor = self.collection.find(query, {'_id': 0}).sort('performed_at', -1).skip(skip).limit(limit)
         logs = await cursor.to_list(length=limit)
         
+        # Add timezone to all logs
+        logs = [self._add_timezone_to_log(log) for log in logs]
+        
         return logs, total
     
     async def get_log_by_id(self, log_id: str, company_id: str) -> Optional[dict]:
