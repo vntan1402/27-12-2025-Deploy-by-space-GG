@@ -276,6 +276,10 @@ class CrewAuditLogService:
         Returns:
             Created log
         """
+        # Determine action type and old status based on old_ship
+        is_new_sign_on = not old_ship or old_ship in ['-', '', None]
+        old_status = 'Standby' if is_new_sign_on else 'Sign on'
+        
         changes = [
             {
                 'field': 'ship_sign_on',
@@ -287,7 +291,7 @@ class CrewAuditLogService:
             {
                 'field': 'status',
                 'field_label': 'Status',
-                'old_value': 'Standby' if not old_ship else 'Sign on',
+                'old_value': old_status,
                 'new_value': 'Sign on',
                 'value_type': 'string'
             }
@@ -311,17 +315,19 @@ class CrewAuditLogService:
                 'value_type': 'string'
             })
         
-        # Determine action type
-        if old_ship and old_ship != ship_name:
-            action = 'SHIP_TRANSFER'
-            default_notes = f'Transferred from {old_ship} to {ship_name}'
-        elif old_ship:
-            # Same ship, just updating sign on details
-            action = 'UPDATE'
-            default_notes = f'Updated sign on details for {ship_name}'
-        else:
+        # Determine action type based on ship change and status
+        if is_new_sign_on:
+            # New sign on (from Standby or no previous ship)
             action = 'SIGN_ON'
             default_notes = f'Signed on to {ship_name}'
+        elif old_ship != ship_name:
+            # Transfer between ships (both were Sign on status)
+            action = 'SHIP_TRANSFER'
+            default_notes = f'Transferred from {old_ship} to {ship_name}'
+        else:
+            # Same ship, just updating sign on details (date/place)
+            action = 'UPDATE'
+            default_notes = f'Updated sign on details for {ship_name}'
         
         log_data = {
             'id': str(uuid4()),
