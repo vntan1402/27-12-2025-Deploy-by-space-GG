@@ -45,13 +45,13 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
   const hiddenCount = log.changes.length - visibleChanges.length;
 
   return (
-    <div className={`border ${config.borderColor} ${config.bgColor} rounded-lg p-3 hover:shadow-md transition-all`}>
-      <div className="flex items-start justify-between gap-3">
+    <div className={`border ${config.borderColor} ${config.bgColor} rounded-lg p-2 hover:shadow-md transition-all`}>
+      <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           {/* Header - Single compact line */}
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xl">{config.icon}</span>
-            <span className={`font-bold ${config.textColor}`}>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className="text-base">{config.icon}</span>
+            <span className={`font-bold text-sm ${config.textColor}`}>
               {getActionLabel(log.action)}
             </span>
             <span className="text-gray-400 text-xs">•</span>
@@ -61,8 +61,8 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
           </div>
 
           {/* Crew & Ship Info - Compact */}
-          <div className="mb-1.5">
-            <span className="text-sm text-gray-700">
+          <div className="mb-0.5">
+            <span className="text-xs text-gray-700">
               <span className="font-semibold">{log.entity_name}</span>
               {log.ship_name && log.ship_name !== '-' && (
                 <span className="text-gray-600"> • 🚢 {log.ship_name}</span>
@@ -72,9 +72,9 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
 
           {/* Changes Summary - Compact */}
           {visibleChanges.length > 0 && (
-            <div className="space-y-0.5">
+            <div className="space-y-0">
               {visibleChanges.map((change, index) => (
-                <div key={index} className="text-xs text-gray-700">
+                <div key={index} className="text-xs text-gray-700 leading-tight">
                   <span className="font-medium">{change.field_label}:</span>{' '}
                   <span className="text-gray-500">"{change.old_value || '-'}"</span>
                   {' → '}
@@ -93,7 +93,7 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
 
           {/* Notes - Compact */}
           {log.notes && (
-            <div className="mt-1.5 text-xs text-gray-600 italic">
+            <div className="mt-0.5 text-xs text-gray-600 italic">
               📝 {log.notes}
             </div>
           )}
@@ -102,7 +102,7 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
         {/* View Details Button - Compact */}
         <button
           onClick={() => onViewDetails(log)}
-          className="bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 px-2 py-1 rounded text-xs font-medium transition-all whitespace-nowrap flex items-center gap-1 flex-shrink-0"
+          className="bg-white hover:bg-gray-50 border border-gray-300 hover:border-gray-400 px-1.5 py-0.5 rounded text-xs font-medium transition-all whitespace-nowrap flex items-center gap-1 flex-shrink-0"
         >
           <span>{language === 'vi' ? 'Chi tiết' : 'Details'}</span>
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

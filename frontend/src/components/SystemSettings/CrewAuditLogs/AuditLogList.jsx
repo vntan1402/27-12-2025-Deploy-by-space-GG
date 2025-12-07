@@ -53,19 +53,19 @@ export const AuditLogList = ({ logs, onViewDetails, language }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {groupedLogs.map((group, index) => (
         <div key={index}>
           {/* Date Header */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-semibold text-sm">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg font-semibold text-xs">
               📅 {formatDateHeader(group.date)}
             </div>
             <div className="flex-1 h-px bg-gray-200"></div>
           </div>
           
           {/* Logs for this date */}
-          <div className="space-y-3 ml-2">
+          <div className="space-y-1.5 ml-1">
             {group.logs.map(log => (
               <AuditLogCard
                 key={log.id}
