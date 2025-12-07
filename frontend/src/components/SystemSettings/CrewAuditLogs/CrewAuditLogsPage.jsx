@@ -28,6 +28,7 @@ const CrewAuditLogsPage = () => {
     customEndDate: null,
     action: 'all',
     user: 'all',
+    ship: 'all',
     search: ''
   });
 
