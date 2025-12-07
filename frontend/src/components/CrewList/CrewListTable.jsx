@@ -694,7 +694,9 @@ export const CrewListTable = ({
                 ship_sign_on: bulkShipSignOn,
                 status: 'Sign on',
                 date_sign_on: finalDateSignOn,
-                place_sign_on: finalPlaceSignOn
+                place_sign_on: finalPlaceSignOn,
+                date_sign_off: null,  // Clear sign off date
+                place_sign_off: null  // Clear sign off place
               });
               
               // Step 2: Background file movement with skip_validation
