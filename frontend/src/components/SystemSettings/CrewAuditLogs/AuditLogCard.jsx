@@ -70,23 +70,24 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
             </span>
           </div>
 
-          {/* Changes Summary - Compact */}
+          {/* Changes Summary - Single Line */}
           {visibleChanges.length > 0 && (
-            <div className="space-y-0">
+            <div className="text-xs text-gray-700 leading-tight">
               {visibleChanges.map((change, index) => (
-                <div key={index} className="text-xs text-gray-700 leading-tight">
+                <span key={index}>
                   <span className="font-medium">{change.field_label}:</span>{' '}
                   <span className="text-gray-500">"{change.old_value || '-'}"</span>
                   {' → '}
                   <span className="text-gray-900 font-semibold">"{change.new_value || '-'}"</span>
-                </div>
+                  {index < visibleChanges.length - 1 && <span className="text-gray-400 mx-1">•</span>}
+                </span>
               ))}
               {hiddenCount > 0 && (
-                <div className="text-xs text-gray-500 italic">
+                <span className="text-gray-500 italic ml-1">
                   {language === 'vi' 
                     ? `+${hiddenCount} thay đổi khác...`
                     : `+${hiddenCount} more...`}
-                </div>
+                </span>
               )}
             </div>
           )}
