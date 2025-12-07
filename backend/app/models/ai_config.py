@@ -35,9 +35,9 @@ class AIConfigUpdate(BaseModel):
     document_ai: Optional[Dict[str, Any]] = None
 
 class AIConfigResponse(AIConfigBase):
-    """Response model for AI configuration"""
+    """Response model for AI configuration (system-wide, no company field)"""
     id: str
-    company: str
+    company: Optional[str] = None  # Optional for system-wide config
     updated_by: Optional[str] = None
     updated_at: Optional[datetime] = None
     created_at: datetime
