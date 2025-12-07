@@ -3,7 +3,7 @@ Crew Audit Log Repository
 Database operations for audit logs
 """
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 import re
 
