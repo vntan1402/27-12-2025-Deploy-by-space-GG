@@ -77,7 +77,7 @@ async def create_audit_log_indexes():
         {
             'name': 'expires_at_1_ttl',
             'keys': [('expires_at', 1)],
-            'description': 'TTL index for 3-year retention',
+            'description': 'TTL index for 1-year retention',
             'options': {'expireAfterSeconds': 0}
         }
     ]
