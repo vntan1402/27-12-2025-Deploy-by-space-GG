@@ -718,7 +718,8 @@ export const CrewListTable = ({
               await crewService.update(crewId, {
                 ship_sign_on: bulkShipSignOn,
                 status: 'Sign on',
-                date_sign_off: null
+                date_sign_off: null,  // Clear sign off date
+                place_sign_off: null  // Clear sign off place
               });
               successCount++;
             }
