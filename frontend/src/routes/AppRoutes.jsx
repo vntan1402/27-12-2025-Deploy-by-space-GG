@@ -14,6 +14,7 @@ import CrewRecords from '../pages/CrewRecords';
 import CrewCertificate from '../pages/CrewCertificate';
 import IsmIspsMLc from '../pages/IsmIspsMLc';
 import SystemSettingsPage from '../pages/SystemSettingsPage';
+import { CrewAuditLogsPage } from '../components/SystemSettings/CrewAuditLogs';
 
 // Loading component
 const LoadingScreen = () => (
