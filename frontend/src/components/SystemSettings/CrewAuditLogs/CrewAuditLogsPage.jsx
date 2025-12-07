@@ -301,13 +301,54 @@ const CrewAuditLogsPage = () => {
           </div>
           
           <div className="flex items-center gap-3">
-            <button
-              onClick={handleExport}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2"
-            >
-              <span>📥</span>
-              <span>{language === 'vi' ? 'Export' : 'Export'}</span>
-            </button>
+            {/* Export Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-all flex items-center gap-2"
+              >
+                <span>📥</span>
+                <span>{language === 'vi' ? 'Export' : 'Export'}</span>
+                <svg className={`w-4 h-4 transition-transform ${showExportMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {showExportMenu && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowExportMenu(false)}></div>
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl z-20 border border-gray-200 overflow-hidden">
+                    <button
+                      onClick={() => {
+                        handleExportCSV();
+                        setShowExportMenu(false);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-all flex items-center gap-3"
+                    >
+                      <span className="text-xl">📄</span>
+                      <div>
+                        <div className="font-medium text-gray-900">CSV</div>
+                        <div className="text-xs text-gray-500">Comma-separated values</div>
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        handleExportExcel();
+                        setShowExportMenu(false);
+                      }}
+                      className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-all flex items-center gap-3 border-t border-gray-100"
+                    >
+                      <span className="text-xl">📊</span>
+                      <div>
+                        <div className="font-medium text-gray-900">Excel</div>
+                        <div className="text-xs text-gray-500">Microsoft Excel format</div>
+                      </div>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
             
             <button
               onClick={() => navigate('/system-settings')}
