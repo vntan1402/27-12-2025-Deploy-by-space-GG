@@ -36,18 +36,64 @@ const CrewAuditLogsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const logsPerPage = 20;
 
-  // Load mock data (will be replaced with API call)
+  // Load logs from API
   useEffect(() => {
     const loadLogs = async () => {
       setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setLogs(allMockLogs);
-      setLoading(false);
+      try {
+        // Calculate date range
+        let startDate = null;
+        let endDate = null;
+        
+        const now = new Date();
+        
+        switch (filters.dateRange) {
+          case 'today':
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+            break;
+          case 'yesterday':
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            startDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate()).toISOString();
+            endDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59).toISOString();
+            break;
+          case 'last_7_days':
+            startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+            break;
+          case 'last_30_days':
+            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString();
+            break;
+          case 'last_3_months':
+            startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000).toISOString();
+            break;
+          case 'custom':
+            startDate = filters.customStartDate ? new Date(filters.customStartDate).toISOString() : null;
+            endDate = filters.customEndDate ? new Date(filters.customEndDate + 'T23:59:59').toISOString() : null;
+            break;
+        }
+        
+        const response = await crewAuditLogService.getAuditLogs({
+          startDate,
+          endDate,
+          action: filters.action,
+          performedBy: filters.user,
+          shipName: filters.ship,
+          search: filters.search,
+          skip: (currentPage - 1) * logsPerPage,
+          limit: logsPerPage
+        });
+        
+        setLogs(response.logs || []);
+      } catch (error) {
+        console.error('Error loading audit logs:', error);
+        setLogs([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadLogs();
-  }, []);
+  }, [filters, currentPage, logsPerPage]);
 
   // Filter logs
   const filteredLogs = useMemo(() => {
