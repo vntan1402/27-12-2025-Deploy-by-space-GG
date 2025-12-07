@@ -1204,23 +1204,38 @@ async def update_crew_assignment_dates(
                 else:
                     parsed_date = new_date_sign_on
                 
-                # Find and update the latest SIGN_ON or SHIP_TRANSFER record
-                # Try SHIP_TRANSFER first (most recent if crew was transferred)
-                success = await CrewAssignmentRepository.update_latest_by_crew_and_type(
-                    crew_id=crew_id,
-                    action_type="SHIP_TRANSFER",
-                    update_data={"action_date": parsed_date}
+                # NEW LOGIC: Update sign_on_date field in SIGN_ON record
+                from app.db.mongodb import mongo_db
+                
+                # Find and update the most recent SIGN_ON record
+                result = await mongo_db.database.crew_assignment_history.update_one(
+                    {
+                        'crew_id': crew_id,
+                        'action_type': 'SIGN_ON'
+                    },
+                    {
+                        '$set': {
+                            'sign_on_date': parsed_date,
+                            'action_date': parsed_date,  # Also update action_date for backward compatibility
+                            'updated_at': datetime.now(timezone.utc)
+                        }
+                    },
+                    sort=[('action_date', -1)]  # Get most recent
                 )
                 
+                success = result.modified_count > 0
+                
                 if not success:
-                    # If no SHIP_TRANSFER found, try SIGN_ON
+                    # Fallback: Try SHIP_TRANSFER (for backward compatibility)
+                    logger.info("   No SIGN_ON record found, trying SHIP_TRANSFER")
                     success = await CrewAssignmentRepository.update_latest_by_crew_and_type(
                         crew_id=crew_id,
-                        action_type="SIGN_ON",
+                        action_type="SHIP_TRANSFER",
                         update_data={"action_date": parsed_date}
                     )
                 
                 updated["sign_on"] = success
+                logger.info(f"   Sign on date update result: {success}")
                 
             except Exception as e:
                 logger.error(f"❌ Error parsing or updating sign on date: {e}")
