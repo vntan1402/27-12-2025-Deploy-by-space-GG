@@ -122,6 +122,14 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/system-settings/crew-audit-logs"
+          element={
+            <ProtectedRoute>
+              <CrewAuditLogsPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
