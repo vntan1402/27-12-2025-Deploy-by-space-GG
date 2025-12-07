@@ -31,7 +31,7 @@ export const AuditLogFilters = ({ filters, onFilterChange, uniqueUsers, uniqueSh
 
   return (
     <div className="space-y-4">
-      {/* Row 1: Date Range and Action */}
+      {/* Row 1: Date Range, Action, User, Ship */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Date Range */}
         <div>
