@@ -44,7 +44,7 @@ async def get_crew_audit_logs(
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
         raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
     
-    company_id = current_user.company_id
+    company_id = current_user.company
     
     # Parse dates if provided
     start_date_parsed = datetime.fromisoformat(start_date.replace('Z', '+00:00')) if start_date else None
@@ -86,7 +86,7 @@ async def get_crew_audit_log_by_id(
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
         raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
     
-    company_id = current_user.company_id
+    company_id = current_user.company
     
     log = await repository.get_log_by_id(log_id, company_id)
     
@@ -110,7 +110,7 @@ async def get_crew_audit_logs_by_crew(
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
         raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
     
-    company_id = current_user.company_id
+    company_id = current_user.company
     
     logs = await repository.get_logs_by_crew(crew_id, company_id, limit)
     
@@ -129,7 +129,7 @@ async def get_unique_users_for_filter(
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
         raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
     
-    company_id = current_user.company_id
+    company_id = current_user.company
     
     users = await repository.get_unique_users(company_id)
     
@@ -148,7 +148,7 @@ async def get_unique_ships_for_filter(
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
         raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
     
-    company_id = current_user.company_id
+    company_id = current_user.company
     
     ships = await repository.get_unique_ships(company_id)
     
