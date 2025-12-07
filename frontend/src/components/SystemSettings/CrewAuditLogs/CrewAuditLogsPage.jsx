@@ -380,7 +380,7 @@ const CrewAuditLogsPage = () => {
         </div>
 
         {/* Pagination */}
-        {!loading && paginatedLogs.length > 0 && (
+        {!loading && logs.length > 0 && (
           <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
             <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
