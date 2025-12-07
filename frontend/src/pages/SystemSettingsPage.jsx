@@ -103,11 +103,10 @@ const SystemSettingsPage = () => {
         {/* Admin Tools - Admin, Super Admin, System Admin */}
         {(user.role === 'admin' || user.role === 'super_admin' || user.role === 'system_admin') && (
           <div className="bg-white rounded-xl shadow-lg p-6">
-            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">
               🛠️ {language === 'vi' ? 'Công cụ Admin' : 'Admin Tools'}
             </h2>
-            <p className="text-gray-600">Admin Tools module will be implemented here</p>
-            {/* <AdminTools /> */}
+            <AdminTools />
           </div>
         )}
       </div>
