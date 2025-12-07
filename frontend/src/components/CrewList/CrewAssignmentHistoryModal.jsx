@@ -73,19 +73,29 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
     const shipMap = new Map();
 
     sortedHistory.forEach((record) => {
-      const { action_type, from_ship, to_ship, action_date, performed_by } = record;
+      const { 
+        action_type, 
+        from_ship, 
+        to_ship, 
+        action_date, 
+        performed_by,
+        sign_on_date,
+        sign_on_by,
+        sign_off_date,
+        sign_off_by
+      } = record;
       
-      console.log('Processing record:', { action_type, from_ship, to_ship, action_date });
+      console.log('Processing record:', { action_type, from_ship, to_ship, action_date, sign_on_date, sign_off_date });
 
       // Handle SIGN_ON: crew joins a ship
       if (action_type === 'SIGN_ON' && to_ship) {
         if (!shipMap.has(to_ship)) {
           shipMap.set(to_ship, {
             ship_name: to_ship,
-            sign_on_date: action_date,
-            sign_on_by: performed_by,
-            sign_off_date: null,
-            sign_off_by: null,
+            sign_on_date: sign_on_date || action_date,  // Use sign_on_date field if available
+            sign_on_by: sign_on_by || performed_by,
+            sign_off_date: sign_off_date || null,  // Read from record
+            sign_off_by: sign_off_by || null,  // Read from record
             action_type: action_type
           });
         }
