@@ -98,31 +98,26 @@ const CrewAuditLogsPage = () => {
   // Logs are already filtered by API, just use them directly
   const totalPages = Math.ceil(logs.length / logsPerPage);
 
-  // Get unique users for filter dropdown
-  const uniqueUsers = useMemo(() => {
-    const users = logs.map(log => ({
-      username: log.performed_by,
-      name: log.performed_by_name
-    }));
-    
-    // Remove duplicates
-    const unique = users.filter((user, index, self) => 
-      index === self.findIndex(u => u.username === user.username)
-    );
-    
-    return unique;
-  }, [logs]);
+  // Load unique users and ships from API
+  const [uniqueUsers, setUniqueUsers] = useState([]);
+  const [uniqueShips, setUniqueShips] = useState([]);
 
-  // Get unique ships for filter dropdown
-  const uniqueShips = useMemo(() => {
-    const ships = logs.map(log => log.ship_name);
-    
-    // Remove duplicates and sort
-    const unique = [...new Set(ships)].filter(ship => ship && ship !== '-');
-    unique.sort();
-    
-    return unique;
-  }, [logs]);
+  useEffect(() => {
+    const loadFilterData = async () => {
+      try {
+        const [usersData, shipsData] = await Promise.all([
+          crewAuditLogService.getUniqueUsers(),
+          crewAuditLogService.getUniqueShips()
+        ]);
+        setUniqueUsers(usersData || []);
+        setUniqueShips(shipsData || []);
+      } catch (error) {
+        console.error('Error loading filter data:', error);
+      }
+    };
+
+    loadFilterData();
+  }, []);
 
   // Handle filter change
   const handleFilterChange = (newFilters) => {
