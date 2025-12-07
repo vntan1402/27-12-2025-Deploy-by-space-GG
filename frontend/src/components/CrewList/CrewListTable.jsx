@@ -877,7 +877,11 @@ export const CrewListTable = ({
               });
               
               // Step 2: Background file movement with skip_validation
+              // IMPORTANT: Pass original ship name before DB update
+              const originalShipName = crew.ship_sign_on;
+              
               crewService.signOff(crewId, {
+                from_ship: originalShipName,  // Pass original ship explicitly
                 sign_off_date: bulkDateSignOff,
                 notes: `Bulk sign off via Date Sign Off edit`,
                 skip_validation: true  // Skip validation since DB already updated
