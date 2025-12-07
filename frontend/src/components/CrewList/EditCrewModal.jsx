@@ -578,11 +578,13 @@ export const EditCrewModal = ({
                         status: 'Standby'
                       });
                     } else {
-                      // Sign on: Ship selected → Status = "Sign on"
+                      // Sign on: Ship selected → Status = "Sign on", clear sign off fields
                       setFormData({
                         ...formData, 
                         ship_sign_on: selectedShip,
-                        status: 'Sign on'
+                        status: 'Sign on',
+                        place_sign_off: '',  // Clear place sign off
+                        date_sign_off: ''    // Clear date sign off
                       });
                     }
                   }}
