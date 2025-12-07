@@ -161,7 +161,7 @@ async def cleanup_expired_logs(
     repository: CrewAuditLogRepository = Depends(get_audit_log_repository)
 ):
     """
-    Manual cleanup of expired logs (older than 3 years)
+    Manual cleanup of expired logs (older than 1 year)
     Only system_admin can trigger this
     """
     # Check permissions
