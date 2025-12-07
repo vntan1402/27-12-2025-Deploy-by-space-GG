@@ -171,7 +171,7 @@ class CrewAuditLogRepository:
     
     async def delete_expired_logs(self) -> int:
         """
-        Delete logs older than 3 years (manual cleanup)
+        Delete logs older than 1 year (manual cleanup)
         TTL index should handle this automatically, but this is for manual trigger
         
         Returns:
