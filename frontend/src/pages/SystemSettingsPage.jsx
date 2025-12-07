@@ -12,9 +12,7 @@ import { UserManagement } from '../components/SystemSettings/UserManagement';
 import { CompanyManagement } from '../components/SystemSettings/CompanyManagement';
 import AIConfig from '../components/SystemSettings/AIConfig';
 import SystemGoogleDrive from '../components/SystemSettings/SystemGoogleDrive';
-
-// Import components (will be created)
-// import { AdminTools } from '../components/SystemSettings/AdminTools';
+import { AdminTools } from '../components/SystemSettings/AdminTools';
 
 const SystemSettingsPage = () => {
   const { user, language } = useAuth();
