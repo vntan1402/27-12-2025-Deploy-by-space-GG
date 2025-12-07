@@ -142,7 +142,7 @@ class CrewAuditLogService:
             'performed_by': user.get('username'),
             'performed_by_id': user.get('id'),
             'performed_by_name': user.get('full_name'),
-            'performed_at': datetime.utcnow(),
+            'performed_at': datetime.now(timezone.utc),
             'changes': changes,
             'notes': notes or 'Created new crew member',
             'source': 'WEB_UI'
@@ -190,7 +190,7 @@ class CrewAuditLogService:
             'performed_by': user.get('username'),
             'performed_by_id': user.get('id'),
             'performed_by_name': user.get('full_name'),
-            'performed_at': datetime.utcnow(),
+            'performed_at': datetime.now(timezone.utc),
             'changes': changes,
             'notes': notes or f'Updated {len(changes)} field(s)',
             'source': 'WEB_UI'
@@ -241,7 +241,7 @@ class CrewAuditLogService:
             'performed_by': user.get('username'),
             'performed_by_id': user.get('id'),
             'performed_by_name': user.get('full_name'),
-            'performed_at': datetime.utcnow(),
+            'performed_at': datetime.now(timezone.utc),
             'changes': changes,
             'notes': notes or 'Deleted crew member',
             'source': 'WEB_UI'
@@ -341,7 +341,7 @@ class CrewAuditLogService:
             'performed_by': user.get('username'),
             'performed_by_id': user.get('id'),
             'performed_by_name': user.get('full_name'),
-            'performed_at': datetime.utcnow(),
+            'performed_at': datetime.now(timezone.utc),
             'changes': changes,
             'notes': notes or default_notes,
             'source': 'WEB_UI'
@@ -421,7 +421,7 @@ class CrewAuditLogService:
             'performed_by': user.get('username'),
             'performed_by_id': user.get('id'),
             'performed_by_name': user.get('full_name'),
-            'performed_at': datetime.utcnow(),
+            'performed_at': datetime.now(timezone.utc),
             'changes': changes,
             'notes': notes or f'Signed off from {ship_name}',
             'source': 'WEB_UI'
@@ -466,7 +466,7 @@ class CrewAuditLogService:
                 'performed_by': user.get('username'),
                 'performed_by_id': user.get('id'),
                 'performed_by_name': user.get('full_name'),
-                'performed_at': datetime.utcnow(),
+                'performed_at': datetime.now(timezone.utc),
                 'changes': changes,
                 'notes': notes or f'Bulk update - {len(changes)} field(s) changed',
                 'source': 'WEB_UI'
