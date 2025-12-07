@@ -30,11 +30,11 @@ class AIConfigRepository:
     
     @staticmethod
     async def create(config_data: AIConfigCreate, company: str, user_id: str) -> dict:
-        """Create new AI configuration"""
+        """Create new AI configuration (system-wide, company param ignored)"""
         try:
             config_dict = {
                 "id": str(uuid.uuid4()),
-                "company": company,
+                # CHANGED: No company field - system-wide config
                 **config_data.dict(),
                 "created_at": datetime.utcnow(),
                 "updated_at": datetime.utcnow(),
