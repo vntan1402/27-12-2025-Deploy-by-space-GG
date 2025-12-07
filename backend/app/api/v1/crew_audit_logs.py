@@ -10,7 +10,8 @@ from app.models.crew_audit_log import (
     CrewAuditLogFilter
 )
 from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
-from app.core.deps import get_current_user, get_database
+from app.core.security import get_current_user
+from app.db.mongodb import get_database
 
 router = APIRouter()
 
