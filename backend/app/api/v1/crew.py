@@ -1261,23 +1261,29 @@ async def update_crew_assignment_dates(
                 # (We no longer create separate SIGN_OFF records)
                 from app.db.mongodb import mongo_db
                 
-                # Find the most recent SIGN_ON record that has sign_off_date
-                result = await mongo_db.database.crew_assignment_history.update_one(
+                # Find the most recent SIGN_ON record that has sign_off_date first
+                record = await mongo_db.database.crew_assignment_history.find_one(
                     {
                         'crew_id': crew_id,
                         'action_type': 'SIGN_ON',
                         'sign_off_date': {'$ne': None}  # Has sign off date
                     },
-                    {
-                        '$set': {
-                            'sign_off_date': parsed_date,
-                            'updated_at': datetime.now(timezone.utc)
-                        }
-                    },
                     sort=[('action_date', -1)]  # Get most recent
                 )
                 
-                success = result.modified_count > 0
+                success = False
+                if record:
+                    # Update the found record
+                    result = await mongo_db.database.crew_assignment_history.update_one(
+                        {'_id': record['_id']},
+                        {
+                            '$set': {
+                                'sign_off_date': parsed_date,
+                                'updated_at': datetime.now(timezone.utc)
+                            }
+                        }
+                    )
+                    success = result.modified_count > 0
                 
                 if not success:
                     # Fallback: Try old SIGN_OFF record format (for backward compatibility)
