@@ -74,6 +74,7 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
 
     sortedHistory.forEach((record) => {
       const { 
+        id,  // Record ID for unique key
         action_type, 
         from_ship, 
         to_ship, 
@@ -85,12 +86,15 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
         sign_off_by
       } = record;
       
-      console.log('Processing record:', { action_type, from_ship, to_ship, action_date, sign_on_date, sign_off_date });
+      console.log('Processing record:', { id, action_type, from_ship, to_ship, action_date, sign_on_date, sign_off_date });
 
       // Handle SIGN_ON: crew joins a ship
       if (action_type === 'SIGN_ON' && to_ship) {
-        if (!shipMap.has(to_ship)) {
-          shipMap.set(to_ship, {
+        // Use record ID as unique key to allow multiple assignments to same ship
+        const uniqueKey = id || `${to_ship}_${action_date}`;
+        
+        if (!shipMap.has(uniqueKey)) {
+          shipMap.set(uniqueKey, {
             ship_name: to_ship,
             sign_on_date: sign_on_date || action_date,  // Use sign_on_date field if available
             sign_on_by: sign_on_by || performed_by,
