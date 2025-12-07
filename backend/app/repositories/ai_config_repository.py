@@ -45,7 +45,7 @@ class AIConfigRepository:
             if config_dict.get("use_emergent_key"):
                 config_dict["custom_api_key"] = None
             
-            result = await mongo_db.create(
+            await mongo_db.create(
                 AIConfigRepository.collection_name,
                 config_dict
             )
