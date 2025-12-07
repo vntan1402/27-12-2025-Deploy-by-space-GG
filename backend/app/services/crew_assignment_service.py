@@ -11,9 +11,12 @@ import asyncio
 
 from app.repositories.crew_repository import CrewRepository
 from app.repositories.crew_assignment_repository import CrewAssignmentRepository
+from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
 from app.services.crew_file_movement_service import CrewFileMovementService
+from app.services.crew_audit_log_service import CrewAuditLogService
 from app.models.user import UserResponse
 from app.utils.date_helpers import parse_date_flexible
+from app.db.mongodb import mongo_db
 
 logger = logging.getLogger(__name__)
 
