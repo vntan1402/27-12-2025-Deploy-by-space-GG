@@ -372,7 +372,7 @@ const CrewAuditLogsPage = () => {
             </div>
           ) : (
             <AuditLogList
-              logs={paginatedLogs}
+              logs={logs}
               onViewDetails={handleViewDetails}
               language={language}
             />
