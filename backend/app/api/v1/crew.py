@@ -1207,23 +1207,29 @@ async def update_crew_assignment_dates(
                 # NEW LOGIC: Update sign_on_date field in SIGN_ON record
                 from app.db.mongodb import mongo_db
                 
-                # Find and update the most recent SIGN_ON record
-                result = await mongo_db.database.crew_assignment_history.update_one(
+                # Find the most recent SIGN_ON record first
+                record = await mongo_db.database.crew_assignment_history.find_one(
                     {
                         'crew_id': crew_id,
                         'action_type': 'SIGN_ON'
                     },
-                    {
-                        '$set': {
-                            'sign_on_date': parsed_date,
-                            'action_date': parsed_date,  # Also update action_date for backward compatibility
-                            'updated_at': datetime.now(timezone.utc)
-                        }
-                    },
                     sort=[('action_date', -1)]  # Get most recent
                 )
                 
-                success = result.modified_count > 0
+                success = False
+                if record:
+                    # Update the found record
+                    result = await mongo_db.database.crew_assignment_history.update_one(
+                        {'_id': record['_id']},
+                        {
+                            '$set': {
+                                'sign_on_date': parsed_date,
+                                'action_date': parsed_date,  # Also update action_date for backward compatibility
+                                'updated_at': datetime.now(timezone.utc)
+                            }
+                        }
+                    )
+                    success = result.modified_count > 0
                 
                 if not success:
                     # Fallback: Try SHIP_TRANSFER (for backward compatibility)
