@@ -100,6 +100,11 @@ const CrewAuditLogsPage = () => {
       result = result.filter(log => log.performed_by === filters.user);
     }
 
+    // Ship filter
+    if (filters.ship !== 'all') {
+      result = result.filter(log => log.ship_name === filters.ship);
+    }
+
     // Search filter (crew name)
     if (filters.search.trim()) {
       const searchTerm = filters.search.toLowerCase().trim();
