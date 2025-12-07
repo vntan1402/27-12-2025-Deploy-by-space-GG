@@ -135,7 +135,7 @@ export const AuditLogFilters = ({ filters, onFilterChange, uniqueUsers, uniqueSh
         </div>
       </div>
 
-      {/* Row 2: Custom Date Range (if selected) */}
+      {/* Row 3: Custom Date Range (if selected) */}
       {filters.dateRange === 'custom' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
           <div>
