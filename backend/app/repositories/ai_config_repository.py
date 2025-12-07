@@ -57,7 +57,7 @@ class AIConfigRepository:
     
     @staticmethod
     async def update(company: str, config_data: AIConfigUpdate, user_id: str) -> Optional[dict]:
-        """Update AI configuration"""
+        """Update AI configuration (system-wide, company param ignored)"""
         try:
             update_dict = {k: v for k, v in config_data.dict(exclude_unset=True).items() if v is not None}
             
@@ -68,9 +68,10 @@ class AIConfigRepository:
             update_dict["updated_at"] = datetime.utcnow()
             update_dict["updated_by"] = user_id
             
+            # CHANGED: Update system-wide config (no company filter)
             success = await mongo_db.update(
                 AIConfigRepository.collection_name,
-                {"company": company},
+                {"company": {"$exists": False}},  # System-wide config
                 update_dict
             )
             
