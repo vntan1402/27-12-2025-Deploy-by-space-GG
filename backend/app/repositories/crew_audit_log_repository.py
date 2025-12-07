@@ -29,8 +29,8 @@ class CrewAuditLogRepository:
         now = datetime.utcnow()
         log_data['created_at'] = now
         
-        # Set expiration date (3 years from now)
-        log_data['expires_at'] = now + timedelta(days=3*365)
+        # Set expiration date (1 year from now)
+        log_data['expires_at'] = now + timedelta(days=365)
         
         # Insert into database
         result = await self.collection.insert_one(log_data)
