@@ -436,6 +436,12 @@ class CrewAssignmentService:
                     'full_name': current_user.full_name,
                     'company': current_user.company
                 }
+                # Only pass old_ship if crew was already "Sign on" status
+                # If crew was "Standby", this is a new sign on regardless of ship_sign_on field
+                old_ship_value = None
+                if current_status == "Sign on" and current_ship and current_ship != '-':
+                    old_ship_value = current_ship
+                
                 await audit_service.log_crew_sign_on(
                     crew_id=crew_id,
                     crew_name=crew_name,
@@ -443,7 +449,7 @@ class CrewAssignmentService:
                     date_sign_on=parsed_date,
                     place_sign_on=place_sign_on,
                     user=user_dict,
-                    old_ship=current_ship if current_ship and current_ship != '-' else None,
+                    old_ship=old_ship_value,
                     notes=notes or f"Signed on to {ship_name}"
                 )
             except Exception as e:
