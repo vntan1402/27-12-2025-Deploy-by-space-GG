@@ -15,15 +15,17 @@ class AIConfigRepository:
     
     @staticmethod
     async def get_by_company(company: str) -> Optional[dict]:
-        """Get AI config by company"""
+        """Get AI config (system-wide, ignoring company parameter for backward compatibility)"""
         try:
+            # CHANGED: Get system-wide config (no company filter)
+            # Document AI config is shared across all companies
             config = await mongo_db.find_one(
                 AIConfigRepository.collection_name,
-                {"company": company}
+                {"company": {"$exists": False}}  # System-wide config has no company field
             )
             return config
         except Exception as e:
-            logger.error(f"Error getting AI config for company {company}: {e}")
+            logger.error(f"Error getting AI config: {e}")
             raise
     
     @staticmethod
