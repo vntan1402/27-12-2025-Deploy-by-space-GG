@@ -165,7 +165,7 @@ async def cleanup_expired_logs(
     Only system_admin can trigger this
     """
     # Check permissions
-    if current_user.get('role') != 'system_admin':
+    if current_user.role != 'system_admin':
         raise HTTPException(status_code=403, detail="Only system admin can trigger cleanup")
     
     deleted_count = await repository.delete_expired_logs()
