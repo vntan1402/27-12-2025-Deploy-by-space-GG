@@ -929,13 +929,32 @@ export const CrewListTable = ({
       
       // Show result
       if (successCount > 0) {
-        const message = isClearingDate
-          ? (language === 'vi' 
-              ? `✅ Đã xóa ngày xuống tàu cho ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}` 
-              : `✅ Cleared date for ${successCount} crew member(s)${failCount > 0 ? `, ${failCount} failed` : ''}`)
-          : (language === 'vi'
-              ? `✅ Đã sign off ${successCount} thuyền viên. Files đang được di chuyển...${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
-              : `✅ Signed off ${successCount} crew member(s). Files are being moved in background...${failCount > 0 ? ` (${failCount} failed)` : ''}`);
+        let message;
+        
+        if (isClearingDate) {
+          // Clearing dates
+          message = language === 'vi' 
+            ? `✅ Đã xóa ngày xuống tàu cho ${successCount} thuyền viên${failCount > 0 ? `, ${failCount} thất bại` : ''}` 
+            : `✅ Cleared date for ${successCount} crew member(s)${failCount > 0 ? `, ${failCount} failed` : ''}`;
+        } else {
+          // Sign off or date correction
+          if (realSignOffCount > 0 && dateCorrectionCount > 0) {
+            // Mixed: some real sign offs, some corrections
+            message = language === 'vi'
+              ? `✅ Đã cập nhật ${successCount} thuyền viên (${realSignOffCount} sign off + ${dateCorrectionCount} sửa date)${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
+              : `✅ Updated ${successCount} crew (${realSignOffCount} signed off + ${dateCorrectionCount} date corrected)${failCount > 0 ? ` (${failCount} failed)` : ''}`;
+          } else if (realSignOffCount > 0) {
+            // Only real sign offs
+            message = language === 'vi'
+              ? `✅ Đã sign off ${realSignOffCount} thuyền viên. Files đang được di chuyển...${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
+              : `✅ Signed off ${realSignOffCount} crew member(s). Files are being moved in background...${failCount > 0 ? ` (${failCount} failed)` : ''}`;
+          } else {
+            // Only date corrections
+            message = language === 'vi'
+              ? `✅ Đã cập nhật ngày rời tàu cho ${dateCorrectionCount} thuyền viên${failCount > 0 ? ` (${failCount} thất bại)` : ''}`
+              : `✅ Updated sign off date for ${dateCorrectionCount} crew member(s)${failCount > 0 ? ` (${failCount} failed)` : ''}`;
+          }
+        }
         
         toast.success(message, { duration: 5000 });
       } else {
