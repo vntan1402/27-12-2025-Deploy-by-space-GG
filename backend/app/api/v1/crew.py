@@ -1236,14 +1236,39 @@ async def update_crew_assignment_dates(
                 else:
                     parsed_date = new_date_sign_off
                 
-                # Update the latest SIGN_OFF record
-                success = await CrewAssignmentRepository.update_latest_by_crew_and_type(
-                    crew_id=crew_id,
-                    action_type="SIGN_OFF",
-                    update_data={"action_date": parsed_date}
+                # NEW LOGIC: Update sign_off_date field in SIGN_ON record
+                # (We no longer create separate SIGN_OFF records)
+                from app.db.mongodb import mongo_db
+                
+                # Find the most recent SIGN_ON record that has sign_off_date
+                result = await mongo_db.database.crew_assignment_history.update_one(
+                    {
+                        'crew_id': crew_id,
+                        'action_type': 'SIGN_ON',
+                        'sign_off_date': {'$ne': None}  # Has sign off date
+                    },
+                    {
+                        '$set': {
+                            'sign_off_date': parsed_date,
+                            'updated_at': datetime.now(timezone.utc)
+                        }
+                    },
+                    sort=[('action_date', -1)]  # Get most recent
                 )
                 
+                success = result.modified_count > 0
+                
+                if not success:
+                    # Fallback: Try old SIGN_OFF record format (for backward compatibility)
+                    logger.info("   No SIGN_ON record with sign_off_date found, trying old SIGN_OFF format")
+                    success = await CrewAssignmentRepository.update_latest_by_crew_and_type(
+                        crew_id=crew_id,
+                        action_type="SIGN_OFF",
+                        update_data={"action_date": parsed_date}
+                    )
+                
                 updated["sign_off"] = success
+                logger.info(f"   Sign off date update result: {success}")
                 
             except Exception as e:
                 logger.error(f"❌ Error parsing or updating sign off date: {e}")
