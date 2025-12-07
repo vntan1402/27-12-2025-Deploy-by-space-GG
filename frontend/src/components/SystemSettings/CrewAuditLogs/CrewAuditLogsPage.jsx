@@ -145,7 +145,7 @@ const CrewAuditLogsPage = () => {
       'Notes'
     ];
 
-    const rows = filteredLogs.map(log => {
+    const rows = logs.map(log => {
       const date = new Date(log.performed_at);
       const dateStr = date.toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US');
       const timeStr = date.toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US');
