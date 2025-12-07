@@ -344,13 +344,8 @@ const CrewAuditLogsPage = () => {
         <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
           <p className="text-sm text-gray-700">
             {language === 'vi' ? 'Tóm tắt: ' : 'Summary: '}
-            <span className="font-bold">{filteredLogs.length}</span>
+            <span className="font-bold">{logs.length}</span>
             {language === 'vi' ? ' logs được tìm thấy' : ' logs found'}
-            {filteredLogs.length !== logs.length && (
-              <span className="text-gray-500">
-                {' '}({language === 'vi' ? 'từ tổng' : 'out of'} {logs.length})
-              </span>
-            )}
           </p>
         </div>
 
