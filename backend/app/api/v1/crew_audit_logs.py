@@ -11,14 +11,14 @@ from app.models.crew_audit_log import (
 )
 from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
 from app.core.security import get_current_user
-from app.db.mongodb import get_database
+from app.db.mongodb import mongo_db
 
 router = APIRouter()
 
 
-def get_audit_log_repository(db = Depends(get_database)) -> CrewAuditLogRepository:
+def get_audit_log_repository() -> CrewAuditLogRepository:
     """Dependency to get audit log repository"""
-    return CrewAuditLogRepository(db)
+    return CrewAuditLogRepository(mongo_db.database)
 
 
 @router.get("/crew-audit-logs", response_model=dict)
