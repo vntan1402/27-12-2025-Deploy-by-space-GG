@@ -659,7 +659,8 @@ export const CrewListTable = ({
                 status: 'Sign on',
                 date_sign_on: finalDateSignOn,
                 place_sign_on: finalPlaceSignOn,
-                date_sign_off: null
+                date_sign_off: null,  // Clear sign off date
+                place_sign_off: null  // Clear sign off place
               };
               
               const result = await updateCrewWithConflictDetection(crewId, updateData, crew);
