@@ -197,6 +197,12 @@ const CrewAuditLogsPage = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    } catch (error) {
+      console.error('Export CSV error:', error);
+      alert(language === 'vi' 
+        ? 'Lỗi khi export CSV. Vui lòng thử lại.' 
+        : 'Error exporting CSV. Please try again.');
+    }
   };
 
   // Handle export Excel
