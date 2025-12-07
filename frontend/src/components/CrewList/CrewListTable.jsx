@@ -865,9 +865,6 @@ export const CrewListTable = ({
         }
       } else {
         // Sign Off flow: Update DB immediately, file movement in background
-        let realSignOffCount = 0;  // Count real sign offs (file movement)
-        let dateCorrectionCount = 0;  // Count date corrections (no file movement)
-        
         for (const crewId of crewIds) {
           const crew = crewList.find(c => c.id === crewId);
           if (!crew) continue;
