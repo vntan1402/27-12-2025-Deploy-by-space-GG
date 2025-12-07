@@ -849,6 +849,8 @@ export const CrewListTable = ({
     try {
       let successCount = 0;
       let failCount = 0;
+      let realSignOffCount = 0;  // Count real sign offs (file movement)
+      let dateCorrectionCount = 0;  // Count date corrections (no file movement)
       
       if (isClearingDate) {
         // Clear Date Sign Off only (don't change status or ship)
