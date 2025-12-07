@@ -237,6 +237,7 @@ export const mockAuditLogs = [
     entity_id: 'crew_129',
     entity_name: 'Đỗ Thị G',
     company_id: 'company_1',
+    ship_name: 'Ship DEF',
     action: 'UPDATE',
     action_category: 'DATA_CHANGE',
     performed_by: 'editor1',
