@@ -200,6 +200,19 @@ class CrewService:
         # Get updated crew
         updated_crew = await CrewRepository.find_by_id(crew_id)
         
+        # Log crew audit log
+        try:
+            audit_service = CrewService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_crew_update(crew_id, crew, updated_crew, user_dict, notes="Updated crew information")
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ Crew member updated: {crew_id}")
         
         return CrewResponse(**updated_crew)
