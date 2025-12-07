@@ -4,7 +4,7 @@
  */
 import React from 'react';
 
-export const AuditLogFilters = ({ filters, onFilterChange, uniqueUsers, language }) => {
+export const AuditLogFilters = ({ filters, onFilterChange, uniqueUsers, uniqueShips, language }) => {
   const handleDateRangeChange = (e) => {
     onFilterChange({ dateRange: e.target.value });
   };
