@@ -65,20 +65,20 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
             {/* Crew & Ship */}
             <span className="font-semibold">{log.entity_name}</span>
             {log.ship_name && log.ship_name !== '-' && (
-              <span className="text-gray-600"> • 🚢 {log.ship_name}</span>
+              <span className="text-gray-600"> // 🚢 {log.ship_name}</span>
             )}
             
             {/* Changes */}
             {visibleChanges.length > 0 && (
               <>
-                <span className="text-gray-400 mx-1">•</span>
+                <span className="text-gray-400 mx-1">//</span>
                 {visibleChanges.map((change, index) => (
                   <span key={index}>
                     <span className="font-medium">{change.field_label}:</span>{' '}
                     <span className="text-gray-500">"{change.old_value || '-'}"</span>
                     {' → '}
                     <span className="text-gray-900 font-semibold">"{change.new_value || '-'}"</span>
-                    {index < visibleChanges.length - 1 && <span className="text-gray-400 mx-1">•</span>}
+                    {index < visibleChanges.length - 1 && <span className="text-gray-400 mx-1">//</span>}
                   </span>
                 ))}
                 {hiddenCount > 0 && (
@@ -94,7 +94,7 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
             {/* Notes */}
             {log.notes && (
               <>
-                <span className="text-gray-400 mx-1">•</span>
+                <span className="text-gray-400 mx-1">//</span>
                 <span className="text-gray-600 italic">📝 {log.notes}</span>
               </>
             )}
