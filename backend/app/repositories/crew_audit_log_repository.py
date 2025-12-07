@@ -15,6 +15,27 @@ class CrewAuditLogRepository:
         self.db = db
         self.collection = db.crew_audit_logs
     
+    @staticmethod
+    def _add_timezone_to_log(log: dict) -> dict:
+        """Add UTC timezone to datetime fields for proper serialization"""
+        if log:
+            # Add timezone to performed_at
+            if 'performed_at' in log and isinstance(log['performed_at'], datetime):
+                if log['performed_at'].tzinfo is None:
+                    log['performed_at'] = log['performed_at'].replace(tzinfo=timezone.utc)
+            
+            # Add timezone to created_at
+            if 'created_at' in log and isinstance(log['created_at'], datetime):
+                if log['created_at'].tzinfo is None:
+                    log['created_at'] = log['created_at'].replace(tzinfo=timezone.utc)
+            
+            # Add timezone to expires_at
+            if 'expires_at' in log and isinstance(log['expires_at'], datetime):
+                if log['expires_at'].tzinfo is None:
+                    log['expires_at'] = log['expires_at'].replace(tzinfo=timezone.utc)
+        
+        return log
+    
     async def create_log(self, log_data: dict) -> dict:
         """
         Create new audit log entry
