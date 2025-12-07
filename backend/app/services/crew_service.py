@@ -103,6 +103,19 @@ class CrewService:
             company_id=current_user.company
         )
         
+        # Log crew audit log
+        try:
+            audit_service = CrewService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_crew_create(crew_dict, user_dict, notes="Created new crew member")
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ Crew member created: {crew_dict['full_name']}")
         
         return CrewResponse(**crew_dict)
