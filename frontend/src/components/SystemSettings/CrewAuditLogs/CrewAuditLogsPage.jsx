@@ -95,82 +95,8 @@ const CrewAuditLogsPage = () => {
     loadLogs();
   }, [filters, currentPage, logsPerPage]);
 
-  // Filter logs
-  const filteredLogs = useMemo(() => {
-    let result = [...logs];
-
-    // Date range filter
-    const now = new Date();
-    let startDate = null;
-
-    switch (filters.dateRange) {
-      case 'today':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        break;
-      case 'yesterday':
-        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-        break;
-      case 'last_7_days':
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        break;
-      case 'last_30_days':
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        break;
-      case 'last_3_months':
-        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-        break;
-      case 'custom':
-        startDate = filters.customStartDate ? new Date(filters.customStartDate) : null;
-        break;
-      default:
-        startDate = null;
-    }
-
-    if (startDate) {
-      result = result.filter(log => new Date(log.performed_at) >= startDate);
-    }
-
-    if (filters.dateRange === 'custom' && filters.customEndDate) {
-      const endDate = new Date(filters.customEndDate);
-      endDate.setHours(23, 59, 59, 999);
-      result = result.filter(log => new Date(log.performed_at) <= endDate);
-    }
-
-    // Action filter
-    if (filters.action !== 'all') {
-      result = result.filter(log => log.action === filters.action);
-    }
-
-    // User filter
-    if (filters.user !== 'all') {
-      result = result.filter(log => log.performed_by === filters.user);
-    }
-
-    // Ship filter
-    if (filters.ship !== 'all') {
-      result = result.filter(log => log.ship_name === filters.ship);
-    }
-
-    // Search filter (crew name)
-    if (filters.search.trim()) {
-      const searchTerm = filters.search.toLowerCase().trim();
-      result = result.filter(log => 
-        log.entity_name.toLowerCase().includes(searchTerm)
-      );
-    }
-
-    // Sort by date (newest first)
-    result.sort((a, b) => new Date(b.performed_at) - new Date(a.performed_at));
-
-    return result;
-  }, [logs, filters]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredLogs.length / logsPerPage);
-  const paginatedLogs = useMemo(() => {
-    const startIndex = (currentPage - 1) * logsPerPage;
-    return filteredLogs.slice(startIndex, startIndex + logsPerPage);
-  }, [filteredLogs, currentPage, logsPerPage]);
+  // Logs are already filtered by API, just use them directly
+  const totalPages = Math.ceil(logs.length / logsPerPage);
 
   // Get unique users for filter dropdown
   const uniqueUsers = useMemo(() => {
