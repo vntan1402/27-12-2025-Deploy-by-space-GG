@@ -34,11 +34,25 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
   };
 
   const config = getActionConfig(log.action);
-  const time = new Date(log.performed_at).toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US', {
+  
+  // Format time in local timezone
+  const logDate = new Date(log.performed_at);
+  const time = logDate.toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US', {
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit'
+    second: '2-digit',
+    hour12: false
   });
+  
+  // Check if log is from today
+  const today = new Date();
+  const isToday = logDate.toDateString() === today.toDateString();
+  
+  // If not today, include date
+  const displayTime = isToday ? time : logDate.toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
+    month: '2-digit',
+    day: '2-digit'
+  }) + ' ' + time;
 
   // Show max 3 changes in summary
   const visibleChanges = log.changes.slice(0, 3);
