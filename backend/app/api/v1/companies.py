@@ -69,11 +69,17 @@ async def create_company(
 async def update_company(
     company_id: str,
     company_data: CompanyUpdate,
-    current_user: UserResponse = Depends(check_super_admin_permission)
+    current_user: UserResponse = Depends(check_admin_permission)
 ):
     """
-    Update company (Admin only)
+    Update company
+    - Admin: can only update their own company
+    - Super Admin/System Admin: can update any company
     """
+    # Check if admin is trying to update other company
+    if current_user.role == UserRole.ADMIN and current_user.company != company_id:
+        raise HTTPException(status_code=403, detail="Admin can only update their own company")
+    
     try:
         return await CompanyService.update_company(company_id, company_data, current_user)
     except HTTPException:
