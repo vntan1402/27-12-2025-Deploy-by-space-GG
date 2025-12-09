@@ -63,7 +63,7 @@ async def create_company(
 async def update_company(
     company_id: str,
     company_data: CompanyUpdate,
-    current_user: UserResponse = Depends(check_admin_permission)
+    current_user: UserResponse = Depends(check_super_admin_permission)
 ):
     """
     Update company (Admin only)
