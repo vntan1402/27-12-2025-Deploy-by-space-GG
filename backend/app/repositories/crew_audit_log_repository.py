@@ -138,21 +138,22 @@ class CrewAuditLogRepository:
         
         return logs, total
     
-    async def get_log_by_id(self, log_id: str, company_id: str) -> Optional[dict]:
+    async def get_log_by_id(self, log_id: str, company_id: Optional[str]) -> Optional[dict]:
         """
         Get single log by ID
         
         Args:
             log_id: Log ID
-            company_id: Company ID for security check
+            company_id: Company ID for security check (None = all companies for super admins)
             
         Returns:
             Log dict or None
         """
-        log = await self.collection.find_one(
-            {'id': log_id, 'company_id': company_id},
-            {'_id': 0}
-        )
+        query = {'id': log_id}
+        if company_id is not None:
+            query['company_id'] = company_id
+            
+        log = await self.collection.find_one(query, {'_id': 0})
         return self._add_timezone_to_log(log)
     
     async def get_logs_by_crew(
