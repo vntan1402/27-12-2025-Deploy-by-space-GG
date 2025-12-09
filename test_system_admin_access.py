@@ -10,7 +10,7 @@ import json
 
 BACKEND_URL = "https://actionlog-2.preview.emergentagent.com/api"
 SYSTEM_ADMIN_USERNAME = "system_admin"
-SYSTEM_ADMIN_PASSWORD = "123456"
+SYSTEM_ADMIN_PASSWORD = "YourSecure@Pass2024"
 
 def login_system_admin():
     """Login as system_admin"""
