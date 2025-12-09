@@ -19,30 +19,8 @@ const AdminTools = () => {
         ? 'Xem lịch sử thay đổi và hoạt động của tất cả entities trong hệ thống'
         : 'View change history and activity logs for all system entities',
       route: '/system-settings/crew-audit-logs',
-      badge: 'Updated',
-      color: 'blue'
-    },
-    {
-      id: 'crew-logs',
-      icon: '👥',
-      title: language === 'vi' ? 'Crew Activity' : 'Crew Activity',
-      description: language === 'vi' 
-        ? 'Truy cập nhanh logs của Crew'
-        : 'Quick access to crew logs',
-      route: '/system-settings/crew-audit-logs?entity=crew',
       badge: null,
-      color: 'purple'
-    },
-    {
-      id: 'certificate-logs',
-      icon: '📜',
-      title: language === 'vi' ? 'Certificate Logs' : 'Certificate Logs',
-      description: language === 'vi' 
-        ? 'Truy cập nhanh logs của Chứng chỉ'
-        : 'Quick access to certificate logs',
-      route: '/system-settings/crew-audit-logs?entity=certificate',
-      badge: 'New',
-      color: 'green'
+      color: 'blue'
     },
   ];
 
