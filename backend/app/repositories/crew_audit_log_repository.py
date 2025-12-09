@@ -82,12 +82,17 @@ class CrewAuditLogRepository:
         Get filtered audit logs with pagination
         
         Supports filtering by entity type (crew, certificate, ship, company, user, document)
+        If company_id is None, returns logs from all companies (for super admins)
         
         Returns:
             Tuple of (logs list, total count)
         """
         # Build query
-        query = {'company_id': company_id}
+        query = {}
+        
+        # Company filter (None = all companies for super admins)
+        if company_id is not None:
+            query['company_id'] = company_id
         
         # Entity type filter
         if entity_type:
