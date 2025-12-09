@@ -55,6 +55,7 @@ async def get_crew_audit_logs(
     # Get logs
     logs, total = await repository.get_logs(
         company_id=company_id,
+        entity_type=entity_type,
         start_date=start_date_parsed,
         end_date=end_date_parsed,
         action=action,
