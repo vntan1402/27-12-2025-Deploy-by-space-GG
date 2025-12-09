@@ -14,7 +14,10 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
       SIGN_ON: { icon: '🚢', color: 'purple', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', textColor: 'text-purple-800' },
       SIGN_OFF: { icon: '🏝️', color: 'orange', bgColor: 'bg-orange-50', borderColor: 'border-orange-200', textColor: 'text-orange-800' },
       SHIP_TRANSFER: { icon: '🔀', color: 'indigo', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-200', textColor: 'text-indigo-800' },
-      BULK_UPDATE: { icon: '📋', color: 'teal', bgColor: 'bg-teal-50', borderColor: 'border-teal-200', textColor: 'text-teal-800' }
+      BULK_UPDATE: { icon: '📋', color: 'teal', bgColor: 'bg-teal-50', borderColor: 'border-teal-200', textColor: 'text-teal-800' },
+      CREATE_CERTIFICATE: { icon: '📜', color: 'green', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
+      UPDATE_CERTIFICATE: { icon: '📝', color: 'blue', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
+      DELETE_CERTIFICATE: { icon: '🗑️', color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' }
     };
     return configs[action] || configs.UPDATE;
   };
