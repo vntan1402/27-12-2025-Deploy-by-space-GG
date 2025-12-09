@@ -1,31 +1,41 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Google Drive Configuration Investigation
+Backend Testing Script for Comprehensive Audit Log System Testing
 
-Tests Google Drive Configuration for Company - Compare with Audit Certificate:
+Tests the comprehensive audit log system for Phase 1 expansion (Companies and Users):
 
-**Context**: Need to check if company has Google Drive configuration similar to how Audit Certificate module uses it.
+**Context**: The application has a centralized audit log system that tracks CRUD operations
+- Recently integrated audit logging for Companies and Users entities
+- API endpoint: `/api/audit-logs` (renamed from `/api/crew-audit-logs`)
+- All entity types: crew, certificate, ship, company, user
 
-**Investigation Required**:
-1. Login with admin1/123456
-2. Check current user's company information
-3. Query companies collection to see google_drive_config structure
-4. Check if there's a separate collection for Google Drive config (like company_gdrive_config)
-5. Compare with how Audit Certificate accesses Google Drive config
+**Test Requirements**:
+1. API Endpoint Testing:
+   - GET /api/audit-logs - retrieve all audit logs with pagination
+   - GET /api/audit-logs?entity_type=company - filter by company entity
+   - GET /api/audit-logs?entity_type=user - filter by user entity
+   - GET /api/audit-logs/filters/users - get unique users
+   - GET /api/audit-logs/filters/ships - get unique ships
 
-**Specific Checks**:
-1. Does company document have `google_drive_config` field?
-2. What fields are in `google_drive_config`: `apps_script_url`, `folder_id`, `main_folder_id`?
-3. Is there a separate `company_gdrive_config` collection?
-4. How does Audit Certificate module fetch Google Drive config vs Crew module?
+2. Company Audit Logging:
+   - Create/Update/Delete company operations should create audit logs
+   - Verify correct fields: entity_type, entity_id, entity_name, action, performed_by, timestamp, changes array
 
-**Expected Information**:
-- Company ID
-- Current google_drive_config structure
-- Whether config exists for current company
-- What values are set/missing
+3. User Audit Logging:
+   - Create/Update/Delete user operations should create audit logs
+   - CRITICAL: Verify password_hash is NEVER logged in any audit log entry
 
-This will help identify what needs to be configured to fix the file upload error.
+4. Data Validation:
+   - Verify all audit logs have proper UTC timestamps
+   - Verify changes array contains field, field_label, old_value, new_value
+   - Verify entity_name is human-readable
+   - Verify company_id is correctly set for each log
+
+5. Filtering & Permissions:
+   - Test that logs are properly filtered by entity_type
+   - Verify admin user can access audit logs (role check)
+
+**Test Credentials**: admin1 / 123456
 """
 
 import requests
