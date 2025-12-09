@@ -60,6 +60,7 @@ class BackendTester:
         self.auth_token = None
         self.user_info = None
         self.test_results = []
+        self.created_entities = []  # Track created entities for cleanup
         
     def log_test(self, test_name, success, details=""):
         """Log test result"""
