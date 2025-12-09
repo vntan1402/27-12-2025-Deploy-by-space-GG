@@ -40,13 +40,18 @@ async def get_audit_logs(
     Get filtered system audit logs with pagination
     
     Supports all entity types: crew, certificate, ship, company, user, document
-    Only admin, super_admin, and system_admin can access
+    - Admin: can only view logs of their own company
+    - Super Admin/System Admin: can view all logs
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
         raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
     
-    company_id = current_user.company
+    # Filter by company_id based on role
+    if current_user.role == 'admin':
+        company_id = current_user.company  # Admin can only see their company's logs
+    else:
+        company_id = None  # Super admin and system admin can see all logs
     
     # Parse dates if provided
     start_date_parsed = datetime.fromisoformat(start_date.replace('Z', '+00:00')) if start_date else None
