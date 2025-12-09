@@ -86,6 +86,22 @@ class CompanyService:
         
         await CompanyRepository.create(company_dict)
         
+        # Log audit
+        try:
+            audit_service = CompanyService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_company_create(
+                company_data=company_dict,
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ Company created: {company_dict['name']}")
         
         return CompanyResponse(**company_dict)
