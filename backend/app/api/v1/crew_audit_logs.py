@@ -1,5 +1,5 @@
 """
-Crew Audit Logs API Endpoints
+System Audit Logs API Endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import Optional, List
