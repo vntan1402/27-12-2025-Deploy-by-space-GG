@@ -21,8 +21,8 @@ def get_audit_log_repository() -> CrewAuditLogRepository:
     return CrewAuditLogRepository(mongo_db.database)
 
 
-@router.get("/crew-audit-logs", response_model=dict)
-async def get_crew_audit_logs(
+@router.get("/audit-logs", response_model=dict)
+async def get_audit_logs(
     entity_type: Optional[str] = Query(None, description="Filter by entity type (crew, certificate, ship, company, user, document)"),
     start_date: Optional[str] = Query(None, description="Start date (ISO format)"),
     end_date: Optional[str] = Query(None, description="End date (ISO format)"),
