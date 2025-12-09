@@ -5,6 +5,10 @@
 import React from 'react';
 
 export const AuditLogFilters = ({ filters, onFilterChange, uniqueUsers, uniqueShips, language }) => {
+  const handleEntityTypeChange = (e) => {
+    onFilterChange({ entityType: e.target.value });
+  };
+
   const handleDateRangeChange = (e) => {
     onFilterChange({ dateRange: e.target.value });
   };
@@ -31,8 +35,27 @@ export const AuditLogFilters = ({ filters, onFilterChange, uniqueUsers, uniqueSh
 
   return (
     <div className="space-y-4">
-      {/* Row 1: Date Range, Action, User, Ship */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Row 1: Entity Type, Date Range, Action, User, Ship */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Entity Type Filter */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {language === 'vi' ? 'Loại Entity' : 'Entity Type'}
+          </label>
+          <select
+            value={filters.entityType || 'all'}
+            onChange={handleEntityTypeChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+          >
+            <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+            <option value="crew">👥 {language === 'vi' ? 'Crew' : 'Crew'}</option>
+            <option value="certificate">📜 {language === 'vi' ? 'Chứng chỉ' : 'Certificates'}</option>
+            <option value="ship">🚢 {language === 'vi' ? 'Tàu' : 'Ships'}</option>
+            <option value="company">🏢 {language === 'vi' ? 'Công ty' : 'Companies'}</option>
+            <option value="user">👤 {language === 'vi' ? 'Người dùng' : 'Users'}</option>
+            <option value="document">📄 {language === 'vi' ? 'Tài liệu' : 'Documents'}</option>
+          </select>
+        </div>
         {/* Date Range */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
