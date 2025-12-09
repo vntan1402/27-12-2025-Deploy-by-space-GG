@@ -252,20 +252,21 @@ class CrewAuditLogRepository:
         users = await self.collection.aggregate(pipeline).to_list(None)
         return users
     
-    async def get_unique_ships(self, company_id: str) -> List[str]:
+    async def get_unique_ships(self, company_id: Optional[str]) -> List[str]:
         """
         Get unique ship names from logs
         
         Args:
-            company_id: Company ID
+            company_id: Company ID (None = all companies for super admins)
             
         Returns:
             List of unique ship names
         """
-        ships = await self.collection.distinct('ship_name', {
-            'company_id': company_id,
-            'ship_name': {'$ne': None, '$ne': '-'}
-        })
+        query = {'ship_name': {'$ne': None, '$ne': '-'}}
+        if company_id is not None:
+            query['company_id'] = company_id
+            
+        ships = await self.collection.distinct('ship_name', query)
         
         # Sort alphabetically
         ships = sorted([s for s in ships if s])
