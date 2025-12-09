@@ -23,21 +23,23 @@ def get_audit_log_repository() -> CrewAuditLogRepository:
 
 @router.get("/crew-audit-logs", response_model=dict)
 async def get_crew_audit_logs(
+    entity_type: Optional[str] = Query(None, description="Filter by entity type (crew, certificate, ship, company, user, document)"),
     start_date: Optional[str] = Query(None, description="Start date (ISO format)"),
     end_date: Optional[str] = Query(None, description="End date (ISO format)"),
     action: Optional[str] = Query(None, description="Filter by action type"),
     performed_by: Optional[str] = Query(None, description="Filter by username"),
     ship_name: Optional[str] = Query(None, description="Filter by ship name"),
-    entity_id: Optional[str] = Query(None, description="Filter by crew ID"),
-    search: Optional[str] = Query(None, description="Search crew name"),
+    entity_id: Optional[str] = Query(None, description="Filter by entity ID"),
+    search: Optional[str] = Query(None, description="Search entity name"),
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(20, ge=1, le=100, description="Max records to return"),
     current_user: dict = Depends(get_current_user),
     repository: CrewAuditLogRepository = Depends(get_audit_log_repository)
 ):
     """
-    Get filtered crew audit logs with pagination
+    Get filtered system audit logs with pagination
     
+    Supports all entity types: crew, certificate, ship, company, user, document
     Only admin, super_admin, and system_admin can access
     """
     # Check permissions
