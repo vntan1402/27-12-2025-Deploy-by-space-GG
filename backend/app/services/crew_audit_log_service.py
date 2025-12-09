@@ -6,9 +6,20 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 from uuid import uuid4
 from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
+from app.services.audit_log_extensions import (
+    ShipAuditMixin, 
+    ShipCertificateAuditMixin,
+    CompanyAuditMixin,
+    UserAuditMixin
+)
 
 
-class CrewAuditLogService:
+class CrewAuditLogService(
+    ShipAuditMixin,
+    ShipCertificateAuditMixin,
+    CompanyAuditMixin,
+    UserAuditMixin
+):
     """Service for crew audit logging"""
     
     def __init__(self, repository: CrewAuditLogRepository):
