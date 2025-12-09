@@ -257,6 +257,27 @@ class AuditCertificateService:
         await mongo_db.delete(AuditCertificateService.collection_name, {"id": cert_id})
         logger.info(f"✅ Audit Certificate deleted from DB: {cert_id} ({cert_name})")
         
+        # Log audit
+        try:
+            # Get ship name for audit log
+            ship = await mongo_db.find_one("ships", {"id": cert.get("ship_id")})
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            
+            audit_service = AuditCertificateService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_ship_certificate_delete(
+                ship_name=ship_name,
+                cert_data=cert,
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         # Schedule Google Drive file deletion in background (both original file and summary)
         files_to_delete = []
         if google_drive_file_id:
