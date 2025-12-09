@@ -159,7 +159,7 @@ class CrewAuditLogRepository:
     async def get_logs_by_crew(
         self,
         crew_id: str,
-        company_id: str,
+        company_id: Optional[str],
         limit: int = 50
     ) -> List[dict]:
         """
@@ -167,16 +167,17 @@ class CrewAuditLogRepository:
         
         Args:
             crew_id: Crew ID
-            company_id: Company ID
+            company_id: Company ID (None = all companies for super admins)
             limit: Max logs to return
             
         Returns:
             List of logs
         """
-        cursor = self.collection.find(
-            {'entity_id': crew_id, 'company_id': company_id},
-            {'_id': 0}
-        ).sort('performed_at', -1).limit(limit)
+        query = {'entity_id': crew_id}
+        if company_id is not None:
+            query['company_id'] = company_id
+            
+        cursor = self.collection.find(query, {'_id': 0}).sort('performed_at', -1).limit(limit)
         
         logs = await cursor.to_list(length=limit)
         return [self._add_timezone_to_log(log) for log in logs]
