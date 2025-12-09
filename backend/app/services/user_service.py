@@ -191,6 +191,23 @@ class UserService:
         
         await UserRepository.delete(user_id)
         
+        # Log audit
+        try:
+            audit_service = UserService.get_audit_log_service()
+            performed_by_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            user_for_audit = {k: v for k, v in user.items() if k != 'password_hash'}
+            await audit_service.log_user_delete(
+                user_data=user_for_audit,
+                performed_by_user=performed_by_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ User deleted: {user_id}")
         
         return {"message": "User deleted successfully"}
