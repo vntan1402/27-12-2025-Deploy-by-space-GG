@@ -17,7 +17,23 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
       BULK_UPDATE: { icon: '📋', color: 'teal', bgColor: 'bg-teal-50', borderColor: 'border-teal-200', textColor: 'text-teal-800' },
       CREATE_CERTIFICATE: { icon: '📜', color: 'green', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
       UPDATE_CERTIFICATE: { icon: '📝', color: 'blue', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
-      DELETE_CERTIFICATE: { icon: '🗑️', color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' }
+      DELETE_CERTIFICATE: { icon: '🗑️', color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' },
+      // Ships
+      CREATE_SHIP: { icon: '⚓', color: 'green', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
+      UPDATE_SHIP: { icon: '🚢', color: 'blue', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
+      DELETE_SHIP: { icon: '🗑️', color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' },
+      // Ship Certificates
+      CREATE_SHIP_CERTIFICATE: { icon: '📋', color: 'green', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
+      UPDATE_SHIP_CERTIFICATE: { icon: '📝', color: 'blue', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
+      DELETE_SHIP_CERTIFICATE: { icon: '🗑️', color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' },
+      // Companies
+      CREATE_COMPANY: { icon: '🏢', color: 'green', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
+      UPDATE_COMPANY: { icon: '✏️', color: 'blue', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
+      DELETE_COMPANY: { icon: '🗑️', color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' },
+      // Users
+      CREATE_USER: { icon: '👤', color: 'green', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
+      UPDATE_USER: { icon: '👥', color: 'blue', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
+      DELETE_USER: { icon: '🗑️', color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' }
     };
     return configs[action] || configs.UPDATE;
   };
