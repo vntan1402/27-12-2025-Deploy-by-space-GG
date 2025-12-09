@@ -916,3 +916,97 @@ class DocumentAuditMixin:
         }
         
         return await self.repository.create_log(log_data)
+
+
+class CrewAssignmentAuditMixin:
+    """Audit log methods for Crew Assignment History"""
+    
+    async def log_crew_assignment(
+        self,
+        crew_name: str,
+        ship_name: str,
+        assignment_type: str,
+        assignment_data: dict,
+        user: dict,
+        notes: Optional[str] = None
+    ) -> dict:
+        """
+        Log crew assignment/sign on/sign off/transfer
+        assignment_type: 'ASSIGN', 'SIGN_ON', 'SIGN_OFF', 'TRANSFER'
+        """
+        action_map = {
+            'ASSIGN': 'ASSIGN_CREW',
+            'SIGN_ON': 'CREW_SIGN_ON',
+            'SIGN_OFF': 'CREW_SIGN_OFF',
+            'TRANSFER': 'CREW_TRANSFER'
+        }
+        
+        changes = []
+        
+        # Add position if present
+        if assignment_data.get('position'):
+            changes.append({
+                'field': 'position',
+                'field_label': 'Position',
+                'old_value': None,
+                'new_value': assignment_data['position'],
+                'value_type': 'string'
+            })
+        
+        # Add dates
+        if assignment_data.get('sign_on_date'):
+            changes.append({
+                'field': 'sign_on_date',
+                'field_label': 'Sign On Date',
+                'old_value': None,
+                'new_value': str(assignment_data['sign_on_date']),
+                'value_type': 'date'
+            })
+        
+        if assignment_data.get('sign_off_date'):
+            changes.append({
+                'field': 'sign_off_date',
+                'field_label': 'Sign Off Date',
+                'old_value': assignment_data.get('previous_sign_off_date'),
+                'new_value': str(assignment_data['sign_off_date']),
+                'value_type': 'date'
+            })
+        
+        # For transfers, add ship change
+        if assignment_type == 'TRANSFER' and assignment_data.get('previous_ship_name'):
+            changes.append({
+                'field': 'ship',
+                'field_label': 'Ship',
+                'old_value': assignment_data['previous_ship_name'],
+                'new_value': ship_name,
+                'value_type': 'string'
+            })
+        
+        log_data = {
+            'id': str(uuid4()),
+            'entity_type': 'crew_assignment',
+            'entity_id': assignment_data.get('crew_id'),
+            'entity_name': crew_name,
+            'company_id': user.get('company'),
+            'ship_name': ship_name,
+            'action': action_map.get(assignment_type, 'CREW_ASSIGNMENT'),
+            'action_category': 'CREW_ASSIGNMENT',
+            'performed_by': user.get('username'),
+            'performed_by_id': user.get('id'),
+            'performed_by_name': user.get('full_name'),
+            'performed_at': datetime.now(timezone.utc),
+            'changes': changes,
+            'notes': notes or f'{crew_name} {assignment_type.lower()} {ship_name}',
+            'source': 'WEB_UI',
+            'metadata': {
+                'crew_id': assignment_data.get('crew_id'),
+                'crew_name': crew_name,
+                'ship_id': assignment_data.get('ship_id'),
+                'ship_name': ship_name,
+                'position': assignment_data.get('position'),
+                'assignment_type': assignment_type
+            }
+        }
+        
+        return await self.repository.create_log(log_data)
+
