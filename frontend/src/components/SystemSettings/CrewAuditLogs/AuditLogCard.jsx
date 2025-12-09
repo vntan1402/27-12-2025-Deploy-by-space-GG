@@ -50,7 +50,23 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
       BULK_UPDATE: language === 'vi' ? 'Cập nhật hàng loạt' : 'Bulk Update',
       CREATE_CERTIFICATE: language === 'vi' ? 'Thêm chứng chỉ' : 'Add Certificate',
       UPDATE_CERTIFICATE: language === 'vi' ? 'Sửa chứng chỉ' : 'Update Certificate',
-      DELETE_CERTIFICATE: language === 'vi' ? 'Xóa chứng chỉ' : 'Delete Certificate'
+      DELETE_CERTIFICATE: language === 'vi' ? 'Xóa chứng chỉ' : 'Delete Certificate',
+      // Ships
+      CREATE_SHIP: language === 'vi' ? 'Thêm tàu' : 'Add Ship',
+      UPDATE_SHIP: language === 'vi' ? 'Sửa tàu' : 'Update Ship',
+      DELETE_SHIP: language === 'vi' ? 'Xóa tàu' : 'Delete Ship',
+      // Ship Certificates
+      CREATE_SHIP_CERTIFICATE: language === 'vi' ? 'Thêm chứng chỉ tàu' : 'Add Ship Certificate',
+      UPDATE_SHIP_CERTIFICATE: language === 'vi' ? 'Sửa chứng chỉ tàu' : 'Update Ship Certificate',
+      DELETE_SHIP_CERTIFICATE: language === 'vi' ? 'Xóa chứng chỉ tàu' : 'Delete Ship Certificate',
+      // Companies
+      CREATE_COMPANY: language === 'vi' ? 'Thêm công ty' : 'Add Company',
+      UPDATE_COMPANY: language === 'vi' ? 'Sửa công ty' : 'Update Company',
+      DELETE_COMPANY: language === 'vi' ? 'Xóa công ty' : 'Delete Company',
+      // Users
+      CREATE_USER: language === 'vi' ? 'Thêm người dùng' : 'Add User',
+      UPDATE_USER: language === 'vi' ? 'Sửa người dùng' : 'Update User',
+      DELETE_USER: language === 'vi' ? 'Xóa người dùng' : 'Delete User'
     };
     return labels[action] || action;
   };
