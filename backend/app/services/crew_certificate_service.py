@@ -570,6 +570,7 @@ class CrewCertificateService:
         
         # Log crew audit log
         try:
+            logger.info(f"📝 Creating audit log for certificate update...")
             audit_service = CrewCertificateService.get_audit_log_service()
             user_dict = {
                 'id': current_user.id,
@@ -582,15 +583,22 @@ class CrewCertificateService:
             crew = await CrewRepository.find_by_id(cert.get('crew_id'))
             crew_name = crew.get('full_name', 'Unknown') if crew else 'Unknown'
             
-            await audit_service.log_certificate_update(
+            result = await audit_service.log_certificate_update(
                 crew_id=cert.get('crew_id'),
                 crew_name=crew_name,
                 old_cert=cert,
                 new_cert=updated_cert,
                 user=user_dict
             )
+            
+            if result:
+                logger.info(f"✅ Certificate audit log created: {result.get('id')}")
+            else:
+                logger.info(f"ℹ️ No changes detected, audit log not created")
         except Exception as e:
-            logger.error(f"Failed to create crew audit log: {e}")
+            logger.error(f"❌ Failed to create crew audit log: {e}")
+            import traceback
+            traceback.print_exc()
         
         logger.info(f"✅ Crew certificate updated: {cert_id}")
         
