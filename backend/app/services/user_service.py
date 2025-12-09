@@ -111,6 +111,24 @@ class UserService:
         # Create in database
         await UserRepository.create(user_dict)
         
+        # Log audit (before removing password_hash)
+        try:
+            audit_service = UserService.get_audit_log_service()
+            performed_by_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            # Create a copy without password_hash for logging
+            log_user_dict = {k: v for k, v in user_dict.items() if k != 'password_hash'}
+            await audit_service.log_user_create(
+                user_data=log_user_dict,
+                performed_by_user=performed_by_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ User created: {user_data.username}")
         
         # Return user without password
