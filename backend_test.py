@@ -729,46 +729,338 @@ class BackendTester:
         except Exception as e:
             self.log_test("Entity Type Coverage", False, f"Exception: {str(e)}")
     
-    def create_mock_passport_file(self):
-        """Create a mock passport file for testing"""
-        print("\n📄 Creating mock passport file...")
+    def test_crud_cycle_functional(self):
+        """Test complete CRUD cycle for approval_document entity"""
+        print("\n🔄 Testing Complete CRUD Cycle (Approval Document)...")
         
         try:
-            # First try to use local passport file
-            local_passport_path = "/app/Ho_chieu_pho_thong.jpg"
-            if os.path.exists(local_passport_path):
-                with open(local_passport_path, 'rb') as f:
-                    passport_content = f.read()
-                self.log_test("Mock Passport File - Local File", True, 
-                             f"Using local passport file: {len(passport_content)} bytes")
-                return passport_content
+            # Get VINASHIP HARMONY ship for testing
+            ship = self.find_vinaship_harmony_ship()
+            if not ship:
+                self.log_test("CRUD Cycle - Ship Setup", False, "Could not find test ship")
+                return False
             
-            # Fallback: Download test passport image
-            response = requests.get(TEST_PASSPORT_URL, timeout=30)
+            ship_id = ship.get("id")
+            ship_name = ship.get("name")
             
-            if response.status_code == 200:
-                passport_content = response.content
-                self.log_test("Mock Passport File - Download", True, 
-                             f"Downloaded passport file: {len(passport_content)} bytes")
-                return passport_content
+            # Step 1: Create a new approval document
+            print("\n   📝 Step 1: Creating approval document...")
+            
+            create_data = {
+                "ship_id": ship_id,
+                "document_name": "Test Approval Document",
+                "document_type": "Certificate of Approval",
+                "document_no": "APPR-TEST-2025-001",
+                "issued_by": "Test Authority",
+                "issued_date": "2024-01-15T00:00:00.000Z",
+                "expiry_date": "2025-01-15T00:00:00.000Z",
+                "status": "Valid",
+                "note": "Test document for CRUD cycle testing"
+            }
+            
+            create_response = self.session.post(f"{BACKEND_URL}/approval-documents", json=create_data)
+            
+            if create_response.status_code == 200:
+                created_doc = create_response.json()
+                doc_id = created_doc.get("id")
+                
+                self.log_test("CRUD Cycle - CREATE Document", True, 
+                             f"Created approval document: {doc_id}")
+                
+                # Verify CREATE audit log
+                time.sleep(1)  # Wait for audit log to be created
+                create_log_response = self.session.get(f"{BACKEND_URL}/audit-logs?entity_type=approval_document&action=CREATE_APPROVAL_DOCUMENT&limit=5")
+                
+                if create_log_response.status_code == 200:
+                    create_logs = create_log_response.json().get('logs', create_log_response.json().get('items', []))
+                    
+                    # Find the log for our document
+                    our_create_log = None
+                    for log in create_logs:
+                        if log.get('entity_id') == doc_id:
+                            our_create_log = log
+                            break
+                    
+                    if our_create_log:
+                        self.log_test("CRUD Cycle - CREATE Audit Log", True, 
+                                     f"CREATE log found: {our_create_log.get('id')}")
+                    else:
+                        self.log_test("CRUD Cycle - CREATE Audit Log", False, 
+                                     "CREATE audit log not found")
+                
+                # Step 2: Update the document
+                print("\n   ✏️ Step 2: Updating approval document...")
+                
+                update_data = {
+                    "document_name": "Updated Test Approval Document",
+                    "note": "Updated note for CRUD cycle testing",
+                    "status": "Expired"
+                }
+                
+                update_response = self.session.put(f"{BACKEND_URL}/approval-documents/{doc_id}", json=update_data)
+                
+                if update_response.status_code == 200:
+                    self.log_test("CRUD Cycle - UPDATE Document", True, 
+                                 f"Updated approval document: {doc_id}")
+                    
+                    # Verify UPDATE audit log
+                    time.sleep(1)  # Wait for audit log to be created
+                    update_log_response = self.session.get(f"{BACKEND_URL}/audit-logs?entity_type=approval_document&action=UPDATE_APPROVAL_DOCUMENT&limit=5")
+                    
+                    if update_log_response.status_code == 200:
+                        update_logs = update_log_response.json().get('logs', update_log_response.json().get('items', []))
+                        
+                        # Find the log for our document
+                        our_update_log = None
+                        for log in update_logs:
+                            if log.get('entity_id') == doc_id:
+                                our_update_log = log
+                                break
+                        
+                        if our_update_log:
+                            self.log_test("CRUD Cycle - UPDATE Audit Log", True, 
+                                         f"UPDATE log found: {our_update_log.get('id')}")
+                            
+                            # Verify changes tracking
+                            changes = our_update_log.get('changes', [])
+                            if changes:
+                                self.log_test("CRUD Cycle - Changes Tracking", True, 
+                                             f"Found {len(changes)} field changes")
+                                
+                                # Check specific field changes
+                                for change in changes:
+                                    field = change.get('field')
+                                    old_value = change.get('old_value')
+                                    new_value = change.get('new_value')
+                                    
+                                    if field == 'document_name':
+                                        if old_value == "Test Approval Document" and new_value == "Updated Test Approval Document":
+                                            self.log_test("CRUD Cycle - Field Change Accuracy", True, 
+                                                         f"document_name change tracked correctly")
+                                        else:
+                                            self.log_test("CRUD Cycle - Field Change Accuracy", False, 
+                                                         f"document_name change incorrect: {old_value} → {new_value}")
+                            else:
+                                self.log_test("CRUD Cycle - Changes Tracking", False, 
+                                             "No changes recorded in UPDATE log")
+                        else:
+                            self.log_test("CRUD Cycle - UPDATE Audit Log", False, 
+                                         "UPDATE audit log not found")
+                else:
+                    self.log_test("CRUD Cycle - UPDATE Document", False, 
+                                 f"Update failed: {update_response.status_code}")
+                
+                # Step 3: Delete the document
+                print("\n   🗑️ Step 3: Deleting approval document...")
+                
+                delete_response = self.session.delete(f"{BACKEND_URL}/approval-documents/{doc_id}")
+                
+                if delete_response.status_code == 200:
+                    self.log_test("CRUD Cycle - DELETE Document", True, 
+                                 f"Deleted approval document: {doc_id}")
+                    
+                    # Verify DELETE audit log
+                    time.sleep(1)  # Wait for audit log to be created
+                    delete_log_response = self.session.get(f"{BACKEND_URL}/audit-logs?entity_type=approval_document&action=DELETE_APPROVAL_DOCUMENT&limit=5")
+                    
+                    if delete_log_response.status_code == 200:
+                        delete_logs = delete_log_response.json().get('logs', delete_log_response.json().get('items', []))
+                        
+                        # Find the log for our document
+                        our_delete_log = None
+                        for log in delete_logs:
+                            if log.get('entity_id') == doc_id:
+                                our_delete_log = log
+                                break
+                        
+                        if our_delete_log:
+                            self.log_test("CRUD Cycle - DELETE Audit Log", True, 
+                                         f"DELETE log found: {our_delete_log.get('id')}")
+                        else:
+                            self.log_test("CRUD Cycle - DELETE Audit Log", False, 
+                                         "DELETE audit log not found")
+                    else:
+                        self.log_test("CRUD Cycle - DELETE Audit Log", False, 
+                                     f"Failed to get DELETE logs: {delete_log_response.status_code}")
+                else:
+                    self.log_test("CRUD Cycle - DELETE Document", False, 
+                                 f"Delete failed: {delete_response.status_code}")
+                
+                return True
+                
             else:
-                self.log_test("Mock Passport File - Download", False, 
-                             f"Failed to download: {response.status_code}")
-                
-                # Try test_passport.pdf as fallback
-                test_pdf_path = "/app/test_passport.pdf"
-                if os.path.exists(test_pdf_path):
-                    with open(test_pdf_path, 'rb') as f:
-                        passport_content = f.read()
-                    self.log_test("Mock Passport File - PDF Fallback", True, 
-                                 f"Using test PDF: {len(passport_content)} bytes")
-                    return passport_content
-                
-                return None
+                self.log_test("CRUD Cycle - CREATE Document", False, 
+                             f"Create failed: {create_response.status_code}")
+                return False
                 
         except Exception as e:
-            self.log_test("Mock Passport File - Error", False, f"Exception: {str(e)}")
-            return None
+            self.log_test("CRUD Cycle Functional Testing", False, f"Exception: {str(e)}")
+            return False
+
+    def test_permissions_and_company_filtering(self):
+        """Test permissions and company filtering"""
+        print("\n🔐 Testing Permissions & Company Filtering...")
+        
+        try:
+            # Get current user's company ID
+            company_id = self.user_info.get("company")
+            user_role = self.user_info.get("role")
+            
+            if not company_id:
+                self.log_test("Permissions - Company ID", False, "No company_id found in user info")
+                return False
+            
+            self.log_test("Permissions - User Info", True, 
+                         f"User role: {user_role}, Company: {company_id}")
+            
+            # Test that admin can access audit logs
+            response = self.session.get(f"{BACKEND_URL}/audit-logs?limit=10")
+            
+            if response.status_code == 200:
+                data = response.json()
+                logs = data.get('logs', data.get('items', data if isinstance(data, list) else []))
+                
+                self.log_test("Permissions - Admin Access", True, 
+                             f"Admin can access audit logs: {len(logs)} logs retrieved")
+                
+                # Verify company filtering (admin should only see their company's logs)
+                if user_role == "admin":
+                    company_filtered_logs = 0
+                    total_logs_checked = 0
+                    
+                    for log in logs:
+                        # Check if log has company context
+                        log_company_id = log.get('company_id')
+                        metadata = log.get('metadata', {})
+                        
+                        total_logs_checked += 1
+                        
+                        # Admin should only see logs from their company
+                        if log_company_id == company_id or metadata.get('company_id') == company_id:
+                            company_filtered_logs += 1
+                    
+                    if total_logs_checked > 0:
+                        if company_filtered_logs == total_logs_checked:
+                            self.log_test("Permissions - Company Filtering", True, 
+                                         f"All {total_logs_checked} logs belong to admin's company")
+                        else:
+                            self.log_test("Permissions - Company Filtering", False, 
+                                         f"Only {company_filtered_logs}/{total_logs_checked} logs belong to admin's company")
+                    else:
+                        self.log_test("Permissions - Company Filtering", True, 
+                                     "No logs to check for company filtering")
+                
+            else:
+                self.log_test("Permissions - Admin Access", False, 
+                             f"Admin cannot access audit logs: {response.status_code}")
+                return False
+            
+            return True
+            
+        except Exception as e:
+            self.log_test("Permissions & Company Filtering", False, f"Exception: {str(e)}")
+            return False
+
+    def test_edge_cases_and_error_handling(self):
+        """Test edge cases and error handling"""
+        print("\n⚠️ Testing Edge Cases & Error Handling...")
+        
+        try:
+            # Test 1: Invalid entity_type
+            invalid_entity_response = self.session.get(f"{BACKEND_URL}/audit-logs?entity_type=invalid_entity")
+            
+            if invalid_entity_response.status_code in [200, 400]:
+                if invalid_entity_response.status_code == 200:
+                    data = invalid_entity_response.json()
+                    logs = data.get('logs', data.get('items', data if isinstance(data, list) else []))
+                    if len(logs) == 0:
+                        self.log_test("Edge Cases - Invalid Entity Type", True, 
+                                     "Invalid entity_type returns empty results")
+                    else:
+                        self.log_test("Edge Cases - Invalid Entity Type", False, 
+                                     f"Invalid entity_type returned {len(logs)} logs")
+                else:
+                    self.log_test("Edge Cases - Invalid Entity Type", True, 
+                                 f"Invalid entity_type returns 400 error (appropriate)")
+            else:
+                self.log_test("Edge Cases - Invalid Entity Type", False, 
+                             f"Unexpected status: {invalid_entity_response.status_code}")
+            
+            # Test 2: Invalid log_id
+            invalid_log_response = self.session.get(f"{BACKEND_URL}/audit-logs/invalid-log-id-12345")
+            
+            if invalid_log_response.status_code == 404:
+                self.log_test("Edge Cases - Invalid Log ID", True, 
+                             "Invalid log_id returns 404 (appropriate)")
+            else:
+                self.log_test("Edge Cases - Invalid Log ID", False, 
+                             f"Invalid log_id returns {invalid_log_response.status_code} (expected 404)")
+            
+            # Test 3: Invalid date format
+            invalid_date_response = self.session.get(f"{BACKEND_URL}/audit-logs?start_date=invalid-date")
+            
+            if invalid_date_response.status_code in [200, 400]:
+                self.log_test("Edge Cases - Invalid Date Format", True, 
+                             f"Invalid date format handled (status: {invalid_date_response.status_code})")
+            else:
+                self.log_test("Edge Cases - Invalid Date Format", False, 
+                             f"Invalid date format returns {invalid_date_response.status_code}")
+            
+            # Test 4: Invalid limit (negative)
+            negative_limit_response = self.session.get(f"{BACKEND_URL}/audit-logs?limit=-5")
+            
+            if negative_limit_response.status_code in [200, 400]:
+                self.log_test("Edge Cases - Negative Limit", True, 
+                             f"Negative limit handled (status: {negative_limit_response.status_code})")
+            else:
+                self.log_test("Edge Cases - Negative Limit", False, 
+                             f"Negative limit returns {negative_limit_response.status_code}")
+            
+            # Test 5: Very large limit
+            large_limit_response = self.session.get(f"{BACKEND_URL}/audit-logs?limit=10000")
+            
+            if large_limit_response.status_code == 200:
+                data = large_limit_response.json()
+                logs = data.get('logs', data.get('items', data if isinstance(data, list) else []))
+                
+                if len(logs) <= 1000:  # Reasonable upper bound
+                    self.log_test("Edge Cases - Large Limit", True, 
+                                 f"Large limit handled appropriately: {len(logs)} logs returned")
+                else:
+                    self.log_test("Edge Cases - Large Limit", False, 
+                                 f"Large limit returned too many logs: {len(logs)}")
+            else:
+                self.log_test("Edge Cases - Large Limit", False, 
+                             f"Large limit returns {large_limit_response.status_code}")
+            
+            # Test 6: Empty results scenario
+            future_date_response = self.session.get(f"{BACKEND_URL}/audit-logs?start_date=2030-01-01&end_date=2030-12-31")
+            
+            if future_date_response.status_code == 200:
+                data = future_date_response.json()
+                logs = data.get('logs', data.get('items', data if isinstance(data, list) else []))
+                
+                if len(logs) == 0:
+                    # Check response structure for empty results
+                    if isinstance(data, dict):
+                        has_proper_structure = 'logs' in data or 'items' in data
+                        self.log_test("Edge Cases - Empty Results Structure", has_proper_structure, 
+                                     f"Empty results have proper structure: {list(data.keys())}")
+                    else:
+                        self.log_test("Edge Cases - Empty Results Structure", True, 
+                                     "Empty results returned as empty array")
+                else:
+                    self.log_test("Edge Cases - Empty Results", False, 
+                                 f"Future date range returned {len(logs)} logs (expected 0)")
+            else:
+                self.log_test("Edge Cases - Empty Results", False, 
+                             f"Future date range returns {future_date_response.status_code}")
+            
+            return True
+            
+        except Exception as e:
+            self.log_test("Edge Cases & Error Handling", False, f"Exception: {str(e)}")
+            return False
     
     def test_google_drive_config_investigation(self):
         """Investigate Google Drive Configuration for Company - Compare with Audit Certificate"""
