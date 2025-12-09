@@ -213,6 +213,28 @@ class TestReportService:
         if not updated_report.get("test_report_name") and updated_report.get("doc_name"):
             updated_report["test_report_name"] = updated_report.get("doc_name")
         
+        # Log audit
+        try:
+            ship = await mongo_db.find_one("ships", {"id": updated_report.get("ship_id")})
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            
+            audit_service = TestReportService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_document_update(
+                ship_name=ship_name,
+                old_doc=report,
+                new_doc=updated_report,
+                doc_type='test_report',
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         # Map notes → note for frontend (frontend expects 'note' field)
         if updated_report.get("notes") and not updated_report.get("note"):
             updated_report["note"] = updated_report.get("notes")
