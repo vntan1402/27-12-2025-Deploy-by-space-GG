@@ -1,9 +1,10 @@
 /**
- * Crew Audit Logs Page
- * Displays comprehensive audit trail for all crew operations
+ * System Audit Logs Page
+ * Displays comprehensive audit trail for all system operations
+ * Supports: Crew, Certificates, Ships, Companies, Users, Documents
  */
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { MainLayout } from '../../Layout';
 import { AuditLogFilters } from './AuditLogFilters';
@@ -14,6 +15,7 @@ import crewAuditLogService from '../../../services/crewAuditLogService';
 const CrewAuditLogsPage = () => {
   const navigate = useNavigate();
   const { user, language } = useAuth();
+  const [searchParams] = useSearchParams();
 
   // State
   const [logs, setLogs] = useState([]);
@@ -21,8 +23,12 @@ const CrewAuditLogsPage = () => {
   const [selectedLog, setSelectedLog] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
+  // Get entity type from URL params (for quick access)
+  const urlEntityType = searchParams.get('entity');
+
   // Filter states
   const [filters, setFilters] = useState({
+    entityType: urlEntityType || 'all',  // NEW: Entity type filter
     dateRange: 'last_30_days',
     customStartDate: null,
     customEndDate: null,
