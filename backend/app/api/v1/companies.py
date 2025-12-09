@@ -79,7 +79,7 @@ async def update_company(
 @router.delete("/{company_id}")
 async def delete_company(
     company_id: str,
-    current_user: UserResponse = Depends(check_admin_permission)
+    current_user: UserResponse = Depends(check_super_admin_permission)
 ):
     """
     Delete company (Admin only)
