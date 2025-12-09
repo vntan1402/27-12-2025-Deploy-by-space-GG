@@ -452,8 +452,8 @@ class CrewCertificateService:
                     'id': cert_dict['id'],
                     'cert_type': cert_dict.get('cert_name', 'Unknown'),
                     'cert_number': cert_dict.get('cert_no', '-'),
-                    'issue_date': cert_dict.get('issue_date'),
-                    'expiry_date': cert_dict.get('expiry_date'),
+                    'issue_date': cert_dict.get('issued_date'),
+                    'expiry_date': cert_dict.get('cert_expiry'),
                     'ship_name': ship_name or '-'
                 },
                 user=user_dict
