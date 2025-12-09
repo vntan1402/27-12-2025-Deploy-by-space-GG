@@ -24,7 +24,7 @@ const crewAuditLogService = {
       if (filters.skip !== undefined) params.append('skip', filters.skip);
       if (filters.limit !== undefined) params.append('limit', filters.limit);
       
-      const response = await api.get(`/api/crew-audit-logs?${params.toString()}`);
+      const response = await api.get(`/api/audit-logs?${params.toString()}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching audit logs:', error);
