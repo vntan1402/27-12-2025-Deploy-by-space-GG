@@ -139,7 +139,7 @@ async def get_unique_users_for_filter(
     return users
 
 
-@router.get("/crew-audit-logs/filters/ships", response_model=List[str])
+@router.get("/audit-logs/filters/ships", response_model=List[str])
 async def get_unique_ships_for_filter(
     current_user: dict = Depends(get_current_user),
     repository: CrewAuditLogRepository = Depends(get_audit_log_repository)
