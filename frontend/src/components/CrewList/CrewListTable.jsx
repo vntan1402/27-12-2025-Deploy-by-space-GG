@@ -706,7 +706,8 @@ export const CrewListTable = ({
                 to_ship_name: bulkShipSignOn,
                 transfer_date: finalDateSignOn,
                 notes: `Bulk transfer via Ship Sign On edit from ${currentShip} to ${bulkShipSignOn}`,
-                skip_validation: true  // Skip validation since DB already updated
+                skip_validation: true,  // Skip validation since DB already updated
+                old_ship_override: currentShip  // Pass original ship for audit log
               }).catch(error => {
                 console.error(`Background transferShip error for ${crewId}:`, error);
               });
