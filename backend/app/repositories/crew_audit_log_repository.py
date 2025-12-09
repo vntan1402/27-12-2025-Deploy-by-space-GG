@@ -96,7 +96,21 @@ class CrewAuditLogRepository:
         
         # Entity type filter
         if entity_type:
-            query['entity_type'] = entity_type
+            # Special handling for "document" - includes all document types
+            if entity_type == 'document':
+                query['entity_type'] = {
+                    '$in': [
+                        'approval_document',
+                        'drawing_manual',
+                        'survey_report',
+                        'other_document',
+                        'audit_report',
+                        'other_audit_document',
+                        'test_report'
+                    ]
+                }
+            else:
+                query['entity_type'] = entity_type
         
         # Date range filter
         if start_date or end_date:
