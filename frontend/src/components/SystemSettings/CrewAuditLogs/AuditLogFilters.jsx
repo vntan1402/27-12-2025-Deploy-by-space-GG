@@ -49,7 +49,7 @@ export const AuditLogFilters = ({ filters, onFilterChange, uniqueUsers, uniqueSh
           >
             <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
             <option value="crew">👥 {language === 'vi' ? 'Crew' : 'Crew'}</option>
-            <option value="certificate">📜 {language === 'vi' ? 'Chứng chỉ' : 'Certificates'}</option>
+            <option value="ship_certificate">📜 {language === 'vi' ? 'Ship Certificates' : 'Ship Certificates'}</option>
             <option value="ship">🚢 {language === 'vi' ? 'Tàu' : 'Ships'}</option>
             <option value="company">🏢 {language === 'vi' ? 'Công ty' : 'Companies'}</option>
             <option value="user">👤 {language === 'vi' ? 'Người dùng' : 'Users'}</option>
