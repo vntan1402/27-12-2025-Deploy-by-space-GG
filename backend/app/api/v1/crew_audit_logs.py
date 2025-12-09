@@ -76,8 +76,8 @@ async def get_audit_logs(
     }
 
 
-@router.get("/crew-audit-logs/{log_id}", response_model=CrewAuditLogResponse)
-async def get_crew_audit_log_by_id(
+@router.get("/audit-logs/{log_id}", response_model=CrewAuditLogResponse)
+async def get_audit_log_by_id(
     log_id: str,
     current_user: dict = Depends(get_current_user),
     repository: CrewAuditLogRepository = Depends(get_audit_log_repository)
