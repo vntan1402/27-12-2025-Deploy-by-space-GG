@@ -333,11 +333,14 @@ class CrewAssignmentService:
                     raise HTTPException(status_code=403, detail="Access denied")
             
             crew_name = crew.get('full_name', 'Unknown')
-            current_status = crew.get('status', '')
-            current_ship = crew.get('ship_sign_on', '')
+            
+            # Use override values if provided (for bulk operations where DB is already updated)
+            current_status = old_status_override if old_status_override is not None else crew.get('status', '')
+            current_ship = old_ship_override if old_ship_override is not None else crew.get('ship_sign_on', '')
             
             logger.info(f"   Crew: {crew_name}")
-            logger.info(f"   Current Status: {current_status}")
+            logger.info(f"   Current Status: {current_status} (override: {old_status_override})")
+            logger.info(f"   Current Ship: {current_ship} (override: {old_ship_override})")
             logger.info(f"   Target Ship: {ship_name}")
             logger.info(f"   Skip Validation: {skip_validation}")
             
