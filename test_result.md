@@ -33,6 +33,32 @@
 
 ## 🗂️ TESTING RESULTS
 
+### Ship Certificate Audit Logging Implementation
+
+**Status:** 🧪 PENDING COMPREHENSIVE TESTING
+**Date:** 2025-12-09
+**Issue:** P0 - CRITICAL - Creating new Ship Certificates (IOPP, ISPP) did not generate audit logs
+**Root Cause:** The `certificate_service.py` (Class & Flag certificates) was missing audit logging implementation entirely. Only `audit_certificate_service.py` (ISM/ISPS/MLC) had it.
+**Resolution:** Added audit logging to `create_certificate`, `update_certificate`, and `delete_certificate` methods in `certificate_service.py`
+**Testing Method:** Manual curl testing + comprehensive testing agent verification needed
+
+**What was fixed:**
+- Added `get_audit_log_service()` method to CertificateService class
+- Implemented audit logging in `create_certificate` method
+- Implemented audit logging in `update_certificate` method
+- Implemented audit logging in `delete_certificate` method
+- All logging uses the same pattern as `audit_certificate_service.py`
+
+**Manual Testing Results:**
+✅ CREATE: Successfully logged CREATE_SHIP_CERTIFICATE for IOPP certificate
+✅ UPDATE: Successfully logged UPDATE_SHIP_CERTIFICATE 
+✅ DELETE: Successfully logged DELETE_SHIP_CERTIFICATE for ISSC certificate
+
+**Next Steps:**
+- Run comprehensive testing agent to verify all certificate operations
+- Test on System Audit Logs UI page
+- User verification
+
 ### AI Configuration UI Fix - System-wide Settings
 
 **Status:** ✅ VERIFIED BY USER - WORKING
