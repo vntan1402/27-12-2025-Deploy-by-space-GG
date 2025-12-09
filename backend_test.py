@@ -110,53 +110,93 @@ class BackendTester:
             self.log_test("User Authentication", False, f"Exception: {str(e)}")
             return False
     
-    def test_ai_config_get(self):
-        """Test GET /api/ai-config endpoint - Review Request Requirements"""
-        print("\n🤖 Testing AI Configuration GET...")
+    def test_audit_logs_api_endpoints(self):
+        """Test all audit logs API endpoints"""
+        print("\n📊 Testing Audit Logs API Endpoints...")
         
         try:
-            response = self.session.get(f"{BACKEND_URL}/ai-config")
+            # Test 1: GET /api/audit-logs - retrieve all audit logs
+            response = self.session.get(f"{BACKEND_URL}/audit-logs")
             
             if response.status_code == 200:
                 data = response.json()
                 
-                # Log provider, model, use_emergent_key values as requested
-                provider = data.get('provider', 'Not Set')
-                model = data.get('model', 'Not Set')
-                use_emergent_key = data.get('use_emergent_key', False)
-                
-                print(f"   📋 AI Configuration Details:")
-                print(f"      Provider: {provider}")
-                print(f"      Model: {model}")
-                print(f"      Use Emergent Key: {use_emergent_key}")
-                
-                # Check required fields
-                required_fields = ["provider", "model", "use_emergent_key"]
-                missing_fields = [field for field in required_fields if field not in data]
-                
-                if not missing_fields:
-                    self.log_test("AI Config GET - Structure", True, 
-                                 f"Provider: {provider}, Model: {model}, Use Emergent Key: {use_emergent_key}")
-                    
-                    # Check if using EMERGENT_LLM_KEY
-                    if data.get("use_emergent_key"):
-                        self.log_test("AI Config GET - API Key", True, "Using EMERGENT_LLM_KEY")
-                    else:
-                        self.log_test("AI Config GET - API Key", False, "Not using EMERGENT_LLM_KEY")
-                    
-                    return data
+                # Check if it's paginated response or direct array
+                if isinstance(data, list):
+                    audit_logs = data
+                    total_logs = len(data)
+                elif isinstance(data, dict) and 'items' in data:
+                    audit_logs = data.get('items', [])
+                    total_logs = data.get('total', len(audit_logs))
                 else:
-                    self.log_test("AI Config GET - Structure", False, 
-                                 f"Missing fields: {missing_fields}")
-                    return None
+                    audit_logs = []
+                    total_logs = 0
+                
+                self.log_test("Audit Logs API - GET All", True, 
+                             f"Retrieved {total_logs} audit logs")
+                
+                # Test 2: GET /api/audit-logs?entity_type=company
+                company_response = self.session.get(f"{BACKEND_URL}/audit-logs?entity_type=company")
+                
+                if company_response.status_code == 200:
+                    company_data = company_response.json()
+                    company_logs = company_data if isinstance(company_data, list) else company_data.get('items', [])
+                    
+                    self.log_test("Audit Logs API - Filter Company", True, 
+                                 f"Retrieved {len(company_logs)} company audit logs")
+                else:
+                    self.log_test("Audit Logs API - Filter Company", False, 
+                                 f"Status: {company_response.status_code}")
+                
+                # Test 3: GET /api/audit-logs?entity_type=user
+                user_response = self.session.get(f"{BACKEND_URL}/audit-logs?entity_type=user")
+                
+                if user_response.status_code == 200:
+                    user_data = user_response.json()
+                    user_logs = user_data if isinstance(user_data, list) else user_data.get('items', [])
+                    
+                    self.log_test("Audit Logs API - Filter User", True, 
+                                 f"Retrieved {len(user_logs)} user audit logs")
+                else:
+                    self.log_test("Audit Logs API - Filter User", False, 
+                                 f"Status: {user_response.status_code}")
+                
+                # Test 4: GET /api/audit-logs/filters/users
+                users_filter_response = self.session.get(f"{BACKEND_URL}/audit-logs/filters/users")
+                
+                if users_filter_response.status_code == 200:
+                    users_filter_data = users_filter_response.json()
+                    unique_users = users_filter_data if isinstance(users_filter_data, list) else users_filter_data.get('users', [])
+                    
+                    self.log_test("Audit Logs API - Unique Users Filter", True, 
+                                 f"Retrieved {len(unique_users)} unique users")
+                else:
+                    self.log_test("Audit Logs API - Unique Users Filter", False, 
+                                 f"Status: {users_filter_response.status_code}")
+                
+                # Test 5: GET /api/audit-logs/filters/ships
+                ships_filter_response = self.session.get(f"{BACKEND_URL}/audit-logs/filters/ships")
+                
+                if ships_filter_response.status_code == 200:
+                    ships_filter_data = ships_filter_response.json()
+                    unique_ships = ships_filter_data if isinstance(ships_filter_data, list) else ships_filter_data.get('ships', [])
+                    
+                    self.log_test("Audit Logs API - Unique Ships Filter", True, 
+                                 f"Retrieved {len(unique_ships)} unique ships")
+                else:
+                    self.log_test("Audit Logs API - Unique Ships Filter", False, 
+                                 f"Status: {ships_filter_response.status_code}")
+                
+                return audit_logs
+                
             else:
-                self.log_test("AI Config GET", False, 
+                self.log_test("Audit Logs API - GET All", False, 
                              f"Status: {response.status_code}, Response: {response.text}")
-                return None
+                return []
                 
         except Exception as e:
-            self.log_test("AI Config GET", False, f"Exception: {str(e)}")
-            return None
+            self.log_test("Audit Logs API Endpoints", False, f"Exception: {str(e)}")
+            return []
     
     def find_brother_36_ship(self):
         """Find BROTHER 36 ship as specified in review request"""
