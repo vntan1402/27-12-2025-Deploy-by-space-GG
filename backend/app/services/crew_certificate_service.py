@@ -568,6 +568,30 @@ class CrewCertificateService:
         # Get updated certificate
         updated_cert = await CrewCertificateRepository.find_by_id(cert_id)
         
+        # Log crew audit log
+        try:
+            audit_service = CrewCertificateService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            
+            # Get crew info
+            crew = await CrewRepository.find_by_id(cert.get('crew_id'))
+            crew_name = crew.get('full_name', 'Unknown') if crew else 'Unknown'
+            
+            await audit_service.log_certificate_update(
+                crew_id=cert.get('crew_id'),
+                crew_name=crew_name,
+                old_cert=cert,
+                new_cert=updated_cert,
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create crew audit log: {e}")
+        
         logger.info(f"✅ Crew certificate updated: {cert_id}")
         
         return CrewCertificateResponse(**updated_cert)
