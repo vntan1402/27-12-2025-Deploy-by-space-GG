@@ -144,12 +144,18 @@ async def get_unique_users_for_filter(
 ):
     """
     Get unique users for filter dropdown
+    - Admin: only from their company
+    - Super Admin/System Admin: from all companies
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
         raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
     
-    company_id = current_user.company
+    # Filter by company_id based on role
+    if current_user.role == 'admin':
+        company_id = current_user.company
+    else:
+        company_id = None
     
     users = await repository.get_unique_users(company_id)
     
