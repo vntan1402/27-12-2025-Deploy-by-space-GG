@@ -19,6 +19,13 @@ class AuditCertificateService:
     collection_name = "audit_certificates"
     
     @staticmethod
+    def get_audit_log_service():
+        """Get audit log service instance"""
+        from app.services.crew_audit_log_service import CrewAuditLogService
+        from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
+        return CrewAuditLogService(CrewAuditLogRepository(mongo_db.database))
+    
+    @staticmethod
     async def get_audit_certificates(ship_id: Optional[str], cert_type: Optional[str], current_user: UserResponse) -> List[AuditCertificateResponse]:
         """Get audit certificates with optional ship and type filter"""
         filters = {}
