@@ -829,6 +829,9 @@ async def sign_on_crew_member(
         
         # Call service
         skip_validation = request_data.get('skip_validation', False)
+        old_status_override = request_data.get('old_status_override', None)
+        old_ship_override = request_data.get('old_ship_override', None)
+        
         result = await CrewAssignmentService.sign_on_crew(
             crew_id=crew_id,
             ship_name=sign_on_request.ship_name,
@@ -836,7 +839,9 @@ async def sign_on_crew_member(
             place_sign_on=sign_on_request.place_sign_on,
             notes=sign_on_request.notes,
             current_user=current_user,
-            skip_validation=skip_validation
+            skip_validation=skip_validation,
+            old_status_override=old_status_override,
+            old_ship_override=old_ship_override
         )
         
         logger.info(f"✅ Sign on completed: {result.get('crew_name')} to {result.get('to_ship')}")
