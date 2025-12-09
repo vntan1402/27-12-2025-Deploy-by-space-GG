@@ -50,7 +50,7 @@ const crewAuditLogService = {
    */
   async getAuditLogsByCrew(crewId, limit = 50) {
     try {
-      const response = await api.get(`/api/crew-audit-logs/crew/${crewId}?limit=${limit}`);
+      const response = await api.get(`/api/audit-logs/crew/${crewId}?limit=${limit}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching crew audit logs:', error);
