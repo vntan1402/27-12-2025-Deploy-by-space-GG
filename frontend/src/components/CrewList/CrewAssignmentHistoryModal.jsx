@@ -107,32 +107,29 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
 
       // Handle SHIP_TRANSFER: crew leaves from_ship and joins to_ship
       if (action_type === 'SHIP_TRANSFER') {
-        // Close the from_ship assignment
-        if (from_ship && shipMap.has(from_ship)) {
-          const assignment = shipMap.get(from_ship);
-          if (!assignment.sign_off_date) {
-            assignment.sign_off_date = action_date;
-            assignment.sign_off_by = performed_by;
+        // Step 1: Find and close the from_ship assignment (search by ship name with no sign_off_date)
+        if (from_ship) {
+          // Find the open assignment for from_ship
+          for (const [key, assignment] of shipMap.entries()) {
+            if (assignment.ship_name === from_ship && !assignment.sign_off_date) {
+              assignment.sign_off_date = action_date;
+              assignment.sign_off_by = performed_by;
+              break;  // Only close the first open assignment
+            }
           }
         }
 
-        // Open new to_ship assignment
-        // Check if ship exists AND if the existing assignment is already closed
+        // Step 2: Create new to_ship assignment with unique key
         if (to_ship) {
-          const existingAssignment = shipMap.get(to_ship);
-          const shouldCreateNew = !existingAssignment || existingAssignment.sign_off_date;
-          
-          if (shouldCreateNew) {
-            // Create new assignment for this ship (either first time or re-joining after leaving)
-            shipMap.set(to_ship, {
-              ship_name: to_ship,
-              sign_on_date: action_date,
-              sign_on_by: performed_by,
-              sign_off_date: null,
-              sign_off_by: null,
-              action_type: action_type
-            });
-          }
+          const uniqueKey = id || `${to_ship}_${action_date}`;
+          shipMap.set(uniqueKey, {
+            ship_name: to_ship,
+            sign_on_date: action_date,
+            sign_on_by: performed_by,
+            sign_off_date: null,
+            sign_off_by: null,
+            action_type: action_type
+          });
         }
       }
 
