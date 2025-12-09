@@ -908,13 +908,16 @@ async def transfer_crew_to_ship(
         
         # Call service
         skip_validation = request_data.get('skip_validation', False)
+        old_ship_override = request_data.get('old_ship_override', None)
+        
         result = await CrewAssignmentService.transfer_crew_between_ships(
             crew_id=crew_id,
             to_ship_name=transfer_request.to_ship_name,
             transfer_date=transfer_request.transfer_date,
             notes=transfer_request.notes,
             current_user=current_user,
-            skip_validation=skip_validation
+            skip_validation=skip_validation,
+            old_ship_override=old_ship_override
         )
         
         logger.info(f"✅ Transfer completed: {result.get('crew_name')} from {result.get('from_ship')} to {result.get('to_ship')}")
