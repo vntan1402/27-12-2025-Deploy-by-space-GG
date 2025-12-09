@@ -1,41 +1,107 @@
 #!/usr/bin/env python3
 """
-Backend Testing Script for Comprehensive Audit Log System Testing
+Comprehensive End-to-End Testing for Audit Log System
 
-Tests the comprehensive audit log system for Phase 1 expansion (Companies and Users):
+**CONTEXT:**
+The application has a complete audit log system tracking CRUD operations for 11 entity types:
+- Phase 1: Crew, Crew Certificates, Ship, Ship Certificates, Company, User
+- Phase 2: Approval Documents, Drawings/Manuals, Survey Reports, Other Documents, Crew Assignments (Sign On/Off)
 
-**Context**: The application has a centralized audit log system that tracks CRUD operations
-- Recently integrated audit logging for Companies and Users entities
-- API endpoint: `/api/audit-logs` (renamed from `/api/crew-audit-logs`)
-- All entity types: crew, certificate, ship, company, user
+API Endpoint: `/api/audit-logs` (renamed from `/api/crew-audit-logs`)
+Total logs in system: ~48 logs
 
-**Test Requirements**:
-1. API Endpoint Testing:
-   - GET /api/audit-logs - retrieve all audit logs with pagination
-   - GET /api/audit-logs?entity_type=company - filter by company entity
-   - GET /api/audit-logs?entity_type=user - filter by user entity
-   - GET /api/audit-logs/filters/users - get unique users
-   - GET /api/audit-logs/filters/ships - get unique ships
+**TEST REQUIREMENTS:**
 
-2. Company Audit Logging:
-   - Create/Update/Delete company operations should create audit logs
-   - Verify correct fields: entity_type, entity_id, entity_name, action, performed_by, timestamp, changes array
+### 1. API ENDPOINT TESTING
+**1.1 Main Endpoint:**
+- GET `/api/audit-logs` - List all logs with pagination
+- Test without filters, with limit parameter (limit=5, 10, 20)
+- Test with skip parameter for pagination
+- Verify response structure: logs, total, skip, limit, has_more
 
-3. User Audit Logging:
-   - Create/Update/Delete user operations should create audit logs
-   - CRITICAL: Verify password_hash is NEVER logged in any audit log entry
+**1.2 Entity Type Filtering:**
+- Test filtering by each entity_type: crew, certificate, ship, ship_certificate, company, user
+- approval_document, drawing_manual, survey_report, other_document
+- Verify each filter returns only logs of that entity type
 
-4. Data Validation:
-   - Verify all audit logs have proper UTC timestamps
-   - Verify changes array contains field, field_label, old_value, new_value
-   - Verify entity_name is human-readable
-   - Verify company_id is correctly set for each log
+**1.3 Action Filtering:**
+- Test action parameter with common actions: CREATE_COMPANY, UPDATE_USER, DELETE_COMPANY, etc.
+- Special actions: SIGN_ON, SIGN_OFF, SHIP_TRANSFER
 
-5. Filtering & Permissions:
-   - Test that logs are properly filtered by entity_type
-   - Verify admin user can access audit logs (role check)
+**1.4 Date Range Filtering:**
+- Test start_date and end_date parameters
+- Use recent dates (2024-12-01 to 2024-12-31)
 
-**Test Credentials**: admin1 / 123456
+**1.5 User & Ship Filtering:**
+- GET `/api/audit-logs/filters/users` - List unique users
+- GET `/api/audit-logs/filters/ships` - List unique ships
+- Test performed_by parameter, Test ship_name parameter
+
+**1.6 Individual Log:**
+- GET `/api/audit-logs/{log_id}` - Get single log by ID
+
+### 2. PERMISSIONS TESTING
+**2.1 Role-based Access:**
+- Admin role: Should see only their company's logs
+- Super Admin/System Admin: Should see all logs
+Test with user: admin1 (role: admin)
+
+**2.2 Company Filtering:**
+- Verify admin only sees logs with their company_id
+
+### 3. DATA INTEGRITY TESTING
+**3.1 Log Structure Validation:**
+For each entity type, verify logs contain:
+- Required fields: id, entity_type, entity_id, entity_name, action, performed_by, performed_at
+- Changes array with: field, field_label, old_value, new_value, value_type
+- Metadata object with relevant info
+- Proper timestamps with timezone
+
+**3.2 Action Consistency:**
+- Verify action names follow pattern: CREATE_{ENTITY}, UPDATE_{ENTITY}, DELETE_{ENTITY}
+- Special actions: SIGN_ON, SIGN_OFF, SHIP_TRANSFER
+
+**3.3 Entity Type Coverage:**
+Verify logs exist for all 11 entity types
+
+### 4. FUNCTIONAL TESTING
+**4.1 Test Complete CRUD Cycle:**
+For ONE document entity (e.g., approval_document):
+1. Create a new document → Verify CREATE log
+2. Update the document → Verify UPDATE log with correct changes
+3. Delete the document → Verify DELETE log
+
+Ship ID to use: fe05be90-a1c4-44ff-96be-54c5d9e6ae54 (VINASHIP HARMONY)
+
+**4.2 Verify Changes Tracking:**
+- Check that UPDATE logs capture field changes correctly
+- Verify old_value and new_value are accurate
+- Check value_type is appropriate (string, date, number, etc.)
+
+**4.3 Timestamp Validation:**
+- All timestamps should be in UTC
+- Format: ISO 8601 with timezone
+
+### 5. EDGE CASES & ERROR HANDLING
+**5.1 Invalid Requests:**
+- Invalid entity_type, Invalid log_id, Invalid date format, Invalid limit (negative, too large)
+
+**5.2 Empty Results:**
+- Search with no matching criteria
+- Verify proper empty response structure
+
+**TEST CREDENTIALS:**
+- Username: admin1
+- Password: 123456
+- Company ID: 0a6eaf96-0aaf-4793-89be-65d62cb7953c
+
+**EXPECTED OUTCOMES:**
+✅ All API endpoints respond correctly
+✅ Filtering works for all entity types
+✅ Permissions properly enforced
+✅ Log structure is consistent
+✅ CRUD operations create proper audit trails
+✅ Data integrity maintained across all logs
 """
 
 import requests
