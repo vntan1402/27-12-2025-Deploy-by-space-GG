@@ -92,6 +92,7 @@ const CrewAuditLogsPage = () => {
         });
         
         setLogs(response.logs || []);
+        setTotalCount(response.total || 0);
       } catch (error) {
         console.error('Error loading audit logs:', error);
         setLogs([]);
