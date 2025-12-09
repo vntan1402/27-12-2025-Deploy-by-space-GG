@@ -12,26 +12,38 @@ const AdminTools = () => {
 
   const tools = [
     {
-      id: 'crew-audit-logs',
+      id: 'system-audit-logs',
       icon: '📋',
-      title: language === 'vi' ? 'Crew Audit Logs' : 'Crew Audit Logs',
+      title: language === 'vi' ? 'System Audit Logs' : 'System Audit Logs',
       description: language === 'vi' 
-        ? 'Xem lịch sử thay đổi và hoạt động của tất cả crew records'
-        : 'View change history and activity logs for all crew records',
+        ? 'Xem lịch sử thay đổi và hoạt động của tất cả entities trong hệ thống'
+        : 'View change history and activity logs for all system entities',
       route: '/system-settings/crew-audit-logs',
-      badge: null,
+      badge: 'Updated',
       color: 'blue'
     },
-    // Future tools can be added here
-    // {
-    //   id: 'system-logs',
-    //   icon: '📊',
-    //   title: 'System Logs',
-    //   description: 'View system-wide activity logs',
-    //   route: '/system-settings/system-logs',
-    //   badge: null,
-    //   color: 'green'
-    // },
+    {
+      id: 'crew-logs',
+      icon: '👥',
+      title: language === 'vi' ? 'Crew Activity' : 'Crew Activity',
+      description: language === 'vi' 
+        ? 'Truy cập nhanh logs của Crew'
+        : 'Quick access to crew logs',
+      route: '/system-settings/crew-audit-logs?entity=crew',
+      badge: null,
+      color: 'purple'
+    },
+    {
+      id: 'certificate-logs',
+      icon: '📜',
+      title: language === 'vi' ? 'Certificate Logs' : 'Certificate Logs',
+      description: language === 'vi' 
+        ? 'Truy cập nhanh logs của Chứng chỉ'
+        : 'Quick access to certificate logs',
+      route: '/system-settings/crew-audit-logs?entity=certificate',
+      badge: 'New',
+      color: 'green'
+    },
   ];
 
   const getColorClasses = (color) => {
