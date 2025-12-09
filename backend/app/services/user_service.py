@@ -143,6 +143,9 @@ class UserService:
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
+        # Keep old user data for audit (before update)
+        old_user_for_audit = {k: v for k, v in user.items() if k != 'password_hash'}
+        
         # Prepare update dict
         update_dict = update_data.dict(exclude_unset=True)
         
@@ -157,6 +160,25 @@ class UserService:
         
         # Get updated user
         updated_user = await UserRepository.find_by_id(user_id)
+        
+        # Log audit (before removing password_hash)
+        try:
+            audit_service = UserService.get_audit_log_service()
+            performed_by_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            new_user_for_audit = {k: v for k, v in updated_user.items() if k != 'password_hash'}
+            await audit_service.log_user_update(
+                old_user=old_user_for_audit,
+                new_user=new_user_for_audit,
+                performed_by_user=performed_by_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         updated_user.pop("password_hash", None)
         return UserResponse(**updated_user)
     
