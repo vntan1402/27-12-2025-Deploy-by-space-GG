@@ -262,7 +262,7 @@ class CrewAuditLogRepository:
         Returns:
             List of unique ship names
         """
-        query = {'ship_name': {'$ne': None, '$ne': '-'}}
+        query = {'ship_name': {'$nin': [None, '-', '']}}
         if company_id is not None:
             query['company_id'] = company_id
             
