@@ -104,8 +104,8 @@ const CrewAuditLogsPage = () => {
     loadLogs();
   }, [filters, currentPage, logsPerPage]);
 
-  // Logs are already filtered by API, just use them directly
-  const totalPages = Math.ceil(logs.length / logsPerPage);
+  // Calculate total pages from total count returned by API
+  const totalPages = Math.ceil(totalCount / logsPerPage);
 
   // Load unique users and ships from API
   const [uniqueUsers, setUniqueUsers] = useState([]);
