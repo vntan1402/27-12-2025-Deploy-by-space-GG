@@ -231,6 +231,27 @@ class AuditReportService:
         await mongo_db.delete(AuditReportService.collection_name, {"id": report_id})
         logger.info(f"✅ Audit Report deleted from DB: {report_id} ({report_name})")
         
+        # Log audit
+        try:
+            ship = await mongo_db.find_one("ships", {"id": report.get("ship_id")})
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            
+            audit_service = AuditReportService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_document_delete(
+                ship_name=ship_name,
+                doc_data=report,
+                doc_type='audit_report',
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         # Schedule background GDrive deletion
         files_scheduled = 0
         background_deletion = False
