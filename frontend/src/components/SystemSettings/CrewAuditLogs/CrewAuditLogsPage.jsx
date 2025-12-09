@@ -300,12 +300,12 @@ const CrewAuditLogsPage = () => {
         <div className="flex justify-between items-center flex-wrap gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-              📋 {language === 'vi' ? 'Crew Audit Logs' : 'Crew Audit Logs'}
+              📋 {language === 'vi' ? 'System Audit Logs' : 'System Audit Logs'}
             </h1>
             <p className="text-sm text-gray-600 mt-1">
               {language === 'vi' 
-                ? 'Lịch sử thay đổi và hoạt động của tất cả crew records'
-                : 'Change history and activity logs for all crew records'}
+                ? 'Lịch sử thay đổi và hoạt động của tất cả entities trong hệ thống'
+                : 'Change history and activity logs for all system entities'}
             </p>
           </div>
           
