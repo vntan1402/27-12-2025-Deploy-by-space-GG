@@ -176,93 +176,301 @@ class BackendTester:
             self.log_test("User Authentication", False, f"Exception: {str(e)}")
             return False
     
-    def test_audit_logs_api_endpoints(self):
-        """Test all audit logs API endpoints"""
-        print("\n📊 Testing Audit Logs API Endpoints...")
+    def test_audit_logs_main_endpoint(self):
+        """Test main audit logs endpoint with pagination"""
+        print("\n📊 Testing Main Audit Logs Endpoint...")
         
         try:
-            # Test 1: GET /api/audit-logs - retrieve all audit logs
+            # Test 1.1: GET /api/audit-logs - retrieve all audit logs without filters
             response = self.session.get(f"{BACKEND_URL}/audit-logs")
             
             if response.status_code == 200:
                 data = response.json()
                 
-                # Check if it's paginated response or direct array
-                if isinstance(data, list):
-                    audit_logs = data
-                    total_logs = len(data)
-                elif isinstance(data, dict) and 'items' in data:
-                    audit_logs = data.get('items', [])
-                    total_logs = data.get('total', len(audit_logs))
-                else:
-                    audit_logs = []
-                    total_logs = 0
-                
-                self.log_test("Audit Logs API - GET All", True, 
-                             f"Retrieved {total_logs} audit logs")
-                
-                # Test 2: GET /api/audit-logs?entity_type=company
-                company_response = self.session.get(f"{BACKEND_URL}/audit-logs?entity_type=company")
-                
-                if company_response.status_code == 200:
-                    company_data = company_response.json()
-                    company_logs = company_data if isinstance(company_data, list) else company_data.get('items', [])
+                # Check response structure
+                if isinstance(data, dict):
+                    logs = data.get('logs', data.get('items', []))
+                    total = data.get('total', len(logs))
+                    skip = data.get('skip', 0)
+                    limit = data.get('limit', len(logs))
+                    has_more = data.get('has_more', False)
                     
-                    self.log_test("Audit Logs API - Filter Company", True, 
-                                 f"Retrieved {len(company_logs)} company audit logs")
-                else:
-                    self.log_test("Audit Logs API - Filter Company", False, 
-                                 f"Status: {company_response.status_code}")
-                
-                # Test 3: GET /api/audit-logs?entity_type=user
-                user_response = self.session.get(f"{BACKEND_URL}/audit-logs?entity_type=user")
-                
-                if user_response.status_code == 200:
-                    user_data = user_response.json()
-                    user_logs = user_data if isinstance(user_data, list) else user_data.get('items', [])
+                    self.log_test("Main Endpoint - GET All Logs", True, 
+                                 f"Retrieved {len(logs)} logs, Total: {total}")
                     
-                    self.log_test("Audit Logs API - Filter User", True, 
-                                 f"Retrieved {len(user_logs)} user audit logs")
-                else:
-                    self.log_test("Audit Logs API - Filter User", False, 
-                                 f"Status: {user_response.status_code}")
-                
-                # Test 4: GET /api/audit-logs/filters/users
-                users_filter_response = self.session.get(f"{BACKEND_URL}/audit-logs/filters/users")
-                
-                if users_filter_response.status_code == 200:
-                    users_filter_data = users_filter_response.json()
-                    unique_users = users_filter_data if isinstance(users_filter_data, list) else users_filter_data.get('users', [])
+                    # Test pagination parameters
+                    # Test with limit=5
+                    limit_response = self.session.get(f"{BACKEND_URL}/audit-logs?limit=5")
+                    if limit_response.status_code == 200:
+                        limit_data = limit_response.json()
+                        limit_logs = limit_data.get('logs', limit_data.get('items', []))
+                        self.log_test("Main Endpoint - Limit Parameter", True, 
+                                     f"Limit=5 returned {len(limit_logs)} logs")
+                    else:
+                        self.log_test("Main Endpoint - Limit Parameter", False, 
+                                     f"Status: {limit_response.status_code}")
                     
-                    self.log_test("Audit Logs API - Unique Users Filter", True, 
-                                 f"Retrieved {len(unique_users)} unique users")
-                else:
-                    self.log_test("Audit Logs API - Unique Users Filter", False, 
-                                 f"Status: {users_filter_response.status_code}")
-                
-                # Test 5: GET /api/audit-logs/filters/ships
-                ships_filter_response = self.session.get(f"{BACKEND_URL}/audit-logs/filters/ships")
-                
-                if ships_filter_response.status_code == 200:
-                    ships_filter_data = ships_filter_response.json()
-                    unique_ships = ships_filter_data if isinstance(ships_filter_data, list) else ships_filter_data.get('ships', [])
+                    # Test with skip parameter
+                    skip_response = self.session.get(f"{BACKEND_URL}/audit-logs?skip=5&limit=10")
+                    if skip_response.status_code == 200:
+                        skip_data = skip_response.json()
+                        skip_logs = skip_data.get('logs', skip_data.get('items', []))
+                        self.log_test("Main Endpoint - Skip Parameter", True, 
+                                     f"Skip=5, Limit=10 returned {len(skip_logs)} logs")
+                    else:
+                        self.log_test("Main Endpoint - Skip Parameter", False, 
+                                     f"Status: {skip_response.status_code}")
                     
-                    self.log_test("Audit Logs API - Unique Ships Filter", True, 
-                                 f"Retrieved {len(unique_ships)} unique ships")
+                    return logs
                 else:
-                    self.log_test("Audit Logs API - Unique Ships Filter", False, 
-                                 f"Status: {ships_filter_response.status_code}")
-                
-                return audit_logs
+                    # Handle direct array response
+                    logs = data if isinstance(data, list) else []
+                    self.log_test("Main Endpoint - GET All Logs", True, 
+                                 f"Retrieved {len(logs)} logs (direct array)")
+                    return logs
                 
             else:
-                self.log_test("Audit Logs API - GET All", False, 
+                self.log_test("Main Endpoint - GET All Logs", False, 
                              f"Status: {response.status_code}, Response: {response.text}")
                 return []
                 
         except Exception as e:
-            self.log_test("Audit Logs API Endpoints", False, f"Exception: {str(e)}")
+            self.log_test("Main Audit Logs Endpoint", False, f"Exception: {str(e)}")
             return []
+
+    def test_entity_type_filtering(self):
+        """Test filtering by each entity type"""
+        print("\n🏷️ Testing Entity Type Filtering...")
+        
+        # All 11 entity types from the review request
+        entity_types = [
+            'crew', 'certificate', 'ship', 'ship_certificate', 'company', 'user',
+            'approval_document', 'drawing_manual', 'survey_report', 'other_document'
+        ]
+        
+        try:
+            for entity_type in entity_types:
+                response = self.session.get(f"{BACKEND_URL}/audit-logs?entity_type={entity_type}")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    logs = data.get('logs', data.get('items', data if isinstance(data, list) else []))
+                    
+                    # Verify all logs are of the correct entity type
+                    correct_type_count = 0
+                    for log in logs:
+                        if log.get('entity_type') == entity_type:
+                            correct_type_count += 1
+                    
+                    if len(logs) == 0:
+                        self.log_test(f"Entity Filter - {entity_type}", True, 
+                                     f"No logs found for {entity_type} (valid)")
+                    elif correct_type_count == len(logs):
+                        self.log_test(f"Entity Filter - {entity_type}", True, 
+                                     f"All {len(logs)} logs are {entity_type} type")
+                    else:
+                        self.log_test(f"Entity Filter - {entity_type}", False, 
+                                     f"Only {correct_type_count}/{len(logs)} logs are correct type")
+                else:
+                    self.log_test(f"Entity Filter - {entity_type}", False, 
+                                 f"Status: {response.status_code}")
+                    
+        except Exception as e:
+            self.log_test("Entity Type Filtering", False, f"Exception: {str(e)}")
+
+    def test_action_filtering(self):
+        """Test filtering by action types"""
+        print("\n⚡ Testing Action Filtering...")
+        
+        # Common actions from the review request
+        actions = [
+            'CREATE_COMPANY', 'UPDATE_COMPANY', 'DELETE_COMPANY',
+            'CREATE_USER', 'UPDATE_USER', 'DELETE_USER',
+            'CREATE_CREW', 'UPDATE_CREW', 'DELETE_CREW',
+            'SIGN_ON', 'SIGN_OFF', 'SHIP_TRANSFER'
+        ]
+        
+        try:
+            for action in actions:
+                response = self.session.get(f"{BACKEND_URL}/audit-logs?action={action}")
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    logs = data.get('logs', data.get('items', data if isinstance(data, list) else []))
+                    
+                    # Verify all logs have the correct action
+                    correct_action_count = 0
+                    for log in logs:
+                        if log.get('action') == action:
+                            correct_action_count += 1
+                    
+                    if len(logs) == 0:
+                        self.log_test(f"Action Filter - {action}", True, 
+                                     f"No logs found for {action} (valid)")
+                    elif correct_action_count == len(logs):
+                        self.log_test(f"Action Filter - {action}", True, 
+                                     f"All {len(logs)} logs have {action} action")
+                    else:
+                        self.log_test(f"Action Filter - {action}", False, 
+                                     f"Only {correct_action_count}/{len(logs)} logs have correct action")
+                else:
+                    self.log_test(f"Action Filter - {action}", False, 
+                                 f"Status: {response.status_code}")
+                    
+        except Exception as e:
+            self.log_test("Action Filtering", False, f"Exception: {str(e)}")
+
+    def test_date_range_filtering(self):
+        """Test date range filtering"""
+        print("\n📅 Testing Date Range Filtering...")
+        
+        try:
+            # Test with recent date range as specified in review request
+            start_date = "2024-12-01"
+            end_date = "2024-12-31"
+            
+            response = self.session.get(f"{BACKEND_URL}/audit-logs?start_date={start_date}&end_date={end_date}")
+            
+            if response.status_code == 200:
+                data = response.json()
+                logs = data.get('logs', data.get('items', data if isinstance(data, list) else []))
+                
+                # Verify logs are within date range
+                from datetime import datetime
+                start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+                end_dt = datetime.strptime(end_date, "%Y-%m-%d")
+                
+                valid_date_count = 0
+                for log in logs:
+                    performed_at = log.get('performed_at', '')
+                    if performed_at:
+                        try:
+                            # Parse ISO datetime
+                            log_dt = datetime.fromisoformat(performed_at.replace('Z', '+00:00'))
+                            if start_dt <= log_dt.replace(tzinfo=None) <= end_dt:
+                                valid_date_count += 1
+                        except:
+                            pass  # Skip invalid dates
+                
+                if len(logs) == 0:
+                    self.log_test("Date Range Filter", True, 
+                                 f"No logs in range {start_date} to {end_date} (valid)")
+                elif valid_date_count == len(logs):
+                    self.log_test("Date Range Filter", True, 
+                                 f"All {len(logs)} logs within date range")
+                else:
+                    self.log_test("Date Range Filter", False, 
+                                 f"Only {valid_date_count}/{len(logs)} logs within date range")
+            else:
+                self.log_test("Date Range Filter", False, 
+                             f"Status: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Date Range Filtering", False, f"Exception: {str(e)}")
+
+    def test_user_ship_filtering(self):
+        """Test user and ship filtering endpoints"""
+        print("\n👥 Testing User & Ship Filtering...")
+        
+        try:
+            # Test GET /api/audit-logs/filters/users
+            users_response = self.session.get(f"{BACKEND_URL}/audit-logs/filters/users")
+            
+            if users_response.status_code == 200:
+                users_data = users_response.json()
+                unique_users = users_data if isinstance(users_data, list) else users_data.get('users', [])
+                
+                self.log_test("User Filter Endpoint", True, 
+                             f"Retrieved {len(unique_users)} unique users")
+                
+                # Test filtering by a specific user if available
+                if unique_users:
+                    test_user = unique_users[0]
+                    user_filter_response = self.session.get(f"{BACKEND_URL}/audit-logs?performed_by={test_user}")
+                    
+                    if user_filter_response.status_code == 200:
+                        self.log_test("User Filter - performed_by", True, 
+                                     f"Filtered by user: {test_user}")
+                    else:
+                        self.log_test("User Filter - performed_by", False, 
+                                     f"Status: {user_filter_response.status_code}")
+            else:
+                self.log_test("User Filter Endpoint", False, 
+                             f"Status: {users_response.status_code}")
+            
+            # Test GET /api/audit-logs/filters/ships
+            ships_response = self.session.get(f"{BACKEND_URL}/audit-logs/filters/ships")
+            
+            if ships_response.status_code == 200:
+                ships_data = ships_response.json()
+                unique_ships = ships_data if isinstance(ships_data, list) else ships_data.get('ships', [])
+                
+                self.log_test("Ship Filter Endpoint", True, 
+                             f"Retrieved {len(unique_ships)} unique ships")
+                
+                # Test filtering by a specific ship if available
+                if unique_ships:
+                    test_ship = unique_ships[0]
+                    ship_filter_response = self.session.get(f"{BACKEND_URL}/audit-logs?ship_name={test_ship}")
+                    
+                    if ship_filter_response.status_code == 200:
+                        self.log_test("Ship Filter - ship_name", True, 
+                                     f"Filtered by ship: {test_ship}")
+                    else:
+                        self.log_test("Ship Filter - ship_name", False, 
+                                     f"Status: {ship_filter_response.status_code}")
+            else:
+                self.log_test("Ship Filter Endpoint", False, 
+                             f"Status: {ships_response.status_code}")
+                
+        except Exception as e:
+            self.log_test("User & Ship Filtering", False, f"Exception: {str(e)}")
+
+    def test_individual_log_retrieval(self):
+        """Test retrieving individual logs by ID"""
+        print("\n🔍 Testing Individual Log Retrieval...")
+        
+        try:
+            # First get some logs to test with
+            response = self.session.get(f"{BACKEND_URL}/audit-logs?limit=5")
+            
+            if response.status_code == 200:
+                data = response.json()
+                logs = data.get('logs', data.get('items', data if isinstance(data, list) else []))
+                
+                if logs:
+                    # Test retrieving the first log by ID
+                    test_log = logs[0]
+                    log_id = test_log.get('id')
+                    
+                    if log_id:
+                        individual_response = self.session.get(f"{BACKEND_URL}/audit-logs/{log_id}")
+                        
+                        if individual_response.status_code == 200:
+                            individual_log = individual_response.json()
+                            
+                            # Verify it's the same log
+                            if individual_log.get('id') == log_id:
+                                self.log_test("Individual Log Retrieval", True, 
+                                             f"Retrieved log by ID: {log_id}")
+                            else:
+                                self.log_test("Individual Log Retrieval", False, 
+                                             f"ID mismatch: expected {log_id}, got {individual_log.get('id')}")
+                        else:
+                            self.log_test("Individual Log Retrieval", False, 
+                                         f"Status: {individual_response.status_code}")
+                    else:
+                        self.log_test("Individual Log Retrieval", False, 
+                                     "No log ID found in test log")
+                else:
+                    self.log_test("Individual Log Retrieval", False, 
+                                 "No logs available for testing")
+            else:
+                self.log_test("Individual Log Retrieval", False, 
+                             f"Failed to get logs for testing: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Individual Log Retrieval", False, f"Exception: {str(e)}")
     
     def find_brother_36_ship(self):
         """Find BROTHER 36 ship as specified in review request"""
