@@ -535,11 +535,11 @@ class CrewAssignmentService:
             
             crew_name = crew.get('full_name', 'Unknown')
             current_status = crew.get('status', '')
-            from_ship = crew.get('ship_sign_on', '')
+            from_ship = old_ship_override if old_ship_override is not None else crew.get('ship_sign_on', '')
             
             logger.info(f"   Crew: {crew_name}")
             logger.info(f"   Current Status: {current_status}")
-            logger.info(f"   From Ship: {from_ship}")
+            logger.info(f"   From Ship: {from_ship} (override: {old_ship_override})")
             logger.info(f"   To Ship: {to_ship_name}")
             logger.info(f"   Skip Validation: {skip_validation}")
             
