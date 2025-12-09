@@ -676,7 +676,9 @@ export const CrewListTable = ({
                 sign_on_date: finalDateSignOn,
                 place_sign_on: finalPlaceSignOn,
                 notes: `Bulk sign on via Ship Sign On edit to ${bulkShipSignOn}`,
-                skip_validation: true  // Skip status check since DB already updated
+                skip_validation: true,  // Skip status check since DB already updated
+                old_status_override: currentStatus,  // Pass original status for audit log
+                old_ship_override: currentShip || '-'  // Pass original ship for audit log
               }).catch(error => {
                 console.error(`Background signOn error for ${crewId}:`, error);
               });
