@@ -131,6 +131,29 @@ class ApprovalDocumentService:
         if not updated_doc.get("approval_document_name") and updated_doc.get("doc_name"):
             updated_doc["approval_document_name"] = updated_doc.get("doc_name")
         
+        # Log audit
+        try:
+            # Get ship name for audit log
+            ship = await mongo_db.find_one("ships", {"id": updated_doc.get("ship_id")})
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            
+            audit_service = ApprovalDocumentService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_document_update(
+                ship_name=ship_name,
+                old_doc=doc,
+                new_doc=updated_doc,
+                doc_type='approval_document',
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ Approval Document updated: {doc_id}")
         
         return ApprovalDocumentResponse(**updated_doc)
