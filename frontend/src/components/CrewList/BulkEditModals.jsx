@@ -340,10 +340,10 @@ export const BulkEditShipSignOnModal = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
               >
                 <option value="">{language === 'vi' ? '-- Chọn tàu --' : '-- Select Ship --'}</option>
+                <option value="-">{language === 'vi' ? '- (Sign off)' : '- (Sign off)'}</option>
                 {filteredShips.map(ship => (
                   <option key={ship.id} value={ship.name}>{ship.name}</option>
                 ))}
-                <option value="-">{language === 'vi' ? '- (Sign off)' : '- (Sign off)'}</option>
               </select>
             ) : (
               <input
