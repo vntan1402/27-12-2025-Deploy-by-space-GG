@@ -200,18 +200,30 @@ class CrewService:
         # Get updated crew
         updated_crew = await CrewRepository.find_by_id(crew_id)
         
-        # Detect if this is a sign on/off operation
-        # Skip general update log if it's a status change between "Sign on" and "Standby"
-        # because sign_on_crew() and sign_off_crew() will create specific logs
+        # Detect if this is a sign on/off/transfer operation
+        # Skip general update log if it's one of these special operations
+        # because sign_on_crew(), sign_off_crew(), and transfer_crew() will create specific logs
         old_status = crew.get('status')
         new_status = updated_crew.get('status')
+        old_ship = crew.get('ship_sign_on', '')
+        new_ship = updated_crew.get('ship_sign_on', '')
+        
         is_sign_on_off_operation = (
             (old_status == "Standby" and new_status == "Sign on") or
             (old_status == "Sign on" and new_status == "Standby")
         )
         
-        # Log crew audit log (skip if it's sign on/off operation)
-        if not is_sign_on_off_operation:
+        # Also detect ship transfer (both statuses are "Sign on" but ship changed)
+        is_transfer_operation = (
+            old_status == "Sign on" and 
+            new_status == "Sign on" and 
+            old_ship != new_ship and
+            old_ship not in ['', '-', None] and
+            new_ship not in ['', '-', None]
+        )
+        
+        # Log crew audit log (skip if it's sign on/off/transfer operation)
+        if not is_sign_on_off_operation and not is_transfer_operation:
             try:
                 audit_service = CrewService.get_audit_log_service()
                 user_dict = {
