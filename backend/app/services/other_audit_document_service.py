@@ -277,6 +277,27 @@ class OtherAuditDocumentService:
         await mongo_db.delete(OtherAuditDocumentService.collection_name, {"id": doc_id})
         logger.info(f"✅ Other Audit Document deleted from DB: {doc_id} ({document_name})")
         
+        # Log audit
+        try:
+            ship = await mongo_db.find_one("ships", {"id": doc.get("ship_id")})
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            
+            audit_service = OtherAuditDocumentService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_document_delete(
+                ship_name=ship_name,
+                doc_data=doc,
+                doc_type='other_audit_document',
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         # Schedule Google Drive file deletions in background
         files_to_delete = []
         
