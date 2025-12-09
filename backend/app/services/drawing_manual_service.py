@@ -93,6 +93,27 @@ class DrawingManualService:
         
         await mongo_db.create(DrawingManualService.collection_name, doc_dict)
         
+        # Log audit
+        try:
+            ship = await mongo_db.find_one("ships", {"id": doc_dict.get("ship_id")})
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            
+            audit_service = DrawingManualService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_document_create(
+                ship_name=ship_name,
+                doc_data=doc_dict,
+                doc_type='drawing_manual',
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ Drawing/Manual created: {doc_dict['document_name']}")
         
         return DrawingManualResponse(**doc_dict)
