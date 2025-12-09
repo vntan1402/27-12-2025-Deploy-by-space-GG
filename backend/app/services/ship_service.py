@@ -119,6 +119,27 @@ class ShipService:
         # Get updated ship
         updated_ship = await ShipRepository.find_by_id(ship_id)
         
+        # Log audit
+        try:
+            audit_service = ShipService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            result = await audit_service.log_ship_update(
+                old_ship=existing_ship,
+                new_ship=updated_ship,
+                user=user_dict
+            )
+            if result:
+                logger.info(f"✅ Ship audit log created")
+            else:
+                logger.info(f"ℹ️ No changes detected for audit log")
+        except Exception as e:
+            logger.error(f"Failed to create ship audit log: {e}")
+        
         logger.info(f"✅ Ship updated: {ship_id}")
         
         return ShipResponse(**updated_ship)
