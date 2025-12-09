@@ -99,8 +99,8 @@ async def get_audit_log_by_id(
     return log
 
 
-@router.get("/crew-audit-logs/crew/{crew_id}", response_model=List[CrewAuditLogResponse])
-async def get_crew_audit_logs_by_crew(
+@router.get("/audit-logs/crew/{crew_id}", response_model=List[CrewAuditLogResponse])
+async def get_audit_logs_by_crew(
     crew_id: str,
     limit: int = Query(50, ge=1, le=100),
     current_user: dict = Depends(get_current_user),
