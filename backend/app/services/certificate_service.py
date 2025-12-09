@@ -119,6 +119,27 @@ class CertificateService:
         
         await CertificateRepository.create(cert_dict)
         
+        # Log audit
+        try:
+            # Get ship name for audit log
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            
+            audit_service = CertificateService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_ship_certificate_create(
+                ship_name=ship_name,
+                cert_data=cert_dict,
+                user=user_dict
+            )
+            logger.info(f"✅ Audit log created for certificate creation")
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ Certificate created: {cert_dict['cert_name']}")
         
         return CertificateResponse(**cert_dict)
