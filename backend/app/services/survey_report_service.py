@@ -17,6 +17,14 @@ class SurveyReportService:
     collection_name = "survey_reports"
     
     @staticmethod
+    def get_audit_log_service():
+        """Get audit log service instance"""
+        from app.services.crew_audit_log_service import CrewAuditLogService
+        from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
+        from app.db.mongodb import mongo_db
+        return CrewAuditLogService(CrewAuditLogRepository(mongo_db.database))
+    
+    @staticmethod
     async def get_survey_reports(ship_id: Optional[str], current_user: UserResponse) -> List[SurveyReportResponse]:
         """Get survey reports with optional ship filter"""
         filters = {}
