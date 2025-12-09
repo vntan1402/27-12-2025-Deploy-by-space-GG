@@ -139,6 +139,27 @@ class AuditCertificateService:
         
         await mongo_db.create(AuditCertificateService.collection_name, cert_dict)
         
+        # Log audit
+        try:
+            # Get ship name for audit log
+            ship = await mongo_db.find_one("ships", {"id": cert_dict.get("ship_id")})
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            
+            audit_service = AuditCertificateService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_ship_certificate_create(
+                ship_name=ship_name,
+                cert_data=cert_dict,
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ Audit Certificate created: {cert_dict['cert_name']} ({cert_data.cert_type})")
         
         return AuditCertificateResponse(**cert_dict)
