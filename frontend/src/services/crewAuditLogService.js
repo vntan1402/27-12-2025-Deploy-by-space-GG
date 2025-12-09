@@ -89,7 +89,7 @@ const crewAuditLogService = {
    */
   async cleanupExpiredLogs() {
     try {
-      const response = await api.delete('/api/crew-audit-logs/cleanup');
+      const response = await api.delete('/api/audit-logs/cleanup');
       return response.data;
     } catch (error) {
       console.error('Error cleaning up logs:', error);
