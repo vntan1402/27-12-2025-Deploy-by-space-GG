@@ -659,6 +659,34 @@ class CrewCertificateService:
             company_id=company_id
         )
         
+        # Log crew audit log
+        try:
+            audit_service = CrewCertificateService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            
+            # Get crew info
+            crew = await CrewRepository.find_by_id(cert.get('crew_id'))
+            crew_name = crew.get('full_name', 'Unknown') if crew else 'Unknown'
+            
+            await audit_service.log_certificate_delete(
+                crew_id=cert.get('crew_id'),
+                crew_name=crew_name,
+                cert_data={
+                    'id': cert_id,
+                    'cert_type': cert.get('cert_name', 'Unknown'),
+                    'cert_number': cert.get('cert_no', '-'),
+                    'ship_name': cert.get('ship_name', '-')
+                },
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create crew audit log: {e}")
+        
         message = f"Crew certificate deleted successfully"
         if files_deleted > 0:
             message += f" ({files_deleted} file(s) deleted from Google Drive)"
