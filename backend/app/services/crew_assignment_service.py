@@ -629,7 +629,32 @@ class CrewAssignmentService:
             await CrewAssignmentRepository.create(assignment_data)
             logger.info(f"✅ Audit trail created: {assignment_data['id']}")
             
-            # Step 5: Return result
+            # Step 5: Create crew audit log
+            try:
+                audit_service = CrewAssignmentService.get_audit_log_service()
+                user_dict = {
+                    'id': current_user.id,
+                    'username': current_user.username,
+                    'full_name': current_user.full_name,
+                    'company': current_user.company
+                }
+                
+                # Log ship transfer in crew audit logs
+                await audit_service.log_crew_sign_on(
+                    crew_id=crew_id,
+                    crew_name=crew_name,
+                    ship_name=to_ship_name,
+                    date_sign_on=parsed_date,
+                    place_sign_on=None,  # Transfer doesn't change place
+                    user=user_dict,
+                    old_ship=from_ship,  # Pass old ship for transfer detection
+                    notes=notes or f"Transferred from {from_ship} to {to_ship_name}"
+                )
+                logger.info(f"✅ Crew audit log created for transfer")
+            except Exception as e:
+                logger.error(f"Failed to create crew audit log: {e}")
+            
+            # Step 6: Return result
             total_files = (
                 (1 if files_moved.get('passport_moved') else 0) +
                 files_moved.get('certificates_moved', 0) +
