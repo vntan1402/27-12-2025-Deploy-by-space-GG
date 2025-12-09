@@ -76,7 +76,7 @@ const crewAuditLogService = {
    */
   async getUniqueShips() {
     try {
-      const response = await api.get('/api/crew-audit-logs/filters/ships');
+      const response = await api.get('/api/audit-logs/filters/ships');
       return response.data;
     } catch (error) {
       console.error('Error fetching unique ships:', error);
