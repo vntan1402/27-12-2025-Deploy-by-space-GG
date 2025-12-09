@@ -581,15 +581,16 @@ class CrewAuditLogService:
         """
         changes = []
         
-        # Track all changed fields
+        # Track all changed fields (use actual DB field names)
         fields_to_check = [
-            ('cert_type', 'Certificate Type', 'string'),
-            ('cert_number', 'Certificate Number', 'string'),
-            ('issue_date', 'Issue Date', 'date'),
-            ('expiry_date', 'Expiry Date', 'date'),
+            ('cert_name', 'Certificate Type', 'string'),
+            ('cert_no', 'Certificate Number', 'string'),
+            ('issued_date', 'Issue Date', 'date'),
+            ('cert_expiry', 'Expiry Date', 'date'),
             ('issue_place', 'Issue Place', 'string'),
             ('rank', 'Rank', 'string'),
-            ('status', 'Status', 'string')
+            ('status', 'Status', 'string'),
+            ('issued_by', 'Issued By', 'string')
         ]
         
         for field, label, value_type in fields_to_check:
