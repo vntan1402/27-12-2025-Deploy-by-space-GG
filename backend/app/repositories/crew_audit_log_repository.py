@@ -67,6 +67,7 @@ class CrewAuditLogRepository:
     async def get_logs(
         self,
         company_id: str,
+        entity_type: Optional[str] = None,
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
         action: Optional[str] = None,
@@ -80,11 +81,17 @@ class CrewAuditLogRepository:
         """
         Get filtered audit logs with pagination
         
+        Supports filtering by entity type (crew, certificate, ship, company, user, document)
+        
         Returns:
             Tuple of (logs list, total count)
         """
         # Build query
         query = {'company_id': company_id}
+        
+        # Entity type filter
+        if entity_type:
+            query['entity_type'] = entity_type
         
         # Date range filter
         if start_date or end_date:
