@@ -122,12 +122,14 @@ class UserService:
             }
             # Create a copy without password_hash for logging
             log_user_dict = {k: v for k, v in user_dict.items() if k != 'password_hash'}
+            logger.info(f"🔍 About to log user create audit for: {log_user_dict.get('username')}")
             await audit_service.log_user_create(
                 user_data=log_user_dict,
                 performed_by_user=performed_by_dict
             )
+            logger.info(f"✅ User audit log created successfully")
         except Exception as e:
-            logger.error(f"Failed to create audit log: {e}")
+            logger.error(f"❌ Failed to create audit log: {e}", exc_info=True)
         
         logger.info(f"✅ User created: {user_data.username}")
         
