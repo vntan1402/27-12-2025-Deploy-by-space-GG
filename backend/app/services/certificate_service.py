@@ -299,6 +299,28 @@ class CertificateService:
         await CertificateRepository.delete(cert_id)
         logger.info(f"✅ Certificate deleted from DB: {cert_id} ({cert_name})")
         
+        # Log audit
+        try:
+            # Get ship name for audit log
+            ship = await ShipRepository.find_by_id(cert.get("ship_id"))
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            
+            audit_service = CertificateService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_ship_certificate_delete(
+                ship_name=ship_name,
+                cert_data=cert,
+                user=user_dict
+            )
+            logger.info(f"✅ Audit log created for certificate deletion")
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         # Schedule Google Drive file deletion in background if file exists
         if google_drive_file_id and background_tasks:
             # Get ship to find company_id
