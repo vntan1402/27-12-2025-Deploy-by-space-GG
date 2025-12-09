@@ -20,6 +20,14 @@ class CrewCertificateService:
     """Business logic for crew certificate management"""
     
     @staticmethod
+    def get_audit_log_service():
+        """Get audit log service instance"""
+        from app.db.mongodb import mongo_db
+        from app.services.crew_audit_log_service import CrewAuditLogService
+        from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
+        return CrewAuditLogService(CrewAuditLogRepository(mongo_db.database))
+    
+    @staticmethod
     def _classify_certificate_v1_logic(
         extracted_cert_name: str,
         note: str,
