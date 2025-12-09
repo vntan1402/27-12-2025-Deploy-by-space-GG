@@ -113,6 +113,27 @@ class SurveyReportService:
         
         await mongo_db.create(SurveyReportService.collection_name, report_dict)
         
+        # Log audit
+        try:
+            ship = await mongo_db.find_one("ships", {"id": report_dict.get("ship_id")})
+            ship_name = ship.get("name", "Unknown Ship") if ship else "Unknown Ship"
+            
+            audit_service = SurveyReportService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_document_create(
+                ship_name=ship_name,
+                doc_data=report_dict,
+                doc_type='survey_report',
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ Survey Report created: {report_dict['survey_report_name']}")
         
         return SurveyReportResponse(**report_dict)
