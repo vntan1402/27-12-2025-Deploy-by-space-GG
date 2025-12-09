@@ -15,7 +15,7 @@ import requests
 import json
 from datetime import datetime
 
-BACKEND_URL = "https://actionlog-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://actionlog-2.preview.emergentagent.com/api"
 USERNAME = "admin1"
 PASSWORD = "123456"
 
