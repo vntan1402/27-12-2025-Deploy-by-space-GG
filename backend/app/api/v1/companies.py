@@ -46,7 +46,7 @@ async def get_company_by_id(
 @router.post("", response_model=CompanyResponse)
 async def create_company(
     company_data: CompanyCreate,
-    current_user: UserResponse = Depends(check_admin_permission)
+    current_user: UserResponse = Depends(check_super_admin_permission)
 ):
     """
     Create new company (Admin only)
