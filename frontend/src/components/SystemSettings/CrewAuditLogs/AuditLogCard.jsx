@@ -31,7 +31,10 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
       SIGN_ON: language === 'vi' ? 'Xuống tàu' : 'Sign On',
       SIGN_OFF: language === 'vi' ? 'Rời tàu' : 'Sign Off',
       SHIP_TRANSFER: language === 'vi' ? 'Chuyển tàu' : 'Ship Transfer',
-      BULK_UPDATE: language === 'vi' ? 'Cập nhật hàng loạt' : 'Bulk Update'
+      BULK_UPDATE: language === 'vi' ? 'Cập nhật hàng loạt' : 'Bulk Update',
+      CREATE_CERTIFICATE: language === 'vi' ? 'Thêm chứng chỉ' : 'Add Certificate',
+      UPDATE_CERTIFICATE: language === 'vi' ? 'Sửa chứng chỉ' : 'Update Certificate',
+      DELETE_CERTIFICATE: language === 'vi' ? 'Xóa chứng chỉ' : 'Delete Certificate'
     };
     return labels[action] || action;
   };
