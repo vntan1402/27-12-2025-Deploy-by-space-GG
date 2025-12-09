@@ -436,6 +436,31 @@ class CrewCertificateService:
             company_id=current_user.company
         )
         
+        # 7. Log crew audit log
+        try:
+            audit_service = CrewCertificateService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_certificate_create(
+                crew_id=cert_dict['crew_id'],
+                crew_name=crew.get('full_name', 'Unknown'),
+                cert_data={
+                    'id': cert_dict['id'],
+                    'cert_type': cert_dict.get('cert_name', 'Unknown'),
+                    'cert_number': cert_dict.get('cert_no', '-'),
+                    'issue_date': cert_dict.get('issue_date'),
+                    'expiry_date': cert_dict.get('expiry_date'),
+                    'ship_name': ship_name or '-'
+                },
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create crew audit log: {e}")
+        
         logger.info(f"✅ Crew certificate created: {cert_dict['cert_name']} for crew {cert_data.crew_id}")
         
         return CrewCertificateResponse(**cert_dict)
