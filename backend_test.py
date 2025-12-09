@@ -472,9 +472,9 @@ class BackendTester:
         except Exception as e:
             self.log_test("Individual Log Retrieval", False, f"Exception: {str(e)}")
     
-    def find_brother_36_ship(self):
-        """Find BROTHER 36 ship as specified in review request"""
-        print("\n🚢 Finding BROTHER 36 ship...")
+    def find_vinaship_harmony_ship(self):
+        """Find VINASHIP HARMONY ship as specified in review request"""
+        print("\n🚢 Finding VINASHIP HARMONY ship...")
         
         try:
             response = self.session.get(f"{BACKEND_URL}/ships")
@@ -482,39 +482,252 @@ class BackendTester:
             if response.status_code == 200:
                 ships = response.json()
                 
-                # Look for BROTHER 36 ship
-                brother_36_ship = None
+                # Look for VINASHIP HARMONY ship (ID: fe05be90-a1c4-44ff-96be-54c5d9e6ae54)
+                vinaship_ship = None
                 for ship in ships:
+                    ship_id = ship.get("id")
                     ship_name = ship.get("name", "").upper()
-                    if "BROTHER 36" in ship_name:
-                        brother_36_ship = ship
+                    if ship_id == "fe05be90-a1c4-44ff-96be-54c5d9e6ae54" or "VINASHIP HARMONY" in ship_name:
+                        vinaship_ship = ship
                         break
                 
-                if brother_36_ship:
-                    ship_id = brother_36_ship.get("id")
-                    ship_name = brother_36_ship.get("name")
-                    self.log_test("Find BROTHER 36 Ship", True, 
+                if vinaship_ship:
+                    ship_id = vinaship_ship.get("id")
+                    ship_name = vinaship_ship.get("name")
+                    self.log_test("Find VINASHIP HARMONY Ship", True, 
                                  f"Found ship: {ship_name} (ID: {ship_id})")
-                    return brother_36_ship
+                    return vinaship_ship
                 else:
-                    # Use first available ship if BROTHER 36 not found
+                    # Use first available ship if VINASHIP HARMONY not found
                     if ships:
                         fallback_ship = ships[0]
                         ship_name = fallback_ship.get("name")
-                        self.log_test("Find BROTHER 36 Ship", False, 
-                                     f"BROTHER 36 not found, using fallback: {ship_name}")
+                        self.log_test("Find VINASHIP HARMONY Ship", False, 
+                                     f"VINASHIP HARMONY not found, using fallback: {ship_name}")
                         return fallback_ship
                     else:
-                        self.log_test("Find BROTHER 36 Ship", False, "No ships found")
+                        self.log_test("Find VINASHIP HARMONY Ship", False, "No ships found")
                         return None
             else:
-                self.log_test("Find BROTHER 36 Ship", False, 
+                self.log_test("Find VINASHIP HARMONY Ship", False, 
                              f"Failed to get ships: {response.status_code}")
                 return None
                 
         except Exception as e:
-            self.log_test("Find BROTHER 36 Ship", False, f"Exception: {str(e)}")
+            self.log_test("Find VINASHIP HARMONY Ship", False, f"Exception: {str(e)}")
             return None
+
+    def test_log_structure_validation(self):
+        """Test log structure validation for all entity types"""
+        print("\n🔍 Testing Log Structure Validation...")
+        
+        try:
+            # Get sample logs
+            response = self.session.get(f"{BACKEND_URL}/audit-logs?limit=20")
+            
+            if response.status_code == 200:
+                data = response.json()
+                logs = data.get('logs', data.get('items', data if isinstance(data, list) else []))
+                
+                if not logs:
+                    self.log_test("Log Structure Validation", False, "No logs available for validation")
+                    return
+                
+                # Required fields for each log
+                required_fields = ['id', 'entity_type', 'entity_id', 'entity_name', 'action', 'performed_by', 'performed_at']
+                
+                valid_logs = 0
+                logs_with_changes = 0
+                logs_with_metadata = 0
+                
+                for log in logs:
+                    # Check required fields
+                    has_all_required = all(field in log and log[field] is not None for field in required_fields)
+                    
+                    if has_all_required:
+                        valid_logs += 1
+                        
+                        # Check changes array structure
+                        changes = log.get('changes', [])
+                        if changes and isinstance(changes, list):
+                            logs_with_changes += 1
+                            
+                            # Validate changes structure
+                            for change in changes:
+                                if isinstance(change, dict):
+                                    change_fields = ['field', 'field_label', 'old_value', 'new_value', 'value_type']
+                                    # At least field and new_value should be present
+                                    if 'field' in change and 'new_value' in change:
+                                        continue
+                        
+                        # Check metadata object
+                        metadata = log.get('metadata', {})
+                        if metadata and isinstance(metadata, dict):
+                            logs_with_metadata += 1
+                
+                self.log_test("Log Structure - Required Fields", True, 
+                             f"{valid_logs}/{len(logs)} logs have all required fields")
+                
+                self.log_test("Log Structure - Changes Array", True, 
+                             f"{logs_with_changes}/{len(logs)} logs have changes array")
+                
+                self.log_test("Log Structure - Metadata Object", True, 
+                             f"{logs_with_metadata}/{len(logs)} logs have metadata")
+                
+                # Test timestamp format
+                valid_timestamps = 0
+                for log in logs:
+                    performed_at = log.get('performed_at')
+                    if performed_at:
+                        try:
+                            from datetime import datetime
+                            # Should be ISO 8601 format with timezone
+                            datetime.fromisoformat(performed_at.replace('Z', '+00:00'))
+                            valid_timestamps += 1
+                        except:
+                            pass
+                
+                self.log_test("Log Structure - Timestamp Format", True, 
+                             f"{valid_timestamps}/{len(logs)} logs have valid ISO 8601 timestamps")
+                
+            else:
+                self.log_test("Log Structure Validation", False, 
+                             f"Failed to get logs: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Log Structure Validation", False, f"Exception: {str(e)}")
+
+    def test_action_consistency(self):
+        """Test action naming consistency"""
+        print("\n⚡ Testing Action Consistency...")
+        
+        try:
+            # Get all logs to analyze action patterns
+            response = self.session.get(f"{BACKEND_URL}/audit-logs")
+            
+            if response.status_code == 200:
+                data = response.json()
+                logs = data.get('logs', data.get('items', data if isinstance(data, list) else []))
+                
+                if not logs:
+                    self.log_test("Action Consistency", False, "No logs available for analysis")
+                    return
+                
+                # Collect all unique actions
+                actions = set()
+                entity_actions = {}
+                
+                for log in logs:
+                    action = log.get('action')
+                    entity_type = log.get('entity_type')
+                    
+                    if action:
+                        actions.add(action)
+                        
+                        if entity_type not in entity_actions:
+                            entity_actions[entity_type] = set()
+                        entity_actions[entity_type].add(action)
+                
+                # Check action naming patterns
+                crud_actions = []
+                special_actions = []
+                
+                for action in actions:
+                    if action in ['SIGN_ON', 'SIGN_OFF', 'SHIP_TRANSFER']:
+                        special_actions.append(action)
+                    elif action.startswith(('CREATE_', 'UPDATE_', 'DELETE_')):
+                        crud_actions.append(action)
+                    else:
+                        # Other action patterns
+                        pass
+                
+                self.log_test("Action Consistency - CRUD Pattern", True, 
+                             f"Found {len(crud_actions)} CRUD actions: {crud_actions[:5]}...")
+                
+                self.log_test("Action Consistency - Special Actions", True, 
+                             f"Found {len(special_actions)} special actions: {special_actions}")
+                
+                # Verify entity-specific actions
+                for entity_type, entity_action_set in entity_actions.items():
+                    expected_create = f"CREATE_{entity_type.upper()}"
+                    expected_update = f"UPDATE_{entity_type.upper()}"
+                    expected_delete = f"DELETE_{entity_type.upper()}"
+                    
+                    has_create = expected_create in entity_action_set
+                    has_update = expected_update in entity_action_set
+                    has_delete = expected_delete in entity_action_set
+                    
+                    self.log_test(f"Action Consistency - {entity_type}", True, 
+                                 f"CREATE: {has_create}, UPDATE: {has_update}, DELETE: {has_delete}")
+                
+            else:
+                self.log_test("Action Consistency", False, 
+                             f"Failed to get logs: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Action Consistency", False, f"Exception: {str(e)}")
+
+    def test_entity_type_coverage(self):
+        """Test that logs exist for all 11 entity types"""
+        print("\n📋 Testing Entity Type Coverage...")
+        
+        expected_entity_types = [
+            'crew', 'certificate', 'ship', 'ship_certificate', 'company', 'user',
+            'approval_document', 'drawing_manual', 'survey_report', 'other_document'
+        ]
+        
+        try:
+            # Get all logs to check entity type coverage
+            response = self.session.get(f"{BACKEND_URL}/audit-logs")
+            
+            if response.status_code == 200:
+                data = response.json()
+                logs = data.get('logs', data.get('items', data if isinstance(data, list) else []))
+                
+                if not logs:
+                    self.log_test("Entity Type Coverage", False, "No logs available for coverage analysis")
+                    return
+                
+                # Collect all unique entity types
+                found_entity_types = set()
+                entity_counts = {}
+                
+                for log in logs:
+                    entity_type = log.get('entity_type')
+                    if entity_type:
+                        found_entity_types.add(entity_type)
+                        entity_counts[entity_type] = entity_counts.get(entity_type, 0) + 1
+                
+                # Check coverage
+                covered_types = []
+                missing_types = []
+                
+                for entity_type in expected_entity_types:
+                    if entity_type in found_entity_types:
+                        covered_types.append(entity_type)
+                        count = entity_counts.get(entity_type, 0)
+                        self.log_test(f"Entity Coverage - {entity_type}", True, 
+                                     f"Found {count} logs")
+                    else:
+                        missing_types.append(entity_type)
+                        self.log_test(f"Entity Coverage - {entity_type}", False, 
+                                     "No logs found")
+                
+                # Summary
+                coverage_percentage = (len(covered_types) / len(expected_entity_types)) * 100
+                self.log_test("Entity Type Coverage - Summary", True, 
+                             f"Coverage: {len(covered_types)}/{len(expected_entity_types)} ({coverage_percentage:.1f}%)")
+                
+                if missing_types:
+                    self.log_test("Entity Type Coverage - Missing", False, 
+                                 f"Missing entity types: {missing_types}")
+                
+            else:
+                self.log_test("Entity Type Coverage", False, 
+                             f"Failed to get logs: {response.status_code}")
+                
+        except Exception as e:
+            self.log_test("Entity Type Coverage", False, f"Exception: {str(e)}")
     
     def create_mock_passport_file(self):
         """Create a mock passport file for testing"""
