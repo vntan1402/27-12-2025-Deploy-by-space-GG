@@ -79,6 +79,7 @@ const CrewAuditLogsPage = () => {
         }
         
         const response = await crewAuditLogService.getAuditLogs({
+          entityType: filters.entityType,  // NEW: Add entity type filter
           startDate,
           endDate,
           action: filters.action,
