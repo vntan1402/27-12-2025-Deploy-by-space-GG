@@ -13,6 +13,7 @@ const crewAuditLogService = {
       const params = new URLSearchParams();
       
       // Add filters to params
+      if (filters.entityType && filters.entityType !== 'all') params.append('entity_type', filters.entityType);
       if (filters.startDate) params.append('start_date', filters.startDate);
       if (filters.endDate) params.append('end_date', filters.endDate);
       if (filters.action && filters.action !== 'all') params.append('action', filters.action);
