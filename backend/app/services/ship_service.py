@@ -160,6 +160,23 @@ class ShipService:
         
         await ShipRepository.delete(ship_id)
         
+        # Log audit
+        try:
+            audit_service = ShipService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_ship_delete(
+                ship_data=ship,
+                user=user_dict
+            )
+            logger.info(f"✅ Ship audit log created")
+        except Exception as e:
+            logger.error(f"Failed to create ship audit log: {e}")
+        
         logger.info(f"✅ Ship deleted: {ship_id}")
         
         return {"message": "Ship deleted successfully"}
