@@ -117,8 +117,13 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
         }
 
         // Open new to_ship assignment
+        // Check if ship exists AND if the existing assignment is already closed
         if (to_ship) {
-          if (!shipMap.has(to_ship)) {
+          const existingAssignment = shipMap.get(to_ship);
+          const shouldCreateNew = !existingAssignment || existingAssignment.sign_off_date;
+          
+          if (shouldCreateNew) {
+            // Create new assignment for this ship (either first time or re-joining after leaving)
             shipMap.set(to_ship, {
               ship_name: to_ship,
               sign_on_date: action_date,
