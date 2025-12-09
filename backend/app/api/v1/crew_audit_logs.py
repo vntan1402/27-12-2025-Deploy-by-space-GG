@@ -158,7 +158,7 @@ async def get_unique_ships_for_filter(
     return ships
 
 
-@router.delete("/crew-audit-logs/cleanup", response_model=dict)
+@router.delete("/audit-logs/cleanup", response_model=dict)
 async def cleanup_expired_logs(
     current_user: dict = Depends(get_current_user),
     repository: CrewAuditLogRepository = Depends(get_audit_log_repository)
