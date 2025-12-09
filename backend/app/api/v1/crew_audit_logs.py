@@ -120,7 +120,7 @@ async def get_audit_logs_by_crew(
     return logs
 
 
-@router.get("/crew-audit-logs/filters/users", response_model=List[dict])
+@router.get("/audit-logs/filters/users", response_model=List[dict])
 async def get_unique_users_for_filter(
     current_user: dict = Depends(get_current_user),
     repository: CrewAuditLogRepository = Depends(get_audit_log_repository)
