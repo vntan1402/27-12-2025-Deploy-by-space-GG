@@ -63,7 +63,7 @@ const crewAuditLogService = {
    */
   async getUniqueUsers() {
     try {
-      const response = await api.get('/api/crew-audit-logs/filters/users');
+      const response = await api.get('/api/audit-logs/filters/users');
       return response.data;
     } catch (error) {
       console.error('Error fetching unique users:', error);
