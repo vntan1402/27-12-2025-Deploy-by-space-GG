@@ -144,6 +144,23 @@ class CompanyService:
         if 'name' not in updated_company:
             updated_company['name'] = updated_company.get('name_en') or updated_company.get('name_vn') or 'Unknown Company'
         
+        # Log audit
+        try:
+            audit_service = CompanyService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_company_update(
+                old_company=existing_company,
+                new_company=updated_company,
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ Company updated: {company_id}")
         
         return CompanyResponse(**updated_company)
