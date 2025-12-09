@@ -95,14 +95,12 @@ class CompanyService:
                 'full_name': current_user.full_name,
                 'company': current_user.company
             }
-            logger.info(f"🔍 About to log company create audit for: {company_dict.get('name')}")
             await audit_service.log_company_create(
                 company_data=company_dict,
                 user=user_dict
             )
-            logger.info(f"✅ Company audit log created successfully")
         except Exception as e:
-            logger.error(f"❌ Failed to create audit log: {e}", exc_info=True)
+            logger.error(f"Failed to create audit log: {e}")
         
         logger.info(f"✅ Company created: {company_dict['name']}")
         
