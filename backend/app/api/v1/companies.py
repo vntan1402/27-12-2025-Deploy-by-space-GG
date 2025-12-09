@@ -10,10 +10,16 @@ from app.core.security import get_current_user
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+def check_admin_permission(current_user: UserResponse = Depends(get_current_user)):
+    """Check if user has admin permission (for viewing/updating own company)"""
+    if current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    return current_user
+
 def check_super_admin_permission(current_user: UserResponse = Depends(get_current_user)):
-    """Check if user has super admin or system admin permission"""
+    """Check if user has super admin or system admin permission (for creating/deleting companies)"""
     if current_user.role not in [UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
-        raise HTTPException(status_code=403, detail="Only super_admin and system_admin can manage companies")
+        raise HTTPException(status_code=403, detail="Only super_admin and system_admin can create/delete companies")
     return current_user
 
 @router.get("", response_model=List[CompanyResponse])
