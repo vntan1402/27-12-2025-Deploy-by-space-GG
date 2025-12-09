@@ -96,7 +96,7 @@ async def delete_company(
 async def upload_company_logo(
     company_id: str,
     file: UploadFile = File(...),
-    current_user: UserResponse = Depends(check_admin_permission)
+    current_user: UserResponse = Depends(check_super_admin_permission)
 ):
     """
     Upload company logo (Admin only)
