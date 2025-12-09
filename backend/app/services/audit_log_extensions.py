@@ -685,3 +685,234 @@ class UserAuditMixin:
         }
         
         return await self.repository.create_log(log_data)
+
+
+
+class DocumentAuditMixin:
+    """Audit log methods for Documents (Approval, Drawings/Manuals, Survey Reports, Other Docs)"""
+    
+    async def log_document_create(
+        self,
+        ship_name: str,
+        doc_data: dict,
+        doc_type: str,
+        user: dict,
+        notes: Optional[str] = None
+    ) -> dict:
+        """
+        Log document creation
+        doc_type: 'approval_document', 'drawing_manual', 'survey_report', 'other_document'
+        """
+        doc_name = doc_data.get('approval_document_name') or doc_data.get('document_name') or doc_data.get('report_name') or doc_data.get('doc_name', 'Unknown Document')
+        doc_no = doc_data.get('approval_document_no') or doc_data.get('document_no') or doc_data.get('report_no') or doc_data.get('doc_no', '-')
+        
+        changes = [
+            {
+                'field': 'document_name',
+                'field_label': 'Document Name',
+                'old_value': None,
+                'new_value': doc_name,
+                'value_type': 'string'
+            },
+            {
+                'field': 'document_no',
+                'field_label': 'Document Number',
+                'old_value': None,
+                'new_value': doc_no,
+                'value_type': 'string'
+            }
+        ]
+        
+        # Add issue/valid dates if present
+        if doc_data.get('issue_date'):
+            changes.append({
+                'field': 'issue_date',
+                'field_label': 'Issue Date',
+                'old_value': None,
+                'new_value': str(doc_data['issue_date']),
+                'value_type': 'date'
+            })
+        
+        if doc_data.get('valid_date') or doc_data.get('expiry_date'):
+            changes.append({
+                'field': 'valid_date',
+                'field_label': 'Valid Until',
+                'old_value': None,
+                'new_value': str(doc_data.get('valid_date') or doc_data.get('expiry_date')),
+                'value_type': 'date'
+            })
+        
+        # Map doc_type to action
+        action_map = {
+            'approval_document': 'CREATE_APPROVAL_DOCUMENT',
+            'drawing_manual': 'CREATE_DRAWING_MANUAL',
+            'survey_report': 'CREATE_SURVEY_REPORT',
+            'other_document': 'CREATE_OTHER_DOCUMENT'
+        }
+        
+        log_data = {
+            'id': str(uuid4()),
+            'entity_type': doc_type,
+            'entity_id': doc_data.get('ship_id') or doc_data.get('id'),
+            'entity_name': ship_name,
+            'company_id': user.get('company'),
+            'ship_name': ship_name,
+            'action': action_map.get(doc_type, 'CREATE_DOCUMENT'),
+            'action_category': 'DOCUMENT',
+            'performed_by': user.get('username'),
+            'performed_by_id': user.get('id'),
+            'performed_by_name': user.get('full_name'),
+            'performed_at': datetime.now(timezone.utc),
+            'changes': changes,
+            'notes': notes or f'Added {doc_name} for {ship_name}',
+            'source': 'WEB_UI',
+            'metadata': {
+                'document_id': doc_data.get('id'),
+                'document_name': doc_name,
+                'document_number': doc_no,
+                'document_type': doc_type
+            }
+        }
+        
+        return await self.repository.create_log(log_data)
+    
+    async def log_document_update(
+        self,
+        ship_name: str,
+        old_doc: dict,
+        new_doc: dict,
+        doc_type: str,
+        user: dict,
+        notes: Optional[str] = None
+    ) -> dict:
+        """Log document update"""
+        changes = []
+        
+        # Check common fields
+        fields_to_check = [
+            ('approval_document_name', 'Document Name', 'string'),
+            ('document_name', 'Document Name', 'string'),
+            ('report_name', 'Report Name', 'string'),
+            ('doc_name', 'Document Name', 'string'),
+            ('approval_document_no', 'Document Number', 'string'),
+            ('document_no', 'Document Number', 'string'),
+            ('report_no', 'Report Number', 'string'),
+            ('doc_no', 'Document Number', 'string'),
+            ('issue_date', 'Issue Date', 'date'),
+            ('valid_date', 'Valid Until', 'date'),
+            ('expiry_date', 'Expiry Date', 'date'),
+            ('issued_by', 'Issued By', 'string'),
+            ('status', 'Status', 'string')
+        ]
+        
+        for field, label, value_type in fields_to_check:
+            if field not in old_doc and field not in new_doc:
+                continue
+                
+            old_value = old_doc.get(field)
+            new_value = new_doc.get(field)
+            
+            if value_type == 'date':
+                old_value = str(old_value) if old_value else None
+                new_value = str(new_value) if new_value else None
+            
+            if old_value != new_value:
+                changes.append({
+                    'field': field,
+                    'field_label': label,
+                    'old_value': old_value,
+                    'new_value': new_value,
+                    'value_type': value_type
+                })
+        
+        if not changes:
+            return None
+        
+        doc_name = new_doc.get('approval_document_name') or new_doc.get('document_name') or new_doc.get('report_name') or new_doc.get('doc_name', 'Unknown Document')
+        
+        # Map doc_type to action
+        action_map = {
+            'approval_document': 'UPDATE_APPROVAL_DOCUMENT',
+            'drawing_manual': 'UPDATE_DRAWING_MANUAL',
+            'survey_report': 'UPDATE_SURVEY_REPORT',
+            'other_document': 'UPDATE_OTHER_DOCUMENT'
+        }
+        
+        log_data = {
+            'id': str(uuid4()),
+            'entity_type': doc_type,
+            'entity_id': new_doc.get('ship_id') or new_doc.get('id'),
+            'entity_name': ship_name,
+            'company_id': user.get('company'),
+            'ship_name': ship_name,
+            'action': action_map.get(doc_type, 'UPDATE_DOCUMENT'),
+            'action_category': 'DOCUMENT',
+            'performed_by': user.get('username'),
+            'performed_by_id': user.get('id'),
+            'performed_by_name': user.get('full_name'),
+            'performed_at': datetime.now(timezone.utc),
+            'changes': changes,
+            'notes': notes or f'Updated {doc_name} for {ship_name}',
+            'source': 'WEB_UI',
+            'metadata': {
+                'document_id': new_doc.get('id'),
+                'document_name': doc_name,
+                'document_type': doc_type
+            }
+        }
+        
+        return await self.repository.create_log(log_data)
+    
+    async def log_document_delete(
+        self,
+        ship_name: str,
+        doc_data: dict,
+        doc_type: str,
+        user: dict,
+        notes: Optional[str] = None
+    ) -> dict:
+        """Log document deletion"""
+        doc_name = doc_data.get('approval_document_name') or doc_data.get('document_name') or doc_data.get('report_name') or doc_data.get('doc_name', 'Unknown Document')
+        doc_no = doc_data.get('approval_document_no') or doc_data.get('document_no') or doc_data.get('report_no') or doc_data.get('doc_no', '-')
+        
+        changes = [{
+            'field': 'status',
+            'field_label': 'Status',
+            'old_value': 'Active',
+            'new_value': 'Deleted',
+            'value_type': 'string'
+        }]
+        
+        # Map doc_type to action
+        action_map = {
+            'approval_document': 'DELETE_APPROVAL_DOCUMENT',
+            'drawing_manual': 'DELETE_DRAWING_MANUAL',
+            'survey_report': 'DELETE_SURVEY_REPORT',
+            'other_document': 'DELETE_OTHER_DOCUMENT'
+        }
+        
+        log_data = {
+            'id': str(uuid4()),
+            'entity_type': doc_type,
+            'entity_id': doc_data.get('ship_id') or doc_data.get('id'),
+            'entity_name': ship_name,
+            'company_id': user.get('company'),
+            'ship_name': ship_name,
+            'action': action_map.get(doc_type, 'DELETE_DOCUMENT'),
+            'action_category': 'DOCUMENT',
+            'performed_by': user.get('username'),
+            'performed_by_id': user.get('id'),
+            'performed_by_name': user.get('full_name'),
+            'performed_at': datetime.now(timezone.utc),
+            'changes': changes,
+            'notes': notes or f'Deleted {doc_name} (#{doc_no}) for {ship_name}',
+            'source': 'WEB_UI',
+            'metadata': {
+                'document_id': doc_data.get('id'),
+                'document_name': doc_name,
+                'document_number': doc_no,
+                'document_type': doc_type
+            }
+        }
+        
+        return await self.repository.create_log(log_data)
