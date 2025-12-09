@@ -19,61 +19,16 @@ BACKEND_URL = "https://actionlog-1.preview.emergentagent.com/api"
 USERNAME = "admin1"
 PASSWORD = "123456"
 
-class BackendTester:
-    def __init__(self):
-        self.session = requests.Session()
-        self.auth_token = None
-        self.user_info = None
-        self.test_results = []
-        self.created_entities = []  # Track created entities for cleanup
-        
-    def log_test(self, test_name, success, details=""):
-        """Log test result"""
-        status = "✅ PASS" if success else "❌ FAIL"
-        print(f"{status}: {test_name}")
-        if details:
-            print(f"   Details: {details}")
-        
-        self.test_results.append({
-            "test": test_name,
-            "success": success,
-            "details": details
-        })
-    
-    def authenticate(self):
-        """Authenticate with the backend"""
-        print("\n🔐 Testing Authentication...")
-        
-        try:
-            # Login with admin1@gmail.com / 123456 as per review request
-            login_data = {
-                "username": TEST_USERNAME,
-                "password": TEST_PASSWORD
-            }
-            
-            response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_data)
-            
-            if response.status_code == 200:
-                data = response.json()
-                self.auth_token = data.get("access_token")
-                self.user_info = data.get("user")
-                
-                # Set authorization header for future requests
-                self.session.headers.update({
-                    "Authorization": f"Bearer {self.auth_token}"
-                })
-                
-                self.log_test("User Authentication", True, 
-                             f"User: {self.user_info.get('username')}, Role: {self.user_info.get('role')}")
-                return True
-            else:
-                self.log_test("User Authentication", False, 
-                             f"Status: {response.status_code}, Response: {response.text}")
-                return False
-                
-        except Exception as e:
-            self.log_test("User Authentication", False, f"Exception: {str(e)}")
-            return False
+# Login first
+def login():
+    response = requests.post(f"{BACKEND_URL}/auth/login", json={"username": USERNAME, "password": PASSWORD})
+    return response.json()["access_token"]
+
+token = login()
+headers = {"Authorization": f"Bearer {token}"}
+
+print("🧪 AUDIT LOG SYSTEM - COMPREHENSIVE TESTING")
+print("=" * 60)
     
     def test_audit_logs_main_endpoint(self):
         """Test main audit logs endpoint with pagination"""
