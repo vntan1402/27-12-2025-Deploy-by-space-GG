@@ -176,6 +176,22 @@ class CompanyService:
         
         await CompanyRepository.delete(company_id)
         
+        # Log audit
+        try:
+            audit_service = CompanyService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_company_delete(
+                company_data=company,
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ Company deleted: {company_id}")
         
         return {"message": "Company deleted successfully"}
