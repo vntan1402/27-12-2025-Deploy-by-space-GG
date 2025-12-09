@@ -37,7 +37,7 @@ const crewAuditLogService = {
    */
   async getAuditLogById(logId) {
     try {
-      const response = await api.get(`/api/crew-audit-logs/${logId}`);
+      const response = await api.get(`/api/audit-logs/${logId}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching audit log:', error);
