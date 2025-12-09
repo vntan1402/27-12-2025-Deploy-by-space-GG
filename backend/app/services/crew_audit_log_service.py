@@ -10,7 +10,8 @@ from app.services.audit_log_extensions import (
     ShipAuditMixin, 
     ShipCertificateAuditMixin,
     CompanyAuditMixin,
-    UserAuditMixin
+    UserAuditMixin,
+    DocumentAuditMixin
 )
 
 
@@ -18,7 +19,8 @@ class CrewAuditLogService(
     ShipAuditMixin,
     ShipCertificateAuditMixin,
     CompanyAuditMixin,
-    UserAuditMixin
+    UserAuditMixin,
+    DocumentAuditMixin
 ):
     """Service for crew audit logging"""
     
