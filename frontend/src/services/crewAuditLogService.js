@@ -1,6 +1,6 @@
 /**
- * Crew Audit Log Service
- * API calls for crew audit logs
+ * System Audit Log Service
+ * API calls for system audit logs
  */
 import api from './api';
 
