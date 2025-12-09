@@ -14,6 +14,14 @@ class UserService:
     """Business logic for user management"""
     
     @staticmethod
+    def get_audit_log_service():
+        """Get audit log service instance"""
+        from app.db.mongodb import mongo_db
+        from app.services.crew_audit_log_service import CrewAuditLogService
+        from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
+        return CrewAuditLogService(CrewAuditLogRepository(mongo_db.database))
+    
+    @staticmethod
     async def authenticate(username: str, password: str, remember_me: bool = False) -> Tuple[str, UserResponse]:
         """
         Authenticate user and return access token
