@@ -220,18 +220,23 @@ class CrewAuditLogRepository:
         })
         return result.deleted_count
     
-    async def get_unique_users(self, company_id: str) -> List[dict]:
+    async def get_unique_users(self, company_id: Optional[str]) -> List[dict]:
         """
         Get unique users who performed actions
         
         Args:
-            company_id: Company ID
+            company_id: Company ID (None = all companies for super admins)
             
         Returns:
             List of unique users with {username, name}
         """
-        pipeline = [
-            {'$match': {'company_id': company_id}},
+        pipeline = []
+        
+        # Add company filter if specified
+        if company_id is not None:
+            pipeline.append({'$match': {'company_id': company_id}})
+        
+        pipeline.extend([
             {'$group': {
                 '_id': '$performed_by',
                 'name': {'$first': '$performed_by_name'}
@@ -242,7 +247,7 @@ class CrewAuditLogRepository:
                 'name': '$name'
             }},
             {'$sort': {'name': 1}}
-        ]
+        ])
         
         users = await self.collection.aggregate(pipeline).to_list(None)
         return users
