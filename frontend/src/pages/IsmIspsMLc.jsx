@@ -1767,18 +1767,58 @@ const IsmIspsMLc = () => {
         ) : !selectedShip ? (
           /* Ship Cards Grid - Show all ships for selection when no ship selected */
           <div>
-            <h3 className="text-xl font-semibold mb-6 text-gray-800">
-              {language === 'vi' ? 'Chọn tàu để xem thông tin chứng chỉ' : 'Select a ship to view certificate information'}
-            </h3>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-800">
+                {language === 'vi' ? 'Chọn tàu để xem thông tin chứng chỉ' : 'Select a ship to view certificate information'}
+              </h3>
+              
+              {/* Search Field */}
+              <div className="relative w-96">
+                <input
+                  type="text"
+                  placeholder={language === 'vi' ? 'Tìm kiếm tên tàu, IMO...' : 'Search ship name, IMO...'}
+                  value={shipSearchQuery}
+                  onChange={(e) => setShipSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+                <svg
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </div>
             
             {ships.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <div className="text-6xl mb-4">🚢</div>
                 <p className="text-lg">{language === 'vi' ? 'Không có tàu nào' : 'No ships available'}</p>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {ships.map(ship => (
+            ) : (() => {
+              // Filter and sort ships
+              const filteredShips = ships
+                .filter(ship => {
+                  if (!shipSearchQuery.trim()) return true;
+                  const query = shipSearchQuery.toLowerCase();
+                  return (
+                    ship.name?.toLowerCase().includes(query) ||
+                    ship.imo?.toLowerCase().includes(query) ||
+                    ship.flag?.toLowerCase().includes(query)
+                  );
+                })
+                .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+              
+              return filteredShips.length === 0 ? (
+                <div className="text-center py-12 text-gray-500">
+                  <div className="text-6xl mb-4">🔍</div>
+                  <p className="text-lg">{language === 'vi' ? 'Không tìm thấy tàu nào' : 'No ships found'}</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                  {filteredShips.map(ship => (
                   <div
                     key={ship.id}
                     onClick={() => handleShipSelect(ship)}
