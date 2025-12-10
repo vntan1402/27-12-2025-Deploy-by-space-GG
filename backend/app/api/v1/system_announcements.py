@@ -10,7 +10,7 @@ from app.models.user import UserResponse
 from app.services.system_announcement_service import SystemAnnouncementService
 from app.repositories.system_announcement_repository import SystemAnnouncementRepository
 from app.db.mongodb import mongo_db
-from app.auth.security import get_current_user
+from app.core.security import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
