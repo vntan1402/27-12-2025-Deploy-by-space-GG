@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
 import systemAnnouncementService from '../../../services/systemAnnouncementService';
 import AddAnnouncementModal from './AddAnnouncementModal';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const SystemAnnouncementsPage = () => {
   const { language } = useAuth();
