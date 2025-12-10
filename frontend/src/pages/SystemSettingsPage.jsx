@@ -101,6 +101,16 @@ const SystemSettingsPage = () => {
           </div>
         )}
 
+        {/* System Announcements - System Admin, Super Admin only */}
+        {(user.role === 'super_admin' || user.role === 'system_admin') && (
+          <div className="bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-3">
+              📢 {language === 'vi' ? 'Thông báo hệ thống' : 'System Announcements'}
+            </h2>
+            <SystemAnnouncementsPage />
+          </div>
+        )}
+
         {/* Admin Tools - Admin, Super Admin, System Admin */}
         {(user.role === 'admin' || user.role === 'super_admin' || user.role === 'system_admin') && (
           <div className="bg-white rounded-xl shadow-lg p-6">
