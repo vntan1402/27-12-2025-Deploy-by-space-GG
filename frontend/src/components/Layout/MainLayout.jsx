@@ -11,16 +11,16 @@ export const MainLayout = ({ children, sidebar }) => {
       <Header />
 
       <div className="w-full px-4 py-8">
-        <div className="grid lg:grid-cols-5 gap-4">
-          {/* Sidebar - 1/5 width */}
+        <div className="flex gap-4">
+          {/* Sidebar - 16% width (80% of original 20%) */}
           {sidebar && (
-            <div className="lg:col-span-1">
+            <div className="w-[240px] flex-shrink-0">
               {sidebar}
             </div>
           )}
 
-          {/* Main Content - 4/5 width */}
-          <div className={sidebar ? 'lg:col-span-4' : 'lg:col-span-5'}>
+          {/* Main Content - flex-1 (remaining space) */}
+          <div className="flex-1">
             {children}
           </div>
         </div>
