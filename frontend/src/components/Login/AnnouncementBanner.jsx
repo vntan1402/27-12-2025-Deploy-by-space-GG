@@ -189,6 +189,7 @@ const AnnouncementBanner = ({ language }) => {
           </div>
           );
         })}
+        </div>
       </div>
     </>
   );
