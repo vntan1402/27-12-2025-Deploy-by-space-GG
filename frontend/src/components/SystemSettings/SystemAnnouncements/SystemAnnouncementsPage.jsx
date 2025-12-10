@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '../../../contexts/LanguageContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import systemAnnouncementService from '../../../services/systemAnnouncementService';
 import AddAnnouncementModal from './AddAnnouncementModal';
 import toast from 'react-hot-toast';
 
 const SystemAnnouncementsPage = () => {
-  const { language } = useLanguage();
+  const { language } = useAuth();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
