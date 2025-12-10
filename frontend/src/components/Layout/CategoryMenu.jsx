@@ -46,7 +46,7 @@ export const CategoryMenu = ({
         <button
           key={category.key}
           onClick={() => handleCategoryClick(category.key)}
-          className={`w-full text-left p-3 rounded-lg transition-all border text-white font-medium ${
+          className={`w-full text-left p-2 rounded-lg transition-all border text-white text-sm font-medium ${
             selectedCategory === category.key
               ? 'bg-blue-400 border-blue-300 ring-2 ring-blue-200'
               : 'bg-blue-500 hover:bg-blue-400 border-blue-400'
@@ -60,7 +60,7 @@ export const CategoryMenu = ({
               : '2px solid #2c5282'
           }}
         >
-          <span className="mr-3">{category.icon}</span>
+          <span className="mr-2 text-base">{category.icon}</span>
           {getCategoryName(category)}
           {selectedCategory === category.key && (
             <span className="float-right">✓</span>
