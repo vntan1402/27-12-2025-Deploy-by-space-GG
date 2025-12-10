@@ -85,17 +85,33 @@ const AnnouncementBanner = ({ language }) => {
   };
 
   return (
-    <div className="space-y-3 mb-6 animate-slideDown">
-      {visibleAnnouncements.map((announcement) => {
-        const style = getAnnouncementStyle(announcement.type);
-        const title = language === 'vi' ? announcement.title_vn : announcement.title_en;
-        const content = language === 'vi' ? announcement.content_vn : announcement.content_en;
+    <>
+      <style jsx>{`
+        @keyframes pulse-border {
+          0%, 100% {
+            border-color: currentColor;
+            box-shadow: 0 0 0 0 currentColor;
+          }
+          50% {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+          }
+        }
+        .animate-pulse-border {
+          animation: pulse-border 2s ease-in-out infinite;
+        }
+      `}</style>
+      
+      <div className="space-y-3 mb-6 animate-slideDown">
+        {visibleAnnouncements.map((announcement) => {
+          const style = getAnnouncementStyle(announcement.type);
+          const title = language === 'vi' ? announcement.title_vn : announcement.title_en;
+          const content = language === 'vi' ? announcement.content_vn : announcement.content_en;
 
-        return (
-          <div
-            key={announcement.id}
-            className={`${style.bg} ${style.border} border-2 rounded-lg p-4 shadow-md`}
-          >
+          return (
+            <div
+              key={announcement.id}
+              className={`${style.bg} ${style.border} border-2 rounded-lg p-4 shadow-md animate-pulse-border`}
+            >
             <div className="flex items-start gap-3">
               {/* Icon */}
               <div className="text-2xl flex-shrink-0 mt-0.5">
