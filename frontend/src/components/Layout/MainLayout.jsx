@@ -12,9 +12,9 @@ export const MainLayout = ({ children, sidebar }) => {
 
       <div className="w-full px-4 py-8">
         <div className="flex gap-4">
-          {/* Sidebar - 16% width (80% of original 20%) */}
+          {/* Sidebar - 264px width (110% of 240px) */}
           {sidebar && (
-            <div className="w-[240px] flex-shrink-0">
+            <div className="w-[264px] flex-shrink-0">
               {sidebar}
             </div>
           )}
