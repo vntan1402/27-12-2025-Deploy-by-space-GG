@@ -46,6 +46,13 @@ export const AddCrewModal = ({
   // Ship dropdown state
   const [showShipDropdown, setShowShipDropdown] = useState(false);
   
+  // Invalid document modal state
+  const [showInvalidDocModal, setShowInvalidDocModal] = useState(false);
+  const [invalidDocDetails, setInvalidDocDetails] = useState({
+    type: '',
+    notes: ''
+  });
+  
   // Reset form when modal closes
   useEffect(() => {
     return () => {
