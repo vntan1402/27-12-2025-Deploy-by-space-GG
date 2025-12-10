@@ -4,7 +4,7 @@ import axios from 'axios';
  * Base API configuration
  */
 const api = axios.create({
-  baseURL: process.env.REACT_APP_BACKEND_URL,
+  baseURL: `${process.env.REACT_APP_BACKEND_URL}/api`,
   timeout: 90000, // 90 seconds for batch uploads
   headers: {
     'Content-Type': 'application/json',
