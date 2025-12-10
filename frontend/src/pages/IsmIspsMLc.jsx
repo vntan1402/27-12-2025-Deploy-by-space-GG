@@ -1643,21 +1643,46 @@ const IsmIspsMLc = () => {
 
       {/* Ship Selection Modal */}
       {showShipModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => setShowShipModal(false)}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={() => {
+          setShowShipModal(false);
+          setShipSearchQuery('');
+        }}>
           <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full mx-4 max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
             <div className="p-4 border-b border-gray-200">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800">
                   {language === 'vi' ? 'Chọn tàu để xem thông tin chứng chỉ' : 'Select a ship to view certificate information'}
                 </h2>
                 <button
-                  onClick={() => setShowShipModal(false)}
+                  onClick={() => {
+                    setShowShipModal(false);
+                    setShipSearchQuery('');
+                  }}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
+              </div>
+              
+              {/* Search Field */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder={language === 'vi' ? 'Tìm kiếm tên tàu, IMO...' : 'Search ship name, IMO...'}
+                  value={shipSearchQuery}
+                  onChange={(e) => setShipSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+                <svg
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
             </div>
             
@@ -1667,44 +1692,59 @@ const IsmIspsMLc = () => {
                   <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   <p className="mt-2 text-gray-600">{language === 'vi' ? 'Đang tải...' : 'Loading...'}</p>
                 </div>
-              ) : ships.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <p>{language === 'vi' ? 'Không có tàu nào' : 'No ships available'}</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-5 gap-3">
-                  {ships.map(ship => (
-                    <div
-                      key={ship.id}
-                      className="border-2 border-gray-200 rounded-lg p-2.5 hover:border-purple-500 transition-all cursor-pointer"
-                    >
-                      <div className="text-center mb-2">
-                        <h3 className="font-bold text-sm text-gray-800 line-clamp-2 min-h-[2.5rem]">{ship.name}</h3>
-                      </div>
-                      <div className="space-y-0.5 text-xs mb-2">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">IMO:</span>
-                          <span className="font-medium">{ship.imo || '-'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">{language === 'vi' ? 'Cờ:' : 'Flag:' }</span>
-                          <span className="font-medium truncate ml-1">{ship.flag || '-'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">{language === 'vi' ? 'Đẳng kiểm:' : 'Class:'}</span>
-                          <span className="font-medium truncate ml-1">{ship.class_society || '-'}</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleShipSelect(ship)}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-1 rounded-md text-xs font-medium transition-all"
+              ) : (() => {
+                // Filter and sort ships
+                const filteredShips = ships
+                  .filter(ship => {
+                    if (!shipSearchQuery.trim()) return true;
+                    const query = shipSearchQuery.toLowerCase();
+                    return (
+                      ship.name?.toLowerCase().includes(query) ||
+                      ship.imo?.toLowerCase().includes(query) ||
+                      ship.flag?.toLowerCase().includes(query)
+                    );
+                  })
+                  .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                
+                return filteredShips.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>{language === 'vi' ? 'Không tìm thấy tàu nào' : 'No ships found'}</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-5 gap-3">
+                    {filteredShips.map(ship => (
+                      <div
+                        key={ship.id}
+                        className="border-2 border-gray-200 rounded-lg p-2.5 hover:border-purple-500 transition-all cursor-pointer"
                       >
-                        {language === 'vi' ? 'Chọn' : 'Select'}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+                        <div className="text-center mb-2">
+                          <h3 className="font-bold text-sm text-gray-800 line-clamp-2 min-h-[2.5rem]">{ship.name}</h3>
+                        </div>
+                        <div className="space-y-0.5 text-xs mb-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">IMO:</span>
+                            <span className="font-medium">{ship.imo || '-'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">{language === 'vi' ? 'Cờ:' : 'Flag:' }</span>
+                            <span className="font-medium truncate ml-1">{ship.flag || '-'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">{language === 'vi' ? 'Đẳng kiểm:' : 'Class:'}</span>
+                            <span className="font-medium truncate ml-1">{ship.class_society || '-'}</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleShipSelect(ship)}
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white py-1 rounded-md text-xs font-medium transition-all"
+                        >
+                          {language === 'vi' ? 'Chọn' : 'Select'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
