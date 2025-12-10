@@ -705,9 +705,28 @@ Return ONLY the JSON output with extracted fields. Do not include any explanatio
                 "analysis": None
             }
         
-        logger.info("✅ Passport analyzed successfully")
+        # ✅ NEW: Validate document type and confidence
+        document_type = passport_data.get('document_type', 'unknown')
+        is_valid_passport = passport_data.get('is_valid_passport', False)
+        confidence = passport_data.get('confidence', 0.0)
+        validation_notes = passport_data.get('validation_notes', '')
         
-        # ✅ NEW: Check for duplicate passport BEFORE returning
+        # Check if document is a valid passport with sufficient confidence
+        if document_type != 'passport' or not is_valid_passport or confidence < 0.85:
+            logger.warning(f"❌ Invalid passport document: type={document_type}, valid={is_valid_passport}, confidence={confidence}")
+            return {
+                "success": False,
+                "is_invalid_document": True,
+                "document_type": document_type,
+                "confidence": confidence,
+                "validation_notes": validation_notes,
+                "message": "Uploaded file is not a valid passport document",
+                "analysis": None
+            }
+        
+        logger.info("✅ Passport document validated successfully")
+        
+        # ✅ Check for duplicate passport BEFORE returning
         passport_no = passport_data.get('passport_no', '').strip()
         if passport_no:
             duplicate_info = await check_passport_duplicate(
