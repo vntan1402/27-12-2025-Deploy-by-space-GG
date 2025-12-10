@@ -1607,9 +1607,10 @@ const ClassAndFlagCert = () => {
                       </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         ) : (
           /* Certificate List Section */
