@@ -502,6 +502,25 @@ async def multi_upload_audit_certificates(
                 # Create in database
                 await mongo_db.create("audit_certificates", cert_data)
                 
+                # Log audit
+                try:
+                    ship_name = ship.get("name", "Unknown Ship")
+                    audit_service = AuditCertificateService.get_audit_log_service()
+                    user_dict = {
+                        'id': current_user.id,
+                        'username': current_user.username,
+                        'full_name': current_user.full_name,
+                        'company': current_user.company
+                    }
+                    await audit_service.log_ship_certificate_create(
+                        ship_name=ship_name,
+                        cert_data=cert_data,
+                        user=user_dict
+                    )
+                    logger.info(f"✅ Audit log created for multi-uploaded certificate")
+                except Exception as e:
+                    logger.error(f"Failed to create audit log for multi-upload: {e}")
+                
                 summary["successfully_created"] += 1
                 summary["certificates_created"].append({
                     "id": cert_data["id"],
