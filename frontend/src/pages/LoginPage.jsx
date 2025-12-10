@@ -209,9 +209,6 @@ const LoginPage = () => {
 
         {/* Right Side - Login Form */}
         <div className={`bg-white rounded-lg shadow-xl p-8 w-full max-w-md transition-transform ${shake ? 'animate-shake' : ''}`}>
-        {/* Announcement Banner */}
-        <AnnouncementBanner language={language} />
-        
         {/* Header */}
         <div className="text-center mb-8">
           <p className="text-gray-600 text-lg mb-4">
