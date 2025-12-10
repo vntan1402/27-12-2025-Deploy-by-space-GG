@@ -140,9 +140,10 @@ const AnnouncementBanner = ({ language }) => {
               </button>
             </div>
           </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 };
 
