@@ -582,8 +582,25 @@ async def analyze_passport_file(
         prompt = f"""You are an AI specialized in structured information extraction from maritime and identity documents.
 
 Your task:
-Analyze the following text summary of a passport and extract all key passport fields. 
-The text already contains all relevant information about the document, so focus only on extracting and normalizing it into a structured JSON format.
+1. FIRST: Determine if this is a PASSPORT document
+2. THEN: Extract all key passport fields if it is a passport
+
+=== DOCUMENT TYPE DETECTION ===
+**CRITICAL**: You must classify the document type with high confidence.
+
+A VALID PASSPORT must have:
+- The word "PASSPORT" or "HỘ CHIẾU" clearly visible
+- A biographical data page with photo
+- MRZ (Machine Readable Zone) - 2 lines of formatted text like: P<VNM<<<<<<<<<<<<<<<<<<
+- Passport number (typically 2 letters + 6-7 digits)
+- Standard ICAO 9303 layout
+- Country name and nationality fields
+- Date of birth, issue date, and expiry date
+
+NOT A PASSPORT if document is:
+- ID Card (CMND/CCCD) - has "IDENTITY CARD" or "CĂN CƯỚC CÔNG DÂN"
+- Driver License - has "LICENSE" or "GIẤY PHÉP LÁI XE"
+- Birth Certificate, Visa, or other documents
 
 === CRITICAL INSTRUCTIONS FOR VIETNAMESE NAMES ===
 **EXTREMELY IMPORTANT**: Vietnamese passports contain BOTH Vietnamese name (with diacritics) AND English name (without diacritics).
@@ -594,16 +611,23 @@ The text already contains all relevant information about the document, so focus 
 - MRZ line contains English transliteration - DO NOT use it for name extraction
 
 === INSTRUCTIONS ===
-1. Extract only the passport-related fields listed below.
-2. Return the output strictly in valid JSON format.
-3. If a field is not found, leave it as an empty string "".
-4. Normalize all dates to DD/MM/YYYY format.
-5. Use uppercase for country codes and names.
-6. Do not infer or fabricate any missing information.
-7. Ensure names are written in correct Vietnamese format WITH DIACRITICS (Surname first, Given names after).
+1. Classify the document type FIRST
+2. Calculate confidence score (0.0 to 1.0) for passport classification
+3. If not a passport or confidence < 0.85, set is_valid_passport to false
+4. Extract only the passport-related fields listed below
+5. Return the output strictly in valid JSON format
+6. If a field is not found, leave it as an empty string ""
+7. Normalize all dates to DD/MM/YYYY format
+8. Use uppercase for country codes and names
+9. Do not infer or fabricate any missing information
+10. Ensure names are written in correct Vietnamese format WITH DIACRITICS (Surname first, Given names after)
 
 === FIELDS TO EXTRACT ===
 {{
+  "document_type": "passport|id_card|driver_license|other|unknown",
+  "is_valid_passport": true|false,
+  "confidence": 0.95,
+  "validation_notes": "Reason why this is/isn't a passport",
   "Passport_Number": "",
   "Type": "",
   "Issuing_Country_Code": "",
@@ -620,7 +644,7 @@ The text already contains all relevant information about the document, so focus 
   "Authority": ""
 }}
 
-=== TEXT INPUT (Passport Summary) ===
+=== TEXT INPUT (Document Summary) ===
 {document_summary}
 
 Return ONLY the JSON output with extracted fields. Do not include any explanations or additional text."""
