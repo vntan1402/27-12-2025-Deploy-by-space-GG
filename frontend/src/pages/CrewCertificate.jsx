@@ -18,6 +18,7 @@ const CrewCertificate = () => {
   const [selectedCategory] = useState('crew');
   const [selectedSubMenu, setSelectedSubMenu] = useState('crew_certificates');
   const [showShipModal, setShowShipModal] = useState(false);
+  const [shipSearchQuery, setShipSearchQuery] = useState(\'\');
   const [showAddShipModal, setShowAddShipModal] = useState(false);
   const [showEditShipModal, setShowEditShipModal] = useState(false);
   const [showDeleteShipModal, setShowDeleteShipModal] = useState(false);

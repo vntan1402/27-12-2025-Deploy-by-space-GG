@@ -23,6 +23,7 @@ const OtherDocuments = () => {
   const [selectedCategory] = useState('ship_certificates');
   const [selectedSubMenu, setSelectedSubMenu] = useState('other_docs');
   const [showShipModal, setShowShipModal] = useState(false);
+  const [shipSearchQuery, setShipSearchQuery] = useState(\'\');
   const [showAddShipModal, setShowAddShipModal] = useState(false);
   const [showEditShipModal, setShowEditShipModal] = useState(false);
   const [showDeleteShipModal, setShowDeleteShipModal] = useState(false);
