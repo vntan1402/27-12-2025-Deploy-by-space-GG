@@ -1875,9 +1875,10 @@ const IsmIspsMLc = () => {
                       </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         ) : (
           /* Show submenu content when ship is selected */
