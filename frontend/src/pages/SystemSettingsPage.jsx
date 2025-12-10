@@ -13,6 +13,7 @@ import { CompanyManagement } from '../components/SystemSettings/CompanyManagemen
 import AIConfig from '../components/SystemSettings/AIConfig';
 import SystemGoogleDrive from '../components/SystemSettings/SystemGoogleDrive';
 import { AdminTools } from '../components/SystemSettings/AdminTools';
+import SystemAnnouncementsPage from '../components/SystemSettings/SystemAnnouncements/SystemAnnouncementsPage';
 
 const SystemSettingsPage = () => {
   const { user, language } = useAuth();
