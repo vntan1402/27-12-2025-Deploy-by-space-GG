@@ -1602,6 +1602,20 @@ export const CrewListTable = ({
       const analysisResponse = await crewService.analyzePassport(file, shipName);
       const analysisData = analysisResponse.data || analysisResponse;
       
+      // Check if document is invalid (not a passport)
+      if (analysisData.is_invalid_document) {
+        return {
+          success: false,
+          filename: file.name,
+          error: language === 'vi' 
+            ? `❌ File không phải hộ chiếu${analysisData.document_type ? ` (${analysisData.document_type})` : ''}`
+            : `❌ Not a passport${analysisData.document_type ? ` (${analysisData.document_type})` : ''}`,
+          invalidDocument: true,
+          documentType: analysisData.document_type,
+          validationNotes: analysisData.validation_notes
+        };
+      }
+      
       // Check for duplicate
       if (analysisData.duplicate) {
         return {
@@ -1616,10 +1630,17 @@ export const CrewListTable = ({
       
       // Check if analysis succeeded
       if (!analysisData.success || !analysisData.analysis) {
+        let errorMsg = language === 'vi' ? 'Không thể phân tích file' : 'Cannot analyze file';
+        
+        // Add more specific error if available
+        if (analysisData.message) {
+          errorMsg += ` - ${analysisData.message}`;
+        }
+        
         return {
           success: false,
           filename: file.name,
-          error: language === 'vi' ? 'Không thể phân tích file' : 'Cannot analyze file'
+          error: errorMsg
         };
       }
       
