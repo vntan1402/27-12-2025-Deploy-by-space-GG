@@ -114,6 +114,11 @@ const LoginPage = () => {
             </p>
           </div>
 
+          {/* Announcement Banner */}
+          <div className="max-w-md">
+            <AnnouncementBanner language={language} />
+          </div>
+
           {/* Information Buttons Placeholder */}
           <div className="space-y-3">
             <button 
