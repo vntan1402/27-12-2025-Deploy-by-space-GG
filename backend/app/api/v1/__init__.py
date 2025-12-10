@@ -21,6 +21,7 @@ api_router.include_router(crew_certificates.router, prefix="/crew-certificates",
 api_router.include_router(crew_audit_logs.router, prefix="", tags=["crew-audit-logs"])
 api_router.include_router(system_settings.router, prefix="/system-settings", tags=["system-settings"])
 api_router.include_router(system.router, prefix="/system", tags=["system"])
+api_router.include_router(system_announcements.router, prefix="/system-announcements", tags=["system-announcements"])
 api_router.include_router(ships_analysis.router, prefix="", tags=["ships-analysis"])
 api_router.include_router(sidebar.router, prefix="", tags=["sidebar"])
 
