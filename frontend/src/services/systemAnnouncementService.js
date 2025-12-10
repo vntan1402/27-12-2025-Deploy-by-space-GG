@@ -6,7 +6,7 @@ const systemAnnouncementService = {
    */
   getActiveAnnouncements: async () => {
     try {
-      const response = await api.get('/system-announcements/active');
+      const response = await api.get('/api/system-announcements/active');
       return response.data;
     } catch (error) {
       console.error('Error fetching active announcements:', error);
@@ -19,7 +19,7 @@ const systemAnnouncementService = {
    */
   getAllAnnouncements: async (skip = 0, limit = 100) => {
     try {
-      const response = await api.get('/system-announcements', {
+      const response = await api.get('/api/system-announcements', {
         params: { skip, limit }
       });
       return response.data;
@@ -34,7 +34,7 @@ const systemAnnouncementService = {
    */
   getAnnouncementById: async (id) => {
     try {
-      const response = await api.get(`/system-announcements/${id}`);
+      const response = await api.get(`/api/system-announcements/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching announcement:', error);
@@ -47,7 +47,7 @@ const systemAnnouncementService = {
    */
   createAnnouncement: async (data) => {
     try {
-      const response = await api.post('/system-announcements', data);
+      const response = await api.post('/api/system-announcements', data);
       return response.data;
     } catch (error) {
       console.error('Error creating announcement:', error);
@@ -60,7 +60,7 @@ const systemAnnouncementService = {
    */
   updateAnnouncement: async (id, data) => {
     try {
-      const response = await api.put(`/system-announcements/${id}`, data);
+      const response = await api.put(`/api/system-announcements/${id}`, data);
       return response.data;
     } catch (error) {
       console.error('Error updating announcement:', error);
@@ -73,7 +73,7 @@ const systemAnnouncementService = {
    */
   deleteAnnouncement: async (id) => {
     try {
-      const response = await api.delete(`/system-announcements/${id}`);
+      const response = await api.delete(`/api/system-announcements/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error deleting announcement:', error);
