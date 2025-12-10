@@ -888,6 +888,25 @@ IMPORTANT DATE EXAMPLES:
             # Insert into database
             await db.certificates.insert_one(cert_doc)
             
+            # Log audit
+            try:
+                from app.services.certificate_service import CertificateService
+                audit_service = CertificateService.get_audit_log_service()
+                user_dict = {
+                    'id': current_user.id,
+                    'username': current_user.username,
+                    'full_name': current_user.full_name,
+                    'company': current_user.company
+                }
+                await audit_service.log_ship_certificate_create(
+                    ship_name=ship_name,
+                    cert_data=cert_doc,
+                    user=user_dict
+                )
+                logger.info(f"✅ Audit log created for multi-uploaded certificate")
+            except Exception as audit_error:
+                logger.error(f"Failed to create audit log: {audit_error}")
+            
             logger.info(f"✅ Created certificate {cert_id}")
             
             return {
