@@ -218,6 +218,27 @@ export const AddCrewModal = ({
       
       const data = response.data || response;
       
+      // ✅ NEW: Check if document is invalid (not a passport)
+      if (data.is_invalid_document) {
+        toast.error(
+          language === 'vi' 
+            ? '❌ File bạn upload không phải hộ chiếu, vui lòng upload file hộ chiếu'
+            : '❌ Uploaded file is not a passport, please upload a passport file',
+          { duration: 5000 }
+        );
+        
+        // Show detailed validation info if available
+        if (data.validation_notes) {
+          toast.info(
+            `${language === 'vi' ? 'Chi tiết' : 'Details'}: ${data.validation_notes}`,
+            { duration: 5000 }
+          );
+        }
+        
+        handleRemoveFile();
+        return;
+      }
+      
       // Check for duplicate
       if (data.duplicate) {
         toast.error(
