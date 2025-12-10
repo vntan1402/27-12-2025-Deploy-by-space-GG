@@ -699,6 +699,25 @@ async def create_audit_certificate_with_file_override(
         
         await mongo_db.create("audit_certificates", cert_record)
         
+        # Log audit
+        try:
+            ship_name = ship.get("name", "Unknown Ship")
+            audit_service = AuditCertificateService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            await audit_service.log_ship_certificate_create(
+                ship_name=ship_name,
+                cert_data=cert_record,
+                user=user_dict
+            )
+            logger.info(f"✅ Audit log created for file-override certificate")
+        except Exception as e:
+            logger.error(f"Failed to create audit log for file-override: {e}")
+        
         logger.info(f"✅ Created audit certificate with file override: {cert_record['id']}")
         
         return {
