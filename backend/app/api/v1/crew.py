@@ -23,11 +23,16 @@ def parse_passport_response(response_text: str) -> dict:
     - Date_of_Birth → date_of_birth
     - etc.
     
+    Also includes document validation fields:
+    - document_type
+    - is_valid_passport
+    - confidence
+    
     Args:
         response_text: Raw AI response text containing JSON (V1 format)
         
     Returns:
-        Dict with passport fields (V2 format)
+        Dict with passport fields (V2 format) + validation fields
     """
     import re
     import json
@@ -42,6 +47,12 @@ def parse_passport_response(response_text: str) -> dict:
             # If no JSON found, try to parse the whole response
             data = json.loads(response_text)
         
+        # ✅ Extract validation fields
+        document_type = data.get("document_type", "unknown")
+        is_valid_passport = data.get("is_valid_passport", False)
+        confidence = data.get("confidence", 0.0)
+        validation_notes = data.get("validation_notes", "")
+        
         # ✅ Map V1 format to V2 format
         surname = data.get("Surname", "")
         given_names = data.get("Given_Names", "")
@@ -50,6 +61,13 @@ def parse_passport_response(response_text: str) -> dict:
         full_name = f"{surname} {given_names}".strip() if (surname or given_names) else ""
         
         passport_data = {
+            # Validation fields (NEW)
+            "document_type": document_type,
+            "is_valid_passport": is_valid_passport,
+            "confidence": confidence,
+            "validation_notes": validation_notes,
+            
+            # Passport fields
             "full_name": full_name,
             "passport_no": data.get("Passport_Number", ""),
             "nationality": data.get("Nationality", ""),
@@ -60,6 +78,7 @@ def parse_passport_response(response_text: str) -> dict:
             "sex": data.get("Sex", "")
         }
         
+        logger.info(f"✅ Document type: {document_type}, Valid passport: {is_valid_passport}, Confidence: {confidence}")
         logger.info(f"✅ Parsed passport data: {passport_data.get('full_name')} - {passport_data.get('passport_no')}")
         
         return passport_data
