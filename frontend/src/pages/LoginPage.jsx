@@ -6,6 +6,7 @@ import IntroductionModal from '../components/IntroductionModal';
 import RoadMapModal from '../components/RoadMapModal';
 import UserGuideModal from '../components/UserGuideModal';
 import ContactModal from '../components/ContactModal';
+import AnnouncementBanner from '../components/Login/AnnouncementBanner';
 
 const LoginPage = () => {
   const navigate = useNavigate();
