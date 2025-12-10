@@ -41,12 +41,25 @@ const AnnouncementBanner = ({ language }) => {
     }
   };
 
+  const handleRestoreAll = () => {
+    setDismissedIds([]);
+    try {
+      localStorage.removeItem('dismissed_announcements');
+    } catch (error) {
+      console.error('Error restoring announcements:', error);
+    }
+  };
+
   // Filter out dismissed announcements
   const visibleAnnouncements = announcements.filter(
     announcement => !dismissedIds.includes(announcement.id)
   );
 
-  if (visibleAnnouncements.length === 0) {
+  // Count dismissed announcements
+  const dismissedCount = announcements.length - visibleAnnouncements.length;
+
+  // Show toggle button if there are dismissed announcements
+  if (visibleAnnouncements.length === 0 && dismissedCount === 0) {
     return null;
   }
 
