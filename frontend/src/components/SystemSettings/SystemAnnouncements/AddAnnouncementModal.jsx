@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '../../../contexts/LanguageContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import systemAnnouncementService from '../../../services/systemAnnouncementService';
 import toast from 'react-hot-toast';
 
 const AddAnnouncementModal = ({ announcement, onClose, onSuccess }) => {
-  const { language } = useLanguage();
+  const { language } = useAuth();
   const isEdit = !!announcement;
 
   const [formData, setFormData] = useState({
