@@ -217,8 +217,8 @@ export const ShipDetailPanel = ({
 
   return (
     <>
-      <div className="grid md:grid-cols-3 gap-6 mb-6">
-        {/* Ship Photo - 1/3 width */}
+      <div className="grid md:grid-cols-5 gap-6 mb-6">
+        {/* Ship Photo - 1/5 width (60% of original) */}
         <div className="md:col-span-1">
           <div 
             className="bg-gray-200 rounded-lg p-4 h-48 flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors"
@@ -243,8 +243,8 @@ export const ShipDetailPanel = ({
           </div>
         </div>
       
-      {/* Ship Info - 2/3 width */}
-      <div className="md:col-span-2">
+      {/* Ship Info - 4/5 width */}
+      <div className="md:col-span-4">
         {/* Header with buttons */}
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-4">
