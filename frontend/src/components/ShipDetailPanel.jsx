@@ -555,3 +555,5 @@ export const ShipDetailPanel = ({
     </>
   );
 };
+
+export default ShipDetailPanel;
