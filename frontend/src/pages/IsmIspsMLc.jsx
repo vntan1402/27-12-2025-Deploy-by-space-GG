@@ -1862,6 +1862,7 @@ const IsmIspsMLc = () => {
                 setAuditReportNotesModal({ show: true, report, notes });
               }}
               language={language}
+              user={user}
             />
           ) : selectedSubMenu === 'approval_document' ? (
             /* Approval Document Section */
