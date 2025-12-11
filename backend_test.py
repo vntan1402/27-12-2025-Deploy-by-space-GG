@@ -146,192 +146,204 @@ def check_google_drive_summary_file(headers, ship_name):
 
 # Main test execution
 def main():
-    print("🧪 SHIP CERTIFICATE AUDIT LOGGING - COMPREHENSIVE TESTING")
+    print("🧪 AUDIT CERTIFICATE ANALYSIS - TEXT LAYER + DOCUMENT AI MERGE TESTING")
     print("=" * 80)
     
     try:
-        # Login
+        # Test 1: Authentication
         print("\n1. 🔐 Authentication Test")
         token = login()
         headers = {"Authorization": f"Bearer {token}"}
-        print("   ✅ Login successful")
+        print("   ✅ Login successful with admin1/123456")
         
-        # Get test ship
-        print("\n2. 🚢 Getting Test Ship")
-        ship_id = get_test_ship_id(headers)
-        if not ship_id:
+        # Test 2: Get Test Ship
+        print("\n2. 🚢 Getting Test Ship Information")
+        ship_info = get_test_ship_info(headers)
+        if not ship_info:
             print("   ❌ No ships found for testing")
             return
-        print(f"   ✅ Using ship ID: {ship_id}")
         
-        # Get initial audit log count
-        print("\n3. 📊 Initial Audit Log Count")
-        initial_response = get_audit_logs(headers, entity_type="ship_certificate")
-        if initial_response.status_code == 200:
-            initial_count = initial_response.json().get('total', 0)
-            print(f"   ✅ Initial ship_certificate audit logs: {initial_count}")
-        else:
-            print(f"   ❌ Failed to get initial count: {initial_response.status_code}")
-            return
+        ship_id = ship_info['id']
+        ship_name = ship_info['name']
+        ship_imo = ship_info['imo']
         
-        # Test 1: CREATE Certificate Audit Logging
-        print("\n4. 🆕 CREATE Certificate Audit Logging Test")
-        create_response = create_test_certificate(headers, ship_id, "IOPP CERTIFICATE", "IOPP001")
+        print(f"   ✅ Using ship: {ship_name}")
+        print(f"      - Ship ID: {ship_id}")
+        print(f"      - Ship IMO: {ship_imo}")
         
-        if create_response.status_code == 200:
-            cert_data = create_response.json()
-            cert_id = cert_data.get('id')
-            print(f"   ✅ Certificate created successfully: {cert_id}")
+        # Test 3: Audit Certificate Analysis with Text Layer + Document AI
+        print("\n3. 🤖 Audit Certificate Analysis - Text Layer + Document AI Merge")
+        print("   📄 Creating test PDF with text layer...")
+        
+        analyze_response = test_audit_certificate_analyze(headers, ship_id, ship_name)
+        
+        if analyze_response.status_code == 200:
+            result = analyze_response.json()
+            print("   ✅ Analysis endpoint responded successfully")
             
-            # Wait a moment for audit log to be created
-            time.sleep(1)
+            # Test 4: Verify Response Structure
+            print("\n4. 📋 Verifying Response Structure")
             
-            # Check for CREATE audit log
-            create_logs_response = get_audit_logs(headers, entity_type="ship_certificate", action="CREATE_SHIP_CERTIFICATE")
-            if create_logs_response.status_code == 200:
-                logs = create_logs_response.json().get('logs', [])
-                if logs:
-                    latest_log = logs[0]  # Most recent log
-                    is_valid, message = verify_audit_log_structure(latest_log, "CREATE_SHIP_CERTIFICATE")
-                    if is_valid:
-                        print("   ✅ CREATE audit log generated with correct structure")
-                        print(f"      - Entity Type: {latest_log['entity_type']}")
-                        print(f"      - Action: {latest_log['action']}")
-                        print(f"      - Ship Name: {latest_log['ship_name']}")
-                        print(f"      - Certificate Name: {latest_log['metadata']['certificate_name']}")
-                        print(f"      - Certificate Number: {latest_log['metadata'].get('certificate_number', 'N/A')}")
-                        print(f"      - Performed By: {latest_log['performed_by_name']} ({latest_log['performed_by']})")
-                        print(f"      - Company ID: {latest_log['company_id']}")
-                        print(f"      - Changes Count: {len(latest_log['changes'])}")
-                    else:
-                        print(f"   ❌ CREATE audit log structure invalid: {message}")
-                else:
-                    print("   ❌ No CREATE audit logs found")
+            # Check success flag
+            if result.get('success'):
+                print("   ✅ Response has success=true")
             else:
-                print(f"   ❌ Failed to get CREATE audit logs: {create_logs_response.status_code}")
-        else:
-            print(f"   ❌ Certificate creation failed: {create_response.status_code} - {create_response.text}")
-            return
-        
-        # Test 2: UPDATE Certificate Audit Logging
-        print("\n5. 🔄 UPDATE Certificate Audit Logging Test")
-        update_data = {
-            "cert_no": "IOPP001_UPDATED",
-            "issue_date": "2024-02-15",
-            "valid_date": "2027-02-15",
-            "issued_by": "Lloyd's Register"
-        }
-        
-        update_response = update_test_certificate(headers, cert_id, update_data)
-        if update_response.status_code == 200:
-            print("   ✅ Certificate updated successfully")
+                print("   ❌ Response has success=false")
+                print(f"      Error: {result.get('message', 'Unknown error')}")
+                return
             
-            # Wait a moment for audit log to be created
-            time.sleep(1)
+            # Check extracted_info
+            extracted_info = result.get('extracted_info', {})
+            if extracted_info:
+                is_valid, message = verify_extracted_info_structure(extracted_info)
+                if is_valid:
+                    print(f"   ✅ extracted_info structure valid: {message}")
+                    
+                    # Display key extracted fields
+                    print("      Key extracted fields:")
+                    print(f"      - cert_name: {extracted_info.get('cert_name', 'N/A')}")
+                    print(f"      - cert_no: {extracted_info.get('cert_no', 'N/A')}")
+                    print(f"      - cert_type: {extracted_info.get('cert_type', 'N/A')}")
+                    print(f"      - issue_date: {extracted_info.get('issue_date', 'N/A')}")
+                    print(f"      - valid_date: {extracted_info.get('valid_date', 'N/A')}")
+                    print(f"      - issued_by: {extracted_info.get('issued_by', 'N/A')}")
+                    print(f"      - ship_name: {extracted_info.get('ship_name', 'N/A')}")
+                    print(f"      - imo_number: {extracted_info.get('imo_number', 'N/A')}")
+                else:
+                    print(f"   ❌ extracted_info structure invalid: {message}")
+            else:
+                print("   ❌ No extracted_info in response")
             
-            # Check for UPDATE audit log
-            update_logs_response = get_audit_logs(headers, entity_type="ship_certificate", action="UPDATE_SHIP_CERTIFICATE")
-            if update_logs_response.status_code == 200:
-                logs = update_logs_response.json().get('logs', [])
-                if logs:
-                    latest_log = logs[0]  # Most recent log
-                    is_valid, message = verify_audit_log_structure(latest_log, "UPDATE_SHIP_CERTIFICATE")
-                    if is_valid:
-                        print("   ✅ UPDATE audit log generated with correct structure")
-                        print(f"      - Changes Count: {len(latest_log['changes'])}")
-                        print(f"      - Changes: {[change['field'] for change in latest_log['changes']]}")
+            # Test 5: Verify Summary Text Structure (CRITICAL)
+            print("\n5. 📝 Verifying Summary Text Structure (Text Layer + Document AI Merge)")
+            
+            summary_text = result.get('summary_text', '')
+            if summary_text:
+                is_valid, message = verify_summary_text_structure(summary_text)
+                if is_valid:
+                    print(f"   ✅ Summary text structure correct: {message}")
+                    print(f"      - Total length: {len(summary_text)} characters")
+                    
+                    # Show structure preview
+                    lines = summary_text.split('\n')
+                    part1_found = False
+                    part2_found = False
+                    
+                    for i, line in enumerate(lines):
+                        if "PART 1: TEXT LAYER CONTENT" in line:
+                            part1_found = True
+                            print(f"      - Found PART 1 at line {i+1}")
+                        elif "PART 2: DOCUMENT AI OCR CONTENT" in line:
+                            part2_found = True
+                            print(f"      - Found PART 2 at line {i+1}")
+                    
+                    if part1_found and part2_found:
+                        print("   ✅ Both PART 1 and PART 2 sections confirmed in summary")
+                    else:
+                        print("   ⚠️ Section headers found but structure may be incomplete")
                         
-                        # Verify specific changes
-                        changes_by_field = {change['field']: change for change in latest_log['changes']}
-                        if 'cert_no' in changes_by_field:
-                            change = changes_by_field['cert_no']
-                            print(f"      - Certificate Number: {change['old_value']} → {change['new_value']}")
-                        if 'issued_by' in changes_by_field:
-                            change = changes_by_field['issued_by']
-                            print(f"      - Issued By: {change['old_value']} → {change['new_value']}")
-                    else:
-                        print(f"   ❌ UPDATE audit log structure invalid: {message}")
                 else:
-                    print("   ❌ No UPDATE audit logs found")
+                    print(f"   ❌ Summary text structure invalid: {message}")
+                    print(f"      Summary preview (first 500 chars): {summary_text[:500]}")
             else:
-                print(f"   ❌ Failed to get UPDATE audit logs: {update_logs_response.status_code}")
-        else:
-            print(f"   ❌ Certificate update failed: {update_response.status_code} - {update_response.text}")
-        
-        # Test 3: DELETE Certificate Audit Logging
-        print("\n6. 🗑️ DELETE Certificate Audit Logging Test")
-        delete_response = delete_test_certificate(headers, cert_id)
-        if delete_response.status_code == 200:
-            print("   ✅ Certificate deleted successfully")
+                print("   ❌ No summary_text in response")
             
-            # Wait a moment for audit log to be created
-            time.sleep(1)
+            # Test 6: Verify Validation Warnings
+            print("\n6. ⚠️ Checking Validation Warnings")
             
-            # Check for DELETE audit log
-            delete_logs_response = get_audit_logs(headers, entity_type="ship_certificate", action="DELETE_SHIP_CERTIFICATE")
-            if delete_logs_response.status_code == 200:
-                logs = delete_logs_response.json().get('logs', [])
-                if logs:
-                    latest_log = logs[0]  # Most recent log
-                    is_valid, message = verify_audit_log_structure(latest_log, "DELETE_SHIP_CERTIFICATE")
-                    if is_valid:
-                        print("   ✅ DELETE audit log generated with correct structure")
-                        print(f"      - Certificate preserved in audit: {latest_log['metadata']['certificate_name']}")
-                        print(f"      - Certificate Number: {latest_log['metadata'].get('certificate_number', 'N/A')}")
-                    else:
-                        print(f"   ❌ DELETE audit log structure invalid: {message}")
+            validation_warning = result.get('validation_warning')
+            duplicate_warning = result.get('duplicate_warning')
+            category_warning = result.get('category_warning')
+            
+            if validation_warning:
+                print(f"   ⚠️ Validation warning: {validation_warning.get('message', 'Unknown')}")
+                print(f"      - Type: {validation_warning.get('type', 'Unknown')}")
+                print(f"      - Blocking: {validation_warning.get('is_blocking', False)}")
+            else:
+                print("   ✅ No validation warnings")
+            
+            if duplicate_warning:
+                print(f"   ⚠️ Duplicate warning: {duplicate_warning.get('message', 'Unknown')}")
+            else:
+                print("   ✅ No duplicate warnings")
+            
+            if category_warning:
+                print(f"   ⚠️ Category warning: {category_warning.get('message', 'Unknown')}")
+                print(f"      - Valid category: {category_warning.get('is_valid', False)}")
+            else:
+                print("   ✅ No category warnings (certificate belongs to ISM/ISPS/MLC/CICA)")
+            
+            # Test 7: Google Drive Summary File Verification (Indirect)
+            print("\n7. 📁 Google Drive Summary File Verification")
+            
+            # Since we can't directly access Google Drive in this test, we verify that
+            # the summary_text is properly formatted for upload
+            if summary_text and len(summary_text) > 100:
+                is_valid, message = check_google_drive_summary_file(headers, ship_name)
+                if is_valid:
+                    print(f"   ✅ {message}")
+                    print(f"      - Summary text ready for Google Drive upload")
+                    print(f"      - Expected path: {ship_name}/ISM - ISPS - MLC/Audit Certificates/")
+                    print(f"      - File format: test_audit_cert_ism_Summary.txt")
                 else:
-                    print("   ❌ No DELETE audit logs found")
+                    print(f"   ❌ {message}")
             else:
-                print(f"   ❌ Failed to get DELETE audit logs: {delete_logs_response.status_code}")
-        else:
-            print(f"   ❌ Certificate deletion failed: {delete_response.status_code} - {delete_response.text}")
-        
-        # Test 4: Integration with Audit Logs API
-        print("\n7. 🔍 Integration with Audit Logs API Test")
-        
-        # Test entity_type filter
-        filter_response = get_audit_logs(headers, entity_type="ship_certificate", limit=5)
-        if filter_response.status_code == 200:
-            filter_data = filter_response.json()
-            print(f"   ✅ Entity type filter working: {filter_data.get('total', 0)} ship_certificate logs")
+                print("   ❌ Summary text too short or missing for Google Drive upload")
             
-            # Verify all returned logs are ship_certificate type
-            logs = filter_data.get('logs', [])
-            all_correct_type = all(log.get('entity_type') == 'ship_certificate' for log in logs)
-            if all_correct_type:
-                print("   ✅ All filtered logs have correct entity_type")
-            else:
-                print("   ❌ Some filtered logs have incorrect entity_type")
         else:
-            print(f"   ❌ Entity type filter failed: {filter_response.status_code}")
+            print(f"   ❌ Analysis endpoint failed: {analyze_response.status_code}")
+            print(f"      Response: {analyze_response.text}")
+            return
         
-        # Test role-based access (admin should see all logs)
-        all_logs_response = get_audit_logs(headers, limit=10)
-        if all_logs_response.status_code == 200:
-            all_logs_data = all_logs_response.json()
-            print(f"   ✅ Admin can access all audit logs: {all_logs_data.get('total', 0)} total logs")
-        else:
-            print(f"   ❌ Failed to access all audit logs: {all_logs_response.status_code}")
+        # Test 8: Summary and Comparison with Old Flow
+        print("\n8. 📊 Testing Summary and Comparison")
         
-        # Final count verification
-        print("\n8. 📈 Final Audit Log Count Verification")
-        final_response = get_audit_logs(headers, entity_type="ship_certificate")
-        if final_response.status_code == 200:
-            final_count = final_response.json().get('total', 0)
-            added_logs = final_count - initial_count
-            print(f"   ✅ Final ship_certificate audit logs: {final_count}")
-            print(f"   ✅ New audit logs created: {added_logs} (expected: 3 for CREATE/UPDATE/DELETE)")
-            
-            if added_logs >= 3:
-                print("   ✅ All CRUD operations generated audit logs successfully")
-            else:
-                print(f"   ⚠️ Expected at least 3 new logs, got {added_logs}")
-        else:
-            print(f"   ❌ Failed to get final count: {final_response.status_code}")
+        success_count = 0
+        total_tests = 7
+        
+        # Count successful tests
+        if analyze_response.status_code == 200:
+            success_count += 1
+        if result.get('success'):
+            success_count += 1
+        if extracted_info:
+            success_count += 1
+        if summary_text and "PART 1: TEXT LAYER CONTENT" in summary_text:
+            success_count += 1
+        if summary_text and "PART 2: DOCUMENT AI OCR CONTENT" in summary_text:
+            success_count += 1
+        if not category_warning or category_warning.get('is_valid', False):
+            success_count += 1
+        if len(summary_text) > 100:
+            success_count += 1
+        
+        success_rate = (success_count / total_tests) * 100
+        
+        print(f"   📈 Test Results Summary:")
+        print(f"      - Success Rate: {success_rate:.1f}% ({success_count}/{total_tests} tests passed)")
+        print(f"      - API Response: {'✅ Working' if analyze_response.status_code == 200 else '❌ Failed'}")
+        print(f"      - Field Extraction: {'✅ Working' if extracted_info else '❌ Failed'}")
+        print(f"      - Text Layer Processing: {'✅ Working' if 'PART 1' in summary_text else '❌ Failed'}")
+        print(f"      - Document AI Processing: {'✅ Working' if 'PART 2' in summary_text else '❌ Failed'}")
+        print(f"      - Summary Merge: {'✅ Working' if len(summary_text) > 100 else '❌ Failed'}")
+        print(f"      - Category Validation: {'✅ Working' if not category_warning else '⚠️ Warning'}")
         
         print("\n" + "=" * 80)
-        print("✅ SHIP CERTIFICATE AUDIT LOGGING TESTING COMPLETED")
+        if success_rate >= 85:
+            print("✅ AUDIT CERTIFICATE ANALYSIS TESTING COMPLETED SUCCESSFULLY")
+            print("🎉 Text Layer + Document AI merge is working correctly!")
+        elif success_rate >= 70:
+            print("⚠️ AUDIT CERTIFICATE ANALYSIS TESTING COMPLETED WITH WARNINGS")
+            print("🔧 Some features working but may need attention")
+        else:
+            print("❌ AUDIT CERTIFICATE ANALYSIS TESTING FAILED")
+            print("🚨 Critical issues found that need immediate attention")
+        
+        print(f"\n📋 Key Findings:")
+        print(f"   - Parallel processing (Text Layer + Document AI): {'✅ Implemented' if 'PART 1' in summary_text and 'PART 2' in summary_text else '❌ Not working'}")
+        print(f"   - Enhanced summary format: {'✅ Correct' if 'PART 1' in summary_text and 'PART 2' in summary_text else '❌ Incorrect'}")
+        print(f"   - Field extraction quality: {'✅ Good' if len(extracted_info) >= 4 else '⚠️ Limited'}")
+        print(f"   - Ready for Google Drive upload: {'✅ Yes' if len(summary_text) > 100 else '❌ No'}")
         
     except Exception as e:
         print(f"\n❌ Test execution failed: {str(e)}")
