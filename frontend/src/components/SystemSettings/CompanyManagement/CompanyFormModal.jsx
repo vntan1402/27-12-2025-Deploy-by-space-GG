@@ -28,7 +28,6 @@ const CompanyFormModal = ({
     software_expiry: ''
   });
 
-  const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState('');
 
   // Initialize form data for edit mode
@@ -58,39 +57,13 @@ const CompanyFormModal = ({
     }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert(language === 'vi' ? 'Vui lòng chọn file ảnh!' : 'Please select an image file!');
-        return;
-      }
-      
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert(language === 'vi' ? 'Kích thước file không được vượt quá 5MB!' : 'File size should not exceed 5MB!');
-        return;
-      }
-      
-      setLogoFile(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setLogoPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (mode === 'edit' && company) {
-      await onSubmit(company.id, companyData, logoFile);
+      await onSubmit(company.id, companyData, null);
     } else {
-      await onSubmit(companyData, logoFile);
+      await onSubmit(companyData, null);
     }
   };
 
@@ -245,7 +218,6 @@ const CompanyFormModal = ({
                   setCompanyData(prev => ({ ...prev, logo_url: url }));
                   if (url) {
                     setLogoPreview(url);
-                    setLogoFile(null);
                   }
                 }}
                 onBlur={(e) => {
