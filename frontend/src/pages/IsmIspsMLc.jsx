@@ -1824,6 +1824,7 @@ const IsmIspsMLc = () => {
                 <AuditCertificateTable
                   certificates={getFilteredCertificates()}
                   language={language}
+                  user={user}
                   selectedCertificates={selectedCertificates}
                   onSelectCertificate={handleSelectCertificate}
                   onSelectAllCertificates={handleSelectAllCertificates}
