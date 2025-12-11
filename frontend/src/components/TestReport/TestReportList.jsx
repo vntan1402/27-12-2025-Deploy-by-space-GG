@@ -18,7 +18,7 @@ export const TestReportList = ({
   refreshKey,
   onStartBatchProcessing
 }) => {
-  const { language } = useAuth();
+  const { language, user } = useAuth();
 
   // ========== DATA STATE ==========
   const [testReports, setTestReports] = useState([]);
