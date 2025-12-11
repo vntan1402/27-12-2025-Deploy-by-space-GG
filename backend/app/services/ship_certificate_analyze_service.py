@@ -247,8 +247,19 @@ class ShipCertificateAnalyzeService:
             }
             content_type = mime_type_mapping.get(file_ext, 'application/pdf')
             
-            # Process with Document AI
-            doc_ai_result = await analyze_document_with_document_ai(
+            # ⭐ NEW: PARALLEL PROCESSING - Text Layer + Document AI
+            logger.info(f"🚀 Starting parallel extraction: Text Layer + Document AI")
+            
+            # Import text extractor
+            from app.utils.pdf_text_extractor import extract_text_layer_from_pdf, merge_text_layer_and_document_ai
+            
+            # Run both extractions in parallel
+            text_layer_task = extract_text_layer_from_pdf(
+                file_content=file_bytes,
+                filename=filename
+            )
+            
+            doc_ai_task = analyze_document_with_document_ai(
                 file_content=file_bytes,
                 filename=filename,
                 content_type=content_type,
@@ -256,23 +267,49 @@ class ShipCertificateAnalyzeService:
                 document_type='other'  # Ship certificates - general type
             )
             
-            if not doc_ai_result or not doc_ai_result.get("success"):
-                error_msg = doc_ai_result.get("message", "Unknown error") if doc_ai_result else "No response"
+            # Wait for both to complete
+            import asyncio
+            text_layer_result, doc_ai_result = await asyncio.gather(
+                text_layer_task,
+                doc_ai_task,
+                return_exceptions=True
+            )
+            
+            # Handle exceptions
+            if isinstance(text_layer_result, Exception):
+                logger.warning(f"⚠️ Text layer extraction failed: {text_layer_result}")
+                text_layer_result = {"success": False, "text": "", "has_text_layer": False}
+            
+            if isinstance(doc_ai_result, Exception):
+                logger.error(f"❌ Document AI failed: {doc_ai_result}")
+                doc_ai_result = {"success": False}
+            
+            # Log results
+            if text_layer_result.get("has_text_layer"):
+                logger.info(f"✅ Text layer: {text_layer_result.get('total_characters', 0)} characters")
+            else:
+                logger.info(f"⚠️ No text layer found (scanned PDF)")
+            
+            if doc_ai_result.get("success"):
+                doc_ai_summary = doc_ai_result.get("data", {}).get("summary", "")
+                logger.info(f"✅ Document AI: {len(doc_ai_summary)} characters")
+            else:
+                logger.warning(f"⚠️ Document AI failed or empty")
+            
+            # ⭐ NEW: Merge both results
+            summary_text = merge_text_layer_and_document_ai(
+                text_layer_result=text_layer_result,
+                document_ai_result=doc_ai_result,
+                filename=filename
+            )
+            
+            if not summary_text or len(summary_text.strip()) < 100:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Document AI could not extract text from file: {error_msg}"
+                    detail="Could not extract sufficient text from document (both text layer and OCR failed)"
                 )
             
-            data = doc_ai_result.get("data", {})
-            summary_text = data.get("summary", "")
-            
-            if not summary_text:
-                raise HTTPException(
-                    status_code=400,
-                    detail="Document AI returned empty summary"
-                )
-            
-            logger.info(f"✅ Document AI extraction: {len(summary_text)} characters")
+            logger.info(f"✅ Merged summary: {len(summary_text)} total characters")
             
             # Extract fields with System AI
             extracted_info = await extract_ship_certificate_fields_from_summary(
