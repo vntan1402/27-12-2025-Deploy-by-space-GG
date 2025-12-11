@@ -207,7 +207,7 @@ const CompanyFormModal = ({
             {/* Logo URL */}
             <div className="mb-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'URL Logo (Ưu tiên)' : 'Logo URL (Priority)'}
+                {language === 'vi' ? 'URL Logo' : 'Logo URL'}
               </label>
               <input
                 type="url"
