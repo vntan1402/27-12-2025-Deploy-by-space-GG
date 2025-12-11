@@ -1123,7 +1123,7 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
                             📄
                           </span>
                         )}
-                        {cert.crew_cert_summary_file_id && (
+                        {cert.crew_cert_summary_file_id && user && ['admin', 'system_admin', 'super_admin'].includes(user.role) && (
                           <span 
                             className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
                             title={language === 'vi' ? 'File tóm tắt' : 'Summary file'}
