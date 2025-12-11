@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 """
-🧪 SHIP CERTIFICATE AUDIT LOGGING - COMPREHENSIVE TESTING
+🧪 AUDIT CERTIFICATE ANALYSIS - TEXT LAYER + DOCUMENT AI MERGE TESTING
 
-Testing ship certificate audit logging implementation to verify:
-1. CREATE certificate operations generate audit logs
-2. UPDATE certificate operations generate audit logs  
-3. DELETE certificate operations generate audit logs
-4. Audit logs contain correct metadata and structure
-5. Integration with audit logs API works correctly
+Testing the improved Audit Certificate Analysis flow with parallel processing:
+1. Text layer extraction from PDF (if available)
+2. Document AI OCR extraction 
+3. Merge both sources into enhanced summary
+4. System AI field extraction from merged content
+5. Summary file upload to Google Drive with 2 sections:
+   - PART 1: TEXT LAYER CONTENT
+   - PART 2: DOCUMENT AI OCR CONTENT
+6. Verify API response structure and content
 """
 
 import requests
 import json
+import base64
+import io
 from datetime import datetime, timedelta
 import time
 
