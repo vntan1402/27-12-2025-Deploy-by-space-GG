@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
 import { formatDateDisplay } from '../utils/dateHelpers';
 import { shortenClassSociety } from '../utils/shipHelpers';
+import { convertGoogleDriveUrl } from '../utils/googleDriveHelpers';
 import { shipService } from '../services';
 
 export const ShipDetailPanel = ({ 
@@ -22,6 +23,9 @@ export const ShipDetailPanel = ({
   const { language } = useAuth();
   const [showFullShipInfo, setShowFullShipInfo] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState(ship?.ship_photo_url || '');
+  const [isUpdatingPhoto, setIsUpdatingPhoto] = useState(false);
 
   if (!ship) return null;
 
@@ -161,6 +165,28 @@ export const ShipDetailPanel = ({
     }
   };
 
+  // Update Ship Photo
+  const handleUpdateShipPhoto = async () => {
+    if (!ship?.id || isUpdatingPhoto) return;
+    
+    setIsUpdatingPhoto(true);
+    try {
+      await shipService.updateShip(ship.id, { ship_photo_url: photoUrl });
+      toast.success(language === 'vi' ? 'Cập nhật ảnh tàu thành công!' : 'Ship photo updated successfully!');
+      setShowPhotoModal(false);
+      
+      // Refresh ship data
+      if (onShipUpdate) {
+        await onShipUpdate(ship.id);
+      }
+    } catch (error) {
+      console.error('Error updating ship photo:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi cập nhật ảnh tàu' : 'Failed to update ship photo');
+    } finally {
+      setIsUpdatingPhoto(false);
+    }
+  };
+
   // Recalculate Anniversary Date
   const handleRecalculateAnniversaryDate = async () => {
     if (!ship?.id || isRecalculating) return;
@@ -190,16 +216,32 @@ export const ShipDetailPanel = ({
   };
 
   return (
-    <div className="grid md:grid-cols-3 gap-6 mb-6">
-      {/* Ship Photo - 1/3 width */}
-      <div className="md:col-span-1">
-        <div className="bg-gray-200 rounded-lg p-4 h-48 flex items-center justify-center">
-          <div className="text-center">
-            <div className="text-4xl mb-2">🚢</div>
-            <p className="font-semibold">SHIP PHOTO</p>
+    <>
+      <div className="grid md:grid-cols-3 gap-6 mb-6">
+        {/* Ship Photo - 1/3 width */}
+        <div className="md:col-span-1">
+          <div 
+            className="bg-gray-200 rounded-lg p-4 h-48 flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors"
+            onDoubleClick={() => setShowPhotoModal(true)}
+            title={language === 'vi' ? 'Double click để cập nhật ảnh' : 'Double click to update photo'}
+          >
+            {ship?.ship_photo_url ? (
+              <img 
+                src={convertGoogleDriveUrl(ship.ship_photo_url)}
+                alt={ship.name}
+                className="w-full h-full object-contain rounded"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                  e.target.nextSibling.style.display = 'block';
+                }}
+              />
+            ) : null}
+            <div className="text-center" style={{ display: ship?.ship_photo_url ? 'none' : 'block' }}>
+              <div className="text-4xl mb-2">🚢</div>
+              <p className="font-semibold">SHIP PHOTO</p>
+            </div>
           </div>
         </div>
-      </div>
       
       {/* Ship Info - 2/3 width */}
       <div className="md:col-span-2">
