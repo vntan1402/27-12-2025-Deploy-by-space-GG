@@ -126,6 +126,19 @@ const AnnouncementBanner = ({ language }) => {
         .animate-bounce-bell:hover {
           animation: bounce-bell 0.5s ease-in-out;
         }
+        @keyframes blink-icon {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.4;
+            transform: scale(1.1);
+          }
+        }
+        .animate-blink-icon {
+          animation: blink-icon 1.5s ease-in-out infinite;
+        }
       `}</style>
       
       <div className="space-y-3 mb-6 relative">
