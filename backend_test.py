@@ -31,14 +31,57 @@ def login():
         raise Exception(f"Login failed: {response.status_code} - {response.text}")
     return response.json()["access_token"]
 
-def get_test_ship_id(headers):
-    """Get a test ship ID from existing ships"""
-    response = requests.get(f"{BACKEND_URL}/ships?limit=1", headers=headers)
+def get_test_ship_info(headers):
+    """Get a test ship for audit certificate testing"""
+    response = requests.get(f"{BACKEND_URL}/ships?limit=5", headers=headers)
     if response.status_code == 200:
         ships = response.json()
         if ships and len(ships) > 0:
-            return ships[0].get('id')
+            # Use first available ship
+            ship = ships[0]
+            return {
+                'id': ship.get('id'),
+                'name': ship.get('name', 'Unknown Ship'),
+                'imo': ship.get('imo', '')
+            }
     return None
+
+def create_test_pdf_with_text_layer():
+    """Create a simple PDF with text layer for testing"""
+    try:
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import letter
+        
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
+        
+        # Add text content that will be in the text layer
+        p.drawString(100, 750, "SAFETY MANAGEMENT CERTIFICATE")
+        p.drawString(100, 720, "Certificate No: ISM-2024-001")
+        p.drawString(100, 690, "Ship Name: VINASHIP HARMONY")
+        p.drawString(100, 660, "IMO Number: 1234567")
+        p.drawString(100, 630, "Issue Date: 15 November 2024")
+        p.drawString(100, 600, "Valid Until: 14 November 2027")
+        p.drawString(100, 570, "Issued By: Bureau Veritas")
+        p.drawString(100, 540, "Certificate Type: Full Term")
+        p.drawString(100, 510, "This certificate is issued under the provisions of the")
+        p.drawString(100, 480, "International Safety Management Code.")
+        
+        p.save()
+        buffer.seek(0)
+        return buffer.getvalue()
+    except ImportError:
+        # If reportlab not available, create a simple text-based "PDF"
+        content = """SAFETY MANAGEMENT CERTIFICATE
+Certificate No: ISM-2024-001
+Ship Name: VINASHIP HARMONY
+IMO Number: 1234567
+Issue Date: 15 November 2024
+Valid Until: 14 November 2027
+Issued By: Bureau Veritas
+Certificate Type: Full Term
+This certificate is issued under the provisions of the International Safety Management Code."""
+        return content.encode('utf-8')
 
 def create_test_certificate(headers, ship_id, cert_name="TEST IOPP CERTIFICATE", cert_no="TEST001"):
     """Create a test certificate"""
