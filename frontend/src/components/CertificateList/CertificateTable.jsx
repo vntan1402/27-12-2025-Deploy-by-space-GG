@@ -356,6 +356,20 @@ export const CertificateTable = ({
                         📄
                       </span>
                     )}
+
+                    {/* Summary File Icon (📋 blue) - Only for admin and above */}
+                    {cert.summary_file_id && user && ['admin', 'system_admin', 'super_admin'].includes(user.role) && (
+                      <span
+                        className="text-blue-500 text-xs cursor-pointer hover:text-blue-600"
+                        title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 ${cert.ship_name || 'Unknown'}/Class & Flag Cert/Certificates`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`https://drive.google.com/file/d/${cert.summary_file_id}/view`, '_blank');
+                        }}
+                      >
+                        📋
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
