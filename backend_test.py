@@ -100,7 +100,7 @@ def test_audit_certificate_analyze(headers, ship_id, ship_name):
     
     # Call analyze endpoint
     response = requests.post(
-        f"{BACKEND_URL}/v1/audit-certificates/analyze",
+        f"{BACKEND_URL}/audit-certificates/analyze-file",
         headers=headers,
         json=request_data
     )
