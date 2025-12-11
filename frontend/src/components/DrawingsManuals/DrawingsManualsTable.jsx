@@ -1010,7 +1010,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
                             📄
                           </span>
                         )}
-                        {document.summary_file_id && (
+                        {document.summary_file_id && user && ['admin', 'system_admin', 'super_admin'].includes(user.role) && (
                           <span 
                             className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
                             title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Drawings & Manuals`}
