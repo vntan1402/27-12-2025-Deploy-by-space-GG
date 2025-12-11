@@ -57,6 +57,7 @@ VALID_CERTIFICATE_TYPES = [
     "Provisional",
     "Short term",
     "Conditional",
+    "Statement",
     "Other"
 ]
 
@@ -189,7 +190,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
     Logic:
     1. Validate and normalize dates (issue_date, valid_date, last_endorse, next_survey)
     2. Validate cert_type (must be valid option)
-    3. Check for "STATEMENT OF FACTS" → force cert_type = "Other" ⭐ NEW
+    3. Check for "STATEMENT OF FACTS" → force cert_type = "Statement" ⭐ NEW
     4. Normalize issued_by abbreviations
     5. Validate IMO number format (7 digits)
     6. Determine certificate category (ISM/ISPS/MLC/CICA)
@@ -249,10 +250,10 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
             header_text = summary_text[:1000].upper()
             logger.info(f"🔍 Checking header text (first 200 chars): {header_text[:200]}")
             
-            # Priority 1: Check for "STATEMENT OF FACTS" → force cert_type = "Other"
+            # Priority 1: Check for "STATEMENT OF FACTS" → force cert_type = "Statement"
             if 'STATEMENT OF FACTS' in header_text:
-                extracted_data['cert_type'] = 'Other'
-                logger.info("✅ Detected 'STATEMENT OF FACTS' → cert_type forced to 'Other'")
+                extracted_data['cert_type'] = 'Statement'
+                logger.info("✅ Detected 'STATEMENT OF FACTS' → cert_type forced to 'Statement'")
             
             # Priority 2: Check for "Interim Certificate" indicators in header
             elif any(indicator in header_text for indicator in [
@@ -425,6 +426,7 @@ def validate_certificate_type(cert_type: str) -> Optional[str]:
     - Provisional
     - Short term
     - Conditional
+    - Statement
     - Other
     
     Returns:
@@ -444,6 +446,8 @@ def validate_certificate_type(cert_type: str) -> Optional[str]:
         'short term': 'Short term',
         'short': 'Short term',
         'conditional': 'Conditional',
+        'statement': 'Statement',
+        'statement of facts': 'Statement',
         'other': 'Other',
     }
     
@@ -531,7 +535,7 @@ def create_audit_certificate_extraction_prompt(summary_text: str, filename: str 
     "cert_name": "**REQUIRED** - Full certificate name (e.g., 'Safety Management Certificate', 'International Ship Security Certificate', 'Certificate of Inspection')",
     "cert_abbreviation": "Certificate abbreviation (e.g., 'SMC', 'ISSC', 'MLC', 'CICA')",
     "cert_no": "**REQUIRED** - Certificate number/reference",
-    "cert_type": "Certificate type - MUST be one of: 'Full Term', 'Interim', 'Provisional', 'Short term', 'Conditional', 'Other'",
+    "cert_type": "Certificate type - MUST be one of: 'Full Term', 'Interim', 'Provisional', 'Short term', 'Conditional', 'Statement', 'Other'",
     "issue_date": "Issue date in FULL TEXT format (e.g., '15 November 2024' or 'November 15, 2024') - NOT numeric format",
     "valid_date": "Valid until / Expiry date in FULL TEXT format",
     "last_endorse": "Last endorsement date in FULL TEXT format (if any)",
