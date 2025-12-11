@@ -807,8 +807,8 @@ export const TestReportList = ({
                           </span>
                         )}
 
-                        {/* Summary File Icon (📋 blue) */}
-                        {report.test_report_summary_file_id && (
+                        {/* Summary File Icon (📋 blue) - Only for admin and above */}
+                        {report.test_report_summary_file_id && user && ['admin', 'system_admin', 'super_admin'].includes(user.role) && (
                           <span
                             className="text-blue-500 text-xs cursor-pointer hover:text-blue-600"
                             title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 ${selectedShip?.name || 'Unknown'}/Class & Flag Cert/Test Report`}
