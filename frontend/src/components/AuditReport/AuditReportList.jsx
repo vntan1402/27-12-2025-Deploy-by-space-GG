@@ -30,7 +30,8 @@ export const AuditReportList = ({
   onAddReport,
   onEditReport,
   onNotesClick,
-  language 
+  language,
+  user
 }) => {
 
   // Delete loading state
