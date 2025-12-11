@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar, SubMenuBar, CertificateTable, CertificateFilters, CertificateActionButtons, UpcomingSurveyModal, CertificateNotesModal, CompanyInfoPanel } from '../components';
 import { EditShipCertificateModal, DeleteShipCertificateModal, AddShipCertificateModal } from '../components/ShipCertificates';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
-import { EditShipModal, DeleteShipConfirmationModal, AddShipModal, DeleteShipBlockedModal } from '../components/Ships';
+import { EditShipModal, DeleteShipConfirmationModal, AddShipModal, DeleteShipBlockedModal, ShipSelectionModal } from '../components/Ships';
 import { shipService, shipCertificateService, companyService } from '../services';
 import api from '../services/api';
 import { toast } from 'sonner';
