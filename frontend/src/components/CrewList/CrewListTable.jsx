@@ -2191,7 +2191,7 @@ export const CrewListTable = ({
                             📄
                           </span>
                         )}
-                        {crew.summary_file_id && (
+                        {crew.summary_file_id && user && ['admin', 'system_admin', 'super_admin'].includes(user.role) && (
                           <span 
                             className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
                             title={language === 'vi' ? `File tóm tắt\n📁 ${crew.ship_sign_on}/Crew Records/Crew List` : `Summary file\n📁 ${crew.ship_sign_on}/Crew Records/Crew List`}
