@@ -5,7 +5,7 @@ import { MainLayout, Sidebar, SubMenuBar } from '../components';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { CompanyInfoPanel } from '../components/CompanyInfoPanel';
 import { CrewCertificateTable } from '../components/CrewCertificate';
-import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
+import { EditShipModal, DeleteShipConfirmationModal, AddShipModal, ShipSelectionModal } from '../components/Ships';
 import { shipService } from '../services';
 import api from '../services/api';
 import { toast } from 'sonner';
@@ -18,7 +18,6 @@ const CrewCertificate = () => {
   const [selectedCategory] = useState('crew');
   const [selectedSubMenu, setSelectedSubMenu] = useState('crew_certificates');
   const [showShipModal, setShowShipModal] = useState(false);
-  const [shipSearchQuery, setShipSearchQuery] = useState('');
   const [showAddShipModal, setShowAddShipModal] = useState(false);
   const [showEditShipModal, setShowEditShipModal] = useState(false);
   const [showDeleteShipModal, setShowDeleteShipModal] = useState(false);
