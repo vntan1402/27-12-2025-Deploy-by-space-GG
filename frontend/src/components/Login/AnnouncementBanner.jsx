@@ -174,7 +174,7 @@ const AnnouncementBanner = ({ language }) => {
             >
             <div className="flex items-start gap-3">
               {/* Icon */}
-              <div className="text-2xl flex-shrink-0 mt-0.5">
+              <div className="text-2xl flex-shrink-0 mt-0.5 animate-blink-icon">
                 {style.icon}
               </div>
 
