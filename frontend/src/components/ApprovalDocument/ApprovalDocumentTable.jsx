@@ -19,7 +19,7 @@ import { BatchProcessingModal } from './BatchProcessingModal';
 import { BatchResultsModal } from './BatchResultsModal';
 
 export const ApprovalDocumentTable = ({ selectedShip }) => {
-  const { language } = useAuth();
+  const { language, user } = useAuth();
 
   // State
   const [documents, setDocuments] = useState([]);
