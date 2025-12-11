@@ -599,6 +599,7 @@ This certificate MUST belong to one of these categories:
 - Dates must be in FULL TEXT format, not DD/MM/YYYY or MM/DD/YYYY
 - IMO number must be exactly 7 digits
 - cert_type must be one of the specified options
+- If document contains "STATEMENT OF FACTS", use cert_type = "Statement"
 
 **SPECIAL NOTES**:
 - Look carefully for CREW ACCOMMODATION text (may appear in cert name or document body)
