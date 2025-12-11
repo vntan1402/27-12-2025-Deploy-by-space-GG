@@ -44,6 +44,7 @@ class ShipBase(BaseModel):
     dry_dock_cycle: Optional[DryDockCycle] = None  # Dry dock cycle
     anniversary_date: Optional[AnniversaryDate] = None  # Anniversary date
     ship_owner: Optional[str] = None  # Ship owner company name
+    ship_photo_url: Optional[str] = None  # Ship photo URL (Google Drive or direct URL)
     company: str  # Company that manages the ship
     
     # Legacy fields for backward compatibility
@@ -76,6 +77,7 @@ class ShipUpdate(BaseModel):
     special_survey_cycle: Optional[SpecialSurveyCycle] = None
     anniversary_date: Optional[AnniversaryDate] = None
     ship_owner: Optional[str] = None
+    ship_photo_url: Optional[str] = None
     company: Optional[str] = None
     legacy_anniversary_date: Optional[datetime] = None
 
