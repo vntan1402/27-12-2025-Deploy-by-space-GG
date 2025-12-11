@@ -251,7 +251,7 @@ class AuditCertificateAnalyzeService:
             content_type = mime_type_mapping.get(file_ext, 'application/pdf')
             
             # ⭐ NEW: PARALLEL PROCESSING - Text Layer + Document AI
-            logger.info(f"🚀 Starting parallel extraction: Text Layer + Document AI")
+            logger.info("🚀 Starting parallel extraction: Text Layer + Document AI")
             
             # Import text extractor
             from app.utils.pdf_text_extractor import extract_text_layer_from_pdf, merge_text_layer_and_document_ai
@@ -290,13 +290,13 @@ class AuditCertificateAnalyzeService:
             if text_layer_result.get("has_text_layer"):
                 logger.info(f"✅ Text layer: {text_layer_result.get('total_characters', 0)} characters")
             else:
-                logger.info(f"⚠️ No text layer found (scanned PDF)")
+                logger.info("⚠️ No text layer found (scanned PDF)")
             
             if doc_ai_result.get("success"):
                 doc_ai_summary = doc_ai_result.get("data", {}).get("summary", "")
                 logger.info(f"✅ Document AI: {len(doc_ai_summary)} characters")
             else:
-                logger.warning(f"⚠️ Document AI failed or empty")
+                logger.warning("⚠️ Document AI failed or empty")
             
             # ⭐ NEW: Merge both results
             summary_text = merge_text_layer_and_document_ai(
