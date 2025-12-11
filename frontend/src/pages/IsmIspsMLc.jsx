@@ -39,7 +39,6 @@ const IsmIspsMLc = () => {
   const [selectedSubMenu, setSelectedSubMenu] = useState('audit_certificate');
   const [showAddShipModal, setShowAddShipModal] = useState(false);
   const [showShipModal, setShowShipModal] = useState(false);
-  const [shipSearchQuery, setShipSearchQuery] = useState('');
   const [ships, setShips] = useState([]);
   const [selectedShip, setSelectedShip] = useState(null);
   const [loading, setLoading] = useState(false);
