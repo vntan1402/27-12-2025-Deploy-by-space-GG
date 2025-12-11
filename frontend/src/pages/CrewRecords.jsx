@@ -5,7 +5,7 @@ import { MainLayout, Sidebar, SubMenuBar } from '../components';
 import { CrewListTable } from '../components/CrewList';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { CompanyInfoPanel } from '../components/CompanyInfoPanel';
-import { EditShipModal, DeleteShipConfirmationModal, AddShipModal } from '../components/Ships';
+import { EditShipModal, DeleteShipConfirmationModal, AddShipModal, ShipSelectionModal } from '../components/Ships';
 import { shipService } from '../services';
 import api from '../services/api';
 import { toast } from 'sonner';
