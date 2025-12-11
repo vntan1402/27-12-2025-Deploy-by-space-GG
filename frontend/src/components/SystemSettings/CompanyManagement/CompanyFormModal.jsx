@@ -273,31 +273,10 @@ const CompanyFormModal = ({
               />
               <p className="text-xs text-gray-500 mt-1">
                 {language === 'vi' 
-                  ? '* Paste link Google Drive (file, không phải folder). Link sẽ được lưu nguyên (full size). Nếu có URL, file upload sẽ bị bỏ qua.'
-                  : '* Paste Google Drive link (file, not folder). Link will be saved as-is (full size). If URL is provided, file upload will be ignored.'}
+                  ? '* Paste link Google Drive (file, không phải folder). Link sẽ được lưu nguyên (full size).'
+                  : '* Paste Google Drive link (file, not folder). Link will be saved as-is (full size).'}
               </p>
             </div>
-
-            {/* File Upload */}
-            {!companyData.logo_url && (
-              <div className="mb-3">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Hoặc tải lên file' : 'Or Upload File'}
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                  disabled={loading}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  {language === 'vi' 
-                    ? 'JPG, PNG, GIF (tối đa 5MB)'
-                    : 'JPG, PNG, GIF (max 5MB)'}
-                </p>
-              </div>
-            )}
 
             {/* Logo Preview */}
             {logoPreview && (
