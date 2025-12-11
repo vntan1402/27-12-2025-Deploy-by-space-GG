@@ -10,6 +10,7 @@ import { calculateTooltipPosition } from '../../utils/positionHelpers';
 export const CertificateTable = ({
   certificates = [],
   language,
+  user,
   selectedCertificates,
   onSelectCertificate,
   onSelectAllCertificates,
