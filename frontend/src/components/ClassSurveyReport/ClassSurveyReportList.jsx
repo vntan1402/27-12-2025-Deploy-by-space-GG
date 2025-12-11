@@ -13,7 +13,7 @@ import { formatDateDisplay } from '../../utils/dateHelpers';
 import { calculateTooltipPosition, calculateContextMenuPosition } from '../../utils/positionHelpers';
 
 export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) => {
-  const { language } = useAuth();
+  const { language, user } = useAuth();
 
   // State
   const [surveyReports, setSurveyReports] = useState([]);
