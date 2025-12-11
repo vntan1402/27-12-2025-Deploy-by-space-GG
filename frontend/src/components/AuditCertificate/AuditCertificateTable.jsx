@@ -8,6 +8,7 @@ import { formatDateDisplay } from '../../utils/dateHelpers';
 export const AuditCertificateTable = ({
   certificates = [],
   language,
+  user,
   selectedCertificates,
   onSelectCertificate,
   onSelectAllCertificates,
