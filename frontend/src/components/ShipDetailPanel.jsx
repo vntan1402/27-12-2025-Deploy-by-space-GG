@@ -432,5 +432,126 @@ export const ShipDetailPanel = ({
         )}
       </div>
     </div>
+
+    {/* Ship Photo Update Modal */}
+    {showPhotoModal && (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setShowPhotoModal(false);
+          }
+        }}
+      >
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
+          {/* Header */}
+          <div className="flex justify-between items-center p-6 border-b border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-800">
+              {language === 'vi' ? 'Cập nhật ảnh tàu' : 'Update Ship Photo'}
+            </h2>
+            <button
+              onClick={() => setShowPhotoModal(false)}
+              className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+              disabled={isUpdatingPhoto}
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Form */}
+          <div className="p-6 space-y-4">
+            {/* Ship Name */}
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">{ship.name}</h3>
+              <p className="text-sm text-gray-600">IMO: {ship.imo || '-'}</p>
+            </div>
+
+            {/* Photo URL */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'URL Ảnh Tàu' : 'Ship Photo URL'}
+              </label>
+              <input
+                type="url"
+                value={photoUrl}
+                onChange={(e) => setPhotoUrl(e.target.value)}
+                onBlur={(e) => {
+                  const url = e.target.value;
+                  
+                  // Show warning if folder link is detected
+                  if (url && url.includes('/folders/')) {
+                    alert(language === 'vi' 
+                      ? '⚠️ Link folder không thể hiển thị!\n\nCách lấy link file đúng:\n1. Mở folder trong Google Drive\n2. Click vào file ảnh\n3. Click nút Share (Chia sẻ)\n4. Click "Copy link"\n5. Paste link đó vào đây\n\nLink file phải có dạng:\nhttps://drive.google.com/file/d/{ID}/view'
+                      : '⚠️ Folder link cannot be displayed!\n\nHow to get the correct file link:\n1. Open folder in Google Drive\n2. Click on the image file\n3. Click Share button\n4. Click "Copy link"\n5. Paste that link here\n\nFile link should look like:\nhttps://drive.google.com/file/d/{ID}/view');
+                    
+                    setPhotoUrl('');
+                  }
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="https://drive.google.com/file/d/{ID}/view hoặc https://example.com/photo.jpg"
+                disabled={isUpdatingPhoto}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {language === 'vi' 
+                  ? '* Paste link Google Drive (file, không phải folder) hoặc URL ảnh trực tiếp'
+                  : '* Paste Google Drive link (file, not folder) or direct image URL'}
+              </p>
+            </div>
+
+            {/* Photo Preview */}
+            {photoUrl && (
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {language === 'vi' ? 'Xem trước' : 'Preview'}
+                </label>
+                <div className="border border-gray-300 rounded-lg p-2 bg-gray-50">
+                  <img 
+                    src={convertGoogleDriveUrl(photoUrl)}
+                    alt="Ship photo preview" 
+                    className="w-full h-64 object-contain"
+                    onError={(e) => {
+                      console.error('Failed to load photo preview:', e.target.src);
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }}
+                  />
+                  <div style={{ display: 'none' }} className="text-center text-gray-500 py-8">
+                    {language === 'vi' ? '❌ Không thể tải ảnh. Vui lòng kiểm tra URL.' : '❌ Cannot load image. Please check URL.'}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4 border-t">
+              <button
+                type="button"
+                onClick={() => setShowPhotoModal(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium"
+                disabled={isUpdatingPhoto}
+              >
+                {language === 'vi' ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={handleUpdateShipPhoto}
+                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all font-medium"
+                disabled={isUpdatingPhoto}
+              >
+                {isUpdatingPhoto ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {language === 'vi' ? 'Đang cập nhật...' : 'Updating...'}
+                  </div>
+                ) : (
+                  language === 'vi' ? 'Cập nhật' : 'Update'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
