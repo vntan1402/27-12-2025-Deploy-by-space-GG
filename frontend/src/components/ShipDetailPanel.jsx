@@ -221,7 +221,7 @@ export const ShipDetailPanel = ({
         {/* Ship Photo - 1/5 width (60% of original) */}
         <div className="md:col-span-1">
           <div 
-            className="bg-gray-200 rounded-lg p-4 h-48 flex items-center justify-center cursor-pointer hover:bg-gray-300 transition-colors"
+            className="relative bg-gray-200 rounded-lg h-48 overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
             onDoubleClick={() => setShowPhotoModal(true)}
             title={language === 'vi' ? 'Double click để cập nhật ảnh' : 'Double click to update photo'}
           >
@@ -229,16 +229,18 @@ export const ShipDetailPanel = ({
               <img 
                 src={convertGoogleDriveUrl(ship.ship_photo_url)}
                 alt={ship.name}
-                className="w-full h-full object-contain rounded"
+                className="w-full h-full object-cover"
                 onError={(e) => {
                   e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
+                  e.target.nextSibling.style.display = 'flex';
                 }}
               />
             ) : null}
-            <div className="text-center" style={{ display: ship?.ship_photo_url ? 'none' : 'block' }}>
-              <div className="text-4xl mb-2">🚢</div>
-              <p className="font-semibold">SHIP PHOTO</p>
+            <div className="absolute inset-0 flex items-center justify-center" style={{ display: ship?.ship_photo_url ? 'none' : 'flex' }}>
+              <div className="text-center">
+                <div className="text-4xl mb-2">🚢</div>
+                <p className="font-semibold">SHIP PHOTO</p>
+              </div>
             </div>
           </div>
         </div>
