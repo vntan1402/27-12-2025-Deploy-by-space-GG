@@ -33,7 +33,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Configuration
-BACKEND_URL = "https://shipannounce.preview.emergentagent.com/api"
+BACKEND_URL = "https://maritime-docs-3.preview.emergentagent.com/api"
 TEST_USERNAME = "admin1"
 TEST_PASSWORD = "123456"
 # Test PDF for audit report analysis (small PDF < 15 pages)

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://shipannounce.preview.emergentagent.com/api"
+API_URL="https://maritime-docs-3.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \

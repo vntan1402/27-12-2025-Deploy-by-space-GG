@@ -15,7 +15,7 @@ import json
 from datetime import datetime, timedelta
 import time
 
-BACKEND_URL = "https://shipannounce.preview.emergentagent.com/api"
+BACKEND_URL = "https://maritime-docs-3.preview.emergentagent.com/api"
 USERNAME = "admin1"
 PASSWORD = "123456"
 
