@@ -492,17 +492,17 @@ export const AddCompanyCertModal = ({
               </div>
             </div>
 
-            {/* Row 4: Issued By (full width) */}
+            {/* Row 4: Notes - Compact (1 row) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Cấp bởi' : 'Issued By'}
+                {language === 'vi' ? 'Ghi chú' : 'Notes'}
               </label>
-              <input
-                type="text"
-                value={formData.issued_by}
-                onChange={(e) => setFormData({...formData, issued_by: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                placeholder={language === 'vi' ? 'Tên tổ chức cấp' : 'Issuing organization'}
+              <textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 resize-none"
+                placeholder={language === 'vi' ? 'Ghi chú (tùy chọn)' : 'Notes (optional)'}
                 disabled={isSubmitting}
               />
             </div>
