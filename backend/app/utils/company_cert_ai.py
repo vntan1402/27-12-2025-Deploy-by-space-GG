@@ -46,6 +46,7 @@ Extract the following fields in JSON format:
     "cert_name": "Full certificate name",
     "cert_no": "Certificate number",
     "company_name": "Company name on the certificate",
+    "doc_type": "DOC type classification (only for DOC certificates)",
     "issue_date": "Issue date in DD/MM/YYYY format",
     "valid_date": "Valid/expiry date in DD/MM/YYYY format",
     "last_endorse": "Last endorsement date in DD/MM/YYYY format",
@@ -55,16 +56,22 @@ Extract the following fields in JSON format:
 IMPORTANT INSTRUCTIONS:
 1. cert_name and cert_no are REQUIRED fields
 2. company_name: Extract the company name (look for "Name of the Company:", "Company:", etc.)
-3. ALL dates MUST be converted to DD/MM/YYYY format (e.g., "18/11/2024")
-4. Look for dates with keywords:
+3. doc_type: **CRITICAL FOR DOC CERTIFICATES** - Search for EXACT keywords in the document text:
+   - Return "full_term" if you find: "Full Term", "FULL TERM", "Full-Term", "FULL-TERM"
+   - Return "short_term" if you find: "Short Term", "SHORT TERM", "Short-Term", "SHORT-TERM"
+   - Return "interim" if you find: "Interim", "INTERIM", "Interrim", "INTERRIM"
+   - Return "" (empty string) if NOT a Document of Compliance
+   - IMPORTANT: Search the EXACT keywords in document text, do NOT analyze dates or validity periods
+4. ALL dates MUST be converted to DD/MM/YYYY format (e.g., "18/11/2024")
+5. Look for dates with keywords:
    - issue_date: "Date of issue", "Issued", "Issue date"
    - valid_date: "Valid until", "Expiry", "This Document is valid until", "Date of expiry"
    - last_endorse: "Last endorsement", "Endorsed", "Last endorsed on", "Endorsement date"
-5. If issue_date is "NOVEMBER 18, 2024", convert it to "18/11/2024"
-6. If valid_date is "OCTOBER 7, 2029", convert it to "07/10/2029"
-7. If last_endorse is "MARCH 15, 2023", convert it to "15/03/2023"
-8. If a field cannot be found, use empty string ""
-9. Return ONLY valid JSON, no markdown, no explanation
+6. If issue_date is "NOVEMBER 18, 2024", convert it to "18/11/2024"
+7. If valid_date is "OCTOBER 7, 2029", convert it to "07/10/2029"
+8. If last_endorse is "MARCH 15, 2023", convert it to "15/03/2023"
+9. If a field cannot be found, use empty string ""
+10. Return ONLY valid JSON, no markdown, no explanation
 
 EXAMPLE OUTPUT:
 {{
