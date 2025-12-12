@@ -174,7 +174,7 @@ async def upload_company_cert_with_file(
     """
     try:
         import json
-        from app.services.google_drive_service import upload_file_to_drive, create_summary_file_from_text
+        from app.services.gdrive_service import GDriveService
         
         # Parse cert_data JSON
         cert_dict = json.loads(cert_data)
@@ -193,7 +193,8 @@ async def upload_company_cert_with_file(
         folder_path = "COMPANY DOCUMENT/Company Certificates"
         file_content = await file.read()
         
-        drive_result = await upload_file_to_drive(
+        logger.info(f"📤 Uploading file to GDrive: {file.filename}")
+        drive_result = await GDriveService.upload_file(
             file_content=file_content,
             filename=file.filename,
             folder_path=folder_path,
