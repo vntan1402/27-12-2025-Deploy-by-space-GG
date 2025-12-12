@@ -4942,3 +4942,71 @@ if (Name mismatch detected) {
 - `/app/backend/app/api/v1/crew_audit_logs.py`
 - `/app/frontend/src/services/crewAuditLogService.js`
 
+---
+
+## Company Certificate - Add "Company Name" Field
+**Date:** 2025-12-12
+**Agent:** Fork Agent E1
+
+### Implementation Status
+
+**Backend Changes:**
+- ✅ Added `company_name` field to `CompanyCertUpdate` model
+- ✅ Added `company_name` field to `CompanyCertResponse` model
+- ✅ AI extraction already supports extracting company name from certificate
+
+**Frontend Changes:**
+- ✅ Added `company_name` to form data state in `AddCompanyCertModal.jsx`
+- ✅ Added input field for "Company Name" in modal (Row 1 - now 3 columns)
+- ✅ Connected AI auto-fill to populate `company_name` field
+- ✅ Added reset logic in `handleClose()` function
+- ✅ Added "Company Name" column to `CompanyCertTable.jsx` header
+- ✅ Added display cell for `company_name` in table body
+
+### Testing Required
+**End-to-End Flow:**
+1. Login as admin (`admin1` / `123456`)
+2. Navigate to Safety Management System page
+3. Open "Add Certificate" modal
+4. Upload a company certificate PDF with AI analysis
+5. Verify "Company Name" field is auto-filled by AI
+6. Manually edit/fill the field if needed
+7. Submit the form
+8. Verify record is created with company_name in database
+9. Check table displays new "Company Name" column
+10. Verify sorting works on the new column
+11. Test edit functionality (double-click)
+12. Test delete with background file cleanup
+
+### Files Modified
+- `/app/backend/app/models/company_cert.py`
+- `/app/frontend/src/components/CompanyCert/AddCompanyCertModal.jsx`
+- `/app/frontend/src/components/CompanyCert/CompanyCertTable.jsx`
+
+### Testing Instructions for Testing Agent
+**Test File Location:** `/app/backend/tests/test_company_cert_company_name.py`
+
+**Test Scenarios:**
+1. **Backend API Test:**
+   - Create certificate with company_name field
+   - Verify field is saved to database
+   - Verify field is returned in GET response
+   - Update certificate company_name
+   - Verify update works correctly
+
+2. **Frontend UI Test (Playwright):**
+   - Login as admin1
+   - Navigate to Safety Management System
+   - Open Add Certificate modal
+   - Verify "Company Name" input field exists
+   - Fill form and submit
+   - Verify table shows "Company Name" column
+   - Verify column is sortable
+   - Test edit modal includes company_name
+
+3. **AI Extraction Test:**
+   - Upload test certificate PDF
+   - Verify AI extracts company_name
+   - Verify field auto-fills in modal
+   - Verify extracted value saves to database
+
