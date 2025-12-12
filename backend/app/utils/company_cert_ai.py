@@ -75,16 +75,20 @@ RESPOND WITH VALID JSON ONLY:"""
                     api_key=emergent_key,
                     session_id=f"company_cert_extraction_{int(time.time())}",
                     system_message="You are a maritime document analysis expert."
-                )
+                ).with_model("gemini", ai_model)
+                
+                logger.info(f"📤 Sending extraction prompt to {ai_model}...")
                 
                 # Send extraction request
-                response = await chat.send_message_async(
-                    messages=[UserMessage(content=prompt)],
-                    model=ai_model,
-                    temperature=0.0
-                )
+                user_message = UserMessage(text=prompt)
+                ai_response = await chat.send_message(user_message)
                 
-                result_text = response.get('message', '').strip()
+                if ai_response and ai_response.strip():
+                    result_text = ai_response.strip()
+                    logger.info("🤖 Company Cert AI response received")
+                else:
+                    logger.error("Empty AI response")
+                    return {}
                 
             except Exception as e:
                 logger.error(f"❌ Emergent LLM error: {e}")
