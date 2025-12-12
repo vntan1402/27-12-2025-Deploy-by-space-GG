@@ -233,29 +233,6 @@ const SafetyManagementSystem = () => {
     return filtered;
   };
 
-  const subMenuItems = [
-    {
-      key: 'company_cert',
-      name_vi: 'Chứng chỉ công ty',
-      name_en: 'Company Cert.'
-    },
-    {
-      key: 'sms_procedures',
-      name_vi: 'Quy trình SMS',
-      name_en: 'SMS Procedures'
-    },
-    {
-      key: 'record_template',
-      name_vi: 'Mẫu biên bản',
-      name_en: 'Record Template'
-    },
-    {
-      key: 'ship_record',
-      name_vi: 'Biên bản tàu',
-      name_en: 'Ship Record'
-    }
-  ];
-
   return (
     <MainLayout
       sidebar={
