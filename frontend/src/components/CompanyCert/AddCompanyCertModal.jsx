@@ -79,13 +79,29 @@ export const AddCompanyCertModal = ({
         if (response.data.success) {
           const info = response.data.extracted_info;
           
-          // Auto-fill form
+          // Helper function to convert DD/MM/YYYY to YYYY-MM-DD
+          const convertDateFormat = (dateStr) => {
+            if (!dateStr) return '';
+            // If already in YYYY-MM-DD format, return as is
+            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr;
+            // Convert DD/MM/YYYY to YYYY-MM-DD
+            const parts = dateStr.split('/');
+            if (parts.length === 3) {
+              const [day, month, year] = parts;
+              return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+            return dateStr;
+          };
+          
+          // Auto-fill form with date conversion
           setFormData(prev => ({
             ...prev,
             cert_name: info.cert_name || prev.cert_name,
             cert_no: info.cert_no || prev.cert_no,
-            issue_date: info.issue_date || prev.issue_date,
-            valid_date: info.valid_date || prev.valid_date,
+            issue_date: convertDateFormat(info.issue_date) || prev.issue_date,
+            valid_date: convertDateFormat(info.valid_date) || prev.valid_date,
+            last_endorse: convertDateFormat(info.last_endorse) || prev.last_endorse,
+            next_survey: convertDateFormat(info.next_survey) || prev.next_survey,
             issued_by: info.issued_by || prev.issued_by
           }));
           
