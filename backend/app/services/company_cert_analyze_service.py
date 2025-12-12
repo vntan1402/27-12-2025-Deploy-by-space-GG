@@ -46,7 +46,7 @@ async def analyze_company_cert_file(
             filename=filename,
             content_type=content_type,
             document_ai_config=document_ai_config,
-            document_type='company_certificate'
+            document_type='other'
         )
         
         text_layer_result, doc_ai_result = await asyncio.gather(
