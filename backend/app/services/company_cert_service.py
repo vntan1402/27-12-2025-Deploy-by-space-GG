@@ -28,6 +28,10 @@ class CompanyCertService:
         
         certs = await mongo_db.find_all(CompanyCertService.collection_name, filters)
         
+        # Import abbreviation utilities
+        from app.utils.certificate_abbreviation import generate_certificate_abbreviation
+        from app.utils.issued_by_abbreviation import generate_organization_abbreviation
+        
         result = []
         for cert in certs:
             if not cert.get("cert_name"):
@@ -39,6 +43,14 @@ class CompanyCertService:
             # Map google_drive_file_id to file_id for backward compatibility
             if cert.get("google_drive_file_id") and not cert.get("file_id"):
                 cert["file_id"] = cert.get("google_drive_file_id")
+            
+            # Generate certificate abbreviation if not present
+            if not cert.get("cert_abbreviation") and cert.get("cert_name"):
+                cert["cert_abbreviation"] = await generate_certificate_abbreviation(cert.get("cert_name"))
+            
+            # Generate organization abbreviation for issued_by if not present
+            if not cert.get("issued_by_abbreviation") and cert.get("issued_by"):
+                cert["issued_by_abbreviation"] = generate_organization_abbreviation(cert.get("issued_by"))
             
             result.append(CompanyCertResponse(**cert))
         
