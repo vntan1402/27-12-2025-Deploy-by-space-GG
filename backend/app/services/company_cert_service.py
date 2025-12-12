@@ -90,6 +90,9 @@ class CompanyCertService:
     @staticmethod
     async def create_company_cert(cert_data: CompanyCertCreate, current_user: UserResponse) -> CompanyCertResponse:
         """Create new company certificate"""
+        from app.utils.certificate_abbreviation import generate_certificate_abbreviation
+        from app.utils.issued_by_abbreviation import generate_organization_abbreviation
+        
         cert_dict = cert_data.model_dump()
         cert_dict["id"] = str(uuid.uuid4())
         cert_dict["created_at"] = datetime.now(timezone.utc)
@@ -98,6 +101,15 @@ class CompanyCertService:
         # Ensure company is set
         if not cert_dict.get("company"):
             cert_dict["company"] = current_user.company
+        
+        # Generate certificate abbreviation
+        if cert_dict.get("cert_name"):
+            cert_dict["cert_abbreviation"] = await generate_certificate_abbreviation(cert_dict["cert_name"])
+            logger.info(f"📝 Generated abbreviation: {cert_dict['cert_name']} → {cert_dict['cert_abbreviation']}")
+        
+        # Generate organization abbreviation for issued_by
+        if cert_dict.get("issued_by"):
+            cert_dict["issued_by_abbreviation"] = generate_organization_abbreviation(cert_dict["issued_by"])
         
         await mongo_db.insert_one(CompanyCertService.collection_name, cert_dict)
         
