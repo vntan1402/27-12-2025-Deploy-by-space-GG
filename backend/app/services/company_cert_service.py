@@ -31,6 +31,7 @@ class CompanyCertService:
         # Import abbreviation utilities
         from app.utils.certificate_abbreviation import generate_certificate_abbreviation
         from app.utils.issued_by_abbreviation import generate_organization_abbreviation
+        from app.utils.company_name_abbreviation import abbreviate_company_name
         
         result = []
         for cert in certs:
@@ -54,6 +55,10 @@ class CompanyCertService:
             # Generate organization abbreviation for issued_by if not present
             if not cert.get("issued_by_abbreviation") and cert.get("issued_by"):
                 cert["issued_by_abbreviation"] = generate_organization_abbreviation(cert.get("issued_by"))
+            
+            # Generate company name abbreviation for display
+            if cert.get("company_name"):
+                cert["company_name_display"] = abbreviate_company_name(cert.get("company_name"))
             
             result.append(CompanyCertResponse(**cert))
         
