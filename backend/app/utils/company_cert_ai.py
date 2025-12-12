@@ -53,17 +53,19 @@ Extract the following fields in JSON format:
 
 IMPORTANT INSTRUCTIONS:
 1. cert_name and cert_no are REQUIRED fields
-2. ALL dates MUST be converted to DD/MM/YYYY format (e.g., "18/11/2024")
-3. Look for dates with keywords: "Date of issue", "Issued", "Valid until", "Expiry", "This Document is valid until"
-4. If issue_date is "NOVEMBER 18, 2024", convert it to "18/11/2024"
-5. If valid_date is "OCTOBER 7, 2029", convert it to "07/10/2029"
-6. If a date cannot be found, use empty string ""
-7. Return ONLY valid JSON, no markdown, no explanation
+2. company_name: Extract the company name (look for "Name of the Company:", "Company:", etc.)
+3. ALL dates MUST be converted to DD/MM/YYYY format (e.g., "18/11/2024")
+4. Look for dates with keywords: "Date of issue", "Issued", "Valid until", "Expiry", "This Document is valid until"
+5. If issue_date is "NOVEMBER 18, 2024", convert it to "18/11/2024"
+6. If valid_date is "OCTOBER 7, 2029", convert it to "07/10/2029"
+7. If a field cannot be found, use empty string ""
+8. Return ONLY valid JSON, no markdown, no explanation
 
 EXAMPLE OUTPUT:
 {{
     "cert_name": "DOCUMENT OF COMPLIANCE",
     "cert_no": "PM242633",
+    "company_name": "HAI AN CONTAINER TRANSPORT COMPANY LIMITED",
     "issue_date": "18/11/2024",
     "valid_date": "07/10/2029",
     "issued_by": "Panama Maritime Documentation Services, Inc."
