@@ -79,13 +79,14 @@ def validate_certificate_type(cert_type: str) -> str:
 def generate_doc_abbreviation(doc_type: Optional[str], cert_name: str) -> str:
     """
     Generate DOC abbreviation based on doc_type field
+    MANDATORY: All DOC certificates MUST be classified as FT DOC, ST DOC, or Int DOC
     
     Args:
         doc_type: DOC classification (full_term, short_term, interim)
         cert_name: Certificate name (fallback if doc_type not provided)
         
     Returns:
-        DOC abbreviation (FT DOC, ST DOC, Int DOC, or DOC)
+        DOC abbreviation (FT DOC, ST DOC, or Int DOC) - NEVER just "DOC"
     """
     # Check if this is a DOC certificate
     cert_name_upper = cert_name.upper().strip() if cert_name else ""
@@ -116,9 +117,9 @@ def generate_doc_abbreviation(doc_type: Optional[str], cert_name: str) -> str:
         logger.info(f"✅ DOC type from name: '{cert_name}' → 'Int DOC'")
         return "Int DOC"
     else:
-        # Default DOC if no specific type found
-        logger.info(f"✅ DOC detected (no type specified): '{cert_name}' → 'DOC'")
-        return "DOC"
+        # MANDATORY DEFAULT: If no type can be determined, default to Full Term
+        logger.warning(f"⚠️ DOC with no type specified: '{cert_name}' → Defaulting to 'FT DOC'")
+        return "FT DOC"
 
 
 async def generate_certificate_abbreviation(cert_name: str, doc_type: Optional[str] = None) -> str:
