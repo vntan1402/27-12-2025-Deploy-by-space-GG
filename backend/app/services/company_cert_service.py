@@ -46,7 +46,10 @@ class CompanyCertService:
             
             # Generate certificate abbreviation if not present
             if not cert.get("cert_abbreviation") and cert.get("cert_name"):
-                cert["cert_abbreviation"] = await generate_certificate_abbreviation(cert.get("cert_name"))
+                cert["cert_abbreviation"] = await generate_certificate_abbreviation(
+                    cert.get("cert_name"), 
+                    cert.get("doc_type")
+                )
             
             # Generate organization abbreviation for issued_by if not present
             if not cert.get("issued_by_abbreviation") and cert.get("issued_by"):
@@ -104,8 +107,11 @@ class CompanyCertService:
         
         # Generate certificate abbreviation
         if cert_dict.get("cert_name"):
-            cert_dict["cert_abbreviation"] = await generate_certificate_abbreviation(cert_dict["cert_name"])
-            logger.info(f"📝 Generated abbreviation: {cert_dict['cert_name']} → {cert_dict['cert_abbreviation']}")
+            cert_dict["cert_abbreviation"] = await generate_certificate_abbreviation(
+                cert_dict["cert_name"],
+                cert_dict.get("doc_type")
+            )
+            logger.info(f"📝 Generated abbreviation: {cert_dict['cert_name']} (doc_type: {cert_dict.get('doc_type')}) → {cert_dict['cert_abbreviation']}")
         
         # Generate organization abbreviation for issued_by
         if cert_dict.get("issued_by"):
@@ -129,10 +135,12 @@ class CompanyCertService:
         
         update_data = cert_data.model_dump(exclude_unset=True)
         
-        # If cert_name is updated, regenerate abbreviation
-        if "cert_name" in update_data and update_data["cert_name"]:
-            update_data["cert_abbreviation"] = await generate_certificate_abbreviation(update_data["cert_name"])
-            logger.info(f"📝 Regenerated abbreviation: {update_data['cert_name']} → {update_data['cert_abbreviation']}")
+        # If cert_name or doc_type is updated, regenerate abbreviation
+        if "cert_name" in update_data or "doc_type" in update_data:
+            cert_name = update_data.get("cert_name") or existing_cert.get("cert_name")
+            doc_type = update_data.get("doc_type") if "doc_type" in update_data else existing_cert.get("doc_type")
+            update_data["cert_abbreviation"] = await generate_certificate_abbreviation(cert_name, doc_type)
+            logger.info(f"📝 Regenerated abbreviation: {cert_name} (doc_type: {doc_type}) → {update_data['cert_abbreviation']}")
         
         # If issued_by is updated, regenerate organization abbreviation
         if "issued_by" in update_data and update_data["issued_by"]:
