@@ -130,6 +130,7 @@ RESPOND WITH VALID JSON ONLY:"""
         logger.info(f"   🔢 Cert No: '{extracted_data.get('cert_no', '')}'")
         logger.info(f"   📅 Issue Date: '{extracted_data.get('issue_date', '')}'")
         logger.info(f"   📅 Valid Date: '{extracted_data.get('valid_date', '')}'")
+        logger.info(f"   📝 Last Endorse: '{extracted_data.get('last_endorse', '')}'")
         logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by', '')}'")
         return extracted_data
         
