@@ -8,6 +8,9 @@ class CompanyCertBase(BaseModel):
     cert_no: Optional[str] = None
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None  # Optional field
+    last_endorse: Optional[Union[str, datetime]] = None  # Last endorsement date
+    next_survey: Optional[Union[str, datetime]] = None  # Next survey date
+    next_survey_type: Optional[str] = None  # Survey type: Initial, Intermediate, Renewal
     issued_by: Optional[str] = None
     status: Optional[str] = "Valid"
     notes: Optional[str] = None
@@ -24,6 +27,9 @@ class CompanyCertUpdate(BaseModel):
     cert_no: Optional[str] = None
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None
+    last_endorse: Optional[Union[str, datetime]] = None
+    next_survey: Optional[Union[str, datetime]] = None
+    next_survey_type: Optional[str] = None
     issued_by: Optional[str] = None
     status: Optional[str] = None
     notes: Optional[str] = None
@@ -39,6 +45,9 @@ class CompanyCertResponse(BaseModel):
     cert_no: Optional[str] = None
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None
+    last_endorse: Optional[Union[str, datetime]] = None
+    next_survey: Optional[Union[str, datetime]] = None
+    next_survey_type: Optional[str] = None
     issued_by: Optional[str] = None
     status: Optional[str] = None
     notes: Optional[str] = None
