@@ -230,25 +230,39 @@ export const CompanyCertTable = ({
                 <td 
                   className="px-4 py-2 border-b border-r text-sm font-semibold text-blue-700"
                   title={cert.cert_name}
+                  style={{ cursor: 'help' }}
                 >
                   <div className="flex items-center gap-2">
-                    <span>
+                    {/* Certificate Abbreviation */}
+                    <span className="font-mono font-bold text-blue-600">
                       {cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A'}
                     </span>
+                    
+                    {/* Original File Icon (📄 red) */}
                     {cert.file_id && (
                       <span 
-                        className="text-blue-600 cursor-pointer" 
+                        className="text-red-500 text-xs cursor-pointer hover:text-red-600" 
                         title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 COMPANY DOCUMENT/Company Certificates`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`https://drive.google.com/file/d/${cert.file_id}/view`, '_blank');
+                        }}
                       >
                         📄
                       </span>
                     )}
-                    {cert.summary_file_id && ['admin', 'super_admin', 'system_admin'].includes(user?.role) && (
+                    
+                    {/* Summary File Icon (📋 blue) - Only for admin and above */}
+                    {cert.summary_file_id && user && ['admin', 'super_admin', 'system_admin'].includes(user.role) && (
                       <span 
-                        className="text-green-600 cursor-pointer" 
+                        className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
                         title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 COMPANY DOCUMENT/Company Certificates`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`https://drive.google.com/file/d/${cert.summary_file_id}/view`, '_blank');
+                        }}
                       >
-                        📝
+                        📋
                       </span>
                     )}
                   </div>
