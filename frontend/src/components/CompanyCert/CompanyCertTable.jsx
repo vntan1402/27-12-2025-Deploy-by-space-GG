@@ -14,6 +14,7 @@ export const CompanyCertTable = ({
   onSort,
   sortConfig,
   onDoubleClick,
+  onRightClick,
   onNotesClick,
   onEditClick,
   onDeleteClick
@@ -185,6 +186,7 @@ export const CompanyCertTable = ({
                   selectedCertificates.has(cert.id) ? 'bg-blue-50' : ''
                 }`}
                 onDoubleClick={() => onDoubleClick(cert)}
+                onContextMenu={(e) => onRightClick && onRightClick(e, cert)}
               >
                 <td className="px-4 py-2 border-b">
                   <input
