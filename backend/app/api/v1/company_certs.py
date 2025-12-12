@@ -241,6 +241,7 @@ async def upload_company_cert_with_file(
                     logger.warning(f"⚠️ Summary file upload failed: {e}")
             
             # Update certificate with file info
+            logger.info(f"🔄 Updating cert {cert_id} with data: {list(update_data.keys())}")
             await CompanyCertService.update_company_cert(
                 cert_id,
                 CompanyCertUpdate(**update_data),
