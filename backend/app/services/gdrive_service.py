@@ -625,7 +625,11 @@ class GDriveService:
                     detail="Parent folder ID not configured in Google Drive settings"
                 )
             
-            # Build payload using upload_file_with_folder_creation action (like backend-v1)
+            # Build payload using upload_file_with_folder_creation action
+            # This action automatically:
+            # 1. Checks if folders exist (COMPANY DOCUMENT / SMS / Company Certificates)
+            # 2. Reuses existing folders if found
+            # 3. Creates only missing folders in the hierarchy
             payload = {
                 "action": "upload_file_with_folder_creation",
                 "parent_folder_id": parent_folder_id,
@@ -636,6 +640,9 @@ class GDriveService:
                 "file_content": file_base64,
                 "content_type": content_type
             }
+            
+            logger.info(f"📁 Folder path: {ship_name} / {parent_category} / {category}")
+            logger.info(f"   Apps Script will check/reuse existing folders before creating new ones")
             
             # Call Apps Script (180s timeout for large files)
             async with aiohttp.ClientSession() as session:
