@@ -269,11 +269,30 @@ export const AddCompanyCertModal = ({
 
             {/* Analyzing Indicator */}
             {isAnalyzing && (
-              <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
+              <div className="mt-4 p-4 bg-white rounded-lg border-2 border-blue-300 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                  <span className="text-sm text-blue-700 font-medium">
-                    {language === 'vi' ? '🤖 Đang phân tích với AI...' : '🤖 Analyzing with AI...'}
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-t-2 border-blue-600"></div>
+                  <div className="flex-1">
+                    <p className="text-sm text-blue-700 font-semibold">
+                      {language === 'vi' ? '🤖 Đang phân tích với AI...' : '🤖 Analyzing with AI...'}
+                    </p>
+                    <p className="text-xs text-blue-600 mt-1">
+                      {language === 'vi' ? 'Đang trích xuất thông tin từ chứng chỉ...' : 'Extracting information from certificate...'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Success Indicator */}
+            {analyzed && !isAnalyzing && certificateFile && (
+              <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center gap-2">
+                  <span className="text-green-600 text-lg">✅</span>
+                  <span className="text-sm text-green-700 font-medium">
+                    {language === 'vi' 
+                      ? 'Phân tích hoàn tất! Thông tin đã được điền tự động.' 
+                      : 'Analysis complete! Information auto-filled.'}
                   </span>
                 </div>
               </div>
