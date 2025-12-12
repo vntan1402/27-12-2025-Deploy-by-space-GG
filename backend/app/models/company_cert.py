@@ -7,6 +7,7 @@ class CompanyCertBase(BaseModel):
     cert_name: str
     cert_no: Optional[str] = None
     company_name: Optional[str] = None  # Company name on the certificate
+    doc_type: Optional[str] = None  # DOC type: full_term, short_term, interim (for DOC certificates only)
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None  # Optional field
     last_endorse: Optional[Union[str, datetime]] = None  # Last endorsement date
@@ -27,6 +28,7 @@ class CompanyCertUpdate(BaseModel):
     cert_name: Optional[str] = None
     cert_no: Optional[str] = None
     company_name: Optional[str] = None  # Company name on the certificate
+    doc_type: Optional[str] = None  # DOC type: full_term, short_term, interim
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None
     last_endorse: Optional[Union[str, datetime]] = None
@@ -49,6 +51,7 @@ class CompanyCertResponse(BaseModel):
     cert_abbreviation: Optional[str] = None  # Abbreviated cert name for display
     cert_no: Optional[str] = None
     company_name: Optional[str] = None  # Company name on the certificate
+    doc_type: Optional[str] = None  # DOC type: full_term, short_term, interim
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None
     last_endorse: Optional[Union[str, datetime]] = None
