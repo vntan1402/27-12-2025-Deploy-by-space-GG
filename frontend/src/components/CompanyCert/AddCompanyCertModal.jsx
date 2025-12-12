@@ -165,7 +165,11 @@ export const AddCompanyCertModal = ({
     setIsSubmitting(true);
     try {
       // Step 1: Create certificate record immediately (without file)
-      const response = await api.post('/api/company-certs', formData);
+      const certData = {
+        ...formData,
+        company: user?.company
+      };
+      const response = await api.post('/api/company-certs', certData);
       const newCertId = response.data.id;
 
       // Step 2: Close modal and refresh table immediately
