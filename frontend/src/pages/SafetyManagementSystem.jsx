@@ -378,14 +378,6 @@ const SafetyManagementSystem = () => {
                     setNotesCert(cert);
                     setShowNotesModal(true);
                   }}
-                  onEditClick={(cert) => {
-                    setEditingCert(cert);
-                    setShowEditModal(true);
-                  }}
-                  onDeleteClick={(cert) => {
-                    setDeletingCert(cert);
-                    setShowDeleteModal(true);
-                  }}
                 />
               </div>
             )}
