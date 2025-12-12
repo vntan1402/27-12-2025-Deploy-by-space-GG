@@ -97,6 +97,10 @@ class CompanyCertService:
         if not cert.get("issued_by_abbreviation") and cert.get("issued_by"):
             cert["issued_by_abbreviation"] = generate_organization_abbreviation(cert.get("issued_by"))
         
+        # Generate company name abbreviation for display
+        if cert.get("company_name"):
+            cert["company_name_display"] = abbreviate_company_name(cert.get("company_name"))
+        
         return CompanyCertResponse(**cert)
     
     @staticmethod
