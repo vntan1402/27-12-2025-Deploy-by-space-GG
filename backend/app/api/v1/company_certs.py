@@ -201,37 +201,48 @@ async def upload_company_cert_with_file(
             company_id=current_user.company
         )
         
-        if drive_result["success"]:
-            # Update certificate with file info
-            await CompanyCertService.update_company_cert(
-                cert_id,
-                CompanyCertUpdate(
-                    file_id=drive_result["file_id"],
-                    file_name=file.filename,
-                    file_url=drive_result["file_url"]
-                ),
-                current_user
-            )
+        if drive_result.get("success"):
+            file_id = drive_result.get("file_id")
+            logger.info(f"✅ GDrive upload success! file_id={file_id}")
+            
+            # Prepare update data
+            update_data = {
+                "file_id": file_id,
+                "file_name": file.filename,
+                "file_url": drive_result.get("file_url")
+            }
             
             # Create summary file if summary_text provided
             summary_text = cert_dict.get("summary_text")
             if summary_text:
-                summary_result = await create_summary_file_from_text(
-                    text_content=summary_text,
-                    filename=f"{file.filename}_summary.txt",
-                    folder_path=folder_path,
-                    company_id=current_user.company
-                )
-                
-                if summary_result["success"]:
-                    await CompanyCertService.update_company_cert(
-                        cert_id,
-                        CompanyCertUpdate(
-                            summary_file_id=summary_result["file_id"],
-                            summary_file_url=summary_result["file_url"]
-                        ),
-                        current_user
+                try:
+                    logger.info("📝 Creating summary file...")
+                    # Create summary filename
+                    base_name = file.filename.rsplit('.', 1)[0] if '.' in file.filename else file.filename
+                    summary_filename = f"{base_name}_Summary.txt"
+                    
+                    # Upload summary file
+                    summary_result = await GDriveService.upload_file(
+                        file_content=summary_text.encode('utf-8'),
+                        filename=summary_filename,
+                        folder_path=folder_path,
+                        company_id=current_user.company
                     )
+                    
+                    if summary_result.get("success"):
+                        summary_file_id = summary_result.get("file_id")
+                        logger.info(f"✅ Summary file uploaded successfully: {summary_file_id}")
+                        update_data["summary_file_id"] = summary_file_id
+                        update_data["summary_file_url"] = summary_result.get("file_url")
+                except Exception as e:
+                    logger.warning(f"⚠️ Summary file upload failed: {e}")
+            
+            # Update certificate with file info
+            await CompanyCertService.update_company_cert(
+                cert_id,
+                CompanyCertUpdate(**update_data),
+                current_user
+            )
             
             return {
                 "success": True,
