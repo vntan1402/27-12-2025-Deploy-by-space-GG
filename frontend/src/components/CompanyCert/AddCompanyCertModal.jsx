@@ -65,65 +65,81 @@ export const AddCompanyCertModal = ({
     }
 
     setIsAnalyzing(true);
+    
     try {
       const reader = new FileReader();
       reader.onload = async (e) => {
-        const base64Content = e.target.result.split(',')[1];
-        
-        const response = await api.post('/api/company-certs/analyze-file', {
-          file_content: base64Content,
-          filename: fileToAnalyze.name,
-          content_type: fileToAnalyze.type
-        });
+        try {
+          const base64Content = e.target.result.split(',')[1];
+          
+          const response = await api.post('/api/company-certs/analyze-file', {
+            file_content: base64Content,
+            filename: fileToAnalyze.name,
+            content_type: fileToAnalyze.type
+          });
 
-        if (response.data.success) {
-          const info = response.data.extracted_info;
-          
-          // Helper function to convert DD/MM/YYYY to YYYY-MM-DD
-          const convertDateFormat = (dateStr) => {
-            if (!dateStr) return '';
-            // If already in YYYY-MM-DD format, return as is
-            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr;
-            // Convert DD/MM/YYYY to YYYY-MM-DD
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-              const [day, month, year] = parts;
-              return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          if (response.data.success) {
+            const info = response.data.extracted_info;
+            
+            // Helper function to convert DD/MM/YYYY to YYYY-MM-DD
+            const convertDateFormat = (dateStr) => {
+              if (!dateStr) return '';
+              // If already in YYYY-MM-DD format, return as is
+              if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr;
+              // Convert DD/MM/YYYY to YYYY-MM-DD
+              const parts = dateStr.split('/');
+              if (parts.length === 3) {
+                const [day, month, year] = parts;
+                return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+              }
+              return dateStr;
+            };
+            
+            // Auto-fill form with date conversion
+            setFormData(prev => ({
+              ...prev,
+              cert_name: info.cert_name || prev.cert_name,
+              cert_no: info.cert_no || prev.cert_no,
+              issue_date: convertDateFormat(info.issue_date) || prev.issue_date,
+              valid_date: convertDateFormat(info.valid_date) || prev.valid_date,
+              last_endorse: convertDateFormat(info.last_endorse) || prev.last_endorse,
+              next_survey: convertDateFormat(info.next_survey) || prev.next_survey,
+              issued_by: info.issued_by || prev.issued_by
+            }));
+            
+            // Store summary text
+            setSummaryText(response.data.summary_text || '');
+            
+            // Check for duplicate warning
+            if (response.data.duplicate_warning) {
+              setDuplicateWarning(response.data.duplicate_warning);
             }
-            return dateStr;
-          };
-          
-          // Auto-fill form with date conversion
-          setFormData(prev => ({
-            ...prev,
-            cert_name: info.cert_name || prev.cert_name,
-            cert_no: info.cert_no || prev.cert_no,
-            issue_date: convertDateFormat(info.issue_date) || prev.issue_date,
-            valid_date: convertDateFormat(info.valid_date) || prev.valid_date,
-            last_endorse: convertDateFormat(info.last_endorse) || prev.last_endorse,
-            next_survey: convertDateFormat(info.next_survey) || prev.next_survey,
-            issued_by: info.issued_by || prev.issued_by
-          }));
-          
-          // Store summary text
-          setSummaryText(response.data.summary_text || '');
-          
-          // Check for duplicate warning
-          if (response.data.duplicate_warning) {
-            setDuplicateWarning(response.data.duplicate_warning);
+            
+            setAnalyzed(true);
+            toast.success(language === 'vi' ? '✅ Phân tích thành công!' : '✅ Analysis successful!');
           }
-          
-          setAnalyzed(true);
-          toast.success(language === 'vi' ? '✅ Phân tích thành công!' : '✅ Analysis successful!');
+        } catch (error) {
+          console.error('Analysis error:', error);
+          toast.error(language === 'vi' 
+            ? 'Phân tích thất bại. Vui lòng nhập thủ công.'
+            : 'Analysis failed. Please enter manually.');
+        } finally {
+          // Move setIsAnalyzing(false) here to ensure it runs after API call completes
+          setIsAnalyzing(false);
         }
       };
+      
+      reader.onerror = () => {
+        toast.error(language === 'vi' ? 'Lỗi đọc file!' : 'Error reading file!');
+        setIsAnalyzing(false);
+      };
+      
       reader.readAsDataURL(fileToAnalyze);
     } catch (error) {
-      console.error('Analysis error:', error);
+      console.error('FileReader error:', error);
       toast.error(language === 'vi' 
         ? 'Phân tích thất bại. Vui lòng nhập thủ công.'
         : 'Analysis failed. Please enter manually.');
-    } finally {
       setIsAnalyzing(false);
     }
   };
