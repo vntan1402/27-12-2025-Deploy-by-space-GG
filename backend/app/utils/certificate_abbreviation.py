@@ -177,10 +177,24 @@ def generate_abbreviation_sync(cert_name: str) -> str:
         cert_name: Full certificate name
         
     Returns:
-        Abbreviated certificate name
+        Abbreviated certificate name (e.g., "FT DOC", "ST DOC", "Int DOC")
     """
     if not cert_name:
         return ""
+    
+    # Special handling for Document of Compliance (DOC)
+    cert_name_upper = cert_name.upper().strip()
+    if 'DOCUMENT OF COMPLIANCE' in cert_name_upper or cert_name_upper == 'DOC':
+        # Check for specific DOC types
+        if 'FULL' in cert_name_upper or 'FULL TERM' in cert_name_upper:
+            return "FT DOC"
+        elif 'SHORT' in cert_name_upper or 'SHORT TERM' in cert_name_upper:
+            return "ST DOC"
+        elif 'INTERIM' in cert_name_upper or 'INTERRIM' in cert_name_upper:
+            return "Int DOC"
+        else:
+            # Default DOC if no specific type found
+            return "DOC"
     
     # Remove common words and focus on key terms
     # Note: Kept 'of' to generate abbreviations like DOC (Document Of Compliance)
