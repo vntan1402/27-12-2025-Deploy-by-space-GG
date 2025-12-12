@@ -1,0 +1,106 @@
+import logging
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
+
+from app.models.company_cert import CompanyCertCreate, CompanyCertUpdate, CompanyCertResponse, BulkDeleteCompanyCertRequest
+from app.models.user import UserResponse, UserRole
+from app.services.company_cert_service import CompanyCertService
+from app.core.security import get_current_user
+
+logger = logging.getLogger(__name__)
+router = APIRouter()
+
+def check_dpa_manager_permission(current_user: UserResponse = Depends(get_current_user)):
+    """Check if user is Admin or Manager in DPA department"""
+    # Admin and Super Admin always have access
+    if current_user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
+        return current_user
+    
+    # Manager with DPA department has access
+    if current_user.role == UserRole.MANAGER and current_user.department == "DPA":
+        return current_user
+    
+    raise HTTPException(status_code=403, detail="Insufficient permissions. Admin or DPA Manager required.")
+
+@router.get("", response_model=List[CompanyCertResponse])
+async def get_company_certs(
+    company: Optional[str] = Query(None),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get Company Certificates, optionally filtered by company"""
+    try:
+        return await CompanyCertService.get_company_certs(company, current_user)
+    except Exception as e:
+        logger.error(f"❌ Error fetching Company Certificates: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch Company Certificates")
+
+@router.get("/{cert_id}", response_model=CompanyCertResponse)
+async def get_company_cert_by_id(
+    cert_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """Get a specific Company Certificate by ID"""
+    try:
+        return await CompanyCertService.get_company_cert_by_id(cert_id, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error fetching Company Certificate {cert_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch Company Certificate")
+
+@router.post("", response_model=CompanyCertResponse)
+async def create_company_cert(
+    cert_data: CompanyCertCreate,
+    current_user: UserResponse = Depends(check_dpa_manager_permission)
+):
+    """Create new Company Certificate (Admin or DPA Manager required)"""
+    try:
+        return await CompanyCertService.create_company_cert(cert_data, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error creating Company Certificate: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create Company Certificate")
+
+@router.put("/{cert_id}", response_model=CompanyCertResponse)
+async def update_company_cert(
+    cert_id: str,
+    cert_data: CompanyCertUpdate,
+    current_user: UserResponse = Depends(check_dpa_manager_permission)
+):
+    """Update Company Certificate (Admin or DPA Manager required)"""
+    try:
+        return await CompanyCertService.update_company_cert(cert_id, cert_data, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error updating Company Certificate: {e}")
+        raise HTTPException(status_code=500, detail="Failed to update Company Certificate")
+
+@router.delete("/{cert_id}")
+async def delete_company_cert(
+    cert_id: str,
+    background_tasks: BackgroundTasks,
+    current_user: UserResponse = Depends(check_dpa_manager_permission)
+):
+    """Delete Company Certificate (Admin or DPA Manager required)"""
+    try:
+        return await CompanyCertService.delete_company_cert(cert_id, current_user, background_tasks)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error deleting Company Certificate: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete Company Certificate")
+
+@router.post("/bulk-delete")
+async def bulk_delete_company_certs(
+    request: BulkDeleteCompanyCertRequest,
+    background_tasks: BackgroundTasks,
+    current_user: UserResponse = Depends(check_dpa_manager_permission)
+):
+    """Bulk delete Company Certificates (Admin or DPA Manager required)"""
+    try:
+        return await CompanyCertService.bulk_delete_company_certs(request, current_user, background_tasks)
+    except Exception as e:
+        logger.error(f"❌ Error bulk deleting Company Certificates: {e}")
+        raise HTTPException(status_code=500, detail="Failed to bulk delete Company Certificates")
