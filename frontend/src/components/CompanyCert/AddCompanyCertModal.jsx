@@ -240,25 +240,23 @@ export const AddCompanyCertModal = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {/* File Upload Section with Guidelines */}
           <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 bg-blue-50">
-            <div className="flex items-start justify-between mb-3">
-              {/* Title */}
-              <div className="flex-1 pr-4">
-                <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                  📋 {language === 'vi' ? 'Upload Certificate' : 'Upload Certificate'}
-                </h3>
-              </div>
-
-              {/* Upload Guidelines */}
-              <div className="w-72 mx-4 bg-blue-100 rounded-lg p-3">
-                <h4 className="text-sm font-medium text-blue-800 mb-2 flex items-center">
-                  📝 {language === 'vi' ? 'Hướng dẫn Upload:' : 'Upload Guidelines:'}
-                </h4>
-                <ul className="text-xs text-blue-700 space-y-1">
-                  <li>• {language === 'vi' ? 'PDF, JPG, PNG' : 'PDF, JPG, PNG files'}</li>
-                  <li>• {language === 'vi' ? 'Max 50MB/file' : 'Max 50MB per file'}</li>
-                  <li>• {language === 'vi' ? 'AI tự động phân tích' : 'AI auto-analysis'}</li>
-                  <li>• {language === 'vi' ? 'Tự động điền thông tin' : 'Auto-fill info'}</li>
-                </ul>
+            {/* Title */}
+            <h3 className="text-lg font-semibold text-blue-900 mb-3">
+              📋 {language === 'vi' ? 'Upload Certificate' : 'Upload Certificate'}
+            </h3>
+            
+            <div className="flex items-center gap-4 mb-3">
+              {/* Upload Guidelines - Horizontal Layout */}
+              <div className="flex-1 flex items-center gap-4 bg-white rounded-lg px-4 py-2 border border-blue-200">
+                <span className="text-xs font-medium text-blue-800 whitespace-nowrap">
+                  📝 {language === 'vi' ? 'Upload Guidelines:' : 'Upload Guidelines:'}
+                </span>
+                <div className="flex items-center gap-3 text-xs text-blue-700">
+                  <span className="whitespace-nowrap">• PDF, JPG, PNG files</span>
+                  <span className="whitespace-nowrap">• Max 50MB per file</span>
+                  <span className="whitespace-nowrap">• AI auto-analysis</span>
+                  <span className="whitespace-nowrap">• Auto-fill info</span>
+                </div>
               </div>
 
               {/* Upload Button */}
