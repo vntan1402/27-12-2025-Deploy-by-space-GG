@@ -103,7 +103,8 @@ async def generate_certificate_abbreviation(cert_name: str) -> str:
     
     # Priority 2: Auto-generation algorithm
     # Remove common words and focus on key terms
-    common_words = {'the', 'of', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were'}
+    # Note: Kept 'of' to generate abbreviations like DOC (Document Of Compliance)
+    common_words = {'the', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were'}
     
     # Remove common maritime phrases first
     cert_name_cleaned = cert_name.upper()
