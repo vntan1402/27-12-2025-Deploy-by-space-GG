@@ -197,6 +197,7 @@ async def upload_company_cert_with_file(
         drive_result = await GDriveService.upload_file(
             file_content=file_content,
             filename=file.filename,
+            content_type=file.content_type or "application/pdf",
             folder_path=folder_path,
             company_id=current_user.company
         )
