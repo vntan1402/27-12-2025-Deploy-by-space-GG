@@ -106,6 +106,11 @@ RESPOND WITH VALID JSON ONLY:"""
         extracted_data = json.loads(result_text)
         
         logger.info(f"✅ AI extracted fields: {list(extracted_data.keys())}")
+        logger.info(f"   📋 Cert Name: '{extracted_data.get('cert_name', '')}'")
+        logger.info(f"   🔢 Cert No: '{extracted_data.get('cert_no', '')}'")
+        logger.info(f"   📅 Issue Date: '{extracted_data.get('issue_date', '')}'")
+        logger.info(f"   📅 Valid Date: '{extracted_data.get('valid_date', '')}'")
+        logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by', '')}'")
         return extracted_data
         
     except Exception as e:
