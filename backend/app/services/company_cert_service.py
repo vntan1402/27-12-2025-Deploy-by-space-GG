@@ -118,7 +118,7 @@ class CompanyCertService:
             await mongo_db.update_one(
                 CompanyCertService.collection_name,
                 {"id": cert_id},
-                {"$set": update_data}
+                update_data
             )
             logger.info(f"✅ Updated company certificate: {cert_id}")
         
