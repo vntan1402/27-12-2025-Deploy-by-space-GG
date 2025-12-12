@@ -269,80 +269,92 @@ const SafetyManagementSystem = () => {
         {/* Company Cert Content */}
         {selectedSubMenu === 'company_cert' && (
           <>
-            {/* Action Buttons Row */}
-            <div className="flex justify-between items-center mb-4 gap-4">
-              <div className="flex items-center gap-3">
-                {/* Add Button */}
+            {/* Header Row: Title (left) + Action Buttons (right) */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {language === 'vi' ? 'Danh sách chứng chỉ công ty' : 'Company Certificate List'}
+              </h2>
+              
+              <div className="flex items-center gap-2">
+                {/* Bulk Delete Button */}
+                {selectedCerts.size > 0 && (
+                  <button
+                    onClick={handleBulkDelete}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 text-sm font-medium shadow-sm"
+                  >
+                    <span>🗑️</span>
+                    {language === 'vi' ? `Xóa (${selectedCerts.size})` : `Delete (${selectedCerts.size})`}
+                  </button>
+                )}
+                
+                {/* Add Certificate Button */}
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium transition-all shadow-sm"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 text-sm font-medium shadow-sm"
                 >
                   <span>➕</span>
-                  {language === 'vi' ? 'Thêm' : 'Add'}
+                  {language === 'vi' ? 'Thêm chứng chỉ' : 'Add Certificate'}
                 </button>
 
                 {/* Refresh Button */}
                 <button
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2 transition-all shadow-sm"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2 text-sm font-medium shadow-sm"
                 >
                   <span className={isRefreshing ? 'animate-spin' : ''}>🔄</span>
                   {language === 'vi' ? 'Làm mới' : 'Refresh'}
                 </button>
-
-                {/* Bulk Delete Button */}
-                {selectedCerts.size > 0 && (
-                  <button
-                    onClick={handleBulkDelete}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 transition-all shadow-sm"
-                  >
-                    <span>🗑️</span>
-                    {language === 'vi' ? `Xóa (${selectedCerts.size})` : `Delete (${selectedCerts.size})`}
-                  </button>
-                )}
-              </div>
-
-              <div className="flex items-center gap-3">
-                {/* Search */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder={language === 'vi' ? 'Tìm kiếm...' : 'Search...'}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-64"
-                  />
-                  <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-
-                {/* Status Filter */}
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">{language === 'vi' ? 'Tất cả' : 'All Status'}</option>
-                  <option value="Valid">{language === 'vi' ? 'Còn hạn' : 'Valid'}</option>
-                  <option value="Due Soon">{language === 'vi' ? 'Sắp hết hạn' : 'Due Soon'}</option>
-                  <option value="Expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
-                </select>
               </div>
             </div>
 
-            {/* Info Row */}
-            <div className="mb-4 text-sm text-gray-600">
-              {language === 'vi' 
-                ? `Hiển thị ${getFilteredAndSortedCerts().length} / ${companyCerts.length} chứng chỉ`
-                : `Showing ${getFilteredAndSortedCerts().length} / ${companyCerts.length} certificates`
-              }
-              {selectedCerts.size > 0 && (
-                <span className="ml-4 text-blue-600 font-medium">
-                  {language === 'vi' ? `Đã chọn: ${selectedCerts.size}` : `Selected: ${selectedCerts.size}`}
-                </span>
-              )}
+            {/* Filter Section - Separate Row */}
+            <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
+              <div className="flex items-center gap-4">
+                {/* Status Filter */}
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    {language === 'vi' ? 'Trạng thái:' : 'Status:'}
+                  </label>
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                  >
+                    <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+                    <option value="Valid">{language === 'vi' ? 'Còn hạn' : 'Valid'}</option>
+                    <option value="Due Soon">{language === 'vi' ? 'Sắp hết hạn' : 'Due Soon'}</option>
+                    <option value="Expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                  </select>
+                </div>
+
+                {/* Search */}
+                <div className="flex items-center gap-2 flex-1">
+                  <label className="text-sm font-medium text-gray-700">
+                    {language === 'vi' ? 'Tìm kiếm:' : 'Search:'}
+                  </label>
+                  <div className="relative flex-1 max-w-md">
+                    <input
+                      type="text"
+                      placeholder={language === 'vi' ? 'Tìm theo tên, số chứng chỉ...' : 'Search by name, cert no...'}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                    />
+                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Info: Showing X / Y certificates */}
+                <div className="text-sm text-gray-600 whitespace-nowrap">
+                  {language === 'vi' 
+                    ? `Hiển thị ${getFilteredAndSortedCerts().length} / ${companyCerts.length} chứng chỉ`
+                    : `Showing ${getFilteredAndSortedCerts().length} / ${companyCerts.length} certificates`
+                  }
+                </div>
+              </div>
             </div>
 
             {/* Table */}
