@@ -132,30 +132,57 @@ class CompanyCertService:
     
     @staticmethod
     async def delete_company_cert(cert_id: str, current_user: UserResponse, background_tasks) -> dict:
-        """Delete company certificate"""
+        """Delete company certificate and schedule Google Drive file deletion"""
+        from app.services.gdrive_service import GDriveService
+        
         cert = await mongo_db.find_one(CompanyCertService.collection_name, {"id": cert_id})
         
         if not cert:
             raise HTTPException(status_code=404, detail="Company Certificate not found")
         
-        # Delete from database
-        await mongo_db.delete_one(CompanyCertService.collection_name, {"id": cert_id})
-        
-        # Schedule background file deletion if file exists
+        # Extract file info before deleting
         file_id = cert.get("file_id") or cert.get("google_drive_file_id")
         summary_file_id = cert.get("summary_file_id")
+        cert_name = cert.get("cert_name", "Unknown")
+        company_id = cert.get("company")
         
-        if file_id or summary_file_id:
-            background_tasks.add_task(
-                delete_file_background,
-                file_id=file_id,
-                summary_file_id=summary_file_id,
-                cert_id=cert_id,
-                cert_name=cert.get("cert_name", "Unknown")
-            )
+        # Delete from database immediately
+        await mongo_db.delete_one(CompanyCertService.collection_name, {"id": cert_id})
+        logger.info(f"✅ Company Certificate deleted from DB: {cert_id} ({cert_name})")
         
-        logger.info(f"✅ Deleted company certificate: {cert_id}")
-        return {"message": "Company Certificate deleted successfully", "id": cert_id}
+        # Schedule Google Drive file deletion in background
+        files_to_delete = []
+        if file_id:
+            files_to_delete.append((file_id, "main file"))
+        if summary_file_id:
+            files_to_delete.append((summary_file_id, "summary file"))
+        
+        deletion_msg = "Company Certificate deleted successfully"
+        if files_to_delete and background_tasks:
+            for drive_file_id, file_desc in files_to_delete:
+                background_tasks.add_task(
+                    delete_file_background,
+                    file_id=drive_file_id,
+                    company_id=company_id,
+                    document_type="company_certificate",
+                    document_name=f"{cert_name} ({file_desc})",
+                    gdrive_service_class=GDriveService
+                )
+                logger.info(f"📋 Scheduled background deletion for: {drive_file_id} ({file_desc})")
+            
+            deletion_msg = f"Company Certificate deleted successfully. {len(files_to_delete)} file(s) deletion in progress..."
+            return {
+                "message": deletion_msg,
+                "id": cert_id,
+                "background_deletion": True,
+                "files_scheduled": len(files_to_delete)
+            }
+        
+        return {
+            "message": deletion_msg,
+            "id": cert_id,
+            "background_deletion": False
+        }
     
     @staticmethod
     async def bulk_delete_company_certs(request: BulkDeleteCompanyCertRequest, current_user: UserResponse, background_tasks) -> dict:
