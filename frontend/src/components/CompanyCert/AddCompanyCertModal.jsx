@@ -152,11 +152,6 @@ export const AddCompanyCertModal = ({
       return;
     }
 
-    if (!certificateFile) {
-      toast.error(language === 'vi' ? 'Vui lòng chọn file!' : 'Please select a file!');
-      return;
-    }
-
     // Show duplicate warning if exists
     if (duplicateWarning) {
       const confirmed = window.confirm(
@@ -169,31 +164,54 @@ export const AddCompanyCertModal = ({
 
     setIsSubmitting(true);
     try {
-      // Prepare FormData
-      const uploadData = new FormData();
-      uploadData.append('file', certificateFile);
-      
-      // Add cert_data as JSON string
-      const certData = {
-        ...formData,
-        summary_text: summaryText
-      };
-      uploadData.append('cert_data', JSON.stringify(certData));
+      // Step 1: Create certificate record immediately (without file)
+      const response = await api.post('/api/company-certs', formData);
+      const newCertId = response.data.id;
 
-      // Upload
-      await api.post('/api/company-certs/upload-with-file', uploadData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
+      // Step 2: Close modal and refresh table immediately
       toast.success(language === 'vi' 
-        ? 'Thêm chứng chỉ thành công!'
-        : 'Certificate added successfully!');
-      onSuccess();
-      handleClose();
+        ? '✅ Đã tạo chứng chỉ thành công!'
+        : '✅ Certificate created successfully!');
+      
+      onSuccess(); // Refresh table
+      handleClose(); // Close modal
+      
+      // Step 3: Upload file in background if exists
+      if (certificateFile && newCertId) {
+        // Use setTimeout to ensure modal is closed first
+        setTimeout(async () => {
+          try {
+            toast.info(language === 'vi' 
+              ? '📤 Đang upload file...' 
+              : '📤 Uploading file...', { autoClose: 2000 });
+            
+            const uploadData = new FormData();
+            uploadData.append('file', certificateFile);
+            uploadData.append('cert_id', newCertId);
+            uploadData.append('summary_text', summaryText || '');
+
+            await api.post(`/api/company-certs/${newCertId}/upload-file`, uploadData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            toast.success(language === 'vi' 
+              ? '✅ Upload file hoàn tất!' 
+              : '✅ File uploaded successfully!');
+            
+            // Refresh table again to show file icons
+            onSuccess();
+          } catch (uploadError) {
+            console.error('Background upload error:', uploadError);
+            toast.error(language === 'vi' 
+              ? '❌ Upload file thất bại. Vui lòng thử lại.' 
+              : '❌ File upload failed. Please try again.');
+          }
+        }, 500);
+      }
+      
     } catch (error) {
       console.error('Submit error:', error);
       toast.error(error.response?.data?.detail || 'Failed to add certificate');
-    } finally {
       setIsSubmitting(false);
     }
   };
