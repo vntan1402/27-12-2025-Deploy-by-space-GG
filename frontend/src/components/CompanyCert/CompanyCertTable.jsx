@@ -128,7 +128,7 @@ export const CompanyCertTable = ({
       <table className="min-w-full bg-white border border-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-4 py-3 border-b border-r text-left w-20">
+            <th className="px-2 py-3 border-b border-r text-left w-20">
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -143,69 +143,69 @@ export const CompanyCertTable = ({
               </div>
             </th>
             <th 
-              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              className="px-2 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('cert_name')}
             >
               {language === 'vi' ? 'Tên chứng chỉ' : 'Cert Name'}
               {getSortIcon('cert_name')}
             </th>
             <th 
-              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              className="px-2 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('cert_no')}
             >
               {language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'}
               {getSortIcon('cert_no')}
             </th>
             <th 
-              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              className="px-2 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('company_name')}
             >
               {language === 'vi' ? 'Tên công ty' : 'Company Name'}
               {getSortIcon('company_name')}
             </th>
             <th 
-              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              className="px-2 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('issue_date')}
             >
               {language === 'vi' ? 'Ngày cấp' : 'Issue Date'}
               {getSortIcon('issue_date')}
             </th>
             <th 
-              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              className="px-2 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('valid_date')}
             >
               {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
               {getSortIcon('valid_date')}
             </th>
             <th 
-              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              className="px-2 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('last_endorse')}
             >
               {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
               {getSortIcon('last_endorse')}
             </th>
             <th 
-              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              className="px-2 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('next_survey')}
             >
               {language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}
               {getSortIcon('next_survey')}
             </th>
             <th 
-              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              className="px-2 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('issued_by')}
             >
               {language === 'vi' ? 'Cơ quan cấp' : 'Issued By'}
               {getSortIcon('issued_by')}
             </th>
             <th 
-              className="px-4 py-3 border-b border-r text-center cursor-pointer hover:bg-gray-100"
+              className="px-2 py-3 border-b border-r text-center cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('status')}
             >
               {language === 'vi' ? 'Trạng thái' : 'Status'}
               {getSortIcon('status')}
             </th>
-            <th className="px-4 py-3 border-b text-center">
+            <th className="px-2 py-3 border-b text-center">
               {language === 'vi' ? 'Ghi chú' : 'Notes'}
             </th>
           </tr>
@@ -222,7 +222,7 @@ export const CompanyCertTable = ({
                 onDoubleClick={() => onDoubleClick(cert)}
                 onContextMenu={(e) => onRightClick && onRightClick(e, cert)}
               >
-                <td className="px-4 py-2 border-b border-r">
+                <td className="px-2 py-2 border-b border-r">
                   <div className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -237,7 +237,7 @@ export const CompanyCertTable = ({
                   </div>
                 </td>
                 <td 
-                  className="px-4 py-2 border-b border-r text-sm font-semibold text-blue-700"
+                  className="px-2 py-2 border-b border-r text-sm font-semibold text-blue-700"
                   title={cert.cert_name}
                   style={{ cursor: 'help' }}
                 >
