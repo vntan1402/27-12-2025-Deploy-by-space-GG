@@ -117,7 +117,7 @@ async def analyze_company_cert_file_endpoint(
     try:
         import base64
         from app.services.company_cert_analyze_service import analyze_company_cert_file
-        from app.services.ai_config_service import get_ai_configs
+        from app.services.ai_config_service import AIConfigService
         
         file_content_b64 = request.get("file_content")
         filename = request.get("filename")
@@ -129,10 +129,19 @@ async def analyze_company_cert_file_endpoint(
         # Decode base64
         file_content = base64.b64decode(file_content_b64)
         
-        # Get AI configs
-        ai_configs = await get_ai_configs(current_user.company)
-        document_ai_config = ai_configs.get('document_ai', {})
-        ai_config_doc = ai_configs.get('ai_config', {})
+        # Get AI config
+        ai_config_response = await AIConfigService.get_ai_config(current_user)
+        ai_config_doc = {
+            'provider': ai_config_response.provider,
+            'model': ai_config_response.model,
+            'use_emergent_key': ai_config_response.use_emergent_key,
+            'custom_api_key': ai_config_response.custom_api_key,
+            'temperature': ai_config_response.temperature,
+            'max_tokens': ai_config_response.max_tokens
+        }
+        
+        # For document AI config, we'll use empty dict for now
+        document_ai_config = {}
         
         # Analyze file
         result = await analyze_company_cert_file(
