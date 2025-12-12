@@ -62,8 +62,11 @@ export const SUB_MENU_ITEMS = {
     { key: 'approval_document', name_vi: 'Approval Document', name_en: 'Approval Document' },
     { key: 'other_document', name_vi: 'Other Audit Document', name_en: 'Other Audit Document' }
   ],
-  isps: [
-    { key: 'isps_list', name_vi: 'ISPS Documents', name_en: 'ISPS Documents' }
+  sms: [
+    { key: 'company_cert', name_vi: 'Chứng chỉ công ty', name_en: 'Company Cert.' },
+    { key: 'sms_procedures', name_vi: 'Quy trình SMS', name_en: 'SMS Procedures' },
+    { key: 'record_template', name_vi: 'Mẫu biên bản', name_en: 'Record Template' },
+    { key: 'ship_record', name_vi: 'Biên bản tàu', name_en: 'Ship Record' }
   ],
   mlc: [
     { key: 'mlc_list', name_vi: 'MLC Documents', name_en: 'MLC Documents' }
