@@ -42,6 +42,7 @@ class CompanyCertResponse(BaseModel):
     id: str
     company: str
     cert_name: Optional[str] = None
+    cert_abbreviation: Optional[str] = None  # Abbreviated cert name for display
     cert_no: Optional[str] = None
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None
@@ -49,6 +50,7 @@ class CompanyCertResponse(BaseModel):
     next_survey: Optional[Union[str, datetime]] = None
     next_survey_type: Optional[str] = None
     issued_by: Optional[str] = None
+    issued_by_abbreviation: Optional[str] = None  # Abbreviated organization name
     status: Optional[str] = None
     notes: Optional[str] = None
     has_notes: Optional[bool] = None
