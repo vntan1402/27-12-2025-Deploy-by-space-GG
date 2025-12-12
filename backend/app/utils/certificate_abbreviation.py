@@ -76,7 +76,52 @@ def validate_certificate_type(cert_type: str) -> str:
     else:
         return "Other"
 
-async def generate_certificate_abbreviation(cert_name: str) -> str:
+def generate_doc_abbreviation(doc_type: Optional[str], cert_name: str) -> str:
+    """
+    Generate DOC abbreviation based on doc_type field
+    
+    Args:
+        doc_type: DOC classification (full_term, short_term, interim)
+        cert_name: Certificate name (fallback if doc_type not provided)
+        
+    Returns:
+        DOC abbreviation (FT DOC, ST DOC, Int DOC, or DOC)
+    """
+    # Check if this is a DOC certificate
+    cert_name_upper = cert_name.upper().strip() if cert_name else ""
+    if 'DOCUMENT OF COMPLIANCE' not in cert_name_upper and cert_name_upper != 'DOC':
+        return ""  # Not a DOC certificate
+    
+    # Use doc_type if provided (from AI extraction)
+    if doc_type:
+        doc_type_lower = doc_type.lower().strip()
+        if doc_type_lower == "full_term":
+            logger.info(f"✅ DOC type from AI: '{doc_type}' → 'FT DOC'")
+            return "FT DOC"
+        elif doc_type_lower == "short_term":
+            logger.info(f"✅ DOC type from AI: '{doc_type}' → 'ST DOC'")
+            return "ST DOC"
+        elif doc_type_lower == "interim":
+            logger.info(f"✅ DOC type from AI: '{doc_type}' → 'Int DOC'")
+            return "Int DOC"
+    
+    # Fallback: analyze cert_name if doc_type not provided
+    if 'FULL' in cert_name_upper or 'FULL TERM' in cert_name_upper:
+        logger.info(f"✅ DOC type from name: '{cert_name}' → 'FT DOC'")
+        return "FT DOC"
+    elif 'SHORT' in cert_name_upper or 'SHORT TERM' in cert_name_upper:
+        logger.info(f"✅ DOC type from name: '{cert_name}' → 'ST DOC'")
+        return "ST DOC"
+    elif 'INTERIM' in cert_name_upper or 'INTERRIM' in cert_name_upper:
+        logger.info(f"✅ DOC type from name: '{cert_name}' → 'Int DOC'")
+        return "Int DOC"
+    else:
+        # Default DOC if no specific type found
+        logger.info(f"✅ DOC detected (no type specified): '{cert_name}' → 'DOC'")
+        return "DOC"
+
+
+async def generate_certificate_abbreviation(cert_name: str, doc_type: Optional[str] = None) -> str:
     """
     Generate certificate abbreviation from certificate name
     Priority: User-defined mappings → Special DOC handling → Auto-generation algorithm
@@ -105,22 +150,9 @@ async def generate_certificate_abbreviation(cert_name: str) -> str:
         return user_abbreviation
     
     # Priority 2: Special handling for Document of Compliance (DOC)
-    cert_name_upper = cert_name.upper().strip()
-    if 'DOCUMENT OF COMPLIANCE' in cert_name_upper or cert_name_upper == 'DOC':
-        # Check for specific DOC types
-        if 'FULL' in cert_name_upper or 'FULL TERM' in cert_name_upper:
-            logger.info(f"✅ DOC type detected: '{cert_name}' → 'FT DOC'")
-            return "FT DOC"
-        elif 'SHORT' in cert_name_upper or 'SHORT TERM' in cert_name_upper:
-            logger.info(f"✅ DOC type detected: '{cert_name}' → 'ST DOC'")
-            return "ST DOC"
-        elif 'INTERIM' in cert_name_upper or 'INTERRIM' in cert_name_upper:
-            logger.info(f"✅ DOC type detected: '{cert_name}' → 'Int DOC'")
-            return "Int DOC"
-        else:
-            # Default DOC if no specific type found
-            logger.info(f"✅ DOC detected (no type specified): '{cert_name}' → 'DOC'")
-            return "DOC"
+    doc_abbr = generate_doc_abbreviation(doc_type, cert_name)
+    if doc_abbr:
+        return doc_abbr
     
     # Priority 3: Auto-generation algorithm
     # Remove common words and focus on key terms
