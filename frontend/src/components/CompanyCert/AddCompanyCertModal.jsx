@@ -211,7 +211,24 @@ export const AddCompanyCertModal = ({
       
     } catch (error) {
       console.error('Submit error:', error);
-      toast.error(error.response?.data?.detail || 'Failed to add certificate');
+      
+      // Extract error message properly
+      let errorMessage = 'Failed to add certificate';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        // Handle string or array of error objects
+        if (typeof detail === 'string') {
+          errorMessage = detail;
+        } else if (Array.isArray(detail)) {
+          errorMessage = detail.map(err => err.msg || err.message || JSON.stringify(err)).join(', ');
+        } else if (typeof detail === 'object') {
+          errorMessage = detail.message || detail.msg || JSON.stringify(detail);
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
       setIsSubmitting(false);
     }
   };
