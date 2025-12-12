@@ -287,30 +287,31 @@ export const CompanyCertTable = ({
                   </span>
                 </td>
                 <td className="px-4 py-2 border-b text-center">
-                  {cert.notes ? (
-                    <button
-                      className="text-blue-600 hover:text-blue-800 text-lg"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onNotesClick(cert);
-                      }}
+                  {(cert.has_notes || (cert.notes && cert.notes.trim())) ? (
+                    <span 
+                      className="text-red-600 font-bold cursor-pointer text-lg hover:text-red-700"
                       onMouseEnter={(e) => handleNoteMouseEnter(e, cert.notes)}
                       onMouseLeave={handleNoteMouseLeave}
-                      title="View notes"
-                    >
-                      📝
-                    </button>
-                  ) : (
-                    <button
-                      className="text-gray-400 hover:text-gray-600 text-lg"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onNotesClick(cert);
+                        handleNoteMouseLeave();
+                        if (onNotesClick) onNotesClick(cert);
                       }}
-                      title="Add notes"
+                      title={language === 'vi' ? 'Click để xem/chỉnh sửa ghi chú' : 'Click to view/edit notes'}
                     >
-                      📝
-                    </button>
+                      *
+                    </span>
+                  ) : (
+                    <span 
+                      className="text-gray-400 cursor-pointer hover:text-gray-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onNotesClick) onNotesClick(cert);
+                      }}
+                      title={language === 'vi' ? 'Click để thêm ghi chú' : 'Click to add notes'}
+                    >
+                      -
+                    </span>
                   )}
                 </td>
               </tr>
