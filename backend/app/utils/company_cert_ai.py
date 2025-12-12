@@ -45,6 +45,7 @@ Extract the following fields in JSON format:
 {{
     "cert_name": "Full certificate name",
     "cert_no": "Certificate number",
+    "company_name": "Company name on the certificate",
     "issue_date": "Issue date in DD/MM/YYYY format",
     "valid_date": "Valid/expiry date in DD/MM/YYYY format",
     "issued_by": "Issuing authority/organization"
