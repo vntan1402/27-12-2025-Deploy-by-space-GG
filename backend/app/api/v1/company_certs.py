@@ -104,3 +104,38 @@ async def bulk_delete_company_certs(
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Company Certificates: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Company Certificates")
+
+@router.post("/analyze-file")
+async def analyze_company_cert_file(
+    request: dict,
+    current_user: UserResponse = Depends(check_dpa_manager_permission)
+):
+    """
+    Analyze company certificate file with AI
+    Extract: cert_name, cert_no, issue_date, valid_date, issued_by
+    """
+    try:
+        file_content = request.get("file_content")
+        filename = request.get("filename")
+        
+        if not file_content or not filename:
+            raise HTTPException(status_code=400, detail="Missing file_content or filename")
+        
+        # TODO: Implement AI analysis using same pattern as audit certificates
+        # For now, return success with empty data
+        return {
+            "success": True,
+            "extracted_info": {
+                "cert_name": "",
+                "cert_no": "",
+                "issue_date": "",
+                "valid_date": "",
+                "issued_by": ""
+            },
+            "message": "AI analysis placeholder - to be implemented"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error analyzing company cert file: {e}")
+        raise HTTPException(status_code=500, detail="Failed to analyze file")
