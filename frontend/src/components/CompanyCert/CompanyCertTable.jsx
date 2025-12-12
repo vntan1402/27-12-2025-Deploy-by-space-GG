@@ -277,7 +277,13 @@ export const CompanyCertTable = ({
                   </div>
                 </td>
                 <td className="px-2 py-2 border-b border-r text-sm">{cert.cert_no || '-'}</td>
-                <td className="px-2 py-2 border-b border-r text-sm font-medium text-gray-700">{cert.company_name || '-'}</td>
+                <td 
+                  className="px-2 py-2 border-b border-r text-sm font-medium text-gray-700"
+                  title={cert.company_name}
+                  style={{ cursor: cert.company_name ? 'help' : 'default' }}
+                >
+                  {cert.company_name_display || cert.company_name || '-'}
+                </td>
                 <td className="px-2 py-2 border-b border-r text-sm">{formatDateDisplay(cert.issue_date) || '-'}</td>
                 <td className="px-2 py-2 border-b border-r text-sm">{formatDateDisplay(cert.valid_date) || '-'}</td>
                 <td className="px-2 py-2 border-b border-r text-sm">{formatDateDisplay(cert.last_endorse) || '-'}</td>
