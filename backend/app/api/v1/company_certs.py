@@ -137,11 +137,12 @@ async def analyze_company_cert_file_endpoint(
             'use_emergent_key': ai_config_response.use_emergent_key,
             'custom_api_key': ai_config_response.custom_api_key,
             'temperature': ai_config_response.temperature,
-            'max_tokens': ai_config_response.max_tokens
+            'max_tokens': ai_config_response.max_tokens,
+            'document_ai': ai_config_response.document_ai or {}
         }
         
-        # For document AI config, we'll use empty dict for now
-        document_ai_config = {}
+        # Extract Document AI config
+        document_ai_config = ai_config_doc.get('document_ai', {})
         
         # Analyze file
         result = await analyze_company_cert_file(
