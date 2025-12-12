@@ -222,12 +222,12 @@ async def upload_company_cert_with_file(
                     base_name = file.filename.rsplit('.', 1)[0] if '.' in file.filename else file.filename
                     summary_filename = f"{base_name}_Summary.txt"
                     
-                    # Upload summary file
+                    # Upload summary file (same folder as main file)
                     summary_result = await GDriveService.upload_file(
                         file_content=summary_text.encode('utf-8'),
                         filename=summary_filename,
                         content_type="text/plain",
-                        folder_path=folder_path,
+                        folder_path="COMPANY DOCUMENT / SMS / Company Certificates",
                         company_id=current_user.company
                     )
                     
