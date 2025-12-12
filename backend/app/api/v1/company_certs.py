@@ -151,3 +151,87 @@ async def analyze_company_cert_file_endpoint(
     except Exception as e:
         logger.error(f"❌ Error analyzing company cert file: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to analyze file: {str(e)}")
+
+@router.post("/upload-with-file")
+async def upload_company_cert_with_file(
+    file: UploadFile = File(...),
+    cert_data: str = Form(...),
+    current_user: UserResponse = Depends(check_dpa_manager_permission)
+):
+    """
+    Upload company certificate with file
+    Create DB record + Upload file to Google Drive
+    """
+    try:
+        import json
+        from app.services.google_drive_service import upload_file_to_drive, create_summary_file_from_text
+        
+        # Parse cert_data JSON
+        cert_dict = json.loads(cert_data)
+        cert_dict["company"] = current_user.company
+        cert_dict["created_by"] = current_user.id
+        
+        # Create certificate in DB first
+        cert_response = await CompanyCertService.create_company_cert(
+            CompanyCertCreate(**cert_dict),
+            current_user
+        )
+        
+        cert_id = cert_response.id
+        
+        # Upload file to Google Drive
+        folder_path = "COMPANY DOCUMENT/Company Certificates"
+        file_content = await file.read()
+        
+        drive_result = await upload_file_to_drive(
+            file_content=file_content,
+            filename=file.filename,
+            folder_path=folder_path,
+            company_id=current_user.company
+        )
+        
+        if drive_result["success"]:
+            # Update certificate with file info
+            await CompanyCertService.update_company_cert(
+                cert_id,
+                CompanyCertUpdate(
+                    file_id=drive_result["file_id"],
+                    file_name=file.filename,
+                    file_url=drive_result["file_url"]
+                ),
+                current_user
+            )
+            
+            # Create summary file if summary_text provided
+            summary_text = cert_dict.get("summary_text")
+            if summary_text:
+                summary_result = await create_summary_file_from_text(
+                    text_content=summary_text,
+                    filename=f"{file.filename}_summary.txt",
+                    folder_path=folder_path,
+                    company_id=current_user.company
+                )
+                
+                if summary_result["success"]:
+                    await CompanyCertService.update_company_cert(
+                        cert_id,
+                        CompanyCertUpdate(
+                            summary_file_id=summary_result["file_id"],
+                            summary_file_url=summary_result["file_url"]
+                        ),
+                        current_user
+                    )
+            
+            return {
+                "success": True,
+                "certificate": cert_response,
+                "message": "Certificate uploaded successfully"
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to upload file to Google Drive")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading company cert: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
