@@ -17,6 +17,9 @@ export const EditCompanyCertModal = ({
     cert_no: '',
     issue_date: '',
     valid_date: '',
+    last_endorse: '',
+    next_survey: '',
+    next_survey_type: '',
     issued_by: '',
     notes: ''
   });
@@ -30,6 +33,9 @@ export const EditCompanyCertModal = ({
         cert_no: certificate.cert_no || '',
         issue_date: certificate.issue_date || '',
         valid_date: certificate.valid_date || '',
+        last_endorse: certificate.last_endorse || '',
+        next_survey: certificate.next_survey || '',
+        next_survey_type: certificate.next_survey_type || '',
         issued_by: certificate.issued_by || '',
         notes: certificate.notes || ''
       });
@@ -116,6 +122,47 @@ export const EditCompanyCertModal = ({
                 onChange={(e) => setFormData({ ...formData, valid_date: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg"
               />
+            </div>
+          </div>
+
+          {/* Last Endorse, Next Survey & Next Survey Type */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
+              </label>
+              <input
+                type="date"
+                value={formData.last_endorse}
+                onChange={(e) => setFormData({ ...formData, last_endorse: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}
+              </label>
+              <input
+                type="date"
+                value={formData.next_survey}
+                onChange={(e) => setFormData({ ...formData, next_survey: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Loại kiểm tra' : 'Survey Type'}
+              </label>
+              <select
+                value={formData.next_survey_type}
+                onChange={(e) => setFormData({ ...formData, next_survey_type: e.target.value })}
+                className="w-full px-3 py-2 border rounded-lg"
+              >
+                <option value="">{language === 'vi' ? '-- Chọn --' : '-- Select --'}</option>
+                <option value="Initial">Initial</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Renewal">Renewal</option>
+              </select>
             </div>
           </div>
 
