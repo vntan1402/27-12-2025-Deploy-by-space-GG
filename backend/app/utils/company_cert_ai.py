@@ -128,6 +128,8 @@ RESPOND WITH VALID JSON ONLY:"""
         logger.info(f"✅ AI extracted fields: {list(extracted_data.keys())}")
         logger.info(f"   📋 Cert Name: '{extracted_data.get('cert_name', '')}'")
         logger.info(f"   🔢 Cert No: '{extracted_data.get('cert_no', '')}'")
+        logger.info(f"   🏢 Company Name: '{extracted_data.get('company_name', '')}'")
+        logger.info(f"   📑 DOC Type: '{extracted_data.get('doc_type', '')}'")
         logger.info(f"   📅 Issue Date: '{extracted_data.get('issue_date', '')}'")
         logger.info(f"   📅 Valid Date: '{extracted_data.get('valid_date', '')}'")
         logger.info(f"   📝 Last Endorse: '{extracted_data.get('last_endorse', '')}'")
@@ -139,6 +141,8 @@ RESPOND WITH VALID JSON ONLY:"""
         return {
             "cert_name": "",
             "cert_no": "",
+            "company_name": "",
+            "doc_type": "",
             "issue_date": "",
             "valid_date": "",
             "last_endorse": "",
