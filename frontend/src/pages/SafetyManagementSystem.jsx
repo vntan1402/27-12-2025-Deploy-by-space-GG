@@ -63,14 +63,21 @@ const SafetyManagementSystem = () => {
 
   const loadCompanyData = async () => {
     try {
-      const response = await api.get('/api/companies');
-      if (response.data && response.data.length > 0) {
-        // Get user's company
-        const userCompany = response.data.find(c => c.id === user?.company);
-        setCompanyData(userCompany || response.data[0]);
-      }
+      // Get company info with stats from backend
+      const response = await api.get(`/api/companies/${user.company}/stats`);
+      setCompanyData(response.data);
     } catch (error) {
       console.error('Error loading company:', error);
+      // Fallback: get basic company info
+      try {
+        const response = await api.get('/api/companies');
+        if (response.data && response.data.length > 0) {
+          const userCompany = response.data.find(c => c.id === user?.company);
+          setCompanyData(userCompany || response.data[0]);
+        }
+      } catch (err) {
+        console.error('Fallback error:', err);
+      }
     }
   };
 
