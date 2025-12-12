@@ -115,7 +115,7 @@ IMPORTANT INSTRUCTIONS:
 9. If a field cannot be found, use empty string ""
 10. Return ONLY valid JSON, no markdown, no explanation
 
-EXAMPLE OUTPUT:
+EXAMPLE OUTPUT 1 (Full Term):
 {{
     "cert_name": "DOCUMENT OF COMPLIANCE",
     "cert_no": "PM242633",
@@ -125,6 +125,30 @@ EXAMPLE OUTPUT:
     "valid_date": "07/10/2029",
     "last_endorse": "15/03/2023",
     "issued_by": "Panama Maritime Documentation Services, Inc."
+}}
+
+EXAMPLE OUTPUT 2 (Short Term - CRITICAL):
+{{
+    "cert_name": "SHORT TERM DOCUMENT OF COMPLIANCE",
+    "cert_no": "PM242494804",
+    "company_name": "HN SHIPPING AND TRADING COMPANY LIMITED",
+    "doc_type": "short_term",
+    "issue_date": "24/10/2025",
+    "valid_date": "23/03/2026",
+    "last_endorse": "",
+    "issued_by": "Panama Maritime Documentation Services, Inc."
+}}
+
+EXAMPLE OUTPUT 3 (Interim):
+{{
+    "cert_name": "INTERIM DOCUMENT OF COMPLIANCE",
+    "cert_no": "PM242123",
+    "company_name": "TEST COMPANY LIMITED",
+    "doc_type": "interim",
+    "issue_date": "01/03/2025",
+    "valid_date": "01/09/2025",
+    "last_endorse": "",
+    "issued_by": "Panama Maritime Authority"
 }}
 
 RESPOND WITH VALID JSON ONLY:"""
