@@ -343,6 +343,19 @@ class MongoDatabase:
                 import_results[collection] = -1
         
         return import_results
+    
+    # Wrapper methods for backward compatibility
+    async def insert_one(self, collection: str, data: Dict[str, Any]) -> str:
+        """Insert one document (wrapper for create method)"""
+        return await self.create(collection, data)
+    
+    async def update_one(self, collection: str, filter_dict: Dict[str, Any], update_data: Dict[str, Any]) -> bool:
+        """Update one document (wrapper for update method)"""
+        return await self.update(collection, filter_dict, update_data)
+    
+    async def delete_one(self, collection: str, filter_dict: Dict[str, Any]) -> bool:
+        """Delete one document (wrapper for delete method)"""
+        return await self.delete(collection, filter_dict)
 
 # Global database instance
 mongo_db = MongoDatabase()
