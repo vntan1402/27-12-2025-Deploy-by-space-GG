@@ -140,5 +140,6 @@ RESPOND WITH VALID JSON ONLY:"""
             "cert_no": "",
             "issue_date": "",
             "valid_date": "",
+            "last_endorse": "",
             "issued_by": ""
         }
