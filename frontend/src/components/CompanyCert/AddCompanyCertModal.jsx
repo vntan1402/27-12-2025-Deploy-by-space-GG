@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const AddCompanyCertModal = ({
   isOpen,
@@ -12,6 +13,7 @@ export const AddCompanyCertModal = ({
   onSuccess,
   language
 }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     cert_name: '',
     cert_no: '',
