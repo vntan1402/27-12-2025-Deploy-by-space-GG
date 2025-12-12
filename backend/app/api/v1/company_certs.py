@@ -227,7 +227,7 @@ async def upload_company_cert_with_file(
                         file_content=summary_text.encode('utf-8'),
                         filename=summary_filename,
                         content_type="text/plain",
-                        folder_path="COMPANY DOCUMENT / SMS / Company Certificates",
+                        folder_path="COMPANY DOCUMENT/SMS/Company Certificates",
                         company_id=current_user.company
                     )
                     
