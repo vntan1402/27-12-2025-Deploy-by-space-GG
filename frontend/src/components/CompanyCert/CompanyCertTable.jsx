@@ -145,41 +145,64 @@ export const CompanyCertTable = ({
               {language === 'vi' ? 'STT' : 'No.'}
             </th>
             <th 
-              className="px-4 py-3 border-b text-left cursor-pointer hover:bg-gray-100"
+              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('cert_name')}
             >
               {language === 'vi' ? 'Tên chứng chỉ' : 'Cert Name'}
               {getSortIcon('cert_name')}
             </th>
-            <th className="px-4 py-3 border-b text-left">
+            <th 
+              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              onClick={() => onSort('cert_no')}
+            >
               {language === 'vi' ? 'Số chứng chỉ' : 'Certificate No'}
+              {getSortIcon('cert_no')}
             </th>
-            <th className="px-4 py-3 border-b text-left">
+            <th 
+              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              onClick={() => onSort('issue_date')}
+            >
               {language === 'vi' ? 'Ngày cấp' : 'Issue Date'}
+              {getSortIcon('issue_date')}
             </th>
-            <th className="px-4 py-3 border-b text-left">
+            <th 
+              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              onClick={() => onSort('valid_date')}
+            >
               {language === 'vi' ? 'Ngày hết hạn' : 'Valid Date'}
+              {getSortIcon('valid_date')}
             </th>
-            <th className="px-4 py-3 border-b text-left">
+            <th 
+              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              onClick={() => onSort('last_endorse')}
+            >
               {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
+              {getSortIcon('last_endorse')}
             </th>
-            <th className="px-4 py-3 border-b text-left">
+            <th 
+              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              onClick={() => onSort('next_survey')}
+            >
               {language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}
+              {getSortIcon('next_survey')}
             </th>
-            <th className="px-4 py-3 border-b text-left">
+            <th 
+              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              onClick={() => onSort('issued_by')}
+            >
               {language === 'vi' ? 'Cơ quan cấp' : 'Issued By'}
+              {getSortIcon('issued_by')}
             </th>
-            <th className="px-4 py-3 border-b text-center">
+            <th 
+              className="px-4 py-3 border-b border-r text-center cursor-pointer hover:bg-gray-100"
+              onClick={() => onSort('status')}
+            >
               {language === 'vi' ? 'Trạng thái' : 'Status'}
+              {getSortIcon('status')}
             </th>
             <th className="px-4 py-3 border-b text-center">
               {language === 'vi' ? 'Ghi chú' : 'Notes'}
             </th>
-            {canEditDelete() && (
-              <th className="px-4 py-3 border-b text-center">
-                {language === 'vi' ? 'Thao tác' : 'Actions'}
-              </th>
-            )}
           </tr>
         </thead>
         <tbody>
@@ -194,7 +217,7 @@ export const CompanyCertTable = ({
                 onDoubleClick={() => onDoubleClick(cert)}
                 onContextMenu={(e) => onRightClick && onRightClick(e, cert)}
               >
-                <td className="px-4 py-2 border-b">
+                <td className="px-4 py-2 border-b border-r">
                   <input
                     type="checkbox"
                     checked={selectedCertificates.has(cert.id)}
@@ -205,8 +228,8 @@ export const CompanyCertTable = ({
                     className="rounded border-gray-300"
                   />
                 </td>
-                <td className="px-4 py-2 border-b text-sm">{index + 1}</td>
-                <td className="px-4 py-2 border-b">
+                <td className="px-4 py-2 border-b border-r text-sm">{index + 1}</td>
+                <td className="px-4 py-2 border-b border-r">
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{cert.cert_name || '-'}</span>
                     {cert.file_id && (
@@ -217,13 +240,13 @@ export const CompanyCertTable = ({
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-2 border-b text-sm">{cert.cert_no || '-'}</td>
-                <td className="px-4 py-2 border-b text-sm">{formatDateDisplay(cert.issue_date) || '-'}</td>
-                <td className="px-4 py-2 border-b text-sm">{formatDateDisplay(cert.valid_date) || '-'}</td>
-                <td className="px-4 py-2 border-b text-sm">{formatDateDisplay(cert.last_endorse) || '-'}</td>
-                <td className="px-4 py-2 border-b text-sm">{formatDateDisplay(cert.next_survey) || '-'}</td>
-                <td className="px-4 py-2 border-b text-sm">{cert.issued_by || '-'}</td>
-                <td className="px-4 py-2 border-b text-center">
+                <td className="px-4 py-2 border-b border-r text-sm">{cert.cert_no || '-'}</td>
+                <td className="px-4 py-2 border-b border-r text-sm">{formatDateDisplay(cert.issue_date) || '-'}</td>
+                <td className="px-4 py-2 border-b border-r text-sm">{formatDateDisplay(cert.valid_date) || '-'}</td>
+                <td className="px-4 py-2 border-b border-r text-sm">{formatDateDisplay(cert.last_endorse) || '-'}</td>
+                <td className="px-4 py-2 border-b border-r text-sm">{formatDateDisplay(cert.next_survey) || '-'}</td>
+                <td className="px-4 py-2 border-b border-r text-sm">{cert.issued_by || '-'}</td>
+                <td className="px-4 py-2 border-b border-r text-center">
                   <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(status)}`}>
                     {status}
                   </span>
@@ -255,32 +278,6 @@ export const CompanyCertTable = ({
                     </button>
                   )}
                 </td>
-                {canEditDelete() && (
-                  <td className="px-4 py-2 border-b text-center">
-                    <div className="flex gap-2 justify-center">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditClick(cert);
-                        }}
-                        className="text-blue-600 hover:text-blue-800 text-sm"
-                        title="Edit"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteClick(cert);
-                        }}
-                        className="text-red-600 hover:text-red-800 text-sm"
-                        title="Delete"
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </td>
-                )}
               </tr>
             );
           })}
