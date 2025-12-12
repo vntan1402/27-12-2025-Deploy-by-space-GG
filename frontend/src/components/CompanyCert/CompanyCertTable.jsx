@@ -128,19 +128,19 @@ export const CompanyCertTable = ({
       <table className="min-w-full bg-white border border-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-4 py-3 border-b text-left w-12">
-              <input
-                type="checkbox"
-                checked={isAllSelected()}
-                ref={el => {
-                  if (el) el.indeterminate = isIndeterminate();
-                }}
-                onChange={(e) => onSelectAllCertificates(e.target.checked)}
-                className="rounded border-gray-300"
-              />
-            </th>
-            <th className="px-4 py-3 border-b text-left w-12">
-              {language === 'vi' ? 'STT' : 'No.'}
+            <th className="px-4 py-3 border-b border-r text-left w-20">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={isAllSelected()}
+                  ref={el => {
+                    if (el) el.indeterminate = isIndeterminate();
+                  }}
+                  onChange={(e) => onSelectAllCertificates(e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                <span>{language === 'vi' ? 'STT' : 'No.'}</span>
+              </div>
             </th>
             <th 
               className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
