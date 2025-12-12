@@ -155,7 +155,10 @@ const SafetyManagementSystem = () => {
   return (
     <MainLayout>
       <div className="flex h-screen overflow-hidden">
-        <Sidebar />
+        <Sidebar 
+          selectedCategory="sms"
+          onCategoryChange={() => {}}
+        />
         
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Company Info Panel */}
