@@ -13,6 +13,7 @@ import OtherDocuments from '../pages/OtherDocuments';
 import CrewRecords from '../pages/CrewRecords';
 import CrewCertificate from '../pages/CrewCertificate';
 import IsmIspsMLc from '../pages/IsmIspsMLc';
+import SafetyManagementSystem from '../pages/SafetyManagementSystem';
 import SystemSettingsPage from '../pages/SystemSettingsPage';
 import { CrewAuditLogsPage } from '../components/SystemSettings/CrewAuditLogs';
 
