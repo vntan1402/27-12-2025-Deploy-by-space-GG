@@ -24,7 +24,7 @@ export const MAIN_CATEGORIES = [
     icon: '📋'
   },
   {
-    key: 'isps',
+    key: 'sms',
     name_vi: 'Safety Management System',
     name_en: 'Safety Management System',
     icon: '🛡️'

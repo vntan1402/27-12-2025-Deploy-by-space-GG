@@ -24,7 +24,7 @@ export const CategoryMenu = ({
       'ship_certificates': '/certificates',
       'crew': '/crew',
       'ism': '/ism-isps-mlc',
-      'isps': '/isps',
+      'sms': '/safety-management-system',
       'mlc': '/mlc',
       'supplies': '/supplies'
     };
