@@ -56,13 +56,24 @@ Extract the following fields in JSON format:
 IMPORTANT INSTRUCTIONS:
 1. cert_name and cert_no are REQUIRED fields
 2. company_name: Extract the company name (look for "Name of the Company:", "Company:", etc.)
-3. doc_type: **MANDATORY FOR ALL DOC CERTIFICATES** - Search for EXACT keywords in the document text:
-   - Return "full_term" if you find: "Full Term", "FULL TERM", "Full-Term", "FULL-TERM", "full term"
-   - Return "short_term" if you find: "Short Term", "SHORT TERM", "Short-Term", "SHORT-TERM", "short term"
-   - Return "interim" if you find: "Interim", "INTERIM", "Interrim", "INTERRIM", "interim"
+3. doc_type: **CRITICAL - MANDATORY FOR ALL DOC CERTIFICATES** - Search carefully for these EXACT keywords:
+   
+   **PRIORITY 1: Check certificate title first:**
+   - If title contains "SHORT TERM DOCUMENT OF COMPLIANCE" → Return "short_term"
+   - If title contains "FULL TERM DOCUMENT OF COMPLIANCE" → Return "full_term"
+   - If title contains "INTERIM DOCUMENT OF COMPLIANCE" → Return "interim"
+   
+   **PRIORITY 2: Check anywhere in document text:**
+   - Return "short_term" if you find: "Short Term", "SHORT TERM", "Short-Term", "SHORT-TERM", "short term", "Short Term Certificate"
+   - Return "full_term" if you find: "Full Term", "FULL TERM", "Full-Term", "FULL-TERM", "full term", "Full Term Certificate"
+   - Return "interim" if you find: "Interim", "INTERIM", "Interrim", "INTERRIM", "interim", "Interim Certificate"
+   
+   **IMPORTANT RULES:**
+   - Look at the DOCUMENT TITLE and certificate heading FIRST
+   - Search the ENTIRE document text for these keywords
    - Return "" (empty string) ONLY if NOT a Document of Compliance
-   - **CRITICAL:** If the certificate IS a "Document of Compliance" but you cannot find the keywords above, you MUST return "full_term" as default
-   - IMPORTANT: Search the EXACT keywords in document text, do NOT analyze dates or validity periods
+   - If the certificate IS a DOC but you cannot find keywords, default to "full_term"
+   - DO NOT analyze dates or validity periods
    - DO NOT leave doc_type empty for DOC certificates
 4. ALL dates MUST be converted to DD/MM/YYYY format (e.g., "18/11/2024")
 5. Look for dates with keywords:
