@@ -58,10 +58,14 @@ IMPORTANT INSTRUCTIONS:
 2. company_name: Extract the company name (look for "Name of the Company:", "Company:", etc.)
 3. doc_type: **CRITICAL - MANDATORY FOR ALL DOC CERTIFICATES** - You MUST classify every DOC:
    
-   **Step 0: SPECIAL CASE - Check for BOTH Full Term AND Interim (HIGHEST PRIORITY):**
-   - If document contains BOTH "Full term Certificate No" AND "Interim Certificate No"
-   - OR contains BOTH "Full Term Document" AND "Interim Document"
-   - → **MUST return "full_term"** (Full Term takes precedence when both are present)
+   **Step 0: SPECIAL CASES - Full Term Indicators (HIGHEST PRIORITY):**
+   a) If document contains BOTH "Full term Certificate No" AND "Interim Certificate No"
+      OR contains BOTH "Full Term Document" AND "Interim Document"
+      → **MUST return "full_term"**
+   
+   b) If document contains "Last Endorse" OR "Last Endorsed" OR "Endorsement date"
+      → **MUST return "full_term"**
+      (Only Full Term DOCs have endorsement dates)
    
    **Step 1: Search for "SHORT TERM" keywords:**
    - "Short Term Certificate No"
@@ -69,7 +73,7 @@ IMPORTANT INSTRUCTIONS:
    - "Short Term Document"
    - "SHORT TERM" (anywhere in text)
    - "short term"
-   - If found ANY of above → **MUST return "short_term"**
+   - If found ANY of above (and NO Last Endorse) → **MUST return "short_term"**
    
    **Step 2: If not Short Term, search for "INTERIM":**
    - "Interim Certificate No"
@@ -77,8 +81,8 @@ IMPORTANT INSTRUCTIONS:
    - "INTERIM DOCUMENT"
    - "Interim Certificate"
    - "INTERIM" (anywhere in text)
-   - If found → **CHECK Step 0 first** (if both Full Term + Interim, return "full_term")
-   - If only Interim found → **MUST return "interim"**
+   - If found → **CHECK Step 0 first** (if has Last Endorse OR both Full Term + Interim, return "full_term")
+   - If only Interim found (no Last Endorse) → **MUST return "interim"**
    
    **Step 3: If not Short Term or Interim, search for "FULL TERM":**
    - "Full term Certificate No"
@@ -94,11 +98,12 @@ IMPORTANT INSTRUCTIONS:
    
    **CRITICAL RULES:**
    - READ THE ENTIRE TEXT CAREFULLY before deciding
-   - Check for BOTH "Full term Certificate No" AND "Interim Certificate No" FIRST
+   - Check for "Last Endorse" FIRST - if found, always return "full_term"
+   - Check for BOTH "Full term Certificate No" AND "Interim Certificate No"
    - Keywords can appear ANYWHERE in the document (title, body, footer)
    - CASE INSENSITIVE search (SHORT TERM = short term)
    - NEVER return null or empty for a DOC certificate
-   - Priority: (Full Term + Interim together) > short_term > interim alone > full_term alone
+   - Priority: (Has Last Endorse) > (Full Term + Interim together) > short_term > interim alone > full_term alone
 4. ALL dates MUST be converted to DD/MM/YYYY format (e.g., "18/11/2024")
 5. Look for dates with keywords:
    - issue_date: "Date of issue", "Issued", "Issue date"
