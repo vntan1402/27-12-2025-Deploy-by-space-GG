@@ -246,21 +246,11 @@ const SafetyManagementSystem = () => {
         />
       }
     >
-      {/* Company Header Bar - Always show */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-md p-4 mb-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="text-4xl">🏢</div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">
-                {companyData?.name || 'Company'}
-              </h2>
-              <p className="text-blue-100 text-sm">
-                {language === 'vi' ? 'Hệ thống quản lý an toàn' : 'Safety Management System'}
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* Page Title */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">
+          {companyData?.name || 'Company'} {language === 'vi' ? 'Hệ thống quản lý an toàn' : 'Safety Management System'}
+        </h1>
       </div>
 
       {/* Company Info Panel */}
