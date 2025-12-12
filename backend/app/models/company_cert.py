@@ -37,6 +37,8 @@ class CompanyCertUpdate(BaseModel):
     file_name: Optional[str] = None
     file_id: Optional[str] = None
     file_url: Optional[str] = None
+    summary_file_id: Optional[str] = None  # Google Drive summary text file ID
+    summary_file_url: Optional[str] = None  # Google Drive summary text file URL
 
 class CompanyCertResponse(BaseModel):
     id: str
