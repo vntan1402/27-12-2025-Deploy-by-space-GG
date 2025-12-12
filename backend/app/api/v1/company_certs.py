@@ -236,6 +236,7 @@ async def upload_company_cert_with_file(
                         logger.info(f"✅ Summary file uploaded successfully: {summary_file_id}")
                         update_data["summary_file_id"] = summary_file_id
                         update_data["summary_file_url"] = summary_result.get("file_url")
+                        logger.info(f"   📋 Will update DB with summary_file_id: {summary_file_id}")
                 except Exception as e:
                     logger.warning(f"⚠️ Summary file upload failed: {e}")
             
