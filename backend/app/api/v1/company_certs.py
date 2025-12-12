@@ -106,7 +106,7 @@ async def bulk_delete_company_certs(
         raise HTTPException(status_code=500, detail="Failed to bulk delete Company Certificates")
 
 @router.post("/analyze-file")
-async def analyze_company_cert_file(
+async def analyze_company_cert_file_endpoint(
     request: dict,
     current_user: UserResponse = Depends(check_dpa_manager_permission)
 ):
@@ -115,27 +115,39 @@ async def analyze_company_cert_file(
     Extract: cert_name, cert_no, issue_date, valid_date, issued_by
     """
     try:
-        file_content = request.get("file_content")
-        filename = request.get("filename")
+        import base64
+        from app.services.company_cert_analyze_service import analyze_company_cert_file
+        from app.services.ai_config_service import get_ai_configs
         
-        if not file_content or not filename:
+        file_content_b64 = request.get("file_content")
+        filename = request.get("filename")
+        content_type = request.get("content_type", "application/pdf")
+        
+        if not file_content_b64 or not filename:
             raise HTTPException(status_code=400, detail="Missing file_content or filename")
         
-        # TODO: Implement AI analysis using same pattern as audit certificates
-        # For now, return success with empty data
-        return {
-            "success": True,
-            "extracted_info": {
-                "cert_name": "",
-                "cert_no": "",
-                "issue_date": "",
-                "valid_date": "",
-                "issued_by": ""
-            },
-            "message": "AI analysis placeholder - to be implemented"
-        }
+        # Decode base64
+        file_content = base64.b64decode(file_content_b64)
+        
+        # Get AI configs
+        ai_configs = await get_ai_configs(current_user.company)
+        document_ai_config = ai_configs.get('document_ai', {})
+        ai_config_doc = ai_configs.get('ai_config', {})
+        
+        # Analyze file
+        result = await analyze_company_cert_file(
+            file_content=file_content,
+            filename=filename,
+            content_type=content_type,
+            company_id=current_user.company,
+            document_ai_config=document_ai_config,
+            ai_config=ai_config_doc
+        )
+        
+        return result
+        
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"❌ Error analyzing company cert file: {e}")
-        raise HTTPException(status_code=500, detail="Failed to analyze file")
+        raise HTTPException(status_code=500, detail=f"Failed to analyze file: {str(e)}")
