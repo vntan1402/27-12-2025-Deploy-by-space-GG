@@ -296,7 +296,7 @@ export const CompanyCertTable = ({
                     {status}
                   </span>
                 </td>
-                <td className="px-4 py-2 border-b text-center">
+                <td className="px-2 py-2 border-b text-center">
                   {(cert.has_notes || (cert.notes && cert.notes.trim())) ? (
                     <span 
                       className="text-red-600 font-bold cursor-pointer text-lg hover:text-red-700"
