@@ -69,6 +69,7 @@ class CompanyCertService:
         """Get company certificate by ID"""
         from app.utils.certificate_abbreviation import generate_certificate_abbreviation
         from app.utils.issued_by_abbreviation import generate_organization_abbreviation
+        from app.utils.company_name_abbreviation import abbreviate_company_name
         
         cert = await mongo_db.find_one(CompanyCertService.collection_name, {"id": cert_id})
         
