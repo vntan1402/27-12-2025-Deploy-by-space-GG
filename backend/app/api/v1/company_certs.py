@@ -261,3 +261,92 @@ async def upload_company_cert_with_file(
     except Exception as e:
         logger.error(f"❌ Error uploading company cert: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to upload: {str(e)}")
+
+
+@router.post("/{cert_id}/upload-file")
+async def upload_file_for_existing_cert(
+    cert_id: str,
+    file: UploadFile = File(...),
+    summary_text: str = Form(default=""),
+    current_user: UserResponse = Depends(check_dpa_manager_permission)
+):
+    """
+    Upload file for an existing certificate (background upload after record creation)
+    """
+    try:
+        from app.services.gdrive_service import GDriveService
+        
+        # Verify certificate exists
+        cert = await CompanyCertService.get_company_cert_by_id(cert_id, current_user)
+        if not cert:
+            raise HTTPException(status_code=404, detail="Certificate not found")
+        
+        logger.info(f"📤 Background upload for cert {cert_id}: {file.filename}")
+        
+        # Upload file to Google Drive
+        folder_path = "COMPANY DOCUMENT/SMS/Company Certificates"
+        file_content = await file.read()
+        
+        drive_result = await GDriveService.upload_file(
+            file_content=file_content,
+            filename=file.filename,
+            content_type=file.content_type or "application/pdf",
+            folder_path=folder_path,
+            company_id=current_user.company
+        )
+        
+        if drive_result.get("success"):
+            file_id = drive_result.get("file_id")
+            logger.info(f"✅ Main file uploaded: {file_id}")
+            
+            update_data = {
+                "file_id": file_id,
+                "file_name": file.filename,
+                "file_url": drive_result.get("file_url")
+            }
+            
+            # Upload summary if provided
+            if summary_text and summary_text.strip():
+                try:
+                    logger.info("📝 Uploading summary file...")
+                    base_name = file.filename.rsplit('.', 1)[0] if '.' in file.filename else file.filename
+                    summary_filename = f"{base_name}_Summary.txt"
+                    
+                    summary_result = await GDriveService.upload_file(
+                        file_content=summary_text.encode('utf-8'),
+                        filename=summary_filename,
+                        content_type="text/plain",
+                        folder_path=folder_path,
+                        company_id=current_user.company
+                    )
+                    
+                    if summary_result.get("success"):
+                        summary_file_id = summary_result.get("file_id")
+                        logger.info(f"✅ Summary uploaded: {summary_file_id}")
+                        update_data["summary_file_id"] = summary_file_id
+                        update_data["summary_file_url"] = summary_result.get("file_url")
+                except Exception as e:
+                    logger.warning(f"⚠️ Summary upload failed: {e}")
+            
+            # Update cert with file info
+            logger.info(f"🔄 Updating cert with file IDs: {list(update_data.keys())}")
+            await CompanyCertService.update_company_cert(
+                cert_id,
+                CompanyCertUpdate(**update_data),
+                current_user
+            )
+            
+            return {
+                "success": True,
+                "message": "File uploaded successfully",
+                "file_id": file_id,
+                "summary_file_id": update_data.get("summary_file_id")
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Failed to upload to Google Drive")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Background upload error: {e}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
