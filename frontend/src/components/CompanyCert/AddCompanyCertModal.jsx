@@ -258,6 +258,8 @@ export const AddCompanyCertModal = ({
     setSummaryText('');
     setAnalyzed(false);
     setDuplicateWarning(null);
+    setIsSubmitting(false);  // Reset submitting state
+    setIsAnalyzing(false);   // Reset analyzing state
     onClose();
   };
 
