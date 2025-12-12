@@ -162,7 +162,8 @@ def generate_abbreviation_sync(cert_name: str) -> str:
         return ""
     
     # Remove common words and focus on key terms
-    common_words = {'the', 'of', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were'}
+    # Note: Kept 'of' to generate abbreviations like DOC (Document Of Compliance)
+    common_words = {'the', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were'}
     
     cert_name_cleaned = cert_name.upper()
     
