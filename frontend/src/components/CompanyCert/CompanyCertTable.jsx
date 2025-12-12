@@ -223,17 +223,19 @@ export const CompanyCertTable = ({
                 onContextMenu={(e) => onRightClick && onRightClick(e, cert)}
               >
                 <td className="px-4 py-2 border-b border-r">
-                  <input
-                    type="checkbox"
-                    checked={selectedCertificates.has(cert.id)}
-                    onChange={(e) => {
-                      e.stopPropagation();
-                      onSelectCertificate(cert.id);
-                    }}
-                    className="rounded border-gray-300"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedCertificates.has(cert.id)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        onSelectCertificate(cert.id);
+                      }}
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-sm">{index + 1}</span>
+                  </div>
                 </td>
-                <td className="px-4 py-2 border-b border-r text-sm">{index + 1}</td>
                 <td 
                   className="px-4 py-2 border-b border-r text-sm font-semibold text-blue-700"
                   title={cert.cert_name}
