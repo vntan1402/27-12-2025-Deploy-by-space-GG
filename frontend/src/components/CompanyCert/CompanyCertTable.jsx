@@ -242,7 +242,7 @@ export const CompanyCertTable = ({
                     {cert.file_id && (
                       <span 
                         className="text-red-500 text-xs cursor-pointer hover:text-red-600" 
-                        title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 COMPANY DOCUMENT / SMS / Company Certificates`}
+                        title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 COMPANY DOCUMENT/SMS/Company Certificates`}
                         onClick={(e) => {
                           e.stopPropagation();
                           window.open(`https://drive.google.com/file/d/${cert.file_id}/view`, '_blank');
@@ -256,7 +256,7 @@ export const CompanyCertTable = ({
                     {cert.summary_file_id && user && ['admin', 'super_admin', 'system_admin'].includes(user.role) && (
                       <span 
                         className="text-blue-500 text-xs cursor-pointer hover:text-blue-600" 
-                        title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 COMPANY DOCUMENT / SMS / Company Certificates`}
+                        title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 COMPANY DOCUMENT/SMS/Company Certificates`}
                         onClick={(e) => {
                           e.stopPropagation();
                           window.open(`https://drive.google.com/file/d/${cert.summary_file_id}/view`, '_blank');
