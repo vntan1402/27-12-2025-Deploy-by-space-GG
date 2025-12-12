@@ -82,7 +82,10 @@ class CompanyCertService:
         
         # Generate certificate abbreviation if not present
         if not cert.get("cert_abbreviation") and cert.get("cert_name"):
-            cert["cert_abbreviation"] = await generate_certificate_abbreviation(cert.get("cert_name"))
+            cert["cert_abbreviation"] = await generate_certificate_abbreviation(
+                cert.get("cert_name"),
+                cert.get("doc_type")
+            )
         
         # Generate organization abbreviation for issued_by if not present
         if not cert.get("issued_by_abbreviation") and cert.get("issued_by"):
