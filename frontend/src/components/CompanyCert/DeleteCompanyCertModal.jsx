@@ -19,7 +19,7 @@ export const DeleteCompanyCertModal = ({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await api.delete(`/company-certs/${certificate.id}`);
+      await api.delete(`/api/company-certs/${certificate.id}`);
       toast.success(language === 'vi' ? 'Xóa thành công!' : 'Deleted successfully!');
       onSuccess();
       onClose();
