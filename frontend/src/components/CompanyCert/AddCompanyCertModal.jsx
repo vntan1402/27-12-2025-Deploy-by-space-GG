@@ -526,20 +526,6 @@ export const AddCompanyCertModal = ({
             </div>
           </div>
 
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {language === 'vi' ? 'Ghi chú' : 'Notes'}
-            </label>
-            <textarea
-              value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              disabled={isSubmitting}
-            />
-          </div>
-
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <button
