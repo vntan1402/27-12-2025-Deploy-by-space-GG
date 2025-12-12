@@ -78,6 +78,7 @@ EXAMPLE OUTPUT:
     "cert_name": "DOCUMENT OF COMPLIANCE",
     "cert_no": "PM242633",
     "company_name": "HAI AN CONTAINER TRANSPORT COMPANY LIMITED",
+    "doc_type": "full_term",
     "issue_date": "18/11/2024",
     "valid_date": "07/10/2029",
     "last_endorse": "15/03/2023",
