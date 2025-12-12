@@ -1,108 +1,97 @@
 <analysis>**original_problem_statement:**
-The user's initial goal was to complete the System Announcement feature by displaying announcements on the login page. Throughout the session, the scope expanded significantly to include:
-- **UI/UX Enhancements:** Repositioning the announcement banner, adding animations, and implementing a toggle to restore dismissed announcements.
-- **Layout Adjustments:** Modifying the main application sidebar width and font sizes.
-- **Refactoring:** Converting a duplicated Ship Selection Modal into a single reusable component to improve code maintainability.
-- **Feature Enhancement (Role-Based Access):** Implementing role-based visibility for summary file icons across all document tables in the application, ensuring only  roles and above can see them.
-- **Core Feature Improvement (AI Analysis):** Enhancing the document analysis pipeline by extracting text directly from the PDF's text layer and merging it with the output from Google Document AI. This was implemented for Ship Certificates, and the next task is to apply the same logic to Audit Certificates.
-- **New Feature Request:** The user requested a mail merge like feature to generate templated CVs for crew members. This is in the early planning stage.
+The user's primary goal is to build a new Safety Management System page with a layout mirroring the existing ISM-ISPS-MLC page. This new page is to be developed in phases, with four sub-sections:
+1.  Company Cert.
+2.  SMS Procedures
+3.  Record Template
+4.  Ship Record
+
+PRODUCT REQUIREMENTS:
+-   The Company Cert phase requires full-stack CRUD functionality, including file uploads and an AI analysis pipeline for data extraction.
+-   The UI of the new page must be visually consistent with existing application pages.
+-   The user requested several UI enhancements across the application, including:
+    -   In the Edit Company modal, remove the file upload option and only keep the Logo URL field.
+    -   Implement a feature to update a ship's photo URL by double-clicking the image.
+-   A new Company field (representing the company name on the certificate document) needs to be added to the Company Cert feature, including the database, AI extraction, add/edit modal, and data table.
+-   The Add Certificate modal flow should be improved for better UX: save the record instantly, close the modal, and handle file uploads in the background with toast notifications.
+-   File deletion from the database should trigger a background task to delete the corresponding files from Google Drive.
+-   The layout of the Add Company Certificate modal needs to be reorganized for better compactness and clarity.
 
 **User's preferred language**: Vietnamese
 
 **what currently exists?**
-The System Announcement feature is fully complete and deployed on the login page, with all requested UI/UX enhancements (positioning, animations, restore toggle). The major refactoring of the  is finished, and the new reusable component is integrated across nine pages. The role-based visibility for summary file icons is implemented application-wide. The enhanced document analysis flow (merging PDF text layer with AI output) is complete for the Ship Certificates module.
+Phase 1 (Company Cert) of the Safety Management System page is almost complete.
+-   **Backend:** A full suite of APIs () supports all CRUD operations, file analysis via LLM, and background file uploads/deletions. The data model and services have been created and extensively debugged.
+-   **Frontend:** The main page () is functional and accessible. The  and  components are implemented. The modal now supports an instant-save/background-upload flow, and the table displays data with custom abbreviations and file icons.
+-   **UX/UI:** The Add Certificate modal layout has been significantly refined for compactness. A loading spinner is correctly implemented for the AI analysis step. The table now includes abbreviations for certificate names and issuers, along with icons for viewing original and summary files on Google Drive.
 
 **Last working item**:
-- **Last item agent was working:** The user requested to apply the improved document analysis flow to the **Audit Certificates** module (ISM/ISPS/MLC). The agent had analyzed the relevant backend service () and was ready to begin implementation.
-- **Status:** NOT STARTED
-- **Agent Testing Done:** N
-- **Which testing method agent to use?** Backend testing agent. The test should involve uploading an audit certificate PDF that has a text layer, then verifying that the generated  summary file in Google Drive contains two distinct sections, one for the text layer content and one for the Document AI output.
-- **User Testing Done:** N
+-   **Last item agent was working:** The agent was implementing the user's request to add a new field,  (the name of the company on the certificate), to the Company Cert feature. The agent successfully updated the backend model () and the AI extraction prompt (). The next step is to add the corresponding input field to the frontend modal and a new column to the table.
+-   **Status:** IN PROGRESS
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** both. The frontend agent should verify the new UI elements in the modal and table. The backend agent should test the end-to-end flow to ensure the new field is correctly extracted by AI, saved to the database, and retrieved.
+-   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
-- **Issue 1: Frontend Login Form Validation Bug (P3 - Low Priority)**
-    - **Description:** The frontend testing agent discovered that logging in via the UI form fails due to a client-side validation issue. The backend authentication API works correctly when tested directly with .
-    - **Attempted fixes:** None. The agent noted the issue, but the user prioritized other tasks.
-    - **Next debug checklist:**
-        - Inspect the  function in .
-        - Check the form validation logic (e.g., Yup, or inline checks).
-        - Analyze browser console logs during a failed login attempt for specific validation error messages.
-    - **Why fix this issue and what will be achieved with the fix?** This will restore the primary login path for users. Currently, it's a significant usability issue, though the agent was able to proceed with testing by using direct API calls.
-    - **Status:** NOT STARTED
-    - **Is recurring issue?** N
-    - **Should Test frontend/backend/both after fix?** Frontend testing agent.
-    - **Blocked on other issue:** No.
+-   **Issue 1: Frontend Login Form Validation Bug (P3)**
+    -   **Description:** A known issue from a previous session where the login form fails due to a client-side validation error. The backend API is functional.
+    -   **Attempted fixes:** None in this session.
+    -   **Next debug checklist:**
+        -   Inspect  in .
+        -   Check form validation logic and review browser console logs on failed login attempts.
+    -   **Why fix this issue and what will be achieved with the fix?** To restore the primary UI login functionality for all users.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** Frontend
+    -   **Blocked on other issue:** No
 
 **In progress Task List**:
-- **Task 1: Update Audit Certificate Analysis Flow (P0 - HIGHEST PRIORITY)**
-    - **Where to resume:** Modify the  method in .
-    - **Plan:**
-        1.  Import  and the  utility.
-        2.  Use  to execute  and  in parallel.
-        3.  Merge the results into a single string with distinct headers ( and ).
-        4.  Pass the merged string to the  function.
-    - **What will be achieved with this?** It will make summary generation for Audit Certificates more accurate, capturing critical data like Certificate Numbers that might be missed by OCR but are present in the PDF's text layer.
-    - **Status:** NOT STARTED
-    - **Should Test frontend/backend/both after fix?** Backend.
-    - **Blocked on something:** No.
+-   **Task 1: Complete Add Company Name Feature (P0)**
+    -   **Description:** This is the final sub-task for completing Phase 1. It involves adding the  field to the frontend UI.
+    -   **Where to resume:**
+        1.  Modify  to add a new input field for Company Name.
+        2.  Modify  to add a new column to display the Company Name.
+        3.  Ensure the  state and  function in the modal correctly handle the new field.
+    -   **What will be achieved with this?** The Company Cert feature will be fully aligned with the user's latest requirement, making it ready for final verification.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** Both
+    -   **Blocked on something:** No
 
 **Upcoming and Future Tasks**
-- **Upcoming Tasks:**
-  - **Task 1 (P1): Plan and Implement CV Mail Merge Feature:**
-    - The user has provided initial preferences: simple append merge strategy, let LLM extract Certificate No, run extraction in parallel, and keep the  format.
-    - The next step is to create a detailed, phased implementation plan (backend changes, new frontend components, etc.) and present it to the user for final approval before starting development.
-- **Future Tasks:**
-  - None. All previously identified future tasks have been completed.
+-   **Upcoming Tasks:**
+    -   **(P1) Implement SMS Procedures Page (Phase 2):** After completing and getting user verification for Company Cert, the next step is to build the SMS Procedures section. The first action should be to ask the user for the specific data fields required for an SMS Procedure.
+    -   **(P2) Implement Record Template Page (Phase 3):** Follow the same process as for SMS Procedures.
+    -   **(P2) Implement Ship Record Page (Phase 4):** Follow the same process.
+-   **Future Tasks:**
+    -   **(P3) Plan and Implement CV Mail Merge Feature:** This task involves creating a feature to generate templated CVs. The next step is to create a detailed implementation plan and present it to the user for approval.
 
 **Completed work in this session**
-- **Feature: System Announcement - Login Page UI (DONE):**
-  - Integrated the banner and fixed all related backend/frontend bugs.
-  - Relocated the banner, added a pulsing animation to the banner icon, and implemented a restore button (🔔) to show dismissed announcements.
-- **Refactoring: Reusable Ship Selection Modal (DONE):**
-  - Created .
-  - Replaced duplicated modal logic in 9 pages, significantly reducing code duplication.
-- **Feature: Role-Based Summary File Icons (DONE):**
-  - Updated 9 table components to show the summary file icon (📝) only for  roles, enhancing data security and UI clarity.
-- **Feature: Improved Document Analysis for Ship Certificates (DONE):**
-  - Added usage: pdfplumber [-h] [--structure | --structure-text]
-                  [--format {csv,json,text}] [--types TYPES [TYPES ...]]
-                  [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
-                  [--exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]]
-                  [--laparams LAPARAMS] [--precision PRECISION]
-                  [--pages PAGES [PAGES ...]] [--indent INDENT]
-                  [infile]
-
-positional arguments:
-  infile
-
-options:
-  -h, --help            show this help message and exit
-  --structure           Write the structure tree as JSON. All other arguments
-                        except --pages, --laparams, and --indent will be
-                        ignored
-  --structure-text      Write the structure tree as JSON including text
-                        contents. All other arguments except --pages,
-                        --laparams, and --indent will be ignored
-  --format {csv,json,text}
-  --types TYPES [TYPES ...]
-  --include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]
-                        Include *only* these object attributes in output.
-  --exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]
-                        Exclude these object attributes from output.
-  --laparams LAPARAMS
-  --precision PRECISION
-  --pages PAGES [PAGES ...]
-  --indent INDENT       Indent level for JSON pretty-printing. dependency.
-  - Created .
-  - Modified  to merge PDF text layer content with AI analysis results for more accurate summaries.
-- **UI: Main Layout Sidebar Adjustment (DONE):**
-  - Adjusted the sidebar width and font sizes in , , and  based on user feedback.
+-   **Feature: Background Operations (DONE):**
+    -   Refactored the Add Certificate modal to save the record instantly, close the modal, and upload the file in the background with toast notifications.
+    -   Implemented background deletion of Google Drive files when a certificate record is deleted.
+-   **Bug Fix: AI Analysis & Upload Pipeline (DONE):**
+    -   Fixed multiple 500 errors in the  API caused by module import errors (, ), incorrect LLM method calls ( -> ), and missing Document AI configurations.
+    -   Fixed a bug where the AI-extracted  was not saved to the database by adding the missing field to the  Pydantic model.
+    -   Fixed a bug causing duplicate COMPANY DOCUMENT folders by trimming whitespace from the folder path string before sending it to the Google Apps Script.
+    -   Improved the AI prompt to correctly extract dates from documents.
+-   **Bug Fix: Database Operations (DONE):**
+    -   Fixed a MongoDB update error by removing a redundant  operator in the service layer.
+    -   Fixed a MongoDB insert error by adding missing wrapper methods (, , ) to the custom  class.
+-   **Bug Fix: Frontend & UX (DONE):**
+    -   Fixed a client-side 404 error on delete by adding the  prefix to the request URL.
+    -   Fixed the loading spinner logic to ensure it displays for the entire duration of the file analysis.
+    -   Fixed a React error () by correctly parsing error messages for toast notifications.
+    -   Fixed a 422 validation error on form submission by adding the required  to the payload.
+-   **UI/UX Enhancements (DONE):**
+    -   Implemented certificate name and issuer abbreviations (, ) in the , mirroring the  feature.
+    -   Added clickable file and summary icons to the Notes column.
+    -   Reorganized the  layout into compact rows as per user specifications and removed a duplicate Notes field.
+    -   Styled the upload guidelines to display on a single horizontal line.
 
 **Earlier issues found/mentioned but not fixed**
-- The **Frontend Login Form Validation Bug** is the only known issue that was identified but not fixed, as per the user's priority. It is listed in the All Pending/In progress Issue list.
+-   The **Frontend Login Form Validation Bug** is the only known issue that was identified but not fixed. It is listed in the All Pending/In progress Issue list.
 
 **Known issue recurrence from previous fork**
-- None.
+-   None.
 
 **Code Architecture**
 .
@@ -260,6 +249,7 @@ options:
 │   │   │       │   ├── auth.cpython-311.pyc
 │   │   │       │   ├── certificates.cpython-311.pyc
 │   │   │       │   ├── companies.cpython-311.pyc
+│   │   │       │   ├── company_certs.cpython-311.pyc
 │   │   │       │   ├── crew.cpython-311.pyc
 │   │   │       │   ├── crew_audit_logs.cpython-311.pyc
 │   │   │       │   ├── crew_certificates.cpython-311.pyc
@@ -285,6 +275,7 @@ options:
 │   │   │       ├── auth.py
 │   │   │       ├── certificates.py
 │   │   │       ├── companies.py
+│   │   │       ├── company_certs.py
 │   │   │       ├── crew.py
 │   │   │       ├── crew_audit_logs.py
 │   │   │       ├── crew_certificates.py
@@ -328,6 +319,7 @@ options:
 │   │   │   │   ├── audit_report.cpython-311.pyc
 │   │   │   │   ├── certificate.cpython-311.pyc
 │   │   │   │   ├── company.cpython-311.pyc
+│   │   │   │   ├── company_cert.cpython-311.pyc
 │   │   │   │   ├── crew.cpython-311.pyc
 │   │   │   │   ├── crew_assignment.cpython-311.pyc
 │   │   │   │   ├── crew_audit_log.cpython-311.pyc
@@ -348,6 +340,7 @@ options:
 │   │   │   ├── audit_report.py
 │   │   │   ├── certificate.py
 │   │   │   ├── company.py
+│   │   │   ├── company_cert.py
 │   │   │   ├── crew.py
 │   │   │   ├── crew_assignment.py
 │   │   │   ├── crew_audit_log.py
@@ -403,6 +396,8 @@ options:
 │   │   │   │   ├── certificate_multi_upload_service.cpython-311.pyc
 │   │   │   │   ├── certificate_service.cpython-311.pyc
 │   │   │   │   ├── cleanup_service.cpython-311.pyc
+│   │   │   │   ├── company_cert_analyze_service.cpython-311.pyc
+│   │   │   │   ├── company_cert_service.cpython-311.pyc
 │   │   │   │   ├── company_service.cpython-311.pyc
 │   │   │   │   ├── crew_assignment_service.cpython-311.pyc
 │   │   │   │   ├── crew_audit_log_service.cpython-311.pyc
@@ -437,6 +432,8 @@ options:
 │   │   │   ├── certificate_multi_upload_service.py
 │   │   │   ├── certificate_service.py
 │   │   │   ├── cleanup_service.py
+│   │   │   ├── company_cert_analyze_service.py
+│   │   │   ├── company_cert_service.py
 │   │   │   ├── company_service.py
 │   │   │   ├── crew_assignment_service.py
 │   │   │   ├── crew_audit_log_service.py
@@ -470,6 +467,7 @@ options:
 │   │       │   ├── audit_report_ai.cpython-311.pyc
 │   │       │   ├── background_tasks.cpython-311.pyc
 │   │       │   ├── certificate_abbreviation.cpython-311.pyc
+│   │       │   ├── company_cert_ai.cpython-311.pyc
 │   │       │   ├── company_helper.cpython-311.pyc
 │   │       │   ├── date_helpers.cpython-311.pyc
 │   │       │   ├── date_normalizer.cpython-311.pyc
@@ -497,6 +495,7 @@ options:
 │   │       ├── audit_report_ai.py
 │   │       ├── background_tasks.py
 │   │       ├── certificate_abbreviation.py
+│   │       ├── company_cert_ai.py
 │   │       ├── company_helper.py
 │   │       ├── date_helpers.py
 │   │       ├── date_normalizer.py
@@ -50580,6 +50579,13 @@ options:
 │   │   │   │   └── index.js
 │   │   │   ├── Common
 │   │   │   │   └── FloatingUploadProgress.jsx
+│   │   │   ├── CompanyCert
+│   │   │   │   ├── AddCompanyCertModal.jsx
+│   │   │   │   ├── CompanyCertNotesModal.jsx
+│   │   │   │   ├── CompanyCertTable.jsx
+│   │   │   │   ├── DeleteCompanyCertModal.jsx
+│   │   │   │   ├── EditCompanyCertModal.jsx
+│   │   │   │   └── index.js
 │   │   │   ├── CompanyInfoPanel.jsx
 │   │   │   ├── ContactModal.jsx
 │   │   │   ├── CrewCertificate
@@ -50729,6 +50735,7 @@ options:
 │   │   │   ├── IsmIspsMLc.jsx
 │   │   │   ├── LoginPage.jsx
 │   │   │   ├── OtherDocuments.jsx
+│   │   │   ├── SafetyManagementSystem.jsx
 │   │   │   ├── SystemSettingsPage.jsx
 │   │   │   └── TestReport.jsx
 │   │   ├── routes
@@ -50740,6 +50747,7 @@ options:
 │   │   │   ├── auditCertificateService.js
 │   │   │   ├── auditReportService.js
 │   │   │   ├── authService.js
+│   │   │   ├── companyCertService.js
 │   │   │   ├── companyService.js
 │   │   │   ├── crewAuditLogService.js
 │   │   │   ├── crewCertificateService.js
@@ -50825,107 +50833,80 @@ options:
 ├── verify_fix.sh
 └── yarn.lock
 
-4690 directories, 46029 files
+4691 directories, 46047 files
 
 **Key Technical Concepts**
-- **Component Refactoring:** Abstracting duplicated JSX and state logic into a single, reusable React component () to follow the DRY principle.
-- **Asynchronous Parallelization (Backend):** Using  to run PDF text extraction and a call to Google Document AI concurrently, improving the performance of the file analysis pipeline.
-- **Conditional Rendering (RBAC):** Using the authenticated user's role from a React Context () to conditionally render UI elements (summary file icons) on the frontend.
-- **CSS Animations:** Using Tailwind CSS classes and custom  to add animations (, ) for improved UX.
-- **Browser Storage:** Using  to persist user actions (dismissing announcements) across sessions.
+-   **Asynchronous UX Patterns:** Refactored a form to provide instant user feedback (modal closes, table refreshes) while performing long-running tasks (file upload, AI analysis) in the background, communicating status via toast notifications.
+-   **Background Task Processing:** Utilized FastAPI's  to decouple file deletion from the main API response, improving responsiveness.
+-   **Deep Debugging & Root Cause Analysis:** Systematically troubleshot a cascade of issues starting from a generic 500 error, tracing it through module import errors, incorrect library usage, misconfigured services, and invalid Pydantic models.
+-   **Pydantic Model Validation:** Resolved bugs where data was silently dropped because fields (, ) were missing from the  or  Pydantic models, even though they existed in the database model.
+-   **Database Wrapper Abstraction:** Fixed a critical database error () by implementing missing wrapper methods in a custom database class to correctly interface with the underlying driver.
 
 **key DB schema**
-- No changes to the database schema in this session.
+-   **company_certs:** 
 
 **changes in tech stack**
-- **Backend:** Added usage: pdfplumber [-h] [--structure | --structure-text]
-                  [--format {csv,json,text}] [--types TYPES [TYPES ...]]
-                  [--include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]]
-                  [--exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]]
-                  [--laparams LAPARAMS] [--precision PRECISION]
-                  [--pages PAGES [PAGES ...]] [--indent INDENT]
-                  [infile]
-
-positional arguments:
-  infile
-
-options:
-  -h, --help            show this help message and exit
-  --structure           Write the structure tree as JSON. All other arguments
-                        except --pages, --laparams, and --indent will be
-                        ignored
-  --structure-text      Write the structure tree as JSON including text
-                        contents. All other arguments except --pages,
-                        --laparams, and --indent will be ignored
-  --format {csv,json,text}
-  --types TYPES [TYPES ...]
-  --include-attrs INCLUDE_ATTRS [INCLUDE_ATTRS ...]
-                        Include *only* these object attributes in output.
-  --exclude-attrs EXCLUDE_ATTRS [EXCLUDE_ATTRS ...]
-                        Exclude these object attributes from output.
-  --laparams LAPARAMS
-  --precision PRECISION
-  --pages PAGES [PAGES ...]
-  --indent INDENT       Indent level for JSON pretty-printing. for robust text extraction from PDF files.
+-   None.
 
 **All files of reference**
--  (Next task)
--  (Reference for next task)
--  (New utility for text extraction)
--  (Newly created reusable component)
--  (Site of announcement banner)
--  (Banner component with new logic)
--  (Main layout file)
-- All table components modified for role-based icon visibility (e.g., , , etc.)
+-   
+-   
+-   
+-   
+-   
+-   
+-   
 
 **Areas that need refactoring**:
-- None. The major refactoring task identified in the previous handover was completed.
+-   None.
 
 **key api endpoints**
-- No new API endpoints were created. The work involved frontend changes and modifications to backend service logic.
+-   : Creates a new certificate record (without file).
+-   : Uploads a file for an existing certificate in the background.
+-   : Deletes a certificate and triggers a background task to delete its files from Google Drive.
+-   : Analyzes an uploaded PDF and returns extracted data.
 
 **Critical Info for New Agent**
-- **You MUST respond in Vietnamese.**
-- Your immediate priority is to implement the improved analysis flow (text layer + AI merge) for **Audit Certificates**, mirroring the work already done for Ship Certificates. The key file to modify is .
-- After that, the next major task will be to plan and implement the new **CV Mail Merge feature**. The user has already provided initial requirements.
-- Be aware of the low-priority but known bug with the frontend login form validation.
+-   **You MUST respond in Vietnamese.**
+-   Your immediate priority is to complete the **Add Company Name** feature as described in **In progress Task List**. This involves adding the new field to the frontend modal and table.
+-   After implementing the frontend changes, perform a full end-to-end test of the Company Cert feature: add a new certificate with a file, verify AI extraction (including the new company name field), check that it appears in the table with all icons and abbreviations, and finally, test the delete functionality to ensure the background file deletion works.
+-   Once Phase 1 is verified by the user, the next major task is to begin Phase 2: SMS Procedures. Do not start implementation until you have confirmed the data structure (required fields) with the user.
 
 **documents created in this job**
-- 
-- 
-- 
--  (Summarizing the new text-layer + AI flow)
+-   None.
 
 **Last 10 User Messages and any pending user messages**
-1. **User:** Asked to apply the summary icon role-check to all other tables. - **COMPLETED**
-2. **User:** Asked which tables were still missing the feature. - **COMPLETED**
-3. **User:** Asked for the upload/analysis flow for Add Ship Certificate. - **COMPLETED**
-4. **User:** Asked where the summary content comes from. - **COMPLETED**
-5. **User:** Requested a new flow: merge PDF text layer with Document AI output. - **IN PROGRESS**
-6. **User:** Confirmed the implementation plan for the new analysis flow. - **IN PROGRESS**
-7. **User:** Asked to apply the same new analysis flow to Add Audit Certificate. - **PENDING**
-8. **User:** Requested a detailed plan before modifying the audit certificate flow. - **COMPLETED**
-9. **User:** Asked for the  password. - **COMPLETED**
-10. **User:** Asked to make the icon inside the announcement banner blink. - **COMPLETED**
+1.  **User:** Add a Company field to the certificate, including the modal, table, and AI extraction. - **IN PROGRESS**
+2.  **User:** When deleting a record, also delete the file from Google Drive in the background. - **COMPLETED**
+3.  **User:** The summary icon is still not showing up after a new upload. - **COMPLETED** (Fixed by adding missing fields to the Pydantic update model).
+4.  **User:** The system is creating duplicate COMPANY DOCUMENT folders on Google Drive. - **COMPLETED** (Fixed by trimming whitespace from the folder path).
+5.  **User:** The loading spinner is not showing when analyzing a file. - **COMPLETED** (Fixed async logic in the frontend).
+6.  **User:** Upload fails with a MongoDB error about the '' operator. - **COMPLETED** (Fixed by removing double  in the service layer).
+7.  **User:** Reorganize the fields in the Add Certificate modal for better layout. - **COMPLETED**
+8.  **User:** Refactor the save process to be instant, with file upload happening in the background. - **COMPLETED**
+9.  **User:** There is a duplicate Notes field in the modal. - **COMPLETED**
+10. **User:** Form submission fails with a field required error. - **COMPLETED** (Fixed by adding  to the request payload).
 
 **Project Health Check:**
-- **Broken:** The frontend login form has a validation bug that prevents login via the UI.
-- **Mocked:** None.
+-   **Broken:**
+    -   The frontend login form has a known validation bug.
+    -   The Company Cert feature is in a transient state, awaiting the frontend implementation of the  field.
+-   **Mocked:** None.
 
 **3rd Party Integrations**
-- **Google Drive API:** Used for file storage and retrieval.
-- **xlsx:** For handling Excel files.
-- **OpenAI/Gemini:** Used via  for AI-based document analysis. Uses Emergent LLM Key.
+-   **Google Drive API:** Used via a Google Apps Script backend for file storage, retrieval, and folder management.
+-   **xlsx:** For handling Excel files.
+-   **OpenAI/Gemini:** Used via  for AI-based document analysis. Uses the Emergent LLM Key.
 
 **Testing status**
-- **Testing agent used after significant changes:** YES, for the announcement feature.
-- **Troubleshoot agent used after agent stuck in loop:** NO
-- **Test files created:** None persisted.
-- **Known regressions:** The frontend login form is broken.
+-   **Testing agent used after significant changes:** YES, the agent was used successfully to identify and fix a bug in the AI analysis service.
+-   **Troubleshoot agent used after agent stuck in loop:** NO
+-   **Test files created:** None persisted.
+-   **Known regressions:** The frontend login form is non-functional.
 
 **Credentials to test flow:**
-- **System Admin:**  / 
-- **Admin:**  / 
+-   **Admin:**  / 
+-   **System Admin:**  / 
 
 **What agent forgot to execute**
-- Nothing was forgotten. All user requests were addressed sequentially based on priority. The agent is in the middle of the latest requested feature enhancement.</analysis>
+-   The agent has only completed the backend portion of the user's latest request (Add Company Name to Certificate). The frontend changes (adding the field to the  and the column to the ) are pending and represent the immediate next steps.</analysis>
