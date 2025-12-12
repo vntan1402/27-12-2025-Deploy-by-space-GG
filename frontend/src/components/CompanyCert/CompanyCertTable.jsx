@@ -227,14 +227,29 @@ export const CompanyCertTable = ({
                   />
                 </td>
                 <td className="px-4 py-2 border-b border-r text-sm">{index + 1}</td>
-                <td className="px-4 py-2 border-b border-r">
+                <td 
+                  className="px-4 py-2 border-b border-r text-sm font-semibold text-blue-700"
+                  title={cert.cert_name}
+                >
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{cert.cert_name || '-'}</span>
+                    <span>
+                      {cert.cert_abbreviation || cert.cert_name?.substring(0, 4) || 'N/A'}
+                    </span>
                     {cert.file_id && (
-                      <span className="text-blue-600" title="Has file">📄</span>
+                      <span 
+                        className="text-blue-600 cursor-pointer" 
+                        title={`${language === 'vi' ? 'File gốc' : 'Original file'}\n📁 COMPANY DOCUMENT/Company Certificates`}
+                      >
+                        📄
+                      </span>
                     )}
                     {cert.summary_file_id && ['admin', 'super_admin', 'system_admin'].includes(user?.role) && (
-                      <span className="text-green-600 cursor-pointer" title="Summary file">📝</span>
+                      <span 
+                        className="text-green-600 cursor-pointer" 
+                        title={`${language === 'vi' ? 'File tóm tắt' : 'Summary file'}\n📁 COMPANY DOCUMENT/Company Certificates`}
+                      >
+                        📝
+                      </span>
                     )}
                   </div>
                 </td>
@@ -243,7 +258,15 @@ export const CompanyCertTable = ({
                 <td className="px-4 py-2 border-b border-r text-sm">{formatDateDisplay(cert.valid_date) || '-'}</td>
                 <td className="px-4 py-2 border-b border-r text-sm">{formatDateDisplay(cert.last_endorse) || '-'}</td>
                 <td className="px-4 py-2 border-b border-r text-sm">{formatDateDisplay(cert.next_survey) || '-'}</td>
-                <td className="px-4 py-2 border-b border-r text-sm">{cert.issued_by || '-'}</td>
+                <td 
+                  className="px-4 py-2 border-b border-r text-sm font-semibold text-blue-700" 
+                  title={cert.issued_by}
+                >
+                  {cert.issued_by_abbreviation || (cert.issued_by ? 
+                    (cert.issued_by.length > 8 ? `${cert.issued_by.substring(0, 8)}...` : cert.issued_by)
+                    : '-'
+                  )}
+                </td>
                 <td className="px-4 py-2 border-b border-r text-center">
                   <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(status)}`}>
                     {status}
