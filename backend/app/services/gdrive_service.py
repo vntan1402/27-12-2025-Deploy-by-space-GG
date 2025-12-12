@@ -605,7 +605,8 @@ class GDriveService:
             
             # Parse folder_path to extract components
             # Expected format: "ShipName/Class & Flag Cert/Class Survey Report"
-            path_parts = folder_path.split('/')
+            # Note: Strip whitespace to prevent duplicate folders
+            path_parts = [part.strip() for part in folder_path.split('/')]
             
             if len(path_parts) < 3:
                 raise HTTPException(
