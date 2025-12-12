@@ -8,7 +8,7 @@ from typing import Dict
 from fastapi import HTTPException
 
 from app.utils.pdf_text_extractor import extract_text_layer_from_pdf, merge_text_layer_and_document_ai
-from app.utils.document_ai import analyze_document_with_document_ai
+from app.utils.document_ai_helper import analyze_document_with_document_ai
 from app.utils.company_cert_ai import extract_company_cert_fields_from_summary
 
 logger = logging.getLogger(__name__)
