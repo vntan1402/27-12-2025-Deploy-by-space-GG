@@ -10,6 +10,7 @@ import {
 } from '../components/CompanyCert';
 import { companyCertService } from '../services';
 import { toast } from 'sonner';
+import api from '../services/api';
 
 const SafetyManagementSystem = () => {
   const { language, user } = useAuth();
@@ -23,6 +24,7 @@ const SafetyManagementSystem = () => {
   const [companyCerts, setCompanyCerts] = useState([]);
   const [certsLoading, setCertsLoading] = useState(false);
   const [selectedCerts, setSelectedCerts] = useState(new Set());
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
@@ -33,31 +35,36 @@ const SafetyManagementSystem = () => {
   const [deletingCert, setDeletingCert] = useState(null);
   const [notesCert, setNotesCert] = useState(null);
   
+  // Context Menu
+  const [contextMenu, setContextMenu] = useState(null);
+  
   // Sort & Filter
   const [sortConfig, setSortConfig] = useState({
     column: 'cert_name',
     direction: 'asc'
   });
 
-  // Load company data
+  // Filter States
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Load company data & certificates
   useEffect(() => {
     loadCompanyData();
     if (selectedSubMenu === 'company_cert') {
       loadCompanyCerts();
     }
+    
+    // Close context menu when clicking outside
+    const handleClickOutside = () => setContextMenu(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, [selectedSubMenu]);
 
   const loadCompanyData = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/company`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setCompanyData(data);
-      }
+      const response = await api.get('/company');
+      setCompanyData(response.data);
     } catch (error) {
       console.error('Error loading company:', error);
     }
@@ -74,6 +81,13 @@ const SafetyManagementSystem = () => {
     } finally {
       setCertsLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await loadCompanyCerts();
+    setIsRefreshing(false);
+    toast.success(language === 'vi' ? 'Đã làm mới!' : 'Refreshed!');
   };
 
   const handleSort = (column) => {
@@ -97,7 +111,8 @@ const SafetyManagementSystem = () => {
 
   const handleSelectAllCerts = (checked) => {
     if (checked) {
-      setSelectedCerts(new Set(companyCerts.map(cert => cert.id)));
+      const filteredCerts = getFilteredAndSortedCerts();
+      setSelectedCerts(new Set(filteredCerts.map(cert => cert.id)));
     } else {
       setSelectedCerts(new Set());
     }
@@ -109,8 +124,98 @@ const SafetyManagementSystem = () => {
     }
   };
 
+  const handleRightClick = (e, cert) => {
+    e.preventDefault();
+    
+    if (!selectedCerts.has(cert.id)) {
+      setSelectedCerts(new Set([cert.id]));
+    }
+    
+    const menuWidth = 250;
+    const menuHeight = 300;
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    if (x + menuWidth > window.innerWidth) {
+      x = window.innerWidth - menuWidth - 10;
+    }
+    if (y + menuHeight > window.innerHeight) {
+      y = window.innerHeight - menuHeight - 10;
+    }
+    
+    x = Math.max(10, x);
+    y = Math.max(10, y);
+    
+    setContextMenu({ x, y, certificate: cert });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedCerts.size === 0) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn chứng chỉ' : 'Please select certificates');
+      return;
+    }
+
+    if (!window.confirm(language === 'vi' 
+      ? `Bạn có chắc muốn xóa ${selectedCerts.size} chứng chỉ?`
+      : `Are you sure you want to delete ${selectedCerts.size} certificates?`
+    )) {
+      return;
+    }
+
+    try {
+      await companyCertService.bulkDeleteCompanyCerts(Array.from(selectedCerts));
+      toast.success(language === 'vi' 
+        ? `Đã xóa ${selectedCerts.size} chứng chỉ!`
+        : `Deleted ${selectedCerts.size} certificates!`
+      );
+      setSelectedCerts(new Set());
+      await loadCompanyCerts();
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+      toast.error('Failed to delete certificates');
+    }
+  };
+
   const getFilteredAndSortedCerts = () => {
     let filtered = [...companyCerts];
+    
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(cert =>
+        cert.cert_name?.toLowerCase().includes(query) ||
+        cert.cert_no?.toLowerCase().includes(query) ||
+        cert.issued_by?.toLowerCase().includes(query)
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(cert => {
+        if (!cert.valid_date) return statusFilter === 'Unknown';
+        
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        let validDate;
+        if (cert.valid_date.includes('/')) {
+          const [day, month, year] = cert.valid_date.split('/');
+          validDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        } else {
+          validDate = new Date(cert.valid_date);
+        }
+        
+        if (isNaN(validDate.getTime())) return statusFilter === 'Unknown';
+        validDate.setHours(0, 0, 0, 0);
+        
+        if (validDate < today) return statusFilter === 'Expired';
+        
+        const diffDays = Math.ceil((validDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays <= 90) return statusFilter === 'Due Soon';
+        return statusFilter === 'Valid';
+      });
+    }
     
     // Sort
     filtered.sort((a, b) => {
@@ -128,27 +233,26 @@ const SafetyManagementSystem = () => {
     return filtered;
   };
 
-  // Sub-menu items
   const subMenuItems = [
     {
-      id: 'company_cert',
-      label: language === 'vi' ? 'Chứng chỉ công ty' : 'Company Cert.',
-      icon: '📄'
+      key: 'company_cert',
+      name_vi: 'Chứng chỉ công ty',
+      name_en: 'Company Cert.'
     },
     {
-      id: 'sms_procedures',
-      label: language === 'vi' ? 'Quy trình SMS' : 'SMS Procedures',
-      icon: '📋'
+      key: 'sms_procedures',
+      name_vi: 'Quy trình SMS',
+      name_en: 'SMS Procedures'
     },
     {
-      id: 'record_template',
-      label: language === 'vi' ? 'Mẫu biên bản' : 'Record Template',
-      icon: '📝'
+      key: 'record_template',
+      name_vi: 'Mẫu biên bản',
+      name_en: 'Record Template'
     },
     {
-      id: 'ship_record',
-      label: language === 'vi' ? 'Biên bản tàu' : 'Ship Record',
-      icon: '🚢'
+      key: 'ship_record',
+      name_vi: 'Biên bản tàu',
+      name_en: 'Ship Record'
     }
   ];
 
@@ -161,105 +265,232 @@ const SafetyManagementSystem = () => {
         />
       }
     >
-      <div className="flex flex-col h-full">
-        {/* Company Info Panel */}
-        {companyData && (
-          <CompanyInfoPanel 
-            company={companyData}
-            language={language}
-          />
-        )}
-
-        {/* Sub Menu */}
-        <SubMenuBar
-          items={subMenuItems}
-          selectedItem={selectedSubMenu}
-          onSelectItem={setSelectedSubMenu}
+      {/* Company Info Panel */}
+      {companyData && (
+        <CompanyInfoPanel 
+          company={companyData}
           language={language}
         />
+      )}
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto bg-gray-50 p-6">
-          <div className="max-w-7xl mx-auto">
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800">
-                  {language === 'vi' ? 'Hệ thống quản lý an toàn' : 'Safety Management System'}
-                </h1>
+      {/* SubMenuBar */}
+      <SubMenuBar
+        selectedCategory="sms"
+        selectedSubMenu={selectedSubMenu}
+        onSubMenuChange={setSelectedSubMenu}
+      />
+
+      {/* Main Content */}
+      <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+        {/* Company Cert Content */}
+        {selectedSubMenu === 'company_cert' && (
+          <>
+            {/* Action Buttons Row */}
+            <div className="flex justify-between items-center mb-4 gap-4">
+              <div className="flex items-center gap-3">
+                {/* Add Button */}
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2 font-medium transition-all shadow-sm"
+                >
+                  <span>➕</span>
+                  {language === 'vi' ? 'Thêm' : 'Add'}
+                </button>
+
+                {/* Refresh Button */}
+                <button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <span className={isRefreshing ? 'animate-spin' : ''}>🔄</span>
+                  {language === 'vi' ? 'Làm mới' : 'Refresh'}
+                </button>
+
+                {/* Bulk Delete Button */}
+                {selectedCerts.size > 0 && (
+                  <button
+                    onClick={handleBulkDelete}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 transition-all shadow-sm"
+                  >
+                    <span>🗑️</span>
+                    {language === 'vi' ? `Xóa (${selectedCerts.size})` : `Delete (${selectedCerts.size})`}
+                  </button>
+                )}
               </div>
 
-              {/* Company Cert Content */}
-              {selectedSubMenu === 'company_cert' && (
-                <div className="bg-white rounded-lg shadow p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold">
-                      {language === 'vi' ? 'Chứng chỉ công ty' : 'Company Certificates'}
-                    </h2>
-                    <button
-                      onClick={() => setShowAddModal(true)}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
-                    >
-                      <span>➕</span>
-                      {language === 'vi' ? 'Thêm chứng chỉ' : 'Add Certificate'}
-                    </button>
-                  </div>
-
-                  {certsLoading ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    </div>
-                  ) : (
-                    <CompanyCertTable
-                      certificates={getFilteredAndSortedCerts()}
-                      selectedCertificates={selectedCerts}
-                      onSelectCertificate={handleSelectCert}
-                      onSelectAllCertificates={handleSelectAllCerts}
-                      onSort={handleSort}
-                      sortConfig={sortConfig}
-                      onDoubleClick={handleDoubleClick}
-                      onNotesClick={(cert) => {
-                        setNotesCert(cert);
-                        setShowNotesModal(true);
-                      }}
-                      onEditClick={(cert) => {
-                        setEditingCert(cert);
-                        setShowEditModal(true);
-                      }}
-                      onDeleteClick={(cert) => {
-                        setDeletingCert(cert);
-                        setShowDeleteModal(true);
-                      }}
-                    />
-                  )}
+              <div className="flex items-center gap-3">
+                {/* Search */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder={language === 'vi' ? 'Tìm kiếm...' : 'Search...'}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-64"
+                  />
+                  <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
                 </div>
-              )}
 
-              {/* Other sub-menus (placeholder) */}
-              {selectedSubMenu === 'sms_procedures' && (
-                <div className="bg-white rounded-lg shadow p-6 text-center">
-                  <p className="text-gray-600">
-                    {language === 'vi' ? 'SMS Procedures - Đang phát triển' : 'SMS Procedures - Coming Soon'}
-                  </p>
-                </div>
-              )}
+                {/* Status Filter */}
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">{language === 'vi' ? 'Tất cả' : 'All Status'}</option>
+                  <option value="Valid">{language === 'vi' ? 'Còn hạn' : 'Valid'}</option>
+                  <option value="Due Soon">{language === 'vi' ? 'Sắp hết hạn' : 'Due Soon'}</option>
+                  <option value="Expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
+                </select>
+              </div>
+            </div>
 
-              {selectedSubMenu === 'record_template' && (
-                <div className="bg-white rounded-lg shadow p-6 text-center">
-                  <p className="text-gray-600">
-                    {language === 'vi' ? 'Record Template - Đang phát triển' : 'Record Template - Coming Soon'}
-                  </p>
-                </div>
-              )}
-
-              {selectedSubMenu === 'ship_record' && (
-                <div className="bg-white rounded-lg shadow p-6 text-center">
-                  <p className="text-gray-600">
-                    {language === 'vi' ? 'Ship Record - Đang phát triển' : 'Ship Record - Coming Soon'}
-                  </p>
-                </div>
+            {/* Info Row */}
+            <div className="mb-4 text-sm text-gray-600">
+              {language === 'vi' 
+                ? `Hiển thị ${getFilteredAndSortedCerts().length} / ${companyCerts.length} chứng chỉ`
+                : `Showing ${getFilteredAndSortedCerts().length} / ${companyCerts.length} certificates`
+              }
+              {selectedCerts.size > 0 && (
+                <span className="ml-4 text-blue-600 font-medium">
+                  {language === 'vi' ? `Đã chọn: ${selectedCerts.size}` : `Selected: ${selectedCerts.size}`}
+                </span>
               )}
             </div>
+
+            {/* Table */}
+            {certsLoading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <p className="mt-4 text-gray-600">{language === 'vi' ? 'Đang tải...' : 'Loading...'}</p>
+              </div>
+            ) : (
+              <div onContextMenu={(e) => e.preventDefault()}>
+                <CompanyCertTable
+                  certificates={getFilteredAndSortedCerts()}
+                  selectedCertificates={selectedCerts}
+                  onSelectCertificate={handleSelectCert}
+                  onSelectAllCertificates={handleSelectAllCerts}
+                  onSort={handleSort}
+                  sortConfig={sortConfig}
+                  onDoubleClick={handleDoubleClick}
+                  onRightClick={handleRightClick}
+                  onNotesClick={(cert) => {
+                    setNotesCert(cert);
+                    setShowNotesModal(true);
+                  }}
+                  onEditClick={(cert) => {
+                    setEditingCert(cert);
+                    setShowEditModal(true);
+                  }}
+                  onDeleteClick={(cert) => {
+                    setDeletingCert(cert);
+                    setShowDeleteModal(true);
+                  }}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Other sub-menus (placeholder) */}
+        {selectedSubMenu === 'sms_procedures' && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📋</div>
+            <p className="text-xl font-medium text-gray-600">
+              {language === 'vi' ? 'SMS Procedures - Đang phát triển' : 'SMS Procedures - Coming Soon'}
+            </p>
           </div>
+        )}
+
+        {selectedSubMenu === 'record_template' && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">📝</div>
+            <p className="text-xl font-medium text-gray-600">
+              {language === 'vi' ? 'Record Template - Đang phát triển' : 'Record Template - Coming Soon'}
+            </p>
+          </div>
+        )}
+
+        {selectedSubMenu === 'ship_record' && (
+          <div className="text-center py-12">
+            <div className="text-6xl mb-4">🚢</div>
+            <p className="text-xl font-medium text-gray-600">
+              {language === 'vi' ? 'Ship Record - Đang phát triển' : 'Ship Record - Coming Soon'}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Context Menu */}
+      {contextMenu && (
+        <div
+          className="fixed bg-white shadow-lg rounded-lg py-2 z-[9999] border border-gray-200 min-w-[220px]"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* View */}
+          <button
+            onClick={() => {
+              handleDoubleClick(contextMenu.certificate);
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+          >
+            <span>👁️</span>
+            {language === 'vi' ? 'Xem file' : 'View File'}
+          </button>
+
+          <div className="border-t border-gray-200 my-1"></div>
+
+          {/* Edit */}
+          <button
+            onClick={() => {
+              setEditingCert(contextMenu.certificate);
+              setShowEditModal(true);
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+          >
+            <span>✏️</span>
+            {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+          </button>
+
+          {/* Notes */}
+          <button
+            onClick={() => {
+              setNotesCert(contextMenu.certificate);
+              setShowNotesModal(true);
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+          >
+            <span>📝</span>
+            {language === 'vi' ? 'Ghi chú' : 'Notes'}
+          </button>
+
+          <div className="border-t border-gray-200 my-1"></div>
+
+          {/* Delete */}
+          <button
+            onClick={() => {
+              setDeletingCert(contextMenu.certificate);
+              setShowDeleteModal(true);
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
+          >
+            <span>🗑️</span>
+            {selectedCerts.size > 1 
+              ? (language === 'vi' ? `Xóa (${selectedCerts.size})` : `Delete (${selectedCerts.size})`)
+              : (language === 'vi' ? 'Xóa' : 'Delete')
+            }
+          </button>
         </div>
+      )}
 
       {/* Modals */}
       <AddCompanyCertModal
@@ -271,7 +502,10 @@ const SafetyManagementSystem = () => {
 
       <EditCompanyCertModal
         isOpen={showEditModal}
-        onClose={() => setShowEditModal(false)}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingCert(null);
+        }}
         onSuccess={loadCompanyCerts}
         certificate={editingCert}
         language={language}
@@ -279,7 +513,10 @@ const SafetyManagementSystem = () => {
 
       <DeleteCompanyCertModal
         isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
+        onClose={() => {
+          setShowDeleteModal(false);
+          setDeletingCert(null);
+        }}
         onSuccess={loadCompanyCerts}
         certificate={deletingCert}
         language={language}
@@ -287,7 +524,10 @@ const SafetyManagementSystem = () => {
 
       <CompanyCertNotesModal
         isOpen={showNotesModal}
-        onClose={() => setShowNotesModal(false)}
+        onClose={() => {
+          setShowNotesModal(false);
+          setNotesCert(null);
+        }}
         onSuccess={loadCompanyCerts}
         certificate={notesCert}
         language={language}
