@@ -15,9 +15,7 @@ export const CompanyCertTable = ({
   sortConfig,
   onDoubleClick,
   onRightClick,
-  onNotesClick,
-  onEditClick,
-  onDeleteClick
+  onNotesClick
 }) => {
   const { language, user } = useAuth();
   const [noteTooltip, setNoteTooltip] = useState({
