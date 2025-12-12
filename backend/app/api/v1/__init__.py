@@ -4,7 +4,7 @@ from app.api.v1 import (
     survey_reports, test_reports, drawings_manuals, other_documents,
     supply_documents, ai_config, utilities, gdrive, audit_reports,
     audit_certificates, approval_documents, other_audit_documents, system_settings,
-    ships_analysis, sidebar, system, crew_audit_logs, system_announcements
+    ships_analysis, sidebar, system, crew_audit_logs, system_announcements, company_certs
 )
 from app.core.security import get_current_user
 
@@ -54,6 +54,9 @@ api_router.include_router(approval_documents.router, prefix="/approval-documents
 
 # Other Audit Documents router
 api_router.include_router(other_audit_documents.router, prefix="/other-audit-documents", tags=["other-audit-documents"])
+
+# Company Certificates router (Safety Management System)
+api_router.include_router(company_certs.router, prefix="/company-certs", tags=["company-certs"])
 
 # IMPORTANT: Frontend compatibility routes
 # Frontend calls various endpoints differently than our clean architecture
