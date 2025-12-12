@@ -56,12 +56,14 @@ Extract the following fields in JSON format:
 IMPORTANT INSTRUCTIONS:
 1. cert_name and cert_no are REQUIRED fields
 2. company_name: Extract the company name (look for "Name of the Company:", "Company:", etc.)
-3. doc_type: **CRITICAL FOR DOC CERTIFICATES** - Search for EXACT keywords in the document text:
-   - Return "full_term" if you find: "Full Term", "FULL TERM", "Full-Term", "FULL-TERM"
-   - Return "short_term" if you find: "Short Term", "SHORT TERM", "Short-Term", "SHORT-TERM"
-   - Return "interim" if you find: "Interim", "INTERIM", "Interrim", "INTERRIM"
-   - Return "" (empty string) if NOT a Document of Compliance
+3. doc_type: **MANDATORY FOR ALL DOC CERTIFICATES** - Search for EXACT keywords in the document text:
+   - Return "full_term" if you find: "Full Term", "FULL TERM", "Full-Term", "FULL-TERM", "full term"
+   - Return "short_term" if you find: "Short Term", "SHORT TERM", "Short-Term", "SHORT-TERM", "short term"
+   - Return "interim" if you find: "Interim", "INTERIM", "Interrim", "INTERRIM", "interim"
+   - Return "" (empty string) ONLY if NOT a Document of Compliance
+   - **CRITICAL:** If the certificate IS a "Document of Compliance" but you cannot find the keywords above, you MUST return "full_term" as default
    - IMPORTANT: Search the EXACT keywords in document text, do NOT analyze dates or validity periods
+   - DO NOT leave doc_type empty for DOC certificates
 4. ALL dates MUST be converted to DD/MM/YYYY format (e.g., "18/11/2024")
 5. Look for dates with keywords:
    - issue_date: "Date of issue", "Issued", "Issue date"
