@@ -249,7 +249,7 @@ const SafetyManagementSystem = () => {
       {/* Page Title */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-800">
-          {companyData?.name || 'Company'} {language === 'vi' ? 'Hệ thống quản lý an toàn' : 'Safety Management System'}
+          {language === 'vi' ? 'Hệ thống quản lý an toàn của công ty' : 'Company Safety Management System'}
         </h1>
       </div>
 
