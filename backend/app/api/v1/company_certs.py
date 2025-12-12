@@ -190,7 +190,7 @@ async def upload_company_cert_with_file(
         cert_id = cert_response.id
         
         # Upload file to Google Drive
-        folder_path = "COMPANY DOCUMENT/Company Certificates"
+        folder_path = "COMPANY DOCUMENT / SMS / Company Certificates"
         file_content = await file.read()
         
         logger.info(f"📤 Uploading file to GDrive: {file.filename}")
