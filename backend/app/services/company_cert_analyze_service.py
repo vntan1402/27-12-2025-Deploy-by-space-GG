@@ -88,7 +88,7 @@ async def analyze_company_cert_file(
         
         # Validate required fields
         if not extracted_info.get('cert_name') or not extracted_info.get('cert_no'):
-            logger.warning(f"⚠️ Missing required fields in extraction")
+            logger.warning("⚠️ Missing required fields in extraction")
         
         # Check for duplicates
         from app.db.mongodb import mongo_db
