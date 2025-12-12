@@ -116,6 +116,14 @@ const AppRoutes = () => {
           }
         />
         <Route
+          path="/safety-management-system"
+          element={
+            <ProtectedRoute>
+              <SafetyManagementSystem />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/settings"
           element={
             <ProtectedRoute>
