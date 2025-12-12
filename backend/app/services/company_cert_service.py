@@ -119,12 +119,24 @@ class CompanyCertService:
     @staticmethod
     async def update_company_cert(cert_id: str, cert_data: CompanyCertUpdate, current_user: UserResponse) -> CompanyCertResponse:
         """Update company certificate"""
+        from app.utils.certificate_abbreviation import generate_certificate_abbreviation
+        from app.utils.issued_by_abbreviation import generate_organization_abbreviation
+        
         existing_cert = await mongo_db.find_one(CompanyCertService.collection_name, {"id": cert_id})
         
         if not existing_cert:
             raise HTTPException(status_code=404, detail="Company Certificate not found")
         
         update_data = cert_data.model_dump(exclude_unset=True)
+        
+        # If cert_name is updated, regenerate abbreviation
+        if "cert_name" in update_data and update_data["cert_name"]:
+            update_data["cert_abbreviation"] = await generate_certificate_abbreviation(update_data["cert_name"])
+            logger.info(f"📝 Regenerated abbreviation: {update_data['cert_name']} → {update_data['cert_abbreviation']}")
+        
+        # If issued_by is updated, regenerate organization abbreviation
+        if "issued_by" in update_data and update_data["issued_by"]:
+            update_data["issued_by_abbreviation"] = generate_organization_abbreviation(update_data["issued_by"])
         
         if update_data:
             await mongo_db.update_one(
