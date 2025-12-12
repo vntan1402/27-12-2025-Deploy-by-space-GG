@@ -56,25 +56,40 @@ Extract the following fields in JSON format:
 IMPORTANT INSTRUCTIONS:
 1. cert_name and cert_no are REQUIRED fields
 2. company_name: Extract the company name (look for "Name of the Company:", "Company:", etc.)
-3. doc_type: **CRITICAL - MANDATORY FOR ALL DOC CERTIFICATES** - Search carefully for these EXACT keywords:
+3. doc_type: **CRITICAL - MANDATORY FOR ALL DOC CERTIFICATES** - You MUST classify every DOC:
    
-   **PRIORITY 1: Check certificate title first:**
-   - If title contains "SHORT TERM DOCUMENT OF COMPLIANCE" → Return "short_term"
-   - If title contains "FULL TERM DOCUMENT OF COMPLIANCE" → Return "full_term"
-   - If title contains "INTERIM DOCUMENT OF COMPLIANCE" → Return "interim"
+   **Step 1: Search for "SHORT TERM" keywords (highest priority):**
+   - "Short Term Certificate"
+   - "SHORT TERM DOCUMENT OF COMPLIANCE"
+   - "Short Term Document"
+   - "SHORT TERM" (anywhere in text)
+   - "short term"
+   - If found ANY of above → **MUST return "short_term"**
    
-   **PRIORITY 2: Check anywhere in document text:**
-   - Return "short_term" if you find: "Short Term", "SHORT TERM", "Short-Term", "SHORT-TERM", "short term", "Short Term Certificate"
-   - Return "full_term" if you find: "Full Term", "FULL TERM", "Full-Term", "FULL-TERM", "full term", "Full Term Certificate"
-   - Return "interim" if you find: "Interim", "INTERIM", "Interrim", "INTERRIM", "interim", "Interim Certificate"
+   **Step 2: If not Short Term, search for "INTERIM":**
+   - "Interim Document of Compliance"
+   - "INTERIM DOCUMENT"
+   - "Interim Certificate"
+   - "INTERIM" (anywhere in text)
+   - If found ANY of above → **MUST return "interim"**
    
-   **IMPORTANT RULES:**
-   - Look at the DOCUMENT TITLE and certificate heading FIRST
-   - Search the ENTIRE document text for these keywords
-   - Return "" (empty string) ONLY if NOT a Document of Compliance
-   - If the certificate IS a DOC but you cannot find keywords, default to "full_term"
-   - DO NOT analyze dates or validity periods
-   - DO NOT leave doc_type empty for DOC certificates
+   **Step 3: If not Short Term or Interim, search for "FULL TERM":**
+   - "Full Term Document of Compliance"
+   - "FULL TERM DOCUMENT"
+   - "Full Term Certificate"
+   - "FULL TERM" (anywhere in text)
+   - If found ANY of above → **MUST return "full_term"**
+   
+   **Step 4: Default for DOC without keywords:**
+   - If certificate IS "Document of Compliance" but no keywords found → return "full_term"
+   - If NOT a Document of Compliance → return ""
+   
+   **CRITICAL RULES:**
+   - READ THE ENTIRE TEXT CAREFULLY before deciding
+   - Keywords can appear ANYWHERE in the document (title, body, footer)
+   - CASE INSENSITIVE search (SHORT TERM = short term)
+   - NEVER return null or empty for a DOC certificate
+   - When in doubt between types, prioritize in order: short_term > interim > full_term
 4. ALL dates MUST be converted to DD/MM/YYYY format (e.g., "18/11/2024")
 5. Look for dates with keywords:
    - issue_date: "Date of issue", "Issued", "Issue date"
