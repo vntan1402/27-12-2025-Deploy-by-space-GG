@@ -63,8 +63,12 @@ const SafetyManagementSystem = () => {
 
   const loadCompanyData = async () => {
     try {
-      const response = await api.get('/company');
-      setCompanyData(response.data);
+      const response = await api.get('/api/companies');
+      if (response.data && response.data.length > 0) {
+        // Get user's company
+        const userCompany = response.data.find(c => c.id === user?.company);
+        setCompanyData(userCompany || response.data[0]);
+      }
     } catch (error) {
       console.error('Error loading company:', error);
     }

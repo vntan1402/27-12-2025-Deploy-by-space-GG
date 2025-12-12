@@ -1,6 +1,6 @@
 import api from './api';
 
-const BASE_URL = '/company-certs';
+const BASE_URL = '/api/v1/company-certs';
 
 export const companyCertService = {
   // Get all company certificates
