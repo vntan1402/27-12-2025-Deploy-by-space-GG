@@ -15,6 +15,7 @@ export const AddCompanyCertModal = ({
   const [formData, setFormData] = useState({
     cert_name: '',
     cert_no: '',
+    company_name: '',
     issue_date: '',
     valid_date: '',
     last_endorse: '',
@@ -100,6 +101,7 @@ export const AddCompanyCertModal = ({
               ...prev,
               cert_name: info.cert_name || prev.cert_name,
               cert_no: info.cert_no || prev.cert_no,
+              company_name: info.company_name || prev.company_name,
               issue_date: convertDateFormat(info.issue_date) || prev.issue_date,
               valid_date: convertDateFormat(info.valid_date) || prev.valid_date,
               last_endorse: convertDateFormat(info.last_endorse) || prev.last_endorse,
@@ -241,6 +243,7 @@ export const AddCompanyCertModal = ({
     setFormData({
       cert_name: '',
       cert_no: '',
+      company_name: '',
       issue_date: '',
       valid_date: '',
       last_endorse: '',
@@ -410,8 +413,8 @@ export const AddCompanyCertModal = ({
               </div>
             )}
             
-            {/* Row 1: Certificate Name & Number */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Row 1: Certificate Name, Number & Company Name */}
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} <span className="text-red-500">*</span>
@@ -437,6 +440,20 @@ export const AddCompanyCertModal = ({
                   onChange={(e) => setFormData({...formData, cert_no: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 font-mono"
                   placeholder={language === 'vi' ? 'Số chứng chỉ' : 'Cert No'}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên công ty' : 'Company Name'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.company_name}
+                  onChange={(e) => setFormData({...formData, company_name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder={language === 'vi' ? 'Tên công ty trên chứng chỉ' : 'Company name on certificate'}
                   disabled={isSubmitting}
                 />
               </div>

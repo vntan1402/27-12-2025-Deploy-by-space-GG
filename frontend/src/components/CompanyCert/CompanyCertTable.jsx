@@ -158,6 +158,13 @@ export const CompanyCertTable = ({
             </th>
             <th 
               className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              onClick={() => onSort('company_name')}
+            >
+              {language === 'vi' ? 'Tên công ty' : 'Company Name'}
+              {getSortIcon('company_name')}
+            </th>
+            <th 
+              className="px-4 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('issue_date')}
             >
               {language === 'vi' ? 'Ngày cấp' : 'Issue Date'}
@@ -268,6 +275,7 @@ export const CompanyCertTable = ({
                   </div>
                 </td>
                 <td className="px-4 py-2 border-b border-r text-sm">{cert.cert_no || '-'}</td>
+                <td className="px-4 py-2 border-b border-r text-sm font-medium text-gray-700">{cert.company_name || '-'}</td>
                 <td className="px-4 py-2 border-b border-r text-sm">{formatDateDisplay(cert.issue_date) || '-'}</td>
                 <td className="px-4 py-2 border-b border-r text-sm">{formatDateDisplay(cert.valid_date) || '-'}</td>
                 <td className="px-4 py-2 border-b border-r text-sm">{formatDateDisplay(cert.last_endorse) || '-'}</td>
