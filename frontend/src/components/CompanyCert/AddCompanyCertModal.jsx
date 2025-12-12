@@ -403,8 +403,8 @@ export const AddCompanyCertModal = ({
               </div>
             </div>
 
-            {/* Row 2: Issue Date & Valid Date */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Row 2: All Dates in One Row - 4 columns */}
+            <div className="grid grid-cols-4 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Ngày cấp' : 'Issue Date'}
@@ -413,7 +413,7 @@ export const AddCompanyCertModal = ({
                   type="date"
                   value={formData.issue_date}
                   onChange={(e) => setFormData({...formData, issue_date: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm"
                   disabled={isSubmitting}
                 />
               </div>
@@ -426,14 +426,11 @@ export const AddCompanyCertModal = ({
                   type="date"
                   value={formData.valid_date}
                   onChange={(e) => setFormData({...formData, valid_date: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm"
                   disabled={isSubmitting}
                 />
               </div>
-            </div>
 
-            {/* Row 3: Last Endorse, Next Survey & Next Survey Type */}
-            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Xác nhận cuối' : 'Last Endorse'}
@@ -442,7 +439,7 @@ export const AddCompanyCertModal = ({
                   type="date"
                   value={formData.last_endorse}
                   onChange={(e) => setFormData({...formData, last_endorse: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm"
                   disabled={isSubmitting}
                 />
               </div>
@@ -455,7 +452,24 @@ export const AddCompanyCertModal = ({
                   type="date"
                   value={formData.next_survey}
                   onChange={(e) => setFormData({...formData, next_survey: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm"
+                  disabled={isSubmitting}
+                />
+              </div>
+            </div>
+
+            {/* Row 3: Issued By & Next Survey Type - 2 columns */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Cơ quan cấp' : 'Issued By'}
+                </label>
+                <input
+                  type="text"
+                  value={formData.issued_by}
+                  onChange={(e) => setFormData({...formData, issued_by: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder={language === 'vi' ? 'Cơ quan cấp' : 'Issuing Authority'}
                   disabled={isSubmitting}
                 />
               </div>
