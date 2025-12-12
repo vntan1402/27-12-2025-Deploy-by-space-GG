@@ -79,18 +79,21 @@ def validate_certificate_type(cert_type: str) -> str:
 async def generate_certificate_abbreviation(cert_name: str) -> str:
     """
     Generate certificate abbreviation from certificate name
-    Priority: User-defined mappings → Auto-generation algorithm
+    Priority: User-defined mappings → Special DOC handling → Auto-generation algorithm
     
     Args:
         cert_name: Full certificate name
         
     Returns:
-        Abbreviated certificate name (e.g., "CSSC", "IOPP")
+        Abbreviated certificate name (e.g., "CSSC", "IOPP", "FT DOC", "ST DOC")
         
     Examples:
         "Cargo Ship Safety Construction Certificate" → "CSSC"
         "International Oil Pollution Prevention" → "IOPP"
         "Load Line Certificate" → "LLC"
+        "Full Term Document of Compliance" → "FT DOC"
+        "Short Term Document of Compliance" → "ST DOC"
+        "Interim Document of Compliance" → "Int DOC"
     """
     if not cert_name:
         return ""
@@ -101,7 +104,25 @@ async def generate_certificate_abbreviation(cert_name: str) -> str:
         logger.info(f"✅ Using user-defined abbreviation: '{cert_name}' → '{user_abbreviation}'")
         return user_abbreviation
     
-    # Priority 2: Auto-generation algorithm
+    # Priority 2: Special handling for Document of Compliance (DOC)
+    cert_name_upper = cert_name.upper().strip()
+    if 'DOCUMENT OF COMPLIANCE' in cert_name_upper or cert_name_upper == 'DOC':
+        # Check for specific DOC types
+        if 'FULL' in cert_name_upper or 'FULL TERM' in cert_name_upper:
+            logger.info(f"✅ DOC type detected: '{cert_name}' → 'FT DOC'")
+            return "FT DOC"
+        elif 'SHORT' in cert_name_upper or 'SHORT TERM' in cert_name_upper:
+            logger.info(f"✅ DOC type detected: '{cert_name}' → 'ST DOC'")
+            return "ST DOC"
+        elif 'INTERIM' in cert_name_upper or 'INTERRIM' in cert_name_upper:
+            logger.info(f"✅ DOC type detected: '{cert_name}' → 'Int DOC'")
+            return "Int DOC"
+        else:
+            # Default DOC if no specific type found
+            logger.info(f"✅ DOC detected (no type specified): '{cert_name}' → 'DOC'")
+            return "DOC"
+    
+    # Priority 3: Auto-generation algorithm
     # Remove common words and focus on key terms
     # Note: Kept 'of' to generate abbreviations like DOC (Document Of Compliance)
     common_words = {'the', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were'}
