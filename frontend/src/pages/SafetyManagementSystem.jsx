@@ -260,7 +260,6 @@ const SafetyManagementSystem = () => {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Modals */}
       <AddCompanyCertModal
