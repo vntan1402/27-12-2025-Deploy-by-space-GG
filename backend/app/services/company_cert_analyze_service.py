@@ -90,6 +90,54 @@ async def analyze_company_cert_file(
         if not extracted_info.get('cert_name') or not extracted_info.get('cert_no'):
             logger.warning("⚠️ Missing required fields in extraction")
         
+        # Auto-calculate next_audit if we have doc_type
+        if extracted_info.get('doc_type'):
+            try:
+                from app.utils.doc_next_survey_calculator import calculate_next_survey
+                from datetime import datetime
+                
+                # Get dates from extracted_info
+                doc_type = extracted_info.get('doc_type')
+                valid_date_str = extracted_info.get('valid_date')
+                issue_date_str = extracted_info.get('issue_date')
+                last_endorse_str = extracted_info.get('last_endorse')
+                
+                # Convert DD/MM/YYYY to datetime objects
+                def parse_date(date_str):
+                    if not date_str:
+                        return None
+                    try:
+                        # Try DD/MM/YYYY format first
+                        return datetime.strptime(date_str, "%d/%m/%Y")
+                    except:
+                        try:
+                            # Try YYYY-MM-DD format
+                            return datetime.strptime(date_str, "%Y-%m-%d")
+                        except:
+                            return None
+                
+                valid_date = parse_date(valid_date_str)
+                issue_date = parse_date(issue_date_str)
+                last_endorse = parse_date(last_endorse_str)
+                
+                # Calculate next_audit
+                next_audit_result = calculate_next_survey(
+                    doc_type,
+                    valid_date,
+                    issue_date,
+                    last_endorse
+                )
+                
+                if next_audit_result:
+                    # Add to extracted_info in DD/MM/YYYY format for frontend
+                    extracted_info['next_audit'] = next_audit_result.strftime("%d/%m/%Y")
+                    logger.info(f"📅 Auto-calculated next_audit: {extracted_info['next_audit']}")
+                else:
+                    logger.info(f"📋 No next_audit required for {doc_type}")
+                    
+            except Exception as e:
+                logger.warning(f"⚠️ Could not calculate next_audit: {e}")
+        
         # Check for duplicates
         from app.db.mongodb import mongo_db
         duplicate_warning = None
