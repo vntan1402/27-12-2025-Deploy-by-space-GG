@@ -479,18 +479,33 @@ async def get_crew_certificate_file_link(
 
 @router.post("/recalculate-all-status")
 async def recalculate_all_crew_certificate_status(
+    certificate_ids: Optional[List[str]] = Body(None, embed=True),
     current_user: UserResponse = Depends(check_editor_permission)
 ):
     """
-    Recalculate status for all crew certificates based on cert_expiry
-    Useful for fixing inconsistent data
+    Recalculate status for crew certificates based on cert_expiry
+    
+    Args:
+        certificate_ids: Optional list of certificate IDs to recalculate.
+                        If not provided, recalculates all certificates for company.
     """
     try:
         from app.repositories.crew_certificate_repository import CrewCertificateRepository
         from datetime import datetime, timezone
         
-        # Get all crew certificates for the company
-        all_certs = await CrewCertificateRepository.find_all({"company_id": current_user.company})
+        # Get certificates to process
+        if certificate_ids and len(certificate_ids) > 0:
+            # Only process specified certificates
+            all_certs = []
+            for cert_id in certificate_ids:
+                cert = await CrewCertificateRepository.find_by_id(cert_id)
+                if cert and cert.get('company_id') == current_user.company:
+                    all_certs.append(cert)
+            logger.info(f"📋 Recalculating {len(all_certs)} specified certificates")
+        else:
+            # Process all certificates for company
+            all_certs = await CrewCertificateRepository.find_all({"company_id": current_user.company})
+            logger.info(f"📋 Recalculating all {len(all_certs)} certificates for company")
         
         updated_count = 0
         no_expiry_count = 0
