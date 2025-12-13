@@ -21,8 +21,8 @@ def calculate_next_survey(
     Args:
         doc_type: "full_term", "short_term", or "interim"
         valid_date: Certificate validity/expiry date
-        issue_date: Certificate issue date (not used in current logic)
-        last_endorse: Last endorsement date (not used in current logic)
+        issue_date: Certificate issue date (used as fallback for Last Endorse)
+        last_endorse: Last endorsement date (primary reference for determining completed audits)
         
     Returns:
         Tuple of (next_audit_date, next_audit_type) or (None, None)
@@ -33,7 +33,11 @@ def calculate_next_survey(
        - Audit cycle 5 years = (valid_year - 5) to valid_year
        - Annual Audits: 1st/2nd/3rd/4th on each anniversary (±3M window)
        - Renewal Audit: Valid date (-3M window)
-       - Next audit determined by current date position in cycle
+       - Next audit determination:
+         a) If Last Endorse exists: use it to find completed audits
+         b) If no Last Endorse: use Issue Date as fallback
+         c) Find last completed audit → Next audit = audit after it
+         d) If no completed audit → Next audit = first audit in cycle
        
     2. Short Term DOC:
        - Next audit = None, Type = None
