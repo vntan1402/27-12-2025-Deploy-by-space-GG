@@ -122,9 +122,9 @@ const SafetyManagementSystem = () => {
   };
 
   const handleDoubleClick = (cert) => {
-    if (cert.file_id) {
-      window.open(`https://drive.google.com/file/d/${cert.file_id}/view`, '_blank');
-    }
+    // Open Edit modal on double click
+    setEditingCert(cert);
+    setShowEditModal(true);
   };
 
   const handleRightClick = (e, cert) => {
