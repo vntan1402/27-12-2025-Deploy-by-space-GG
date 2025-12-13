@@ -427,6 +427,21 @@ export const CompanyCertTable = ({
           </div>
         </div>
       )}
+
+      {auditTooltip.show && (
+        <div
+          className="fixed z-50 bg-blue-50 border border-blue-300 rounded-lg shadow-lg p-2 px-3"
+          style={{
+            left: `${auditTooltip.x}px`,
+            top: `${auditTooltip.y}px`,
+            minWidth: '180px'
+          }}
+        >
+          <div className="text-sm text-blue-900 whitespace-pre-line font-medium">
+            {auditTooltip.content}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
