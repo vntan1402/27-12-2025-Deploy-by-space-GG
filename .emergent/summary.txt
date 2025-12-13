@@ -8,27 +8,34 @@ The user's primary goal is to build a new Safety Management System page with a l
 PRODUCT REQUIREMENTS:
 -   The Company Cert phase requires full-stack CRUD functionality, including file uploads and an AI analysis pipeline for data extraction.
 -   The UI of the new page must be visually consistent with existing application pages.
--   The user requested several UI enhancements across the application, including:
-    -   In the Edit Company modal, remove the file upload option and only keep the Logo URL field.
-    -   Implement a feature to update a ship's photo URL by double-clicking the image.
 -   A new Company field (representing the company name on the certificate document) needs to be added to the Company Cert feature, including the database, AI extraction, add/edit modal, and data table.
 -   The Add Certificate modal flow should be improved for better UX: save the record instantly, close the modal, and handle file uploads in the background with toast notifications.
 -   File deletion from the database should trigger a background task to delete the corresponding files from Google Drive.
 -   The layout of the Add Company Certificate modal needs to be reorganized for better compactness and clarity.
+-   Logic to classify DOCUMENT OF COMPLIANCE certificates into FT DOC, ST DOC, or Int DOC based on content analysis.
+-   Logic to automatically calculate the Next Survey date based on business rules.
+-   UI enhancements including company name abbreviations and table layout adjustments.
 
 **User's preferred language**: Vietnamese
 
 **what currently exists?**
-Phase 1 (Company Cert) of the Safety Management System page is almost complete.
--   **Backend:** A full suite of APIs () supports all CRUD operations, file analysis via LLM, and background file uploads/deletions. The data model and services have been created and extensively debugged.
--   **Frontend:** The main page () is functional and accessible. The  and  components are implemented. The modal now supports an instant-save/background-upload flow, and the table displays data with custom abbreviations and file icons.
--   **UX/UI:** The Add Certificate modal layout has been significantly refined for compactness. A loading spinner is correctly implemented for the AI analysis step. The table now includes abbreviations for certificate names and issuers, along with icons for viewing original and summary files on Google Drive.
+Phase 1 (Company Cert.) is now feature-complete after extensive iterative development and bug fixing.
+-   **Backend**: Supports full CRUD for company certificates, including AI-driven data extraction from uploaded files. New features have been added and stabilized:
+    -   A  field is fully integrated.
+    -   Advanced abbreviation logic classifies Document of Compliance (DOC) types into , , and  based on an AI-extracted  and several business rules (e.g., presence of Last Endorse date implies ).
+    -   Company names are automatically abbreviated in API responses (e.g.,  -> ).
+    -   A  date is automatically calculated and stored upon certificate creation and update based on its type and validity.
+-   **Frontend**: The UI for Company Cert. is functional and refined.
+    -    and  now share a consistent, compact layout.
+    -   The  displays the new  and the calculated abbreviations for both certificate and company names, with full names available on hover.
+    -   The table layout has been adjusted to combine the checkbox and number columns and reduce cell padding.
+-   **Bugs Fixed**: Numerous bugs were resolved, including a modal state persistence issue (Stuck on Saving...), multiple frontend rendering errors (Objects are not valid as a React child), API validation errors (404s due to missing  prefix, 422s for incorrect data types), and a recurring issue with AI misclassifying certificate types.
 
 **Last working item**:
--   **Last item agent was working:** The agent was implementing the user's request to add a new field,  (the name of the company on the certificate), to the Company Cert feature. The agent successfully updated the backend model () and the AI extraction prompt (). The next step is to add the corresponding input field to the frontend modal and a new column to the table.
--   **Status:** IN PROGRESS
+-   **Last item agent was working:** The user requested to add a new button, Update Next Survey, next to the Add Certificate button. The agent's last action was to begin identifying the correct frontend component to add this button to.
+-   **Status:** NOT STARTED
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** both. The frontend agent should verify the new UI elements in the modal and table. The backend agent should test the end-to-end flow to ensure the new field is correctly extracted by AI, saved to the database, and retrieved.
+-   **Which testing method agent to use?** both. A new backend endpoint will be required to update all surveys, which needs backend testing. The frontend button and its connection to the new API will require frontend testing.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
@@ -40,24 +47,20 @@ Phase 1 (Company Cert) of the Safety Management System page is almost complete.
         -   Check form validation logic and review browser console logs on failed login attempts.
     -   **Why fix this issue and what will be achieved with the fix?** To restore the primary UI login functionality for all users.
     -   **Status:** NOT STARTED
-    -   **Is recurring issue?** N
+    -   **Is recurring issue?** Y
     -   **Should Test frontend/backend/both after fix?** Frontend
     -   **Blocked on other issue:** No
 
 **In progress Task List**:
--   **Task 1: Complete Add Company Name Feature (P0)**
-    -   **Description:** This is the final sub-task for completing Phase 1. It involves adding the  field to the frontend UI.
-    -   **Where to resume:**
-        1.  Modify  to add a new input field for Company Name.
-        2.  Modify  to add a new column to display the Company Name.
-        3.  Ensure the  state and  function in the modal correctly handle the new field.
-    -   **What will be achieved with this?** The Company Cert feature will be fully aligned with the user's latest requirement, making it ready for final verification.
-    -   **Status:** IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?** Both
-    -   **Blocked on something:** No
+-   None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
+    -   **(P0) Implement Update Next Survey Button:** This is the current, highest-priority task. It will involve:
+        1.  Adding the button to the  header.
+        2.  Creating a new backend API endpoint (e.g., ).
+        3.  Implementing service logic to iterate through all certificates and re-run the .
+        4.  Connecting the frontend button to call this new API and display a toast notification on completion.
     -   **(P1) Implement SMS Procedures Page (Phase 2):** After completing and getting user verification for Company Cert, the next step is to build the SMS Procedures section. The first action should be to ask the user for the specific data fields required for an SMS Procedure.
     -   **(P2) Implement Record Template Page (Phase 3):** Follow the same process as for SMS Procedures.
     -   **(P2) Implement Ship Record Page (Phase 4):** Follow the same process.
@@ -65,30 +68,28 @@ Phase 1 (Company Cert) of the Safety Management System page is almost complete.
     -   **(P3) Plan and Implement CV Mail Merge Feature:** This task involves creating a feature to generate templated CVs. The next step is to create a detailed implementation plan and present it to the user for approval.
 
 **Completed work in this session**
--   **Feature: Background Operations (DONE):**
-    -   Refactored the Add Certificate modal to save the record instantly, close the modal, and upload the file in the background with toast notifications.
-    -   Implemented background deletion of Google Drive files when a certificate record is deleted.
--   **Bug Fix: AI Analysis & Upload Pipeline (DONE):**
-    -   Fixed multiple 500 errors in the  API caused by module import errors (, ), incorrect LLM method calls ( -> ), and missing Document AI configurations.
-    -   Fixed a bug where the AI-extracted  was not saved to the database by adding the missing field to the  Pydantic model.
-    -   Fixed a bug causing duplicate COMPANY DOCUMENT folders by trimming whitespace from the folder path string before sending it to the Google Apps Script.
-    -   Improved the AI prompt to correctly extract dates from documents.
--   **Bug Fix: Database Operations (DONE):**
-    -   Fixed a MongoDB update error by removing a redundant  operator in the service layer.
-    -   Fixed a MongoDB insert error by adding missing wrapper methods (, , ) to the custom  class.
--   **Bug Fix: Frontend & UX (DONE):**
-    -   Fixed a client-side 404 error on delete by adding the  prefix to the request URL.
-    -   Fixed the loading spinner logic to ensure it displays for the entire duration of the file analysis.
-    -   Fixed a React error () by correctly parsing error messages for toast notifications.
-    -   Fixed a 422 validation error on form submission by adding the required  to the payload.
+-   **Feature: Company Cert Phase 1 (DONE):**
+    -    field added end-to-end.
+    -   Advanced DOC abbreviation logic (FT/ST/Int DOC) implemented based on AI analysis.
+    -   Company name abbreviation feature (, ) added.
+    -   Automatic calculation of Next Survey date implemented.
 -   **UI/UX Enhancements (DONE):**
-    -   Implemented certificate name and issuer abbreviations (, ) in the , mirroring the  feature.
-    -   Added clickable file and summary icons to the Notes column.
-    -   Reorganized the  layout into compact rows as per user specifications and removed a duplicate Notes field.
-    -   Styled the upload guidelines to display on a single horizontal line.
+    -   Synced the layout of  with .
+    -   Combined checkbox and number column in the table.
+    -   Reduced table cell padding for a more compact view.
+-   **Bug Fixes (DONE):**
+    -   Resolved recurring AI misclassification of DOC types by iteratively strengthening the AI prompt.
+    -   Fixed modal state bug where it was Stuck on Saving.
+    -   Fixed multiple 404 and 422 API errors in modals by adding the  prefix and ensuring correct data types.
+    -   Fixed React rendering error (Objects are not valid as a React child) by improving API error message handling.
+    -   Fixed an issue where clearing a note in the edit modal did not correctly update its status in the table.
 
 **Earlier issues found/mentioned but not fixed**
--   The **Frontend Login Form Validation Bug** is the only known issue that was identified but not fixed. It is listed in the All Pending/In progress Issue list.
+-   **Issue 1: Edit Modal Trigger**
+    -   **Debug checklist:** The  was not appearing on double-click as intended (Chat Message 319). While the agent fixed API calls within the modal, the mechanism for opening it was never verified or fixed. The  handler in  needs to be checked to ensure it correctly opens the modal.
+    -   **Why to solve this issue and what will be achieved with this?** To restore the primary method for editing a certificate.
+    -   **Should Test frontend/backend/both after fix:** Frontend
+    -   **Is recurring issue?** N
 
 **Known issue recurrence from previous fork**
 -   None.
@@ -469,6 +470,7 @@ Phase 1 (Company Cert) of the Safety Management System page is almost complete.
 │   │       │   ├── certificate_abbreviation.cpython-311.pyc
 │   │       │   ├── company_cert_ai.cpython-311.pyc
 │   │       │   ├── company_helper.cpython-311.pyc
+│   │       │   ├── company_name_abbreviation.cpython-311.pyc
 │   │       │   ├── date_helpers.cpython-311.pyc
 │   │       │   ├── date_normalizer.cpython-311.pyc
 │   │       │   ├── date_parser.cpython-311.pyc
@@ -481,6 +483,7 @@ Phase 1 (Company Cert) of the Safety Management System page is almost complete.
 │   │       │   ├── init_admin.cpython-311.pyc
 │   │       │   ├── issued_by_abbreviation.cpython-311.pyc
 │   │       │   ├── name_matcher.cpython-311.pyc
+│   │       │   ├── next_survey_calculator.cpython-311.pyc
 │   │       │   ├── pdf_processor.cpython-311.pyc
 │   │       │   ├── pdf_splitter.cpython-311.pyc
 │   │       │   ├── pdf_text_extractor.cpython-311.pyc
@@ -497,9 +500,11 @@ Phase 1 (Company Cert) of the Safety Management System page is almost complete.
 │   │       ├── certificate_abbreviation.py
 │   │       ├── company_cert_ai.py
 │   │       ├── company_helper.py
+│   │       ├── company_name_abbreviation.py
 │   │       ├── date_helpers.py
 │   │       ├── date_normalizer.py
 │   │       ├── date_parser.py
+│   │       ├── doc_next_survey_calculator.py
 │   │       ├── document_ai_helper.py
 │   │       ├── document_ai_helper.py.backup
 │   │       ├── document_factory.py
@@ -50833,80 +50838,78 @@ Phase 1 (Company Cert) of the Safety Management System page is almost complete.
 ├── verify_fix.sh
 └── yarn.lock
 
-4691 directories, 46047 files
+4691 directories, 46051 files
 
 **Key Technical Concepts**
--   **Asynchronous UX Patterns:** Refactored a form to provide instant user feedback (modal closes, table refreshes) while performing long-running tasks (file upload, AI analysis) in the background, communicating status via toast notifications.
--   **Background Task Processing:** Utilized FastAPI's  to decouple file deletion from the main API response, improving responsiveness.
--   **Deep Debugging & Root Cause Analysis:** Systematically troubleshot a cascade of issues starting from a generic 500 error, tracing it through module import errors, incorrect library usage, misconfigured services, and invalid Pydantic models.
--   **Pydantic Model Validation:** Resolved bugs where data was silently dropped because fields (, ) were missing from the  or  Pydantic models, even though they existed in the database model.
--   **Database Wrapper Abstraction:** Fixed a critical database error () by implementing missing wrapper methods in a custom database class to correctly interface with the underlying driver.
+-   **Iterative AI Prompt Engineering:** The session involved numerous cycles of refining a complex AI prompt in  to handle increasingly specific business rules and correct persistent misclassifications, demonstrating a need for robust and detailed instructions for the LLM.
+-   **Dynamic Abbreviation Logic:** Created multiple utility functions (, ) to dynamically generate display text while preserving original data, integrating them into the service layer for consistent application.
+-   **Automated Date Calculation:** Implemented a dedicated module () to encapsulate complex business logic for calculating future survey dates based on multiple data points (, ).
+-   **Robust Frontend Error Handling:** Fixed common React bugs related to rendering API error objects and handling data validation responses from a Pydantic backend by properly parsing error details before displaying them in toasts.
 
 **key DB schema**
--   **company_certs:** 
+-   **company_certs:**  (plus other fields from handoff)
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   
--   
--   
--   
--   
--   
--   
+-    (Central service for all logic)
+-    (The highly-edited AI prompt)
+-    (Main UI component)
+-    (Refactored modal)
+-    (New business logic)
+-    (New business logic)
 
 **Areas that need refactoring**:
 -   None.
 
 **key api endpoints**
--   : Creates a new certificate record (without file).
--   : Uploads a file for an existing certificate in the background.
--   : Deletes a certificate and triggers a background task to delete its files from Google Drive.
--   : Analyzes an uploaded PDF and returns extracted data.
+-   
+-   
+-   
+-   
 
 **Critical Info for New Agent**
 -   **You MUST respond in Vietnamese.**
--   Your immediate priority is to complete the **Add Company Name** feature as described in **In progress Task List**. This involves adding the new field to the frontend modal and table.
--   After implementing the frontend changes, perform a full end-to-end test of the Company Cert feature: add a new certificate with a file, verify AI extraction (including the new company name field), check that it appears in the table with all icons and abbreviations, and finally, test the delete functionality to ensure the background file deletion works.
--   Once Phase 1 is verified by the user, the next major task is to begin Phase 2: SMS Procedures. Do not start implementation until you have confirmed the data structure (required fields) with the user.
+-   Your immediate priority is to implement the **Update Next Survey button**. This is a new feature request.
+-   Phase 1 (Company Cert.) is considered feature-complete. After the button task, confirm with the user if they are ready to move to Phase 2 (SMS Procedures).
+-   The AI document classification ( extraction) has been a recurring problem. While the prompt has been significantly improved, be aware that it might still fail on edge cases. The current fallback for an unknown DOC type is FT DOC.
 
 **documents created in this job**
 -   None.
 
 **Last 10 User Messages and any pending user messages**
-1.  **User:** Add a Company field to the certificate, including the modal, table, and AI extraction. - **IN PROGRESS**
-2.  **User:** When deleting a record, also delete the file from Google Drive in the background. - **COMPLETED**
-3.  **User:** The summary icon is still not showing up after a new upload. - **COMPLETED** (Fixed by adding missing fields to the Pydantic update model).
-4.  **User:** The system is creating duplicate COMPANY DOCUMENT folders on Google Drive. - **COMPLETED** (Fixed by trimming whitespace from the folder path).
-5.  **User:** The loading spinner is not showing when analyzing a file. - **COMPLETED** (Fixed async logic in the frontend).
-6.  **User:** Upload fails with a MongoDB error about the '' operator. - **COMPLETED** (Fixed by removing double  in the service layer).
-7.  **User:** Reorganize the fields in the Add Certificate modal for better layout. - **COMPLETED**
-8.  **User:** Refactor the save process to be instant, with file upload happening in the background. - **COMPLETED**
-9.  **User:** There is a duplicate Notes field in the modal. - **COMPLETED**
-10. **User:** Form submission fails with a field required error. - **COMPLETED** (Fixed by adding  to the request payload).
+1.  **Request:** Add Update Next Survey button next to Add Certificate. - **NOT STARTED**
+2.  **Request:** Explain when Next Survey Auto-calculation runs. - COMPLETED
+3.  **Request:** Rename  file. - COMPLETED
+4.  **Request:** Provide logic to calculate Next Survey date. - COMPLETED
+5.  **Question:** Does the Next Survey column have logic? - COMPLETED
+6.  **Error Report:** Input should be a valid boolean on update. - COMPLETED
+7.  **Error Report:** Objects are not valid as a React child uncaught error. - COMPLETED
+8.  **Bug Report:** Clearing a note in the edit modal doesn't update the table correctly. - COMPLETED
+9.  **Request:** Improve AI to extract full certificate name (e.g., Full Term...). - COMPLETED
+10. **Error Report:** Failed to update 404 error in edit modal. - COMPLETED
 
 **Project Health Check:**
 -   **Broken:**
     -   The frontend login form has a known validation bug.
-    -   The Company Cert feature is in a transient state, awaiting the frontend implementation of the  field.
+    -   The trigger for opening the  (double-clicking a row) may be broken and needs verification.
 -   **Mocked:** None.
 
 **3rd Party Integrations**
--   **Google Drive API:** Used via a Google Apps Script backend for file storage, retrieval, and folder management.
+-   **Google Drive API:** Used via a Google Apps Script for file storage.
 -   **xlsx:** For handling Excel files.
 -   **OpenAI/Gemini:** Used via  for AI-based document analysis. Uses the Emergent LLM Key.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES, the agent was used successfully to identify and fix a bug in the AI analysis service.
+-   **Testing agent used after significant changes:** YES, used to find a  early in the session.
 -   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** None persisted.
--   **Known regressions:** The frontend login form is non-functional.
+-   **Known regressions:** The frontend login form remains non-functional.
 
 **Credentials to test flow:**
 -   **Admin:**  / 
 -   **System Admin:**  / 
 
 **What agent forgot to execute**
--   The agent has only completed the backend portion of the user's latest request (Add Company Name to Certificate). The frontend changes (adding the field to the  and the column to the ) are pending and represent the immediate next steps.</analysis>
+-   The agent did not verify or fix the original issue of the  not opening on double-click (reported in thought process from Chat Message 319). While the modal's internal API calls were fixed, the triggering event handler in  was never addressed.</analysis>
