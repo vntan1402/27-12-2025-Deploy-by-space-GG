@@ -156,7 +156,7 @@ class CompanyCertService:
                 except:
                     last_endorse = None
             
-            next_audit_result = calculate_next_survey(
+            next_audit_result, next_audit_type = calculate_next_survey(
                 cert_dict.get("doc_type"),
                 valid_date,
                 issue_date,
@@ -166,6 +166,10 @@ class CompanyCertService:
             if next_audit_result:
                 cert_dict["next_audit"] = next_audit_result
                 logger.info(f"📅 Auto-calculated next_audit: {next_audit_result.date()}")
+            
+            if next_audit_type:
+                cert_dict["next_audit_type"] = next_audit_type
+                logger.info(f"📅 Auto-calculated next_audit_type: {next_audit_type}")
         
         await mongo_db.insert_one(CompanyCertService.collection_name, cert_dict)
         
