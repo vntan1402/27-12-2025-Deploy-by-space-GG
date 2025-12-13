@@ -51,6 +51,14 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     content: ''
   });
   
+  // Status tooltip state
+  const [statusTooltip, setStatusTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    content: ''
+  });
+  
   // Filters
   const [filters, setFilters] = useState({
     shipSignOn: 'all',
