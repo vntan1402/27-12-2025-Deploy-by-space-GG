@@ -25,6 +25,13 @@ export const CompanyCertTable = ({
     width: 300,
     content: ''
   });
+  
+  const [auditTooltip, setAuditTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    content: ''
+  });
 
   // Format next_audit with audit window based on audit type
   const formatNextAuditWithWindow = (nextAudit, auditType) => {
