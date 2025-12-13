@@ -942,14 +942,47 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
             </button>
           )}
           
-          {/* Refresh Button (with auto recalculate status) */}
+          {/* Refresh Button (with auto recalculate status for visible certificates) */}
           <button 
             onClick={async () => {
               try {
                 toast.loading(language === 'vi' ? 'Đang làm mới...' : 'Refreshing...', { id: 'refresh' });
                 
-                // Recalculate status for all certificates
-                await api.post('/api/crew-certificates/recalculate-all-status');
+                // Get filtered certificates (currently displayed)
+                const filteredCerts = certificates.filter(cert => {
+                  // Apply same filter logic as table display
+                  if (searchTerm) {
+                    const search = searchTerm.toLowerCase();
+                    if (!(
+                      cert.crew_name?.toLowerCase().includes(search) ||
+                      cert.rank?.toLowerCase().includes(search) ||
+                      cert.cert_name?.toLowerCase().includes(search) ||
+                      cert.cert_no?.toLowerCase().includes(search) ||
+                      cert.issued_by?.toLowerCase().includes(search)
+                    )) return false;
+                  }
+                  
+                  if (filters.shipSignOn !== 'all') {
+                    const shipStatus = getCertificateShipStatus(cert);
+                    const certShipSignOn = shipStatus.isStandby ? '-' : shipStatus.ship;
+                    if (certShipSignOn !== filters.shipSignOn) return false;
+                  }
+                  
+                  if (filters.status !== 'all' && cert.status !== filters.status) return false;
+                  if (filters.crewName !== 'all' && cert.crew_name !== filters.crewName) return false;
+                  
+                  return true;
+                });
+                
+                // Extract IDs of visible certificates
+                const visibleCertIds = filteredCerts.map(cert => cert.id);
+                
+                // Recalculate status for visible certificates only
+                if (visibleCertIds.length > 0) {
+                  await api.post('/api/crew-certificates/recalculate-all-status', {
+                    certificate_ids: visibleCertIds
+                  });
+                }
                 
                 // Refresh table data
                 await fetchCertificates();
