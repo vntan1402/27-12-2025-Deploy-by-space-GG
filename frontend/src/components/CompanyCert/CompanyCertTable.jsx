@@ -86,6 +86,42 @@ export const CompanyCertTable = ({
     setNoteTooltip({ show: false, x: 0, y: 0, width: 300, content: '' });
   };
 
+  const handleAuditMouseEnter = (e, auditType, nextAudit, docType) => {
+    if (!nextAudit) return;
+    
+    const rect = e.target.getBoundingClientRect();
+    let x = rect.left;
+    let y = rect.bottom + 5;
+    
+    // Build tooltip content
+    let content = '';
+    if (auditType) {
+      content = `${language === 'vi' ? 'Loại kiểm tra' : 'Audit Type'}: ${auditType}`;
+      
+      // Add window info
+      if (auditType.includes('Annual')) {
+        content += `\n${language === 'vi' ? 'Cửa sổ' : 'Window'}: ±3 ${language === 'vi' ? 'tháng' : 'months'}`;
+      } else if (auditType === 'Renewal') {
+        content += `\n${language === 'vi' ? 'Cửa sổ' : 'Window'}: -3 ${language === 'vi' ? 'tháng' : 'months'}`;
+      }
+    } else if (docType) {
+      content = `DOC Type: ${docType}`;
+    } else {
+      content = language === 'vi' ? 'Ngày kiểm tra' : 'Audit Date';
+    }
+    
+    setAuditTooltip({
+      show: true,
+      x: x,
+      y: y,
+      content: content
+    });
+  };
+
+  const handleAuditMouseLeave = () => {
+    setAuditTooltip({ show: false, x: 0, y: 0, content: '' });
+  };
+
   const getSortIcon = (column) => {
     if (sortConfig.column !== column) return null;
     return (
