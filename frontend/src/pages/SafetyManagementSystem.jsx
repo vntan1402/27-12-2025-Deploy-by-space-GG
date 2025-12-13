@@ -216,6 +216,38 @@ const SafetyManagementSystem = () => {
     }
   };
 
+  const handleUpcomingAudit = async () => {
+    try {
+      const response = await api.get('/api/audit-certificates/upcoming-surveys?days=30');
+      const data = response.data;
+      
+      // Always show modal, even if no audits
+      setUpcomingAuditModal({
+        show: true,
+        surveys: data.upcoming_surveys || [],
+        totalCount: data.total_count || 0,
+        company: data.company,
+        companyName: data.company_name,
+        checkDate: data.check_date
+      });
+      
+      // Optional: Show toast for non-empty results
+      if (data.upcoming_surveys && data.upcoming_surveys.length > 0) {
+        toast.info(language === 'vi' 
+          ? `⚠️ Có ${data.upcoming_surveys.length} chứng chỉ trong audit window`
+          : `⚠️ ${data.upcoming_surveys.length} certificates in audit window`
+        );
+      }
+    } catch (error) {
+      console.error('Error checking upcoming audits:', error);
+      toast.error(language === 'vi' 
+        ? '❌ Lỗi kiểm tra upcoming audits'
+        : '❌ Error checking upcoming audits'
+      );
+    }
+  };
+
+
   // Calculate certificate status (same logic as CompanyCertTable)
   const getCertificateStatus = (cert) => {
     const today = new Date();
