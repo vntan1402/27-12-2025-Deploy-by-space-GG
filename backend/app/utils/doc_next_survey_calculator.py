@@ -1,6 +1,6 @@
 """
-Next Survey Date Calculator
-Automatically calculate next survey date based on certificate type and business rules
+Next Audit Date Calculator
+Automatically calculate next audit date based on certificate type and business rules
 """
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
@@ -16,7 +16,7 @@ def calculate_next_survey(
     last_endorse: datetime = None
 ) -> datetime:
     """
-    Calculate next survey date based on DOC type and business rules
+    Calculate next audit date based on DOC type and business rules
     
     Args:
         doc_type: "full_term", "short_term", or "interim"
@@ -25,23 +25,23 @@ def calculate_next_survey(
         last_endorse: Last endorsement date
         
     Returns:
-        Next survey date (datetime) or None
+        Next audit date (datetime) or None
         
     Business Rules:
     1. Full Term DOC:
        - Anniversary date = day/month of valid_date (annually)
-       - Next survey = Anniversary date next year ± 3 months window
+       - Next audit = Anniversary date next year ± 3 months window
        - Use most recent: last_endorse or issue_date
        
     2. Short Term DOC:
-       - No annual survey (validity < 6 months)
+       - No annual audit (validity < 6 months)
        - Return None
        
     3. Interim DOC:
-       - Next survey = Valid date - 3 months
+       - Next audit = Valid date - 3 months
     """
     if not doc_type:
-        logger.warning("⚠️ No doc_type provided, cannot calculate next survey")
+        logger.warning("⚠️ No doc_type provided, cannot calculate next audit")
         return None
     
     doc_type_lower = doc_type.lower().strip()
