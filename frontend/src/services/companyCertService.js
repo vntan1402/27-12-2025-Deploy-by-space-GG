@@ -42,6 +42,18 @@ export const companyCertService = {
     return response.data;
   },
 
+  // Calculate next audit for given data
+  async calculateNextAudit(docType, validDate, issueDate, lastEndorse) {
+    const params = new URLSearchParams();
+    params.append('doc_type', docType);
+    if (validDate) params.append('valid_date', validDate);
+    if (issueDate) params.append('issue_date', issueDate);
+    if (lastEndorse) params.append('last_endorse', lastEndorse);
+    
+    const response = await api.post(`${BASE_URL}/calculate-next-audit?${params.toString()}`);
+    return response.data;
+  },
+
   // Recalculate all next audits
   async recalculateAllNextSurveys() {
     const response = await api.post(`${BASE_URL}/recalculate-all-surveys`);
