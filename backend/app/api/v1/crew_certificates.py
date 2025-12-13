@@ -490,7 +490,7 @@ async def recalculate_all_crew_certificate_status(
         from datetime import datetime, timezone
         
         # Get all crew certificates for the company
-        all_certs = await CrewCertificateRepository.find_all_by_company(current_user.company)
+        all_certs = await CrewCertificateRepository.find_all({"company_id": current_user.company})
         
         updated_count = 0
         no_expiry_count = 0
