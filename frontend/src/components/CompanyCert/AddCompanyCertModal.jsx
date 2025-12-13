@@ -156,6 +156,11 @@ export const AddCompanyCertModal = ({
       toast.error(language === 'vi' ? 'Vui lòng nhập tên chứng chỉ!' : 'Please enter certificate name!');
       return;
     }
+    
+    if (!formData.doc_type) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn loại DOC!' : 'Please select DOC type!');
+      return;
+    }
 
     // Show duplicate warning if exists
     if (duplicateWarning) {
