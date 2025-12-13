@@ -287,6 +287,16 @@ const SafetyManagementSystem = () => {
                   </button>
                 )}
                 
+                {/* Update Next Survey Button */}
+                <button
+                  onClick={handleUpdateNextSurveys}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm font-medium shadow-sm"
+                  disabled={certsLoading}
+                >
+                  <span>🔄</span>
+                  {language === 'vi' ? 'Cập nhật khảo sát' : 'Update Next Survey'}
+                </button>
+                
                 {/* Add Certificate Button */}
                 <button
                   onClick={() => setShowAddModal(true)}
