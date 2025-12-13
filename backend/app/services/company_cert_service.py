@@ -183,6 +183,24 @@ class CompanyCertService:
         
         await mongo_db.insert_one(CompanyCertService.collection_name, cert_dict)
         
+        # Log audit trail
+        try:
+            audit_service = CompanyCertService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            company_name = cert_dict.get('company_name', current_user.company)
+            await audit_service.log_company_certificate_create(
+                company_name=company_name,
+                cert_data=cert_dict,
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         logger.info(f"✅ Created company certificate: {cert_dict['id']}")
         return CompanyCertResponse(**cert_dict)
     
