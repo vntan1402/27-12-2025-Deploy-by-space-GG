@@ -364,6 +364,106 @@ const SafetyManagementSystem = () => {
     }
   };
 
+  const handleAutoRenameFile = async (cert) => {
+    try {
+      toast.info(language === 'vi' 
+        ? 'Đang đổi tên file...' 
+        : 'Renaming file...'
+      );
+      
+      const response = await api.post(`/api/company-certs/${cert.id}/auto-rename-file`);
+      
+      if (response.data.success) {
+        toast.success(language === 'vi' 
+          ? `Đã đổi tên: ${response.data.new_name}` 
+          : `Renamed to: ${response.data.new_name}`
+        );
+        await loadCompanyCerts();
+      } else {
+        toast.error(response.data.message || 'Failed to rename file');
+      }
+    } catch (error) {
+      console.error('Error renaming file:', error);
+      toast.error(language === 'vi' 
+        ? 'Không thể đổi tên file' 
+        : 'Failed to rename file'
+      );
+    }
+  };
+
+  const handleBulkAutoRenameFiles = async () => {
+    const selectedCertsList = companyCerts.filter(cert => selectedCerts.has(cert.id));
+
+    if (selectedCertsList.length === 0) {
+      toast.warning(language === 'vi' 
+        ? 'Vui lòng chọn chứng chỉ' 
+        : 'Please select certificates'
+      );
+      return;
+    }
+
+    const certsWithFiles = selectedCertsList.filter(cert => 
+      cert.file_id || cert.google_drive_file_id
+    );
+
+    if (certsWithFiles.length === 0) {
+      toast.warning(language === 'vi' 
+        ? 'Không có chứng chỉ nào có file đính kèm' 
+        : 'No certificates with attached files'
+      );
+      return;
+    }
+
+    const confirmMsg = language === 'vi' 
+      ? `Đổi tên tự động cho ${certsWithFiles.length} file?` 
+      : `Auto rename ${certsWithFiles.length} files?`;
+    
+    if (!window.confirm(confirmMsg)) return;
+
+    toast.info(language === 'vi' 
+      ? `Đang đổi tên ${certsWithFiles.length} file...` 
+      : `Renaming ${certsWithFiles.length} files...`
+    );
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const cert of certsWithFiles) {
+      try {
+        const response = await api.post(`/api/company-certs/${cert.id}/auto-rename-file`);
+        
+        if (response.data.success) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (error) {
+        failCount++;
+      }
+    }
+
+    // Show results
+    if (successCount > 0 && failCount === 0) {
+      toast.success(language === 'vi' 
+        ? `✅ Đã đổi tên thành công ${successCount} file` 
+        : `✅ Successfully renamed ${successCount} files`
+      );
+    } else if (successCount > 0 && failCount > 0) {
+      toast.warning(language === 'vi' 
+        ? `⚠️ Đã đổi tên ${successCount} file, ${failCount} thất bại` 
+        : `⚠️ Renamed ${successCount} files, ${failCount} failed`
+      );
+    } else {
+      toast.error(language === 'vi' 
+        ? `❌ Không thể đổi tên file` 
+        : `❌ Failed to rename files`
+      );
+    }
+
+    // Refresh certificates list
+    await loadCompanyCerts();
+  };
+
   const handleUpdateNextAudits = async () => {
     if (!window.confirm(language === 'vi' 
       ? 'Bạn có chắc muốn cập nhật lại tất cả ngày kiểm tra tiếp theo? Thao tác này sẽ tính toán lại dựa trên quy tắc kinh doanh hiện tại.'
