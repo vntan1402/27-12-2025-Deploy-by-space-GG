@@ -179,30 +179,30 @@ const SafetyManagementSystem = () => {
     }
   };
 
-  const handleUpdateNextSurveys = async () => {
+  const handleUpdateNextAudits = async () => {
     if (!window.confirm(language === 'vi' 
-      ? 'Bạn có chắc muốn cập nhật lại tất cả ngày khảo sát tiếp theo? Thao tác này sẽ tính toán lại dựa trên quy tắc kinh doanh hiện tại.'
-      : 'Are you sure you want to recalculate all next survey dates? This will update all certificates based on current business rules.'
+      ? 'Bạn có chắc muốn cập nhật lại tất cả ngày kiểm tra tiếp theo? Thao tác này sẽ tính toán lại dựa trên quy tắc kinh doanh hiện tại.'
+      : 'Are you sure you want to recalculate all next audit dates? This will update all certificates based on current business rules.'
     )) {
       return;
     }
 
     try {
-      toast.loading(language === 'vi' ? 'Đang cập nhật...' : 'Updating...', { id: 'update-surveys' });
+      toast.loading(language === 'vi' ? 'Đang cập nhật...' : 'Updating...', { id: 'update-audits' });
       
       const result = await companyCertService.recalculateAllNextSurveys();
       
       toast.success(language === 'vi' 
         ? `Đã cập nhật ${result.updated_count} chứng chỉ! (Bỏ qua: ${result.skipped_count})`
         : `Updated ${result.updated_count} certificates! (Skipped: ${result.skipped_count})`,
-        { id: 'update-surveys' }
+        { id: 'update-audits' }
       );
       
       // Reload certificates to show updated data
       await loadCompanyCerts();
     } catch (error) {
-      console.error('Update surveys error:', error);
-      toast.error(language === 'vi' ? 'Cập nhật thất bại!' : 'Update failed!', { id: 'update-surveys' });
+      console.error('Update audits error:', error);
+      toast.error(language === 'vi' ? 'Cập nhật thất bại!' : 'Update failed!', { id: 'update-audits' });
     }
   };
 
@@ -314,14 +314,14 @@ const SafetyManagementSystem = () => {
                   </button>
                 )}
                 
-                {/* Update Next Survey Button */}
+                {/* Update Next Audit Button */}
                 <button
-                  onClick={handleUpdateNextSurveys}
+                  onClick={handleUpdateNextAudits}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm font-medium shadow-sm"
                   disabled={certsLoading}
                 >
                   <span>🔄</span>
-                  {language === 'vi' ? 'Cập nhật khảo sát' : 'Update Next Survey'}
+                  {language === 'vi' ? 'Cập nhật kiểm tra' : 'Update Next Audit'}
                 </button>
                 
                 {/* Add Certificate Button */}
