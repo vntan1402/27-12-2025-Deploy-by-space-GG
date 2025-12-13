@@ -362,22 +362,18 @@ const AddCrewCertificateModal = ({
         
         // Check if it's a name mismatch error
         if (detailStr.includes('Name mismatch') || detailStr.includes('Certificate name:')) {
-          // Name mismatch detected - BLOCK the flow
-          console.error('❌ Name mismatch detected - blocking flow');
+          // Name mismatch detected - Store data and show warning with option to continue
+          console.error('❌ Name mismatch detected - showing warning with Continue option');
           
-          // Remove uploaded file
-          setUploadedFile(null);
-          if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+          // Store the analyzed data for potential use if user chooses to continue
+          if (response.data?.extracted_data) {
+            setNameMismatchData(response.data.extracted_data);
           }
           
-          // Clear any analyzed data
-          setAnalyzedData(null);
-          
-          // Show error modal with details
+          // Show warning modal with option to continue
           const message = language === 'vi'
-            ? `❌ TÊN KHÔNG KHỚP\n\n${detailStr}\n\nVui lòng:\n1. Kiểm tra lại thuyền viên đã chọn\n2. Xác nhận chứng chỉ đúng với thuyền viên này\n\nLưu ý: Hệ thống chấp nhận hoán vị tên (ví dụ: 'A TRAN VAN' khớp với 'TRAN VAN A')`
-            : `❌ NAME MISMATCH\n\n${detailStr}\n\nPlease:\n1. Verify the selected crew member\n2. Confirm the certificate belongs to this crew\n\nNote: System accepts name permutations (e.g., 'A TRAN VAN' matches 'TRAN VAN A')`;
+            ? `❌ TÊN KHÔNG KHỚP\n\n${detailStr}\n\nBạn có thể:\n1. Nhấn "Hủy" để kiểm tra lại thuyền viên và tải file mới\n2. Nhấn "Tiếp tục" để sử dụng dữ liệu tự động điền (nếu bạn chắc chắn file đúng)\n\nLưu ý: Hệ thống chấp nhận hoán vị tên (ví dụ: 'A TRAN VAN' khớp với 'TRAN VAN A')`
+            : `❌ NAME MISMATCH\n\n${detailStr}\n\nYou can:\n1. Click "Cancel" to verify crew member and upload new file\n2. Click "Continue" to use auto-filled data (if you're sure the file is correct)\n\nNote: System accepts name permutations (e.g., 'A TRAN VAN' matches 'TRAN VAN A')`;
           
           setWarningMessage(message);
           setShowWarningModal(true);
