@@ -55,7 +55,14 @@ Extract the following fields in JSON format:
 
 IMPORTANT INSTRUCTIONS:
 1. cert_name and cert_no are REQUIRED fields
-2. company_name: Extract the company name (look for "Name of the Company:", "Company:", etc.)
+2. cert_name: **CRITICAL** - Extract the COMPLETE certificate name INCLUDING type prefix:
+   - If you see "SHORT TERM DOCUMENT OF COMPLIANCE" → Extract exactly "SHORT TERM DOCUMENT OF COMPLIANCE"
+   - If you see "FULL TERM DOCUMENT OF COMPLIANCE" → Extract exactly "FULL TERM DOCUMENT OF COMPLIANCE"
+   - If you see "INTERIM DOCUMENT OF COMPLIANCE" → Extract exactly "INTERIM DOCUMENT OF COMPLIANCE"
+   - If you see "DOCUMENT OF COMPLIANCE" (no prefix) → Extract "DOCUMENT OF COMPLIANCE"
+   - DO NOT remove "Full Term", "Short Term", or "Interim" from the certificate name
+   - The cert_name should match EXACTLY what appears in the document title/heading
+3. company_name: Extract the company name (look for "Name of the Company:", "Company:", etc.)
 3. doc_type: **CRITICAL - MANDATORY FOR ALL DOC CERTIFICATES** - You MUST classify every DOC:
    
    **Step 0: SPECIAL CASES - Full Term Indicators (HIGHEST PRIORITY):**
