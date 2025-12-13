@@ -61,23 +61,10 @@ const CertificateContextMenu = ({
           </button>
         )}
 
-        {/* Delete - Show different text for bulk vs single */}
-        {canDelete && (
-          <button
-            onClick={() => handleAction(onDelete)}
-            className="w-full px-4 py-2 text-left hover:bg-red-50 flex items-center space-x-3 text-gray-700 hover:text-red-600 transition-colors"
-          >
-            <span className="text-lg">🗑️</span>
-            <span className="font-medium">
-              {showBulkDelete 
-                ? (language === 'vi' ? `Xóa ${selectedCount} chứng chỉ` : `Delete ${selectedCount} Certificates`)
-                : (language === 'vi' ? 'Xóa chứng chỉ' : 'Delete Certificate')}
-            </span>
-          </button>
+        {/* Divider after Edit */}
+        {canEdit && !showBulkDelete && (
+          <div className="border-t border-gray-200 my-2"></div>
         )}
-
-        {/* Divider */}
-        <div className="border-t border-gray-200 my-2"></div>
 
         {/* View Original File - Available for single and bulk */}
         <button
