@@ -251,7 +251,7 @@ export const AuditCertificateTable = ({
               onClick={() => onSort('next_survey')}
             >
               <div className="flex items-center justify-between">
-                <span>{language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}</span>
+                <span>{language === 'vi' ? 'Kiểm tra tới' : 'Next Audit'}</span>
                 {getSortIcon('next_survey')}
               </div>
             </th>
@@ -260,7 +260,7 @@ export const AuditCertificateTable = ({
               onClick={() => onSort('next_survey_type')}
             >
               <div className="flex items-center justify-between">
-                <span>{language === 'vi' ? 'Loại kiểm tra tới' : 'Next Survey Type'}</span>
+                <span>{language === 'vi' ? 'Loại kiểm tra tới' : 'Next Audit Type'}</span>
                 {getSortIcon('next_survey_type')}
               </div>
             </th>
