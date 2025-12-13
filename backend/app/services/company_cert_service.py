@@ -341,8 +341,8 @@ class CompanyCertService:
                     except:
                         last_endorse = None
                 
-                # Calculate next audit
-                next_audit_result = calculate_next_survey(
+                # Calculate next audit and type
+                next_audit_result, next_audit_type = calculate_next_survey(
                     doc_type,
                     valid_date,
                     issue_date,
@@ -358,6 +358,12 @@ class CompanyCertService:
                 else:
                     # Set to None if no audit required (e.g., Short Term DOC)
                     update_data["next_audit"] = None
+                
+                # Update audit type
+                if next_audit_type:
+                    update_data["next_audit_type"] = next_audit_type
+                else:
+                    update_data["next_audit_type"] = None
                 
                 if update_data:
                     await mongo_db.update_one(
