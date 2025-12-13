@@ -7,7 +7,7 @@ class CompanyCertBase(BaseModel):
     cert_name: str
     cert_no: Optional[str] = None
     company_name: Optional[str] = None  # Company name on the certificate
-    doc_type: Optional[str] = None  # DOC type: full_term, short_term, interim (for DOC certificates only)
+    doc_type: str  # REQUIRED: DOC type: full_term, short_term, interim
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None  # Optional field
     last_endorse: Optional[Union[str, datetime]] = None  # Last endorsement date
