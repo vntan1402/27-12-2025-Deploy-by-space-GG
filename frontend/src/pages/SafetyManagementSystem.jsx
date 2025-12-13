@@ -138,6 +138,50 @@ const SafetyManagementSystem = () => {
     setShowEditModal(true);
   };
 
+  const handleViewFile = (cert) => {
+    const fileId = cert?.file_id || cert?.google_drive_file_id;
+    if (fileId) {
+      window.open(`https://drive.google.com/file/d/${fileId}/view`, '_blank');
+    } else {
+      toast.warning(
+        language === 'vi'
+          ? 'Chứng chỉ này chưa có file đính kèm'
+          : 'This certificate has no attached file'
+      );
+    }
+  };
+
+  const handleBulkViewFiles = () => {
+    if (selectedCerts.size === 0) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn chứng chỉ' : 'Please select certificates');
+      return;
+    }
+
+    const selectedCertsList = companyCerts.filter(cert => selectedCerts.has(cert.id));
+    const certsWithFiles = selectedCertsList.filter(cert => cert.file_id || cert.google_drive_file_id);
+
+    if (certsWithFiles.length === 0) {
+      toast.warning(
+        language === 'vi'
+          ? 'Không có chứng chỉ nào có file đính kèm'
+          : 'No certificates have attached files'
+      );
+      return;
+    }
+
+    // Open each file in a new tab
+    certsWithFiles.forEach(cert => {
+      const fileId = cert.file_id || cert.google_drive_file_id;
+      window.open(`https://drive.google.com/file/d/${fileId}/view`, '_blank');
+    });
+
+    toast.success(
+      language === 'vi'
+        ? `Đã mở ${certsWithFiles.length} file`
+        : `Opened ${certsWithFiles.length} files`
+    );
+  };
+
   const handleRightClick = (e, cert) => {
     e.preventDefault();
     
