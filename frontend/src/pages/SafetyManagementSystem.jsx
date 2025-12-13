@@ -908,34 +908,55 @@ const SafetyManagementSystem = () => {
 
           <div className="border-t border-gray-200 my-1"></div>
 
-          {/* Edit - single only */}
-          {selectedCerts.size === 1 && (
-            <button
-              onClick={() => {
-                setEditingCert(contextMenu.certificate);
-                setShowEditModal(true);
-                setContextMenu(null);
-              }}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
-            >
-              <span>✏️</span>
-              {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
-            </button>
-          )}
+          {/* Auto Rename File - works for single and multiple */}
+          <button
+            onClick={() => {
+              if (selectedCerts.size > 1) {
+                handleBulkAutoRenameFiles();
+              } else if (contextMenu.certificate) {
+                handleAutoRenameFile(contextMenu.certificate);
+              }
+              setContextMenu(null);
+            }}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2"
+          >
+            <span>⚡</span>
+            {selectedCerts.size > 1 
+              ? (language === 'vi' ? `Đổi tên tự động (${selectedCerts.size} file)` : `Auto Rename (${selectedCerts.size} files)`)
+              : (language === 'vi' ? 'Đổi tên file tự động' : 'Auto Rename File')
+            }
+          </button>
 
-          {/* Notes - single only */}
           {selectedCerts.size === 1 && (
-            <button
-              onClick={() => {
-                setNotesCert(contextMenu.certificate);
-                setShowNotesModal(true);
-                setContextMenu(null);
-              }}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
-            >
-              <span>📝</span>
-              {language === 'vi' ? 'Ghi chú' : 'Notes'}
-            </button>
+            <>
+              <div className="border-t border-gray-200 my-1"></div>
+
+              {/* Edit - single only */}
+              <button
+                onClick={() => {
+                  setEditingCert(contextMenu.certificate);
+                  setShowEditModal(true);
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+              >
+                <span>✏️</span>
+                {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+              </button>
+
+              {/* Notes - single only */}
+              <button
+                onClick={() => {
+                  setNotesCert(contextMenu.certificate);
+                  setShowNotesModal(true);
+                  setContextMenu(null);
+                }}
+                className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+              >
+                <span>📝</span>
+                {language === 'vi' ? 'Ghi chú' : 'Notes'}
+              </button>
+            </>
           )}
 
           <div className="border-t border-gray-200 my-1"></div>
