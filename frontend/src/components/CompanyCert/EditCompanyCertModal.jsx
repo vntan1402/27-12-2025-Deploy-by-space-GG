@@ -52,7 +52,13 @@ export const EditCompanyCertModal = ({
     
     setIsSubmitting(true);
     try {
-      await api.put(`/api/company-certs/${certificate.id}`, formData);
+      // Add has_notes flag based on notes content
+      const updateData = {
+        ...formData,
+        has_notes: formData.notes && formData.notes.trim().length > 0
+      };
+      
+      await api.put(`/api/company-certs/${certificate.id}`, updateData);
       toast.success(language === 'vi' ? 'Cập nhật thành công!' : 'Updated successfully!');
       onSuccess();
       onClose();
