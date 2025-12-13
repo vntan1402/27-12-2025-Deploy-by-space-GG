@@ -7,89 +7,90 @@ The user's primary goal is to build a new Safety Management System page with a l
 
 PRODUCT REQUIREMENTS:
 -   The Company Cert phase requires full-stack CRUD functionality, including file uploads and an AI analysis pipeline for data extraction.
--   The UI of the new page must be visually consistent with existing application pages.
--   A new Company field (representing the company name on the certificate document) needs to be added to the Company Cert feature, including the database, AI extraction, add/edit modal, and data table.
--   The Add Certificate modal flow should be improved for better UX: save the record instantly, close the modal, and handle file uploads in the background with toast notifications.
--   File deletion from the database should trigger a background task to delete the corresponding files from Google Drive.
--   The layout of the Add Company Certificate modal needs to be reorganized for better compactness and clarity.
--   Logic to classify DOCUMENT OF COMPLIANCE certificates into FT DOC, ST DOC, or Int DOC based on content analysis.
--   Logic to automatically calculate the Next Survey date based on business rules.
--   UI enhancements including company name abbreviations and table layout adjustments.
+-   A new Company field needs to be added to the Company Cert feature.
+-   The Add Certificate modal flow should be improved for better UX.
+-   File deletion from the database should trigger deletion from Google Drive.
+-   The layout of the Add Company Certificate modal needs to be reorganized.
+-   **Core Logic:** A complex set of business rules must be implemented to automatically calculate  dates and determine the  (e.g., 1st Annual, Renewal) for DOCUMENT OF COMPLIANCE (DOC) certificates. This logic involves a 5-year cycle, anniversary dates, and considering the  date to skip already completed audits.
+-   **UI/UX:** The UI must be highly interactive, with real-time audit date calculations in modals as users input dates, tooltips for extra information, and conditional fields that appear only when needed.
+-   **AI Integration:** The AI analysis must be refined to correctly extract the full certificate name (e.g., Full Term Document of Compliance) and auto-fill relevant form fields.
 
 **User's preferred language**: Vietnamese
 
 **what currently exists?**
-Phase 1 (Company Cert.) is now feature-complete after extensive iterative development and bug fixing.
--   **Backend**: Supports full CRUD for company certificates, including AI-driven data extraction from uploaded files. New features have been added and stabilized:
-    -   A  field is fully integrated.
-    -   Advanced abbreviation logic classifies Document of Compliance (DOC) types into , , and  based on an AI-extracted  and several business rules (e.g., presence of Last Endorse date implies ).
-    -   Company names are automatically abbreviated in API responses (e.g.,  -> ).
-    -   A  date is automatically calculated and stored upon certificate creation and update based on its type and validity.
--   **Frontend**: The UI for Company Cert. is functional and refined.
-    -    and  now share a consistent, compact layout.
-    -   The  displays the new  and the calculated abbreviations for both certificate and company names, with full names available on hover.
-    -   The table layout has been adjusted to combine the checkbox and number columns and reduce cell padding.
--   **Bugs Fixed**: Numerous bugs were resolved, including a modal state persistence issue (Stuck on Saving...), multiple frontend rendering errors (Objects are not valid as a React child), API validation errors (404s due to missing  prefix, 422s for incorrect data types), and a recurring issue with AI misclassifying certificate types.
+The Company Cert. feature (Phase 1) is largely complete and has undergone significant evolution in this session.
+-   **Core Feature Refactoring:** A major refactor was completed, renaming the concept of Next Survey to Next Audit across the entire application stack. This included renaming backend model fields, API endpoints, service logic, frontend components, state variables, and display text. A database migration script was successfully created and executed to update the MongoDB collection.
+-   **Advanced Business Logic:** A highly complex calculation engine for  and  has been implemented in the backend. It correctly processes Full Term, Interim, and Short Term DOCs according to user-specified rules, including a 5-year audit cycle and accounting for  dates to determine the next upcoming audit.
+-   **Interactive Frontend:**
+    -   The Add/Edit modals now feature real-time calculation. When a user changes the  or  date, a new dedicated API endpoint () is called to instantly fetch and display the calculated  date and .
+    -   The main data table () now shows the audit window (e.g., ) next to the audit date and displays the full  in a tooltip on hover.
+    -   The  field is now conditional, only appearing in the modals if the certificate name contains DOCUMENT OF COMPLIANCE, and its validation is applied accordingly.
+-   **AI Prompt Engineering:** The AI prompt for document analysis has been iteratively refined to improve the accuracy of extracting the full certificate name.
 
 **Last working item**:
--   **Last item agent was working:** The user requested to add a new button, Update Next Survey, next to the Add Certificate button. The agent's last action was to begin identifying the correct frontend component to add this button to.
--   **Status:** NOT STARTED
+-   **Last item agent was working:** The user reported that the AI was still incorrectly extracting Document of Compliance instead of the more specific Full Term Document of Compliance from a sample file. The agent's last action was to update the AI prompt in , adding stronger instructions for the AI to analyze the entire document summary content before determining the  and .
+-   **Status:** IN PROGRESS
 -   **Agent Testing Done:** N
--   **Which testing method agent to use?** both. A new backend endpoint will be required to update all surveys, which needs backend testing. The frontend button and its connection to the new API will require frontend testing.
+-   **Which testing method agent to use?** Frontend testing agent. The test should involve uploading the specific PDF that failed, opening the Add Certificate modal, and verifying that the Certificate Name field is correctly auto-filled with Full Term Document of Compliance.
 -   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Frontend Login Form Validation Bug (P3)**
-    -   **Description:** A known issue from a previous session where the login form fails due to a client-side validation error. The backend API is functional.
-    -   **Attempted fixes:** None in this session.
+-   **Issue 1: AI Incorrectly Extracts Certificate Name (P0)**
+    -   **Description:** The AI analysis fails to extract the full, specific certificate name (e.g., Full Term Document of Compliance), defaulting to the generic Document of Compliance. This is a recurring issue.
+    -   **Attempted fixes:** The prompt in  has been updated multiple times. The latest fix instructs the AI to read the entire generated summary before extracting fields, as the summary often contains the correct full name.
     -   **Next debug checklist:**
-        -   Inspect  in .
-        -   Check form validation logic and review browser console logs on failed login attempts.
+        1.  Perform a test using the frontend: upload the problematic PDF file ().
+        2.  Observe the Certificate Name field in the  to see if it's auto-filled correctly.
+        3.  If it fails, call the  endpoint directly with the file to inspect the raw JSON response.
+        4.  If the response is still wrong, further refine the prompt in . Consider adding few-shot examples directly into the prompt to guide the model better.
+    -   **Why fix this issue and what will be achieved with the fix?** To ensure high data accuracy upon document upload and minimize manual user corrections.
+    -   **Status:** IN PROGRESS
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Frontend (via file upload).
+    -   **Blocked on other issue:** None.
+
+-   **Issue 2: Frontend Login Form Validation Bug (P3)**
+    -   **Description:** A known issue from a previous session where the login form fails due to a client-side validation error. The backend API is functional.
+    -   **Next debug checklist:** Inspect  in .
     -   **Why fix this issue and what will be achieved with the fix?** To restore the primary UI login functionality for all users.
     -   **Status:** NOT STARTED
     -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Frontend
-    -   **Blocked on other issue:** No
+    -   **Should Test frontend/backend/both after fix?** Frontend.
+
+-   **Issue 3: Edit Modal Trigger Bug (P3)**
+    -   **Description:** The  may not be appearing on double-click as intended.
+    -   **Next debug checklist:** Check the  handler in .
+    -   **Why fix this issue and what will be achieved with the fix?** To restore the primary method for editing a certificate.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** N
+    -   **Should Test frontend/backend/both after fix?** Frontend.
 
 **In progress Task List**:
 -   None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   **(P0) Implement Update Next Survey Button:** This is the current, highest-priority task. It will involve:
-        1.  Adding the button to the  header.
-        2.  Creating a new backend API endpoint (e.g., ).
-        3.  Implementing service logic to iterate through all certificates and re-run the .
-        4.  Connecting the frontend button to call this new API and display a toast notification on completion.
-    -   **(P1) Implement SMS Procedures Page (Phase 2):** After completing and getting user verification for Company Cert, the next step is to build the SMS Procedures section. The first action should be to ask the user for the specific data fields required for an SMS Procedure.
-    -   **(P2) Implement Record Template Page (Phase 3):** Follow the same process as for SMS Procedures.
+    -   **(P1) Implement SMS Procedures Page (Phase 2):** After completing and getting user verification for Company Cert, the next step is to build this section. The agent should first ask the user for the data fields required.
+    -   **(P2) Implement Record Template Page (Phase 3):** Follow the same process.
     -   **(P2) Implement Ship Record Page (Phase 4):** Follow the same process.
 -   **Future Tasks:**
-    -   **(P3) Plan and Implement CV Mail Merge Feature:** This task involves creating a feature to generate templated CVs. The next step is to create a detailed implementation plan and present it to the user for approval.
+    -   **(P3) Plan and Implement CV Mail Merge Feature:** This requires creating a detailed implementation plan for user approval.
 
 **Completed work in this session**
--   **Feature: Company Cert Phase 1 (DONE):**
-    -    field added end-to-end.
-    -   Advanced DOC abbreviation logic (FT/ST/Int DOC) implemented based on AI analysis.
-    -   Company name abbreviation feature (, ) added.
-    -   Automatic calculation of Next Survey date implemented.
+-   **Feature: End-to-End Next Audit Logic (DONE):**
+    -   Implemented the Update Next Survey button and then refactored the entire feature to Update Next Audit.
+    -   Created a complex backend calculator () for  and  based on user-defined business rules (5-year cycle,  precedence, etc.).
+    -   Created a real-time calculation endpoint () and integrated it into the Add/Edit modals for an interactive user experience.
+-   **Refactor: Survey to Audit (DONE):**
+    -   Renamed fields, variables, functions, and display text across the entire stack (React frontend, FastAPI backend).
+    -   Successfully migrated the MongoDB database schema by renaming  ->  and  -> .
 -   **UI/UX Enhancements (DONE):**
-    -   Synced the layout of  with .
-    -   Combined checkbox and number column in the table.
-    -   Reduced table cell padding for a more compact view.
--   **Bug Fixes (DONE):**
-    -   Resolved recurring AI misclassification of DOC types by iteratively strengthening the AI prompt.
-    -   Fixed modal state bug where it was Stuck on Saving.
-    -   Fixed multiple 404 and 422 API errors in modals by adding the  prefix and ensuring correct data types.
-    -   Fixed React rendering error (Objects are not valid as a React child) by improving API error message handling.
-    -   Fixed an issue where clearing a note in the edit modal did not correctly update its status in the table.
+    -   Added tooltips to the data table to show .
+    -   Made the  form field conditional based on the certificate name.
+    -   Reorganized modal layouts for better logical grouping of fields.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Edit Modal Trigger**
-    -   **Debug checklist:** The  was not appearing on double-click as intended (Chat Message 319). While the agent fixed API calls within the modal, the mechanism for opening it was never verified or fixed. The  handler in  needs to be checked to ensure it correctly opens the modal.
-    -   **Why to solve this issue and what will be achieved with this?** To restore the primary method for editing a certificate.
-    -   **Should Test frontend/backend/both after fix:** Frontend
-    -   **Is recurring issue?** N
+-   The two pending issues (Login Bug, Edit Modal Trigger) from the initial handoff remain unfixed.
 
 **Known issue recurrence from previous fork**
 -   None.
@@ -474,6 +475,7 @@ Phase 1 (Company Cert.) is now feature-complete after extensive iterative develo
 │   │       │   ├── date_helpers.cpython-311.pyc
 │   │       │   ├── date_normalizer.cpython-311.pyc
 │   │       │   ├── date_parser.cpython-311.pyc
+│   │       │   ├── doc_next_survey_calculator.cpython-311.pyc
 │   │       │   ├── document_ai_helper.cpython-311.pyc
 │   │       │   ├── document_name_normalization.cpython-311.pyc
 │   │       │   ├── filename_helper.cpython-311.pyc
@@ -530,6 +532,7 @@ Phase 1 (Company Cert.) is now feature-complete after extensive iterative develo
 │   │       └── test_report_valid_date_calculator.py
 │   ├── create_document_routes.py
 │   ├── data
+│   ├── migrate_next_survey_to_audit.py
 │   ├── migrations
 │   ├── requirements.txt
 │   ├── scripts
@@ -50838,32 +50841,35 @@ Phase 1 (Company Cert.) is now feature-complete after extensive iterative develo
 ├── verify_fix.sh
 └── yarn.lock
 
-4691 directories, 46051 files
+4691 directories, 46053 files
 
 **Key Technical Concepts**
--   **Iterative AI Prompt Engineering:** The session involved numerous cycles of refining a complex AI prompt in  to handle increasingly specific business rules and correct persistent misclassifications, demonstrating a need for robust and detailed instructions for the LLM.
--   **Dynamic Abbreviation Logic:** Created multiple utility functions (, ) to dynamically generate display text while preserving original data, integrating them into the service layer for consistent application.
--   **Automated Date Calculation:** Implemented a dedicated module () to encapsulate complex business logic for calculating future survey dates based on multiple data points (, ).
--   **Robust Frontend Error Handling:** Fixed common React bugs related to rendering API error objects and handling data validation responses from a Pydantic backend by properly parsing error details before displaying them in toasts.
+-   **Full-Stack Refactoring:** Systematically renaming a core feature ( -> ) across the frontend, backend, and database, including executing a data migration script.
+-   **Complex Business Logic Encapsulation:** Translating a multi-step, stateful business rule for audit scheduling into a dedicated, testable Python module ().
+-   **Real-Time Frontend Calculation via API:** Creating a dedicated, lightweight backend endpoint () for the frontend to call via  in response to user input, providing immediate feedback without a full form submission.
+-   **Conditional UI and Validation:** Dynamically showing/hiding form fields and applying validation rules in both frontend (React state) and backend (Pydantic models) based on the value of other fields.
 
 **key DB schema**
--   **company_certs:**  (plus other fields from handoff)
+-   **company_certs:** 
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--    (Central service for all logic)
--    (The highly-edited AI prompt)
--    (Main UI component)
--    (Refactored modal)
--    (New business logic)
--    (New business logic)
+-   : Core of the new business logic.
+-   : The AI prompt being debugged.
+-   : Key frontend component with new interactive logic.
+-   : Key frontend component with new interactive logic.
+-   : UI for displaying the new logic's output.
+-   : Service layer tying the logic together.
+-   : The script used for DB migration.
 
 **Areas that need refactoring**:
 -   None.
 
 **key api endpoints**
+-    (recalculates all certs for a company)
+-    (calculates audit for a single cert's data, used by modals)
 -   
 -   
 -   
@@ -50871,40 +50877,41 @@ Phase 1 (Company Cert.) is now feature-complete after extensive iterative develo
 
 **Critical Info for New Agent**
 -   **You MUST respond in Vietnamese.**
--   Your immediate priority is to implement the **Update Next Survey button**. This is a new feature request.
--   Phase 1 (Company Cert.) is considered feature-complete. After the button task, confirm with the user if they are ready to move to Phase 2 (SMS Procedures).
--   The AI document classification ( extraction) has been a recurring problem. While the prompt has been significantly improved, be aware that it might still fail on edge cases. The current fallback for an unknown DOC type is FT DOC.
+-   Your immediate priority is to fix the AI certificate name extraction in . The user has provided a specific file that causes the issue.
+-   The business logic for  calculation is extremely specific. Before modifying , review the user's requirements from messages 373, 406 and 433 to understand the rules around the 5-year cycle and  precedence.
+-   The modals ( and ) now have significant client-side logic () to call the backend for real-time calculations. Be aware of this when making changes to date fields.
 
 **documents created in this job**
--   None.
+-   
 
 **Last 10 User Messages and any pending user messages**
-1.  **Request:** Add Update Next Survey button next to Add Certificate. - **NOT STARTED**
-2.  **Request:** Explain when Next Survey Auto-calculation runs. - COMPLETED
-3.  **Request:** Rename  file. - COMPLETED
-4.  **Request:** Provide logic to calculate Next Survey date. - COMPLETED
-5.  **Question:** Does the Next Survey column have logic? - COMPLETED
-6.  **Error Report:** Input should be a valid boolean on update. - COMPLETED
-7.  **Error Report:** Objects are not valid as a React child uncaught error. - COMPLETED
-8.  **Bug Report:** Clearing a note in the edit modal doesn't update the table correctly. - COMPLETED
-9.  **Request:** Improve AI to extract full certificate name (e.g., Full Term...). - COMPLETED
-10. **Error Report:** Failed to update 404 error in edit modal. - COMPLETED
+1.  **Request:** Fix Interim DOC logic. - COMPLETED
+2.  **Request:** Implement a completely new, complex logic for calculating  and  based on a 5-year cycle. - COMPLETED
+3.  **Request:** Add  date to the calculation logic to skip completed audits. - COMPLETED
+4.  **Request:** Add Annual to the  dropdown. - COMPLETED
+5.  **Request:** Auto-calculate  in the modal whenever  or  changes. - COMPLETED
+6.  **Request:** Show  in a tooltip when hovering over the  date in the table. - COMPLETED
+7.  **Bug Report:** AI is not extracting the full certificate name (e.g., Full Term Document of Compliance). - **IN PROGRESS**
+8.  **Request:** Update AI prompt to read the entire summary content to improve extraction. - **IN PROGRESS**
+9.  **Pending User Question:** DOC type chưa được System tự động phân loại... Next Audit chưa được tự động tính... (DOC type is not auto-filled, Next Audit is not auto-calculated). Agent addressed this, but the underlying AI  extraction is still faulty. - **IN PROGRESS**
+10. **Pending User Question:** File Summary như sau nhưng Cert Name vẫn được trích xuất là Document of Compliance... (User provides file summary showing AI failure). - **IN PROGRESS**
 
 **Project Health Check:**
 -   **Broken:**
-    -   The frontend login form has a known validation bug.
-    -   The trigger for opening the  (double-clicking a row) may be broken and needs verification.
+    -   Frontend login form has a known validation bug.
+    -   The  trigger for the edit modal may be broken.
 -   **Mocked:** None.
 
 **3rd Party Integrations**
--   **Google Drive API:** Used via a Google Apps Script for file storage.
+-   **Google Drive API:** Used for file storage.
 -   **xlsx:** For handling Excel files.
 -   **OpenAI/Gemini:** Used via  for AI-based document analysis. Uses the Emergent LLM Key.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES, used to find a  early in the session.
+-   **Testing agent used after significant changes:** NO (Agent used extensive  and  self-testing).
 -   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None persisted.
+-   **Test files created:**
+    -   
 -   **Known regressions:** The frontend login form remains non-functional.
 
 **Credentials to test flow:**
@@ -50912,4 +50919,4 @@ Phase 1 (Company Cert.) is now feature-complete after extensive iterative develo
 -   **System Admin:**  / 
 
 **What agent forgot to execute**
--   The agent did not verify or fix the original issue of the  not opening on double-click (reported in thought process from Chat Message 319). While the modal's internal API calls were fixed, the triggering event handler in  was never addressed.</analysis>
+-   The agent did not address the two pre-existing issues from the initial handoff: the login form bug and the edit modal's double-click trigger. Focus was entirely on the new feature requests.</analysis>
