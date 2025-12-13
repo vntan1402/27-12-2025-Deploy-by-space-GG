@@ -108,6 +108,7 @@ class CompanyCertService:
         """Create new company certificate"""
         from app.utils.certificate_abbreviation import generate_certificate_abbreviation
         from app.utils.issued_by_abbreviation import generate_organization_abbreviation
+        from app.utils.next_survey_calculator import calculate_next_survey
         
         cert_dict = cert_data.model_dump()
         cert_dict["id"] = str(uuid.uuid4())
@@ -129,6 +130,42 @@ class CompanyCertService:
         # Generate organization abbreviation for issued_by
         if cert_dict.get("issued_by"):
             cert_dict["issued_by_abbreviation"] = generate_organization_abbreviation(cert_dict["issued_by"])
+        
+        # Auto-calculate next_survey if not provided
+        if not cert_dict.get("next_survey") and cert_dict.get("doc_type"):
+            # Convert string dates to datetime if needed
+            valid_date = cert_dict.get("valid_date")
+            issue_date = cert_dict.get("issue_date")
+            last_endorse = cert_dict.get("last_endorse")
+            
+            if isinstance(valid_date, str):
+                try:
+                    valid_date = datetime.strptime(valid_date, "%Y-%m-%d")
+                except:
+                    valid_date = None
+            
+            if isinstance(issue_date, str):
+                try:
+                    issue_date = datetime.strptime(issue_date, "%Y-%m-%d")
+                except:
+                    issue_date = None
+            
+            if isinstance(last_endorse, str):
+                try:
+                    last_endorse = datetime.strptime(last_endorse, "%Y-%m-%d")
+                except:
+                    last_endorse = None
+            
+            next_survey = calculate_next_survey(
+                cert_dict.get("doc_type"),
+                valid_date,
+                issue_date,
+                last_endorse
+            )
+            
+            if next_survey:
+                cert_dict["next_survey"] = next_survey
+                logger.info(f"📅 Auto-calculated next_survey: {next_survey.date()}")
         
         await mongo_db.insert_one(CompanyCertService.collection_name, cert_dict)
         
