@@ -350,3 +350,18 @@ async def upload_file_for_existing_cert(
     except Exception as e:
         logger.error(f"❌ Background upload error: {e}")
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+
+@router.post("/recalculate-all-surveys")
+async def recalculate_all_next_surveys(
+    current_user: UserResponse = Depends(check_dpa_manager_permission)
+):
+    """
+    Recalculate next_survey for all company certificates (Admin or DPA Manager required)
+    """
+    try:
+        result = await CompanyCertService.recalculate_all_next_surveys(current_user)
+        return result
+    except Exception as e:
+        logger.error(f"❌ Error recalculating next surveys: {e}")
+        raise HTTPException(status_code=500, detail="Failed to recalculate next surveys")
