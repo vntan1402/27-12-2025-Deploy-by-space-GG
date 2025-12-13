@@ -518,7 +518,7 @@ export const AddCompanyCertModal = ({
               </div>
             </div>
 
-            {/* Row 3: Issued By & Next Survey Type - 2 columns */}
+            {/* Row 3: Issued By & Next Audit Type - 2 columns */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -536,7 +536,7 @@ export const AddCompanyCertModal = ({
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Loại kiểm tra tới' : 'Next Survey Type'}
+                  {language === 'vi' ? 'Loại kiểm tra tới' : 'Next Audit Type'}
                 </label>
                 <select
                   value={formData.next_survey_type}
