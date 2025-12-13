@@ -203,7 +203,7 @@ export const EditCompanyCertModal = ({
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}
+                  {language === 'vi' ? 'Kiểm tra tới' : 'Next Audit'}
                 </label>
                 <input
                   type="date"
@@ -215,11 +215,11 @@ export const EditCompanyCertModal = ({
               </div>
             </div>
 
-            {/* Row 3: Survey Type & Issued By */}
+            {/* Row 3: Audit Type & Issued By */}
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Loại kiểm tra' : 'Survey Type'}
+                  {language === 'vi' ? 'Loại kiểm tra' : 'Audit Type'}
                 </label>
                 <select
                   value={formData.next_survey_type}
