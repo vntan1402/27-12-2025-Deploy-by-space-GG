@@ -32,6 +32,13 @@ export const CompanyCertTable = ({
     y: 0,
     content: ''
   });
+  
+  const [statusTooltip, setStatusTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    content: ''
+  });
 
   // Format next_audit with audit window based on audit type
   const formatNextAuditWithWindow = (nextAudit, auditType) => {
@@ -120,6 +127,117 @@ export const CompanyCertTable = ({
 
   const handleAuditMouseLeave = () => {
     setAuditTooltip({ show: false, x: 0, y: 0, content: '' });
+  };
+
+  const calculateDaysRemaining = (cert) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Priority 1: Check Next Audit if available
+    if (cert.next_audit && cert.next_audit_type) {
+      let nextAuditDate;
+      if (cert.next_audit.includes('/')) {
+        const [day, month, year] = cert.next_audit.split('/');
+        nextAuditDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else {
+        nextAuditDate = new Date(cert.next_audit);
+      }
+      
+      if (!isNaN(nextAuditDate.getTime())) {
+        nextAuditDate.setHours(0, 0, 0, 0);
+        
+        // Determine window close based on audit type
+        let windowClose;
+        
+        if (cert.next_audit_type.includes('Annual')) {
+          // Annual: ±3M window
+          windowClose = new Date(nextAuditDate);
+          windowClose.setMonth(windowClose.getMonth() + 3);
+        } else if (cert.next_audit_type === 'Renewal' || cert.next_audit_type === 'Initial') {
+          // Renewal/Initial: -3M window (window close = audit date)
+          windowClose = nextAuditDate;
+        } else {
+          windowClose = nextAuditDate;
+        }
+        
+        const diffTime = windowClose.getTime() - today.getTime();
+        const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        return {
+          days: daysRemaining,
+          targetDate: windowClose,
+          source: 'Next Audit'
+        };
+      }
+    }
+    
+    // Priority 2: Fallback to Valid Date
+    if (cert.valid_date) {
+      let validDate;
+      if (cert.valid_date.includes('/')) {
+        const [day, month, year] = cert.valid_date.split('/');
+        validDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else {
+        validDate = new Date(cert.valid_date);
+      }
+      
+      if (!isNaN(validDate.getTime())) {
+        validDate.setHours(0, 0, 0, 0);
+        
+        const diffTime = validDate.getTime() - today.getTime();
+        const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        return {
+          days: daysRemaining,
+          targetDate: validDate,
+          source: 'Valid Date'
+        };
+      }
+    }
+    
+    return null;
+  };
+
+  const handleStatusMouseEnter = (e, cert) => {
+    const rect = e.target.getBoundingClientRect();
+    let x = rect.left;
+    let y = rect.bottom + 5;
+    
+    const daysInfo = calculateDaysRemaining(cert);
+    
+    let content = '';
+    if (daysInfo) {
+      const status = getCertificateStatus(cert);
+      const { days, source } = daysInfo;
+      
+      if (days < 0) {
+        const absDays = Math.abs(days);
+        content = language === 'vi' 
+          ? `Đã quá hạn ${absDays} ngày\n(Tính từ ${source})`
+          : `Expired ${absDays} days ago\n(Based on ${source})`;
+      } else if (days === 0) {
+        content = language === 'vi'
+          ? `Hết hạn hôm nay\n(Tính từ ${source})`
+          : `Expires today\n(Based on ${source})`;
+      } else {
+        content = language === 'vi'
+          ? `Còn ${days} ngày\n(Tính từ ${source})`
+          : `${days} days remaining\n(Based on ${source})`;
+      }
+    } else {
+      content = language === 'vi' ? 'Không có thông tin' : 'No information';
+    }
+    
+    setStatusTooltip({
+      show: true,
+      x: x,
+      y: y,
+      content: content
+    });
+  };
+
+  const handleStatusMouseLeave = () => {
+    setStatusTooltip({ show: false, x: 0, y: 0, content: '' });
   };
 
   const getSortIcon = (column) => {
@@ -428,7 +546,11 @@ export const CompanyCertTable = ({
                   )}
                 </td>
                 <td className="px-2 py-2 border-b border-r text-center">
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(status)}`}>
+                  <span 
+                    className={`px-2 py-1 rounded text-xs font-medium cursor-help ${getStatusColor(status)}`}
+                    onMouseEnter={(e) => handleStatusMouseEnter(e, cert)}
+                    onMouseLeave={handleStatusMouseLeave}
+                  >
                     {status}
                   </span>
                 </td>
@@ -498,6 +620,21 @@ export const CompanyCertTable = ({
         >
           <div className="text-sm text-blue-900 whitespace-pre-line font-medium">
             {auditTooltip.content}
+          </div>
+        </div>
+      )}
+
+      {statusTooltip.show && (
+        <div
+          className="fixed z-50 bg-gray-800 text-white border border-gray-700 rounded-lg shadow-lg p-2 px-3"
+          style={{
+            left: `${statusTooltip.x}px`,
+            top: `${statusTooltip.y}px`,
+            minWidth: '150px'
+          }}
+        >
+          <div className="text-sm whitespace-pre-line font-medium">
+            {statusTooltip.content}
           </div>
         </div>
       )}
