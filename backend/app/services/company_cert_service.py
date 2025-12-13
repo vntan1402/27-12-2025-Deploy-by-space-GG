@@ -312,49 +312,49 @@ class CompanyCertService:
                 issue_date = cert.get("issue_date")
                 last_endorse = cert.get("last_endorse")
                 
+                # Skip if no doc_type (doc_type is required)
+                if not doc_type:
+                    logger.warning(f"⏭️ Skipping cert {cert.get('id')} ({cert.get('cert_name')}): No doc_type (required field)")
+                    skipped_count += 1
+                    continue
+                
+                # Convert string dates to datetime if needed
+                if isinstance(valid_date, str):
+                    try:
+                        valid_date = datetime.strptime(valid_date, "%Y-%m-%d")
+                    except:
+                        valid_date = None
+                
+                if isinstance(issue_date, str):
+                    try:
+                        issue_date = datetime.strptime(issue_date, "%Y-%m-%d")
+                    except:
+                        issue_date = None
+                
+                if isinstance(last_endorse, str):
+                    try:
+                        last_endorse = datetime.strptime(last_endorse, "%Y-%m-%d")
+                    except:
+                        last_endorse = None
+                
+                # Calculate next audit
+                next_audit_result = calculate_next_survey(
+                    doc_type,
+                    valid_date,
+                    issue_date,
+                    last_endorse
+                )
+                
                 # Update certificate
                 update_data = {}
                 
-                # If no doc_type, set next_audit to None
-                if not doc_type:
-                    update_data["next_audit"] = None
-                    logger.info(f"📝 Cert {cert.get('id')} ({cert.get('cert_name')}): No doc_type, setting next_audit = None")
+                # Convert datetime to string for storage
+                if next_audit_result:
+                    update_data["next_audit"] = next_audit_result.strftime("%Y-%m-%d")
                 else:
-                    # Convert string dates to datetime if needed
-                    if isinstance(valid_date, str):
-                        try:
-                            valid_date = datetime.strptime(valid_date, "%Y-%m-%d")
-                        except:
-                            valid_date = None
-                    
-                    if isinstance(issue_date, str):
-                        try:
-                            issue_date = datetime.strptime(issue_date, "%Y-%m-%d")
-                        except:
-                            issue_date = None
-                    
-                    if isinstance(last_endorse, str):
-                        try:
-                            last_endorse = datetime.strptime(last_endorse, "%Y-%m-%d")
-                        except:
-                            last_endorse = None
-                    
-                    # Calculate next audit
-                    next_audit_result = calculate_next_survey(
-                        doc_type,
-                        valid_date,
-                        issue_date,
-                        last_endorse
-                    )
-                    
-                    # Convert datetime to string for storage
-                    if next_audit_result:
-                        update_data["next_audit"] = next_audit_result.strftime("%Y-%m-%d")
-                    else:
-                        # Set to None if no audit required (e.g., Short Term DOC)
-                        update_data["next_audit"] = None
+                    # Set to None if no audit required (e.g., Short Term DOC)
+                    update_data["next_audit"] = None
                 
-                # Always update
                 if update_data:
                     await mongo_db.update_one(
                         CompanyCertService.collection_name,
