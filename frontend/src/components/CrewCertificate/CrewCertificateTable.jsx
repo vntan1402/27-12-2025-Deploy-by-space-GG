@@ -310,6 +310,80 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     setNoteTooltip({ show: false, x: 0, y: 0, width: 300, content: '' });
   };
 
+  // Status tooltip logic
+  const calculateDaysRemaining = (cert) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // For Crew Certificates, we only have valid_date (no Next Survey concept)
+    if (cert.crew_cert_valid_date) {
+      let validDate;
+      if (cert.crew_cert_valid_date.includes('/')) {
+        const [day, month, year] = cert.crew_cert_valid_date.split('/');
+        validDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else {
+        validDate = new Date(cert.crew_cert_valid_date);
+      }
+      
+      if (!isNaN(validDate.getTime())) {
+        validDate.setHours(0, 0, 0, 0);
+        
+        const diffTime = validDate.getTime() - today.getTime();
+        const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        return {
+          days: daysRemaining,
+          targetDate: validDate,
+          source: 'Valid Date'
+        };
+      }
+    }
+    
+    return null;
+  };
+
+  const handleStatusMouseEnter = (e, cert) => {
+    const rect = e.target.getBoundingClientRect();
+    let x = rect.left;
+    let y = rect.bottom + 5;
+    
+    const daysInfo = calculateDaysRemaining(cert);
+    
+    let content = '';
+    if (daysInfo) {
+      const { days, source } = daysInfo;
+      
+      if (days < 0) {
+        const absDays = Math.abs(days);
+        content = language === 'vi' 
+          ? `Đã quá hạn ${absDays} ngày\n(Tính từ ${source})`
+          : `Expired ${absDays} days ago\n(Based on ${source})`;
+      } else if (days === 0) {
+        content = language === 'vi'
+          ? `Hết hạn hôm nay\n(Tính từ ${source})`
+          : `Expires today\n(Based on ${source})`;
+      } else {
+        content = language === 'vi'
+          ? `Còn ${days} ngày\n(Tính từ ${source})`
+          : `${days} days remaining\n(Based on ${source})`;
+      }
+    } else {
+      content = language === 'vi' ? 'Không có thông tin' : 'No information';
+    }
+    
+    setStatusTooltip({
+      show: true,
+      x: x,
+      y: y,
+      content: content
+    });
+  };
+
+  const handleStatusMouseLeave = () => {
+    setStatusTooltip({ show: false, x: 0, y: 0, content: '' });
+  };
+
+
   const handleAutoRename = async (certIds) => {
     try {
       const ids = Array.isArray(certIds) ? certIds : [certIds];
