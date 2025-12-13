@@ -753,7 +753,11 @@ const SafetyManagementSystem = () => {
           {/* View */}
           <button
             onClick={() => {
-              handleDoubleClick(contextMenu.certificate);
+              if (selectedCerts.size > 1) {
+                handleBulkViewFiles();
+              } else {
+                handleViewFile(contextMenu.certificate);
+              }
               setContextMenu(null);
             }}
             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
