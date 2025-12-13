@@ -363,6 +363,198 @@ class ShipCertificateAuditMixin:
 
 class CompanyAuditMixin:
     """Audit log methods for Companies"""
+
+
+class CompanyCertificateAuditMixin:
+    """Audit log methods for Company Certificates (DOC)"""
+    
+    async def log_company_certificate_create(
+        self,
+        company_name: str,
+        cert_data: dict,
+        user: dict,
+        notes: Optional[str] = None
+    ) -> dict:
+        """Log company certificate creation"""
+        cert_name = cert_data.get('cert_name', 'Unknown')
+        cert_no = cert_data.get('cert_no', '-')
+        
+        changes = [
+            {
+                'field': 'cert_name',
+                'field_label': 'Certificate Name',
+                'old_value': None,
+                'new_value': cert_name,
+                'value_type': 'string'
+            },
+            {
+                'field': 'cert_no',
+                'field_label': 'Certificate Number',
+                'old_value': None,
+                'new_value': cert_no,
+                'value_type': 'string'
+            }
+        ]
+        
+        # Add important fields
+        important_fields = [
+            ('company_name', 'Company Name', 'string'),
+            ('doc_type', 'DOC Type', 'string'),
+            ('issued_date', 'Issued Date', 'date'),
+            ('valid_date', 'Valid Date', 'date'),
+            ('last_endorse', 'Last Endorse', 'date'),
+            ('next_audit', 'Next Audit', 'date'),
+            ('next_audit_type', 'Next Audit Type', 'string'),
+            ('issued_by', 'Issued By', 'string')
+        ]
+        
+        for field, label, value_type in important_fields:
+            if cert_data.get(field):
+                changes.append({
+                    'field': field,
+                    'field_label': label,
+                    'old_value': None,
+                    'new_value': str(cert_data[field]),
+                    'value_type': value_type
+                })
+        
+        log_data = {
+            'id': str(uuid4()),
+            'entity_type': 'company_certificate',
+            'entity_id': cert_data.get('id'),
+            'entity_name': cert_name,
+            'company_id': user.get('company'),
+            'ship_name': company_name,  # Using company_name in ship_name field for consistency
+            'action': 'CREATE_COMPANY_CERTIFICATE',
+            'action_category': 'CERTIFICATE',
+            'performed_by': user.get('username'),
+            'performed_by_id': user.get('id'),
+            'performed_by_name': user.get('full_name'),
+            'performed_at': datetime.now(timezone.utc),
+            'changes': changes,
+            'notes': notes or f'Added {cert_name} certificate for {company_name}',
+            'source': 'WEB_UI',
+            'metadata': {
+                'certificate_id': cert_data.get('id'),
+                'certificate_name': cert_name,
+                'certificate_number': cert_no,
+                'doc_type': cert_data.get('doc_type')
+            }
+        }
+        
+        return await self.repository.create_log(log_data)
+    
+    async def log_company_certificate_update(
+        self,
+        company_name: str,
+        old_cert: dict,
+        new_cert: dict,
+        user: dict,
+        notes: Optional[str] = None
+    ) -> dict:
+        """Log company certificate update"""
+        cert_name = new_cert.get('cert_name', old_cert.get('cert_name', 'Unknown'))
+        changes = []
+        
+        # Fields to track changes
+        fields_to_check = [
+            ('cert_name', 'Certificate Name', 'string'),
+            ('cert_no', 'Certificate Number', 'string'),
+            ('company_name', 'Company Name', 'string'),
+            ('doc_type', 'DOC Type', 'string'),
+            ('issued_date', 'Issued Date', 'date'),
+            ('valid_date', 'Valid Date', 'date'),
+            ('last_endorse', 'Last Endorse', 'date'),
+            ('next_audit', 'Next Audit', 'date'),
+            ('next_audit_type', 'Next Audit Type', 'string'),
+            ('issued_by', 'Issued By', 'string'),
+            ('status', 'Status', 'string'),
+            ('note', 'Note', 'string')
+        ]
+        
+        for field, label, value_type in fields_to_check:
+            old_value = old_cert.get(field)
+            new_value = new_cert.get(field)
+            
+            # Convert dates to string for comparison
+            if value_type == 'date':
+                old_value = str(old_value) if old_value else None
+                new_value = str(new_value) if new_value else None
+            
+            if old_value != new_value:
+                changes.append({
+                    'field': field,
+                    'field_label': label,
+                    'old_value': str(old_value) if old_value else None,
+                    'new_value': str(new_value) if new_value else None,
+                    'value_type': value_type
+                })
+        
+        if not changes:
+            return None
+        
+        log_data = {
+            'id': str(uuid4()),
+            'entity_type': 'company_certificate',
+            'entity_id': new_cert.get('id'),
+            'entity_name': cert_name,
+            'company_id': user.get('company'),
+            'ship_name': company_name,
+            'action': 'UPDATE_COMPANY_CERTIFICATE',
+            'action_category': 'CERTIFICATE',
+            'performed_by': user.get('username'),
+            'performed_by_id': user.get('id'),
+            'performed_by_name': user.get('full_name'),
+            'performed_at': datetime.now(timezone.utc),
+            'changes': changes,
+            'notes': notes or f'Updated {cert_name} certificate',
+            'source': 'WEB_UI',
+            'metadata': {
+                'certificate_id': new_cert.get('id'),
+                'certificate_name': cert_name,
+                'changes_count': len(changes)
+            }
+        }
+        
+        return await self.repository.create_log(log_data)
+    
+    async def log_company_certificate_delete(
+        self,
+        company_name: str,
+        cert_data: dict,
+        user: dict,
+        notes: Optional[str] = None
+    ) -> dict:
+        """Log company certificate deletion"""
+        cert_name = cert_data.get('cert_name', 'Unknown')
+        cert_no = cert_data.get('cert_no', '-')
+        
+        log_data = {
+            'id': str(uuid4()),
+            'entity_type': 'company_certificate',
+            'entity_id': cert_data.get('id'),
+            'entity_name': cert_name,
+            'company_id': user.get('company'),
+            'ship_name': company_name,
+            'action': 'DELETE_COMPANY_CERTIFICATE',
+            'action_category': 'CERTIFICATE',
+            'performed_by': user.get('username'),
+            'performed_by_id': user.get('id'),
+            'performed_by_name': user.get('full_name'),
+            'performed_at': datetime.now(timezone.utc),
+            'changes': [],
+            'notes': notes or f'Deleted {cert_name} certificate (No: {cert_no})',
+            'source': 'WEB_UI',
+            'metadata': {
+                'certificate_id': cert_data.get('id'),
+                'certificate_name': cert_name,
+                'certificate_number': cert_no,
+                'doc_type': cert_data.get('doc_type')
+            }
+        }
+        
+        return await self.repository.create_log(log_data)
+
     
     async def log_company_create(
         self,
