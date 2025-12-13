@@ -352,6 +352,60 @@ async def upload_file_for_existing_cert(
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 
+@router.post("/calculate-next-audit")
+async def calculate_next_audit(
+    doc_type: str,
+    valid_date: str = None,
+    issue_date: str = None,
+    last_endorse: str = None,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Calculate next_audit and next_audit_type based on provided data
+    Used for real-time calculation in modal forms
+    """
+    try:
+        from app.utils.doc_next_survey_calculator import calculate_next_survey
+        from datetime import datetime
+        
+        # Parse dates
+        def parse_date(date_str):
+            if not date_str:
+                return None
+            try:
+                return datetime.strptime(date_str, "%Y-%m-%d")
+            except:
+                try:
+                    return datetime.strptime(date_str, "%d/%m/%Y")
+                except:
+                    return None
+        
+        valid_dt = parse_date(valid_date)
+        issue_dt = parse_date(issue_date)
+        last_endorse_dt = parse_date(last_endorse)
+        
+        # Calculate
+        next_audit, next_audit_type = calculate_next_survey(
+            doc_type,
+            valid_dt,
+            issue_dt,
+            last_endorse_dt
+        )
+        
+        # Format response
+        result = {
+            "next_audit": next_audit.strftime("%Y-%m-%d") if next_audit else None,
+            "next_audit_type": next_audit_type
+        }
+        
+        logger.info(f"✅ Calculated: {result}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"❌ Error calculating next audit: {e}")
+        raise HTTPException(status_code=500, detail=f"Calculation failed: {str(e)}")
+
+
 @router.post("/recalculate-all-surveys")
 async def recalculate_all_next_surveys(
     current_user: UserResponse = Depends(check_dpa_manager_permission)
