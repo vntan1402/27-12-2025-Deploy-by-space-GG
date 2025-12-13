@@ -52,10 +52,10 @@ export const EditCompanyCertModal = ({
     
     setIsSubmitting(true);
     try {
-      // Add has_notes flag based on notes content
+      // Add has_notes flag based on notes content (ensure boolean)
       const updateData = {
         ...formData,
-        has_notes: formData.notes && formData.notes.trim().length > 0
+        has_notes: Boolean(formData.notes && formData.notes.trim().length > 0)
       };
       
       await api.put(`/api/company-certs/${certificate.id}`, updateData);
