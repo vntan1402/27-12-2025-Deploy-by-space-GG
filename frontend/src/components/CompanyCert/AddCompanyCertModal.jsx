@@ -423,8 +423,8 @@ export const AddCompanyCertModal = ({
               </div>
             )}
             
-            {/* Row 1: Certificate Name, Number & Company Name */}
-            <div className="grid grid-cols-3 gap-4">
+            {/* Row 1: Certificate Name, Number, Company Name & DOC Type */}
+            <div className="grid grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'} <span className="text-red-500">*</span>
@@ -466,6 +466,24 @@ export const AddCompanyCertModal = ({
                   placeholder={language === 'vi' ? 'Tên công ty trên chứng chỉ' : 'Company name on certificate'}
                   disabled={isSubmitting}
                 />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Loại DOC' : 'DOC Type'} <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.doc_type}
+                  onChange={(e) => setFormData({...formData, doc_type: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  required
+                  disabled={isSubmitting}
+                >
+                  <option value="">{language === 'vi' ? '-- Chọn loại --' : '-- Select Type --'}</option>
+                  <option value="full_term">Full Term</option>
+                  <option value="short_term">Short Term</option>
+                  <option value="interim">Interim</option>
+                </select>
               </div>
             </div>
 
