@@ -684,17 +684,6 @@ const SafetyManagementSystem = () => {
               </h2>
               
               <div className="flex items-center gap-2">
-                {/* Bulk Delete Button */}
-                {selectedCerts.size > 0 && (
-                  <button
-                    onClick={handleBulkDelete}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center gap-2 text-sm font-medium shadow-sm"
-                  >
-                    <span>🗑️</span>
-                    {language === 'vi' ? `Xóa (${selectedCerts.size})` : `Delete (${selectedCerts.size})`}
-                  </button>
-                )}
-                
                 {/* Update Next Audit Button */}
                 <button
                   onClick={handleUpdateNextAudits}
