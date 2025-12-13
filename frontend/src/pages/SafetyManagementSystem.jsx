@@ -206,6 +206,90 @@ const SafetyManagementSystem = () => {
     }
   };
 
+  // Calculate certificate status (same logic as CompanyCertTable)
+  const getCertificateStatus = (cert) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // PRIORITY 1: Check Next Audit if available
+    if (cert.next_audit && cert.next_audit_type) {
+      let nextAuditDate;
+      if (cert.next_audit.includes('/')) {
+        const [day, month, year] = cert.next_audit.split('/');
+        nextAuditDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else {
+        nextAuditDate = new Date(cert.next_audit);
+      }
+      
+      if (!isNaN(nextAuditDate.getTime())) {
+        nextAuditDate.setHours(0, 0, 0, 0);
+        
+        // Determine window based on audit type
+        let windowOpen, windowClose;
+        
+        if (cert.next_audit_type.includes('Annual')) {
+          // Annual: ±3M window
+          windowOpen = new Date(nextAuditDate);
+          windowOpen.setMonth(windowOpen.getMonth() - 3);
+          windowClose = new Date(nextAuditDate);
+          windowClose.setMonth(windowClose.getMonth() + 3);
+        } else if (cert.next_audit_type === 'Renewal' || cert.next_audit_type === 'Initial') {
+          // Renewal/Initial: -3M window
+          windowOpen = new Date(nextAuditDate);
+          windowOpen.setMonth(windowOpen.getMonth() - 3);
+          windowClose = nextAuditDate;
+        } else {
+          // Default: use next_audit date as reference
+          windowOpen = new Date(nextAuditDate);
+          windowOpen.setMonth(windowOpen.getMonth() - 3);
+          windowClose = nextAuditDate;
+        }
+        
+        // Check status based on window
+        if (today < windowOpen) {
+          // Not yet in audit window
+          return 'Valid';
+        } else if (today > windowClose) {
+          // Passed window close
+          return 'Expired';
+        } else {
+          // Inside window: check days remaining to window close
+          const diffTime = windowClose.getTime() - today.getTime();
+          const daysToClose = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (daysToClose <= 30) {
+            return 'Critical';
+          } else {
+            return 'Due Soon';
+          }
+        }
+      }
+    }
+    
+    // PRIORITY 2: Fallback to Valid Date if no Next Audit
+    if (!cert.valid_date) return 'Unknown';
+    
+    let validDate;
+    if (cert.valid_date.includes('/')) {
+      const [day, month, year] = cert.valid_date.split('/');
+      validDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    } else {
+      validDate = new Date(cert.valid_date);
+    }
+    
+    if (isNaN(validDate.getTime())) return 'Unknown';
+    validDate.setHours(0, 0, 0, 0);
+    
+    if (validDate < today) return 'Expired';
+    
+    const diffTime = validDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 30) return 'Critical';
+    if (diffDays <= 90) return 'Due Soon';
+    return 'Valid';
+  };
+
   const getFilteredAndSortedCerts = () => {
     let filtered = [...companyCerts];
     
@@ -219,31 +303,11 @@ const SafetyManagementSystem = () => {
       );
     }
 
-    // Status filter
+    // Status filter - use same logic as table display
     if (statusFilter !== 'all') {
       filtered = filtered.filter(cert => {
-        if (!cert.valid_date) return statusFilter === 'Unknown';
-        
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
-        let validDate;
-        if (cert.valid_date.includes('/')) {
-          const [day, month, year] = cert.valid_date.split('/');
-          validDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-        } else {
-          validDate = new Date(cert.valid_date);
-        }
-        
-        if (isNaN(validDate.getTime())) return statusFilter === 'Unknown';
-        validDate.setHours(0, 0, 0, 0);
-        
-        if (validDate < today) return statusFilter === 'Expired';
-        
-        const diffDays = Math.ceil((validDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (diffDays <= 90) return statusFilter === 'Due Soon';
-        return statusFilter === 'Valid';
+        const status = getCertificateStatus(cert);
+        return status === statusFilter;
       });
     }
     
