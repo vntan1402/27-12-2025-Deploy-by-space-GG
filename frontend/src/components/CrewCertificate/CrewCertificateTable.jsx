@@ -315,26 +315,26 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // For Crew Certificates, we only have valid_date (no Next Survey concept)
-    if (cert.crew_cert_valid_date) {
-      let validDate;
-      if (cert.crew_cert_valid_date.includes('/')) {
-        const [day, month, year] = cert.crew_cert_valid_date.split('/');
-        validDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    // For Crew Certificates, use cert_expiry field
+    if (cert.cert_expiry) {
+      let expiryDate;
+      if (typeof cert.cert_expiry === 'string' && cert.cert_expiry.includes('/')) {
+        const [day, month, year] = cert.cert_expiry.split('/');
+        expiryDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       } else {
-        validDate = new Date(cert.crew_cert_valid_date);
+        expiryDate = new Date(cert.cert_expiry);
       }
       
-      if (!isNaN(validDate.getTime())) {
-        validDate.setHours(0, 0, 0, 0);
+      if (!isNaN(expiryDate.getTime())) {
+        expiryDate.setHours(0, 0, 0, 0);
         
-        const diffTime = validDate.getTime() - today.getTime();
+        const diffTime = expiryDate.getTime() - today.getTime();
         const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
         return {
           days: daysRemaining,
-          targetDate: validDate,
-          source: 'Valid Date'
+          targetDate: expiryDate,
+          source: 'Expiry Date'
         };
       }
     }
