@@ -35,7 +35,21 @@ export const CompanyCertNotesModal = ({
       onClose();
     } catch (error) {
       console.error('Save notes error:', error);
-      toast.error(error.response?.data?.detail || 'Failed to save notes');
+      
+      // Handle validation errors
+      let errorMessage = 'Failed to save notes';
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (Array.isArray(detail)) {
+          errorMessage = detail.map(err => err.msg || JSON.stringify(err)).join(', ');
+        } else if (typeof detail === 'string') {
+          errorMessage = detail;
+        } else {
+          errorMessage = JSON.stringify(detail);
+        }
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
