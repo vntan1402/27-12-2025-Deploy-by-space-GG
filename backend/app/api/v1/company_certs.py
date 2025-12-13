@@ -6,6 +6,7 @@ from app.models.company_cert import CompanyCertCreate, CompanyCertUpdate, Compan
 from app.models.user import UserResponse, UserRole
 from app.services.company_cert_service import CompanyCertService
 from app.core.security import get_current_user
+from app.core.messages import PERMISSION_DENIED
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
