@@ -338,7 +338,7 @@ class CompanyCertService:
                         last_endorse = None
                 
                 # Calculate next audit
-                next_survey = calculate_next_survey(
+                next_audit_result = calculate_next_survey(
                     doc_type,
                     valid_date,
                     issue_date,
@@ -349,8 +349,8 @@ class CompanyCertService:
                 update_data = {}
                 
                 # Convert datetime to string for storage
-                if next_survey:
-                    update_data["next_audit"] = next_survey.strftime("%Y-%m-%d")
+                if next_audit_result:
+                    update_data["next_audit"] = next_audit_result.strftime("%Y-%m-%d")
                 else:
                     # Set to None if no audit required (e.g., Short Term DOC)
                     update_data["next_audit"] = None
