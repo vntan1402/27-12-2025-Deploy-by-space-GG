@@ -56,34 +56,63 @@ Extract the following fields in JSON format:
 IMPORTANT INSTRUCTIONS:
 1. cert_name and cert_no are REQUIRED fields
 
-2. cert_name: **CRITICAL** - Extract the COMPLETE certificate name INCLUDING ALL type prefixes:
+2. cert_name: **CRITICAL** - READ THE ENTIRE SUMMARY TEXT FIRST, then extract the COMPLETE certificate name INCLUDING ALL type prefixes:
    
-   **EXTRACTION PRIORITY (check in this order):**
-   a) Look for "Full Term Certificate No:" or "Full term Certificate No:" in the document
-      → If found, cert_name MUST be "FULL TERM DOCUMENT OF COMPLIANCE"
+   **STEP 1: READ ENTIRE DOCUMENT CONTENT**
+   - Read through ALL text including:
+     * Page content (text layer)
+     * OCR content 
+     * Document description/summary
+     * Certificate number lines
+   - Look for ANY mention of certificate type throughout the ENTIRE document
    
-   b) Look for "Short Term Certificate No:" in the document
-      → If found, cert_name MUST be "SHORT TERM DOCUMENT OF COMPLIANCE"
+   **STEP 2: IDENTIFY CERTIFICATE TYPE (check ANYWHERE in the full text):**
    
-   c) Look for "Interim Certificate No:" in the document  
-      → If found, cert_name MUST be "INTERIM DOCUMENT OF COMPLIANCE"
+   a) **Full Term Indicators** - Look for ANY of these phrases ANYWHERE in the document:
+      - "Full Term Certificate No:"
+      - "Full term Certificate No:"
+      - "This document is a Full Term Document of Compliance"
+      - "Full Term Document of Compliance"
+      - "FULL TERM DOCUMENT"
+      - Any sentence containing "Full Term" + "Document" + "Compliance"
+      → If found ANYWHERE, cert_name MUST be "FULL TERM DOCUMENT OF COMPLIANCE"
    
-   d) Look in OCR content or document description for phrases like:
-      - "Full Term Document of Compliance" → Extract "FULL TERM DOCUMENT OF COMPLIANCE"
-      - "Short Term Document of Compliance" → Extract "SHORT TERM DOCUMENT OF COMPLIANCE"
-      - "Interim Document of Compliance" → Extract "INTERIM DOCUMENT OF COMPLIANCE"
+   b) **Short Term Indicators** - Look for ANY of these phrases:
+      - "Short Term Certificate No:"
+      - "This document is a Short Term Document of Compliance"
+      - "Short Term Document of Compliance"
+      - "SHORT TERM DOCUMENT"
+      → If found ANYWHERE, cert_name MUST be "SHORT TERM DOCUMENT OF COMPLIANCE"
    
-   e) If only "DOCUMENT OF COMPLIANCE" heading exists (no type indicators):
+   c) **Interim Indicators** - Look for ANY of these phrases:
+      - "Interim Certificate No:"
+      - "This document is an Interim Document of Compliance"
+      - "Interim Document of Compliance"
+      - "INTERIM DOCUMENT"
+      → If found ANYWHERE, cert_name MUST be "INTERIM DOCUMENT OF COMPLIANCE"
+   
+   d) **No Type Specified** - Only if NO type indicators found anywhere:
       → Extract "DOCUMENT OF COMPLIANCE"
    
+   **CRITICAL READING RULES:**
+   - You MUST read the ENTIRE summary text from start to finish
+   - Do NOT stop reading after finding "DOCUMENT OF COMPLIANCE" heading
+   - Check BOTH the text layer AND the OCR/Document AI content sections
+   - Pay special attention to document description sentences like:
+     * "This document is a [TYPE] Document of Compliance"
+     * "This is a [TYPE] Certificate"
+   
    **ABSOLUTELY DO NOT:**
+   - Stop reading after the first mention of "DOCUMENT OF COMPLIANCE"
+   - Ignore document description/summary sections
    - Remove "Full Term", "Short Term", or "Interim" prefixes
-   - Shorten the certificate name
-   - Extract only "DOCUMENT OF COMPLIANCE" when a type prefix exists
+   - Extract only "DOCUMENT OF COMPLIANCE" when evidence of a type exists anywhere
    
    **EXAMPLES FROM REAL DOCUMENTS:**
-   - ✅ CORRECT: "FULL TERM DOCUMENT OF COMPLIANCE" (when "Full Term Certificate No:" exists)
-   - ❌ WRONG: "DOCUMENT OF COMPLIANCE" (missing "FULL TERM" prefix)
+   - ✅ CORRECT: "FULL TERM DOCUMENT OF COMPLIANCE" 
+     (when "Full Term Certificate No:" OR "This document is a Full Term Document" found ANYWHERE)
+   - ❌ WRONG: "DOCUMENT OF COMPLIANCE" 
+     (ignoring type information that exists elsewhere in the document)
    
 3. company_name: Extract the company name (look for "Name of the Company:", "Company:", etc.)
 3. doc_type: **CRITICAL - MANDATORY FOR ALL DOC CERTIFICATES** - You MUST classify every DOC:
