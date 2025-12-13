@@ -26,20 +26,25 @@ export const CompanyCertTable = ({
     content: ''
   });
 
-  // Format next_audit with audit window
-  const formatNextAuditWithWindow = (nextAudit, docType) => {
+  // Format next_audit with audit window based on audit type
+  const formatNextAuditWithWindow = (nextAudit, auditType) => {
     if (!nextAudit) return '-';
     
     const formattedDate = formatDateDisplay(nextAudit);
     
-    // Add window indicator based on DOC type
-    if (docType === 'full_term') {
+    // Add window indicator based on audit type
+    if (auditType && auditType.includes('Annual')) {
+      // Annual audits (1st/2nd/3rd/4th) have ±3M window
       return `${formattedDate} (±3M)`;
-    } else if (docType === 'interim') {
+    } else if (auditType === 'Renewal') {
+      // Renewal audit has -3M window
       return `${formattedDate} (-3M)`;
+    } else if (auditType === 'Initial') {
+      // Initial audit (Interim DOC)
+      return `${formattedDate}`;
     }
     
-    // For short_term or no doc_type, just show the date
+    // For no audit type, just show the date
     return formattedDate;
   };
 
