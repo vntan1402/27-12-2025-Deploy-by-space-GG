@@ -1232,7 +1232,7 @@ Return ONLY the JSON object with extracted fields. No additional text."""
                             company_id=current_user.company
                         )
                         
-                        # Raise HTTPException to block the flow
+                        # Raise HTTPException with extracted_data included
                         error_message = (
                             f"Name mismatch detected!\n\n"
                             f"Certificate name: {ai_extracted_name}\n"
@@ -1249,7 +1249,10 @@ Return ONLY the JSON object with extracted fields. No additional text."""
                         
                         raise HTTPException(
                             status_code=400,
-                            detail=error_message
+                            detail={
+                                "message": error_message,
+                                "extracted_data": parsed_data  # Include extracted data for "Continue" option
+                            }
                         )
                     else:
                         # Name matches (exact or permutation)
