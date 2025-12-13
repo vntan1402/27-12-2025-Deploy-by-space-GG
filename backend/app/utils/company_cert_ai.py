@@ -56,15 +56,20 @@ Extract the following fields in JSON format:
 IMPORTANT INSTRUCTIONS:
 1. cert_name and cert_no are REQUIRED fields
 
-2. cert_name: **CRITICAL** - READ THE ENTIRE SUMMARY TEXT FIRST, then extract the COMPLETE certificate name INCLUDING ALL type prefixes:
+2. cert_name: **CRITICAL** - READ THE ENTIRE SUMMARY TEXT FROM START TO END FIRST, then extract the COMPLETE certificate name INCLUDING ALL type prefixes:
    
-   **STEP 1: READ ENTIRE DOCUMENT CONTENT**
+   **STEP 1: READ ENTIRE DOCUMENT CONTENT - DO NOT STOP READING EARLY**
+   - You MUST read through EVERY SINGLE LINE of text in the summary
    - Read through ALL text including:
      * Page content (text layer)
      * OCR content 
-     * Document description/summary
+     * Document description/summary (VERY IMPORTANT - often contains the full type)
      * Certificate number lines
+     * Document AI analysis sections
+     * Any descriptive sentences like "This document is a [TYPE] Document of Compliance"
    - Look for ANY mention of certificate type throughout the ENTIRE document
+   - DO NOT stop reading after finding the first "DOCUMENT OF COMPLIANCE" heading
+   - The correct type information often appears LATER in the document summary
    
    **STEP 2: IDENTIFY CERTIFICATE TYPE (check ANYWHERE in the full text):**
    
@@ -107,12 +112,19 @@ IMPORTANT INSTRUCTIONS:
    - Ignore document description/summary sections
    - Remove "Full Term", "Short Term", or "Interim" prefixes
    - Extract only "DOCUMENT OF COMPLIANCE" when evidence of a type exists anywhere
+   - Skip reading the Document AI analysis section (often contains crucial type info)
+   
+   **READING STRATEGY:**
+   1. First pass: Read the ENTIRE summary from line 1 to the last line
+   2. While reading, note down ALL mentions of certificate type keywords
+   3. Second pass: Based on ALL collected information, determine the correct full name
+   4. Return the MOST SPECIFIC name found (e.g., "Full Term..." not just "Document...")
    
    **EXAMPLES FROM REAL DOCUMENTS:**
    - ✅ CORRECT: "FULL TERM DOCUMENT OF COMPLIANCE" 
-     (when "Full Term Certificate No:" OR "This document is a Full Term Document" found ANYWHERE)
+     (when "Full Term Certificate No:" OR "This document is a Full Term Document" found ANYWHERE in the entire text)
    - ❌ WRONG: "DOCUMENT OF COMPLIANCE" 
-     (ignoring type information that exists elsewhere in the document)
+     (ignoring type information that exists in the document description section further down)
    
 3. company_name: Extract the company name (look for "Name of the Company:", "Company:", etc.)
 
