@@ -423,11 +423,22 @@ const SafetyManagementSystem = () => {
                 {/* Update Next Audit Button */}
                 <button
                   onClick={handleUpdateNextAudits}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 text-sm font-medium shadow-sm"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2 text-sm font-medium shadow-sm"
                   disabled={certsLoading}
                 >
                   <span>🔄</span>
-                  {language === 'vi' ? 'Cập nhật kiểm tra' : 'Update Next Audit'}
+                  {language === 'vi' ? 'Cập nhật Next Audit' : 'Update Next Audit'}
+                </button>
+                
+                {/* Upcoming Audit Button */}
+                <button
+                  onClick={handleUpcomingAudit}
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 flex items-center gap-2 text-sm font-medium shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {language === 'vi' ? 'Upcoming Audit' : 'Upcoming Audit'}
                 </button>
                 
                 {/* Add Certificate Button */}
