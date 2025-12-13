@@ -352,7 +352,13 @@ export const CompanyCertTable = ({
                 <td className="px-2 py-2 border-b border-r text-sm">{formatDateDisplay(cert.issue_date) || '-'}</td>
                 <td className="px-2 py-2 border-b border-r text-sm">{formatDateDisplay(cert.valid_date) || '-'}</td>
                 <td className="px-2 py-2 border-b border-r text-sm">{formatDateDisplay(cert.last_endorse) || '-'}</td>
-                <td className="px-2 py-2 border-b border-r text-sm">{formatNextAuditWithWindow(cert.next_audit, cert.next_audit_type)}</td>
+                <td 
+                  className="px-2 py-2 border-b border-r text-sm cursor-help"
+                  onMouseEnter={(e) => handleAuditMouseEnter(e, cert.next_audit_type, cert.next_audit, cert.doc_type)}
+                  onMouseLeave={handleAuditMouseLeave}
+                >
+                  {formatNextAuditWithWindow(cert.next_audit, cert.next_audit_type)}
+                </td>
                 <td 
                   className="px-2 py-2 border-b border-r text-sm font-semibold text-blue-700" 
                   title={cert.issued_by}
