@@ -42,7 +42,7 @@ export const companyCertService = {
     return response.data;
   },
 
-  // Recalculate all next surveys
+  // Recalculate all next audits
   async recalculateAllNextSurveys() {
     const response = await api.post(`${BASE_URL}/recalculate-all-surveys`);
     return response.data;
