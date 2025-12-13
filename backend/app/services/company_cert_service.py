@@ -454,3 +454,171 @@ class CompanyCertService:
             "failed_ids": failed_ids,
             "total_processed": len(certs)
         }
+
+    @staticmethod
+    async def auto_rename_file(cert_id: str, current_user: UserResponse) -> dict:
+        """
+        Auto-rename company certificate file on Google Drive
+        
+        Filename pattern:
+        {Company Name}_{Cert Abbreviation}_{Cert No}_{Issue Date}.{ext}
+        
+        Example: HAI AN CONTAINER_DOC_PM242633_07052024.pdf
+        
+        Priority for Certificate Abbreviation:
+        1. User-defined mapping (from certificate_abbreviation_mappings collection)
+        2. Database cert_abbreviation field
+        3. Fallback to "CERT"
+        
+        Args:
+            cert_id: Certificate ID
+            current_user: Current user making the request
+            
+        Returns:
+            dict: {
+                "success": bool,
+                "message": str,
+                "certificate_id": str,
+                "file_id": str,
+                "old_name": str,
+                "new_name": str,
+                "naming_convention": dict,
+                "renamed_timestamp": str
+            }
+        """
+        try:
+            from app.services.gdrive_service import GDriveService
+            from app.utils.company_helper import resolve_company_id
+            from app.utils.filename_helper import generate_company_certificate_filename
+            
+            logger.info(f"🔄 Auto-renaming file for company certificate: {cert_id}")
+            
+            # 1. Get certificate from DB
+            cert = await mongo_db.find_one(CompanyCertService.collection_name, {"id": cert_id})
+            
+            if not cert:
+                raise HTTPException(status_code=404, detail="Company certificate not found")
+            
+            # 2. Validate has file_id
+            file_id = cert.get("file_id") or cert.get("google_drive_file_id")
+            if not file_id:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Certificate has no associated Google Drive file"
+                )
+            
+            summary_file_id = cert.get("summary_file_id")
+            original_filename = cert.get("file_name", "certificate.pdf")
+            
+            # 3. Get certificate metadata
+            company_name = cert.get("company_name", "Unknown Company")
+            cert_name = cert.get("cert_name", "Unknown Certificate")
+            cert_abbreviation = cert.get("cert_abbreviation", "")
+            cert_no = cert.get("cert_no", "")
+            issue_date = cert.get("issue_date")
+            
+            # ========== PRIORITY LOGIC FOR ABBREVIATION ==========
+            # Priority 1: Check user-defined abbreviation mappings FIRST
+            user_defined_abbr = await mongo_db.find_one(
+                "certificate_abbreviation_mappings",
+                {"cert_name": cert_name}
+            )
+            
+            if user_defined_abbr and user_defined_abbr.get("abbreviation"):
+                final_abbreviation = user_defined_abbr.get("abbreviation")
+                logger.info(f"🔄 AUTO-RENAME - PRIORITY 1: Using user-defined mapping '{cert_name}' → '{final_abbreviation}'")
+            elif cert_abbreviation:
+                # Priority 2: Use database cert_abbreviation
+                final_abbreviation = cert_abbreviation
+                logger.info(f"🔄 AUTO-RENAME - PRIORITY 2: Using database abbreviation '{final_abbreviation}'")
+            else:
+                # Priority 3: Fallback
+                final_abbreviation = "CERT"
+                logger.info(f"🔄 AUTO-RENAME - PRIORITY 3: Using fallback abbreviation '{final_abbreviation}'")
+            
+            # 4. Generate new filename
+            new_filename = generate_company_certificate_filename(
+                company_name=company_name,
+                cert_abbreviation=final_abbreviation,
+                cert_no=cert_no,
+                issue_date=issue_date,
+                original_filename=original_filename
+            )
+            
+            logger.info(f"📝 Generated new filename: {new_filename}")
+            
+            # 5. Resolve company_id
+            company_id = await resolve_company_id(current_user)
+            
+            # 6. Rename file via Apps Script (with capability check)
+            rename_result = await GDriveService.rename_file_via_apps_script(
+                file_id=file_id,
+                new_filename=new_filename,
+                company_id=company_id,
+                check_capability=True
+            )
+            
+            if not rename_result.get("success"):
+                raise HTTPException(
+                    status_code=500,
+                    detail=rename_result.get("message", "Failed to rename file")
+                )
+            
+            # 7. Rename summary file if exists
+            summary_rename_result = None
+            if summary_file_id:
+                try:
+                    base_name = new_filename.rsplit('.', 1)[0] if '.' in new_filename else new_filename
+                    new_summary_filename = f"{base_name}_Summary.txt"
+                    
+                    logger.info(f"📋 Renaming summary file to: {new_summary_filename}")
+                    
+                    summary_rename_result = await GDriveService.rename_file_via_apps_script(
+                        file_id=summary_file_id,
+                        new_filename=new_summary_filename,
+                        company_id=company_id,
+                        check_capability=True
+                    )
+                    
+                    if summary_rename_result.get("success"):
+                        logger.info(f"✅ Successfully renamed summary file to '{new_summary_filename}'")
+                    else:
+                        logger.warning(f"⚠️ Failed to rename summary file: {summary_rename_result.get('message')}")
+                
+                except Exception as summary_error:
+                    logger.warning(f"⚠️ Error renaming summary file: {summary_error}")
+            
+            # 8. Update DB with new file_name
+            await mongo_db.update(
+                CompanyCertService.collection_name,
+                {"id": cert_id},
+                {
+                    "file_name": new_filename,
+                    "renamed_at": datetime.now(timezone.utc).isoformat()
+                }
+            )
+            
+            logger.info(f"✅ Successfully renamed company certificate file: {original_filename} → {new_filename}")
+            
+            return {
+                "success": True,
+                "message": "Company certificate file renamed successfully",
+                "certificate_id": cert_id,
+                "file_id": file_id,
+                "old_name": original_filename,
+                "new_name": new_filename,
+                "naming_convention": {
+                    "company_name": company_name,
+                    "cert_abbreviation": final_abbreviation,
+                    "cert_no": cert_no,
+                    "issue_date": issue_date
+                },
+                "renamed_timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error auto-renaming company certificate file: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to auto-rename certificate file: {str(e)}")
+
