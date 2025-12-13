@@ -15,6 +15,16 @@ class CompanyCertService:
     """Service for Company Certificate operations"""
     
     collection_name = "company_certificates"
+
+    @staticmethod
+    def get_audit_log_service():
+        """Get audit log service instance"""
+        from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
+        from app.services.crew_audit_log_service import CrewAuditLogService
+        repository = CrewAuditLogRepository()
+        return CrewAuditLogService(repository)
+    
+
     
     @staticmethod
     async def get_company_certs(company: Optional[str], current_user: UserResponse) -> List[CompanyCertResponse]:
