@@ -111,52 +111,81 @@ def calculate_next_survey(
             'window_type': '-3M'
         })
         
-        # Step 4: Determine Next Audit based on current date and Last Endorse
+        # Step 4: Determine Next Audit based on Last Endorse or Issue Date
         now = datetime.now()
         
-        # If Last Endorse exists, use it to determine which audits are completed
-        for i, audit in enumerate(audits):
-            audit_date = audit['date']
-            audit_type = audit['type']
-            window_type = audit['window_type']
+        # Use Last Endorse if available, otherwise use Issue Date as fallback
+        reference_date = last_endorse if last_endorse else issue_date
+        
+        if reference_date:
+            logger.info(f"   📅 Reference Date: {reference_date.date()} ({'Last Endorse' if last_endorse else 'Issue Date'})")
             
-            # Check if this audit is completed based on Last Endorse
-            audit_completed = False
+            # Find the latest completed audit
+            last_completed_audit_index = -1
             
-            if last_endorse:
+            for i, audit in enumerate(audits):
+                audit_date = audit['date']
+                audit_type = audit['type']
+                window_type = audit['window_type']
+                
+                # Check if this audit is completed based on reference date
+                audit_completed = False
+                
                 if window_type == '±3M':
-                    # For Annual audits: completed if last_endorse is within window
+                    # For Annual audits: completed if reference_date is within window
                     window_start = audit_date - relativedelta(months=3)
                     window_end = audit_date + relativedelta(months=3)
-                    if window_start <= last_endorse <= window_end:
+                    if window_start <= reference_date <= window_end:
                         audit_completed = True
-                        logger.info(f"   ✓ {audit_type} completed on {last_endorse.date()} (within window)")
+                        logger.info(f"   ✓ {audit_type} completed on {reference_date.date()} (within window)")
+                        last_completed_audit_index = i
                 
                 elif window_type == '-3M':
-                    # For Renewal: completed if last_endorse >= (audit_date - 3M)
+                    # For Renewal: completed if reference_date is within window
                     window_start = audit_date - relativedelta(months=3)
-                    if last_endorse >= window_start and last_endorse <= audit_date:
+                    if window_start <= reference_date <= audit_date:
                         audit_completed = True
-                        logger.info(f"   ✓ {audit_type} completed on {last_endorse.date()} (within window)")
+                        logger.info(f"   ✓ {audit_type} completed on {reference_date.date()} (within window)")
+                        last_completed_audit_index = i
             
-            # If audit is not completed, check if it's the next one
-            if not audit_completed:
-                # For ±3M window: check if we're before the end of window
+            # Next Audit = audit after the last completed one
+            if last_completed_audit_index >= 0:
+                next_audit_index = last_completed_audit_index + 1
+                if next_audit_index < len(audits):
+                    next_audit = audits[next_audit_index]
+                    logger.info(f"   → Next Audit: {next_audit['date'].date()} ({next_audit['type']})")
+                    return next_audit['date'], next_audit['type']
+                else:
+                    # All audits completed, should renew certificate
+                    logger.warning(f"   ⚠️ All audits completed. Certificate should be renewed.")
+                    return valid_date, 'Renewal'
+            else:
+                # No completed audit found, return first audit
+                first_audit = audits[0]
+                logger.info(f"   → Next Audit: {first_audit['date'].date()} ({first_audit['type']}) [First audit]")
+                return first_audit['date'], first_audit['type']
+        
+        else:
+            # No reference date (no Last Endorse and no Issue Date)
+            # Return the first audit that hasn't passed yet
+            for audit in audits:
+                audit_date = audit['date']
+                audit_type = audit['type']
+                window_type = audit['window_type']
+                
                 if window_type == '±3M':
                     window_end = audit_date + relativedelta(months=3)
                     if now < window_end:
-                        logger.info(f"   → Next Audit: {audit_date.date()} ({audit_type}) [±3M window]")
+                        logger.info(f"   → Next Audit: {audit_date.date()} ({audit_type}) [No reference date]")
                         return audit_date, audit_type
-                
-                # For -3M window: check if we're before the audit date
                 elif window_type == '-3M':
                     if now < audit_date:
-                        logger.info(f"   → Next Audit: {audit_date.date()} ({audit_type}) [-3M window]")
+                        logger.info(f"   → Next Audit: {audit_date.date()} ({audit_type}) [No reference date]")
                         return audit_date, audit_type
-        
-        # If all audits have passed or completed, return Renewal (shouldn't happen for valid certs)
-        logger.warning(f"   ⚠️ All audits in cycle have passed/completed. Returning Renewal audit.")
-        return valid_date, 'Renewal'
+            
+            # If all audits have passed, return Renewal
+            logger.warning(f"   ⚠️ All audits have passed. Returning Renewal audit.")
+            return valid_date, 'Renewal'
     
     logger.warning(f"⚠️ Unknown doc_type: {doc_type}")
     return None, None
