@@ -285,3 +285,96 @@ class CompanyCertService:
             "deleted_count": deleted_count,
             "failed_ids": failed_ids
         }
+    
+    @staticmethod
+    async def recalculate_all_next_surveys(current_user: UserResponse) -> dict:
+        """
+        Recalculate next_survey for all certificates in user's company
+        This updates all certificates with the latest business rules
+        """
+        from app.utils.doc_next_survey_calculator import calculate_next_survey
+        
+        logger.info(f"🔄 Starting recalculation of all next surveys for company: {current_user.company}")
+        
+        # Get all certificates for this company
+        filters = {"company": current_user.company}
+        certs = await mongo_db.find_all(CompanyCertService.collection_name, filters)
+        
+        updated_count = 0
+        skipped_count = 0
+        failed_ids = []
+        
+        for cert in certs:
+            try:
+                # Get required fields
+                doc_type = cert.get("doc_type")
+                valid_date = cert.get("valid_date")
+                issue_date = cert.get("issue_date")
+                last_endorse = cert.get("last_endorse")
+                
+                # Skip if no doc_type
+                if not doc_type:
+                    logger.info(f"⏭️ Skipping cert {cert.get('id')} ({cert.get('cert_name')}): No doc_type")
+                    skipped_count += 1
+                    continue
+                
+                # Convert string dates to datetime if needed
+                if isinstance(valid_date, str):
+                    try:
+                        valid_date = datetime.strptime(valid_date, "%Y-%m-%d")
+                    except:
+                        valid_date = None
+                
+                if isinstance(issue_date, str):
+                    try:
+                        issue_date = datetime.strptime(issue_date, "%Y-%m-%d")
+                    except:
+                        issue_date = None
+                
+                if isinstance(last_endorse, str):
+                    try:
+                        last_endorse = datetime.strptime(last_endorse, "%Y-%m-%d")
+                    except:
+                        last_endorse = None
+                
+                # Calculate next survey
+                next_survey = calculate_next_survey(
+                    doc_type,
+                    valid_date,
+                    issue_date,
+                    last_endorse
+                )
+                
+                # Update certificate
+                update_data = {}
+                
+                # Convert datetime to string for storage
+                if next_survey:
+                    update_data["next_survey"] = next_survey.strftime("%Y-%m-%d")
+                else:
+                    # Set to None if no survey required (e.g., Short Term DOC)
+                    update_data["next_survey"] = None
+                
+                if update_data:
+                    await mongo_db.update_one(
+                        CompanyCertService.collection_name,
+                        {"id": cert.get("id")},
+                        update_data
+                    )
+                    updated_count += 1
+                    logger.info(f"✅ Updated cert {cert.get('id')} ({cert.get('cert_name')}): next_survey = {update_data.get('next_survey')}")
+                
+            except Exception as e:
+                logger.error(f"❌ Failed to recalculate cert {cert.get('id')}: {e}")
+                failed_ids.append(cert.get("id"))
+        
+        logger.info(f"✅ Recalculation complete: Updated={updated_count}, Skipped={skipped_count}, Failed={len(failed_ids)}")
+        
+        return {
+            "message": f"Recalculation complete: {updated_count} updated, {skipped_count} skipped",
+            "updated_count": updated_count,
+            "skipped_count": skipped_count,
+            "failed_count": len(failed_ids),
+            "failed_ids": failed_ids,
+            "total_processed": len(certs)
+        }
