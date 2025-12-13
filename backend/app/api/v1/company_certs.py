@@ -12,14 +12,19 @@ router = APIRouter()
 
 def check_dpa_manager_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user is Admin or Manager in DPA department"""
+    logger.info(f"🔐 Permission check - User: {current_user.username}, Role: {current_user.role}, Dept: {current_user.department}")
+    
     # Admin and Super Admin always have access
     if current_user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
+        logger.info(f"✅ Access granted - Admin level user")
         return current_user
     
     # Manager with DPA department has access
     if current_user.role == UserRole.MANAGER and current_user.department == "DPA":
+        logger.info(f"✅ Access granted - DPA Manager")
         return current_user
     
+    logger.warning(f"❌ Access denied - User: {current_user.username}, Role: {current_user.role}, Dept: {current_user.department}")
     raise HTTPException(status_code=403, detail="Insufficient permissions. Admin or DPA Manager required.")
 
 @router.get("", response_model=List[CompanyCertResponse])
