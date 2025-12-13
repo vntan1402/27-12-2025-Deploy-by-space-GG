@@ -52,6 +52,11 @@ export const EditCompanyCertModal = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!formData.doc_type) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn loại DOC!' : 'Please select DOC type!');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       // Add has_notes flag based on notes content (ensure boolean)
