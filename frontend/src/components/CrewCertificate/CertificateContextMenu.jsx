@@ -22,7 +22,16 @@ const CertificateContextMenu = ({
   };
 
   const canEdit = user && ['manager', 'admin', 'super_admin'].includes(user.role);
-  const canDelete = user && ['admin', 'super_admin'].includes(user.role);
+  
+  // Can delete: Admin, Super Admin, OR Manager in Crew department
+  const canDelete = user && (
+    ['admin', 'super_admin'].includes(user.role) ||
+    (user.role === 'manager' && user.department && (
+      Array.isArray(user.department) 
+        ? user.department.some(dept => dept.toLowerCase() === 'crew')
+        : user.department.toLowerCase() === 'crew'
+    ))
+  );
   
   // Show bulk delete when multiple certificates are selected
   const showBulkDelete = selectedCount > 1;
