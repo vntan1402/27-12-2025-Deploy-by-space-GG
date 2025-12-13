@@ -555,6 +555,11 @@ export const AddCompanyCertModal = ({
                 >
                   <option value="">{language === 'vi' ? '-- Chọn loại --' : '-- Select Type --'}</option>
                   <option value="Initial">Initial</option>
+                  <option value="1st Annual">1st Annual</option>
+                  <option value="2nd Annual">2nd Annual</option>
+                  <option value="3rd Annual">3rd Annual</option>
+                  <option value="4th Annual">4th Annual</option>
+                  <option value="Annual">Annual</option>
                   <option value="Intermediate">Intermediate</option>
                   <option value="Renewal">Renewal</option>
                 </select>
