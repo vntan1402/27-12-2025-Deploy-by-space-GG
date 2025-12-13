@@ -40,6 +40,12 @@ export const companyCertService = {
       cert_ids: certIds
     });
     return response.data;
+  },
+
+  // Recalculate all next surveys
+  async recalculateAllNextSurveys() {
+    const response = await api.post(`${BASE_URL}/recalculate-all-surveys`);
+    return response.data;
   }
 };
 
