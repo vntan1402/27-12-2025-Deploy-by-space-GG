@@ -9,6 +9,7 @@ from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
 from app.services.audit_log_extensions import (
     ShipAuditMixin, 
     ShipCertificateAuditMixin,
+    CompanyCertificateAuditMixin,
     CompanyAuditMixin,
     UserAuditMixin,
     DocumentAuditMixin,
@@ -19,6 +20,7 @@ from app.services.audit_log_extensions import (
 class CrewAuditLogService(
     ShipAuditMixin,
     ShipCertificateAuditMixin,
+    CompanyCertificateAuditMixin,
     CompanyAuditMixin,
     UserAuditMixin,
     DocumentAuditMixin,
