@@ -11,8 +11,8 @@ class CompanyCertBase(BaseModel):
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None  # Optional field
     last_endorse: Optional[Union[str, datetime]] = None  # Last endorsement date
-    next_survey: Optional[Union[str, datetime]] = None  # Next survey date
-    next_survey_type: Optional[str] = None  # Survey type: Initial, Intermediate, Renewal
+    next_survey: Optional[Union[str, datetime]] = None  # Next audit date
+    next_survey_type: Optional[str] = None  # Audit type: Initial, Intermediate, Renewal
     issued_by: Optional[str] = None
     status: Optional[str] = "Valid"
     notes: Optional[str] = None
