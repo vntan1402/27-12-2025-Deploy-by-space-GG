@@ -30,7 +30,8 @@ def calculate_next_survey(
     Business Rules:
     1. Full Term DOC:
        - Anniversary date = day/month of valid_date (annually)
-       - Next audit = Anniversary date next year ± 3 months window
+       - Next audit = Anniversary date next year
+       - Audit window: ±3 months from anniversary date
        - Use most recent: last_endorse or issue_date
        
     2. Short Term DOC:
@@ -38,7 +39,8 @@ def calculate_next_survey(
        - Return None
        
     3. Interim DOC:
-       - Next audit = Valid date - 3 months
+       - Next audit = Valid date
+       - Audit window: (Valid date - 3 months) to Valid date
     """
     if not doc_type:
         logger.warning("⚠️ No doc_type provided, cannot calculate next audit")
