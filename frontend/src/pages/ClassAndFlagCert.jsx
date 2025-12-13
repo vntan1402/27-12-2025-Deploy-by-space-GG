@@ -643,9 +643,11 @@ const ClassAndFlagCert = () => {
       }
     } catch (error) {
       console.error('Next Survey update error:', error);
+      const errorMessage = error.response?.data?.detail || error.message;
       toast.error(language === 'vi' 
-        ? `❌ Lỗi khi cập nhật Next Survey: ${error.response?.data?.detail || error.message}`
-        : `❌ Error updating Next Survey: ${error.response?.data?.detail || error.message}`
+        ? `❌ Lỗi: ${errorMessage}`
+        : `❌ Error: ${errorMessage}`,
+        { id: 'update-survey' }
       );
     } finally {
       setIsUpdatingSurveyTypes(false);
