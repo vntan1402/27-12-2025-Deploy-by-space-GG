@@ -29,8 +29,8 @@ export const AuditUpcomingSurveyModal = ({
           </h3>
           <p className="text-gray-700 mb-4">
             {language === 'vi' 
-              ? 'Các Audit Certificate sau cần đánh giá trong thời gian tới, hãy bố trí đánh giá sớm nhất:'
-              : 'The following audit certificates require review in the coming period. Please arrange assessments as soon as possible:'}
+              ? 'Các Certificate sau (bao gồm Audit Certificate và Company Certificate) cần đánh giá trong thời gian tới, hãy bố trí đánh giá sớm nhất:'
+              : 'The following certificates (including Audit Certificates and Company Certificates) require review in the coming period. Please arrange assessments as soon as possible:'}
           </p>
           <div className="text-sm text-gray-600 mb-4">
             {language === 'vi' 
@@ -75,8 +75,8 @@ export const AuditUpcomingSurveyModal = ({
                 <tr>
                   <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
                     {language === 'vi' 
-                      ? '✅ Không có audit certificate cần đánh giá trong những ngày tới'
-                      : '✅ No audit certificates require review in the coming days'}
+                      ? '✅ Không có certificate nào (Audit hoặc Company) cần đánh giá trong những ngày tới'
+                      : '✅ No certificates (Audit or Company) require review in the coming days'}
                   </td>
                 </tr>
               ) : (
@@ -92,6 +92,16 @@ export const AuditUpcomingSurveyModal = ({
                   >
                     <td className="px-4 py-3 text-sm text-gray-900 border-b">
                       <div className="font-medium">{survey.ship_name}</div>
+                      {survey.certificate_type === 'company' && (
+                        <div className="text-xs text-blue-600 font-medium mt-1">
+                          📋 {language === 'vi' ? 'Chứng chỉ công ty' : 'Company Certificate'}
+                        </div>
+                      )}
+                      {survey.company_name && survey.certificate_type === 'company' && (
+                        <div className="text-xs text-gray-500">
+                          {survey.company_name}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 border-b">
                       <div className="font-medium">{survey.cert_name_display || survey.cert_name}</div>
