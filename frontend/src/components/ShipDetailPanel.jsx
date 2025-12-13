@@ -100,21 +100,20 @@ export const ShipDetailPanel = ({
     
     setIsRecalculating(true);
     try {
-      const result = await shipService.calculateNextDocking(ship.id);
+      const response = await shipService.calculateNextDocking(ship.id);
+      const result = response.data; // Extract data from axios response
       
       if (result.success) {
-        let message = `Next docking calculated: ${result.next_docking.date}`;
+        let message = language === 'vi' 
+          ? `✅ Đã tính Next Docking: ${result.next_docking_display || result.next_docking}`
+          : `✅ Next docking calculated: ${result.next_docking_display || result.next_docking}`;
         
-        if (result.next_docking.last_docking_date) {
-          message += `\nBased on last docking: ${result.next_docking.last_docking_date}`;
+        if (result.calculation_method) {
+          message += `\n${language === 'vi' ? 'Phương pháp' : 'Method'}: ${result.calculation_method}`;
         }
         
-        if (result.next_docking.calculation_method) {
-          message += `\nMethod: ${result.next_docking.calculation_method}`;
-        }
-        
-        if (result.next_docking.interval_months) {
-          message += `\nInterval: ${result.next_docking.interval_months} months`;
+        if (result.reasoning) {
+          message += `\n${result.reasoning}`;
         }
         
         toast.success(message);
@@ -124,11 +123,17 @@ export const ShipDetailPanel = ({
           await onShipUpdate(ship.id);
         }
       } else {
-        toast.warning(result.message || 'Unable to calculate next docking date. Last docking date required.');
+        toast.warning(result.message || (language === 'vi' 
+          ? 'Không thể tính Next Docking. Cần có Last Docking date.'
+          : 'Unable to calculate next docking date. Last docking date required.')
+        );
       }
     } catch (error) {
       console.error('Error recalculating next docking:', error);
-      toast.error('Failed to recalculate next docking date');
+      toast.error(language === 'vi' 
+        ? 'Lỗi khi tính Next Docking'
+        : 'Failed to recalculate next docking date'
+      );
     } finally {
       setIsRecalculating(false);
     }
