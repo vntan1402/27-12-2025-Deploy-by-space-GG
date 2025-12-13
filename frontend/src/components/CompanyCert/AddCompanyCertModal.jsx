@@ -21,8 +21,8 @@ export const AddCompanyCertModal = ({
     issue_date: '',
     valid_date: '',
     last_endorse: '',
-    next_survey: '',
-    next_survey_type: '',
+    next_audit: '',
+    next_audit_type: '',
     issued_by: '',
     notes: ''
   });
@@ -107,7 +107,7 @@ export const AddCompanyCertModal = ({
               issue_date: convertDateFormat(info.issue_date) || prev.issue_date,
               valid_date: convertDateFormat(info.valid_date) || prev.valid_date,
               last_endorse: convertDateFormat(info.last_endorse) || prev.last_endorse,
-              next_survey: convertDateFormat(info.next_survey) || prev.next_survey,
+              next_audit: convertDateFormat(info.next_audit) || prev.next_audit,
               issued_by: info.issued_by || prev.issued_by
             }));
             
@@ -249,8 +249,8 @@ export const AddCompanyCertModal = ({
       issue_date: '',
       valid_date: '',
       last_endorse: '',
-      next_survey: '',
-      next_survey_type: '',
+      next_audit: '',
+      next_audit_type: '',
       issued_by: '',
       notes: ''
     });
@@ -510,8 +510,8 @@ export const AddCompanyCertModal = ({
                 </label>
                 <input
                   type="date"
-                  value={formData.next_survey}
-                  onChange={(e) => setFormData({...formData, next_survey: e.target.value})}
+                  value={formData.next_audit}
+                  onChange={(e) => setFormData({...formData, next_audit: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm"
                   disabled={isSubmitting}
                 />
@@ -539,8 +539,8 @@ export const AddCompanyCertModal = ({
                   {language === 'vi' ? 'Loại kiểm tra tới' : 'Next Audit Type'}
                 </label>
                 <select
-                  value={formData.next_survey_type}
-                  onChange={(e) => setFormData({...formData, next_survey_type: e.target.value})}
+                  value={formData.next_audit_type}
+                  onChange={(e) => setFormData({...formData, next_audit_type: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                   disabled={isSubmitting}
                 >

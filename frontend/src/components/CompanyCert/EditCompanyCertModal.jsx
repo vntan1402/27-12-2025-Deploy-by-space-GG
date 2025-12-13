@@ -20,8 +20,8 @@ export const EditCompanyCertModal = ({
     issue_date: '',
     valid_date: '',
     last_endorse: '',
-    next_survey: '',
-    next_survey_type: '',
+    next_audit: '',
+    next_audit_type: '',
     issued_by: '',
     notes: ''
   });
@@ -37,8 +37,8 @@ export const EditCompanyCertModal = ({
         issue_date: certificate.issue_date || '',
         valid_date: certificate.valid_date || '',
         last_endorse: certificate.last_endorse || '',
-        next_survey: certificate.next_survey || '',
-        next_survey_type: certificate.next_survey_type || '',
+        next_audit: certificate.next_audit || '',
+        next_audit_type: certificate.next_audit_type || '',
         issued_by: certificate.issued_by || '',
         notes: certificate.notes || ''
       });
@@ -207,8 +207,8 @@ export const EditCompanyCertModal = ({
                 </label>
                 <input
                   type="date"
-                  value={formData.next_survey}
-                  onChange={(e) => setFormData({...formData, next_survey: e.target.value})}
+                  value={formData.next_audit}
+                  onChange={(e) => setFormData({...formData, next_audit: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-sm"
                   disabled={isSubmitting}
                 />
@@ -222,8 +222,8 @@ export const EditCompanyCertModal = ({
                   {language === 'vi' ? 'Loại kiểm tra' : 'Audit Type'}
                 </label>
                 <select
-                  value={formData.next_survey_type}
-                  onChange={(e) => setFormData({...formData, next_survey_type: e.target.value})}
+                  value={formData.next_audit_type}
+                  onChange={(e) => setFormData({...formData, next_audit_type: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                   disabled={isSubmitting}
                 >
