@@ -28,7 +28,7 @@ export const CompanyCertNotesModal = ({
     try {
       await api.put(`/api/company-certs/${certificate.id}`, {
         notes: notes,
-        has_notes: notes.trim().length > 0
+        has_notes: Boolean(notes && notes.trim().length > 0)
       });
       toast.success(language === 'vi' ? 'Cập nhật ghi chú thành công!' : 'Notes updated successfully!');
       onSuccess();
