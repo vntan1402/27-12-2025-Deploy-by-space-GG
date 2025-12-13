@@ -70,6 +70,114 @@ export const AuditCertificateTable = ({
     setNoteTooltip({ show: false, x: 0, y: 0, width: 300, content: '' });
   };
 
+  // Calculate days remaining to window close or valid date
+  const calculateDaysRemaining = (cert) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Priority 1: Check Next Survey if available
+    const nextSurvey = cert.next_survey_display || cert.next_survey;
+    
+    if (nextSurvey) {
+      // Parse Next Survey date and annotation
+      const match = nextSurvey.match(/(\d{2}\/\d{2}\/\d{4})/);
+      if (match) {
+        const [day, month, year] = match[1].split('/');
+        const nextSurveyDate = new Date(year, month - 1, day);
+        nextSurveyDate.setHours(0, 0, 0, 0);
+        
+        // Determine window close based on annotation
+        let windowClose = nextSurveyDate;
+        
+        if (nextSurvey.includes('(±6M)')) {
+          windowClose = new Date(nextSurveyDate);
+          windowClose.setMonth(windowClose.getMonth() + 6);
+        } else if (nextSurvey.includes('(±3M)') || nextSurvey.includes('(+3M)')) {
+          windowClose = new Date(nextSurveyDate);
+          windowClose.setMonth(windowClose.getMonth() + 3);
+        } else if (nextSurvey.includes('(-3M)')) {
+          windowClose = nextSurveyDate; // No extension
+        }
+        
+        const diffTime = windowClose.getTime() - today.getTime();
+        const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        return {
+          days: daysRemaining,
+          targetDate: windowClose,
+          source: 'Next Survey'
+        };
+      }
+    }
+    
+    // Priority 2: Fallback to Valid Date
+    if (cert.valid_date) {
+      let validDate;
+      if (cert.valid_date.includes('/')) {
+        const [day, month, year] = cert.valid_date.split('/');
+        validDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      } else {
+        validDate = new Date(cert.valid_date);
+      }
+      
+      if (!isNaN(validDate.getTime())) {
+        validDate.setHours(0, 0, 0, 0);
+        
+        const diffTime = validDate.getTime() - today.getTime();
+        const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        return {
+          days: daysRemaining,
+          targetDate: validDate,
+          source: 'Valid Date'
+        };
+      }
+    }
+    
+    return null;
+  };
+
+  const handleStatusMouseEnter = (e, cert) => {
+    const rect = e.target.getBoundingClientRect();
+    let x = rect.left;
+    let y = rect.bottom + 5;
+    
+    const daysInfo = calculateDaysRemaining(cert);
+    
+    let content = '';
+    if (daysInfo) {
+      const { days, source } = daysInfo;
+      
+      if (days < 0) {
+        const absDays = Math.abs(days);
+        content = language === 'vi' 
+          ? `Đã quá hạn ${absDays} ngày\n(Tính từ ${source})`
+          : `Expired ${absDays} days ago\n(Based on ${source})`;
+      } else if (days === 0) {
+        content = language === 'vi'
+          ? `Hết hạn hôm nay\n(Tính từ ${source})`
+          : `Expires today\n(Based on ${source})`;
+      } else {
+        content = language === 'vi'
+          ? `Còn ${days} ngày\n(Tính từ ${source})`
+          : `${days} days remaining\n(Based on ${source})`;
+      }
+    } else {
+      content = language === 'vi' ? 'Không có thông tin' : 'No information';
+    }
+    
+    setStatusTooltip({
+      show: true,
+      x: x,
+      y: y,
+      content: content
+    });
+  };
+
+  const handleStatusMouseLeave = () => {
+    setStatusTooltip({ show: false, x: 0, y: 0, content: '' });
+  };
+
   // Get sort icon for column
   const getSortIcon = (column) => {
     if (sortConfig.column !== column) {
