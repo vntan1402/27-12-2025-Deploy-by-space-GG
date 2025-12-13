@@ -658,6 +658,12 @@ const AddCrewCertificateModal = ({
     setShowWarningModal(false);
     
     if (nameMismatchData) {
+      console.log('=== Continue with Name Mismatch ===');
+      console.log('nameMismatchData:', nameMismatchData);
+      console.log('cert_name from data:', nameMismatchData.cert_name);
+      console.log('All keys:', Object.keys(nameMismatchData));
+      console.log('===================================');
+      
       // Process the stored analyzed data
       processAnalysisSuccess(nameMismatchData);
       
@@ -665,6 +671,8 @@ const AddCrewCertificateModal = ({
         ? '✅ Đã tải dữ liệu tự động. Vui lòng kiểm tra và chỉnh sửa nếu cần.' 
         : '✅ Data auto-filled. Please review and edit if needed.'
       );
+    } else {
+      console.warn('⚠️ No nameMismatchData available');
     }
     
     // Clear stored mismatch data
