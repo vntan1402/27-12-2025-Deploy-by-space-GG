@@ -28,7 +28,10 @@ def check_dpa_manager_permission(current_user: UserResponse = Depends(get_curren
             return current_user
     
     logger.warning(f"❌ Access denied - User: {current_user.username}, Role: {current_user.role}, Dept: {current_user.department}")
-    raise HTTPException(status_code=403, detail="Insufficient permissions. Admin or DPA Manager required.")
+    raise HTTPException(
+        status_code=403, 
+        detail="Bạn không được cấp quyền để thực hiện việc này. Hãy liên hệ Admin."
+    )
 
 @router.get("", response_model=List[CompanyCertResponse])
 async def get_company_certs(
