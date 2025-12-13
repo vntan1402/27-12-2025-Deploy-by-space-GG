@@ -105,6 +105,7 @@ export const AddCompanyCertModal = ({
               cert_name: info.cert_name || prev.cert_name,
               cert_no: info.cert_no || prev.cert_no,
               company_name: info.company_name || prev.company_name,
+              doc_type: info.doc_type || prev.doc_type,  // Auto-fill DOC type from AI
               issue_date: convertDateFormat(info.issue_date) || prev.issue_date,
               valid_date: convertDateFormat(info.valid_date) || prev.valid_date,
               last_endorse: convertDateFormat(info.last_endorse) || prev.last_endorse,
