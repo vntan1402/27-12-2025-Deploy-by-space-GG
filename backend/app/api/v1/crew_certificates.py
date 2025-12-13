@@ -475,4 +475,68 @@ async def get_crew_certificate_file_link(
         raise
     except Exception as e:
         logger.error(f"❌ Error getting file link: {e}")
+
+
+@router.post("/recalculate-all-status")
+async def recalculate_all_crew_certificate_status(
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Recalculate status for all crew certificates based on cert_expiry
+    Useful for fixing inconsistent data
+    """
+    try:
+        from app.repositories.crew_certificate_repository import CrewCertificateRepository
+        from datetime import datetime, timezone
+        
+        # Get all crew certificates for the company
+        all_certs = await CrewCertificateRepository.find_all_by_company(current_user.company)
+        
+        updated_count = 0
+        no_expiry_count = 0
+        
+        for cert in all_certs:
+            cert_expiry = cert.get('cert_expiry')
+            
+            if cert_expiry:
+                # Calculate new status
+                new_status = CrewCertificateService._calculate_certificate_status(cert_expiry)
+                old_status = cert.get('status', 'Unknown')
+                
+                # Update if different
+                if new_status != old_status:
+                    await CrewCertificateRepository.update(
+                        cert['id'],
+                        {'status': new_status}
+                    )
+                    updated_count += 1
+                    logger.info(f"✅ Updated cert {cert['id']}: {old_status} → {new_status}")
+            else:
+                # No expiry date - set to Unknown
+                old_status = cert.get('status')
+                if old_status != 'Unknown':
+                    await CrewCertificateRepository.update(
+                        cert['id'],
+                        {'status': 'Unknown'}
+                    )
+                    no_expiry_count += 1
+                    logger.info(f"⚠️ No expiry date for cert {cert['id']}: {old_status} → Unknown")
+        
+        return {
+            "success": True,
+            "total_certificates": len(all_certs),
+            "updated_count": updated_count,
+            "no_expiry_count": no_expiry_count,
+            "message": f"Recalculated status for {updated_count} certificates"
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Error recalculating crew certificate status: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to recalculate status: {str(e)}"
+        )
+
         raise HTTPException(status_code=500, detail="Failed to get file link")
