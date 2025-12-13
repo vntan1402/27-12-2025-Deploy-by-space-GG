@@ -27,6 +27,14 @@ export const AuditCertificateTable = ({
     width: 300,
     content: ''
   });
+  
+  // Status tooltip state
+  const [statusTooltip, setStatusTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    content: ''
+  });
   // ⭐ NEW: Note tooltip handlers (giống Class & Flag)
   const handleNoteMouseEnter = (e, note) => {
     if (!note) return;
