@@ -190,6 +190,136 @@ const SafetyManagementSystem = () => {
     }
   };
 
+  const handleBulkDownload = async () => {
+    if (selectedCerts.size === 0) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn chứng chỉ' : 'Please select certificates');
+      return;
+    }
+
+    try {
+      const selectedCertsList = companyCerts.filter(cert => selectedCerts.has(cert.id));
+      const certsWithFiles = selectedCertsList.filter(cert => cert.file_id || cert.google_drive_file_id);
+
+      if (certsWithFiles.length === 0) {
+        toast.warning(
+          language === 'vi'
+            ? 'Không có chứng chỉ nào có file đính kèm'
+            : 'No certificates have attached files'
+        );
+        return;
+      }
+
+      let downloadedCount = 0;
+
+      for (const cert of certsWithFiles) {
+        try {
+          const fileId = cert.file_id || cert.google_drive_file_id;
+          
+          // Generate filename
+          const filename = `${cert.cert_abbreviation || cert.cert_name}.pdf`;
+          
+          // Use direct Google Drive download URL
+          const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.download = filename;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          downloadedCount++;
+          
+          // Small delay between downloads
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(`Download error for ${cert.cert_abbreviation}:`, error);
+        }
+      }
+
+      if (downloadedCount > 0) {
+        toast.success(
+          language === 'vi'
+            ? `✅ Đang tải xuống ${downloadedCount} file`
+            : `✅ Downloading ${downloadedCount} file(s)`
+        );
+      } else {
+        toast.warning(
+          language === 'vi'
+            ? '⚠️ Không có file để tải xuống'
+            : '⚠️ No files to download'
+        );
+      }
+    } catch (error) {
+      console.error('Bulk download error:', error);
+      toast.error(
+        language === 'vi'
+          ? '❌ Lỗi khi tải xuống file'
+          : '❌ Error downloading files'
+      );
+    }
+  };
+
+  const handleBulkCopyLinks = async () => {
+    if (selectedCerts.size === 0) {
+      toast.warning(language === 'vi' ? 'Vui lòng chọn chứng chỉ' : 'Please select certificates');
+      return;
+    }
+
+    try {
+      const selectedCertsList = companyCerts.filter(cert => selectedCerts.has(cert.id));
+      const certsWithFiles = selectedCertsList.filter(cert => cert.file_id || cert.google_drive_file_id);
+
+      if (certsWithFiles.length === 0) {
+        toast.warning(
+          language === 'vi'
+            ? 'Không có chứng chỉ nào có file đính kèm'
+            : 'No certificates have attached files'
+        );
+        return;
+      }
+
+      const links = [];
+
+      for (const cert of certsWithFiles) {
+        const fileId = cert.file_id || cert.google_drive_file_id;
+        
+        try {
+          const response = await api.get(`/api/gdrive/file/${fileId}/view`);
+          if (response.data?.success && response.data?.view_url) {
+            const viewUrl = response.data.view_url;
+            links.push(`${cert.cert_abbreviation || cert.cert_name}: ${viewUrl}`);
+          }
+        } catch (error) {
+          console.error(`Error getting link for ${cert.cert_abbreviation}:`, error);
+        }
+      }
+
+      if (links.length > 0) {
+        // Copy to clipboard
+        await navigator.clipboard.writeText(links.join('\n'));
+        toast.success(
+          language === 'vi'
+            ? `🔗 Đã sao chép ${links.length} link`
+            : `🔗 Copied ${links.length} links`
+        );
+      } else {
+        toast.error(
+          language === 'vi'
+            ? '❌ Không thể lấy link'
+            : '❌ Could not get links'
+        );
+      }
+    } catch (error) {
+      console.error('Bulk copy links error:', error);
+      toast.error(
+        language === 'vi'
+          ? '❌ Lỗi khi sao chép link'
+          : '❌ Error copying links'
+      );
+    }
+  };
+
   const handleUpdateNextAudits = async () => {
     if (!window.confirm(language === 'vi' 
       ? 'Bạn có chắc muốn cập nhật lại tất cả ngày kiểm tra tiếp theo? Thao tác này sẽ tính toán lại dựa trên quy tắc kinh doanh hiện tại.'
