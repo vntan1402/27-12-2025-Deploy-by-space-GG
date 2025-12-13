@@ -623,6 +623,22 @@ export const CertificateTable = ({
           {noteTooltip.content}
         </div>
       )}
+
+      {/* Status Tooltip */}
+      {statusTooltip.show && (
+        <div
+          className="fixed z-50 bg-gray-800 text-white border border-gray-700 rounded-lg shadow-lg p-2 px-3"
+          style={{
+            left: `${statusTooltip.x}px`,
+            top: `${statusTooltip.y}px`,
+            minWidth: '150px'
+          }}
+        >
+          <div className="text-sm whitespace-pre-line font-medium">
+            {statusTooltip.content}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
