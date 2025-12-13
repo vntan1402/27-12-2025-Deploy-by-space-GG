@@ -22,7 +22,7 @@ class CompanyCertService:
         from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
         from app.services.crew_audit_log_service import CrewAuditLogService
         from app.db.mongodb import mongo_db
-        repository = CrewAuditLogRepository(mongo_db.db)
+        repository = CrewAuditLogRepository(mongo_db.database)
         return CrewAuditLogService(repository)
     
 
