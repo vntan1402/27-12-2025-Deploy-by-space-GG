@@ -188,7 +188,7 @@ export const CompanyCertTable = ({
               className="px-2 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('next_survey')}
             >
-              {language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}
+              {language === 'vi' ? 'Kiểm tra tới' : 'Next Audit'}
               {getSortIcon('next_survey')}
             </th>
             <th 
