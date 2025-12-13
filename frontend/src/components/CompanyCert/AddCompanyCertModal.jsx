@@ -2,10 +2,11 @@
  * Add Company Certificate Modal
  * Layout giống Add Audit Certificate
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import companyCertService from '../../services/companyCertService';
 
 export const AddCompanyCertModal = ({
   isOpen,
