@@ -25,7 +25,7 @@ export const AuditUpcomingSurveyModal = ({
         {/* Header */}
         <div className="mb-6">
           <h3 className="text-xl font-bold text-orange-600 mb-2 flex items-center">
-            ⚠️ {language === 'vi' ? 'Thông báo Survey sắp đến hạn' : 'Upcoming Survey Notification'}
+            ⚠️ {language === 'vi' ? 'Thông báo Audit sắp đến hạn' : 'Upcoming Audit Notification'}
           </h3>
           <p className="text-gray-700 mb-4">
             {language === 'vi' 
@@ -57,10 +57,10 @@ export const AuditUpcomingSurveyModal = ({
                   {language === 'vi' ? 'Tên Certificate' : 'Cert. Name (Abbreviation)'}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
-                  {language === 'vi' ? 'Next Survey' : 'Next Survey'}
+                  {language === 'vi' ? 'Next Audit' : 'Next Audit'}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
-                  {language === 'vi' ? 'Loại Survey' : 'Next Survey Type'}
+                  {language === 'vi' ? 'Loại Audit' : 'Next Audit Type'}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
                   {language === 'vi' ? 'Last Endorse' : 'Last Endorse'}
