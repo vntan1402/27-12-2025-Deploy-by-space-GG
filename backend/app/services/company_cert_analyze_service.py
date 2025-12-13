@@ -120,8 +120,8 @@ async def analyze_company_cert_file(
                 issue_date = parse_date(issue_date_str)
                 last_endorse = parse_date(last_endorse_str)
                 
-                # Calculate next_audit
-                next_audit_result = calculate_next_survey(
+                # Calculate next_audit and type
+                next_audit_result, next_audit_type = calculate_next_survey(
                     doc_type,
                     valid_date,
                     issue_date,
@@ -134,6 +134,10 @@ async def analyze_company_cert_file(
                     logger.info(f"📅 Auto-calculated next_audit: {extracted_info['next_audit']}")
                 else:
                     logger.info(f"📋 No next_audit required for {doc_type}")
+                
+                if next_audit_type:
+                    extracted_info['next_audit_type'] = next_audit_type
+                    logger.info(f"📅 Auto-calculated next_audit_type: {next_audit_type}")
                     
             except Exception as e:
                 logger.warning(f"⚠️ Could not calculate next_audit: {e}")
