@@ -158,9 +158,23 @@ export const AddCompanyCertModal = ({
           }
         } catch (error) {
           console.error('Analysis error:', error);
-          toast.error(language === 'vi' 
+          
+          // Get error message from backend or use fallback
+          let errorMessage = language === 'vi' 
             ? 'Phân tích thất bại. Vui lòng nhập thủ công.'
-            : 'Analysis failed. Please enter manually.');
+            : 'Analysis failed. Please enter manually.';
+          
+          if (error?.response?.data?.detail) {
+            // Use backend error message if available
+            errorMessage = error.response.data.detail;
+          } else if (error?.response?.status === 403) {
+            // Specific message for permission denied
+            errorMessage = language === 'vi'
+              ? 'Bạn không được cấp quyền để thực hiện việc này. Hãy liên hệ Admin.'
+              : 'You do not have permission to perform this action. Please contact Admin.';
+          }
+          
+          toast.error(errorMessage);
         } finally {
           // Move setIsAnalyzing(false) here to ensure it runs after API call completes
           setIsAnalyzing(false);
