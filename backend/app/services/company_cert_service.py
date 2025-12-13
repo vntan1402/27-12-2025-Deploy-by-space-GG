@@ -132,7 +132,7 @@ class CompanyCertService:
             cert_dict["issued_by_abbreviation"] = generate_organization_abbreviation(cert_dict["issued_by"])
         
         # Auto-calculate next_audit if not provided
-        if not cert_dict.get("next_survey") and cert_dict.get("doc_type"):
+        if not cert_dict.get("next_audit") and cert_dict.get("doc_type"):
             # Convert string dates to datetime if needed
             valid_date = cert_dict.get("valid_date")
             issue_date = cert_dict.get("issue_date")
@@ -164,7 +164,7 @@ class CompanyCertService:
             )
             
             if next_survey:
-                cert_dict["next_survey"] = next_survey
+                cert_dict["next_audit"] = next_survey
                 logger.info(f"📅 Auto-calculated next_audit: {next_survey.date()}")
         
         await mongo_db.insert_one(CompanyCertService.collection_name, cert_dict)
@@ -350,10 +350,10 @@ class CompanyCertService:
                 
                 # Convert datetime to string for storage
                 if next_survey:
-                    update_data["next_survey"] = next_survey.strftime("%Y-%m-%d")
+                    update_data["next_audit"] = next_survey.strftime("%Y-%m-%d")
                 else:
                     # Set to None if no audit required (e.g., Short Term DOC)
-                    update_data["next_survey"] = None
+                    update_data["next_audit"] = None
                 
                 if update_data:
                     await mongo_db.update_one(
@@ -362,7 +362,7 @@ class CompanyCertService:
                         update_data
                     )
                     updated_count += 1
-                    logger.info(f"✅ Updated cert {cert.get('id')} ({cert.get('cert_name')}): next_audit = {update_data.get('next_survey')}")
+                    logger.info(f"✅ Updated cert {cert.get('id')} ({cert.get('cert_name')}): next_audit = {update_data.get('next_audit')}")
                 
             except Exception as e:
                 logger.error(f"❌ Failed to recalculate cert {cert.get('id')}: {e}")
