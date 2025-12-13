@@ -63,6 +63,7 @@ const AddCrewCertificateModal = ({
   const [customCertInput, setCustomCertInput] = useState('');
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningMessage, setWarningMessage] = useState('');
+  const [nameMismatchData, setNameMismatchData] = useState(null); // Store analyzed data when name mismatch occurs
   const [highlightCrewSection, setHighlightCrewSection] = useState(false);
   
   // Form data
