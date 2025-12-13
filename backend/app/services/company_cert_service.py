@@ -131,7 +131,7 @@ class CompanyCertService:
         if cert_dict.get("issued_by"):
             cert_dict["issued_by_abbreviation"] = generate_organization_abbreviation(cert_dict["issued_by"])
         
-        # Auto-calculate next_survey if not provided
+        # Auto-calculate next_audit if not provided
         if not cert_dict.get("next_survey") and cert_dict.get("doc_type"):
             # Convert string dates to datetime if needed
             valid_date = cert_dict.get("valid_date")
@@ -165,7 +165,7 @@ class CompanyCertService:
             
             if next_survey:
                 cert_dict["next_survey"] = next_survey
-                logger.info(f"📅 Auto-calculated next_survey: {next_survey.date()}")
+                logger.info(f"📅 Auto-calculated next_audit: {next_survey.date()}")
         
         await mongo_db.insert_one(CompanyCertService.collection_name, cert_dict)
         
