@@ -942,42 +942,25 @@ const CrewCertificateTable = ({ selectedShip, ships, onShipFilterChange, onShipS
             </button>
           )}
           
-          {/* Recalculate Status Button */}
-          {user && ['manager', 'admin', 'super_admin'].includes(user.role) && (
-            <button 
-              onClick={async () => {
-                try {
-                  toast.loading(language === 'vi' ? 'Đang tính lại status...' : 'Recalculating status...', { id: 'recalc-status' });
-                  
-                  const response = await api.post('/api/crew-certificates/recalculate-all-status');
-                  const data = response.data;
-                  
-                  toast.success(
-                    language === 'vi' 
-                      ? `✅ Đã cập nhật ${data.updated_count} chứng chỉ!` 
-                      : `✅ Updated ${data.updated_count} certificates!`,
-                    { id: 'recalc-status' }
-                  );
-                  
-                  // Refresh table
-                  fetchCertificates();
-                } catch (error) {
-                  console.error('Error recalculating status:', error);
-                  toast.error(language === 'vi' ? '❌ Lỗi tính lại status' : '❌ Failed to recalculate status', { id: 'recalc-status' });
-                }
-              }}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all flex items-center"
-            >
-              <span className="mr-2">🔄</span>
-              {language === 'vi' ? 'Tính lại Status' : 'Recalculate Status'}
-            </button>
-          )}
-          
-          {/* Refresh Button */}
+          {/* Refresh Button (with auto recalculate status) */}
           <button 
-            onClick={() => {
-              fetchCertificates();
-              toast.success(language === 'vi' ? 'Đã làm mới' : 'Refreshed');
+            onClick={async () => {
+              try {
+                toast.loading(language === 'vi' ? 'Đang làm mới...' : 'Refreshing...', { id: 'refresh' });
+                
+                // Recalculate status for all certificates
+                await api.post('/api/crew-certificates/recalculate-all-status');
+                
+                // Refresh table data
+                await fetchCertificates();
+                
+                toast.success(language === 'vi' ? '✅ Đã làm mới' : '✅ Refreshed', { id: 'refresh' });
+              } catch (error) {
+                console.error('Error refreshing:', error);
+                // Still fetch even if recalculate fails
+                await fetchCertificates();
+                toast.success(language === 'vi' ? '✅ Đã làm mới' : '✅ Refreshed', { id: 'refresh' });
+              }
             }}
             className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all flex items-center"
           >
