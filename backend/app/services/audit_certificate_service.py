@@ -778,22 +778,135 @@ class AuditCertificateService:
                     logger.warning(f"Error processing audit certificate {cert.get('id', 'unknown')}: {cert_error}")
                     continue
             
+            # ==================== PROCESS COMPANY CERTIFICATES ====================
+            
+            for cert in company_certificates:
+                try:
+                    # Get Next Audit field (format: "07/10/2025" with potential annotation in next_audit_type)
+                    next_audit = cert.get('next_audit')
+                    next_audit_type = cert.get('next_audit_type', '')
+                    
+                    if not next_audit:
+                        continue
+                    
+                    # Parse Next Audit date
+                    next_audit_str = str(next_audit)
+                    
+                    # Try to extract date
+                    next_audit_date = None
+                    if '/' in next_audit_str:
+                        # Format: DD/MM/YYYY
+                        try:
+                            next_audit_date = datetime.strptime(next_audit_str.split()[0], '%d/%m/%Y').date()
+                        except:
+                            continue
+                    else:
+                        # ISO format or datetime object
+                        try:
+                            if isinstance(next_audit, datetime):
+                                next_audit_date = next_audit.date()
+                            else:
+                                next_audit_date = datetime.fromisoformat(next_audit_str).date()
+                        except:
+                            continue
+                    
+                    if not next_audit_date:
+                        continue
+                    
+                    # Determine window based on next_audit_type
+                    window_open = None
+                    window_close = None
+                    window_type = ''
+                    
+                    if next_audit_type and 'Annual' in next_audit_type:
+                        # Annual audits: ±3M window
+                        window_open = next_audit_date - relativedelta(months=3)
+                        window_close = next_audit_date + relativedelta(months=3)
+                        window_type = '±3M'
+                    elif next_audit_type in ['Renewal', 'Initial']:
+                        # Renewal/Initial: -3M window
+                        window_open = next_audit_date - relativedelta(months=3)
+                        window_close = next_audit_date
+                        window_type = '-3M'
+                    else:
+                        # Default: -3M window for safety
+                        window_open = next_audit_date - relativedelta(months=3)
+                        window_close = next_audit_date
+                        window_type = '-3M (default)'
+                    
+                    # Check if current_date is within window
+                    if window_open <= current_date <= window_close:
+                        # Calculate status
+                        days_until_window_close = (window_close - current_date).days
+                        days_until_audit = (next_audit_date - current_date).days
+                        
+                        # Status logic
+                        is_overdue = current_date > window_close
+                        is_critical = 0 <= days_until_window_close <= 30
+                        window_close_minus_30 = window_close - timedelta(days=30)
+                        is_due_soon = window_open < current_date < window_close_minus_30
+                        
+                        # Get cert abbreviation
+                        cert_abbreviation = cert.get('cert_abbreviation', '')
+                        cert_name_display = f"{cert.get('cert_name', '')} ({cert_abbreviation})" if cert_abbreviation else cert.get('cert_name', '')
+                        
+                        # Format next_audit_display with window annotation
+                        next_audit_display = f"{next_audit_date.strftime('%d/%m/%Y')} ({window_type})"
+                        
+                        upcoming_survey = {
+                            'certificate_type': 'company',  # Type indicator
+                            'certificate_id': cert.get('id'),
+                            'ship_id': None,  # Company cert - no ship
+                            'ship_name': 'Company Certificate',  # Indicate it's company-level
+                            'cert_name': cert.get('cert_name', ''),
+                            'cert_abbreviation': cert_abbreviation,
+                            'cert_name_display': cert_name_display,
+                            'company_name': cert.get('company_name', ''),  # Company name on cert
+                            'doc_type': cert.get('doc_type', ''),  # DOC type if applicable
+                            'next_survey': next_audit_display,
+                            'next_survey_date': next_audit_date.isoformat(),
+                            'next_survey_type': next_audit_type,
+                            'valid_date': cert.get('valid_date'),
+                            'last_endorse': cert.get('last_endorse', ''),
+                            'status': cert.get('status', ''),
+                            'days_until_survey': days_until_audit,
+                            'days_until_window_close': days_until_window_close,
+                            'is_overdue': is_overdue,
+                            'is_due_soon': is_due_soon,
+                            'is_critical': is_critical,
+                            'is_within_window': True,
+                            'window_open': window_open.isoformat(),
+                            'window_close': window_close.isoformat(),
+                            'window_type': window_type
+                        }
+                        
+                        upcoming_surveys.append(upcoming_survey)
+                        
+                except Exception as cert_error:
+                    logger.warning(f"Error processing company certificate {cert.get('id', 'unknown')}: {cert_error}")
+                    continue
+            
             # Sort by next survey date (soonest first)
             upcoming_surveys.sort(key=lambda x: x['next_survey_date'] or '9999-12-31')
             
-            logger.info(f"✅ Found {len(upcoming_surveys)} audit certificates with upcoming surveys")
+            audit_cert_count = len([s for s in upcoming_surveys if s['certificate_type'] == 'audit'])
+            company_cert_count = len([s for s in upcoming_surveys if s['certificate_type'] == 'company'])
+            
+            logger.info(f"✅ Found {audit_cert_count} audit certificates + {company_cert_count} company certificates = {len(upcoming_surveys)} total with upcoming surveys")
             
             return {
                 "upcoming_surveys": upcoming_surveys,
                 "total_count": len(upcoming_surveys),
+                "audit_cert_count": audit_cert_count,
+                "company_cert_count": company_cert_count,
                 "company": user_company,
                 "company_name": company_name,
                 "check_date": current_date.isoformat(),
                 "logic_info": {
-                    "description": "Audit Certificate survey windows based on Next Survey annotation",
+                    "description": "Survey windows for Audit Certificates (ship-level) + Company Certificates (company-level)",
                     "window_rules": {
                         "±6M": "Window: Next Survey Date ± 6 months (Intermediate without Last Endorse)",
-                        "±3M": "Window: Next Survey Date ± 3 months",
+                        "±3M": "Window: Next Survey Date ± 3 months (Annual audits)",
                         "-3M": "Window: Next Survey Date - 3 months → Next Survey Date (Initial/Renewal)",
                         "Due Soon": "window_open < current_date < (window_close - 30 days)",
                         "Critical": "≤ 30 days to window_close",
