@@ -163,6 +163,7 @@ export const CompanyCertTable = ({
     const diffTime = validDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
+    if (diffDays <= 30) return 'Critical';
     if (diffDays <= 90) return 'Due Soon';
     return 'Valid';
   };
@@ -173,6 +174,8 @@ export const CompanyCertTable = ({
         return 'bg-green-100 text-green-800';
       case 'Due Soon':
         return 'bg-yellow-100 text-yellow-800';
+      case 'Critical':
+        return 'bg-orange-100 text-orange-800';
       case 'Expired':
         return 'bg-red-100 text-red-800';
       default:
