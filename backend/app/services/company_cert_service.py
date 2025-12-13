@@ -108,7 +108,7 @@ class CompanyCertService:
         """Create new company certificate"""
         from app.utils.certificate_abbreviation import generate_certificate_abbreviation
         from app.utils.issued_by_abbreviation import generate_organization_abbreviation
-        from app.utils.next_survey_calculator import calculate_next_survey
+        from app.utils.doc_next_survey_calculator import calculate_next_survey
         
         cert_dict = cert_data.model_dump()
         cert_dict["id"] = str(uuid.uuid4())
