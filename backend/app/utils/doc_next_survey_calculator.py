@@ -63,50 +63,80 @@ def calculate_next_survey(
         logger.info(f"📋 Interim DOC: Next audit = {next_audit_date.date()} | Type: {audit_type}")
         return next_audit_date, audit_type
     
-    # FULL TERM DOC: Anniversary date ± 3 months
+    # FULL TERM DOC: 5-year audit cycle with annual audits
     if doc_type_lower == "full_term":
         if not valid_date:
             logger.warning("⚠️ Full Term DOC: valid_date required but not provided")
-            return None
+            return None, None
         
-        # Determine base date (most recent: last_endorse or issue_date)
-        base_date = last_endorse or issue_date or datetime.now()
-        
-        # Anniversary date = day/month of valid_date
-        # Next anniversary = same day/month in the year after base_date
+        # Step 1: Determine Anniversary date (day/month of valid_date)
         anniversary_day = valid_date.day
         anniversary_month = valid_date.month
         
-        # Calculate next anniversary year
-        next_anniversary_year = base_date.year + 1
-        
-        # Handle edge case: if we're before this year's anniversary, use this year
-        try:
-            this_year_anniversary = datetime(base_date.year, anniversary_month, anniversary_day)
-            if base_date < this_year_anniversary:
-                next_anniversary_year = base_date.year
-        except ValueError:
-            # Handle invalid dates (e.g., Feb 29 in non-leap year)
-            pass
-        
-        try:
-            next_anniversary = datetime(next_anniversary_year, anniversary_month, anniversary_day)
-        except ValueError:
-            # Handle Feb 29 in non-leap year -> use Feb 28
-            next_anniversary = datetime(next_anniversary_year, anniversary_month, 28)
+        # Step 2: Determine 5-year Audit Cycle
+        cycle_end_year = valid_date.year
+        cycle_start_year = cycle_end_year - 5
         
         logger.info(f"📋 Full Term DOC:")
         logger.info(f"   Valid date: {valid_date.date()}")
         logger.info(f"   Anniversary: {anniversary_day}/{anniversary_month} (annually)")
-        logger.info(f"   Base date: {base_date.date()}")
-        logger.info(f"   Next anniversary: {next_anniversary.date()}")
-        logger.info(f"   Audit window: {(next_anniversary - relativedelta(months=3)).date()} to {(next_anniversary + relativedelta(months=3)).date()} (±3 months)")
+        logger.info(f"   Audit Cycle: {cycle_start_year} - {cycle_end_year}")
         
-        # Return the anniversary date (center of ±3 months window)
-        return next_anniversary
+        # Step 3: Define all audit dates in the cycle
+        audits = []
+        
+        # Annual Audits (1st, 2nd, 3rd, 4th)
+        for i in range(1, 5):
+            year = cycle_start_year + i
+            try:
+                audit_date = datetime(year, anniversary_month, anniversary_day)
+                audits.append({
+                    'date': audit_date,
+                    'type': f'{i}{"st" if i==1 else "nd" if i==2 else "rd" if i==3 else "th"} Annual',
+                    'window_type': '±3M'
+                })
+            except ValueError:
+                # Handle Feb 29 in non-leap year
+                audit_date = datetime(year, anniversary_month, 28)
+                audits.append({
+                    'date': audit_date,
+                    'type': f'{i}{"st" if i==1 else "nd" if i==2 else "rd" if i==3 else "th"} Annual',
+                    'window_type': '±3M'
+                })
+        
+        # Renewal Audit (valid_date with -3M window)
+        audits.append({
+            'date': valid_date,
+            'type': 'Renewal',
+            'window_type': '-3M'
+        })
+        
+        # Step 4: Determine Next Audit based on current date
+        now = datetime.now()
+        
+        for audit in audits:
+            audit_date = audit['date']
+            audit_type = audit['type']
+            
+            # For ±3M window: check if we're before the end of window
+            if audit['window_type'] == '±3M':
+                window_end = audit_date + relativedelta(months=3)
+                if now < window_end:
+                    logger.info(f"   → Next Audit: {audit_date.date()} ({audit_type}) [±3M window]")
+                    return audit_date, audit_type
+            
+            # For -3M window: check if we're before the audit date
+            elif audit['window_type'] == '-3M':
+                if now < audit_date:
+                    logger.info(f"   → Next Audit: {audit_date.date()} ({audit_type}) [-3M window]")
+                    return audit_date, audit_type
+        
+        # If all audits have passed, return Renewal (shouldn't happen for valid certs)
+        logger.warning(f"   ⚠️ All audits in cycle have passed. Returning Renewal audit.")
+        return valid_date, 'Renewal'
     
     logger.warning(f"⚠️ Unknown doc_type: {doc_type}")
-    return None
+    return None, None
 
 
 def format_next_survey_info(doc_type: str, next_audit: datetime) -> str:
