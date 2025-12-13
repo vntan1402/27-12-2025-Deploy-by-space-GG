@@ -289,12 +289,12 @@ class CompanyCertService:
     @staticmethod
     async def recalculate_all_next_surveys(current_user: UserResponse) -> dict:
         """
-        Recalculate next_survey for all certificates in user's company
+        Recalculate next_audit for all certificates in user's company
         This updates all certificates with the latest business rules
         """
         from app.utils.doc_next_survey_calculator import calculate_next_survey
         
-        logger.info(f"🔄 Starting recalculation of all next surveys for company: {current_user.company}")
+        logger.info(f"🔄 Starting recalculation of all next audits for company: {current_user.company}")
         
         # Get all certificates for this company
         filters = {"company": current_user.company}
@@ -337,7 +337,7 @@ class CompanyCertService:
                     except:
                         last_endorse = None
                 
-                # Calculate next survey
+                # Calculate next audit
                 next_survey = calculate_next_survey(
                     doc_type,
                     valid_date,
@@ -352,7 +352,7 @@ class CompanyCertService:
                 if next_survey:
                     update_data["next_survey"] = next_survey.strftime("%Y-%m-%d")
                 else:
-                    # Set to None if no survey required (e.g., Short Term DOC)
+                    # Set to None if no audit required (e.g., Short Term DOC)
                     update_data["next_survey"] = None
                 
                 if update_data:
@@ -362,7 +362,7 @@ class CompanyCertService:
                         update_data
                     )
                     updated_count += 1
-                    logger.info(f"✅ Updated cert {cert.get('id')} ({cert.get('cert_name')}): next_survey = {update_data.get('next_survey')}")
+                    logger.info(f"✅ Updated cert {cert.get('id')} ({cert.get('cert_name')}): next_audit = {update_data.get('next_survey')}")
                 
             except Exception as e:
                 logger.error(f"❌ Failed to recalculate cert {cert.get('id')}: {e}")
