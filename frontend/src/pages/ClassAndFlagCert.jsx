@@ -644,25 +644,21 @@ const ClassAndFlagCert = () => {
       console.log(`Total certificates checked: ${data.total_count || 0}`);
       console.log(`Surveys in window: ${data.upcoming_surveys?.length || 0}`);
       
+      // Always show modal, even if no surveys
+      setUpcomingSurveyModal({
+        show: true,
+        surveys: data.upcoming_surveys || [],
+        totalCount: data.total_count || 0,
+        company: data.company,
+        companyName: data.company_name,
+        checkDate: data.check_date
+      });
+      
+      // Optional: Show toast for non-empty results
       if (data.upcoming_surveys && data.upcoming_surveys.length > 0) {
-        setUpcomingSurveyModal({
-          show: true,
-          surveys: data.upcoming_surveys,
-          totalCount: data.total_count,
-          company: data.company,
-          companyName: data.company_name,
-          checkDate: data.check_date
-        });
-        
         toast.info(language === 'vi' 
-          ? `⚠️ Có ${data.upcoming_surveys.length} chứng chỉ trong survey window (±3 tháng)`
-          : `⚠️ ${data.upcoming_surveys.length} certificates in survey window (±3 months)`
-        );
-      } else {
-        console.log('✅ No surveys in current window (±3 months from today)');
-        toast.success(language === 'vi' 
-          ? '✅ Không có survey trong window hiện tại (±3 tháng)\n💡 Surveys xa hơn sẽ không hiển thị'
-          : '✅ No surveys in current window (±3 months)\n💡 Future surveys beyond window won\'t show'
+          ? `⚠️ Có ${data.upcoming_surveys.length} chứng chỉ trong survey window`
+          : `⚠️ ${data.upcoming_surveys.length} certificates in survey window`
         );
       }
     } catch (error) {
