@@ -676,6 +676,24 @@ const SafetyManagementSystem = () => {
         certificate={notesCert}
         language={language}
       />
+
+      {/* Upcoming Audit Modal */}
+      <AuditUpcomingSurveyModal
+        isOpen={upcomingAuditModal.show}
+        onClose={() => setUpcomingAuditModal({
+          show: false,
+          surveys: [],
+          totalCount: 0,
+          company: '',
+          companyName: '',
+          checkDate: ''
+        })}
+        surveys={upcomingAuditModal.surveys}
+        totalCount={upcomingAuditModal.totalCount}
+        companyName={upcomingAuditModal.companyName}
+        checkDate={upcomingAuditModal.checkDate}
+        language={language}
+      />
     </MainLayout>
   );
 };
