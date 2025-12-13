@@ -568,9 +568,38 @@ const ClassAndFlagCert = () => {
     try {
       setIsUpdatingSurveyTypes(true);
       
+      // Step 1: Calculate Special Survey Cycle
       toast.info(language === 'vi' 
-        ? 'Đang cập nhật Next Survey dựa trên quy định IMO và chu kỳ 5 năm...'
-        : 'Updating Next Survey based on IMO regulations and 5-year cycle...'
+        ? '⏳ Bước 1/4: Đang tính Special Survey Cycle...'
+        : '⏳ Step 1/4: Calculating Special Survey Cycle...', 
+        { id: 'update-survey', duration: Infinity }
+      );
+      
+      await api.post(`/api/ships/${selectedShip.id}/calculate-special-survey-cycle`);
+      
+      // Step 2: Calculate Anniversary Date
+      toast.info(language === 'vi' 
+        ? '⏳ Bước 2/4: Đang tính Anniversary Date...'
+        : '⏳ Step 2/4: Calculating Anniversary Date...', 
+        { id: 'update-survey', duration: Infinity }
+      );
+      
+      await api.post(`/api/ships/${selectedShip.id}/calculate-anniversary-date`);
+      
+      // Step 3: Calculate Next Docking
+      toast.info(language === 'vi' 
+        ? '⏳ Bước 3/4: Đang tính Next Docking...'
+        : '⏳ Step 3/4: Calculating Next Docking...', 
+        { id: 'update-survey', duration: Infinity }
+      );
+      
+      await api.post(`/api/ships/${selectedShip.id}/calculate-next-docking`);
+      
+      // Step 4: Update Next Survey
+      toast.info(language === 'vi' 
+        ? '⏳ Bước 4/4: Đang cập nhật Next Survey...'
+        : '⏳ Step 4/4: Updating Next Survey...', 
+        { id: 'update-survey', duration: Infinity }
       );
 
       // Call backend API to update next survey types
@@ -581,8 +610,9 @@ const ClassAndFlagCert = () => {
       if (result.success) {
         // Show detailed success message
         toast.success(language === 'vi' 
-          ? `✅ Đã cập nhật Next Survey cho ${result.updated_count}/${result.total_certificates} chứng chỉ của tàu ${result.ship_name}`
-          : `✅ Updated Next Survey for ${result.updated_count}/${result.total_certificates} certificates of ship ${result.ship_name}`
+          ? `✅ Hoàn thành! Đã cập nhật Next Survey cho ${result.updated_count}/${result.total_certificates} chứng chỉ của tàu ${result.ship_name}`
+          : `✅ Complete! Updated Next Survey for ${result.updated_count}/${result.total_certificates} certificates of ship ${result.ship_name}`,
+          { id: 'update-survey' }
         );
         
         // Show sample changes
