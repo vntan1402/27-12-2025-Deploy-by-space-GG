@@ -283,6 +283,24 @@ class CompanyCertService:
         await mongo_db.delete_one(CompanyCertService.collection_name, {"id": cert_id})
         logger.info(f"✅ Company Certificate deleted from DB: {cert_id} ({cert_name})")
         
+        # Log audit trail
+        try:
+            audit_service = CompanyCertService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            company_name = cert.get('company_name', current_user.company)
+            await audit_service.log_company_certificate_delete(
+                company_name=company_name,
+                cert_data=cert,
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         # Schedule Google Drive file deletion in background
         files_to_delete = []
         if file_id:
