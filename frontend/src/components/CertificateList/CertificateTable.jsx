@@ -550,12 +550,16 @@ export const CertificateTable = ({
                   )}
                 </td>
                 <td className="border border-gray-300 px-4 py-2">
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    getCertificateStatus(cert) === 'Valid' ? 'bg-green-100 text-green-800' :
-                    getCertificateStatus(cert) === 'Expired' ? 'bg-red-100 text-red-800' :
-                    getCertificateStatus(cert) === 'Due Soon' ? 'bg-orange-100 text-orange-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
+                  <span 
+                    className={`px-2 py-1 rounded text-xs font-medium cursor-help ${
+                      getCertificateStatus(cert) === 'Valid' ? 'bg-green-100 text-green-800' :
+                      getCertificateStatus(cert) === 'Expired' ? 'bg-red-100 text-red-800' :
+                      getCertificateStatus(cert) === 'Due Soon' ? 'bg-orange-100 text-orange-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}
+                    onMouseEnter={(e) => handleStatusMouseEnter(e, cert)}
+                    onMouseLeave={handleStatusMouseLeave}
+                  >
                     {getCertificateStatus(cert) === 'Valid' 
                       ? (language === 'vi' ? 'Còn hiệu lực' : 'Valid')
                       : getCertificateStatus(cert) === 'Expired' 
