@@ -46,9 +46,9 @@ def calculate_next_survey(
     
     doc_type_lower = doc_type.lower().strip()
     
-    # SHORT TERM DOC: No survey needed
+    # SHORT TERM DOC: No audit needed
     if doc_type_lower == "short_term":
-        logger.info("📋 Short Term DOC - No annual survey required")
+        logger.info("📋 Short Term DOC - No annual audit required")
         return None
     
     # INTERIM DOC: Valid date - 3 months
@@ -58,7 +58,7 @@ def calculate_next_survey(
             return None
         
         next_survey = valid_date - relativedelta(months=3)
-        logger.info(f"📋 Interim DOC: Next survey = Valid date ({valid_date.date()}) - 3 months = {next_survey.date()}")
+        logger.info(f"📋 Interim DOC: Next audit = Valid date ({valid_date.date()}) - 3 months = {next_survey.date()}")
         return next_survey
     
     # FULL TERM DOC: Anniversary date ± 3 months
@@ -98,7 +98,7 @@ def calculate_next_survey(
         logger.info(f"   Anniversary: {anniversary_day}/{anniversary_month} (annually)")
         logger.info(f"   Base date: {base_date.date()}")
         logger.info(f"   Next anniversary: {next_anniversary.date()}")
-        logger.info(f"   Survey window: {(next_anniversary - relativedelta(months=3)).date()} to {(next_anniversary + relativedelta(months=3)).date()} (±3 months)")
+        logger.info(f"   Audit window: {(next_anniversary - relativedelta(months=3)).date()} to {(next_anniversary + relativedelta(months=3)).date()} (±3 months)")
         
         # Return the anniversary date (center of ±3 months window)
         return next_anniversary
@@ -109,22 +109,22 @@ def calculate_next_survey(
 
 def format_next_survey_info(doc_type: str, next_survey: datetime) -> str:
     """
-    Generate human-readable info about next survey
+    Generate human-readable info about next audit
     
     Returns:
-        Formatted string explaining the survey schedule
+        Formatted string explaining the audit schedule
     """
     if not next_survey:
-        return "No survey required"
+        return "No audit required"
     
     doc_type_lower = doc_type.lower().strip() if doc_type else ""
     
     if doc_type_lower == "full_term":
         window_start = (next_survey - relativedelta(months=3)).strftime("%d/%m/%Y")
         window_end = (next_survey + relativedelta(months=3)).strftime("%d/%m/%Y")
-        return f"Annual survey: {next_survey.strftime('%d/%m/%Y')} (Window: {window_start} - {window_end})"
+        return f"Annual audit: {next_survey.strftime('%d/%m/%Y')} (Window: {window_start} - {window_end})"
     
     if doc_type_lower == "interim":
-        return f"Survey before expiry: {next_survey.strftime('%d/%m/%Y')}"
+        return f"Audit before expiry: {next_survey.strftime('%d/%m/%Y')}"
     
     return next_survey.strftime("%d/%m/%Y")
