@@ -36,6 +36,37 @@ export const AddCompanyCertModal = ({
   const [analyzed, setAnalyzed] = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState(null);
 
+  // Auto-calculate next_audit when doc_type, valid_date, or last_endorse changes
+  useEffect(() => {
+    const calculateNextAudit = async () => {
+      // Only calculate if we have doc_type and valid_date
+      if (!formData.doc_type || !formData.valid_date) {
+        return;
+      }
+
+      try {
+        const result = await companyCertService.calculateNextAudit(
+          formData.doc_type,
+          formData.valid_date,
+          formData.issue_date,
+          formData.last_endorse
+        );
+
+        // Update form with calculated values
+        setFormData(prev => ({
+          ...prev,
+          next_audit: result.next_audit || '',
+          next_audit_type: result.next_audit_type || ''
+        }));
+      } catch (error) {
+        console.error('Auto-calculate error:', error);
+        // Don't show error toast, just silently fail
+      }
+    };
+
+    calculateNextAudit();
+  }, [formData.doc_type, formData.valid_date, formData.last_endorse]);
+
   if (!isOpen) return null;
 
   const handleFileChange = (files) => {
