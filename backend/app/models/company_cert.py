@@ -32,8 +32,8 @@ class CompanyCertUpdate(BaseModel):
     issue_date: Optional[Union[str, datetime]] = None
     valid_date: Optional[Union[str, datetime]] = None
     last_endorse: Optional[Union[str, datetime]] = None
-    next_survey: Optional[Union[str, datetime]] = None
-    next_survey_type: Optional[str] = None
+    next_audit: Optional[Union[str, datetime]] = None
+    next_audit_type: Optional[str] = None
     issued_by: Optional[str] = None
     status: Optional[str] = None
     notes: Optional[str] = None
