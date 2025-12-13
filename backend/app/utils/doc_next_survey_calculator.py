@@ -51,14 +51,18 @@ def calculate_next_survey(
         logger.info("📋 Short Term DOC - No annual audit required")
         return None
     
-    # INTERIM DOC: Valid date - 3 months
+    # INTERIM DOC: Next audit = Valid date (with -3M window)
+    # Window: (Valid date - 3M) to Valid date
     if doc_type_lower == "interim":
         if not valid_date:
             logger.warning("⚠️ Interim DOC: valid_date required but not provided")
             return None
         
-        next_audit_date = valid_date - relativedelta(months=3)
-        logger.info(f"📋 Interim DOC: Next audit = Valid date ({valid_date.date()}) - 3 months = {next_audit_date.date()}")
+        # Next audit = Valid date
+        # Audit window: (Valid date - 3 months) to Valid date
+        next_audit_date = valid_date
+        window_start = valid_date - relativedelta(months=3)
+        logger.info(f"📋 Interim DOC: Next audit = {next_audit_date.date()} | Window: {window_start.date()} to {next_audit_date.date()} (-3M)")
         return next_audit_date
     
     # FULL TERM DOC: Anniversary date ± 3 months
