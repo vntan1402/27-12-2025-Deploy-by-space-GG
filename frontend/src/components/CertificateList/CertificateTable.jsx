@@ -29,6 +29,14 @@ export const CertificateTable = ({
     width: 300,
     content: ''
   });
+  
+  // ========== STATUS TOOLTIP STATE ==========
+  const [statusTooltip, setStatusTooltip] = useState({
+    show: false,
+    x: 0,
+    y: 0,
+    content: ''
+  });
   // ========== NOTE TOOLTIP HANDLERS ==========
   const handleNoteMouseEnter = (e, note) => {
     if (!note) return;
