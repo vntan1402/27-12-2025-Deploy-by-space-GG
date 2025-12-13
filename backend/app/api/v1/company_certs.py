@@ -20,9 +20,12 @@ def check_dpa_manager_permission(current_user: UserResponse = Depends(get_curren
         return current_user
     
     # Manager with DPA department has access
-    if current_user.role == UserRole.MANAGER and current_user.department == "DPA":
-        logger.info(f"✅ Access granted - DPA Manager")
-        return current_user
+    # Note: department can be a list or string, and values are lowercase
+    if current_user.role == UserRole.MANAGER:
+        user_departments = current_user.department if isinstance(current_user.department, list) else [current_user.department]
+        if "dpa" in [dept.lower() if dept else "" for dept in user_departments]:
+            logger.info(f"✅ Access granted - DPA Manager")
+            return current_user
     
     logger.warning(f"❌ Access denied - User: {current_user.username}, Role: {current_user.role}, Dept: {current_user.department}")
     raise HTTPException(status_code=403, detail="Insufficient permissions. Admin or DPA Manager required.")
