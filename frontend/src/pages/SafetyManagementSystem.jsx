@@ -8,6 +8,7 @@ import {
   DeleteCompanyCertModal,
   CompanyCertNotesModal
 } from '../components/CompanyCert';
+import { AuditUpcomingSurveyModal } from '../components/AuditCertificate';
 import { companyCertService } from '../services';
 import { toast } from 'sonner';
 import api from '../services/api';
