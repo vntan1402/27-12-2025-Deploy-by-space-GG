@@ -596,9 +596,13 @@ class AuditCertificateService:
         """
         Get upcoming audit surveys based on window logic
         
+        This includes:
+        1. Audit Certificates (ship-level ISM/ISPS/MLC certificates)
+        2. Company Certificates (company-level DOC certificates)
+        
         Window Rules:
         - (±6M): Next Survey Date ± 6 months (Intermediate without Last Endorse)
-        - (±3M): Next Survey Date ± 3 months (other Intermediate cases)
+        - (±3M): Next Survey Date ± 3 months (other Intermediate cases, Annual audits)
         - (-3M): Next Survey Date - 3 months → Next Survey Date (Initial, Renewal)
         
         Args:
@@ -617,7 +621,7 @@ class AuditCertificateService:
             current_date = datetime.now(timezone.utc).date()
             user_company = current_user.company
             
-            logger.info(f"Checking upcoming audit surveys for company: {user_company}")
+            logger.info(f"🔍 Checking upcoming surveys for company: {user_company} (Audit + Company Certificates)")
             
             # Get company record
             company_record = await mongo_db.find_one("companies", {"id": user_company})
@@ -653,14 +657,20 @@ class AuditCertificateService:
                 }
             
             # Get all audit certificates for these ships
-            all_certificates = []
+            all_audit_certificates = []
             for ship_id in ship_ids:
                 certs = await mongo_db.find_all(AuditCertificateService.collection_name, {"ship_id": ship_id})
-                all_certificates.extend(certs)
+                all_audit_certificates.extend(certs)
             
-            logger.info(f"Found {len(all_certificates)} audit certificates to check")
+            logger.info(f"📋 Found {len(all_audit_certificates)} audit certificates to check")
+            
+            # Get all company certificates for this company
+            company_certificates = await mongo_db.find_all("company_certificates", {"company": user_company})
+            logger.info(f"📋 Found {len(company_certificates)} company certificates to check")
             
             upcoming_surveys = []
+            
+            # ==================== PROCESS AUDIT CERTIFICATES ====================
             
             for cert in all_certificates:
                 try:
@@ -738,6 +748,7 @@ class AuditCertificateService:
                         cert_name_display = f"{cert.get('cert_name', '')} ({cert_abbreviation})" if cert_abbreviation else cert.get('cert_name', '')
                         
                         upcoming_survey = {
+                            'certificate_type': 'audit',  # Type indicator
                             'certificate_id': cert.get('id'),
                             'ship_id': cert.get('ship_id'),
                             'ship_name': ship_info.get('name', ''),
