@@ -506,7 +506,7 @@ export const AddCompanyCertModal = ({
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Kiểm tra tới' : 'Next Survey'}
+                  {language === 'vi' ? 'Kiểm tra tới' : 'Next Audit'}
                 </label>
                 <input
                   type="date"
