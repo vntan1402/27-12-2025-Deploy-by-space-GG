@@ -575,7 +575,8 @@ const ClassAndFlagCert = () => {
         { id: 'update-survey', duration: Infinity }
       );
       
-      await api.post(`/api/ships/${selectedShip.id}/calculate-special-survey-cycle`);
+      const step1Response = await api.post(`/api/ships/${selectedShip.id}/calculate-special-survey-cycle`);
+      console.log('Step 1 result:', step1Response.data);
       
       // Step 2: Calculate Anniversary Date
       toast.info(language === 'vi' 
@@ -584,7 +585,8 @@ const ClassAndFlagCert = () => {
         { id: 'update-survey', duration: Infinity }
       );
       
-      await api.post(`/api/ships/${selectedShip.id}/calculate-anniversary-date`);
+      const step2Response = await api.post(`/api/ships/${selectedShip.id}/calculate-anniversary-date`);
+      console.log('Step 2 result:', step2Response.data);
       
       // Step 3: Calculate Next Docking
       toast.info(language === 'vi' 
@@ -593,7 +595,13 @@ const ClassAndFlagCert = () => {
         { id: 'update-survey', duration: Infinity }
       );
       
-      await api.post(`/api/ships/${selectedShip.id}/calculate-next-docking`);
+      const step3Response = await api.post(`/api/ships/${selectedShip.id}/calculate-next-docking`);
+      console.log('Step 3 result:', step3Response.data);
+      
+      // Check if step 3 failed
+      if (step3Response.data && !step3Response.data.success) {
+        throw new Error(step3Response.data.message || 'Failed to calculate next docking');
+      }
       
       // Step 4: Update Next Survey
       toast.info(language === 'vi' 
