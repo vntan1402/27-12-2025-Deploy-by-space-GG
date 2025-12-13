@@ -419,3 +419,68 @@ async def recalculate_all_next_surveys(
     except Exception as e:
         logger.error(f"❌ Error recalculating next audits: {e}")
         raise HTTPException(status_code=500, detail="Failed to recalculate next audits")
+
+
+@router.post("/{cert_id}/auto-rename-file")
+async def auto_rename_company_certificate_file(
+    cert_id: str,
+    current_user: UserResponse = Depends(check_dpa_manager_permission)
+):
+    """
+    Auto-rename company certificate file on Google Drive
+    
+    Filename pattern:
+    {Company Name}_{Cert Abbreviation}_{Cert No}_{Issue Date}.{ext}
+    
+    Example: HAI AN CONTAINER_DOC_PM242633_07052024.pdf
+    
+    Naming Priority for Certificate Abbreviation:
+    1. User-defined mapping (from certificate_abbreviation_mappings collection)
+    2. Database cert_abbreviation field
+    3. Fallback to "CERT"
+    
+    Process:
+    1. Get certificate data from DB
+    2. Check Apps Script capability (supports rename_file action)
+    3. Determine abbreviation using priority logic
+    4. Generate new filename with pattern
+    5. Call Apps Script to rename file on Google Drive
+    6. Update DB with new filename
+    
+    Requires:
+    - Admin or DPA Manager permission
+    - Certificate must have file_id
+    - Company must have Apps Script URL configured
+    - Apps Script must support "rename_file" action
+    
+    Returns:
+    {
+      "success": true,
+      "message": "Company certificate file renamed successfully",
+      "certificate_id": "...",
+      "file_id": "1ABC...",
+      "old_name": "original.pdf",
+      "new_name": "HAI AN CONTAINER_DOC_PM242633_07052024.pdf",
+      "naming_convention": {
+        "company_name": "HAI AN CONTAINER",
+        "cert_abbreviation": "DOC",
+        "cert_no": "PM242633",
+        "issue_date": "2024-05-07"
+      },
+      "renamed_timestamp": "2024-11-27T10:30:00Z"
+    }
+    
+    Error Codes:
+    - 400: No file attached to certificate
+    - 404: Certificate not found
+    - 501: Apps Script does not support rename_file action (includes suggested filename)
+    - 500: Apps Script communication error
+    """
+    try:
+        return await CompanyCertService.auto_rename_file(cert_id, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error auto-renaming company certificate file: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to auto-rename certificate file: {str(e)}")
+
