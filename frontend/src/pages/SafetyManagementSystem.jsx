@@ -179,6 +179,33 @@ const SafetyManagementSystem = () => {
     }
   };
 
+  const handleUpdateNextSurveys = async () => {
+    if (!window.confirm(language === 'vi' 
+      ? 'Bạn có chắc muốn cập nhật lại tất cả ngày khảo sát tiếp theo? Thao tác này sẽ tính toán lại dựa trên quy tắc kinh doanh hiện tại.'
+      : 'Are you sure you want to recalculate all next survey dates? This will update all certificates based on current business rules.'
+    )) {
+      return;
+    }
+
+    try {
+      toast.loading(language === 'vi' ? 'Đang cập nhật...' : 'Updating...', { id: 'update-surveys' });
+      
+      const result = await companyCertService.recalculateAllNextSurveys();
+      
+      toast.success(language === 'vi' 
+        ? `Đã cập nhật ${result.updated_count} chứng chỉ! (Bỏ qua: ${result.skipped_count})`
+        : `Updated ${result.updated_count} certificates! (Skipped: ${result.skipped_count})`,
+        { id: 'update-surveys' }
+      );
+      
+      // Reload certificates to show updated data
+      await loadCompanyCerts();
+    } catch (error) {
+      console.error('Update surveys error:', error);
+      toast.error(language === 'vi' ? 'Cập nhật thất bại!' : 'Update failed!', { id: 'update-surveys' });
+    }
+  };
+
   const getFilteredAndSortedCerts = () => {
     let filtered = [...companyCerts];
     
