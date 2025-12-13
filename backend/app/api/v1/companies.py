@@ -8,18 +8,19 @@ from app.services.company_service import CompanyService
 from app.core.security import get_current_user
 
 logger = logging.getLogger(__name__)
+from app.core.messages import PERMISSION_DENIED, SYSTEM_ADMIN_ONLY
 router = APIRouter()
 
 def check_admin_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has admin permission (for viewing/updating own company)"""
     if current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
+        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
     return current_user
 
 def check_super_admin_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has super admin or system admin permission (for creating/deleting companies)"""
     if current_user.role not in [UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
-        raise HTTPException(status_code=403, detail="Only super_admin and system_admin can create/delete companies")
+        raise HTTPException(status_code=403, detail=SYSTEM_ADMIN_ONLY)
     return current_user
 
 @router.get("", response_model=List[CompanyResponse])

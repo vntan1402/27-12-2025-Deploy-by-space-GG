@@ -8,6 +8,7 @@ from datetime import datetime
 from app.models.crew_audit_log import (
     CrewAuditLogResponse,
     CrewAuditLogFilter
+from app.core.messages import PERMISSION_DENIED, SYSTEM_ADMIN_ONLY
 )
 from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
 from app.core.security import get_current_user
@@ -45,7 +46,7 @@ async def get_audit_logs(
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
-        raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
+        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
     
     # Filter by company_id based on role
     if current_user.role == 'admin':
@@ -94,7 +95,7 @@ async def get_audit_log_by_id(
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
-        raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
+        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
     
     # Filter by company_id based on role
     if current_user.role == 'admin':
@@ -124,7 +125,7 @@ async def get_audit_logs_by_crew(
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
-        raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
+        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
     
     # Filter by company_id based on role
     if current_user.role == 'admin':
@@ -149,7 +150,7 @@ async def get_unique_users_for_filter(
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
-        raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
+        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
     
     # Filter by company_id based on role
     if current_user.role == 'admin':
@@ -174,7 +175,7 @@ async def get_unique_ships_for_filter(
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
-        raise HTTPException(status_code=403, detail="Not authorized to view audit logs")
+        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
     
     # Filter by company_id based on role
     if current_user.role == 'admin':
@@ -198,7 +199,7 @@ async def cleanup_expired_logs(
     """
     # Check permissions
     if current_user.role != 'system_admin':
-        raise HTTPException(status_code=403, detail="Only system admin can trigger cleanup")
+        raise HTTPException(status_code=403, detail=SYSTEM_ADMIN_ONLY)
     
     deleted_count = await repository.delete_expired_logs()
     
