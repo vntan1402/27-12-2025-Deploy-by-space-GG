@@ -715,40 +715,84 @@ const SafetyManagementSystem = () => {
             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
           >
             <span>👁️</span>
-            {language === 'vi' ? 'Xem file' : 'View File'}
+            {selectedCerts.size > 1 
+              ? (language === 'vi' ? `Xem file (${selectedCerts.size} chứng chỉ)` : `View Files (${selectedCerts.size} certificates)`)
+              : (language === 'vi' ? 'Xem file' : 'View File')
+            }
           </button>
 
-          <div className="border-t border-gray-200 my-1"></div>
-
-          {/* Edit */}
+          {/* Download - works for single and multiple */}
           <button
             onClick={() => {
-              setEditingCert(contextMenu.certificate);
-              setShowEditModal(true);
+              if (selectedCerts.size > 1) {
+                handleBulkDownload();
+              } else {
+                const fileId = contextMenu.certificate?.file_id || contextMenu.certificate?.google_drive_file_id;
+                if (fileId) {
+                  window.open(`https://drive.google.com/uc?export=download&id=${fileId}`, '_blank');
+                }
+              }
               setContextMenu(null);
             }}
             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
           >
-            <span>✏️</span>
-            {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+            <span>⬇️</span>
+            {selectedCerts.size > 1 
+              ? (language === 'vi' ? `Tải xuống (${selectedCerts.size} file)` : `Download (${selectedCerts.size} files)`)
+              : (language === 'vi' ? 'Tải xuống' : 'Download')
+            }
           </button>
 
-          {/* Notes */}
+          {/* Copy Link - works for single and multiple */}
           <button
             onClick={() => {
-              setNotesCert(contextMenu.certificate);
-              setShowNotesModal(true);
+              handleBulkCopyLinks();
               setContextMenu(null);
             }}
             className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
           >
-            <span>📝</span>
-            {language === 'vi' ? 'Ghi chú' : 'Notes'}
+            <span>🔗</span>
+            {selectedCerts.size > 1 
+              ? (language === 'vi' ? `Sao chép link (${selectedCerts.size} file)` : `Copy Links (${selectedCerts.size} files)`)
+              : (language === 'vi' ? 'Sao chép link' : 'Copy Link')
+            }
           </button>
 
           <div className="border-t border-gray-200 my-1"></div>
 
-          {/* Delete */}
+          {/* Edit - single only */}
+          {selectedCerts.size === 1 && (
+            <button
+              onClick={() => {
+                setEditingCert(contextMenu.certificate);
+                setShowEditModal(true);
+                setContextMenu(null);
+              }}
+              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+            >
+              <span>✏️</span>
+              {language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+            </button>
+          )}
+
+          {/* Notes - single only */}
+          {selectedCerts.size === 1 && (
+            <button
+              onClick={() => {
+                setNotesCert(contextMenu.certificate);
+                setShowNotesModal(true);
+                setContextMenu(null);
+              }}
+              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+            >
+              <span>📝</span>
+              {language === 'vi' ? 'Ghi chú' : 'Notes'}
+            </button>
+          )}
+
+          <div className="border-t border-gray-200 my-1"></div>
+
+          {/* Delete - works for single and multiple */}
           <button
             onClick={() => {
               setDeletingCert(contextMenu.certificate);
