@@ -26,7 +26,7 @@ export const CompanyCertNotesModal = ({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await api.put(`/company-certs/${certificate.id}`, {
+      await api.put(`/api/company-certs/${certificate.id}`, {
         notes: notes,
         has_notes: notes.trim().length > 0
       });
