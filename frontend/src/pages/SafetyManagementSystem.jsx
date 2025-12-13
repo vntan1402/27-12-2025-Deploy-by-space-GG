@@ -425,6 +425,7 @@ const SafetyManagementSystem = () => {
                     <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
                     <option value="Valid">{language === 'vi' ? 'Còn hạn' : 'Valid'}</option>
                     <option value="Due Soon">{language === 'vi' ? 'Sắp hết hạn' : 'Due Soon'}</option>
+                    <option value="Critical">{language === 'vi' ? 'Rất gấp' : 'Critical'}</option>
                     <option value="Expired">{language === 'vi' ? 'Hết hạn' : 'Expired'}</option>
                   </select>
                 </div>
