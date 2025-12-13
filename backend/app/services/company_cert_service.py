@@ -21,7 +21,8 @@ class CompanyCertService:
         """Get audit log service instance"""
         from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
         from app.services.crew_audit_log_service import CrewAuditLogService
-        repository = CrewAuditLogRepository()
+        from app.db.mongodb import mongo_db
+        repository = CrewAuditLogRepository(mongo_db.db)
         return CrewAuditLogService(repository)
     
 
