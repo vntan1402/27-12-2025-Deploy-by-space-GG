@@ -373,10 +373,14 @@ const AddCrewCertificateModal = ({
         if (detailStr.includes('Name mismatch') || detailStr.includes('Certificate name:')) {
           // Name mismatch detected - Store data and show warning with option to continue
           console.error('❌ Name mismatch detected - showing warning with Continue option');
+          console.log('Extracted data from error:', extractedData);
           
           // Store the analyzed data for potential use if user chooses to continue
-          if (error.response?.data?.extracted_data) {
-            setNameMismatchData(error.response.data.extracted_data);
+          if (extractedData) {
+            setNameMismatchData(extractedData);
+            console.log('✅ Stored name mismatch data for Continue option');
+          } else {
+            console.warn('⚠️ No extracted data available in error response');
           }
           
           // Show warning modal with option to continue
