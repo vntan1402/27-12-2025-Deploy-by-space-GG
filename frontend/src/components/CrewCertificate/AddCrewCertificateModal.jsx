@@ -333,7 +333,16 @@ const AddCrewCertificateModal = ({
       const errorStatus = error.response?.status;
       
       if (errorStatus === 400 && errorDetail) {
-        const detailStr = typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail);
+        // Handle new format: {message: string, extracted_data: object}
+        let detailStr;
+        let extractedData = null;
+        
+        if (typeof errorDetail === 'object' && errorDetail.message) {
+          detailStr = errorDetail.message;
+          extractedData = errorDetail.extracted_data;
+        } else {
+          detailStr = typeof errorDetail === 'string' ? errorDetail : JSON.stringify(errorDetail);
+        }
         
         // Check if it's a Date of Birth mismatch error
         if (detailStr.includes('Date of Birth mismatch') || detailStr.includes('Certificate DoB:')) {
