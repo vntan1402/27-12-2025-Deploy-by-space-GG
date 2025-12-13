@@ -613,9 +613,21 @@ const AddCrewCertificateModal = ({
     }
   };
 
-  // Handle close warning modal with highlight effect
+  // Handle close warning modal (Cancel) - clear uploaded file and data
   const handleCloseWarningModal = () => {
     setShowWarningModal(false);
+    
+    // Clear name mismatch data
+    setNameMismatchData(null);
+    
+    // Remove uploaded file
+    setUploadedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
+    // Clear any analyzed data
+    setAnalyzedData(null);
     
     // Highlight crew section if warning was about crew selection
     if (warningMessage.includes('thuyền viên') || warningMessage.includes('crew member')) {
@@ -626,6 +638,24 @@ const AddCrewCertificateModal = ({
         setHighlightCrewSection(false);
       }, 5000);
     }
+  };
+  
+  // Handle Continue from name mismatch warning - proceed with analyzed data
+  const handleContinueWithMismatch = () => {
+    setShowWarningModal(false);
+    
+    if (nameMismatchData) {
+      // Process the stored analyzed data
+      processAnalysisSuccess(nameMismatchData);
+      
+      toast.success(language === 'vi' 
+        ? '✅ Đã tải dữ liệu tự động. Vui lòng kiểm tra và chỉnh sửa nếu cần.' 
+        : '✅ Data auto-filled. Please review and edit if needed.'
+      );
+    }
+    
+    // Clear stored mismatch data
+    setNameMismatchData(null);
   };
 
   // Filter crew list based on selected ship
