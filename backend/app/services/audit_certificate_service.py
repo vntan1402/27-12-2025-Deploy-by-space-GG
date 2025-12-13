@@ -672,7 +672,7 @@ class AuditCertificateService:
             
             # ==================== PROCESS AUDIT CERTIFICATES ====================
             
-            for cert in all_certificates:
+            for cert in all_audit_certificates:
                 try:
                     # Get Next Survey Display field (contains date with annotation like "30/10/2025 (±3M)")
                     next_survey_display = cert.get('next_survey_display') or cert.get('next_survey')
