@@ -115,7 +115,13 @@ IMPORTANT INSTRUCTIONS:
      (ignoring type information that exists elsewhere in the document)
    
 3. company_name: Extract the company name (look for "Name of the Company:", "Company:", etc.)
-3. doc_type: **CRITICAL - MANDATORY FOR ALL DOC CERTIFICATES** - You MUST classify every DOC:
+
+4. doc_type: **CRITICAL - READ ENTIRE DOCUMENT - MANDATORY FOR ALL DOC CERTIFICATES**
+   
+   **BEFORE CLASSIFICATION: READ THE ENTIRE DOCUMENT**
+   - Search through ALL text sections: text layer, OCR content, document descriptions
+   - Look for type indicators in certificate number lines, headings, and descriptive text
+   - Pay attention to phrases like "This document is a [TYPE] Document of Compliance"
    
    **Step 0: SPECIAL CASES - Full Term Indicators (HIGHEST PRIORITY):**
    a) If document contains BOTH "Full term Certificate No" AND "Interim Certificate No"
@@ -126,17 +132,25 @@ IMPORTANT INSTRUCTIONS:
       → **MUST return "full_term"**
       (Only Full Term DOCs have endorsement dates)
    
-   **Step 1: Search for "SHORT TERM" keywords:**
+   c) If ANYWHERE in the document you find:
+      - "This document is a Full Term Document of Compliance"
+      - "This is a Full Term Certificate"
+      - "Full Term DOC"
+      → **MUST return "full_term"**
+   
+   **Step 1: Search for "SHORT TERM" keywords (check ENTIRE document):**
    - "Short Term Certificate No"
    - "SHORT TERM DOCUMENT OF COMPLIANCE"
    - "Short Term Document"
+   - "This document is a Short Term Document"
    - "SHORT TERM" (anywhere in text)
    - "short term"
    - If found ANY of above (and NO Last Endorse) → **MUST return "short_term"**
    
-   **Step 2: If not Short Term, search for "INTERIM":**
+   **Step 2: If not Short Term, search for "INTERIM" (check ENTIRE document):**
    - "Interim Certificate No"
    - "Interim Document of Compliance"
+   - "This document is an Interim Document"
    - "INTERIM DOCUMENT"
    - "Interim Certificate"
    - "INTERIM" (anywhere in text)
