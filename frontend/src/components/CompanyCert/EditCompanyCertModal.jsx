@@ -52,8 +52,10 @@ export const EditCompanyCertModal = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.doc_type) {
-      toast.error(language === 'vi' ? 'Vui lòng chọn loại DOC!' : 'Please select DOC type!');
+    // DOC type is required only for DOC certificates
+    const isDOC = formData.cert_name.toUpperCase().includes('DOCUMENT OF COMPLIANCE');
+    if (isDOC && !formData.doc_type) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn loại DOC cho chứng chỉ DOC!' : 'Please select DOC type for DOC certificate!');
       return;
     }
     
