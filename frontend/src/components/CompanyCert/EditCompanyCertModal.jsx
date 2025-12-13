@@ -35,6 +35,7 @@ export const EditCompanyCertModal = ({
         cert_name: certificate.cert_name || '',
         cert_no: certificate.cert_no || '',
         company_name: certificate.company_name || '',
+        doc_type: certificate.doc_type || '',
         issue_date: certificate.issue_date || '',
         valid_date: certificate.valid_date || '',
         last_endorse: certificate.last_endorse || '',
