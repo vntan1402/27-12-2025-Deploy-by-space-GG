@@ -14,58 +14,54 @@ def calculate_next_survey(
     valid_date: datetime = None,
     issue_date: datetime = None,
     last_endorse: datetime = None
-) -> datetime:
+) -> tuple:
     """
-    Calculate next audit date based on DOC type and business rules
+    Calculate next audit date and type based on DOC type and business rules
     
     Args:
         doc_type: "full_term", "short_term", or "interim"
         valid_date: Certificate validity/expiry date
-        issue_date: Certificate issue date
-        last_endorse: Last endorsement date
+        issue_date: Certificate issue date (not used in current logic)
+        last_endorse: Last endorsement date (not used in current logic)
         
     Returns:
-        Next audit date (datetime) or None
+        Tuple of (next_audit_date, next_audit_type) or (None, None)
         
     Business Rules:
     1. Full Term DOC:
-       - Anniversary date = day/month of valid_date (annually)
-       - Next audit = Anniversary date next year
-       - Audit window: ±3 months from anniversary date
-       - Use most recent: last_endorse or issue_date
+       - Anniversary date = day/month of valid_date
+       - Audit cycle 5 years = (valid_year - 5) to valid_year
+       - Annual Audits: 1st/2nd/3rd/4th on each anniversary (±3M window)
+       - Renewal Audit: Valid date (-3M window)
+       - Next audit determined by current date position in cycle
        
     2. Short Term DOC:
-       - No annual audit (validity < 6 months)
-       - Return None
+       - Next audit = None, Type = None
        
     3. Interim DOC:
-       - Next audit = Valid date
-       - Audit window: (Valid date - 3 months) to Valid date
+       - Next audit = Valid date, Type = "Initial"
     """
     if not doc_type:
         logger.warning("⚠️ No doc_type provided, cannot calculate next audit")
-        return None
+        return None, None
     
-    doc_type_lower = doc_type.lower().strip()
+    doc_type_lower = doc_type.lower().strip() if doc_type else ""
     
     # SHORT TERM DOC: No audit needed
     if doc_type_lower == "short_term":
-        logger.info("📋 Short Term DOC - No annual audit required")
-        return None
+        logger.info("📋 Short Term DOC - No audit required")
+        return None, None
     
-    # INTERIM DOC: Next audit = Valid date (with -3M window)
-    # Window: (Valid date - 3M) to Valid date
+    # INTERIM DOC: Next audit = Valid date, Type = Initial
     if doc_type_lower == "interim":
         if not valid_date:
             logger.warning("⚠️ Interim DOC: valid_date required but not provided")
-            return None
+            return None, None
         
-        # Next audit = Valid date
-        # Audit window: (Valid date - 3 months) to Valid date
         next_audit_date = valid_date
-        window_start = valid_date - relativedelta(months=3)
-        logger.info(f"📋 Interim DOC: Next audit = {next_audit_date.date()} | Window: {window_start.date()} to {next_audit_date.date()} (-3M)")
-        return next_audit_date
+        audit_type = "Initial"
+        logger.info(f"📋 Interim DOC: Next audit = {next_audit_date.date()} | Type: {audit_type}")
+        return next_audit_date, audit_type
     
     # FULL TERM DOC: Anniversary date ± 3 months
     if doc_type_lower == "full_term":
