@@ -26,6 +26,23 @@ export const CompanyCertTable = ({
     content: ''
   });
 
+  // Format next_audit with audit window
+  const formatNextAuditWithWindow = (nextAudit, docType) => {
+    if (!nextAudit) return '-';
+    
+    const formattedDate = formatDateDisplay(nextAudit);
+    
+    // Add window indicator based on DOC type
+    if (docType === 'full_term') {
+      return `${formattedDate} (±3M)`;
+    } else if (docType === 'interim') {
+      return `${formattedDate} (-3M)`;
+    }
+    
+    // For short_term or no doc_type, just show the date
+    return formattedDate;
+  };
+
   const handleNoteMouseEnter = (e, note) => {
     if (!note) return;
     
