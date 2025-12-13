@@ -57,9 +57,9 @@ def calculate_next_survey(
             logger.warning("⚠️ Interim DOC: valid_date required but not provided")
             return None
         
-        next_survey = valid_date - relativedelta(months=3)
-        logger.info(f"📋 Interim DOC: Next audit = Valid date ({valid_date.date()}) - 3 months = {next_survey.date()}")
-        return next_survey
+        next_audit_date = valid_date - relativedelta(months=3)
+        logger.info(f"📋 Interim DOC: Next audit = Valid date ({valid_date.date()}) - 3 months = {next_audit_date.date()}")
+        return next_audit_date
     
     # FULL TERM DOC: Anniversary date ± 3 months
     if doc_type_lower == "full_term":
@@ -107,24 +107,24 @@ def calculate_next_survey(
     return None
 
 
-def format_next_survey_info(doc_type: str, next_survey: datetime) -> str:
+def format_next_survey_info(doc_type: str, next_audit: datetime) -> str:
     """
     Generate human-readable info about next audit
     
     Returns:
         Formatted string explaining the audit schedule
     """
-    if not next_survey:
+    if not next_audit:
         return "No audit required"
     
     doc_type_lower = doc_type.lower().strip() if doc_type else ""
     
     if doc_type_lower == "full_term":
-        window_start = (next_survey - relativedelta(months=3)).strftime("%d/%m/%Y")
-        window_end = (next_survey + relativedelta(months=3)).strftime("%d/%m/%Y")
-        return f"Annual audit: {next_survey.strftime('%d/%m/%Y')} (Window: {window_start} - {window_end})"
+        window_start = (next_audit - relativedelta(months=3)).strftime("%d/%m/%Y")
+        window_end = (next_audit + relativedelta(months=3)).strftime("%d/%m/%Y")
+        return f"Annual audit: {next_audit.strftime('%d/%m/%Y')} (Window: {window_start} - {window_end})"
     
     if doc_type_lower == "interim":
-        return f"Audit before expiry: {next_survey.strftime('%d/%m/%Y')}"
+        return f"Audit before expiry: {next_audit.strftime('%d/%m/%Y')}"
     
-    return next_survey.strftime("%d/%m/%Y")
+    return next_audit.strftime("%d/%m/%Y")
