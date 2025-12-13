@@ -1091,13 +1091,34 @@ const AddCrewCertificateModal = ({
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-center">
-              <button
-                onClick={handleCloseWarningModal}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
-              >
-                {language === 'vi' ? 'Đã hiểu' : 'OK'}
-              </button>
+            <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+              {/* Show Continue button only for name mismatch warnings */}
+              {nameMismatchData && (
+                <>
+                  <button
+                    onClick={handleCloseWarningModal}
+                    className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors font-medium"
+                  >
+                    {language === 'vi' ? 'Hủy' : 'Cancel'}
+                  </button>
+                  <button
+                    onClick={handleContinueWithMismatch}
+                    className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
+                  >
+                    {language === 'vi' ? 'Tiếp tục' : 'Continue'}
+                  </button>
+                </>
+              )}
+              
+              {/* Show OK button for other warnings */}
+              {!nameMismatchData && (
+                <button
+                  onClick={handleCloseWarningModal}
+                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+                >
+                  {language === 'vi' ? 'Đã hiểu' : 'OK'}
+                </button>
+              )}
             </div>
           </div>
         </div>
