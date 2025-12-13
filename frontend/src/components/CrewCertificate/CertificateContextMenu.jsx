@@ -23,13 +23,13 @@ const CertificateContextMenu = ({
 
   const canEdit = user && ['manager', 'admin', 'super_admin'].includes(user.role);
   
-  // Can delete: Admin, Super Admin, OR Manager in Crew department
+  // Can delete: Admin, Super Admin, OR Manager in Crewing department (Phòng thuyền viên)
   const canDelete = user && (
     ['admin', 'super_admin'].includes(user.role) ||
     (user.role === 'manager' && user.department && (
       Array.isArray(user.department) 
-        ? user.department.some(dept => dept.toLowerCase() === 'crew')
-        : user.department.toLowerCase() === 'crew'
+        ? user.department.some(dept => dept.toLowerCase() === 'crewing')
+        : user.department.toLowerCase() === 'crewing'
     ))
   );
   
