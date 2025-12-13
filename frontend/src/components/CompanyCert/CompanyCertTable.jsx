@@ -47,8 +47,8 @@ export const CompanyCertTable = ({
       // Renewal audit has -3M window
       return `${formattedDate} (-3M)`;
     } else if (auditType === 'Initial') {
-      // Initial audit (Interim DOC)
-      return `${formattedDate}`;
+      // Initial audit (Interim DOC) has -3M window
+      return `${formattedDate} (-3M)`;
     }
     
     // For no audit type, just show the date
@@ -101,7 +101,7 @@ export const CompanyCertTable = ({
       // Add window info
       if (auditType.includes('Annual')) {
         content += `\n${language === 'vi' ? 'Cửa sổ' : 'Window'}: ±3 ${language === 'vi' ? 'tháng' : 'months'}`;
-      } else if (auditType === 'Renewal') {
+      } else if (auditType === 'Renewal' || auditType === 'Initial') {
         content += `\n${language === 'vi' ? 'Cửa sổ' : 'Window'}: -3 ${language === 'vi' ? 'tháng' : 'months'}`;
       }
     } else if (docType) {
