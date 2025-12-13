@@ -238,6 +238,25 @@ class CompanyCertService:
         
         updated_cert = await mongo_db.find_one(CompanyCertService.collection_name, {"id": cert_id})
         
+        # Log audit trail
+        try:
+            audit_service = CompanyCertService.get_audit_log_service()
+            user_dict = {
+                'id': current_user.id,
+                'username': current_user.username,
+                'full_name': current_user.full_name,
+                'company': current_user.company
+            }
+            company_name = updated_cert.get('company_name', current_user.company)
+            await audit_service.log_company_certificate_update(
+                company_name=company_name,
+                old_cert=existing_cert,
+                new_cert=updated_cert,
+                user=user_dict
+            )
+        except Exception as e:
+            logger.error(f"Failed to create audit log: {e}")
+        
         # Map google_drive_file_id to file_id
         if updated_cert.get("google_drive_file_id") and not updated_cert.get("file_id"):
             updated_cert["file_id"] = updated_cert.get("google_drive_file_id")
