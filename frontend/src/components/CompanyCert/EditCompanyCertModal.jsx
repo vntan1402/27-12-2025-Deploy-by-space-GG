@@ -17,6 +17,7 @@ export const EditCompanyCertModal = ({
     cert_name: '',
     cert_no: '',
     company_name: '',
+    doc_type: '',  // REQUIRED field
     issue_date: '',
     valid_date: '',
     last_endorse: '',
