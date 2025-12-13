@@ -35,6 +35,16 @@ const SafetyManagementSystem = () => {
   const [deletingCert, setDeletingCert] = useState(null);
   const [notesCert, setNotesCert] = useState(null);
   
+  // Upcoming Audit Modal
+  const [upcomingAuditModal, setUpcomingAuditModal] = useState({
+    show: false,
+    surveys: [],
+    totalCount: 0,
+    company: '',
+    companyName: '',
+    checkDate: ''
+  });
+  
   // Context Menu
   const [contextMenu, setContextMenu] = useState(null);
   
