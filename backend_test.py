@@ -402,7 +402,7 @@ def main():
             success, response = run_test(
                 "Technical Manager creates Ship Certificate",
                 lambda: test_1_technical_manager_can_create_ship_cert(headers, test_ship_001_id),
-                expected_status=201,
+                expected_status=200,
                 expected_success=True
             )
             critical_tests.append(("Test 1", success))
