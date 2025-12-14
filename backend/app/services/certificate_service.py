@@ -37,6 +37,7 @@ class CertificateService:
     async def get_certificates(ship_id: Optional[str], current_user: UserResponse) -> List[CertificateResponse]:
         """Get certificates, optionally filtered by ship"""
         from app.models.user import UserRole
+        from app.core import messages
         
         # Add company-based filtering for non-super admins
         if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
@@ -47,12 +48,16 @@ class CertificateService:
             if ship_id:
                 # Verify ship belongs to user's company
                 if ship_id not in company_ship_ids:
-                    raise HTTPException(status_code=403, detail="Access denied")
+                    raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED_SHIP)
             
             # Get all certificates first
             all_certificates = await CertificateRepository.find_all(ship_id=ship_id)
             # Filter by company's ships
             certificates = [cert for cert in all_certificates if cert.get('ship_id') in company_ship_ids]
+            
+            # ⭐ NEW: For Editor/Viewer, filter by assigned ship
+            from app.core.permission_checks import filter_documents_by_ship_scope
+            certificates = filter_documents_by_ship_scope(certificates, current_user)
         else:
             certificates = await CertificateRepository.find_all(ship_id=ship_id)
         
@@ -75,6 +80,8 @@ class CertificateService:
     async def get_certificate_by_id(cert_id: str, current_user: UserResponse) -> CertificateResponse:
         """Get certificate by ID"""
         from app.models.user import UserRole
+        from app.core import messages
+        from app.core.permission_checks import check_company_access, check_editor_viewer_ship_scope
         
         cert = await CertificateRepository.find_by_id(cert_id)
         
@@ -84,8 +91,14 @@ class CertificateService:
         # Check access permission
         if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             ship = await ShipRepository.find_by_id(cert.get('ship_id'))
-            if not ship or ship.get('company') != current_user.company:
-                raise HTTPException(status_code=403, detail="Access denied")
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            # Check company access
+            check_company_access(current_user, ship.get('company'), "view")
+            
+            # For Editor/Viewer: check ship scope
+            check_editor_viewer_ship_scope(current_user, cert.get('ship_id'), "view")
         
         # Generate certificate abbreviation if not present
         if not cert.get("cert_abbreviation") and cert.get("cert_name"):
@@ -100,10 +113,17 @@ class CertificateService:
     @staticmethod
     async def create_certificate(cert_data: CertificateCreate, current_user: UserResponse) -> CertificateResponse:
         """Create new certificate"""
+        from app.core.permission_checks import check_create_permission, check_editor_viewer_ship_scope
+        
         # Verify ship exists
         ship = await ShipRepository.find_by_id(cert_data.ship_id)
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
+        
+        # ⭐ NEW: Permission checks
+        ship_company_id = ship.get("company")
+        check_create_permission(current_user, "ship_cert", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, cert_data.ship_id, "create")
         
         # Create certificate document
         cert_dict = cert_data.dict()
@@ -169,9 +189,21 @@ class CertificateService:
     @staticmethod
     async def update_certificate(cert_id: str, cert_data: CertificateUpdate, current_user: UserResponse) -> CertificateResponse:
         """Update certificate"""
+        from app.core.permission_checks import check_edit_permission, check_editor_viewer_ship_scope
+        
         cert = await CertificateRepository.find_by_id(cert_id)
         if not cert:
             raise HTTPException(status_code=404, detail="Certificate not found")
+        
+        # ⭐ NEW: Permission checks
+        # Get ship to check company
+        ship = await ShipRepository.find_by_id(cert.get('ship_id'))
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_edit_permission(current_user, "ship_cert", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, cert.get('ship_id'), "edit")
         
         # Prepare update data
         update_data = cert_data.dict(exclude_unset=True)
@@ -308,9 +340,21 @@ class CertificateService:
         background_tasks: Optional[BackgroundTasks] = None
     ) -> dict:
         """Delete certificate and schedule Google Drive file deletion in background"""
+        from app.core.permission_checks import check_delete_permission, check_editor_viewer_ship_scope
+        
         cert = await CertificateRepository.find_by_id(cert_id)
         if not cert:
             raise HTTPException(status_code=404, detail="Certificate not found")
+        
+        # ⭐ NEW: Permission checks
+        # Get ship to check company
+        ship = await ShipRepository.find_by_id(cert.get('ship_id'))
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_delete_permission(current_user, "ship_cert", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, cert.get('ship_id'), "delete")
         
         # Extract file info before deleting from DB
         google_drive_file_id = cert.get("google_drive_file_id")
