@@ -245,14 +245,16 @@ def test_system_admin_crud_operations(headers, test_data, system_user):
         }
         results["audit_cert_create"] = requests.post(f"{BACKEND_URL}/audit-certificates", headers=headers, json=audit_cert_data)
         
-        # Create Crew Member
+        # Create Crew Member with unique passport
+        import uuid
+        unique_passport = f"SYS{str(uuid.uuid4())[:8].upper()}"
         crew_data = {
             "full_name": "System Admin Test Crew",
             "full_name_en": "System Admin Test Crew",
             "sex": "M", 
             "date_of_birth": "1990-01-01",
             "place_of_birth": "Test City",
-            "passport": "SYSADMIN123",
+            "passport": unique_passport,
             "nationality": "VIETNAMESE",
             "status": "Standby"
         }
