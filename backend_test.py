@@ -245,91 +245,52 @@ def test_system_admin_crud_operations(headers, test_data):
     
     return results
 
-def get_or_create_crew_member(headers, company_id):
-    """Get existing crew member or create one for testing"""
-    # Try to get existing crew
-    crew_response = requests.get(f"{BACKEND_URL}/crew", headers=headers)
-    if crew_response.status_code == 200:
-        crew_list = crew_response.json()
-        if crew_list:
-            return crew_list[0].get("id")
-    
-    # Create a crew member for testing
-    crew_data = {
-        "company_id": company_id,
-        "full_name": "Test Crew Member",
-        "full_name_en": "Test Crew Member",
-        "sex": "M",
-        "date_of_birth": "1990-01-01",
-        "place_of_birth": "Test City",
-        "passport": "TEST123456",
-        "nationality": "VIETNAMESE",
-        "status": "Standby"
-    }
-    
-    create_response = requests.post(f"{BACKEND_URL}/crew", headers=headers, json=crew_data)
-    if create_response.status_code in [200, 201]:
-        return create_response.json().get("id")
-    
-    return None
-
-def run_test(test_name, test_func, expected_status, expected_success=True):
+def run_test(test_name, test_func, expected_success=True, check_vietnamese=False):
     """Run a single test and return results"""
     try:
         print(f"\n   🧪 {test_name}")
-        response = test_func()
+        result = test_func()
         
-        # For success cases, accept both 200 and 201
-        if expected_success:
-            success = response.status_code in [200, 201]
-            result_icon = "✅" if success else "❌"
-            print(f"      {result_icon} Expected: Success (200/201), Got: {response.status_code}")
+        # Handle different response types
+        if isinstance(result, dict):
+            # Multiple responses (like CRUD operations)
+            success = True
+            for operation, response in result.items():
+                op_success = response.status_code in [200, 201] if expected_success else response.status_code == 403
+                success = success and op_success
+                status_icon = "✅" if op_success else "❌"
+                print(f"      {status_icon} {operation}: {response.status_code}")
+                
+                if not op_success:
+                    print(f"         📝 Response: {response.text[:100]}...")
         else:
-            # For failure cases, check for 403 and Vietnamese error messages
-            success = response.status_code == 403
-            result_icon = "✅" if success else "❌"
-            print(f"      {result_icon} Expected: {expected_status} (Forbidden), Got: {response.status_code}")
-            
-            # Check for Vietnamese error messages in 403 responses
-            if response.status_code == 403:
-                try:
-                    error_data = response.json()
-                    error_detail = error_data.get('detail', '')
-                    # Check for Vietnamese characters or specific Vietnamese messages
-                    vietnamese_phrases = ['không có quyền', 'bị từ chối', 'Department', 'Manager', 'chỉ', 'mới có quyền']
-                    vietnamese_error = any(phrase in error_detail for phrase in vietnamese_phrases)
-                    if vietnamese_error:
-                        print(f"      ✅ Vietnamese error message detected")
+            # Single response
+            response = result
+            if expected_success:
+                success = response.status_code in [200, 201]
+                result_icon = "✅" if success else "❌"
+                print(f"      {result_icon} Expected: Success (200/201), Got: {response.status_code}")
+            else:
+                success = response.status_code == 403
+                result_icon = "✅" if success else "❌"
+                print(f"      {result_icon} Expected: 403 (Forbidden), Got: {response.status_code}")
+                
+                # Check for Vietnamese error messages in 403 responses
+                if check_vietnamese and response.status_code == 403:
+                    vietnamese_found, error_detail = check_vietnamese_error_message(response)
+                    if vietnamese_found:
+                        print(f"      ✅ Vietnamese error message detected: {error_detail[:100]}...")
                     else:
-                        print(f"      ⚠️ Error message: {error_detail}")
-                except:
-                    print(f"      ⚠️ Error message: {response.text}")
-        
-        if not success:
-            print(f"      📝 Response: {response.text[:200]}...")
+                        print(f"      ⚠️ Error message: {error_detail[:100]}...")
             
-        return success, response
+            if not success:
+                print(f"      📝 Response: {response.text[:200]}...")
+                
+        return success, result
         
     except Exception as e:
         print(f"      ❌ Test failed with exception: {e}")
         return False, None
-
-def check_ship_filtering(response, expected_ship_id):
-    """Check if response contains only certificates for expected ship"""
-    try:
-        if response.status_code == 200:
-            certs = response.json()
-            if isinstance(certs, list):
-                ship_ids = [cert.get('ship_id') for cert in certs if cert.get('ship_id')]
-                if ship_ids:
-                    all_match = all(ship_id == expected_ship_id for ship_id in ship_ids)
-                    return all_match, f"Found {len(ship_ids)} certificates, all for ship {expected_ship_id}" if all_match else f"Mixed ship IDs: {set(ship_ids)}"
-                else:
-                    return True, "No certificates found (acceptable)"
-            return True, "Response format acceptable"
-        return False, f"Non-200 response: {response.status_code}"
-    except Exception as e:
-        return False, f"Error checking filtering: {e}"
 
 # Main test execution
 def main():
