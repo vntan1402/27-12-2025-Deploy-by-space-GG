@@ -142,9 +142,18 @@ class CrewService:
         expected_last_modified_at: Optional[str] = None
     ) -> CrewResponse:
         """Update crew member with conflict detection"""
+        from app.core.permission_checks import check_minimum_role, check_company_access, check_manager_department_permission
+        from app.models.user import UserRole
+        
         crew = await CrewRepository.find_by_id(crew_id)
         if not crew:
             raise HTTPException(status_code=404, detail="Crew member not found")
+        
+        # ⭐ NEW: Permission checks
+        crew_company_id = crew.get('company_id')
+        check_company_access(current_user, crew_company_id, "update crew")
+        check_minimum_role(current_user, UserRole.MANAGER, "update crew")
+        check_manager_department_permission(current_user, "crew_management", "update")
         
         # Check access permission
         if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
