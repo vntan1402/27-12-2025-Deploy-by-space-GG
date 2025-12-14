@@ -117,27 +117,27 @@ def create_test_users_and_environment():
         print("   ℹ️ Will proceed with existing users/data")
         return False
 
-# Test functions for different permission scenarios
+# Test functions for permission scenarios as per review request
 
-def test_technical_manager_can_create_ship_cert(headers, ship_id):
-    """Test 1: Manager with Technical department CAN create Ship Certificate"""
+def test_1_technical_manager_can_create_ship_cert(headers, ship_id):
+    """TEST 1: Technical Manager CAN Create Ship Certificate"""
     cert_data = {
         "ship_id": ship_id,
-        "cert_name": "Test Ship Cert Technical",
+        "cert_name": "Safety Equipment Certificate",
         "cert_type": "Full Term",
-        "cert_no": "TECH001"
+        "cert_no": "TECH-TEST-001"
     }
     
     response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
     return response
 
-def test_manager_without_technical_cannot_create_ship_cert(headers, ship_id):
-    """Test 2: Manager without Technical department CANNOT create Ship Certificate"""
+def test_2_crewing_manager_cannot_create_ship_cert(headers, ship_id):
+    """TEST 2: Crewing Manager CANNOT Create Ship Certificate"""
     cert_data = {
         "ship_id": ship_id,
-        "cert_name": "Test Ship Cert No Tech",
-        "cert_type": "Full Term", 
-        "cert_no": "NOTECH001"
+        "cert_name": "Ship Certificate Test",
+        "cert_type": "Full Term",
+        "cert_no": "CREW-TEST-002"
     }
     
     response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
