@@ -79,6 +79,23 @@ class CertificateMultiUploadService:
             if not ship:
                 raise HTTPException(status_code=404, detail="Ship not found")
             
+            # ⭐ NEW: Permission checks
+            from app.core.permission_checks import (
+                check_company_access,
+                check_create_permission,
+                check_editor_viewer_ship_scope
+            )
+            
+            # Check company access
+            ship_company_id = ship.get("company")
+            check_company_access(current_user, ship_company_id, "create ship certificates")
+            
+            # Check create permission (includes role + department checks)
+            check_create_permission(current_user, "ship_cert", ship_company_id)
+            
+            # For Editor/Viewer: check ship scope
+            check_editor_viewer_ship_scope(current_user, ship_id, "create ship certificates")
+            
             # Initialize results tracking
             results = []
             summary = {
