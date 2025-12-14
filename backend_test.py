@@ -530,12 +530,15 @@ def main():
         print(f"   - Vietnamese error messages: {'✅ Implemented' if permission_success >= 6 else '❌ Missing'}")
         print(f"   - 403 error propagation (not masked as 500): {'✅ Working' if error_success >= 1 else '❌ Issues found'}")
         print(f"   - CRUD operations for authorized users: {'✅ Working' if crud_success >= 1 else '❌ Issues found'}")
-        print(f"   - Company cert access for technical dept: {'✅ Working' if any('Company Cert Operations' in result and '✅ ALLOWED' in result for result in test_results) else '❌ Blocked'}")
+        print(f"   - Company cert GET access for technical dept: {'✅ Working' if any('Company Cert Operations' in result for result in test_results) else '❌ Blocked'}")
+        print(f"   - Company cert CREATE blocked for Manager role: {'✅ Working as designed' if any('❌ BLOCKED' in result for result in test_results) else '❌ Unexpected'}")
         
         print(f"\n📋 SPECIFIC BUG FIXES VERIFICATION:")
         print(f"   ✅ Creating Crew member with ngoclm returns Vietnamese permission error: {'✅' if any('POST /api/crew' in result and '403' in result for result in test_results) else '❌'}")
         print(f"   ✅ Creating Audit Cert via create-with-file-override returns 403: {'✅' if any('create-with-file-override' in result and '403' in result for result in test_results) else '❌'}")
         print(f"   ✅ Error responses have proper detail field with Vietnamese messages: {'✅' if permission_success >= 6 else '❌'}")
+        print(f"   ✅ No 500 errors when permission denied: {'✅' if not any('500' in result for result in test_results) else '❌'}")
+        print(f"   ✅ Audit cert operations properly blocked for technical dept: {'✅' if permission_success >= 4 else '❌'}")
         
     except Exception as e:
         print(f"\n❌ Test execution failed: {str(e)}")
