@@ -387,49 +387,45 @@ def main():
         
         print("\n🔴 CRITICAL TESTS (Department-Based Permissions)")
         
-        # Test 1: Manager with Technical department CAN create Ship Certificate
-        print("\n1. Manager with Technical department CAN create Ship Certificate")
+        # Test 1: Technical Manager CAN Create Ship Certificate
+        print("\n1. Technical Manager CAN Create Ship Certificate")
         try:
-            # Use ngoclm who has technical department
-            headers = get_headers("ngoclm")
+            headers = get_headers("tech_manager")
             user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Departments: {user_info.get('department', [])}")
+            print(f"   👤 Testing with: tech_manager - Departments: {user_info.get('department', [])}")
             
             success, response = run_test(
-                "Manager with Technical dept creates Ship Certificate",
-                lambda: test_technical_manager_can_create_ship_cert(headers, ship_id),
+                "Technical Manager creates Ship Certificate",
+                lambda: test_1_technical_manager_can_create_ship_cert(headers, test_ship_001_id),
                 expected_status=201,
                 expected_success=True
             )
             critical_tests.append(("Test 1", success))
-            test_results.append(("Manager Technical → Ship Cert", "✅ PASS" if success else "❌ FAIL"))
+            test_results.append(("Technical Manager → Ship Cert", "✅ PASS" if success else "❌ FAIL"))
         except Exception as e:
             print(f"   ❌ Test 1 failed: {e}")
             critical_tests.append(("Test 1", False))
-            test_results.append(("Manager Technical → Ship Cert", "❌ ERROR"))
+            test_results.append(("Technical Manager → Ship Cert", "❌ ERROR"))
         
-        # Test 2: Manager without Technical department CANNOT create Ship Certificate
-        print("\n2. Manager without Technical department CANNOT create Ship Certificate")
+        # Test 2: Crewing Manager CANNOT Create Ship Certificate
+        print("\n2. Crewing Manager CANNOT Create Ship Certificate")
         try:
-            # Use user1 who doesn't have technical in the right way (has ship_crew, technical, dpa)
-            # Actually user1 has technical, so let's create a scenario or use a different approach
-            headers = get_headers("user1")
+            headers = get_headers("crew_manager")
             user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Departments: {user_info.get('department', [])}")
+            print(f"   👤 Testing with: crew_manager - Departments: {user_info.get('department', [])}")
             
-            # This test might pass since user1 has technical - let's see what happens
             success, response = run_test(
-                "Manager user1 tries to create Ship Certificate",
-                lambda: test_manager_without_technical_cannot_create_ship_cert(headers, ship_id),
+                "Crewing Manager tries to create Ship Certificate",
+                lambda: test_2_crewing_manager_cannot_create_ship_cert(headers, test_ship_001_id),
                 expected_status=403,
                 expected_success=False
             )
             critical_tests.append(("Test 2", success))
-            test_results.append(("Manager w/o Technical → Ship Cert", "✅ BLOCKED" if success else "❌ ALLOWED"))
+            test_results.append(("Crewing Manager → Ship Cert", "✅ BLOCKED" if success else "❌ ALLOWED"))
         except Exception as e:
             print(f"   ❌ Test 2 failed: {e}")
             critical_tests.append(("Test 2", False))
-            test_results.append(("Manager w/o Technical → Ship Cert", "❌ ERROR"))
+            test_results.append(("Crewing Manager → Ship Cert", "❌ ERROR"))
         
         # Test 3: Manager with DPA department CAN create Company Certificate
         print("\n3. Manager with DPA department CAN create Company Certificate")
