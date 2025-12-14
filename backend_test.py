@@ -431,7 +431,7 @@ def main():
         print("\n7. Permission Allowed - Company Cert Operations")
         success, response = run_test(
             "ngoclm (technical dept) accesses company certificates",
-            lambda: test_permission_allowed_company_cert_operations(ngoclm_headers),
+            lambda: test_permission_allowed_company_cert_operations(ngoclm_headers, ngoclm_user),
             expected_success=True
         )
         permission_tests.append(("Company Cert Access Allowed", success))
