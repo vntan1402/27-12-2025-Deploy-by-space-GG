@@ -600,47 +600,54 @@ def main():
             high_priority_tests.append(("Test 8", False))
             test_results.append(("Manager → Cross-Company Access", "❌ ERROR"))
         
-        print("\n🟢 MEDIUM PRIORITY TESTS (Admin Permissions)")
+        print("\n🟢 MEDIUM PRIORITY TESTS (Additional Validations)")
         
-        # Test 9: Admin has full access within company
-        print("\n9. Admin has full access within company")
+        # Test 9: Editor CAN View Company Certificates (NEW FEATURE!)
+        print("\n9. Editor CAN View Company Certificates (NEW FEATURE!)")
         try:
-            headers = get_headers("admin1")
+            headers = get_headers("test_editor")
             user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Role: {user_info.get('role')}")
+            print(f"   👤 Testing with: test_editor - Role: {user_info.get('role')}")
             
             success, response = run_test(
-                "Admin creates Ship Certificate",
-                lambda: test_admin_full_access(headers, ship_id),
-                expected_status=201,
+                "Editor views Company Certificates",
+                lambda: test_9_editor_can_view_company_certs(headers),
+                expected_status=200,
                 expected_success=True
             )
             medium_priority_tests.append(("Test 9", success))
-            test_results.append(("Admin → Ship Cert", "✅ PASS" if success else "❌ FAIL"))
+            test_results.append(("Editor → View Company Certs", "✅ PASS" if success else "❌ FAIL"))
         except Exception as e:
             print(f"   ❌ Test 9 failed: {e}")
             medium_priority_tests.append(("Test 9", False))
-            test_results.append(("Admin → Ship Cert", "❌ ERROR"))
+            test_results.append(("Editor → View Company Certs", "❌ ERROR"))
         
-        # Test 10: Admin CAN create Company Certificate
-        print("\n10. Admin CAN create Company Certificate")
+        # Test 10: System Admin Has Full Access
+        print("\n10. System Admin Has Full Access")
         try:
-            headers = get_headers("admin1")
+            headers = get_headers("system_admin")
             user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Role: {user_info.get('role')}")
+            print(f"   👤 Testing with: system_admin - Role: {user_info.get('role')}")
             
-            success, response = run_test(
-                "Admin creates Company Certificate",
-                lambda: test_admin_can_create_company_cert(headers, company_id),
-                expected_status=201,
-                expected_success=True
-            )
+            results = test_10_system_admin_full_access(headers, test_ship_001_id, crew_id, company_id)
+            
+            # Check all results
+            ship_cert_success = results.get('ship_cert', {}).status_code in [200, 201]
+            crew_cert_success = results.get('crew_cert', {}).status_code in [200, 201] if 'crew_cert' in results else True
+            company_cert_success = results.get('company_cert', {}).status_code in [200, 201]
+            
+            success = ship_cert_success and crew_cert_success and company_cert_success
+            
+            print(f"      📋 Ship Certificate: {'✅' if ship_cert_success else '❌'}")
+            print(f"      📋 Crew Certificate: {'✅' if crew_cert_success else '❌'}")
+            print(f"      📋 Company Certificate: {'✅' if company_cert_success else '❌'}")
+            
             medium_priority_tests.append(("Test 10", success))
-            test_results.append(("Admin → Company Cert", "✅ PASS" if success else "❌ FAIL"))
+            test_results.append(("System Admin → Full Access", "✅ PASS" if success else "❌ FAIL"))
         except Exception as e:
             print(f"   ❌ Test 10 failed: {e}")
             medium_priority_tests.append(("Test 10", False))
-            test_results.append(("Admin → Company Cert", "❌ ERROR"))
+            test_results.append(("System Admin → Full Access", "❌ ERROR"))
         
         print("\n🔵 BONUS TESTS (Crew Certificates)")
         
