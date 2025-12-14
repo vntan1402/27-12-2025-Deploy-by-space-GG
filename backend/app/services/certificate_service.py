@@ -36,9 +36,25 @@ class CertificateService:
     @staticmethod
     async def get_certificates(ship_id: Optional[str], current_user: UserResponse) -> List[CertificateResponse]:
         """Get certificates, optionally filtered by ship"""
-        certificates = await CertificateRepository.find_all(ship_id=ship_id)
+        from app.models.user import UserRole
         
-        # TODO: Add access control based on user's company
+        # Add company-based filtering for non-super admins
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
+            # Get ships for user's company
+            company_ships = await ShipRepository.find_all(company=current_user.company)
+            company_ship_ids = [ship['id'] for ship in company_ships]
+            
+            if ship_id:
+                # Verify ship belongs to user's company
+                if ship_id not in company_ship_ids:
+                    raise HTTPException(status_code=403, detail="Access denied")
+            
+            # Get all certificates first
+            all_certificates = await CertificateRepository.find_all(ship_id=ship_id)
+            # Filter by company's ships
+            certificates = [cert for cert in all_certificates if cert.get('ship_id') in company_ship_ids]
+        else:
+            certificates = await CertificateRepository.find_all(ship_id=ship_id)
         
         # Enhance certificates with abbreviations
         enhanced_certs = []
