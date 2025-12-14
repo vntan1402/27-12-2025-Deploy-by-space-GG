@@ -4,11 +4,14 @@ Centralized permission checking utilities
 This module provides reusable permission check functions that can be used
 across all services to enforce consistent access control.
 """
+import logging
 from typing import Optional, List
 from fastapi import HTTPException
 from app.models.user import UserResponse, UserRole
 from app.core import messages
 from app.core.department_permissions import can_manage_document_type, get_category_for_document_type
+
+logger = logging.getLogger(__name__)
 
 
 def check_company_access(current_user: UserResponse, target_company_id: str, action: str = "access") -> None:
@@ -26,13 +29,19 @@ def check_company_access(current_user: UserResponse, target_company_id: str, act
     Raises:
         HTTPException(403): If user doesn't have access
     """
+    logger.info(f"🔍 CHECK_COMPANY_ACCESS: user={current_user.username}, role={current_user.role}, user_company={current_user.company}, target_company={target_company_id}, action={action}")
+    
     # System Admin and Super Admin have access to everything
     if current_user.role in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
+        logger.info(f"✅ PASS: System/Super Admin has full access")
         return
     
     # All other users (including Admin) can only access their own company
     if current_user.company != target_company_id:
+        logger.warning(f"❌ BLOCK: Company mismatch - user_company={current_user.company} != target={target_company_id}")
         raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED_COMPANY)
+    
+    logger.info(f"✅ PASS: Company access granted")
 
 
 def check_ship_access(current_user: UserResponse, ship_company_id: str) -> None:
@@ -104,8 +113,11 @@ def check_manager_department_permission(
     Raises:
         HTTPException(403): If Manager's department doesn't have permission
     """
+    logger.info(f"🔍 CHECK_MANAGER_DEPT: user={current_user.username}, role={current_user.role}, document_type={document_type}, action={action}")
+    
     # Only apply to Manager role
     if current_user.role != UserRole.MANAGER:
+        logger.info(f"✅ SKIP: Role {current_user.role} not subject to department restrictions")
         return  # Admin and System Admin have full access
     
     # Get user's departments
@@ -117,15 +129,26 @@ def check_manager_department_permission(
         else:
             user_departments = [current_user.department]
     
+    logger.info(f"   User departments: {user_departments}")
+    
     if not user_departments:
         # Manager without department cannot manage anything
+        logger.warning(f"❌ BLOCK: Manager has no departments assigned")
         raise HTTPException(status_code=403, detail=messages.DEPARTMENT_PERMISSION_DENIED)
     
     # Check if user's departments can manage this document type
-    if not can_manage_document_type(user_departments, document_type):
-        category = get_category_for_document_type(document_type)
+    can_manage = can_manage_document_type(user_departments, document_type)
+    category = get_category_for_document_type(document_type)
+    
+    logger.info(f"   Document category: {category}")
+    logger.info(f"   Can manage: {can_manage}")
+    
+    if not can_manage:
+        logger.warning(f"❌ BLOCK: Departments {user_departments} cannot manage {document_type} (category: {category})")
         error_msg = f"Department của bạn không có quyền quản lý loại tài liệu này (Category: {category}). Hãy liên hệ Manager của department tương ứng."
         raise HTTPException(status_code=403, detail=error_msg)
+    
+    logger.info(f"✅ PASS: Department permission granted")
 
 
 def check_minimum_role(current_user: UserResponse, minimum_role: UserRole, action: str = "perform this action") -> None:
@@ -183,6 +206,8 @@ def check_create_permission(current_user: UserResponse, document_type: str, targ
     Raises:
         HTTPException(403): If user doesn't have permission
     """
+    logger.info(f"🔐 CHECK_CREATE_PERMISSION: user={current_user.username}, doc_type={document_type}, target_company={target_company_id}")
+    
     # Step 1: Check company access
     check_company_access(current_user, target_company_id, "create")
     
@@ -191,6 +216,8 @@ def check_create_permission(current_user: UserResponse, document_type: str, targ
     
     # Step 3: For Manager role, check department permission
     check_manager_department_permission(current_user, document_type, "create")
+    
+    logger.info(f"✅ CREATE PERMISSION GRANTED for {current_user.username}")
 
 
 def check_edit_permission(current_user: UserResponse, document_type: str, target_company_id: str) -> None:
