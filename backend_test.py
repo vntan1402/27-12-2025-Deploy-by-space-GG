@@ -164,6 +164,7 @@ def test_4_technical_manager_cannot_create_crew_cert(headers, crew_id, company_i
     cert_data = {
         "crew_id": crew_id,
         "company_id": company_id,
+        "crew_name": "Test Crew Member",  # Added missing field
         "cert_name": "Test Crew Cert",
         "cert_type": "COC",
         "cert_no": "TECH-CREW-002"
