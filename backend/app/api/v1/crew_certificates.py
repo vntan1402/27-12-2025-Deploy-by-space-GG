@@ -12,6 +12,8 @@ from app.models.crew_certificate import (
 from app.models.user import UserResponse, UserRole
 from app.services.crew_certificate_service import CrewCertificateService
 from app.core.security import get_current_user
+from app.core import messages
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -19,7 +21,7 @@ router = APIRouter()
 def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has editor or higher permission"""
     if current_user.role not in [UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
+        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
     return current_user
 
 @router.get("/all", response_model=List[CrewCertificateResponse])
@@ -165,7 +167,7 @@ async def upload_crew_certificate_files(
         # Check access permission
         if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
             if cert.get('company_id') != current_user.company:
-                raise HTTPException(status_code=403, detail="Access denied")
+                raise HTTPException(status_code=403, detail=ACCESS_DENIED)
         
         # 2. Validate required fields
         required_fields = ['file_content', 'filename']

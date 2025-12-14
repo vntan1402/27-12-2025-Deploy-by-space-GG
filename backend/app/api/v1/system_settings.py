@@ -2,6 +2,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from app.models.user import UserResponse, UserRole
 from app.core.security import get_current_user
+from app.core import messages
+
 from app.db.mongodb import mongo_db
 from datetime import datetime, timezone
 
@@ -11,7 +13,7 @@ router = APIRouter()
 def check_admin_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has admin permission"""
     if current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
+        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
     return current_user
 
 @router.get("/base-fee")

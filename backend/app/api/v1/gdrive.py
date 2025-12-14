@@ -10,6 +10,8 @@ from app.models.gdrive_config import (
 )
 from app.services.gdrive_service import GDriveService
 from app.core.security import get_current_user
+from app.core import messages
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -17,7 +19,7 @@ router = APIRouter()
 def check_admin_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has admin or higher permission"""
     if current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
-        raise HTTPException(status_code=403, detail="Admin permission required")
+        raise HTTPException(status_code=403, detail=ADMIN_ONLY)
     return current_user
 
 @router.get("/status")

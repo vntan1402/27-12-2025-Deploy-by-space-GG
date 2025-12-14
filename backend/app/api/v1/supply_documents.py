@@ -6,6 +6,8 @@ from app.models.document import DocumentCreate, DocumentUpdate, DocumentResponse
 from app.models.user import UserResponse, UserRole
 from app.services.document_service import GenericDocumentService
 from app.core.security import get_current_user
+from app.core import messages
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -16,7 +18,7 @@ service = GenericDocumentService("supply_documents", "Supply Document")
 def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has editor or higher permission"""
     if current_user.role not in [UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
+        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
     return current_user
 
 @router.get("", response_model=List[DocumentResponse])
