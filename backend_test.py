@@ -207,66 +207,64 @@ def test_manager_technical_cannot_create_crew_cert(headers):
     response = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=cert_data)
     return response
 
-def test_audit_certificate_analyze(headers, ship_id, ship_name):
-    """Test the audit certificate analyze endpoint with text layer + Document AI merge"""
-    
-    # Create test PDF with text layer
-    pdf_content = create_test_pdf_with_text_layer()
-    file_base64 = base64.b64encode(pdf_content).decode('utf-8')
-    
-    # Prepare request data
-    request_data = {
-        "file_content": file_base64,
-        "filename": "test_audit_cert_ism.pdf",
-        "content_type": "application/pdf",
-        "ship_id": ship_id
-    }
-    
-    # Call analyze endpoint
-    response = requests.post(
-        f"{BACKEND_URL}/audit-certificates/analyze-file",
-        headers=headers,
-        json=request_data
-    )
-    
-    return response
+def run_test(test_name, test_func, expected_status, expected_success=True):
+    """Run a single test and return results"""
+    try:
+        print(f"\n   🧪 {test_name}")
+        response = test_func()
+        
+        status_match = response.status_code == expected_status
+        
+        # Check for Vietnamese error messages in 403 responses
+        vietnamese_error = False
+        if response.status_code == 403:
+            try:
+                error_data = response.json()
+                error_detail = error_data.get('detail', '')
+                # Check for Vietnamese characters or specific Vietnamese messages
+                vietnamese_phrases = ['không có quyền', 'bị từ chối', 'Department', 'Manager', 'chỉ', 'mới có quyền']
+                vietnamese_error = any(phrase in error_detail for phrase in vietnamese_phrases)
+            except:
+                pass
+        
+        if expected_success:
+            success = status_match and response.status_code in [200, 201]
+            result_icon = "✅" if success else "❌"
+            print(f"      {result_icon} Expected: {expected_status} (Success), Got: {response.status_code}")
+        else:
+            success = status_match and response.status_code == 403
+            result_icon = "✅" if success else "❌"
+            print(f"      {result_icon} Expected: {expected_status} (Forbidden), Got: {response.status_code}")
+            if response.status_code == 403 and vietnamese_error:
+                print(f"      ✅ Vietnamese error message detected")
+            elif response.status_code == 403:
+                print(f"      ⚠️ Error message: {response.text}")
+        
+        if not success:
+            print(f"      📝 Response: {response.text[:200]}...")
+            
+        return success, response
+        
+    except Exception as e:
+        print(f"      ❌ Test failed with exception: {e}")
+        return False, None
 
-def verify_summary_text_structure(summary_text):
-    """Verify that summary text contains both PART 1 and PART 2 sections"""
-    if not summary_text:
-        return False, "Summary text is empty"
-    
-    # Check for required sections
-    has_part1 = "PART 1: TEXT LAYER CONTENT" in summary_text
-    has_part2 = "PART 2: DOCUMENT AI OCR CONTENT" in summary_text
-    
-    if not has_part1:
-        return False, "Missing 'PART 1: TEXT LAYER CONTENT' section"
-    
-    if not has_part2:
-        return False, "Missing 'PART 2: DOCUMENT AI OCR CONTENT' section"
-    
-    return True, "Summary text has correct structure with both parts"
-
-def verify_extracted_info_structure(extracted_info):
-    """Verify extracted_info has expected fields"""
-    required_fields = ['cert_name', 'cert_no']
-    optional_fields = ['cert_type', 'issue_date', 'valid_date', 'issued_by', 'ship_name', 'imo_number']
-    
-    missing_required = [field for field in required_fields if not extracted_info.get(field)]
-    if missing_required:
-        return False, f"Missing required fields: {missing_required}"
-    
-    # Count populated fields
-    populated_fields = [field for field in required_fields + optional_fields if extracted_info.get(field)]
-    
-    return True, f"Extracted info valid with {len(populated_fields)} populated fields"
-
-def check_google_drive_summary_file(headers, ship_name):
-    """Check if summary files are being created in Google Drive (indirect verification)"""
-    # This is a placeholder - in real testing we would check GDrive API
-    # For now, we'll just verify the API response indicates summary_text was processed
-    return True, "Google Drive summary file creation verified (indirect)"
+def check_ship_filtering(response, expected_ship_id):
+    """Check if response contains only certificates for expected ship"""
+    try:
+        if response.status_code == 200:
+            certs = response.json()
+            if isinstance(certs, list):
+                ship_ids = [cert.get('ship_id') for cert in certs if cert.get('ship_id')]
+                if ship_ids:
+                    all_match = all(ship_id == expected_ship_id for ship_id in ship_ids)
+                    return all_match, f"Found {len(ship_ids)} certificates, all for ship {expected_ship_id}" if all_match else f"Mixed ship IDs: {set(ship_ids)}"
+                else:
+                    return True, "No certificates found (acceptable)"
+            return True, "Response format acceptable"
+        return False, f"Non-200 response: {response.status_code}"
+    except Exception as e:
+        return False, f"Error checking filtering: {e}"
 
 # Main test execution
 def main():
