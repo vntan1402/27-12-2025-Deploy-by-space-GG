@@ -74,12 +74,18 @@ class CertificateService:
     @staticmethod
     async def get_certificate_by_id(cert_id: str, current_user: UserResponse) -> CertificateResponse:
         """Get certificate by ID"""
+        from app.models.user import UserRole
+        
         cert = await CertificateRepository.find_by_id(cert_id)
         
         if not cert:
             raise HTTPException(status_code=404, detail="Certificate not found")
         
-        # TODO: Check access permission
+        # Check access permission
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
+            ship = await ShipRepository.find_by_id(cert.get('ship_id'))
+            if not ship or ship.get('company') != current_user.company:
+                raise HTTPException(status_code=403, detail="Access denied")
         
         # Generate certificate abbreviation if not present
         if not cert.get("cert_abbreviation") and cert.get("cert_name"):
