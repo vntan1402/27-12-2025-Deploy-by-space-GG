@@ -141,7 +141,7 @@ def test_permission_denied_audit_cert_create_with_file(headers, ship_id):
     # Create a simple test file
     test_file_content = b"Test PDF content"
     files = {
-        'file': ('test.pdf', test_file_content, 'application/pdf')
+        'audit_certificate_file': ('test.pdf', test_file_content, 'application/pdf')
     }
     data = {
         'ship_id': ship_id,
