@@ -167,7 +167,7 @@ async def upload_crew_certificate_files(
         # Check access permission
         if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
             if cert.get('company_id') != current_user.company:
-                raise HTTPException(status_code=403, detail=ACCESS_DENIED)
+                raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED)
         
         # 2. Validate required fields
         required_fields = ['file_content', 'filename']

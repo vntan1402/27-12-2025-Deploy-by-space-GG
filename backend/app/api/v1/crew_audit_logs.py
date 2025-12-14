@@ -46,7 +46,7 @@ async def get_audit_logs(
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
-        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
+        raise HTTPException(status_code=403, detail=messages.PERMISSION_DENIED)
     
     # Filter by company_id based on role
     if current_user.role == 'admin':
@@ -95,7 +95,7 @@ async def get_audit_log_by_id(
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
-        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
+        raise HTTPException(status_code=403, detail=messages.PERMISSION_DENIED)
     
     # Filter by company_id based on role
     if current_user.role == 'admin':
@@ -125,7 +125,7 @@ async def get_audit_logs_by_crew(
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
-        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
+        raise HTTPException(status_code=403, detail=messages.PERMISSION_DENIED)
     
     # Filter by company_id based on role
     if current_user.role == 'admin':
@@ -150,7 +150,7 @@ async def get_unique_users_for_filter(
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
-        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
+        raise HTTPException(status_code=403, detail=messages.PERMISSION_DENIED)
     
     # Filter by company_id based on role
     if current_user.role == 'admin':
@@ -175,7 +175,7 @@ async def get_unique_ships_for_filter(
     """
     # Check permissions
     if current_user.role not in ['admin', 'super_admin', 'system_admin']:
-        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
+        raise HTTPException(status_code=403, detail=messages.PERMISSION_DENIED)
     
     # Filter by company_id based on role
     if current_user.role == 'admin':

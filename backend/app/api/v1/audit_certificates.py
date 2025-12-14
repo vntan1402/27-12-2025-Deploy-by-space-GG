@@ -17,7 +17,7 @@ router = APIRouter()
 def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has editor or higher permission"""
     if current_user.role not in [UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
-        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
+        raise HTTPException(status_code=403, detail=messages.PERMISSION_DENIED)
     return current_user
 
 @router.get("", response_model=List[AuditCertificateResponse])
@@ -286,7 +286,7 @@ async def multi_upload_audit_certificates(
         from app.core.messages import ACCESS_DENIED_COMPANY
         company_id = current_user.company
         if ship.get("company") != company_id:
-            raise HTTPException(status_code=403, detail=ACCESS_DENIED_COMPANY)
+            raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED_COMPANY)
         
         results = []
         summary = {
@@ -612,7 +612,7 @@ async def create_audit_certificate_with_file_override(
         from app.core.messages import ACCESS_DENIED_COMPANY
         company_id = current_user.company
         if ship.get("company") != company_id:
-            raise HTTPException(status_code=403, detail=ACCESS_DENIED_COMPANY)
+            raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED_COMPANY)
         
         # Parse cert_data
         try:

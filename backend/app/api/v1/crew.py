@@ -137,7 +137,7 @@ async def check_passport_duplicate(
 def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has editor or higher permission"""
     if current_user.role not in [UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
-        raise HTTPException(status_code=403, detail=PERMISSION_DENIED)
+        raise HTTPException(status_code=403, detail=messages.PERMISSION_DENIED)
     return current_user
 
 @router.get("", response_model=List[CrewResponse])
@@ -1100,7 +1100,7 @@ async def get_crew_assignment_history(
         # Check access permission
         if current_user.role not in ["SYSTEM_ADMIN", "SUPER_ADMIN"]:
             if crew.get('company_id') != current_user.company:
-                raise HTTPException(status_code=403, detail=ACCESS_DENIED)
+                raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED)
         
         # Get assignment history
         history = await CrewAssignmentRepository.find_by_crew_id(
@@ -1168,7 +1168,7 @@ async def clear_crew_assignment_history(
         # Check access permission
         if current_user.role not in ["SYSTEM_ADMIN", "SUPER_ADMIN", "ADMIN"]:
             if crew.get('company_id') != current_user.company:
-                raise HTTPException(status_code=403, detail=ACCESS_DENIED)
+                raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED)
         
         crew_name = crew.get('full_name', 'Unknown')
         
@@ -1255,7 +1255,7 @@ async def update_crew_assignment_dates(
         # Check access permission
         if current_user.role not in ["SYSTEM_ADMIN", "SUPER_ADMIN", "ADMIN"]:
             if crew.get('company_id') != current_user.company:
-                raise HTTPException(status_code=403, detail=ACCESS_DENIED)
+                raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED)
         
         updated = {
             "sign_on": False,
