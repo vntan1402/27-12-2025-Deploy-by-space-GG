@@ -113,16 +113,24 @@ class CertificateService:
     @staticmethod
     async def create_certificate(cert_data: CertificateCreate, current_user: UserResponse) -> CertificateResponse:
         """Create new certificate"""
+        import logging
         from app.core.permission_checks import check_create_permission, check_editor_viewer_ship_scope
+        
+        logger = logging.getLogger(__name__)
+        logger.info(f"🎯 CREATE_CERTIFICATE called: user={current_user.username}, role={current_user.role}, ship_id={cert_data.ship_id}")
         
         # Verify ship exists
         ship = await ShipRepository.find_by_id(cert_data.ship_id)
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
+        logger.info(f"   Ship found: {ship.get('name')}, company={ship.get('company')}")
+        
         # ⭐ NEW: Permission checks
         ship_company_id = ship.get("company")
+        logger.info(f"   Calling check_create_permission...")
         check_create_permission(current_user, "ship_cert", ship_company_id)
+        logger.info(f"   Calling check_editor_viewer_ship_scope...")
         check_editor_viewer_ship_scope(current_user, cert_data.ship_id, "create")
         
         # Create certificate document
