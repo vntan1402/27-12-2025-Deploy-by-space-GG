@@ -23,6 +23,7 @@ DOCUMENT_TYPE_CATEGORY_MAPPING: Dict[str, str] = {
     "other_document": "Class & Flag Cert",
     "crew_cert": "Crew Records",
     "crew_passport": "Crew Records",
+    "crew_management": "Crew Records",  # ⭐ NEW: For crew creation/management
     "audit_cert": "ISM - ISPS - MLC",
     "audit_report": "ISM - ISPS - MLC",
     "approval_doc": "ISM - ISPS - MLC",
