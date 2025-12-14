@@ -28,13 +28,31 @@ class AuditCertificateService:
     @staticmethod
     async def get_audit_certificates(ship_id: Optional[str], cert_type: Optional[str], current_user: UserResponse) -> List[AuditCertificateResponse]:
         """Get audit certificates with optional ship and type filter"""
+        from app.models.user import UserRole
+        from app.core.permission_checks import filter_documents_by_ship_scope
+        
         filters = {}
         if ship_id:
             filters["ship_id"] = ship_id
         if cert_type:
             filters["cert_type"] = cert_type
         
+        # Company filtering for non-system admins
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
+            # Get ships for user's company
+            ships = await mongo_db.find_all("ships", {"company": current_user.company})
+            company_ship_ids = [ship['id'] for ship in ships]
+            
+            # Filter by company ships if ship_id specified
+            if ship_id and ship_id not in company_ship_ids:
+                from app.core import messages
+                raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED_SHIP)
+        
         certs = await mongo_db.find_all(AuditCertificateService.collection_name, filters)
+        
+        # ⭐ NEW: For Editor/Viewer, filter by assigned ship
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
+            certs = filter_documents_by_ship_scope(certs, current_user)
         
         # Handle backward compatibility and enhance with abbreviations
         result = []
@@ -111,6 +129,17 @@ class AuditCertificateService:
     @staticmethod
     async def create_audit_certificate(cert_data: AuditCertificateCreate, current_user: UserResponse) -> AuditCertificateResponse:
         """Create new audit certificate"""
+        from app.core.permission_checks import check_create_permission, check_editor_viewer_ship_scope
+        
+        # ⭐ NEW: Get ship and check permissions
+        ship = await mongo_db.find_one("ships", {"id": cert_data.ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_create_permission(current_user, "audit_cert", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, cert_data.ship_id, "create")
+        
         cert_dict = cert_data.dict()
         cert_dict["id"] = str(uuid.uuid4())
         cert_dict["created_at"] = datetime.now(timezone.utc)
@@ -167,9 +196,20 @@ class AuditCertificateService:
     @staticmethod
     async def update_audit_certificate(cert_id: str, cert_data: AuditCertificateUpdate, current_user: UserResponse) -> AuditCertificateResponse:
         """Update audit certificate"""
+        from app.core.permission_checks import check_edit_permission, check_editor_viewer_ship_scope
+        
         cert = await mongo_db.find_one(AuditCertificateService.collection_name, {"id": cert_id})
         if not cert:
             raise HTTPException(status_code=404, detail="Audit Certificate not found")
+        
+        # ⭐ NEW: Permission checks
+        ship = await mongo_db.find_one("ships", {"id": cert.get("ship_id")})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_edit_permission(current_user, "audit_cert", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, cert.get("ship_id"), "edit")
         
         update_data = cert_data.dict(exclude_unset=True)
         
@@ -244,9 +284,20 @@ class AuditCertificateService:
         background_tasks: Optional[BackgroundTasks] = None
     ) -> dict:
         """Delete audit certificate and schedule Google Drive file deletion"""
+        from app.core.permission_checks import check_delete_permission, check_editor_viewer_ship_scope
+        
         cert = await mongo_db.find_one(AuditCertificateService.collection_name, {"id": cert_id})
         if not cert:
             raise HTTPException(status_code=404, detail="Audit Certificate not found")
+        
+        # ⭐ NEW: Permission checks
+        ship = await mongo_db.find_one("ships", {"id": cert.get("ship_id")})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_delete_permission(current_user, "audit_cert", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, cert.get("ship_id"), "delete")
         
         # Extract file info before deleting
         google_drive_file_id = cert.get("google_drive_file_id")
