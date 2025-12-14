@@ -209,6 +209,7 @@ def test_system_admin_crud_operations(headers, test_data):
         
         # Create Company Cert
         company_cert_data = {
+            "company": system_user.get("company"),  # Add required company field
             "cert_name": "DOC",
             "doc_type": "DOC",
             "cert_no": "SYS-ADMIN-DOC-001",
