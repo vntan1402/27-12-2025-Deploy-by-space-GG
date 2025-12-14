@@ -103,132 +103,145 @@ def check_vietnamese_error_message(response):
     except:
         return False, response.text
 
-# Test functions for permission scenarios as per review request
+# Test functions based on review request requirements
 
-def test_1_technical_manager_can_create_ship_cert(headers, ship_id):
-    """TEST 1: Technical Manager CAN Create Ship Certificate"""
-    cert_data = {
-        "ship_id": ship_id,
-        "cert_name": "Safety Equipment Certificate",
-        "cert_type": "Full Term",
-        "cert_no": "TECH-TEST-001"
+def test_permission_denied_crew_creation(headers):
+    """Test ngoclm (technical dept) CANNOT create crew member - should return 403"""
+    crew_data = {
+        "full_name": "Test Crew Member",
+        "full_name_en": "Test Crew Member", 
+        "sex": "M",
+        "date_of_birth": "1990-01-01",
+        "place_of_birth": "Test City",
+        "passport": "TEST123456",
+        "nationality": "VIETNAMESE",
+        "status": "Standby"
     }
     
-    response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
+    response = requests.post(f"{BACKEND_URL}/crew", headers=headers, json=crew_data)
     return response
 
-def test_2_crewing_manager_cannot_create_ship_cert(headers, ship_id):
-    """TEST 2: Crewing Manager CANNOT Create Ship Certificate"""
-    cert_data = {
-        "ship_id": ship_id,
-        "cert_name": "Ship Certificate Test",
-        "cert_type": "Full Term",
-        "cert_no": "CREW-TEST-002"
+def test_permission_denied_crew_update(headers, crew_id):
+    """Test ngoclm (technical dept) CANNOT update crew member - should return 403"""
+    crew_data = {
+        "full_name": "Updated Crew Member",
+        "status": "Active"
     }
     
-    response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
+    response = requests.put(f"{BACKEND_URL}/crew/{crew_id}", headers=headers, json=crew_data)
     return response
 
-def test_3_crewing_manager_can_create_crew_cert(headers, crew_id, company_id):
-    """TEST 3: Crewing Manager CAN Create Crew Certificate"""
-    cert_data = {
-        "crew_id": crew_id,
-        "company_id": company_id,
-        "crew_name": "Trần Văn Đức",
-        "passport": "C9575554",  # Added required passport field
-        "cert_name": "STCW Certificate",
-        "cert_no": "CREW-CERT-001"
+def test_permission_denied_crew_delete(headers, crew_id):
+    """Test ngoclm (technical dept) CANNOT delete crew member - should return 403"""
+    response = requests.delete(f"{BACKEND_URL}/crew/{crew_id}", headers=headers)
+    return response
+
+def test_permission_denied_audit_cert_create_with_file(headers, ship_id):
+    """Test ngoclm (technical dept) CANNOT create audit cert with file - should return 403"""
+    # Create a simple test file
+    test_file_content = b"Test PDF content"
+    files = {
+        'file': ('test.pdf', test_file_content, 'application/pdf')
+    }
+    data = {
+        'ship_id': ship_id,
+        'bypass_validation': 'true'
     }
     
-    response = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=cert_data)
+    response = requests.post(f"{BACKEND_URL}/audit-certificates/create-with-file-override", 
+                           headers={"Authorization": headers["Authorization"]}, 
+                           files=files, data=data)
     return response
 
-def test_4_technical_manager_cannot_create_crew_cert(headers, crew_id, company_id):
-    """TEST 4: Technical Manager CANNOT Create Crew Certificate"""
+def test_permission_denied_audit_cert_update(headers, cert_id):
+    """Test ngoclm (technical dept) CANNOT update audit cert - should return 403"""
     cert_data = {
-        "crew_id": crew_id,
-        "company_id": company_id,
-        "crew_name": "Trần Văn Đức",
-        "passport": "C9575554",  # Added required passport field
-        "cert_name": "Test Crew Cert",
-        "cert_no": "TECH-CREW-002"
+        "cert_name": "Updated Audit Certificate",
+        "status": "Valid"
     }
     
-    response = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=cert_data)
+    response = requests.put(f"{BACKEND_URL}/audit-certificates/{cert_id}", headers=headers, json=cert_data)
     return response
 
-def test_5_editor_cannot_create_certificates(headers, ship_id):
-    """TEST 5: Editor CANNOT Create Any Certificates"""
-    cert_data = {
-        "ship_id": ship_id,
-        "cert_name": "Editor Test Cert",
-        "cert_type": "Full Term",
-        "cert_no": "EDITOR-001"
-    }
+def test_permission_denied_audit_cert_delete(headers, cert_id):
+    """Test ngoclm (technical dept) CANNOT delete audit cert - should return 403"""
+    response = requests.delete(f"{BACKEND_URL}/audit-certificates/{cert_id}", headers=headers)
+    return response
+
+def test_permission_allowed_company_cert_operations(headers):
+    """Test ngoclm (technical dept) CAN access company certs (technical has access to company_cert_management)"""
+    # Test GET - should be allowed
+    get_response = requests.get(f"{BACKEND_URL}/company-certs", headers=headers)
     
-    response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
-    return response
-
-def test_6_editor_ship_scope_filtering(headers, expected_ship_id):
-    """TEST 6: Editor Ship Scope Filtering (GET Certificates)"""
-    response = requests.get(f"{BACKEND_URL}/certificates", headers=headers)
-    return response
-
-def test_7_editor_ship_scope_on_ship_list(headers, expected_ship_id):
-    """TEST 7: Editor Ship Scope on Ship List"""
-    response = requests.get(f"{BACKEND_URL}/ships", headers=headers)
-    return response
-
-def test_8_company_access_control(headers, different_company_ship_id):
-    """TEST 8: Company Access Control (Admin Scope)"""
+    # Test POST - should be allowed for technical department
     cert_data = {
-        "ship_id": different_company_ship_id,
-        "cert_name": "Cross Company Test",
-        "cert_type": "Full Term",
-        "cert_no": "CROSS-001"
+        "cert_name": "DOC",
+        "doc_type": "DOC", 
+        "cert_no": "TEST-DOC-001",
+        "issue_date": "2024-01-01",
+        "valid_date": "2027-01-01",
+        "issued_by": "Test Authority"
     }
+    post_response = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=cert_data)
     
-    response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
+    return {
+        "get": get_response,
+        "post": post_response
+    }
+
+def test_error_propagation_approval_documents(headers):
+    """Test GET /api/approval-documents - Should propagate 403 if permission denied"""
+    response = requests.get(f"{BACKEND_URL}/approval-documents", headers=headers)
     return response
 
-def test_9_editor_can_view_company_certs(headers):
-    """TEST 9: Editor CAN View Company Certificates (NEW FEATURE!)"""
-    response = requests.get(f"{BACKEND_URL}/company-certs", headers=headers)
+def test_error_propagation_sidebar_structure(headers):
+    """Test GET /api/sidebar-structure - Should return proper error (not dict with success: false)"""
+    response = requests.get(f"{BACKEND_URL}/sidebar-structure", headers=headers)
     return response
 
-def test_10_system_admin_full_access(headers, ship_id, crew_id, company_id):
-    """TEST 10: System Admin Has Full Access"""
+def test_system_admin_crud_operations(headers, test_data):
+    """Test system_admin can perform all CRUD operations"""
     results = {}
     
-    # Test ship certificate creation
-    ship_cert_data = {
-        "ship_id": ship_id,
-        "cert_name": "System Admin Ship Cert",
-        "cert_type": "Full Term",
-        "cert_no": "SYS-SHIP-001"
-    }
-    results['ship_cert'] = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=ship_cert_data)
-    
-    # Test crew certificate creation
-    if crew_id:
-        crew_cert_data = {
-            "crew_id": crew_id,
-            "company_id": company_id,
-            "crew_name": "Trần Văn Đức",
-            "passport": "C9575554",  # Added required passport field
-            "cert_name": "System Admin Crew Cert",
-            "cert_no": "SYS-CREW-001"
+    # Test Company Certs CRUD
+    if test_data["ships"]:
+        ship_id = test_data["ships"][0]["id"]
+        
+        # Create Company Cert
+        company_cert_data = {
+            "cert_name": "DOC",
+            "doc_type": "DOC",
+            "cert_no": "SYS-ADMIN-DOC-001",
+            "issue_date": "2024-01-01",
+            "valid_date": "2027-01-01",
+            "issued_by": "Test Authority"
         }
-        results['crew_cert'] = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=crew_cert_data)
-    
-    # Test company certificate creation
-    company_cert_data = {
-        "company": company_id,
-        "cert_name": "DOC",
-        "doc_type": "DOC",
-        "cert_no": "SYS-COMP-001"
-    }
-    results['company_cert'] = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=company_cert_data)
+        results["company_cert_create"] = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=company_cert_data)
+        
+        # Create Audit Cert
+        audit_cert_data = {
+            "ship_id": ship_id,
+            "cert_name": "Safety Management Certificate",
+            "cert_type": "Full Term",
+            "cert_no": "SYS-ADMIN-SMC-001",
+            "issue_date": "2024-01-01",
+            "valid_date": "2027-01-01",
+            "issued_by": "Test Authority"
+        }
+        results["audit_cert_create"] = requests.post(f"{BACKEND_URL}/audit-certificates", headers=headers, json=audit_cert_data)
+        
+        # Create Crew Member
+        crew_data = {
+            "full_name": "System Admin Test Crew",
+            "full_name_en": "System Admin Test Crew",
+            "sex": "M", 
+            "date_of_birth": "1990-01-01",
+            "place_of_birth": "Test City",
+            "passport": "SYSADMIN123",
+            "nationality": "VIETNAMESE",
+            "status": "Standby"
+        }
+        results["crew_create"] = requests.post(f"{BACKEND_URL}/crew", headers=headers, json=crew_data)
     
     return results
 
