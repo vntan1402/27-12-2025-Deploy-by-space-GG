@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
 """
-🧪 PERMISSION SYSTEM VERIFICATION - Complete Test Suite
+🧪 COMPREHENSIVE REGRESSION TEST - Permission System & Error Handling
 
-Testing the comprehensive department-based permission system as per review request:
-1. Technical Manager CAN Create Ship Certificate
-2. Crewing Manager CANNOT Create Ship Certificate  
-3. Crewing Manager CAN Create Crew Certificate
-4. Technical Manager CANNOT Create Crew Certificate
-5. Editor CANNOT Create Any Certificates
-6. Editor Ship Scope Filtering (GET Certificates)
-7. Editor Ship Scope on Ship List
-8. Company Access Control (Admin Scope)
-9. Editor CAN View Company Certificates (NEW FEATURE!)
-10. System Admin Has Full Access
+Testing the comprehensive audit and fixes for error handling and permission system:
+
+## Test Credentials (as per review request)
+- system_admin / YourSecure@Pass2024 - Full access (for baseline tests)
+- ngoclm - Role: manager, Department: ['technical'] - For permission denial tests
+
+## Critical Areas to Test
+1. Permission System Tests (HIGH PRIORITY) - Test with user ngoclm (technical department)
+2. Error Propagation Tests (HIGH PRIORITY) - Verify 403 errors are properly propagated
+3. CRUD Operations Regression Tests (MEDIUM PRIORITY) - With system_admin
+4. Specific Bug Fixes Verification
+
+## Expected Results
+- All permission checks should return 403 with Vietnamese error messages
+- No 500 errors should appear when permission is denied
+- CRUD operations should work normally for authorized users
+- Error responses should have proper detail field with specific messages
 """
 
 import requests
@@ -34,12 +40,10 @@ try:
 except:
     BACKEND_URL = "https://maritime-safety-7.preview.emergentagent.com/api"
 
-# Test users - using existing users that match the permission requirements
+# Test users as specified in review request
 TEST_USERS = {
-    "tech_manager": {"password": "123456", "role": "admin", "departments": ["technical"], "actual_user": "admin1"},  # admin1 has technical dept
-    "crew_manager": {"password": "123456", "role": "manager", "departments": ["crewing"], "actual_user": "user1"},  # user1 for crewing test (doesn't have crewing, good for negative test)
-    "test_editor": {"password": "123456", "role": "admin", "assigned_ship": "test_ship_001", "actual_user": "admin1"},  # Use admin1 as editor for testing
-    "system_admin": {"password": "YourSecure@Pass2024", "role": "system_admin", "departments": ["all"], "actual_user": "system_admin"}
+    "system_admin": {"password": "YourSecure@Pass2024", "role": "system_admin", "departments": ["all"], "actual_user": "system_admin"},
+    "ngoclm": {"password": "123456", "role": "manager", "departments": ["technical"], "actual_user": "ngoclm"}  # Technical department user for permission denial tests
 }
 
 # Test environment data
