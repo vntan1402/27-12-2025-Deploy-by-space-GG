@@ -8,7 +8,8 @@ from app.services.company_service import CompanyService
 from app.core.security import get_current_user
 
 logger = logging.getLogger(__name__)
-from app.core.messages import PERMISSION_DENIED, SYSTEM_ADMIN_ONLY
+from app.core import messages
+# Original: from app.core.messages import PERMISSION_DENIED, SYSTEM_ADMIN_ONLY
 router = APIRouter()
 
 def check_admin_permission(current_user: UserResponse = Depends(get_current_user)):
@@ -79,7 +80,8 @@ async def update_company(
     """
     # Check if admin is trying to update other company
     if current_user.role == UserRole.ADMIN and current_user.company != company_id:
-        from app.core.messages import ADMIN_OWN_COMPANY_ONLY
+        from app.core import messages
+# Original: from app.core.messages import ADMIN_OWN_COMPANY_ONLY
         raise HTTPException(status_code=403, detail=ADMIN_OWN_COMPANY_ONLY)
     
     try:

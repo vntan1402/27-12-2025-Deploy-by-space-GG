@@ -12,7 +12,8 @@ from app.models.crew_audit_log import (
 from app.repositories.crew_audit_log_repository import CrewAuditLogRepository
 from app.core.security import get_current_user
 from app.db.mongodb import mongo_db
-from app.core.messages import PERMISSION_DENIED, SYSTEM_ADMIN_ONLY
+from app.core import messages
+# Original: from app.core.messages import PERMISSION_DENIED, SYSTEM_ADMIN_ONLY
 
 router = APIRouter()
 

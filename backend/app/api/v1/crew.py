@@ -8,7 +8,8 @@ from app.models.user import UserResponse, UserRole
 from app.services.crew_service import CrewService
 from app.core.security import get_current_user
 from app.repositories.crew_repository import CrewRepository
-from app.core.messages import PERMISSION_DENIED, ACCESS_DENIED
+from app.core import messages
+# Original: from app.core.messages import PERMISSION_DENIED, ACCESS_DENIED
 import base64
 
 logger = logging.getLogger(__name__)

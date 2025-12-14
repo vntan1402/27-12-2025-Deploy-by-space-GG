@@ -8,7 +8,8 @@ from app.models.audit_certificate import AuditCertificateCreate, AuditCertificat
 from app.models.user import UserResponse, UserRole
 from app.services.audit_certificate_service import AuditCertificateService
 from app.core.security import get_current_user
-from app.core.messages import PERMISSION_DENIED
+from app.core import messages
+# Original: from app.core.messages import PERMISSION_DENIED
 from app.db.mongodb import mongo_db
 
 logger = logging.getLogger(__name__)

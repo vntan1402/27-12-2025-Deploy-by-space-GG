@@ -8,7 +8,8 @@ from app.models.certificate import (
     CertificateResponse,
     BulkDeleteRequest
 )
-from app.core.messages import PERMISSION_DENIED
+from app.core import messages
+# Original: from app.core.messages import PERMISSION_DENIED
 from app.models.user import UserResponse, UserRole
 from app.services.certificate_service import CertificateService
 from app.core.security import get_current_user

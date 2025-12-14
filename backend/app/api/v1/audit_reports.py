@@ -8,7 +8,8 @@ from app.models.user import UserResponse, UserRole
 from app.services.audit_report_service import AuditReportService
 from app.services.audit_report_analyze_service import AuditReportAnalyzeService
 from app.core.security import get_current_user
-from app.core.messages import PERMISSION_DENIED
+from app.core import messages
+# Original: from app.core.messages import PERMISSION_DENIED
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

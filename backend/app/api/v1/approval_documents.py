@@ -8,7 +8,8 @@ from app.services.approval_document_service import ApprovalDocumentService
 from app.core.security import get_current_user
 
 logger = logging.getLogger(__name__)
-from app.core.messages import PERMISSION_DENIED
+from app.core import messages
+# Original: from app.core.messages import PERMISSION_DENIED
 router = APIRouter()
 
 def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):

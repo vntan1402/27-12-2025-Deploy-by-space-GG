@@ -8,7 +8,8 @@ from app.core.security import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-from app.core.messages import ADMIN_ONLY
+from app.core import messages
+# Original: from app.core.messages import ADMIN_ONLY
 
 def check_admin_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has admin or higher permission"""
