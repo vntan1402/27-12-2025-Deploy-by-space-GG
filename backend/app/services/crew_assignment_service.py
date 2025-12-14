@@ -94,6 +94,12 @@ class CrewAssignmentService:
                 if crew.get('company_id') != current_user.company:
                     raise HTTPException(status_code=403, detail="Access denied")
             
+            # ⭐ NEW: Permission checks
+            from app.core.permission_checks import check_minimum_role, check_company_access
+            
+            check_minimum_role(current_user, UserRole.MANAGER, "sign off crew")
+            check_company_access(current_user, crew.get('company_id'), "sign off")
+            
             crew_name = crew.get('full_name', 'Unknown')
             current_status = crew.get('status', '')
             current_ship = crew.get('ship_sign_on', '')
