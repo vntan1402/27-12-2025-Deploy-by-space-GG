@@ -413,10 +413,9 @@ const OtherAuditDocumentsTable = ({ selectedShip }) => {
       fetchDocuments();
     } catch (error) {
       console.error('Failed to delete documents:', error);
-      toast.error(language === 'vi'
-        ? 'Không thể xóa tài liệu'
-        : 'Failed to delete documents'
-      );
+      const errorMessage = error.response?.data?.detail || 
+        (language === 'vi' ? 'Không thể xóa tài liệu' : 'Failed to delete documents');
+      toast.error(errorMessage);
     }
   };
 
