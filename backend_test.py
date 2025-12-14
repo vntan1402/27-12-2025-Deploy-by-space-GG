@@ -43,27 +43,26 @@ TEST_USERS = {
     "viewer1": {"password": "123456", "role": "Viewer", "assigned_ship": "ship_001"}
 }
 
-def login():
+def login(username, password):
     """Login and get access token"""
-    response = requests.post(f"{BACKEND_URL}/auth/login", json={"username": USERNAME, "password": PASSWORD})
+    response = requests.post(f"{BACKEND_URL}/auth/login", json={"username": username, "password": password})
     if response.status_code != 200:
-        raise Exception(f"Login failed: {response.status_code} - {response.text}")
+        raise Exception(f"Login failed for {username}: {response.status_code} - {response.text}")
     return response.json()["access_token"]
 
-def get_test_ship_info(headers):
-    """Get a test ship for audit certificate testing"""
-    response = requests.get(f"{BACKEND_URL}/ships?limit=5", headers=headers)
+def get_headers(username):
+    """Get authorization headers for a user"""
+    password = TEST_USERS[username]["password"]
+    token = login(username, password)
+    return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+
+def get_test_ships(headers):
+    """Get test ships for testing"""
+    response = requests.get(f"{BACKEND_URL}/ships?limit=10", headers=headers)
     if response.status_code == 200:
         ships = response.json()
-        if ships and len(ships) > 0:
-            # Use first available ship
-            ship = ships[0]
-            return {
-                'id': ship.get('id'),
-                'name': ship.get('name', 'Unknown Ship'),
-                'imo': ship.get('imo', '')
-            }
-    return None
+        return ships
+    return []
 
 def create_test_pdf_with_text_layer():
     """Create a simple PDF with text layer for testing"""
