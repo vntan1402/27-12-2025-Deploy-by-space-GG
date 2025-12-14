@@ -230,6 +230,7 @@ def test_10_system_admin_full_access(headers, ship_id, crew_id, company_id):
         crew_cert_data = {
             "crew_id": crew_id,
             "company_id": company_id,
+            "crew_name": "Test Crew Member",  # Added missing field
             "cert_name": "System Admin Crew Cert",
             "cert_type": "COC",
             "cert_no": "SYS-CREW-001"
