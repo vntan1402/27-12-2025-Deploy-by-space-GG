@@ -74,52 +74,52 @@ def get_test_ships(headers):
 
 # Test functions for different permission scenarios
 
-def test_manager_technical_can_create_ship_cert(headers):
-    """Test 1: Manager Technical CAN create Ship Certificate"""
+def test_technical_manager_can_create_ship_cert(headers, ship_id):
+    """Test 1: Manager with Technical department CAN create Ship Certificate"""
     cert_data = {
-        "ship_id": "ship_001",
-        "cert_name": "Test Ship Cert",
+        "ship_id": ship_id,
+        "cert_name": "Test Ship Cert Technical",
         "cert_type": "Full Term",
-        "cert_no": "TEST001"
+        "cert_no": "TECH001"
     }
     
     response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
     return response
 
-def test_manager_crewing_cannot_create_ship_cert(headers):
-    """Test 2: Manager Crewing CANNOT create Ship Certificate"""
+def test_manager_without_technical_cannot_create_ship_cert(headers, ship_id):
+    """Test 2: Manager without Technical department CANNOT create Ship Certificate"""
     cert_data = {
-        "ship_id": "ship_001",
-        "cert_name": "Test Ship Cert",
-        "cert_type": "Full Term",
-        "cert_no": "TEST002"
+        "ship_id": ship_id,
+        "cert_name": "Test Ship Cert No Tech",
+        "cert_type": "Full Term", 
+        "cert_no": "NOTECH001"
     }
     
     response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
     return response
 
-def test_manager_dpa_can_create_company_cert(headers):
-    """Test 3: Manager DPA CAN create Company Certificate"""
+def test_dpa_manager_can_create_company_cert(headers, company_id):
+    """Test 3: Manager with DPA department CAN create Company Certificate"""
     cert_data = {
-        "company": "test_company_a",
+        "company": company_id,
         "cert_name": "DOC",
-        "doc_type": "DOC",
-        "cert_no": "DOC001"
+        "doc_type": "DOC", 
+        "cert_no": "DPA001"
     }
     
-    response = requests.post(f"{BACKEND_URL}/company-certificates", headers=headers, json=cert_data)
+    response = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=cert_data)
     return response
 
-def test_manager_technical_cannot_create_company_cert(headers):
-    """Test 4: Manager Technical CANNOT create Company Certificate"""
+def test_manager_without_dpa_cannot_create_company_cert(headers, company_id):
+    """Test 4: Manager without DPA department CANNOT create Company Certificate"""
     cert_data = {
-        "company": "test_company_a",
+        "company": company_id,
         "cert_name": "DOC",
         "doc_type": "DOC",
-        "cert_no": "DOC002"
+        "cert_no": "NODPA001"
     }
     
-    response = requests.post(f"{BACKEND_URL}/company-certificates", headers=headers, json=cert_data)
+    response = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=cert_data)
     return response
 
 def test_editor_can_view_company_certs(headers):
