@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from datetime import datetime, timezone
 
 logger = logging.getLogger(__name__)
@@ -45,7 +45,4 @@ async def get_sidebar_structure():
         
     except Exception as e:
         logger.error(f"❌ Error getting sidebar structure: {str(e)}")
-        return {
-            "success": False,
-            "error": str(e)
-        }
+        raise HTTPException(status_code=500, detail="Failed to get sidebar structure")
