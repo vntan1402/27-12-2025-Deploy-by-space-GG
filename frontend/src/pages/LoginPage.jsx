@@ -61,11 +61,11 @@ const LoginPage = () => {
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
-      toast.error(
-        language === 'vi' 
+      const errorMessage = error.response?.data?.detail || 
+        (language === 'vi' 
           ? 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.' 
-          : 'Login failed. Please check your credentials.'
-      );
+          : 'Login failed. Please check your credentials.');
+      toast.error(errorMessage);
       triggerShake();
     } finally {
       setLoading(false);
