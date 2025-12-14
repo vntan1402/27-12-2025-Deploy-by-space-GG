@@ -353,27 +353,87 @@ def main():
         
         print("\n" + "=" * 80)
         
-        print("\n🔴 CRITICAL TESTS (Department-Based Permissions)")
+        print("🔴 HIGH PRIORITY: Permission System Tests (with ngoclm - technical department)")
         
-        # Test 1: Technical Manager CAN Create Ship Certificate
-        print("\n1. Technical Manager CAN Create Ship Certificate")
-        try:
-            headers = get_headers("tech_manager")
-            user_info = get_user_info(headers)
-            print(f"   👤 Testing with: tech_manager - Departments: {user_info.get('department', [])}")
-            
+        # Test 1: ngoclm CANNOT create crew member (category: crew_management)
+        print("\n1. Permission Denied - Crew Creation")
+        success, response = run_test(
+            "ngoclm (technical dept) tries to create crew member",
+            lambda: test_permission_denied_crew_creation(ngoclm_headers),
+            expected_success=False,
+            check_vietnamese=True
+        )
+        permission_tests.append(("Crew Creation Denied", success))
+        test_results.append(("POST /api/crew", "✅ 403 with Vietnamese message" if success else "❌ FAILED"))
+        
+        # Test 2: ngoclm CANNOT update crew member
+        if crew_id:
+            print("\n2. Permission Denied - Crew Update")
             success, response = run_test(
-                "Technical Manager creates Ship Certificate",
-                lambda: test_1_technical_manager_can_create_ship_cert(headers, test_ship_001_id),
-                expected_status=200,
-                expected_success=True
+                "ngoclm (technical dept) tries to update crew member",
+                lambda: test_permission_denied_crew_update(ngoclm_headers, crew_id),
+                expected_success=False,
+                check_vietnamese=True
             )
-            critical_tests.append(("Test 1", success))
-            test_results.append(("Technical Manager → Ship Cert", "✅ PASS" if success else "❌ FAIL"))
-        except Exception as e:
-            print(f"   ❌ Test 1 failed: {e}")
-            critical_tests.append(("Test 1", False))
-            test_results.append(("Technical Manager → Ship Cert", "❌ ERROR"))
+            permission_tests.append(("Crew Update Denied", success))
+            test_results.append(("PUT /api/crew/{id}", "✅ 403 with Vietnamese message" if success else "❌ FAILED"))
+        
+        # Test 3: ngoclm CANNOT delete crew member
+        if crew_id:
+            print("\n3. Permission Denied - Crew Delete")
+            success, response = run_test(
+                "ngoclm (technical dept) tries to delete crew member",
+                lambda: test_permission_denied_crew_delete(ngoclm_headers, crew_id),
+                expected_success=False,
+                check_vietnamese=True
+            )
+            permission_tests.append(("Crew Delete Denied", success))
+            test_results.append(("DELETE /api/crew/{id}", "✅ 403 with Vietnamese message" if success else "❌ FAILED"))
+        
+        # Test 4: ngoclm CANNOT create audit certificate with file override
+        print("\n4. Permission Denied - Audit Cert Create with File")
+        success, response = run_test(
+            "ngoclm (technical dept) tries to create audit cert with file",
+            lambda: test_permission_denied_audit_cert_create_with_file(ngoclm_headers, ship_id),
+            expected_success=False,
+            check_vietnamese=True
+        )
+        permission_tests.append(("Audit Cert Create Denied", success))
+        test_results.append(("POST /api/audit-certificates/create-with-file-override", "✅ 403 with Vietnamese message" if success else "❌ FAILED"))
+        
+        # Test 5: ngoclm CANNOT update audit certificate
+        if audit_cert_id:
+            print("\n5. Permission Denied - Audit Cert Update")
+            success, response = run_test(
+                "ngoclm (technical dept) tries to update audit cert",
+                lambda: test_permission_denied_audit_cert_update(ngoclm_headers, audit_cert_id),
+                expected_success=False,
+                check_vietnamese=True
+            )
+            permission_tests.append(("Audit Cert Update Denied", success))
+            test_results.append(("PUT /api/audit-certificates/{cert_id}", "✅ 403 with Vietnamese message" if success else "❌ FAILED"))
+        
+        # Test 6: ngoclm CANNOT delete audit certificate
+        if audit_cert_id:
+            print("\n6. Permission Denied - Audit Cert Delete")
+            success, response = run_test(
+                "ngoclm (technical dept) tries to delete audit cert",
+                lambda: test_permission_denied_audit_cert_delete(ngoclm_headers, audit_cert_id),
+                expected_success=False,
+                check_vietnamese=True
+            )
+            permission_tests.append(("Audit Cert Delete Denied", success))
+            test_results.append(("DELETE /api/audit-certificates/{cert_id}", "✅ 403 with Vietnamese message" if success else "❌ FAILED"))
+        
+        # Test 7: ngoclm CAN access company certificates (technical has access to company_cert_management)
+        print("\n7. Permission Allowed - Company Cert Operations")
+        success, response = run_test(
+            "ngoclm (technical dept) accesses company certificates",
+            lambda: test_permission_allowed_company_cert_operations(ngoclm_headers),
+            expected_success=True
+        )
+        permission_tests.append(("Company Cert Access Allowed", success))
+        test_results.append(("Company Cert Operations", "✅ ALLOWED" if success else "❌ BLOCKED"))
         
         # Test 2: Crewing Manager CANNOT Create Ship Certificate
         print("\n2. Crewing Manager CANNOT Create Ship Certificate")
