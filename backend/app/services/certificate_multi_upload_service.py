@@ -305,9 +305,12 @@ class CertificateMultiUploadService:
             logger.info(f"⚠️ Non-blocking validation warning: {progress_message}")
         
         # Upload main certificate to Google Drive
+        # ⭐ NEW: Use parent_category structure like Audit Certificate
         ship_name = ship.get("name", "Unknown_Ship")
-        upload_result = await CertificateMultiUploadService._upload_to_gdrive(
-            gdrive_config_doc, file_content, file.filename, ship_name, "Certificates"
+        upload_result = await CertificateMultiUploadService._upload_to_gdrive_with_parent(
+            gdrive_config_doc, file_content, file.filename, ship_name, 
+            "Class & Flag Cert",  # parent_category
+            "Certificates"         # category (subfolder)
         )
         
         if not upload_result.get("success"):
@@ -331,8 +334,11 @@ class CertificateMultiUploadService:
                 summary_bytes = summary_text.encode('utf-8')
                 
                 # Upload summary to GDrive with text/plain MIME type
-                summary_upload_result = await CertificateMultiUploadService._upload_to_gdrive(
-                    gdrive_config_doc, summary_bytes, summary_filename, ship_name, "Certificates",
+                # ⭐ NEW: Use parent_category structure
+                summary_upload_result = await CertificateMultiUploadService._upload_to_gdrive_with_parent(
+                    gdrive_config_doc, summary_bytes, summary_filename, ship_name,
+                    "Class & Flag Cert",  # parent_category
+                    "Certificates",       # category
                     content_type="text/plain"  # ⭐ Explicitly set MIME type for text files
                 )
                 
