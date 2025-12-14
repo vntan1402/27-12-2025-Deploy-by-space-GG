@@ -465,7 +465,7 @@ def main():
         print("\n10. System Admin CRUD Operations")
         success, response = run_test(
             "system_admin performs CRUD operations",
-            lambda: test_system_admin_crud_operations(system_headers, test_data),
+            lambda: test_system_admin_crud_operations(system_headers, test_data, system_user),
             expected_success=True
         )
         crud_regression_tests.append(("System Admin CRUD", success))
