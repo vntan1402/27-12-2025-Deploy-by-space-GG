@@ -58,10 +58,24 @@ class CrewService:
     @staticmethod
     async def create_crew(crew_data: CrewCreate, current_user: UserResponse) -> CrewResponse:
         """Create new crew member with comprehensive date handling"""
+        from app.core.permission_checks import check_minimum_role, check_company_access, check_manager_department_permission
+        from app.models.user import UserRole
+        
         # Auto-set company_id from current_user if not provided
         company_id = crew_data.company_id or current_user.company
         if not company_id:
             raise HTTPException(status_code=400, detail="Company ID is required")
+        
+        # ⭐ NEW: Permission checks
+        # 1. Check company access
+        check_company_access(current_user, company_id, "create crew")
+        
+        # 2. Check minimum role (Manager+ can create crew)
+        check_minimum_role(current_user, UserRole.MANAGER, "create crew")
+        
+        # 3. For Manager role, check department permission (crew belongs to "crewing" department)
+        # Note: We use a pseudo document type "crew" that maps to "Crew Records" category
+        check_manager_department_permission(current_user, "crew_management", "create")
         
         # Check if passport exists for this company
         existing = await CrewRepository.find_by_passport(crew_data.passport, company_id)
