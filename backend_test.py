@@ -168,13 +168,14 @@ def test_permission_denied_audit_cert_delete(headers, cert_id):
     response = requests.delete(f"{BACKEND_URL}/audit-certificates/{cert_id}", headers=headers)
     return response
 
-def test_permission_allowed_company_cert_operations(headers):
+def test_permission_allowed_company_cert_operations(headers, user_info):
     """Test ngoclm (technical dept) CAN access company certs (technical has access to company_cert_management)"""
     # Test GET - should be allowed
     get_response = requests.get(f"{BACKEND_URL}/company-certs", headers=headers)
     
-    # Test POST - should be allowed for technical department
+    # Test POST - should be allowed for technical department (but need proper company field)
     cert_data = {
+        "company": user_info.get("company"),  # Add required company field
         "cert_name": "DOC",
         "doc_type": "DOC", 
         "cert_no": "TEST-DOC-001",
