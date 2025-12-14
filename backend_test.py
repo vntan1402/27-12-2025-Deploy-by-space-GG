@@ -36,9 +36,9 @@ except:
 
 # Test users - using existing users that match the permission requirements
 TEST_USERS = {
-    "tech_manager": {"password": "123456", "role": "manager", "departments": ["technical"], "actual_user": "ngoclm"},  # ngoclm has technical dept
-    "crew_manager": {"password": "123456", "role": "manager", "departments": ["crewing"], "actual_user": "user1"},  # user1 for crewing test
-    "test_editor": {"password": "123456", "role": "editor", "assigned_ship": "test_ship_001", "actual_user": "admin1"},  # Use admin1 as editor for testing
+    "tech_manager": {"password": "123456", "role": "admin", "departments": ["technical"], "actual_user": "admin1"},  # admin1 has technical dept
+    "crew_manager": {"password": "123456", "role": "manager", "departments": ["crewing"], "actual_user": "user1"},  # user1 for crewing test (doesn't have crewing, good for negative test)
+    "test_editor": {"password": "123456", "role": "admin", "assigned_ship": "test_ship_001", "actual_user": "admin1"},  # Use admin1 as editor for testing
     "system_admin": {"password": "YourSecure@Pass2024", "role": "system_admin", "departments": ["all"], "actual_user": "system_admin"}
 }
 
