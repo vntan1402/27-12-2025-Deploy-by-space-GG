@@ -62,22 +62,27 @@ CATEGORY_DEPARTMENT_MAPPING = {
 
 ### **Rule 3: Editor/Viewer Ship-Based Access**
 
-| User Role | Ship Assignment | Permissions |
-|-----------|----------------|-------------|
-| Editor (Sign on Ship A) | Ship A | ✅ View documents of Ship A |
-| Editor (Sign on Ship A) | Ship B | ❌ Cannot view Ship B docs |
-| Viewer (Sign on Ship B) | Ship B | ✅ View documents of Ship B |
-| Viewer (No ship) | Any | ❌ No access |
+| User Role | Ship Assignment | Ship Docs | Company Docs (SMS) |
+|-----------|----------------|-----------|-------------------|
+| Editor (Sign on Ship A) | Ship A | ✅ View Ship A docs | ✅ View Company Certs |
+| Editor (Sign on Ship A) | Ship B | ❌ Cannot view Ship B docs | ✅ View Company Certs |
+| Viewer (Sign on Ship B) | Ship B | ✅ View Ship B docs | ✅ View Company Certs |
+| Viewer (No ship) | Any | ❌ No access | ✅ View Company Certs |
 
 **Logic:**
 ```
 IF user.role IN [EDITOR, VIEWER]:
-    user_ship = get_user_assigned_ship(user.id)
-    IF user_ship:
-        FILTER documents WHERE document.ship_id == user_ship.id
+    IF document.type == "Company Certificate":
+        GRANT View access  # Company-level docs visible to all
     ELSE:
-        RETURN empty (no access)
+        user_ship = get_user_assigned_ship(user.id)
+        IF user_ship:
+            FILTER documents WHERE document.ship_id == user_ship.id
+        ELSE:
+            RETURN empty (no ship-based access)
 ```
+
+**Rationale:** Company Certificates (SMS) là tài liệu cấp công ty, cần thiết cho tất cả nhân viên xem để biết chính sách, quy định công ty.
 
 ---
 
@@ -264,6 +269,19 @@ async def get_user_accessible_ships(current_user: UserResponse) -> Optional[List
         return []  # No ship or not signed on
     
     return []
+
+def can_view_company_documents(current_user: UserResponse) -> bool:
+    """
+    Check if user can view company-level documents (Company Certificates)
+    
+    Company documents are visible to ALL users in the company
+    including Editor and Viewer roles
+    
+    Returns:
+        True if user can view company documents
+    """
+    # All roles can view company documents
+    return True
 ```
 
 ---
@@ -508,9 +526,9 @@ export const canManageCategory = (userDepartments, category) => {
 
 ### **Scenario 4: Editor (Sign on Ship A)**
 
-| Action | Ship A Docs | Ship B Docs | Company Docs |
-|--------|-------------|-------------|--------------|
-| View | ✅ Yes | ❌ No | ❌ No |
+| Action | Ship A Docs | Ship B Docs | Company Docs (SMS) |
+|--------|-------------|-------------|-------------------|
+| View | ✅ Yes | ❌ No | ✅ Yes |
 | Create | ❌ No | ❌ No | ❌ No |
 | Update | ❌ No | ❌ No | ❌ No |
 | Delete | ❌ No | ❌ No | ❌ No |
