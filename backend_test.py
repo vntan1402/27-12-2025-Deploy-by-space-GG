@@ -199,7 +199,7 @@ def test_error_propagation_sidebar_structure(headers):
     response = requests.get(f"{BACKEND_URL}/sidebar-structure", headers=headers)
     return response
 
-def test_system_admin_crud_operations(headers, test_data):
+def test_system_admin_crud_operations(headers, test_data, system_user):
     """Test system_admin can perform all CRUD operations"""
     results = {}
     
