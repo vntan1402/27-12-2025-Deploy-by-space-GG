@@ -804,50 +804,51 @@ export const AddAuditCertificateModal = ({
         uploadFormData.append('file', certificateFile);
         uploadFormData.append('cert_data', JSON.stringify(certPayload));
         
-        const uploadResponse = await api.post(
-          `/api/audit-certificates/create-with-file-override?ship_id=${selectedShip.id}`,
-          uploadFormData,
-          {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          }
-        );
-        
-        if (uploadResponse.data.success) {
-          toast.success(language === 'vi' 
-            ? '✅ Đã tạo certificate với file đính kèm!'
-            : '✅ Certificate created with attached file!'
+        try {
+          const uploadResponse = await api.post(
+            `/api/audit-certificates/create-with-file-override?ship_id=${selectedShip.id}`,
+            uploadFormData,
+            {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            }
           );
           
-          // Clear states
-          setCertificateFile(null);
-          setValidationApproved(false);
-          setAnalyzeSummary(null);  // ⭐ Clear summary
-          
-          // Call onSuccess to refresh list
-          if (onSuccess) {
-            onSuccess();
-          }
-          
-          // Reset form
-          setFormData({
-            ship_id: selectedShip?.id || '',
-            ship_name: selectedShip?.name || '',
-            cert_name: '',
-            cert_abbreviation: '',
-            cert_no: '',
-            cert_type: 'Full Term',
-            issue_date: '',
-            valid_date: '',
-            last_endorse: '',
-            next_survey: '',
-            next_survey_type: '',
-            issued_by: '',
-            issued_by_abbreviation: '',
-            notes: ''
-          });
-          
-          handleClose();
-        } else {
+          if (uploadResponse.data.success) {
+            toast.success(language === 'vi' 
+              ? '✅ Đã tạo certificate với file đính kèm!'
+              : '✅ Certificate created with attached file!'
+            );
+            
+            // Clear states
+            setCertificateFile(null);
+            setValidationApproved(false);
+            setAnalyzeSummary(null);  // ⭐ Clear summary
+            
+            // Call onSuccess to refresh list
+            if (onSuccess) {
+              onSuccess();
+            }
+            
+            // Reset form
+            setFormData({
+              ship_id: selectedShip?.id || '',
+              ship_name: selectedShip?.name || '',
+              cert_name: '',
+              cert_abbreviation: '',
+              cert_no: '',
+              cert_type: 'Full Term',
+              issue_date: '',
+              valid_date: '',
+              last_endorse: '',
+              next_survey: '',
+              next_survey_type: '',
+              issued_by: '',
+              issued_by_abbreviation: '',
+              notes: ''
+            });
+            
+            handleClose();
+          } else {
           throw new Error(uploadResponse.data.message || 'Upload failed');
         }
         
