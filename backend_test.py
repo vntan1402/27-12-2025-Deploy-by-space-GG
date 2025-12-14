@@ -539,57 +539,66 @@ def main():
             high_priority_tests.append(("Test 6", False))
             test_results.append(("Editor → Ship Filtering", "❌ ERROR"))
         
-        # Test 7: Manager CAN create certificates (with proper department)
-        print("\n7. Manager CAN create certificates (with proper department)")
+        # Test 7: Editor Ship Scope on Ship List
+        print("\n7. Editor Ship Scope on Ship List")
         try:
-            headers = get_headers("ngoclm")
+            headers = get_headers("test_editor")
             user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Role: {user_info.get('role')}")
+            print(f"   👤 Testing with: test_editor - Assigned Ship: {user_info.get('assigned_ship_id', 'N/A')}")
             
             success, response = run_test(
-                "Manager creates certificate",
-                lambda: test_manager_can_create_certificates(headers, ship_id),
-                expected_status=201,
-                expected_success=True
-            )
-            high_priority_tests.append(("Test 7", success))
-            test_results.append(("Manager → Create Cert", "✅ PASS" if success else "❌ FAIL"))
-        except Exception as e:
-            print(f"   ❌ Test 7 failed: {e}")
-            high_priority_tests.append(("Test 7", False))
-            test_results.append(("Manager → Create Cert", "❌ ERROR"))
-        
-        # Test 8: Certificate filtering by company
-        print("\n8. Certificate filtering by company")
-        try:
-            headers = get_headers("ngoclm")
-            user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Company: {user_info.get('company', 'N/A')[:8]}...")
-            
-            success, response = run_test(
-                "Manager views certificates (company filtering)",
-                lambda: test_certificate_filtering_by_company(headers),
+                "Editor views ship list (should only see assigned ship)",
+                lambda: test_7_editor_ship_scope_on_ship_list(headers, test_ship_001_id),
                 expected_status=200,
                 expected_success=True
             )
             
-            # Additional check for company filtering
+            # Additional validation for ship list filtering
             if success and response:
                 try:
-                    certs = response.json()
-                    if isinstance(certs, list):
-                        print(f"      📋 Found {len(certs)} certificates for user's company")
+                    ships = response.json()
+                    if isinstance(ships, list):
+                        ship_ids = [ship.get('id') for ship in ships]
+                        if len(ship_ids) == 1 and ship_ids[0] == test_ship_001_id:
+                            print(f"      📋 Ship filtering: ✅ Only sees assigned ship")
+                        else:
+                            print(f"      📋 Ship filtering: ❌ Sees {len(ship_ids)} ships: {ship_ids}")
+                            success = False
                     else:
-                        print(f"      📋 Response format: {type(certs)}")
-                except:
-                    print(f"      📋 Could not parse certificate response")
+                        print(f"      📋 Response format: {type(ships)}")
+                except Exception as e:
+                    print(f"      📋 Could not parse ship response: {e}")
+            
+            high_priority_tests.append(("Test 7", success))
+            test_results.append(("Editor → Ship List Filtering", "✅ PASS" if success else "❌ FAIL"))
+        except Exception as e:
+            print(f"   ❌ Test 7 failed: {e}")
+            high_priority_tests.append(("Test 7", False))
+            test_results.append(("Editor → Ship List Filtering", "❌ ERROR"))
+        
+        # Test 8: Company Access Control (Admin Scope)
+        print("\n8. Company Access Control (Admin Scope)")
+        try:
+            headers = get_headers("tech_manager")
+            user_info = get_user_info(headers)
+            print(f"   👤 Testing with: tech_manager - Company: {user_info.get('company', 'N/A')[:8]}...")
+            
+            # Try to access a ship from different company (use ship 2 as different company ship)
+            different_company_ship = test_ship_002_id if test_ship_002_id else test_ship_001_id
+            
+            success, response = run_test(
+                "Manager tries to create cert for different company ship",
+                lambda: test_8_company_access_control(headers, different_company_ship),
+                expected_status=403,
+                expected_success=False
+            )
             
             high_priority_tests.append(("Test 8", success))
-            test_results.append(("Manager → Company Filtering", "✅ PASS" if success else "❌ FAIL"))
+            test_results.append(("Manager → Cross-Company Access", "✅ BLOCKED" if success else "❌ ALLOWED"))
         except Exception as e:
             print(f"   ❌ Test 8 failed: {e}")
             high_priority_tests.append(("Test 8", False))
-            test_results.append(("Manager → Company Filtering", "❌ ERROR"))
+            test_results.append(("Manager → Cross-Company Access", "❌ ERROR"))
         
         print("\n🟢 MEDIUM PRIORITY TESTS (Admin Permissions)")
         
