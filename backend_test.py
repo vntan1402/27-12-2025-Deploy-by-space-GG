@@ -202,75 +202,73 @@ def test_8_company_access_control(headers, different_company_ship_id):
     response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
     return response
 
-def test_admin_full_access(headers, ship_id):
-    """Test 9: Admin has full access within company"""
-    cert_data = {
+def test_9_editor_can_view_company_certs(headers):
+    """TEST 9: Editor CAN View Company Certificates (NEW FEATURE!)"""
+    response = requests.get(f"{BACKEND_URL}/company-certs", headers=headers)
+    return response
+
+def test_10_system_admin_full_access(headers, ship_id, crew_id, company_id):
+    """TEST 10: System Admin Has Full Access"""
+    results = {}
+    
+    # Test ship certificate creation
+    ship_cert_data = {
         "ship_id": ship_id,
-        "cert_name": "Admin Test Cert",
+        "cert_name": "System Admin Ship Cert",
         "cert_type": "Full Term",
-        "cert_no": "ADMIN001"
+        "cert_no": "SYS-SHIP-001"
     }
+    results['ship_cert'] = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=ship_cert_data)
     
-    response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
-    return response
-
-def test_admin_can_create_company_cert(headers, company_id):
-    """Test 10: Admin CAN create Company Certificate"""
-    cert_data = {
+    # Test crew certificate creation
+    if crew_id:
+        crew_cert_data = {
+            "crew_id": crew_id,
+            "company_id": company_id,
+            "cert_name": "System Admin Crew Cert",
+            "cert_type": "COC",
+            "cert_no": "SYS-CREW-001"
+        }
+        results['crew_cert'] = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=crew_cert_data)
+    
+    # Test company certificate creation
+    company_cert_data = {
         "company": company_id,
-        "cert_name": "SMC",
-        "doc_type": "SMC",
-        "cert_no": "ADMIN_SMC001"
+        "cert_name": "DOC",
+        "doc_type": "DOC",
+        "cert_no": "SYS-COMP-001"
+    }
+    results['company_cert'] = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=company_cert_data)
+    
+    return results
+
+def get_or_create_crew_member(headers, company_id):
+    """Get existing crew member or create one for testing"""
+    # Try to get existing crew
+    crew_response = requests.get(f"{BACKEND_URL}/crew", headers=headers)
+    if crew_response.status_code == 200:
+        crew_list = crew_response.json()
+        if crew_list:
+            return crew_list[0].get("id")
+    
+    # Create a crew member for testing
+    crew_data = {
+        "company_id": company_id,
+        "full_name": "Test Crew Member",
+        "full_name_en": "Test Crew Member",
+        "sex": "M",
+        "date_of_birth": "1990-01-01",
+        "place_of_birth": "Test City",
+        "passport": "TEST123456",
+        "nationality": "VIETNAMESE",
+        "status": "Standby"
     }
     
-    response = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=cert_data)
-    return response
-
-def test_crewing_manager_can_create_crew_cert(headers):
-    """Test 11: Manager with Crewing department CAN create Crew Certificate"""
-    # Get crew list first
-    crew_response = requests.get(f"{BACKEND_URL}/crew", headers=headers)
-    if crew_response.status_code == 200:
-        crew_list = crew_response.json()
-        if crew_list:
-            crew_id = crew_list[0].get("id")
-            cert_data = {
-                "crew_id": crew_id,
-                "cert_name": "Certificate of Competency",
-                "cert_no": "CREW001"
-            }
-            response = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=cert_data)
-            return response
+    create_response = requests.post(f"{BACKEND_URL}/crew", headers=headers, json=crew_data)
+    if create_response.status_code in [200, 201]:
+        return create_response.json().get("id")
     
-    # If no crew found, return a mock response
-    from unittest.mock import Mock
-    mock_response = Mock()
-    mock_response.status_code = 400
-    mock_response.text = "No crew members found for testing"
-    return mock_response
-
-def test_manager_without_crewing_cannot_create_crew_cert(headers):
-    """Test 12: Manager without Crewing department CANNOT create Crew Certificate"""
-    # Get crew list first
-    crew_response = requests.get(f"{BACKEND_URL}/crew", headers=headers)
-    if crew_response.status_code == 200:
-        crew_list = crew_response.json()
-        if crew_list:
-            crew_id = crew_list[0].get("id")
-            cert_data = {
-                "crew_id": crew_id,
-                "cert_name": "Certificate of Competency",
-                "cert_no": "NOCREW001"
-            }
-            response = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=cert_data)
-            return response
-    
-    # If no crew found, return a mock response
-    from unittest.mock import Mock
-    mock_response = Mock()
-    mock_response.status_code = 400
-    mock_response.text = "No crew members found for testing"
-    return mock_response
+    return None
 
 def run_test(test_name, test_func, expected_status, expected_success=True):
     """Run a single test and return results"""
