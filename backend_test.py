@@ -64,42 +64,148 @@ def get_test_ships(headers):
         return ships
     return []
 
-def create_test_pdf_with_text_layer():
-    """Create a simple PDF with text layer for testing"""
-    try:
-        from reportlab.pdfgen import canvas
-        from reportlab.lib.pagesizes import letter
-        
-        buffer = io.BytesIO()
-        p = canvas.Canvas(buffer, pagesize=letter)
-        
-        # Add text content that will be in the text layer
-        p.drawString(100, 750, "SAFETY MANAGEMENT CERTIFICATE")
-        p.drawString(100, 720, "Certificate No: ISM-2024-001")
-        p.drawString(100, 690, "Ship Name: VINASHIP HARMONY")
-        p.drawString(100, 660, "IMO Number: 1234567")
-        p.drawString(100, 630, "Issue Date: 15 November 2024")
-        p.drawString(100, 600, "Valid Until: 14 November 2027")
-        p.drawString(100, 570, "Issued By: Bureau Veritas")
-        p.drawString(100, 540, "Certificate Type: Full Term")
-        p.drawString(100, 510, "This certificate is issued under the provisions of the")
-        p.drawString(100, 480, "International Safety Management Code.")
-        
-        p.save()
-        buffer.seek(0)
-        return buffer.getvalue()
-    except ImportError:
-        # If reportlab not available, create a simple text-based "PDF"
-        content = """SAFETY MANAGEMENT CERTIFICATE
-Certificate No: ISM-2024-001
-Ship Name: VINASHIP HARMONY
-IMO Number: 1234567
-Issue Date: 15 November 2024
-Valid Until: 14 November 2027
-Issued By: Bureau Veritas
-Certificate Type: Full Term
-This certificate is issued under the provisions of the International Safety Management Code."""
-        return content.encode('utf-8')
+# Test functions for different permission scenarios
+
+def test_manager_technical_can_create_ship_cert(headers):
+    """Test 1: Manager Technical CAN create Ship Certificate"""
+    cert_data = {
+        "ship_id": "ship_001",
+        "cert_name": "Test Ship Cert",
+        "cert_type": "Full Term",
+        "cert_no": "TEST001"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
+    return response
+
+def test_manager_crewing_cannot_create_ship_cert(headers):
+    """Test 2: Manager Crewing CANNOT create Ship Certificate"""
+    cert_data = {
+        "ship_id": "ship_001",
+        "cert_name": "Test Ship Cert",
+        "cert_type": "Full Term",
+        "cert_no": "TEST002"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
+    return response
+
+def test_manager_dpa_can_create_company_cert(headers):
+    """Test 3: Manager DPA CAN create Company Certificate"""
+    cert_data = {
+        "company": "test_company_a",
+        "cert_name": "DOC",
+        "doc_type": "DOC",
+        "cert_no": "DOC001"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/company-certificates", headers=headers, json=cert_data)
+    return response
+
+def test_manager_technical_cannot_create_company_cert(headers):
+    """Test 4: Manager Technical CANNOT create Company Certificate"""
+    cert_data = {
+        "company": "test_company_a",
+        "cert_name": "DOC",
+        "doc_type": "DOC",
+        "cert_no": "DOC002"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/company-certificates", headers=headers, json=cert_data)
+    return response
+
+def test_editor_can_view_company_certs(headers):
+    """Test 5: Editor CAN view Company Certificates"""
+    response = requests.get(f"{BACKEND_URL}/company-certificates", headers=headers)
+    return response
+
+def test_viewer_cannot_view_company_certs(headers):
+    """Test 6: Viewer CANNOT view Company Certificates"""
+    response = requests.get(f"{BACKEND_URL}/company-certificates", headers=headers)
+    return response
+
+def test_editor_cannot_create_certificates(headers):
+    """Test 7: Editor CANNOT create any certificates"""
+    cert_data = {
+        "ship_id": "ship_001",
+        "cert_name": "Test",
+        "cert_type": "Full Term",
+        "cert_no": "TEST003"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
+    return response
+
+def test_editor_ship_filtering(headers, manager_headers):
+    """Test 8: Editor only sees assigned ship documents"""
+    # First create certificates for both ships using manager
+    cert1_data = {
+        "ship_id": "ship_001",
+        "cert_name": "Ship 001 Cert",
+        "cert_type": "Full Term",
+        "cert_no": "SHIP001"
+    }
+    cert2_data = {
+        "ship_id": "ship_002", 
+        "cert_name": "Ship 002 Cert",
+        "cert_type": "Full Term",
+        "cert_no": "SHIP002"
+    }
+    
+    # Create certificates as manager
+    requests.post(f"{BACKEND_URL}/certificates", headers=manager_headers, json=cert1_data)
+    requests.post(f"{BACKEND_URL}/certificates", headers=manager_headers, json=cert2_data)
+    
+    # Get certificates as editor (should only see ship_001)
+    response = requests.get(f"{BACKEND_URL}/certificates", headers=headers)
+    return response
+
+def test_admin_full_access(headers):
+    """Test 9: Admin has full access within company"""
+    cert_data = {
+        "ship_id": "ship_001",
+        "cert_name": "Admin Test",
+        "cert_type": "Full Term",
+        "cert_no": "ADMIN001"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
+    return response
+
+def test_admin_can_create_company_cert(headers):
+    """Test 10: Admin CAN create Company Certificate"""
+    cert_data = {
+        "company": "test_company_a",
+        "cert_name": "SMC",
+        "doc_type": "SMC",
+        "cert_no": "SMC001"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/company-certificates", headers=headers, json=cert_data)
+    return response
+
+def test_manager_crewing_can_create_crew_cert(headers):
+    """Test 11: Manager Crewing CAN create Crew Certificate"""
+    # First check if crew-certificates endpoint exists
+    cert_data = {
+        "crew_id": "test_crew_001",
+        "cert_name": "Certificate of Competency",
+        "cert_no": "COC001"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=cert_data)
+    return response
+
+def test_manager_technical_cannot_create_crew_cert(headers):
+    """Test 12: Manager Technical CANNOT create Crew Certificate"""
+    cert_data = {
+        "crew_id": "test_crew_001",
+        "cert_name": "Certificate of Competency", 
+        "cert_no": "COC002"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=cert_data)
+    return response
 
 def test_audit_certificate_analyze(headers, ship_id, ship_name):
     """Test the audit certificate analyze endpoint with text layer + Document AI merge"""
