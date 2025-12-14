@@ -355,10 +355,12 @@ const IsmIspsMLc = () => {
       fetchAuditCertificates(selectedShip.id);
     } catch (error) {
       console.error('Failed to create certificate:', error);
-      toast.error(language === 'vi' 
+      // ⭐ FIX: Display actual backend error message
+      const backendMessage = error.response?.data?.detail;
+      const errorMessage = backendMessage || (language === 'vi' 
         ? 'Không thể thêm chứng chỉ' 
-        : 'Failed to add certificate'
-      );
+        : 'Failed to add certificate');
+      toast.error(errorMessage);
     }
   };
 
@@ -413,10 +415,12 @@ const IsmIspsMLc = () => {
       fetchAuditCertificates(selectedShip.id);
     } catch (error) {
       console.error('Failed to delete certificate:', error);
-      toast.error(language === 'vi' 
+      // ⭐ FIX: Display actual backend error message
+      const backendMessage = error.response?.data?.detail;
+      const errorMessage = backendMessage || (language === 'vi' 
         ? 'Không thể xóa chứng chỉ' 
-        : 'Failed to delete certificate'
-      );
+        : 'Failed to delete certificate');
+      toast.error(errorMessage);
     }
   };
 
