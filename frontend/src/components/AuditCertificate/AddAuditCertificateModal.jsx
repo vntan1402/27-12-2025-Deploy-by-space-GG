@@ -888,8 +888,13 @@ export const AddAuditCertificateModal = ({
         setUploadSummary({ success: 0, failed: 0, total: 0 });
       }
     } catch (error) {
-      // Error handled by parent
+      // ⭐ FIX: Display error message to user
       console.error('Submit error:', error);
+      const backendMessage = error.response?.data?.detail;
+      const errorMessage = backendMessage || (language === 'vi' 
+        ? 'Lỗi khi lưu chứng chỉ' 
+        : 'Error saving certificate');
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
