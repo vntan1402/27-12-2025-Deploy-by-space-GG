@@ -36,11 +36,23 @@ class ShipService:
         else:
             ships = await ShipRepository.find_all(company=current_user.company)
         
+        # ⭐ NEW: For Editor/Viewer, filter by assigned ship
+        if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
+            user_assigned_ship = getattr(current_user, 'assigned_ship_id', None)
+            if user_assigned_ship:
+                ships = [ship for ship in ships if ship.get('id') == user_assigned_ship]
+            else:
+                # No assigned ship = no access
+                ships = []
+        
         return [ShipResponse(**ship) for ship in ships]
     
     @staticmethod
     async def get_ship_by_id(ship_id: str, current_user: UserResponse) -> ShipResponse:
         """Get ship by ID"""
+        from app.core.permission_checks import check_company_access, check_editor_viewer_ship_scope
+        from app.core import messages
+        
         ship = await ShipRepository.find_by_id(ship_id)
         
         if not ship:
@@ -48,14 +60,23 @@ class ShipService:
         
         # Check access permission
         if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
-            if ship.get('company') != current_user.company:
-                raise HTTPException(status_code=403, detail="Access denied")
+            # Check company access
+            check_company_access(current_user, ship.get('company'), "view")
+            
+            # ⭐ NEW: For Editor/Viewer, check ship scope
+            check_editor_viewer_ship_scope(current_user, ship_id, "view")
         
         return ShipResponse(**ship)
     
     @staticmethod
     async def create_ship(ship_data: ShipCreate, current_user: UserResponse) -> ShipResponse:
         """Create new ship"""
+        from app.core.permission_checks import check_minimum_role, check_company_access
+        
+        # ⭐ NEW: Permission checks - Only Manager+ can create ships
+        check_minimum_role(current_user, UserRole.MANAGER, "create ships")
+        check_company_access(current_user, ship_data.company, "create")
+        
         # Check if IMO exists for this company
         if ship_data.imo:
             existing = await ShipRepository.find_by_imo(ship_data.imo, ship_data.company)
@@ -100,15 +121,16 @@ class ShipService:
     @staticmethod
     async def update_ship(ship_id: str, ship_data: ShipUpdate, current_user: UserResponse) -> ShipResponse:
         """Update ship"""
+        from app.core.permission_checks import check_minimum_role, check_company_access
+        
         # Check if ship exists
         existing_ship = await ShipRepository.find_by_id(ship_id)
         if not existing_ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        # Check access permission
-        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
-            if existing_ship.get('company') != current_user.company:
-                raise HTTPException(status_code=403, detail="Access denied")
+        # ⭐ NEW: Permission checks
+        check_minimum_role(current_user, UserRole.MANAGER, "update ships")
+        check_company_access(current_user, existing_ship.get('company'), "update")
         
         # Prepare update data
         update_data = ship_data.dict(exclude_unset=True)
@@ -147,14 +169,15 @@ class ShipService:
     @staticmethod
     async def delete_ship(ship_id: str, current_user: UserResponse) -> dict:
         """Delete ship"""
+        from app.core.permission_checks import check_minimum_role, check_company_access
+        
         ship = await ShipRepository.find_by_id(ship_id)
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        # Check access permission
-        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
-            if ship.get('company') != current_user.company:
-                raise HTTPException(status_code=403, detail="Access denied")
+        # ⭐ NEW: Permission checks
+        check_minimum_role(current_user, UserRole.ADMIN, "delete ships")  # Only Admin+ can delete
+        check_company_access(current_user, ship.get('company'), "delete")
         
         # TODO: Check if ship has associated certificates before deletion
         
