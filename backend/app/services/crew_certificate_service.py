@@ -540,7 +540,7 @@ class CrewCertificateService:
             raise HTTPException(status_code=404, detail="Crew certificate not found")
         
         # Check access permission
-        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             if cert.get('company_id') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
         
@@ -614,7 +614,7 @@ class CrewCertificateService:
             raise HTTPException(status_code=404, detail="Crew certificate not found")
         
         # Check access permission
-        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             if cert.get('company_id') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
         

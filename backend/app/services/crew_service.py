@@ -133,7 +133,7 @@ class CrewService:
             raise HTTPException(status_code=404, detail="Crew member not found")
         
         # Check access permission
-        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             if crew.get('company_id') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
         
@@ -248,7 +248,7 @@ class CrewService:
             raise HTTPException(status_code=404, detail="Crew member not found")
         
         # Check access permission
-        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             if crew.get('company_id') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
         
@@ -343,7 +343,7 @@ class CrewService:
                     continue
                 
                 # Check access permission
-                if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
+                if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
                     if crew.get('company_id') != current_user.company:
                         logger.warning(f"⚠️ Access denied for crew: {crew_id}")
                         failed_deletions.append(crew_id)

@@ -106,7 +106,7 @@ class ShipService:
             raise HTTPException(status_code=404, detail="Ship not found")
         
         # Check access permission
-        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             if existing_ship.get('company') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
         
@@ -152,7 +152,7 @@ class ShipService:
             raise HTTPException(status_code=404, detail="Ship not found")
         
         # Check access permission
-        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN, UserRole.ADMIN]:
+        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             if ship.get('company') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
         
