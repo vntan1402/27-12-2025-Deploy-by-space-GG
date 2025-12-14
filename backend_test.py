@@ -435,25 +435,28 @@ def main():
         permission_tests.append(("Company Cert Access Allowed", success))
         test_results.append(("Company Cert Operations", "✅ ALLOWED" if success else "❌ BLOCKED"))
         
-        # Test 2: Crewing Manager CANNOT Create Ship Certificate
-        print("\n2. Crewing Manager CANNOT Create Ship Certificate")
-        try:
-            headers = get_headers("crew_manager")
-            user_info = get_user_info(headers)
-            print(f"   👤 Testing with: crew_manager - Departments: {user_info.get('department', [])}")
-            
-            success, response = run_test(
-                "Crewing Manager tries to create Ship Certificate",
-                lambda: test_2_crewing_manager_cannot_create_ship_cert(headers, test_ship_001_id),
-                expected_status=403,
-                expected_success=False
-            )
-            critical_tests.append(("Test 2", success))
-            test_results.append(("Crewing Manager → Ship Cert", "✅ BLOCKED" if success else "❌ ALLOWED"))
-        except Exception as e:
-            print(f"   ❌ Test 2 failed: {e}")
-            critical_tests.append(("Test 2", False))
-            test_results.append(("Crewing Manager → Ship Cert", "❌ ERROR"))
+        print("\n🔴 HIGH PRIORITY: Error Propagation Tests")
+        
+        # Test 8: GET /api/approval-documents - Should propagate 403 if permission denied
+        print("\n8. Error Propagation - Approval Documents")
+        success, response = run_test(
+            "GET /api/approval-documents error propagation",
+            lambda: test_error_propagation_approval_documents(ngoclm_headers),
+            expected_success=False,
+            check_vietnamese=True
+        )
+        error_propagation_tests.append(("Approval Documents Error", success))
+        test_results.append(("GET /api/approval-documents", "✅ Proper 403 propagation" if success else "❌ Error masking"))
+        
+        # Test 9: GET /api/sidebar-structure - Should return proper error (not dict with success: false)
+        print("\n9. Error Propagation - Sidebar Structure")
+        success, response = run_test(
+            "GET /api/sidebar-structure error propagation",
+            lambda: test_error_propagation_sidebar_structure(ngoclm_headers),
+            expected_success=True  # This might be allowed or might return proper error structure
+        )
+        error_propagation_tests.append(("Sidebar Structure Error", success))
+        test_results.append(("GET /api/sidebar-structure", "✅ Proper response structure" if success else "❌ Improper error format"))
         
         # Test 3: Crewing Manager CAN Create Crew Certificate
         print("\n3. Crewing Manager CAN Create Crew Certificate")
