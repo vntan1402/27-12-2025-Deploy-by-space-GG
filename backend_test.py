@@ -20,7 +20,7 @@ import io
 from datetime import datetime, timedelta
 import time
 
-BACKEND_URL = "https://maritime-safety-5.preview.emergentagent.com/api"
+BACKEND_URL = "https://maritime-safety-6.preview.emergentagent.com/api"
 USERNAME = "admin1"
 PASSWORD = "123456"
 
