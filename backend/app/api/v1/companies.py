@@ -79,7 +79,8 @@ async def update_company(
     """
     # Check if admin is trying to update other company
     if current_user.role == UserRole.ADMIN and current_user.company != company_id:
-        raise HTTPException(status_code=403, detail="Admin can only update their own company")
+        from app.core.messages import ADMIN_OWN_COMPANY_ONLY
+        raise HTTPException(status_code=403, detail=ADMIN_OWN_COMPANY_ONLY)
     
     try:
         return await CompanyService.update_company(company_id, company_data, current_user)
