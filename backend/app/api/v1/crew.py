@@ -161,7 +161,8 @@ async def get_crew_by_id(
     """
     try:
         return await CrewService.get_crew_by_id(crew_id, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error fetching crew {crew_id}: {e}")
@@ -177,7 +178,8 @@ async def create_crew(
     """
     try:
         return await CrewService.create_crew(crew_data, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error creating crew: {e}")
@@ -209,7 +211,8 @@ async def update_crew(
             current_user,
             expected_last_modified_at=expected_last_modified_at
         )
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error updating crew: {e}")
@@ -225,7 +228,8 @@ async def delete_crew(
     """
     try:
         return await CrewService.delete_crew(crew_id, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error deleting crew: {e}")
@@ -363,7 +367,8 @@ async def upload_passport_files(
             "crew_id": crew_id
         }
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error uploading passport files: {e}")
@@ -450,7 +455,8 @@ async def move_standby_files(
             "from_path": str(source_dir),
             "to_path": str(dest_dir)
         }
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error moving crew files: {e}")
@@ -756,7 +762,8 @@ Return ONLY the JSON output with extracted fields. Do not include any explanatio
             "analysis": passport_data
         }
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Passport analysis error: {e}")
@@ -831,7 +838,8 @@ async def sign_off_crew_member(
         
         return result
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Sign off endpoint error: {e}")
@@ -911,7 +919,8 @@ async def sign_on_crew_member(
         
         return result
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Sign on endpoint error: {e}")
@@ -987,7 +996,8 @@ async def transfer_crew_to_ship(
         
         return result
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Transfer endpoint error: {e}")
@@ -1038,7 +1048,8 @@ async def auto_rename_crew_passport(
         
         return result
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Auto-rename passport endpoint error: {e}")
@@ -1125,7 +1136,8 @@ async def get_crew_assignment_history(
             "history": history
         }
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Get assignment history error: {e}")
@@ -1202,7 +1214,8 @@ async def clear_crew_assignment_history(
             "records_deleted": deleted_count
         }
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Clear assignment history error: {e}")
@@ -1385,7 +1398,8 @@ async def update_crew_assignment_dates(
                 "updated": updated
             }
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Update assignment dates error: {e}")

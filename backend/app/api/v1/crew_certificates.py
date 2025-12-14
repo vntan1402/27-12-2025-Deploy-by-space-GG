@@ -64,7 +64,8 @@ async def get_crew_certificate_by_id(
     """
     try:
         return await CrewCertificateService.get_crew_certificate_by_id(cert_id, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error fetching crew certificate {cert_id}: {e}")
@@ -121,7 +122,8 @@ async def create_crew_certificate_manual(
         
         logger.info(f"📋 Creating crew certificate manually for crew: {cert_data.crew_name}")
         return await CrewCertificateService.create_crew_certificate(cert_data, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error creating crew certificate: {e}")
@@ -231,7 +233,8 @@ async def upload_crew_certificate_files(
             "summary_file_id": summary_file_id
         }
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error uploading crew certificate files: {e}")
@@ -252,7 +255,8 @@ async def create_crew_certificate(
     """
     try:
         return await CrewCertificateService.create_crew_certificate(cert_data, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error creating crew certificate: {e}")
@@ -269,7 +273,8 @@ async def update_crew_certificate(
     """
     try:
         return await CrewCertificateService.update_crew_certificate(cert_id, cert_data, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error updating crew certificate: {e}")
@@ -286,7 +291,8 @@ async def bulk_delete_crew_certificates(
     """
     try:
         return await CrewCertificateService.bulk_delete_crew_certificates(request, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error bulk deleting crew certificates: {e}")
@@ -302,7 +308,8 @@ async def delete_crew_certificate(
     """
     try:
         return await CrewCertificateService.delete_crew_certificate(cert_id, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error deleting crew certificate: {e}")
@@ -339,7 +346,8 @@ async def analyze_crew_certificate_file(
     try:
         logger.info(f"📋 Analyze crew certificate request - crew_id: {crew_id}, ship_id: {ship_id}")
         return await CrewCertificateService.analyze_crew_certificate_file(cert_file, crew_id, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error analyzing crew certificate file: {e}")
@@ -408,7 +416,8 @@ async def upload_crew_certificate_files(
             "message": f"Successfully uploaded {len(uploaded_files)} files to Google Drive",
             "files": uploaded_files
         }
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error uploading crew certificate files: {e}")
@@ -438,7 +447,8 @@ async def bulk_auto_rename_certificates(
         
         return result
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error in bulk auto-rename endpoint: {e}")
@@ -473,7 +483,8 @@ async def get_crew_certificate_file_link(
             "cert_name": cert.get('cert_name', 'certificate')
         }
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error getting file link: {e}")

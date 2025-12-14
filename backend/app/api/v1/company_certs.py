@@ -51,7 +51,8 @@ async def get_company_cert_by_id(
     """Get a specific Company Certificate by ID"""
     try:
         return await CompanyCertService.get_company_cert_by_id(cert_id, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error fetching Company Certificate {cert_id}: {e}")
@@ -65,7 +66,8 @@ async def create_company_cert(
     """Create new Company Certificate (Admin or DPA Manager required)"""
     try:
         return await CompanyCertService.create_company_cert(cert_data, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error creating Company Certificate: {e}")
@@ -80,7 +82,8 @@ async def update_company_cert(
     """Update Company Certificate (Admin or DPA Manager required)"""
     try:
         return await CompanyCertService.update_company_cert(cert_id, cert_data, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error updating Company Certificate: {e}")
@@ -95,7 +98,8 @@ async def delete_company_cert(
     """Delete Company Certificate (Admin or DPA Manager required)"""
     try:
         return await CompanyCertService.delete_company_cert(cert_id, current_user, background_tasks)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error deleting Company Certificate: {e}")
@@ -165,7 +169,8 @@ async def analyze_company_cert_file_endpoint(
         
         return result
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error analyzing company cert file: {e}")
@@ -265,7 +270,8 @@ async def upload_company_cert_with_file(
         else:
             raise HTTPException(status_code=500, detail="Failed to upload file to Google Drive")
             
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error uploading company cert: {e}")
@@ -354,7 +360,8 @@ async def upload_file_for_existing_cert(
         else:
             raise HTTPException(status_code=500, detail="Failed to upload to Google Drive")
             
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Background upload error: {e}")
@@ -487,7 +494,8 @@ async def auto_rename_company_certificate_file(
     """
     try:
         return await CompanyCertService.auto_rename_file(cert_id, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error auto-renaming company certificate file: {e}")

@@ -227,7 +227,8 @@ async def get_certificate_by_id(
     """
     try:
         return await CertificateService.get_certificate_by_id(cert_id, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error fetching certificate {cert_id}: {e}")
@@ -243,7 +244,8 @@ async def create_certificate(
     """
     try:
         return await CertificateService.create_certificate(cert_data, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error creating certificate: {e}")
@@ -260,7 +262,8 @@ async def update_certificate(
     """
     try:
         return await CertificateService.update_certificate(cert_id, cert_data, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error updating certificate: {e}")
@@ -277,7 +280,8 @@ async def delete_certificate(
     """
     try:
         return await CertificateService.delete_certificate(cert_id, current_user, background_tasks)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error deleting certificate: {e}")
@@ -325,7 +329,8 @@ async def analyze_certificate_file(
     """
     try:
         return await CertificateService.analyze_certificate_file(file, ship_id, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error analyzing certificate file: {e}")
@@ -374,7 +379,8 @@ async def upload_certificate_files(
             "message": f"Successfully uploaded {len(uploaded_files)} files",
             "files": uploaded_files
         }
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error uploading certificate files: {e}")
@@ -420,7 +426,8 @@ async def get_certificate_file_link(
         return {
             "file_url": file_path
         }
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error getting certificate file link: {e}")
@@ -466,7 +473,8 @@ async def multi_certificate_upload(
         logger.info(f"✅ Multi-upload completed: {result.get('summary', {})}")
         return result
         
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Multi-upload error: {e}")
@@ -489,7 +497,8 @@ async def auto_rename_certificate_file(
     """
     try:
         return await CertificateService.auto_rename_certificate_file(certificate_id, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # Preserve permission errors
         raise
     except Exception as e:
         logger.error(f"❌ Error auto-renaming certificate file: {e}")
