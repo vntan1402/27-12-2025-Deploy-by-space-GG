@@ -849,7 +849,17 @@ export const AddAuditCertificateModal = ({
             
             handleClose();
           } else {
-          throw new Error(uploadResponse.data.message || 'Upload failed');
+            throw new Error(uploadResponse.data.message || 'Upload failed');
+          }
+        } catch (uploadError) {
+          // ⭐ FIX: Handle permission errors from backend
+          console.error('Upload error:', uploadError);
+          const backendMessage = uploadError.response?.data?.detail;
+          const errorMessage = backendMessage || (language === 'vi' 
+            ? '❌ Lỗi khi upload file và tạo certificate'
+            : '❌ Error uploading file and creating certificate');
+          toast.error(errorMessage);
+          return;  // Exit on error
         }
         
         return; // Exit after success
