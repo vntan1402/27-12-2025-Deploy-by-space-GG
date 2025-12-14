@@ -252,11 +252,9 @@ export const TestReportList = ({
       setSelectedReports(new Set());
     } catch (error) {
       console.error('Failed to delete test report:', error);
-      toast.error(
-        language === 'vi' 
-          ? 'Không thể xóa báo cáo test' 
-          : 'Failed to delete test report'
-      );
+      const errorMessage = error.response?.data?.detail || 
+        (language === 'vi' ? 'Không thể xóa báo cáo test' : 'Failed to delete test report');
+      toast.error(errorMessage);
     }
   };
 
@@ -428,11 +426,9 @@ export const TestReportList = ({
     } catch (error) {
       console.error('Failed to bulk delete:', error);
       toast.dismiss(toastId);
-      toast.error(
-        language === 'vi' 
-          ? '❌ Lỗi khi xóa báo cáo test' 
-          : '❌ Failed to delete test reports'
-      );
+      const errorMessage = error.response?.data?.detail || 
+        (language === 'vi' ? '❌ Lỗi khi xóa báo cáo test' : '❌ Failed to delete test reports');
+      toast.error(errorMessage);
     }
   };
 
