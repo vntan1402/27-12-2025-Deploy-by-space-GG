@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 """
-🧪 PERMISSION SYSTEM TESTING - Phase 1 Implementation
+🧪 PERMISSION SYSTEM VERIFICATION - Complete Test Suite
 
-Testing the comprehensive department-based permission system:
-1. Manager Technical CAN create Ship Certificate
-2. Manager Crewing CANNOT create Ship Certificate  
-3. Manager DPA CAN create Company Certificate
-4. Manager Technical CANNOT create Company Certificate
-5. Editor CAN view Company Certificates (NEW FEATURE!)
-6. Viewer CANNOT view Company Certificates
-7. Editor CANNOT create any certificates
-8. Editor only sees assigned ship documents
-9. Admin has full access within company
-10. Admin CAN create Company Certificate
-11. Manager Crewing CAN create Crew Certificate
-12. Manager Technical CANNOT create Crew Certificate
+Testing the comprehensive department-based permission system as per review request:
+1. Technical Manager CAN Create Ship Certificate
+2. Crewing Manager CANNOT Create Ship Certificate  
+3. Crewing Manager CAN Create Crew Certificate
+4. Technical Manager CANNOT Create Crew Certificate
+5. Editor CANNOT Create Any Certificates
+6. Editor Ship Scope Filtering (GET Certificates)
+7. Editor Ship Scope on Ship List
+8. Company Access Control (Admin Scope)
+9. Editor CAN View Company Certificates (NEW FEATURE!)
+10. System Admin Has Full Access
 """
 
 import requests
@@ -36,12 +34,19 @@ try:
 except:
     BACKEND_URL = "https://maritime-safety-6.preview.emergentagent.com/api"
 
-# Available test users (from the system)
+# Test users as specified in review request
 TEST_USERS = {
-    "admin1": {"password": "123456", "role": "admin", "departments": ["operations", "commercial", "technical", "safety"]},
-    "system_admin": {"password": "123456", "role": "system_admin", "departments": ["technical", "operations", "safety", "commercial", "crewing", "sso", "cso", "supply", "dpa"]},
-    "ngoclm": {"password": "123456", "role": "manager", "departments": ["technical", "operations", "commercial", "cso", "supply", "crewing", "safety", "dpa"]},
-    "user1": {"password": "123456", "role": "manager", "departments": ["ship_crew", "technical", "dpa"]}
+    "tech_manager": {"password": "Test123!", "role": "manager", "departments": ["technical"]},
+    "crew_manager": {"password": "Test123!", "role": "manager", "departments": ["crewing"]},
+    "test_editor": {"password": "Test123!", "role": "editor", "assigned_ship": "test_ship_001"},
+    "system_admin": {"password": "YourSecure@Pass2024", "role": "system_admin", "departments": ["all"]}
+}
+
+# Test environment data
+TEST_COMPANY = "test_company_perm"
+TEST_SHIPS = {
+    "test_ship_001": "TEST SHIP 1",
+    "test_ship_002": "TEST SHIP 2"
 }
 
 def login(username, password):
