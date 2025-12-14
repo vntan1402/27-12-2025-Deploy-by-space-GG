@@ -167,6 +167,7 @@ def test_4_technical_manager_cannot_create_crew_cert(headers, crew_id, company_i
     }
     
     response = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=cert_data)
+    return response
 
 def test_5_editor_cannot_create_certificates(headers, ship_id):
     """TEST 5: Editor CANNOT Create Any Certificates"""
