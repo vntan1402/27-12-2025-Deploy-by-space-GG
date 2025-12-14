@@ -75,7 +75,7 @@ class UserService:
         # Filter based on role
         if current_user.role in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             filtered = users
-        elif current_user.role == UserRole.ADMIN:
+        elif current_user.role in [UserRole.ADMIN, UserRole.MANAGER]:
             filtered = [u for u in users if u.get('company') == current_user.company]
         else:
             filtered = [u for u in users if u.get('id') == current_user.id]
