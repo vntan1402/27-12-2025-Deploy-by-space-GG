@@ -150,9 +150,9 @@ def test_3_crewing_manager_can_create_crew_cert(headers, crew_id, company_id):
     cert_data = {
         "crew_id": crew_id,
         "company_id": company_id,
-        "crew_name": "Test Crew Member",  # Added missing field
+        "crew_name": "Trần Văn Đức",
+        "passport": "C9575554",  # Added required passport field
         "cert_name": "STCW Certificate",
-        "cert_type": "COC",
         "cert_no": "CREW-CERT-001"
     }
     
