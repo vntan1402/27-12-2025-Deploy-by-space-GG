@@ -36,14 +36,12 @@ try:
 except:
     BACKEND_URL = "https://maritime-safety-6.preview.emergentagent.com/api"
 
-# Test users with different roles and departments
+# Available test users (from the system)
 TEST_USERS = {
-    "admin1": {"password": "123456", "role": "Admin"},
-    "manager_technical": {"password": "123456", "role": "Manager", "department": ["technical"]},
-    "manager_crewing": {"password": "123456", "role": "Manager", "department": ["crewing"]},
-    "manager_dpa": {"password": "123456", "role": "Manager", "department": ["dpa"]},
-    "editor1": {"password": "123456", "role": "Editor", "assigned_ship": "ship_001"},
-    "viewer1": {"password": "123456", "role": "Viewer", "assigned_ship": "ship_001"}
+    "admin1": {"password": "123456", "role": "admin", "departments": ["operations", "commercial", "technical", "safety"]},
+    "system_admin": {"password": "123456", "role": "system_admin", "departments": ["technical", "operations", "safety", "commercial", "crewing", "sso", "cso", "supply", "dpa"]},
+    "ngoclm": {"password": "123456", "role": "manager", "departments": ["technical", "operations", "commercial", "cso", "supply", "crewing", "safety", "dpa"]},
+    "user1": {"password": "123456", "role": "manager", "departments": ["ship_crew", "technical", "dpa"]}
 }
 
 def login(username, password):
