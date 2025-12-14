@@ -122,23 +122,23 @@ def test_manager_without_dpa_cannot_create_company_cert(headers, company_id):
     response = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=cert_data)
     return response
 
-def test_editor_can_view_company_certs(headers):
-    """Test 5: Editor CAN view Company Certificates"""
-    response = requests.get(f"{BACKEND_URL}/company-certificates", headers=headers)
+def test_manager_can_view_company_certs(headers):
+    """Test 5: Manager CAN view Company Certificates"""
+    response = requests.get(f"{BACKEND_URL}/company-certs", headers=headers)
     return response
 
-def test_viewer_cannot_view_company_certs(headers):
-    """Test 6: Viewer CANNOT view Company Certificates"""
-    response = requests.get(f"{BACKEND_URL}/company-certificates", headers=headers)
+def test_admin_can_view_company_certs(headers):
+    """Test 6: Admin CAN view Company Certificates"""
+    response = requests.get(f"{BACKEND_URL}/company-certs", headers=headers)
     return response
 
-def test_editor_cannot_create_certificates(headers):
-    """Test 7: Editor CANNOT create any certificates"""
+def test_manager_can_create_certificates(headers, ship_id):
+    """Test 7: Manager CAN create certificates (with proper department)"""
     cert_data = {
-        "ship_id": "ship_001",
-        "cert_name": "Test",
+        "ship_id": ship_id,
+        "cert_name": "Manager Test Cert",
         "cert_type": "Full Term",
-        "cert_no": "TEST003"
+        "cert_no": "MGR001"
     }
     
     response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
