@@ -19,8 +19,9 @@ background_tasks: Set[asyncio.Task] = set()
 
 def check_editor_permission(current_user: UserResponse = Depends(get_current_user)):
     """Check if user has editor or higher permission"""
+    from app.core.messages import EDITOR_ONLY
     if current_user.role not in [UserRole.EDITOR, UserRole.MANAGER, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]:
-        raise HTTPException(status_code=403, detail="Insufficient permissions")
+        raise HTTPException(status_code=403, detail=EDITOR_ONLY)
     return current_user
 
 @router.get("", response_model=List[ShipResponse])
