@@ -168,31 +168,38 @@ def test_4_technical_manager_cannot_create_crew_cert(headers, crew_id, company_i
     
     response = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=cert_data)
 
-def test_manager_can_view_company_certs(headers):
-    """Test 5: Manager CAN view Company Certificates"""
-    response = requests.get(f"{BACKEND_URL}/company-certs", headers=headers)
-    return response
-
-def test_admin_can_view_company_certs(headers):
-    """Test 6: Admin CAN view Company Certificates"""
-    response = requests.get(f"{BACKEND_URL}/company-certs", headers=headers)
-    return response
-
-def test_manager_can_create_certificates(headers, ship_id):
-    """Test 7: Manager CAN create certificates (with proper department)"""
+def test_5_editor_cannot_create_certificates(headers, ship_id):
+    """TEST 5: Editor CANNOT Create Any Certificates"""
     cert_data = {
         "ship_id": ship_id,
-        "cert_name": "Manager Test Cert",
+        "cert_name": "Editor Test Cert",
         "cert_type": "Full Term",
-        "cert_no": "MGR001"
+        "cert_no": "EDITOR-001"
     }
     
     response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
     return response
 
-def test_certificate_filtering_by_company(headers):
-    """Test 8: Users only see certificates from their company"""
+def test_6_editor_ship_scope_filtering(headers, expected_ship_id):
+    """TEST 6: Editor Ship Scope Filtering (GET Certificates)"""
     response = requests.get(f"{BACKEND_URL}/certificates", headers=headers)
+    return response
+
+def test_7_editor_ship_scope_on_ship_list(headers, expected_ship_id):
+    """TEST 7: Editor Ship Scope on Ship List"""
+    response = requests.get(f"{BACKEND_URL}/ships", headers=headers)
+    return response
+
+def test_8_company_access_control(headers, different_company_ship_id):
+    """TEST 8: Company Access Control (Admin Scope)"""
+    cert_data = {
+        "ship_id": different_company_ship_id,
+        "cert_name": "Cross Company Test",
+        "cert_type": "Full Term",
+        "cert_no": "CROSS-001"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
     return response
 
 def test_admin_full_access(headers, ship_id):
