@@ -331,7 +331,7 @@ def check_ship_filtering(response, expected_ship_id):
 
 # Main test execution
 def main():
-    print("🧪 PERMISSION SYSTEM TESTING - Phase 1 Implementation")
+    print("🧪 PERMISSION SYSTEM VERIFICATION - Complete Test Suite")
     print("=" * 80)
     print(f"Backend URL: {BACKEND_URL}")
     
@@ -342,22 +342,46 @@ def main():
     medium_priority_tests = []
     
     try:
-        # First, get system information
+        # Setup test environment
+        create_test_users_and_environment()
+        
+        # Get system information using system_admin
         print("\n📋 Getting System Information...")
-        admin_headers = get_headers("admin1")
+        system_headers = get_headers("system_admin")
         
         # Get ships
-        ships_response = requests.get(f"{BACKEND_URL}/ships", headers=admin_headers)
+        ships_response = requests.get(f"{BACKEND_URL}/ships", headers=system_headers)
         ships = ships_response.json() if ships_response.status_code == 200 else []
-        ship_id = ships[0]["id"] if ships else None
-        print(f"   🚢 Using ship: {ships[0]['name']} (ID: {ship_id[:8]}...)" if ship_id else "   ❌ No ships found")
+        
+        # Find test ships or use first available
+        test_ship_001_id = None
+        test_ship_002_id = None
+        
+        for ship in ships:
+            if "TEST SHIP 1" in ship.get("name", ""):
+                test_ship_001_id = ship["id"]
+            elif "TEST SHIP 2" in ship.get("name", ""):
+                test_ship_002_id = ship["id"]
+        
+        # Use first two ships if test ships not found
+        if not test_ship_001_id and ships:
+            test_ship_001_id = ships[0]["id"]
+        if not test_ship_002_id and len(ships) > 1:
+            test_ship_002_id = ships[1]["id"]
+        
+        print(f"   🚢 Test Ship 1: {test_ship_001_id[:8]}..." if test_ship_001_id else "   ❌ No test ship 1 found")
+        print(f"   🚢 Test Ship 2: {test_ship_002_id[:8]}..." if test_ship_002_id else "   ❌ No test ship 2 found")
         
         # Get user's company
-        user_info = get_user_info(admin_headers)
+        user_info = get_user_info(system_headers)
         company_id = user_info.get("company") if user_info else None
         print(f"   🏢 Using company: {company_id[:8]}..." if company_id else "   ❌ No company found")
         
-        if not ship_id or not company_id:
+        # Get or create crew member for testing
+        crew_id = get_or_create_crew_member(system_headers, company_id)
+        print(f"   👤 Test crew member: {crew_id[:8]}..." if crew_id else "   ❌ No crew member available")
+        
+        if not test_ship_001_id or not company_id:
             print("   ❌ Cannot run tests without ship and company data")
             return
         
