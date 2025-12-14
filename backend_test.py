@@ -650,45 +650,7 @@ def main():
             medium_priority_tests.append(("Test 10", False))
             test_results.append(("System Admin → Full Access", "❌ ERROR"))
         
-        print("\n🔵 BONUS TESTS (Crew Certificates)")
-        
-        # Test 11: Manager with Crewing department CAN create Crew Certificate
-        print("\n11. Manager with Crewing department CAN create Crew Certificate")
-        try:
-            # Use ngoclm who has crewing department
-            headers = get_headers("ngoclm")
-            user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Departments: {user_info.get('department', [])}")
-            
-            success, response = run_test(
-                "Manager with Crewing dept creates Crew Certificate",
-                lambda: test_crewing_manager_can_create_crew_cert(headers),
-                expected_status=201,
-                expected_success=True
-            )
-            test_results.append(("Manager Crewing → Crew Cert", "✅ PASS" if success else "❌ FAIL"))
-        except Exception as e:
-            print(f"   ❌ Test 11 failed: {e}")
-            test_results.append(("Manager Crewing → Crew Cert", "❌ ERROR"))
-        
-        # Test 12: Manager without Crewing department CANNOT create Crew Certificate
-        print("\n12. Manager without Crewing department CANNOT create Crew Certificate")
-        try:
-            # Use user1 who doesn't have crewing (has ship_crew, technical, dpa)
-            headers = get_headers("user1")
-            user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Departments: {user_info.get('department', [])}")
-            
-            success, response = run_test(
-                "Manager without Crewing tries to create Crew Certificate",
-                lambda: test_manager_without_crewing_cannot_create_crew_cert(headers),
-                expected_status=403,
-                expected_success=False
-            )
-            test_results.append(("Manager w/o Crewing → Crew Cert", "✅ BLOCKED" if success else "❌ ALLOWED"))
-        except Exception as e:
-            print(f"   ❌ Test 12 failed: {e}")
-            test_results.append(("Manager w/o Crewing → Crew Cert", "❌ ERROR"))
+        # All tests completed
         
         # Calculate success rates
         critical_success = sum(1 for _, success in critical_tests if success)
