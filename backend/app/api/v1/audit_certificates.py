@@ -89,11 +89,13 @@ async def create_audit_certificate(
     """Create new Audit Certificate (Editor+ role required)"""
     try:
         return await AuditCertificateService.create_audit_certificate(cert_data, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # ⭐ FIX: Preserve permission errors
+        logger.warning(f"⚠️ HTTP Exception creating Audit Certificate: {http_ex.status_code} - {http_ex.detail}")
         raise
     except Exception as e:
-        logger.error(f"❌ Error creating Audit Certificate: {e}")
-        raise HTTPException(status_code=500, detail="Failed to create Audit Certificate")
+        logger.error(f"❌ Error creating Audit Certificate: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Lỗi tạo chứng chỉ: {str(e)}")
 
 @router.put("/{cert_id}", response_model=AuditCertificateResponse)
 async def update_audit_certificate(
@@ -121,11 +123,13 @@ async def delete_audit_certificate(
     """Delete Audit Certificate with background file deletion (Editor+ role required)"""
     try:
         return await AuditCertificateService.delete_audit_certificate(cert_id, current_user, background_tasks)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # ⭐ FIX: Preserve permission errors
+        logger.warning(f"⚠️ HTTP Exception deleting Audit Certificate: {http_ex.status_code} - {http_ex.detail}")
         raise
     except Exception as e:
-        logger.error(f"❌ Error deleting Audit Certificate: {e}")
-        raise HTTPException(status_code=500, detail="Failed to delete Audit Certificate")
+        logger.error(f"❌ Error deleting Audit Certificate: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Lỗi xóa chứng chỉ: {str(e)}")
 
 @router.post("/bulk-delete")
 async def bulk_delete_audit_certificates(
