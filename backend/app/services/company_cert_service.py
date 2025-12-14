@@ -30,12 +30,23 @@ class CompanyCertService:
     @staticmethod
     async def get_company_certs(company: Optional[str], current_user: UserResponse) -> List[CompanyCertResponse]:
         """Get company certificates, optionally filtered by company"""
+        from app.core.permission_checks import can_view_company_certificates, check_company_access
+        from app.core import messages
+        
+        # ⭐ NEW: Check if user can view Company Certificates
+        # Viewer role cannot access Company Certificates
+        if not can_view_company_certificates(current_user):
+            raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED)
+        
         filters = {}
         if company:
             filters["company"] = company
         else:
             # If no company specified, return certs for user's company
             filters["company"] = current_user.company
+        
+        # Check company access
+        check_company_access(current_user, filters["company"], "view")
         
         certs = await mongo_db.find_all(CompanyCertService.collection_name, filters)
         
@@ -81,11 +92,20 @@ class CompanyCertService:
         from app.utils.certificate_abbreviation import generate_certificate_abbreviation
         from app.utils.issued_by_abbreviation import generate_organization_abbreviation
         from app.utils.company_name_abbreviation import abbreviate_company_name
+        from app.core.permission_checks import can_view_company_certificates, check_company_access
+        from app.core import messages
+        
+        # ⭐ NEW: Check if user can view Company Certificates
+        if not can_view_company_certificates(current_user):
+            raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED)
         
         cert = await mongo_db.find_one(CompanyCertService.collection_name, {"id": cert_id})
         
         if not cert:
             raise HTTPException(status_code=404, detail="Company Certificate not found")
+        
+        # Check company access
+        check_company_access(current_user, cert.get("company"), "view")
         
         if not cert.get("cert_name"):
             cert["cert_name"] = "Untitled Certificate"
@@ -120,6 +140,7 @@ class CompanyCertService:
         from app.utils.certificate_abbreviation import generate_certificate_abbreviation
         from app.utils.issued_by_abbreviation import generate_organization_abbreviation
         from app.utils.doc_next_survey_calculator import calculate_next_survey
+        from app.core.permission_checks import check_create_permission
         
         cert_dict = cert_data.model_dump()
         cert_dict["id"] = str(uuid.uuid4())
@@ -129,6 +150,9 @@ class CompanyCertService:
         # Ensure company is set
         if not cert_dict.get("company"):
             cert_dict["company"] = current_user.company
+        
+        # ⭐ NEW: Permission checks
+        check_create_permission(current_user, "company_cert", cert_dict["company"])
         
         # Generate certificate abbreviation
         if cert_dict.get("cert_name"):
@@ -210,11 +234,15 @@ class CompanyCertService:
         """Update company certificate"""
         from app.utils.certificate_abbreviation import generate_certificate_abbreviation
         from app.utils.issued_by_abbreviation import generate_organization_abbreviation
+        from app.core.permission_checks import check_edit_permission
         
         existing_cert = await mongo_db.find_one(CompanyCertService.collection_name, {"id": cert_id})
         
         if not existing_cert:
             raise HTTPException(status_code=404, detail="Company Certificate not found")
+        
+        # ⭐ NEW: Permission checks
+        check_edit_permission(current_user, "company_cert", existing_cert.get("company"))
         
         update_data = cert_data.model_dump(exclude_unset=True)
         
@@ -268,11 +296,15 @@ class CompanyCertService:
     async def delete_company_cert(cert_id: str, current_user: UserResponse, background_tasks) -> dict:
         """Delete company certificate and schedule Google Drive file deletion"""
         from app.services.gdrive_service import GDriveService
+        from app.core.permission_checks import check_delete_permission
         
         cert = await mongo_db.find_one(CompanyCertService.collection_name, {"id": cert_id})
         
         if not cert:
             raise HTTPException(status_code=404, detail="Company Certificate not found")
+        
+        # ⭐ NEW: Permission checks
+        check_delete_permission(current_user, "company_cert", cert.get("company"))
         
         # Extract file info before deleting
         file_id = cert.get("file_id") or cert.get("google_drive_file_id")
