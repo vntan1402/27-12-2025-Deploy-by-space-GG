@@ -141,14 +141,27 @@ def test_permission_denied_audit_cert_create_with_file(headers, ship_id):
     # Create a simple test file
     test_file_content = b"Test PDF content"
     files = {
-        'audit_certificate_file': ('test.pdf', test_file_content, 'application/pdf')
-    }
-    data = {
-        'ship_id': ship_id,
-        'bypass_validation': 'true'
+        'file': ('test.pdf', test_file_content, 'application/pdf')
     }
     
-    response = requests.post(f"{BACKEND_URL}/audit-certificates/create-with-file-override", 
+    # Create cert_data as JSON string
+    cert_data = {
+        "cert_name": "Test Audit Certificate",
+        "cert_no": "TEST-001",
+        "cert_type": "Full Term",
+        "issue_date": "2024-01-01",
+        "valid_date": "2027-01-01",
+        "issued_by": "Test Authority"
+    }
+    
+    data = {
+        'cert_data': json.dumps(cert_data)
+    }
+    
+    # Use query parameter for ship_id
+    url = f"{BACKEND_URL}/audit-certificates/create-with-file-override?ship_id={ship_id}"
+    
+    response = requests.post(url, 
                            headers={"Authorization": headers["Authorization"]}, 
                            files=files, data=data)
     return response
