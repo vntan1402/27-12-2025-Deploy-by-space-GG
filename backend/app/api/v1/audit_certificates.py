@@ -283,9 +283,10 @@ async def multi_upload_audit_certificates(
             raise HTTPException(status_code=404, detail="Ship not found")
         
         # Verify company access
+        from app.core.messages import ACCESS_DENIED_COMPANY
         company_id = current_user.company
         if ship.get("company") != company_id:
-            raise HTTPException(status_code=403, detail="Access denied")
+            raise HTTPException(status_code=403, detail=ACCESS_DENIED_COMPANY)
         
         results = []
         summary = {
@@ -608,9 +609,10 @@ async def create_audit_certificate_with_file_override(
             raise HTTPException(status_code=404, detail="Ship not found")
         
         # Verify access
+        from app.core.messages import ACCESS_DENIED_COMPANY
         company_id = current_user.company
         if ship.get("company") != company_id:
-            raise HTTPException(status_code=403, detail="Access denied")
+            raise HTTPException(status_code=403, detail=ACCESS_DENIED_COMPANY)
         
         # Parse cert_data
         try:
