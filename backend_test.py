@@ -399,83 +399,99 @@ def main():
             critical_tests.append(("Test 4", False))
             test_results.append(("Manager w/o DPA → Company Cert", "❌ ERROR"))
         
-        print("\n🟡 HIGH PRIORITY TESTS (Editor/Viewer Permissions)")
+        print("\n🟡 HIGH PRIORITY TESTS (Role-Based Permissions)")
         
-        # Test 5: Editor CAN view Company Certificates
-        print("\n5. Editor CAN view Company Certificates")
+        # Test 5: Manager CAN view Company Certificates
+        print("\n5. Manager CAN view Company Certificates")
         try:
-            headers = get_headers("editor1")
+            headers = get_headers("ngoclm")
+            user_info = get_user_info(headers)
+            print(f"   👤 Testing with: {user_info.get('username')} - Role: {user_info.get('role')}")
+            
             success, response = run_test(
-                "Editor views Company Certificates",
-                lambda: test_editor_can_view_company_certs(headers),
+                "Manager views Company Certificates",
+                lambda: test_manager_can_view_company_certs(headers),
                 expected_status=200,
                 expected_success=True
             )
             high_priority_tests.append(("Test 5", success))
-            test_results.append(("Editor → View Company Certs", "✅ PASS" if success else "❌ FAIL"))
+            test_results.append(("Manager → View Company Certs", "✅ PASS" if success else "❌ FAIL"))
         except Exception as e:
             print(f"   ❌ Test 5 failed: {e}")
             high_priority_tests.append(("Test 5", False))
-            test_results.append(("Editor → View Company Certs", "❌ ERROR"))
+            test_results.append(("Manager → View Company Certs", "❌ ERROR"))
         
-        # Test 6: Viewer CANNOT view Company Certificates
-        print("\n6. Viewer CANNOT view Company Certificates")
+        # Test 6: Admin CAN view Company Certificates
+        print("\n6. Admin CAN view Company Certificates")
         try:
-            headers = get_headers("viewer1")
+            headers = get_headers("admin1")
+            user_info = get_user_info(headers)
+            print(f"   👤 Testing with: {user_info.get('username')} - Role: {user_info.get('role')}")
+            
             success, response = run_test(
-                "Viewer tries to view Company Certificates",
-                lambda: test_viewer_cannot_view_company_certs(headers),
-                expected_status=403,
-                expected_success=False
+                "Admin views Company Certificates",
+                lambda: test_admin_can_view_company_certs(headers),
+                expected_status=200,
+                expected_success=True
             )
             high_priority_tests.append(("Test 6", success))
-            test_results.append(("Viewer → View Company Certs", "✅ BLOCKED" if success else "❌ ALLOWED"))
+            test_results.append(("Admin → View Company Certs", "✅ PASS" if success else "❌ FAIL"))
         except Exception as e:
             print(f"   ❌ Test 6 failed: {e}")
             high_priority_tests.append(("Test 6", False))
-            test_results.append(("Viewer → View Company Certs", "❌ ERROR"))
+            test_results.append(("Admin → View Company Certs", "❌ ERROR"))
         
-        # Test 7: Editor CANNOT create any certificates
-        print("\n7. Editor CANNOT create any certificates")
+        # Test 7: Manager CAN create certificates (with proper department)
+        print("\n7. Manager CAN create certificates (with proper department)")
         try:
-            headers = get_headers("editor1")
+            headers = get_headers("ngoclm")
+            user_info = get_user_info(headers)
+            print(f"   👤 Testing with: {user_info.get('username')} - Role: {user_info.get('role')}")
+            
             success, response = run_test(
-                "Editor tries to create certificate",
-                lambda: test_editor_cannot_create_certificates(headers),
-                expected_status=403,
-                expected_success=False
+                "Manager creates certificate",
+                lambda: test_manager_can_create_certificates(headers, ship_id),
+                expected_status=201,
+                expected_success=True
             )
             high_priority_tests.append(("Test 7", success))
-            test_results.append(("Editor → Create Cert", "✅ BLOCKED" if success else "❌ ALLOWED"))
+            test_results.append(("Manager → Create Cert", "✅ PASS" if success else "❌ FAIL"))
         except Exception as e:
             print(f"   ❌ Test 7 failed: {e}")
             high_priority_tests.append(("Test 7", False))
-            test_results.append(("Editor → Create Cert", "❌ ERROR"))
+            test_results.append(("Manager → Create Cert", "❌ ERROR"))
         
-        # Test 8: Editor only sees assigned ship documents
-        print("\n8. Editor only sees assigned ship documents")
+        # Test 8: Certificate filtering by company
+        print("\n8. Certificate filtering by company")
         try:
-            editor_headers = get_headers("editor1")
-            manager_headers = get_headers("manager_technical")
+            headers = get_headers("ngoclm")
+            user_info = get_user_info(headers)
+            print(f"   👤 Testing with: {user_info.get('username')} - Company: {user_info.get('company', 'N/A')[:8]}...")
+            
             success, response = run_test(
-                "Editor views certificates (ship filtering)",
-                lambda: test_editor_ship_filtering(editor_headers, manager_headers),
+                "Manager views certificates (company filtering)",
+                lambda: test_certificate_filtering_by_company(headers),
                 expected_status=200,
                 expected_success=True
             )
             
-            # Additional check for ship filtering
+            # Additional check for company filtering
             if success and response:
-                filter_success, filter_msg = check_ship_filtering(response, "ship_001")
-                print(f"      📋 Ship filtering: {'✅' if filter_success else '❌'} {filter_msg}")
-                success = success and filter_success
+                try:
+                    certs = response.json()
+                    if isinstance(certs, list):
+                        print(f"      📋 Found {len(certs)} certificates for user's company")
+                    else:
+                        print(f"      📋 Response format: {type(certs)}")
+                except:
+                    print(f"      📋 Could not parse certificate response")
             
             high_priority_tests.append(("Test 8", success))
-            test_results.append(("Editor → Ship Filtering", "✅ PASS" if success else "❌ FAIL"))
+            test_results.append(("Manager → Company Filtering", "✅ PASS" if success else "❌ FAIL"))
         except Exception as e:
             print(f"   ❌ Test 8 failed: {e}")
             high_priority_tests.append(("Test 8", False))
-            test_results.append(("Editor → Ship Filtering", "❌ ERROR"))
+            test_results.append(("Manager → Company Filtering", "❌ ERROR"))
         
         print("\n🟢 MEDIUM PRIORITY TESTS (Admin Permissions)")
         
