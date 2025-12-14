@@ -713,6 +713,56 @@ IMPORTANT DATE EXAMPLES:
         return None
 
     @staticmethod
+    async def _upload_to_gdrive_with_parent(
+        gdrive_config: Dict[str, Any],
+        file_content: bytes,
+        filename: str,
+        ship_name: str,
+        parent_category: str,  # e.g., "Class & Flag Cert"
+        category: str,         # e.g., "Certificates"
+        content_type: str = None  # ⭐ Optional MIME type
+    ) -> Dict[str, Any]:
+        """
+        Upload file to Google Drive with parent_category structure
+        This uses the same logic as Audit Certificate - auto-creates folders if needed
+        
+        Path: {ship_name}/{parent_category}/{category}/
+        Example: "MV OCEAN/Class & Flag Cert/Certificates/"
+        """
+        try:
+            # Import GDrive helper with parent_category support
+            from app.utils.gdrive_helper import upload_file_with_parent_category
+            
+            result = await upload_file_with_parent_category(
+                gdrive_config, 
+                file_content, 
+                filename, 
+                ship_name, 
+                parent_category,
+                category,
+                content_type
+            )
+            
+            if result.get("success"):
+                logger.info(f"✅ Uploaded {filename} to GDrive: {ship_name}/{parent_category}/{category}/")
+                return result
+            else:
+                logger.warning(f"⚠️ GDrive upload failed for {filename}: {result.get('error')}")
+                return {
+                    "success": False,
+                    "error": result.get("error", "Google Drive upload failed"),
+                    "folder_path": f"{ship_name}/{parent_category}/{category}"
+                }
+                
+        except Exception as e:
+            logger.error(f"❌ GDrive upload error: {e}")
+            return {
+                "success": False,
+                "error": str(e),
+                "folder_path": f"{ship_name}/{parent_category}/{category}"
+            }
+    
+    @staticmethod
     async def _upload_to_gdrive(
         gdrive_config: Dict[str, Any],
         file_content: bytes,
@@ -721,7 +771,10 @@ IMPORTANT DATE EXAMPLES:
         folder: str,
         content_type: str = None  # ⭐ NEW: Optional MIME type
     ) -> Dict[str, Any]:
-        """Upload file to Google Drive"""
+        """
+        Upload file to Google Drive (LEGACY METHOD - kept for backward compatibility)
+        Consider using _upload_to_gdrive_with_parent() instead for auto-folder creation
+        """
         try:
             # Import GDrive helper
             from app.utils.gdrive_helper import upload_file_to_ship_folder
