@@ -58,8 +58,10 @@ def login(username, password):
 
 def get_headers(username):
     """Get authorization headers for a user"""
-    password = TEST_USERS[username]["password"]
-    token = login(username, password)
+    user_config = TEST_USERS[username]
+    actual_username = user_config.get("actual_user", username)
+    password = user_config["password"]
+    token = login(actual_username, password)
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
 def get_user_info(headers):
