@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 """
-🧪 AUDIT CERTIFICATE ANALYSIS - TEXT LAYER + DOCUMENT AI MERGE TESTING
+🧪 PERMISSION SYSTEM TESTING - Phase 1 Implementation
 
-Testing the improved Audit Certificate Analysis flow with parallel processing:
-1. Text layer extraction from PDF (if available)
-2. Document AI OCR extraction 
-3. Merge both sources into enhanced summary
-4. System AI field extraction from merged content
-5. Summary file upload to Google Drive with 2 sections:
-   - PART 1: TEXT LAYER CONTENT
-   - PART 2: DOCUMENT AI OCR CONTENT
-6. Verify API response structure and content
+Testing the comprehensive department-based permission system:
+1. Manager Technical CAN create Ship Certificate
+2. Manager Crewing CANNOT create Ship Certificate  
+3. Manager DPA CAN create Company Certificate
+4. Manager Technical CANNOT create Company Certificate
+5. Editor CAN view Company Certificates (NEW FEATURE!)
+6. Viewer CANNOT view Company Certificates
+7. Editor CANNOT create any certificates
+8. Editor only sees assigned ship documents
+9. Admin has full access within company
+10. Admin CAN create Company Certificate
+11. Manager Crewing CAN create Crew Certificate
+12. Manager Technical CANNOT create Crew Certificate
 """
 
 import requests
@@ -20,9 +24,24 @@ import io
 from datetime import datetime, timedelta
 import time
 
-BACKEND_URL = "https://maritime-safety-6.preview.emergentagent.com/api"
-USERNAME = "admin1"
-PASSWORD = "123456"
+# Get backend URL from frontend .env
+with open('/app/frontend/.env', 'r') as f:
+    for line in f:
+        if line.startswith('REACT_APP_BACKEND_URL='):
+            BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
+            break
+else:
+    BACKEND_URL = "https://maritime-safety-6.preview.emergentagent.com/api"
+
+# Test users with different roles and departments
+TEST_USERS = {
+    "admin1": {"password": "123456", "role": "Admin"},
+    "manager_technical": {"password": "123456", "role": "Manager", "department": ["technical"]},
+    "manager_crewing": {"password": "123456", "role": "Manager", "department": ["crewing"]},
+    "manager_dpa": {"password": "123456", "role": "Manager", "department": ["dpa"]},
+    "editor1": {"password": "123456", "role": "Editor", "assigned_ship": "ship_001"},
+    "viewer1": {"password": "123456", "role": "Viewer", "assigned_ship": "ship_001"}
+}
 
 def login():
     """Login and get access token"""
