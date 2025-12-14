@@ -294,59 +294,64 @@ def run_test(test_name, test_func, expected_success=True, check_vietnamese=False
 
 # Main test execution
 def main():
-    print("🧪 PERMISSION SYSTEM VERIFICATION - Complete Test Suite")
+    print("🧪 COMPREHENSIVE REGRESSION TEST - Permission System & Error Handling")
     print("=" * 80)
     print(f"Backend URL: {BACKEND_URL}")
+    print("\nTest Credentials:")
+    print("- system_admin / YourSecure@Pass2024 - Full access (baseline tests)")
+    print("- ngoclm - Role: manager, Department: ['technical'] - Permission denial tests")
     
     # Test results tracking
     test_results = []
-    critical_tests = []
-    high_priority_tests = []
-    medium_priority_tests = []
+    permission_tests = []
+    error_propagation_tests = []
+    crud_regression_tests = []
     
     try:
-        # Setup test environment
-        create_test_users_and_environment()
+        # Test authentication first
+        print("\n📋 Authentication Tests...")
         
-        # Get system information using system_admin
-        print("\n📋 Getting System Information...")
-        system_headers = get_headers("system_admin")
-        
-        # Get ships
-        ships_response = requests.get(f"{BACKEND_URL}/ships", headers=system_headers)
-        ships = ships_response.json() if ships_response.status_code == 200 else []
-        
-        # Find test ships or use first available
-        test_ship_001_id = None
-        test_ship_002_id = None
-        
-        for ship in ships:
-            if "TEST SHIP 1" in ship.get("name", ""):
-                test_ship_001_id = ship["id"]
-            elif "TEST SHIP 2" in ship.get("name", ""):
-                test_ship_002_id = ship["id"]
-        
-        # Use first two ships if test ships not found
-        if not test_ship_001_id and ships:
-            test_ship_001_id = ships[0]["id"]
-        if not test_ship_002_id and len(ships) > 1:
-            test_ship_002_id = ships[1]["id"]
-        
-        print(f"   🚢 Test Ship 1: {test_ship_001_id[:8]}..." if test_ship_001_id else "   ❌ No test ship 1 found")
-        print(f"   🚢 Test Ship 2: {test_ship_002_id[:8]}..." if test_ship_002_id else "   ❌ No test ship 2 found")
-        
-        # Get user's company
-        user_info = get_user_info(system_headers)
-        company_id = user_info.get("company") if user_info else None
-        print(f"   🏢 Using company: {company_id[:8]}..." if company_id else "   ❌ No company found")
-        
-        # Get or create crew member for testing
-        crew_id = get_or_create_crew_member(system_headers, company_id)
-        print(f"   👤 Test crew member: {crew_id[:8]}..." if crew_id else "   ❌ No crew member available")
-        
-        if not test_ship_001_id or not company_id:
-            print("   ❌ Cannot run tests without ship and company data")
+        try:
+            system_headers = get_headers("system_admin")
+            system_user = get_user_info(system_headers)
+            print(f"   ✅ system_admin login successful - Role: {system_user.get('role', 'unknown')}")
+        except Exception as e:
+            print(f"   ❌ system_admin login failed: {e}")
             return
+        
+        try:
+            ngoclm_headers = get_headers("ngoclm")
+            ngoclm_user = get_user_info(ngoclm_headers)
+            print(f"   ✅ ngoclm login successful - Role: {ngoclm_user.get('role', 'unknown')}, Departments: {ngoclm_user.get('department', [])}")
+        except Exception as e:
+            print(f"   ❌ ngoclm login failed: {e}")
+            return
+        
+        # Get test data
+        print("\n📋 Getting Test Data...")
+        test_data = get_test_data(system_headers)
+        
+        if not test_data["ships"]:
+            print("   ❌ No ships found - cannot run tests")
+            return
+        
+        ship_id = test_data["ships"][0]["id"]
+        ship_name = test_data["ships"][0]["name"]
+        print(f"   🚢 Using ship: {ship_name} ({ship_id[:8]}...)")
+        
+        # Get existing crew and audit certs for testing
+        crew_id = test_data["crew"][0]["id"] if test_data["crew"] else None
+        if crew_id:
+            print(f"   👤 Using crew member: {crew_id[:8]}...")
+        
+        # Get existing audit certificates for update/delete tests
+        audit_certs_response = requests.get(f"{BACKEND_URL}/audit-certificates", headers=system_headers)
+        audit_certs = audit_certs_response.json() if audit_certs_response.status_code == 200 else []
+        audit_cert_id = audit_certs[0]["id"] if audit_certs else None
+        if audit_cert_id:
+            print(f"   📋 Using audit cert: {audit_cert_id[:8]}...")
+        
+        print("\n" + "=" * 80)
         
         print("\n🔴 CRITICAL TESTS (Department-Based Permissions)")
         
