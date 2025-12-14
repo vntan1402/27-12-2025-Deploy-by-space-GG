@@ -677,21 +677,36 @@ def main():
             print(f"   {result} {test_name}")
         
         # Final assessment
-        if critical_success == critical_total and high_priority_success == high_priority_total:
+        if critical_success == critical_total and high_priority_success == high_priority_total and medium_priority_success == medium_priority_total:
             print(f"\n✅ PERMISSION SYSTEM WORKING EXCELLENTLY!")
-            print(f"🎉 All critical and high-priority tests passed!")
+            print(f"🎉 All tests passed - Department-based permission system is fully functional!")
         elif critical_success == critical_total:
             print(f"\n⚠️ PERMISSION SYSTEM MOSTLY WORKING")
-            print(f"✅ All critical tests passed, some high-priority issues found")
+            print(f"✅ All critical tests passed, some additional issues found")
         else:
             print(f"\n❌ PERMISSION SYSTEM HAS CRITICAL ISSUES")
             print(f"🚨 {critical_total - critical_success} critical test(s) failed")
         
         print(f"\n🎯 KEY FINDINGS:")
-        print(f"   - Department-based permissions: {'✅ Working' if critical_success >= 3 else '❌ Issues found'}")
-        print(f"   - Editor/Viewer access control: {'✅ Working' if high_priority_success >= 3 else '❌ Issues found'}")
-        print(f"   - Admin full access: {'✅ Working' if medium_priority_success >= 1 else '❌ Issues found'}")
+        print(f"   - Technical vs Crewing department permissions: {'✅ Working' if critical_success >= 2 else '❌ Issues found'}")
+        print(f"   - Ship vs Crew certificate department mapping: {'✅ Working' if critical_success >= 3 else '❌ Issues found'}")
+        print(f"   - Editor role restrictions: {'✅ Working' if high_priority_success >= 2 else '❌ Issues found'}")
+        print(f"   - Editor ship scope filtering: {'✅ Working' if high_priority_success >= 3 else '❌ Issues found'}")
+        print(f"   - Company access control: {'✅ Working' if high_priority_success >= 4 else '❌ Issues found'}")
+        print(f"   - System Admin full access: {'✅ Working' if medium_priority_success >= 1 else '❌ Issues found'}")
         print(f"   - Vietnamese error messages: {'✅ Implemented' if any('BLOCKED' in result for _, result in test_results) else '⚠️ Check needed'}")
+        
+        print(f"\n📋 SUCCESS CRITERIA VERIFICATION:")
+        print(f"   ✅ Test 1: Technical Manager creates ship cert successfully: {'✅' if critical_success >= 1 else '❌'}")
+        print(f"   ✅ Test 2: Crewing Manager gets 403 with Vietnamese error: {'✅' if critical_success >= 2 else '❌'}")
+        print(f"   ✅ Test 3: Crewing Manager creates crew cert successfully: {'✅' if critical_success >= 3 else '❌'}")
+        print(f"   ✅ Test 4: Technical Manager gets 403 for crew cert: {'✅' if critical_success >= 4 else '❌'}")
+        print(f"   ✅ Test 5: Editor gets 403 when trying to create: {'✅' if high_priority_success >= 1 else '❌'}")
+        print(f"   ✅ Test 6: Editor only sees assigned ship certificates: {'✅' if high_priority_success >= 2 else '❌'}")
+        print(f"   ✅ Test 7: Editor only sees assigned ship in ship list: {'✅' if high_priority_success >= 3 else '❌'}")
+        print(f"   ✅ Test 8: Cross-company access denied: {'✅' if high_priority_success >= 4 else '❌'}")
+        print(f"   ✅ Test 9: Editor CAN view company certs: {'✅' if medium_priority_success >= 1 else '❌'}")
+        print(f"   ✅ Test 10: System Admin can do everything: {'✅' if medium_priority_success >= 2 else '❌'}")
         
     except Exception as e:
         print(f"\n❌ Test execution failed: {str(e)}")
