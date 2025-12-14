@@ -458,25 +458,17 @@ def main():
         error_propagation_tests.append(("Sidebar Structure Error", success))
         test_results.append(("GET /api/sidebar-structure", "✅ Proper response structure" if success else "❌ Improper error format"))
         
-        # Test 3: Crewing Manager CAN Create Crew Certificate
-        print("\n3. Crewing Manager CAN Create Crew Certificate")
-        try:
-            headers = get_headers("crew_manager")
-            user_info = get_user_info(headers)
-            print(f"   👤 Testing with: crew_manager - Departments: {user_info.get('department', [])}")
-            
-            success, response = run_test(
-                "Crewing Manager creates Crew Certificate",
-                lambda: test_3_crewing_manager_can_create_crew_cert(headers, crew_id, company_id),
-                expected_status=200,
-                expected_success=True
-            )
-            critical_tests.append(("Test 3", success))
-            test_results.append(("Crewing Manager → Crew Cert", "✅ PASS" if success else "❌ FAIL"))
-        except Exception as e:
-            print(f"   ❌ Test 3 failed: {e}")
-            critical_tests.append(("Test 3", False))
-            test_results.append(("Crewing Manager → Crew Cert", "❌ ERROR"))
+        print("\n🟡 MEDIUM PRIORITY: CRUD Operations Regression Tests (with system_admin)")
+        
+        # Test 10: system_admin can perform all CRUD operations
+        print("\n10. System Admin CRUD Operations")
+        success, response = run_test(
+            "system_admin performs CRUD operations",
+            lambda: test_system_admin_crud_operations(system_headers, test_data),
+            expected_success=True
+        )
+        crud_regression_tests.append(("System Admin CRUD", success))
+        test_results.append(("System Admin CRUD Operations", "✅ All working" if success else "❌ Some failures"))
         
         # Test 4: Technical Manager CANNOT Create Crew Certificate
         print("\n4. Technical Manager CANNOT Create Crew Certificate")
