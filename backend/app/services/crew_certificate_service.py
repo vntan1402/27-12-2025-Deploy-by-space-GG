@@ -281,6 +281,9 @@ class CrewCertificateService:
         current_user: UserResponse
     ) -> List[CrewCertificateResponse]:
         """Get crew certificates with optional filters"""
+        from app.core.permission_checks import filter_documents_by_ship_scope
+        from app.db.mongodb import mongo_db
+        
         filters = {}
         
         # Add crew_id filter if provided
@@ -294,11 +297,33 @@ class CrewCertificateService:
             filters["company_id"] = company_id
         
         certificates = await CrewCertificateRepository.find_all(filters)
+        
+        # ⭐ NEW: For Editor/Viewer, filter by assigned ship
+        # Get crew info to check ship assignment
+        if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
+            user_assigned_ship = getattr(current_user, 'assigned_ship_id', None)
+            if user_assigned_ship:
+                # Only show certs for crew on their assigned ship
+                filtered_certs = []
+                for cert in certificates:
+                    crew = await mongo_db.find_one("crew", {"id": cert.get("crew_id")})
+                    if crew:
+                        crew_ship = crew.get("ship_sign_on", "-")
+                        # Find ship ID by name
+                        if crew_ship and crew_ship != "-":
+                            ship = await mongo_db.find_one("ships", {"name": crew_ship})
+                            if ship and ship.get("id") == user_assigned_ship:
+                                filtered_certs.append(cert)
+                certificates = filtered_certs
+        
         return [CrewCertificateResponse(**cert) for cert in certificates]
     
     @staticmethod
     async def get_crew_certificate_by_id(cert_id: str, current_user: UserResponse) -> CrewCertificateResponse:
         """Get crew certificate by ID"""
+        from app.core.permission_checks import check_company_access
+        from app.core import messages
+        
         cert = await CrewCertificateRepository.find_by_id(cert_id)
         
         if not cert:
@@ -306,8 +331,7 @@ class CrewCertificateService:
         
         # Check access permission
         if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
-            if cert.get('company_id') != current_user.company:
-                raise HTTPException(status_code=403, detail="Access denied")
+            check_company_access(current_user, cert.get('company_id'), "view")
         
         return CrewCertificateResponse(**cert)
     
@@ -355,6 +379,7 @@ class CrewCertificateService:
         """Create new crew certificate with V1 validations"""
         from app.services.audit_trail_service import AuditTrailService
         from app.db.mongodb import mongo_db
+        from app.core.permission_checks import check_create_permission
         
         # 1. Validate crew_id is required
         if not cert_data.crew_id:
@@ -364,6 +389,9 @@ class CrewCertificateService:
         company_id = cert_data.company_id or current_user.company
         if not company_id:
             raise HTTPException(status_code=400, detail="Company ID is required")
+        
+        # ⭐ NEW: Permission checks
+        check_create_permission(current_user, "crew_cert", company_id)
         
         # 2. Verify crew exists
         crew = await CrewRepository.find_by_id(cert_data.crew_id)
@@ -535,14 +563,14 @@ class CrewCertificateService:
         current_user: UserResponse
     ) -> CrewCertificateResponse:
         """Update crew certificate"""
+        from app.core.permission_checks import check_edit_permission
+        
         cert = await CrewCertificateRepository.find_by_id(cert_id)
         if not cert:
             raise HTTPException(status_code=404, detail="Crew certificate not found")
         
-        # Check access permission
-        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
-            if cert.get('company_id') != current_user.company:
-                raise HTTPException(status_code=403, detail="Access denied")
+        # ⭐ NEW: Permission checks
+        check_edit_permission(current_user, "crew_cert", cert.get('company_id'))
         
         # Prepare update data
         update_data = cert_data.dict(exclude_unset=True)
@@ -608,15 +636,14 @@ class CrewCertificateService:
     async def delete_crew_certificate(cert_id: str, current_user: UserResponse) -> dict:
         """Delete crew certificate including associated Google Drive files"""
         from app.services.crew_certificate_drive_service import CrewCertificateDriveService
+        from app.core.permission_checks import check_delete_permission
         
         cert = await CrewCertificateRepository.find_by_id(cert_id)
         if not cert:
             raise HTTPException(status_code=404, detail="Crew certificate not found")
         
-        # Check access permission
-        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
-            if cert.get('company_id') != current_user.company:
-                raise HTTPException(status_code=403, detail="Access denied")
+        # ⭐ NEW: Permission checks
+        check_delete_permission(current_user, "crew_cert", cert.get('company_id'))
         
         # Delete Google Drive files if they exist
         files_deleted = 0
