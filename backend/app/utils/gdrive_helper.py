@@ -102,7 +102,8 @@ async def upload_file_with_parent_category(
     filename: str,
     ship_name: str,
     parent_category: str,  # e.g., "Class & Flag Cert"
-    category: str  # e.g., "Other Documents"
+    category: str,  # e.g., "Other Documents"
+    content_type: str = None  # ⭐ NEW: Optional MIME type override
 ) -> Dict[str, Any]:
     """
     Upload file to ship folder with parent_category and category
@@ -116,6 +117,7 @@ async def upload_file_with_parent_category(
         ship_name: Ship name for folder structure
         parent_category: Parent category (e.g., "Class & Flag Cert")
         category: Category (e.g., "Other Documents")
+        content_type: MIME type (optional, auto-detected from filename if not provided)
     
     Returns:
         dict: Upload result with success status and file info
@@ -129,13 +131,21 @@ async def upload_file_with_parent_category(
         if not parent_folder_id:
             raise Exception("Parent folder ID not configured")
         
-        # Determine content type
-        if filename.lower().endswith('.pdf'):
-            content_type = 'application/pdf'
-        elif filename.lower().endswith(('.jpg', '.jpeg')):
-            content_type = 'image/jpeg'
+        # ⭐ NEW: Use provided content_type or auto-detect from filename
+        if not content_type:
+            if filename.lower().endswith('.pdf'):
+                content_type = 'application/pdf'
+            elif filename.lower().endswith(('.jpg', '.jpeg')):
+                content_type = 'image/jpeg'
+            elif filename.lower().endswith('.txt'):
+                content_type = 'text/plain'
+            elif filename.lower().endswith('.png'):
+                content_type = 'image/png'
+            else:
+                content_type = 'application/octet-stream'
+            logger.info(f"🔍 Auto-detected MIME type for {filename}: {content_type}")
         else:
-            content_type = 'application/octet-stream'
+            logger.info(f"📋 Using provided MIME type for {filename}: {content_type}")
         
         # Prepare payload for Apps Script - MATCHING backend-v1 structure
         payload = {
