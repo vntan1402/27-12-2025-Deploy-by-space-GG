@@ -288,11 +288,11 @@ async def multi_upload_audit_certificates(
         if not ship:
             raise HTTPException(status_code=404, detail="Ship not found")
         
-        # Verify company access
-        from app.core.messages import ACCESS_DENIED_COMPANY
-        company_id = current_user.company
-        if ship.get("company") != company_id:
-            raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED_COMPANY)
+        # ⭐ FIX: Add full permission checks
+        from app.core.permission_checks import check_create_permission, check_editor_viewer_ship_scope
+        ship_company_id = ship.get("company")
+        check_create_permission(current_user, "audit_cert", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, ship_id, "create")
         
         results = []
         summary = {
