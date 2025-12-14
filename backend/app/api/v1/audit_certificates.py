@@ -104,11 +104,13 @@ async def update_audit_certificate(
     """Update Audit Certificate (Editor+ role required)"""
     try:
         return await AuditCertificateService.update_audit_certificate(cert_id, cert_data, current_user)
-    except HTTPException:
+    except HTTPException as http_ex:
+        # ⭐ FIX: Re-raise HTTPException to preserve 403/404 status codes and Vietnamese messages
+        logger.warning(f"⚠️ HTTP Exception updating Audit Certificate: {http_ex.status_code} - {http_ex.detail}")
         raise
     except Exception as e:
-        logger.error(f"❌ Error updating Audit Certificate: {e}")
-        raise HTTPException(status_code=500, detail="Failed to update Audit Certificate")
+        logger.error(f"❌ Error updating Audit Certificate: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Lỗi cập nhật chứng chỉ: {str(e)}")
 
 @router.delete("/{cert_id}")
 async def delete_audit_certificate(
