@@ -489,25 +489,55 @@ def main():
             high_priority_tests.append(("Test 5", False))
             test_results.append(("Editor → Create Cert", "❌ ERROR"))
         
-        # Test 6: Admin CAN view Company Certificates
-        print("\n6. Admin CAN view Company Certificates")
+        # Test 6: Editor Ship Scope Filtering (GET Certificates)
+        print("\n6. Editor Ship Scope Filtering (GET Certificates)")
         try:
-            headers = get_headers("admin1")
+            # First create certificates for both ships using system admin
+            system_headers = get_headers("system_admin")
+            
+            # Create cert for ship 1
+            cert1_data = {
+                "ship_id": test_ship_001_id,
+                "cert_name": "Test Cert Ship 1",
+                "cert_type": "Full Term",
+                "cert_no": "SHIP1-001"
+            }
+            requests.post(f"{BACKEND_URL}/certificates", headers=system_headers, json=cert1_data)
+            
+            # Create cert for ship 2 (if available)
+            if test_ship_002_id:
+                cert2_data = {
+                    "ship_id": test_ship_002_id,
+                    "cert_name": "Test Cert Ship 2",
+                    "cert_type": "Full Term",
+                    "cert_no": "SHIP2-001"
+                }
+                requests.post(f"{BACKEND_URL}/certificates", headers=system_headers, json=cert2_data)
+            
+            # Now test editor filtering
+            headers = get_headers("test_editor")
             user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Role: {user_info.get('role')}")
+            print(f"   👤 Testing with: test_editor - Assigned Ship: {user_info.get('assigned_ship_id', 'N/A')}")
             
             success, response = run_test(
-                "Admin views Company Certificates",
-                lambda: test_admin_can_view_company_certs(headers),
+                "Editor views certificates (should only see assigned ship)",
+                lambda: test_6_editor_ship_scope_filtering(headers, test_ship_001_id),
                 expected_status=200,
                 expected_success=True
             )
+            
+            # Additional validation for ship filtering
+            if success and response:
+                filtering_success, filtering_msg = check_ship_filtering(response, test_ship_001_id)
+                print(f"      📋 Ship filtering: {'✅' if filtering_success else '❌'} {filtering_msg}")
+                success = success and filtering_success
+            
             high_priority_tests.append(("Test 6", success))
-            test_results.append(("Admin → View Company Certs", "✅ PASS" if success else "❌ FAIL"))
+            test_results.append(("Editor → Ship Filtering", "✅ PASS" if success else "❌ FAIL"))
         except Exception as e:
             print(f"   ❌ Test 6 failed: {e}")
             high_priority_tests.append(("Test 6", False))
-            test_results.append(("Admin → View Company Certs", "❌ ERROR"))
+            test_results.append(("Editor → Ship Filtering", "❌ ERROR"))
         
         # Test 7: Manager CAN create certificates (with proper department)
         print("\n7. Manager CAN create certificates (with proper department)")
