@@ -143,29 +143,30 @@ def test_2_crewing_manager_cannot_create_ship_cert(headers, ship_id):
     response = requests.post(f"{BACKEND_URL}/certificates", headers=headers, json=cert_data)
     return response
 
-def test_dpa_manager_can_create_company_cert(headers, company_id):
-    """Test 3: Manager with DPA department CAN create Company Certificate"""
+def test_3_crewing_manager_can_create_crew_cert(headers, crew_id, company_id):
+    """TEST 3: Crewing Manager CAN Create Crew Certificate"""
     cert_data = {
-        "company": company_id,
-        "cert_name": "DOC",
-        "doc_type": "DOC", 
-        "cert_no": "DPA001"
+        "crew_id": crew_id,
+        "company_id": company_id,
+        "cert_name": "STCW Certificate",
+        "cert_type": "COC",
+        "cert_no": "CREW-CERT-001"
     }
     
-    response = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=cert_data)
+    response = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=cert_data)
     return response
 
-def test_manager_without_dpa_cannot_create_company_cert(headers, company_id):
-    """Test 4: Manager without DPA department CANNOT create Company Certificate"""
+def test_4_technical_manager_cannot_create_crew_cert(headers, crew_id, company_id):
+    """TEST 4: Technical Manager CANNOT Create Crew Certificate"""
     cert_data = {
-        "company": company_id,
-        "cert_name": "DOC",
-        "doc_type": "DOC",
-        "cert_no": "NODPA001"
+        "crew_id": crew_id,
+        "company_id": company_id,
+        "cert_name": "Test Crew Cert",
+        "cert_type": "COC",
+        "cert_no": "TECH-CREW-002"
     }
     
-    response = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=cert_data)
-    return response
+    response = requests.post(f"{BACKEND_URL}/crew-certificates", headers=headers, json=cert_data)
 
 def test_manager_can_view_company_certs(headers):
     """Test 5: Manager CAN view Company Certificates"""
