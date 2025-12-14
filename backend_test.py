@@ -469,25 +469,25 @@ def main():
         
         print("\n🟡 HIGH PRIORITY TESTS (Role-Based Permissions)")
         
-        # Test 5: Manager CAN view Company Certificates
-        print("\n5. Manager CAN view Company Certificates")
+        # Test 5: Editor CANNOT Create Any Certificates
+        print("\n5. Editor CANNOT Create Any Certificates")
         try:
-            headers = get_headers("ngoclm")
+            headers = get_headers("test_editor")
             user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Role: {user_info.get('role')}")
+            print(f"   👤 Testing with: test_editor - Role: {user_info.get('role')}")
             
             success, response = run_test(
-                "Manager views Company Certificates",
-                lambda: test_manager_can_view_company_certs(headers),
-                expected_status=200,
-                expected_success=True
+                "Editor tries to create certificate",
+                lambda: test_5_editor_cannot_create_certificates(headers, test_ship_001_id),
+                expected_status=403,
+                expected_success=False
             )
             high_priority_tests.append(("Test 5", success))
-            test_results.append(("Manager → View Company Certs", "✅ PASS" if success else "❌ FAIL"))
+            test_results.append(("Editor → Create Cert", "✅ BLOCKED" if success else "❌ ALLOWED"))
         except Exception as e:
             print(f"   ❌ Test 5 failed: {e}")
             high_priority_tests.append(("Test 5", False))
-            test_results.append(("Manager → View Company Certs", "❌ ERROR"))
+            test_results.append(("Editor → Create Cert", "❌ ERROR"))
         
         # Test 6: Admin CAN view Company Certificates
         print("\n6. Admin CAN view Company Certificates")
