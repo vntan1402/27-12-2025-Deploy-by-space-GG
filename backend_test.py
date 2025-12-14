@@ -57,6 +57,13 @@ def get_headers(username):
     token = login(username, password)
     return {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
 
+def get_user_info(headers):
+    """Get current user information"""
+    response = requests.get(f"{BACKEND_URL}/auth/verify-token", headers=headers)
+    if response.status_code == 200:
+        return response.json().get("user", {})
+    return None
+
 def get_test_ships(headers):
     """Get test ships for testing"""
     response = requests.get(f"{BACKEND_URL}/ships?limit=10", headers=headers)
