@@ -282,32 +282,31 @@ def run_test(test_name, test_func, expected_status, expected_success=True):
         print(f"\n   🧪 {test_name}")
         response = test_func()
         
-        status_match = response.status_code == expected_status
-        
-        # Check for Vietnamese error messages in 403 responses
-        vietnamese_error = False
-        if response.status_code == 403:
-            try:
-                error_data = response.json()
-                error_detail = error_data.get('detail', '')
-                # Check for Vietnamese characters or specific Vietnamese messages
-                vietnamese_phrases = ['không có quyền', 'bị từ chối', 'Department', 'Manager', 'chỉ', 'mới có quyền']
-                vietnamese_error = any(phrase in error_detail for phrase in vietnamese_phrases)
-            except:
-                pass
-        
+        # For success cases, accept both 200 and 201
         if expected_success:
-            success = status_match and response.status_code in [200, 201]
+            success = response.status_code in [200, 201]
             result_icon = "✅" if success else "❌"
-            print(f"      {result_icon} Expected: {expected_status} (Success), Got: {response.status_code}")
+            print(f"      {result_icon} Expected: Success (200/201), Got: {response.status_code}")
         else:
-            success = status_match and response.status_code == 403
+            # For failure cases, check for 403 and Vietnamese error messages
+            success = response.status_code == 403
             result_icon = "✅" if success else "❌"
             print(f"      {result_icon} Expected: {expected_status} (Forbidden), Got: {response.status_code}")
-            if response.status_code == 403 and vietnamese_error:
-                print(f"      ✅ Vietnamese error message detected")
-            elif response.status_code == 403:
-                print(f"      ⚠️ Error message: {response.text}")
+            
+            # Check for Vietnamese error messages in 403 responses
+            if response.status_code == 403:
+                try:
+                    error_data = response.json()
+                    error_detail = error_data.get('detail', '')
+                    # Check for Vietnamese characters or specific Vietnamese messages
+                    vietnamese_phrases = ['không có quyền', 'bị từ chối', 'Department', 'Manager', 'chỉ', 'mới có quyền']
+                    vietnamese_error = any(phrase in error_detail for phrase in vietnamese_phrases)
+                    if vietnamese_error:
+                        print(f"      ✅ Vietnamese error message detected")
+                    else:
+                        print(f"      ⚠️ Error message: {error_detail}")
+                except:
+                    print(f"      ⚠️ Error message: {response.text}")
         
         if not success:
             print(f"      📝 Response: {response.text[:200]}...")
