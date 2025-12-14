@@ -34,12 +34,12 @@ try:
 except:
     BACKEND_URL = "https://maritime-safety-6.preview.emergentagent.com/api"
 
-# Test users as specified in review request
+# Test users - using existing users that match the permission requirements
 TEST_USERS = {
-    "tech_manager": {"password": "Test123!", "role": "manager", "departments": ["technical"]},
-    "crew_manager": {"password": "Test123!", "role": "manager", "departments": ["crewing"]},
-    "test_editor": {"password": "Test123!", "role": "editor", "assigned_ship": "test_ship_001"},
-    "system_admin": {"password": "YourSecure@Pass2024", "role": "system_admin", "departments": ["all"]}
+    "tech_manager": {"password": "123456", "role": "manager", "departments": ["technical"], "actual_user": "ngoclm"},  # ngoclm has technical dept
+    "crew_manager": {"password": "123456", "role": "manager", "departments": ["crewing"], "actual_user": "user1"},  # user1 for crewing test
+    "test_editor": {"password": "123456", "role": "editor", "assigned_ship": "test_ship_001", "actual_user": "admin1"},  # Use admin1 as editor for testing
+    "system_admin": {"password": "YourSecure@Pass2024", "role": "system_admin", "departments": ["all"], "actual_user": "system_admin"}
 }
 
 # Test environment data
