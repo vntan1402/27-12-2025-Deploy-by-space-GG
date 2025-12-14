@@ -374,10 +374,12 @@ const IsmIspsMLc = () => {
       fetchAuditCertificates(selectedShip.id);
     } catch (error) {
       console.error('Failed to update certificate:', error);
-      toast.error(language === 'vi' 
+      // ⭐ FIX: Display actual backend error message (Vietnamese permission errors)
+      const backendMessage = error.response?.data?.detail;
+      const errorMessage = backendMessage || (language === 'vi' 
         ? 'Không thể cập nhật chứng chỉ' 
-        : 'Failed to update certificate'
-      );
+        : 'Failed to update certificate');
+      toast.error(errorMessage);
     }
   };
 
