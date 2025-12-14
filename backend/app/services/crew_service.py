@@ -266,14 +266,17 @@ class CrewService:
     @staticmethod
     async def delete_crew(crew_id: str, current_user: UserResponse) -> dict:
         """Delete crew member and associated files"""
+        from app.core.permission_checks import check_minimum_role, check_company_access, check_manager_department_permission
+        
         crew = await CrewRepository.find_by_id(crew_id)
         if not crew:
             raise HTTPException(status_code=404, detail="Crew member not found")
         
-        # Check access permission
-        if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
-            if crew.get('company_id') != current_user.company:
-                raise HTTPException(status_code=403, detail="Access denied")
+        # ⭐ NEW: Permission checks
+        crew_company_id = crew.get('company_id')
+        check_company_access(current_user, crew_company_id, "delete crew")
+        check_minimum_role(current_user, UserRole.MANAGER, "delete crew")
+        check_manager_department_permission(current_user, "crew_management", "delete")
         
         # Check if crew has certificates
         from app.db.mongodb import mongo_db
