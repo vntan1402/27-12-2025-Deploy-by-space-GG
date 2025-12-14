@@ -427,48 +427,45 @@ def main():
             critical_tests.append(("Test 2", False))
             test_results.append(("Crewing Manager → Ship Cert", "❌ ERROR"))
         
-        # Test 3: Manager with DPA department CAN create Company Certificate
-        print("\n3. Manager with DPA department CAN create Company Certificate")
+        # Test 3: Crewing Manager CAN Create Crew Certificate
+        print("\n3. Crewing Manager CAN Create Crew Certificate")
         try:
-            # Use ngoclm who has dpa department
-            headers = get_headers("ngoclm")
+            headers = get_headers("crew_manager")
             user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Departments: {user_info.get('department', [])}")
+            print(f"   👤 Testing with: crew_manager - Departments: {user_info.get('department', [])}")
             
             success, response = run_test(
-                "Manager with DPA dept creates Company Certificate",
-                lambda: test_dpa_manager_can_create_company_cert(headers, company_id),
+                "Crewing Manager creates Crew Certificate",
+                lambda: test_3_crewing_manager_can_create_crew_cert(headers, crew_id, company_id),
                 expected_status=201,
                 expected_success=True
             )
             critical_tests.append(("Test 3", success))
-            test_results.append(("Manager DPA → Company Cert", "✅ PASS" if success else "❌ FAIL"))
+            test_results.append(("Crewing Manager → Crew Cert", "✅ PASS" if success else "❌ FAIL"))
         except Exception as e:
             print(f"   ❌ Test 3 failed: {e}")
             critical_tests.append(("Test 3", False))
-            test_results.append(("Manager DPA → Company Cert", "❌ ERROR"))
+            test_results.append(("Crewing Manager → Crew Cert", "❌ ERROR"))
         
-        # Test 4: Manager without DPA department CANNOT create Company Certificate
-        print("\n4. Manager without DPA department CANNOT create Company Certificate")
+        # Test 4: Technical Manager CANNOT Create Crew Certificate
+        print("\n4. Technical Manager CANNOT Create Crew Certificate")
         try:
-            # This is tricky since both ngoclm and user1 have dpa
-            # Let's test with user1 and see if there are any restrictions
-            headers = get_headers("user1")
+            headers = get_headers("tech_manager")
             user_info = get_user_info(headers)
-            print(f"   👤 Testing with: {user_info.get('username')} - Departments: {user_info.get('department', [])}")
+            print(f"   👤 Testing with: tech_manager - Departments: {user_info.get('department', [])}")
             
             success, response = run_test(
-                "Manager user1 tries to create Company Certificate",
-                lambda: test_manager_without_dpa_cannot_create_company_cert(headers, company_id),
+                "Technical Manager tries to create Crew Certificate",
+                lambda: test_4_technical_manager_cannot_create_crew_cert(headers, crew_id, company_id),
                 expected_status=403,
                 expected_success=False
             )
             critical_tests.append(("Test 4", success))
-            test_results.append(("Manager w/o DPA → Company Cert", "✅ BLOCKED" if success else "❌ ALLOWED"))
+            test_results.append(("Technical Manager → Crew Cert", "✅ BLOCKED" if success else "❌ ALLOWED"))
         except Exception as e:
             print(f"   ❌ Test 4 failed: {e}")
             critical_tests.append(("Test 4", False))
-            test_results.append(("Manager w/o DPA → Company Cert", "❌ ERROR"))
+            test_results.append(("Technical Manager → Crew Cert", "❌ ERROR"))
         
         print("\n🟡 HIGH PRIORITY TESTS (Role-Based Permissions)")
         
