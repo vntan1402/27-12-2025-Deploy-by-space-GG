@@ -46,13 +46,6 @@ TEST_USERS = {
     "ngoclm": {"password": "123456", "role": "manager", "departments": ["technical"], "actual_user": "ngoclm"}  # Technical department user for permission denial tests
 }
 
-# Test environment data
-TEST_COMPANY = "test_company_perm"
-TEST_SHIPS = {
-    "test_ship_001": "TEST SHIP 1",
-    "test_ship_002": "TEST SHIP 2"
-}
-
 def login(username, password):
     """Login and get access token"""
     response = requests.post(f"{BACKEND_URL}/auth/login", json={"username": username, "password": password})
