@@ -384,10 +384,12 @@ const SafetyManagementSystem = () => {
       }
     } catch (error) {
       console.error('Error renaming file:', error);
-      toast.error(language === 'vi' 
+      // ⭐ FIX: Display actual backend error message (permission errors)
+      const backendMessage = error.response?.data?.detail;
+      const errorMessage = backendMessage || (language === 'vi' 
         ? 'Không thể đổi tên file' 
-        : 'Failed to rename file'
-      );
+        : 'Failed to rename file');
+      toast.error(errorMessage);
     }
   };
 
