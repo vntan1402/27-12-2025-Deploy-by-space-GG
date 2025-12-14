@@ -68,53 +68,40 @@ def get_user_info(headers):
         return response.json().get("user", {})
     return None
 
-def get_test_ships(headers):
-    """Get test ships for testing"""
-    response = requests.get(f"{BACKEND_URL}/ships?limit=10", headers=headers)
-    if response.status_code == 200:
-        ships = response.json()
-        return ships
-    return []
-
-def create_test_users_and_environment():
-    """Create test users and environment as specified in review request"""
-    print("🔧 Setting up test environment...")
+def get_test_data(headers):
+    """Get test data for testing"""
+    # Get ships
+    ships_response = requests.get(f"{BACKEND_URL}/ships?limit=10", headers=headers)
+    ships = ships_response.json() if ships_response.status_code == 200 else []
     
-    # Use system_admin to create test users and ships
+    # Get crew members
+    crew_response = requests.get(f"{BACKEND_URL}/crew?limit=10", headers=headers)
+    crew = crew_response.json() if crew_response.status_code == 200 else []
+    
+    return {
+        "ships": ships,
+        "crew": crew
+    }
+
+def check_vietnamese_error_message(response):
+    """Check if response contains Vietnamese error message"""
+    if response.status_code != 403:
+        return False, "Not a 403 error"
+    
     try:
-        system_headers = get_headers("system_admin")
-        print("   ✅ System admin login successful")
+        error_data = response.json()
+        error_detail = error_data.get('detail', '')
         
-        # Create test company if not exists
-        company_data = {
-            "name_vn": "Công ty Test Permission",
-            "name_en": "Test Permission Company",
-            "tax_id": "TEST-PERM-001"
-        }
+        # Check for Vietnamese characters or specific Vietnamese messages
+        vietnamese_phrases = [
+            'không có quyền', 'bị từ chối', 'Department', 'Manager', 
+            'chỉ', 'mới có quyền', 'không được cấp quyền', 'Truy cập bị từ chối'
+        ]
+        vietnamese_error = any(phrase in error_detail for phrase in vietnamese_phrases)
         
-        # Create test ships if not exist
-        for ship_id, ship_name in TEST_SHIPS.items():
-            ship_data = {
-                "name": ship_name,
-                "imo_number": f"IMO{ship_id[-3:]}",
-                "call_sign": f"TEST{ship_id[-3:]}"
-            }
-            # Try to create ship (will fail if exists, which is fine)
-            try:
-                response = requests.post(f"{BACKEND_URL}/ships", headers=system_headers, json=ship_data)
-                if response.status_code in [200, 201]:
-                    print(f"   ✅ Created test ship: {ship_name}")
-                elif response.status_code == 409:
-                    print(f"   ℹ️ Test ship already exists: {ship_name}")
-            except:
-                pass
-        
-        return True
-        
-    except Exception as e:
-        print(f"   ⚠️ Could not set up test environment: {e}")
-        print("   ℹ️ Will proceed with existing users/data")
-        return False
+        return vietnamese_error, error_detail
+    except:
+        return False, response.text
 
 # Test functions for permission scenarios as per review request
 
