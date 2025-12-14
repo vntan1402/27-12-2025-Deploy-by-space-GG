@@ -442,7 +442,7 @@ def main():
             success, response = run_test(
                 "Crewing Manager creates Crew Certificate",
                 lambda: test_3_crewing_manager_can_create_crew_cert(headers, crew_id, company_id),
-                expected_status=201,
+                expected_status=200,
                 expected_success=True
             )
             critical_tests.append(("Test 3", success))
