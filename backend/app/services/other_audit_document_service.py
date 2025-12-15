@@ -179,6 +179,17 @@ class OtherAuditDocumentService:
     @staticmethod
     async def create_other_audit_document(doc_data: OtherAuditDocumentCreate, current_user: UserResponse) -> OtherAuditDocumentResponse:
         """Create new other audit document"""
+        from app.core.permission_checks import check_create_permission, check_editor_viewer_ship_scope
+        
+        # ⭐ NEW: Get ship and check permissions
+        ship = await mongo_db.find_one("ships", {"id": doc_data.ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_create_permission(current_user, "other_audit_doc", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, doc_data.ship_id, "create")
+        
         doc_dict = doc_data.dict()
         doc_dict["id"] = str(uuid.uuid4())
         doc_dict["created_at"] = datetime.now(timezone.utc)
@@ -213,9 +224,20 @@ class OtherAuditDocumentService:
     @staticmethod
     async def update_other_audit_document(doc_id: str, doc_data: OtherAuditDocumentUpdate, current_user: UserResponse) -> OtherAuditDocumentResponse:
         """Update other audit document"""
+        from app.core.permission_checks import check_edit_permission, check_editor_viewer_ship_scope
+        
         doc = await mongo_db.find_one(OtherAuditDocumentService.collection_name, {"id": doc_id})
         if not doc:
             raise HTTPException(status_code=404, detail="Other Audit Document not found")
+        
+        # ⭐ NEW: Permission checks
+        ship = await mongo_db.find_one("ships", {"id": doc.get("ship_id")})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_edit_permission(current_user, "other_audit_doc", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, doc.get("ship_id"), "edit")
         
         update_data = doc_data.dict(exclude_unset=True)
         
@@ -263,10 +285,20 @@ class OtherAuditDocumentService:
         from app.utils.background_tasks import delete_file_background
         from app.services.gdrive_service import GDriveService
         from app.repositories.ship_repository import ShipRepository
+        from app.core.permission_checks import check_delete_permission, check_editor_viewer_ship_scope
         
         doc = await mongo_db.find_one(OtherAuditDocumentService.collection_name, {"id": doc_id})
         if not doc:
             raise HTTPException(status_code=404, detail="Other Audit Document not found")
+        
+        # ⭐ NEW: Permission checks
+        ship = await mongo_db.find_one("ships", {"id": doc.get("ship_id")})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_delete_permission(current_user, "other_audit_doc", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, doc.get("ship_id"), "delete")
         
         # Extract file info before deleting from DB
         file_ids = doc.get("file_ids", [])
