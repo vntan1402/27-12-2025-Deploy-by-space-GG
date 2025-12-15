@@ -381,6 +381,7 @@ class AuditCertificateService:
         """Bulk delete audit certificates and schedule file deletions"""
         deleted_count = 0
         files_scheduled = 0
+        errors = []
         
         for cert_id in request.document_ids:
             try:
@@ -392,21 +393,38 @@ class AuditCertificateService:
                 deleted_count += 1
                 if result.get("background_deletion"):
                     files_scheduled += 1
+            except HTTPException as http_ex:
+                # ⭐ NEW: Extract specific error message for permission errors
+                error_detail = http_ex.detail if hasattr(http_ex, 'detail') else str(http_ex)
+                errors.append(error_detail)
+                logger.error(f"Error deleting audit certificate {cert_id}: {error_detail}")
+                continue
             except Exception as e:
+                errors.append(f"Failed to delete {cert_id}: {str(e)}")
                 logger.error(f"Error deleting audit certificate {cert_id}: {e}")
                 continue
+        
+        logger.info(f"✅ Bulk delete complete: {deleted_count} audit certificates, {files_scheduled} files scheduled")
+        
+        # ⭐ NEW: If all operations failed due to permissions, raise 403
+        if deleted_count == 0 and errors:
+            permission_errors = [e for e in errors if "không có quyền" in e or "permission" in e.lower()]
+            if permission_errors:
+                raise HTTPException(status_code=403, detail=permission_errors[0])
         
         message = f"Deleted {deleted_count} audit certificate(s)"
         if files_scheduled > 0:
             message += f". {files_scheduled} file(s) deletion in progress..."
-        
-        logger.info(f"✅ Bulk delete complete: {deleted_count} audit certificates, {files_scheduled} files scheduled")
+        if errors:
+            message += f" ({len(errors)} failed)"
         
         return {
-            "success": True,
+            "success": deleted_count > 0,
             "message": message,
             "deleted_count": deleted_count,
-            "files_scheduled": files_scheduled
+            "files_scheduled": files_scheduled,
+            "errors": errors if errors else None,
+            "partial_success": deleted_count > 0 and errors
         }
     
     @staticmethod
