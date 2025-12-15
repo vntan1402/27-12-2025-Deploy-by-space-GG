@@ -766,8 +766,8 @@ export const AddAuditCertificateModal = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.cert_name || !formData.cert_no) {
-      toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc' : 'Please fill all required fields');
+    if (!formData.cert_name) {
+      toast.error(language === 'vi' ? 'Vui lòng điền tên chứng chỉ' : 'Please enter certificate name');
       return;
     }
 
