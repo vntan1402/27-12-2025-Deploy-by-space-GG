@@ -141,6 +141,8 @@ async def bulk_delete_audit_certificates(
     """Bulk delete Audit Certificates with background file deletion (Editor+ role required)"""
     try:
         return await AuditCertificateService.bulk_delete_audit_certificates(request, current_user, background_tasks)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Audit Certificates: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Audit Certificates")
