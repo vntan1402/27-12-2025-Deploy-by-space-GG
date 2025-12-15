@@ -35,6 +35,8 @@ async def bulk_delete_approval_documents(
             current_user,
             background_tasks if background else None
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Approval Documents: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Approval Documents")
