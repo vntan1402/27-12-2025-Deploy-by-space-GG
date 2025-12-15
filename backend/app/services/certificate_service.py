@@ -518,6 +518,11 @@ class CertificateService:
                                     files_scheduled += 1
                                     logger.info(f"📋 Scheduled background deletion for summary file: {summary_file_id}")
                 
+            except HTTPException as http_ex:
+                # ⭐ NEW: Extract specific error message for permission errors
+                error_detail = http_ex.detail if hasattr(http_ex, 'detail') else str(http_ex)
+                errors.append(error_detail)
+                logger.error(f"❌ Error deleting certificate {cert_id}: {error_detail}")
             except Exception as e:
                 errors.append(f"Error deleting certificate {cert_id}: {str(e)}")
                 logger.error(f"❌ Error deleting certificate {cert_id}: {e}")
