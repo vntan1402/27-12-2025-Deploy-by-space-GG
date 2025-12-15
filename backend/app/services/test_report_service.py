@@ -353,6 +353,8 @@ class TestReportService:
         deleted_count = 0
         files_scheduled = 0
         
+        errors = []
+        
         for report_id in request.report_ids:
             try:
                 result = await TestReportService.delete_test_report(report_id, current_user, background_tasks)
@@ -362,18 +364,39 @@ class TestReportService:
                 if result.get('background_deletion'):
                     files_scheduled += result.get('files_scheduled', 0)
                     
+            except HTTPException as http_ex:
+                # ⭐ NEW: Extract specific error message for permission errors
+                error_detail = http_ex.detail if hasattr(http_ex, 'detail') else str(http_ex)
+                errors.append(error_detail)
+                logger.warning(f"⚠️ Failed to delete test report {report_id}: {error_detail}")
+                continue
             except Exception as e:
+                errors.append(f"Failed to delete {report_id}: {str(e)}")
                 logger.warning(f"⚠️ Failed to delete test report {report_id}: {e}")
                 continue
         
         logger.info(f"✅ Bulk deleted {deleted_count} test reports, {files_scheduled} files scheduled for cleanup")
         
+        # ⭐ NEW: If all operations failed due to permissions, raise 403
+        if deleted_count == 0 and errors:
+            permission_errors = [e for e in errors if "không có quyền" in e or "permission" in e.lower()]
+            if permission_errors:
+                raise HTTPException(status_code=403, detail=permission_errors[0])
+        
+        message = f"Successfully deleted {deleted_count} test reports"
+        if files_scheduled > 0:
+            message += ". File cleanup in progress..."
+        if errors:
+            message += f" ({len(errors)} failed)"
+        
         return {
-            "success": True,
-            "message": f"Successfully deleted {deleted_count} test reports. File cleanup in progress...",
+            "success": deleted_count > 0,
+            "message": message,
             "deleted_count": deleted_count,
             "files_scheduled_for_deletion": files_scheduled,
-            "background_deletion": files_scheduled > 0
+            "background_deletion": files_scheduled > 0,
+            "errors": errors if errors else None,
+            "partial_success": deleted_count > 0 and errors
         }
     
     @staticmethod
