@@ -306,6 +306,8 @@ class ApprovalDocumentService:
         deleted_count = 0
         files_scheduled = 0
         
+        errors = []
+        
         for doc_id in request.document_ids:
             try:
                 result = await ApprovalDocumentService.delete_approval_document(
@@ -319,17 +321,36 @@ class ApprovalDocumentService:
                 if result.get('background_deletion'):
                     files_scheduled += result.get('files_scheduled', 0)
                     
+            except HTTPException as http_ex:
+                # ⭐ NEW: Extract specific error message for permission errors
+                error_detail = http_ex.detail if hasattr(http_ex, 'detail') else str(http_ex)
+                errors.append(error_detail)
+                logger.error(f"Failed to delete approval document {doc_id}: {error_detail}")
+                continue
             except Exception as e:
+                errors.append(f"Failed to delete {doc_id}: {str(e)}")
                 logger.error(f"Failed to delete approval document {doc_id}: {e}")
                 continue
         
         logger.info(f"✅ Bulk deleted {deleted_count} approval documents, scheduled {files_scheduled} files for deletion")
         
+        # ⭐ NEW: If all operations failed due to permissions, raise 403
+        if deleted_count == 0 and errors:
+            permission_errors = [e for e in errors if "không có quyền" in e or "permission" in e.lower()]
+            if permission_errors:
+                raise HTTPException(status_code=403, detail=permission_errors[0])
+        
+        message = f"Successfully deleted {deleted_count} approval document(s)"
+        if errors:
+            message += f" ({len(errors)} failed)"
+        
         return {
-            "success": True,
-            "message": f"Successfully deleted {deleted_count} approval document(s)",
+            "success": deleted_count > 0,
+            "message": message,
             "deleted_count": deleted_count,
-            "files_scheduled_for_deletion": files_scheduled
+            "files_scheduled_for_deletion": files_scheduled,
+            "errors": errors if errors else None,
+            "partial_success": deleted_count > 0 and errors
         }
     
     @staticmethod
