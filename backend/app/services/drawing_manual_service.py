@@ -172,10 +172,20 @@ class DrawingManualService:
         from app.utils.background_tasks import delete_file_background
         from app.services.gdrive_service import GDriveService
         from app.repositories.ship_repository import ShipRepository
+        from app.core.permission_checks import check_delete_permission, check_editor_viewer_ship_scope
         
         doc = await mongo_db.find_one(DrawingManualService.collection_name, {"id": doc_id})
         if not doc:
             raise HTTPException(status_code=404, detail="Drawing/Manual not found")
+        
+        # ⭐ NEW: Permission checks
+        ship = await mongo_db.find_one("ships", {"id": doc.get("ship_id")})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_delete_permission(current_user, "drawing_manual", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, doc.get("ship_id"), "delete")
         
         # Extract file info before deleting from DB
         file_id = doc.get("file_id")
