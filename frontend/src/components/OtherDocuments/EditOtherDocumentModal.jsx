@@ -66,9 +66,10 @@ const EditOtherDocumentModal = ({ show, onClose, document, onSuccess }) => {
       onSuccess();
     } catch (error) {
       console.error('Failed to update document:', error);
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to update document';
       toast.error(language === 'vi' 
-        ? `❌ Lỗi: ${error.message}` 
-        : `❌ Error: ${error.message}`);
+        ? `❌ Lỗi: ${errorMessage}` 
+        : `❌ Error: ${errorMessage}`);
     } finally {
       setIsProcessing(false);
     }

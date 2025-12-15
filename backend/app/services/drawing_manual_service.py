@@ -87,6 +87,17 @@ class DrawingManualService:
     @staticmethod
     async def create_drawing_manual(doc_data: DrawingManualCreate, current_user: UserResponse) -> DrawingManualResponse:
         """Create new drawing/manual"""
+        from app.core.permission_checks import check_create_permission, check_editor_viewer_ship_scope
+        
+        # ⭐ NEW: Permission checks
+        ship = await mongo_db.find_one("ships", {"id": doc_data.ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_create_permission(current_user, "drawing_manual", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, doc_data.ship_id, "create")
+        
         doc_dict = doc_data.dict()
         doc_dict["id"] = str(uuid.uuid4())
         doc_dict["created_at"] = datetime.now(timezone.utc)
@@ -121,9 +132,20 @@ class DrawingManualService:
     @staticmethod
     async def update_drawing_manual(doc_id: str, doc_data: DrawingManualUpdate, current_user: UserResponse) -> DrawingManualResponse:
         """Update drawing/manual"""
+        from app.core.permission_checks import check_edit_permission, check_editor_viewer_ship_scope
+        
         doc = await mongo_db.find_one(DrawingManualService.collection_name, {"id": doc_id})
         if not doc:
             raise HTTPException(status_code=404, detail="Drawing/Manual not found")
+        
+        # ⭐ NEW: Permission checks
+        ship = await mongo_db.find_one("ships", {"id": doc.get("ship_id")})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_edit_permission(current_user, "drawing_manual", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, doc.get("ship_id"), "edit")
         
         update_data = doc_data.dict(exclude_unset=True)
         
