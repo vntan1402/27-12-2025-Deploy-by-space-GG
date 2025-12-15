@@ -329,16 +329,27 @@ class SurveyReportService:
         
         logger.info(f"✅ Bulk deleted {deleted_count}/{len(request.report_ids)} survey reports")
         
+        # ⭐ NEW: If all operations failed due to permissions, raise 403
+        if deleted_count == 0 and errors:
+            # Check if all errors are permission-related
+            permission_errors = [e for e in errors if "không có quyền" in e or "permission" in e.lower()]
+            if permission_errors:
+                # Raise the first permission error
+                raise HTTPException(status_code=403, detail=permission_errors[0])
+        
         message = f"Successfully deleted {deleted_count} survey report(s)"
         if total_files_scheduled > 0:
             message += f". {total_files_scheduled} file(s) deletion in progress..."
+        if errors:
+            message += f" ({len(errors)} failed)"
         
         return {
-            "success": True,
+            "success": deleted_count > 0,
             "message": message,
             "deleted_count": deleted_count,
             "files_scheduled": total_files_scheduled,
-            "errors": errors if errors else None
+            "errors": errors if errors else None,
+            "partial_success": deleted_count > 0 and errors
         }
     
     @staticmethod
