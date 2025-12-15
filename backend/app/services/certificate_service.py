@@ -452,6 +452,7 @@ class CertificateService:
     ) -> dict:
         """Bulk delete certificates and schedule Google Drive files deletion in background"""
         from app.services.gdrive_service import GDriveService
+        from app.core.permission_checks import check_delete_permission, check_editor_viewer_ship_scope
         
         deleted_count = 0
         files_scheduled = 0
@@ -463,6 +464,16 @@ class CertificateService:
                 if not cert:
                     errors.append(f"Certificate {cert_id} not found")
                     continue
+                
+                # ⭐ NEW: Permission checks for each certificate
+                ship = await ShipRepository.find_by_id(cert.get('ship_id'))
+                if not ship:
+                    errors.append(f"Ship not found for certificate {cert_id}")
+                    continue
+                
+                ship_company_id = ship.get("company")
+                check_delete_permission(current_user, "ship_cert", ship_company_id)
+                check_editor_viewer_ship_scope(current_user, cert.get('ship_id'), "delete")
                 
                 # Extract file info before deletion
                 google_drive_file_id = cert.get("google_drive_file_id")
