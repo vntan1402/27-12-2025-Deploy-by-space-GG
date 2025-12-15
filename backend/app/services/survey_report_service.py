@@ -297,6 +297,8 @@ class SurveyReportService:
         background_tasks: Optional[BackgroundTasks] = None
     ) -> dict:
         """Bulk delete survey reports"""
+        from app.core import messages
+        
         deleted_count = 0
         errors = []
         total_files_scheduled = 0
@@ -314,6 +316,12 @@ class SurveyReportService:
                 if result.get("background_deletion"):
                     total_files_scheduled += result.get("files_scheduled", 0)
                     
+            except HTTPException as http_ex:
+                # ⭐ NEW: Extract specific error message for permission errors
+                error_detail = http_ex.detail if hasattr(http_ex, 'detail') else str(http_ex)
+                errors.append(error_detail)
+                logger.error(f"Error deleting survey report {report_id}: {error_detail}")
+                continue
             except Exception as e:
                 errors.append(f"Failed to delete {report_id}: {str(e)}")
                 logger.error(f"Error deleting survey report {report_id}: {e}")
