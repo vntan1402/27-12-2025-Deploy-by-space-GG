@@ -97,6 +97,8 @@ async def bulk_delete_survey_reports(
     """Bulk delete Survey Reports (Editor+ role required)"""
     try:
         return await SurveyReportService.bulk_delete_survey_reports(request, current_user, background_tasks)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Survey Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Survey Reports")
