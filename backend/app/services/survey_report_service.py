@@ -202,10 +202,20 @@ class SurveyReportService:
         """Delete survey report and schedule Google Drive file deletion in background"""
         from app.utils.background_tasks import delete_file_background
         from app.services.gdrive_service import GDriveService
+        from app.core.permission_checks import check_delete_permission, check_editor_viewer_ship_scope
         
         report = await mongo_db.find_one(SurveyReportService.collection_name, {"id": report_id})
         if not report:
             raise HTTPException(status_code=404, detail="Survey Report not found")
+        
+        # ⭐ NEW: Permission checks
+        ship = await mongo_db.find_one("ships", {"id": report.get("ship_id")})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_delete_permission(current_user, "survey_report", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, report.get("ship_id"), "delete")
         
         # Extract file info before deleting from DB
         survey_report_file_id = report.get("survey_report_file_id")
