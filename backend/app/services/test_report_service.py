@@ -253,10 +253,20 @@ class TestReportService:
         from app.utils.background_tasks import delete_file_background
         from app.services.gdrive_service import GDriveService
         from app.repositories.ship_repository import ShipRepository
+        from app.core.permission_checks import check_delete_permission, check_editor_viewer_ship_scope
         
         report = await mongo_db.find_one(TestReportService.collection_name, {"id": report_id})
         if not report:
             raise HTTPException(status_code=404, detail="Test Report not found")
+        
+        # ⭐ NEW: Permission checks
+        ship = await mongo_db.find_one("ships", {"id": report.get("ship_id")})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_delete_permission(current_user, "test_report", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, report.get("ship_id"), "delete")
         
         # Extract file info before deleting from DB
         test_report_file_id = report.get("test_report_file_id")
