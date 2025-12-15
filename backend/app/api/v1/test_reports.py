@@ -97,6 +97,8 @@ async def bulk_delete_test_reports(
     """Bulk delete Test Reports and associated files from Google Drive (Editor+ role required)"""
     try:
         return await TestReportService.bulk_delete_test_reports(request, current_user, background_tasks)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Test Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Test Reports")
