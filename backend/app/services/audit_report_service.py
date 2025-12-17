@@ -328,9 +328,11 @@ class AuditReportService:
         """
         Bulk delete audit reports with background GDrive cleanup
         Calls delete_audit_report for each report
+        Returns detailed errors for permission failures
         """
         deleted_count = 0
         files_scheduled = 0
+        errors = []
         
         for report_id in request.document_ids:
             try:
@@ -341,17 +343,36 @@ class AuditReportService:
                 )
                 deleted_count += 1
                 files_scheduled += result.get("files_scheduled", 0)
+            except HTTPException as he:
+                # ⭐ Capture permission/access errors with detail
+                logger.warning(f"Permission denied for audit report {report_id}: {he.detail}")
+                errors.append({
+                    "report_id": report_id,
+                    "error": he.detail,
+                    "status_code": he.status_code
+                })
             except Exception as e:
                 logger.error(f"Failed to delete audit report {report_id}: {e}")
-                continue
+                errors.append({
+                    "report_id": report_id,
+                    "error": str(e),
+                    "status_code": 500
+                })
         
-        logger.info(f"✅ Bulk deleted {deleted_count} audit reports, scheduled {files_scheduled} file deletions")
+        logger.info(f"✅ Bulk deleted {deleted_count} audit reports, scheduled {files_scheduled} file deletions, {len(errors)} errors")
+        
+        # ⭐ If ALL items failed due to permission, raise 403 with first error message
+        if deleted_count == 0 and len(errors) > 0:
+            first_error = errors[0]
+            if first_error.get("status_code") == 403:
+                raise HTTPException(status_code=403, detail=first_error.get("error"))
         
         return {
             "success": True,
             "message": f"Successfully deleted {deleted_count} audit reports",
             "deleted_count": deleted_count,
-            "files_scheduled": files_scheduled
+            "files_scheduled": files_scheduled,
+            "errors": errors
         }
     
     @staticmethod
