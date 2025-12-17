@@ -36,6 +36,9 @@ async def bulk_delete_audit_reports(
             background_tasks,
             current_user
         )
+    except HTTPException:
+        # ⭐ Re-raise HTTPException (403 permission errors) as-is
+        raise
     except Exception as e:
         logger.error(f"❌ Error bulk deleting Audit Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Audit Reports")
