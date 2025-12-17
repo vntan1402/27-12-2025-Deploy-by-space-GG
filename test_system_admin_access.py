@@ -8,7 +8,7 @@ Test system_admin role access to ship certificate audit logs
 import requests
 import json
 
-BACKEND_URL = "https://maritime-safety-7.preview.emergentagent.com/api"
+BACKEND_URL = "https://access-control-103.preview.emergentagent.com/api"
 SYSTEM_ADMIN_USERNAME = "system_admin"
 SYSTEM_ADMIN_PASSWORD = "YourSecure@Pass2024"
 

@@ -92,6 +92,17 @@ class AuditReportService:
     @staticmethod
     async def create_audit_report(report_data: AuditReportCreate, current_user: UserResponse) -> AuditReportResponse:
         """Create new audit report"""
+        from app.core.permission_checks import check_create_permission, check_editor_viewer_ship_scope
+        
+        # ⭐ NEW: Permission checks
+        ship = await mongo_db.find_one("ships", {"id": report_data.ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_create_permission(current_user, "audit_report", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, report_data.ship_id, "create")
+        
         report_dict = report_data.dict()
         report_dict["id"] = str(uuid.uuid4())
         report_dict["created_at"] = datetime.now(timezone.utc)
@@ -138,9 +149,20 @@ class AuditReportService:
     @staticmethod
     async def update_audit_report(report_id: str, report_data: AuditReportUpdate, current_user: UserResponse) -> AuditReportResponse:
         """Update audit report"""
+        from app.core.permission_checks import check_edit_permission, check_editor_viewer_ship_scope
+        
         report = await mongo_db.find_one(AuditReportService.collection_name, {"id": report_id})
         if not report:
             raise HTTPException(status_code=404, detail="Audit Report not found")
+        
+        # ⭐ NEW: Permission checks
+        ship = await mongo_db.find_one("ships", {"id": report.get("ship_id")})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        ship_company_id = ship.get("company")
+        check_edit_permission(current_user, "audit_report", ship_company_id)
+        check_editor_viewer_ship_scope(current_user, report.get("ship_id"), "edit")
         
         update_data = report_data.dict(exclude_unset=True)
         
