@@ -1850,6 +1850,7 @@ const IsmIspsMLc = () => {
               reports={auditReports}
               loading={auditReportsLoading}
               selectedReports={selectedAuditReports}
+              setSelectedReports={setSelectedAuditReports}
               onSelectReport={handleSelectAuditReport}
               onSelectAll={handleSelectAllAuditReports}
               filters={auditReportFilters}
