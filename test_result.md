@@ -27,7 +27,64 @@
 - ✅ DELETE /api/audit-reports/{id} - Returns 403 with Vietnamese message
 - ✅ POST /api/audit-reports/bulk-delete - Returns 403 with Vietnamese message
 
+## Frontend UI Test Results (Testing Agent - December 17, 2025)
+
+### ✅ TEST 1: JavaScript Error Fix - PASSED
+**Status:** SUCCESSFUL
+**Tested by:** Testing Agent using Playwright automation
+**Date:** December 17, 2025
+
+**Test Steps Performed:**
+1. ✅ Successfully logged in as system_admin / YourSecure@Pass2024
+2. ✅ Navigated to ISM-ISPS-MLC page via sidebar menu
+3. ✅ Selected ship "VINASHIP HARMONY" from ship grid
+4. ✅ Clicked on "Audit Report" submenu tab
+5. ✅ Performed right-click operation on audit report table row
+6. ✅ Monitored console logs during right-click operation
+
+**Results:**
+- ✅ **NO JavaScript errors detected** during right-click operation
+- ✅ **NO `setSelectedReports is not defined` error** found in console logs
+- ✅ Right-click functionality working without throwing errors
+- ✅ Audit Report table loaded successfully with "ISPS Code Audit Plan" entry
+- ✅ JavaScript fix appears to be working correctly
+
+**Console Log Analysis:**
+- Only standard React DevTools and application logs detected
+- No error-level console messages during right-click test
+- No references to `setSelectedReports` function errors
+
+### ⚠️ TEST 2: Permission Denial Test - NEEDS INVESTIGATION
+**Status:** INCONCLUSIVE - Permission system may need frontend implementation
+**Tested by:** Testing Agent using Playwright automation
+**Date:** December 17, 2025
+
+**Test Steps Performed:**
+1. ✅ Successfully logged in as Crewing / Crewing123
+2. ✅ Navigated to ISM-ISPS-MLC page via sidebar menu  
+3. ✅ Selected ship "VINASHIP HARMONY" from ship grid
+4. ✅ Clicked on "Audit Report" submenu tab
+5. ✅ Audit Report page loaded with same data as system_admin
+6. ⚠️ Right-clicked on audit report table row
+7. ❌ No context menu appeared or Delete option was not visible
+8. ❌ No Vietnamese permission error message displayed
+
+**Findings:**
+- ✅ Crewing user can access ISM-ISPS-MLC page and view audit reports
+- ✅ Backend API returns 403 errors (already verified)
+- ❌ Frontend context menu may not be implemented or visible for Crewing user
+- ❌ Vietnamese permission error message not displayed in UI
+- ⚠️ Console shows 403 errors for AI config (expected for Crewing user)
+
+**Possible Issues:**
+1. Context menu may not appear for users without permissions (by design)
+2. Permission error message may only show when actual delete API is called
+3. Frontend may need additional implementation to show permission errors
+4. Delete functionality may be hidden/disabled for unauthorized users
+
 ## Notes
 - Crewing user credentials: username=Crewing, password=Crewing123
 - Crewing department: ['ship_crew', 'crewing'] - does NOT have access to ISM-ISPS-MLC
 - Test on ship: VINASHIP HARMONY (company matches Crewing)
+- Backend permission system working correctly (403 responses verified)
+- Frontend JavaScript fix successful - no setSelectedReports errors
