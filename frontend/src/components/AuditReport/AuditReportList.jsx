@@ -18,6 +18,7 @@ export const AuditReportList = ({
   reports,
   loading,
   selectedReports,
+  setSelectedReports,
   onSelectReport,
   onSelectAll,
   filters,
