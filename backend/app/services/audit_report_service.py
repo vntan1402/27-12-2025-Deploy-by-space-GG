@@ -223,26 +223,29 @@ class AuditReportService:
         
         Process:
         1. Get report and verify access
-        2. Delete from database immediately
-        3. Schedule background GDrive file deletion (if file IDs exist)
+        2. Check department permission (Manager can only delete within their department)
+        3. Delete from database immediately
+        4. Schedule background GDrive file deletion (if file IDs exist)
         
         Based on Approval Document pattern
         """
         from app.utils.background_tasks import delete_file_background
         from app.services.gdrive_service import GDriveService
+        from app.core.permission_checks import check_delete_permission
         
         # Get report
         report = await mongo_db.find_one(AuditReportService.collection_name, {"id": report_id})
         if not report:
             raise HTTPException(status_code=404, detail="Audit Report not found")
         
-        # Verify company access
+        # Verify company access and department permission
         company_id = current_user.company
         ship_id = report.get("ship_id")
         if ship_id:
             ship = await mongo_db.find_one("ships", {"id": ship_id})
-            if ship and ship.get("company") != company_id:
-                raise HTTPException(status_code=403, detail="Access denied")
+            if ship:
+                # ⭐ Use comprehensive permission check (includes department check for Manager)
+                check_delete_permission(current_user, "audit_report", ship.get("company"))
         
         # Extract file info before deleting from DB
         audit_report_file_id = report.get("audit_report_file_id")
