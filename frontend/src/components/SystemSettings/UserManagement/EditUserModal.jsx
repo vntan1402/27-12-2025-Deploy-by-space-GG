@@ -372,31 +372,32 @@ const EditUserModal = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email
               </label>
-              <input
-                ref={emailInputRef}
-                type="text"
-                id="edit-user-email-field"
-                name="notASearchField"
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck="false"
-                data-lpignore="true"
-                data-form-type="other"
-                data-1p-ignore="true"
-                aria-autocomplete="none"
-                value={userData.email}
-                onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
-                onFocus={(e) => {
-                  // Clear if it was autofilled with wrong value (username)
-                  if (e.target.value && e.target.value === userData.username) {
-                    setUserData(prev => ({ ...prev, email: '' }));
-                  }
-                }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="user@example.com"
-                disabled={loading}
-              />
+              {!emailReady ? (
+                // Render placeholder div while waiting to prevent autofill
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-400 h-[42px] flex items-center">
+                  {userData.email || 'user@example.com'}
+                </div>
+              ) : (
+                <input
+                  ref={emailInputRef}
+                  type="text"
+                  id="edit-user-email-field"
+                  name="notASearchField"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
+                  data-lpignore="true"
+                  data-form-type="other"
+                  data-1p-ignore="true"
+                  aria-autocomplete="none"
+                  value={userData.email}
+                  onChange={(e) => setUserData(prev => ({ ...prev, email: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="user@example.com"
+                  disabled={loading}
+                />
+              )}
             </div>
           </div>
 
