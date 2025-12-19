@@ -53,6 +53,8 @@ class UserUpdate(BaseModel):
     gmail: Optional[str] = None
     is_active: Optional[bool] = None
     password: Optional[str] = None
+    signature_file_id: Optional[str] = None
+    signature_url: Optional[str] = None
 
 class UserResponse(UserBase):
     id: str
