@@ -330,6 +330,8 @@ const EditUserModal = ({
               </label>
               <input
                 type="text"
+                name={`username_readonly_${Date.now()}`}
+                autoComplete="new-password"
                 value={userData.username}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed"
                 disabled
