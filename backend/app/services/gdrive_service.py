@@ -939,7 +939,7 @@ class GDriveService:
             logger.error(f"Error finding/creating subfolder {folder_name}: {e}")
             return None
 
-    async def find_subfolder(self, parent_folder_id: str, folder_name: str) -> str:
+    async def find_subfolder(self, parent_folder_id: str, folder_name: str, company_id: str = None) -> str:
         """
         Find subfolder by name within parent folder
         
@@ -947,6 +947,21 @@ class GDriveService:
             Folder ID if found, None otherwise
         """
         try:
+            from app.db.mongodb import mongo_db
+            
+            # Get apps_script_url from config
+            config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id}) if company_id else None
+            apps_script_url = config.get("web_app_url") or config.get("apps_script_url") if config else None
+            
+            if not apps_script_url:
+                # Try global config
+                global_config = await mongo_db.find_one("gdrive_configs", {})
+                apps_script_url = global_config.get("web_app_url") or global_config.get("apps_script_url") if global_config else None
+            
+            if not apps_script_url:
+                logger.warning("No Apps Script URL configured for find_subfolder")
+                return None
+            
             async with aiohttp.ClientSession() as session:
                 payload = {
                     "action": "find_subfolder",
@@ -955,7 +970,7 @@ class GDriveService:
                 }
                 
                 async with session.post(
-                    self.apps_script_url,
+                    apps_script_url,
                     json=payload,
                     timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
@@ -968,7 +983,7 @@ class GDriveService:
             logger.warning(f"Error finding subfolder: {e}")
             return None
 
-    async def create_folder(self, parent_folder_id: str, folder_name: str) -> str:
+    async def create_folder(self, parent_folder_id: str, folder_name: str, company_id: str = None) -> str:
         """
         Create new folder within parent
         
@@ -976,6 +991,21 @@ class GDriveService:
             New folder ID
         """
         try:
+            from app.db.mongodb import mongo_db
+            
+            # Get apps_script_url from config
+            config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id}) if company_id else None
+            apps_script_url = config.get("web_app_url") or config.get("apps_script_url") if config else None
+            
+            if not apps_script_url:
+                # Try global config
+                global_config = await mongo_db.find_one("gdrive_configs", {})
+                apps_script_url = global_config.get("web_app_url") or global_config.get("apps_script_url") if global_config else None
+            
+            if not apps_script_url:
+                logger.warning("No Apps Script URL configured for create_folder")
+                return None
+            
             async with aiohttp.ClientSession() as session:
                 payload = {
                     "action": "create_folder",
@@ -984,7 +1014,7 @@ class GDriveService:
                 }
                 
                 async with session.post(
-                    self.apps_script_url,
+                    apps_script_url,
                     json=payload,
                     timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
@@ -1000,7 +1030,7 @@ class GDriveService:
             logger.error(f"Error creating folder: {e}")
             return None
 
-    async def delete_file(self, file_id: str) -> bool:
+    async def delete_file(self, file_id: str, company_id: str = None) -> bool:
         """
         Delete file from Google Drive
         
@@ -1008,6 +1038,21 @@ class GDriveService:
             True if deleted successfully
         """
         try:
+            from app.db.mongodb import mongo_db
+            
+            # Get apps_script_url from config
+            config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id}) if company_id else None
+            apps_script_url = config.get("web_app_url") or config.get("apps_script_url") if config else None
+            
+            if not apps_script_url:
+                # Try global config
+                global_config = await mongo_db.find_one("gdrive_configs", {})
+                apps_script_url = global_config.get("web_app_url") or global_config.get("apps_script_url") if global_config else None
+            
+            if not apps_script_url:
+                logger.warning("No Apps Script URL configured for delete_file")
+                return False
+            
             async with aiohttp.ClientSession() as session:
                 payload = {
                     "action": "delete_file",
@@ -1015,7 +1060,7 @@ class GDriveService:
                 }
                 
                 async with session.post(
-                    self.apps_script_url,
+                    apps_script_url,
                     json=payload,
                     timeout=aiohttp.ClientTimeout(total=30)
                 ) as response:
