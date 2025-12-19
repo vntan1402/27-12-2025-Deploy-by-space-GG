@@ -495,6 +495,7 @@ const SafetyManagementSystem = () => {
   };
 
   const handleUpcomingAudit = async () => {
+    setIsLoadingUpcomingAudit(true);
     try {
       const response = await api.get('/api/audit-certificates/upcoming-surveys?days=30');
       const data = response.data;
@@ -522,6 +523,8 @@ const SafetyManagementSystem = () => {
         ? '❌ Lỗi kiểm tra upcoming audits'
         : '❌ Error checking upcoming audits'
       );
+    } finally {
+      setIsLoadingUpcomingAudit(false);
     }
   };
 
