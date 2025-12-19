@@ -94,13 +94,30 @@ export const AuditCertificateActionButtons = ({
         {/* Upcoming Survey Button */}
         <button
           onClick={onUpcomingSurvey}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all bg-orange-600 hover:bg-orange-700 text-white cursor-pointer"
-          title={language === 'vi' ? 'Kiểm tra các chứng chỉ sắp đến hạn survey' : 'Check upcoming survey certificates'}
+          disabled={isLoadingUpcomingSurvey}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            isLoadingUpcomingSurvey 
+              ? 'bg-orange-400 cursor-wait' 
+              : 'bg-orange-600 hover:bg-orange-700 cursor-pointer'
+          } text-white`}
+          title={language === 'vi' ? 'Kiểm tra các chứng chỉ sắp đến hạn audit' : 'Check upcoming audit certificates'}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {language === 'vi' ? 'Upcoming Audit' : 'Upcoming Audit'}
+          {isLoadingUpcomingSurvey ? (
+            <>
+              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              {language === 'vi' ? 'Đang kiểm tra...' : 'Checking...'}
+            </>
+          ) : (
+            <>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {language === 'vi' ? 'Upcoming Audit' : 'Upcoming Audit'}
+            </>
+          )}
         </button>
         
         {/* Add Certificate Button */}
