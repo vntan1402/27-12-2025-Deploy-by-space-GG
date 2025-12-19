@@ -50,8 +50,78 @@ const EditUserModal = ({
         ship: user.ship || '',
         zalo: user.zalo || ''
       });
+      // Set current signature URL if exists
+      setCurrentSignatureUrl(user.signature_url || null);
     }
   }, [user]);
+
+  // Handle signature file selection
+  const handleSignatureSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error(language === 'vi' ? 'Vui lòng chọn file ảnh' : 'Please select an image file');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(language === 'vi' ? 'File quá lớn (tối đa 5MB)' : 'File too large (max 5MB)');
+        return;
+      }
+      
+      setSignatureFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSignaturePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Upload signature to server
+  const handleUploadSignature = async () => {
+    if (!signatureFile || !user?.id) return;
+    
+    setUploadingSignature(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', signatureFile);
+      
+      const response = await api.post(`/api/users/${user.id}/signature`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (response.data.success) {
+        toast.success(language === 'vi' ? '✅ Đã upload chữ ký thành công!' : '✅ Signature uploaded successfully!');
+        setCurrentSignatureUrl(response.data.signature_url);
+        setSignatureFile(null);
+        setSignaturePreview(null);
+      }
+    } catch (error) {
+      console.error('Signature upload error:', error);
+      toast.error(
+        error.response?.data?.detail || 
+        (language === 'vi' ? '❌ Lỗi upload chữ ký' : '❌ Failed to upload signature')
+      );
+    } finally {
+      setUploadingSignature(false);
+    }
+  };
+
+  // Clear signature selection
+  const handleClearSignature = () => {
+    setSignatureFile(null);
+    setSignaturePreview(null);
+    if (signatureInputRef.current) {
+      signatureInputRef.current.value = '';
+    }
+  };
 
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
