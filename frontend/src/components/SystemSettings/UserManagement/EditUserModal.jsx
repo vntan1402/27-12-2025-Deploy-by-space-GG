@@ -2,7 +2,9 @@
  * EditUserModal Component
  * Modal for editing existing users with role-based validation
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-hot-toast';
+import api from '../../../services/api';
 
 const EditUserModal = ({
   user,
@@ -26,6 +28,13 @@ const EditUserModal = ({
     ship: '',
     zalo: ''
   });
+  
+  // Signature upload state
+  const [signatureFile, setSignatureFile] = useState(null);
+  const [signaturePreview, setSignaturePreview] = useState(null);
+  const [uploadingSignature, setUploadingSignature] = useState(false);
+  const [currentSignatureUrl, setCurrentSignatureUrl] = useState(null);
+  const signatureInputRef = useRef(null);
 
   // Initialize form data when user prop changes
   useEffect(() => {
