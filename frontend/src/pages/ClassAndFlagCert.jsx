@@ -663,8 +663,9 @@ const ClassAndFlagCert = () => {
     }
   };
 
-  // Handle upcoming survey check (placeholder)
+  // Handle upcoming survey check
   const handleUpcomingSurvey = async () => {
+    setIsLoadingUpcomingSurvey(true);
     try {
       console.log('🔍 Checking upcoming surveys...');
       
@@ -709,6 +710,8 @@ const ClassAndFlagCert = () => {
         ? '❌ Lỗi kiểm tra upcoming surveys'
         : '❌ Error checking upcoming surveys'
       );
+    } finally {
+      setIsLoadingUpcomingSurvey(false);
     }
   };
 
