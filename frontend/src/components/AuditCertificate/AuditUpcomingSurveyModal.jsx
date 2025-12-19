@@ -146,16 +146,22 @@ export const AuditUpcomingSurveyModal = ({
                     }`}
                   >
                     <td className="px-4 py-3 text-sm text-gray-900 border-b">
-                      <div className="font-medium">{survey.ship_name}</div>
-                      {survey.certificate_type === 'company' && (
-                        <div className="text-xs text-blue-600 font-medium mt-1">
-                          📋 {language === 'vi' ? 'Chứng chỉ công ty' : 'Company Certificate'}
-                        </div>
-                      )}
-                      {survey.company_name && survey.certificate_type === 'company' && (
-                        <div className="text-xs text-gray-500">
-                          {survey.company_name}
-                        </div>
+                      {survey.certificate_type === 'company' ? (
+                        <>
+                          <div className="font-medium">{survey.company_name || survey.ship_name}</div>
+                          <div className="text-xs text-blue-600 font-medium mt-1">
+                            📋 {language === 'vi' ? 'Chứng chỉ công ty' : 'Company Certificate'}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="font-medium">{survey.ship_name}</div>
+                          {survey.company_name && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {survey.company_name}
+                            </div>
+                          )}
+                        </>
                       )}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 border-b">
