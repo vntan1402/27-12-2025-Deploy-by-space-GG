@@ -103,6 +103,15 @@ class TestReportService:
     @staticmethod
     async def create_test_report(report_data: TestReportCreate, current_user: UserResponse) -> TestReportResponse:
         """Create new test report"""
+        from app.core.permission_checks import check_create_permission
+        
+        # ⭐ Permission check: Get ship's company and verify department permission
+        ship = await mongo_db.find_one("ships", {"id": report_data.ship_id})
+        if not ship:
+            raise HTTPException(status_code=404, detail="Ship not found")
+        
+        check_create_permission(current_user, "test_report", ship.get("company"))
+        
         report_dict = report_data.dict()
         report_dict["id"] = str(uuid.uuid4())
         report_dict["created_at"] = datetime.now(timezone.utc)
