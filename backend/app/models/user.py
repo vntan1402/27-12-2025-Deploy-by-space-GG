@@ -60,6 +60,8 @@ class UserResponse(UserBase):
     id: str
     created_at: datetime
     permissions: Dict[str, Any] = {}
+    signature_file_id: Optional[str] = None
+    signature_url: Optional[str] = None
 
 class LoginRequest(BaseModel):
     username: str
