@@ -211,3 +211,111 @@ class UserService:
         logger.info(f"✅ User deleted: {user_id}")
         
         return {"message": "User deleted successfully"}
+
+    @staticmethod
+    async def upload_signature(
+        user_id: str, 
+        file_content: bytes, 
+        filename: str, 
+        current_user: UserResponse
+    ) -> dict:
+        """
+        Upload and process user signature
+        - Process image to remove background
+        - Upload to Google Drive: COMPANY DOCUMENT > User Signature
+        - Update user record with signature URL
+        """
+        from app.services.gdrive_service import GDriveService
+        from app.utils.signature_processor import process_signature_for_upload
+        
+        logger.info(f"🖊️ Processing signature for user: {user_id}")
+        
+        # Verify user exists
+        user = await UserRepository.find_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get company ID
+        company_id = user.get('company') or current_user.company
+        if not company_id:
+            raise HTTPException(status_code=400, detail="Company not found for user")
+        
+        try:
+            # Initialize GDrive service
+            gdrive_service = GDriveService()
+            
+            # Get or create "User Signature" folder under COMPANY DOCUMENT
+            # First, find COMPANY DOCUMENT folder
+            company_doc_folder = await gdrive_service.find_or_create_folder_by_path(
+                company_id=company_id,
+                path_parts=["COMPANY DOCUMENT"]
+            )
+            
+            if not company_doc_folder:
+                raise HTTPException(status_code=500, detail="Could not find/create COMPANY DOCUMENT folder")
+            
+            # Find or create "User Signature" folder
+            signature_folder = await gdrive_service.find_or_create_subfolder(
+                parent_folder_id=company_doc_folder,
+                folder_name="User Signature"
+            )
+            
+            if not signature_folder:
+                raise HTTPException(status_code=500, detail="Could not create User Signature folder")
+            
+            logger.info(f"📁 Signature folder ready: {signature_folder}")
+            
+            # Process signature image (remove background)
+            processed_bytes, new_filename = process_signature_for_upload(file_content, filename)
+            
+            # Generate unique filename with username
+            username = user.get('username', 'user')
+            final_filename = f"{username}_{new_filename}"
+            
+            # Delete old signature file if exists
+            old_file_id = user.get('signature_file_id')
+            if old_file_id:
+                try:
+                    await gdrive_service.delete_file(old_file_id)
+                    logger.info(f"🗑️ Deleted old signature file: {old_file_id}")
+                except Exception as e:
+                    logger.warning(f"Could not delete old signature: {e}")
+            
+            # Upload to Google Drive
+            upload_result = await gdrive_service.upload_file(
+                folder_id=signature_folder,
+                file_content=processed_bytes,
+                filename=final_filename,
+                mime_type='image/png'
+            )
+            
+            if not upload_result or not upload_result.get('id'):
+                raise HTTPException(status_code=500, detail="Failed to upload signature to Google Drive")
+            
+            file_id = upload_result['id']
+            
+            # Get viewable URL
+            signature_url = f"https://drive.google.com/uc?id={file_id}"
+            
+            # Update user record
+            await UserRepository.update(user_id, {
+                'signature_file_id': file_id,
+                'signature_url': signature_url
+            })
+            
+            logger.info(f"✅ Signature uploaded successfully for user {user_id}: {file_id}")
+            
+            return {
+                'success': True,
+                'message': 'Signature uploaded successfully',
+                'file_id': file_id,
+                'signature_url': signature_url,
+                'filename': final_filename
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading signature: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to process signature: {str(e)}")
+
