@@ -33,7 +33,7 @@ class UserBase(BaseModel):
     department: List[str]  # Multiple departments supported
     company: Optional[str] = None
     ship: Optional[str] = None
-    zalo: str  # Required field
+    zalo: Optional[str] = None  # Optional field for Zalo contact
     gmail: Optional[str] = None
     is_active: bool = True
     signature_file_id: Optional[str] = None  # Google Drive file ID
