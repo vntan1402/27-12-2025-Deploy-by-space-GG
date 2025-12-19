@@ -614,14 +614,22 @@ const EditUserModal = ({
                   <p className="text-xs text-gray-500 mb-2">
                     {language === 'vi' ? 'Chữ ký hiện tại:' : 'Current signature:'}
                   </p>
-                  <div className="bg-white border border-gray-200 rounded-lg p-3 inline-block">
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 inline-block min-h-[60px] min-w-[100px]">
                     <img 
                       src={currentSignatureUrl} 
                       alt="Current signature" 
                       className="max-h-20 max-w-xs object-contain"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
+                      referrerPolicy="no-referrer"
+                      crossOrigin="anonymous"
+                      loading="eager"
+                      onLoad={(e) => {
+                        e.target.style.opacity = '1';
                       }}
+                      onError={(e) => {
+                        console.log('Signature image load error:', currentSignatureUrl);
+                        e.target.parentElement.innerHTML = '<span class="text-xs text-gray-400">Không thể tải ảnh</span>';
+                      }}
+                      style={{ opacity: 0.5, transition: 'opacity 0.3s' }}
                     />
                   </div>
                 </div>
