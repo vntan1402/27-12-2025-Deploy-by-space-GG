@@ -894,7 +894,7 @@ class GDriveService:
             
             # Navigate/create each folder in path
             for folder_name in path_parts:
-                found_folder = await self.find_subfolder(current_folder_id, folder_name)
+                found_folder = await self.find_subfolder(current_folder_id, folder_name, company_id)
                 
                 if found_folder:
                     logger.info(f"📂 Found existing folder: {folder_name} ({found_folder})")
@@ -902,7 +902,7 @@ class GDriveService:
                 else:
                     # Create folder
                     logger.info(f"📁 Creating new folder: {folder_name}")
-                    new_folder = await self.create_folder(current_folder_id, folder_name)
+                    new_folder = await self.create_folder(current_folder_id, folder_name, company_id)
                     if new_folder:
                         current_folder_id = new_folder
                     else:
