@@ -73,8 +73,8 @@ export const exportToPDF = (data, options = {}) => {
     })
   );
 
-  // Generate table
-  doc.autoTable({
+  // Generate table using autoTable
+  autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
     startY: safeSubtitle ? 32 : 26,
