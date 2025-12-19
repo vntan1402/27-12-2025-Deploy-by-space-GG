@@ -336,6 +336,10 @@ const EditUserModal = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4" autoComplete="off">
+          {/* Hidden fields to trap browser autofill */}
+          <input type="text" name="trap_username" style={{ display: 'none' }} tabIndex={-1} />
+          <input type="email" name="trap_email" style={{ display: 'none' }} tabIndex={-1} />
+          <input type="password" name="trap_password" style={{ display: 'none' }} tabIndex={-1} />
           {/* Username (Read-only) and Email - 2 fields per row */}
           <div className="grid grid-cols-2 gap-4">
             {/* Username (Read-only) */}
