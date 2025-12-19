@@ -355,8 +355,9 @@ class UserService:
                         if result.get("success"):
                             file_id = result.get("file_id")
                             
-                            # Get viewable URL
-                            signature_url = f"https://drive.google.com/uc?id={file_id}"
+                            # Get viewable URL - use thumbnail format for direct embedding
+                            # The thumbnail URL allows direct display in <img> tags without CORS issues
+                            signature_url = f"https://drive.google.com/thumbnail?id={file_id}&sz=w400"
                             
                             # Update user record
                             await UserRepository.update(user_id, {
