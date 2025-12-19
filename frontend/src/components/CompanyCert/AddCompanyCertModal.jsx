@@ -661,7 +661,7 @@ export const AddCompanyCertModal = ({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !certificateFile}
+              disabled={isSubmitting || !formData.cert_name}
               className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg font-medium"
             >
               {isSubmitting 
