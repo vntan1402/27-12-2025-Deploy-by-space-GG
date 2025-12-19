@@ -68,3 +68,44 @@ async def delete_user(
     except Exception as e:
         logger.error(f"❌ Error deleting user: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete user")
+
+
+@router.post("/{user_id}/signature")
+async def upload_user_signature(
+    user_id: str,
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Upload and process user signature image
+    - Removes background automatically using Otsu's threshold
+    - Uploads to Google Drive folder: COMPANY DOCUMENT > User Signature
+    - Returns processed image URL
+    """
+    try:
+        # Validate file type
+        allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp']
+        if file.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}"
+            )
+        
+        # Read file content
+        file_content = await file.read()
+        
+        # Process and upload signature
+        result = await UserService.upload_signature(
+            user_id=user_id,
+            file_content=file_content,
+            filename=file.filename,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading signature: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to upload signature: {str(e)}")
