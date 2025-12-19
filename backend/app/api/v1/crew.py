@@ -1158,6 +1158,7 @@ async def clear_crew_assignment_history(
     
     WARNING: This permanently deletes all assignment records for the crew member.
     This action cannot be undone.
+    Only users in 'crewing' department can perform this action.
     
     Response:
     {
@@ -1170,6 +1171,7 @@ async def clear_crew_assignment_history(
     """
     try:
         from app.repositories.crew_assignment_repository import CrewAssignmentRepository
+        from app.core.permission_checks import check_delete_permission
         
         logger.info(f"🗑️ Clearing assignment history for crew: {crew_id}")
         
@@ -1178,10 +1180,9 @@ async def clear_crew_assignment_history(
         if not crew:
             raise HTTPException(status_code=404, detail="Crew member not found")
         
-        # Check access permission
-        if current_user.role not in ["SYSTEM_ADMIN", "SUPER_ADMIN", "ADMIN"]:
-            if crew.get('company_id') != current_user.company:
-                raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED)
+        # ⭐ Check department permission - only 'crewing' department can delete crew history
+        crew_company_id = crew.get('company_id') or current_user.company
+        check_delete_permission(current_user, "crew_management", crew_company_id)
         
         crew_name = crew.get('full_name', 'Unknown')
         
