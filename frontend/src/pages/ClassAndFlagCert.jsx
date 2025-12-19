@@ -1574,6 +1574,7 @@ const ClassAndFlagCert = () => {
               isUpdatingSurveyTypes={isUpdatingSurveyTypes}
               isMultiCertProcessing={isMultiCertProcessing}
               isRefreshing={isRefreshing}
+              isLoadingUpcomingSurvey={isLoadingUpcomingSurvey}
               linksFetching={linksFetching}
               linksFetchProgress={linksFetchProgress}
               onUpdateSurveyTypes={handleUpdateSurveyTypes}
