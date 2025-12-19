@@ -270,12 +270,12 @@ class UserService:
             
             # Use upload_file_with_folder_creation action - the standard approach
             # Apps Script structure: ship_name folder must exist first, then it creates nested folders
-            # For signature: root_folder / "COMPANY DOCUMENT" (as ship_name) / "User Signature" (as category)
             # 
-            # The Apps Script looks for ship_name folder first, then creates parent_category/category inside it
-            # Since we want: COMPANY DOCUMENT / User Signature
-            # We set: ship_name = "COMPANY DOCUMENT", category = "User Signature", parent_category = empty
-            # This will create: COMPANY DOCUMENT / User Signature / file
+            # TESTED WORKING:
+            # - ship_name = "COMPANY DOCUMENT" (parent folder, must exist)
+            # - parent_category = "" (empty)
+            # - category = "User Signature" (will be created/reused as subfolder)
+            # Result: file uploaded to "COMPANY DOCUMENT/User Signature"
             
             logger.info(f"📤 Uploading signature file: {final_filename}")
             logger.info(f"   Target path: COMPANY DOCUMENT / User Signature")
@@ -283,9 +283,9 @@ class UserService:
             payload = {
                 "action": "upload_file_with_folder_creation",
                 "parent_folder_id": parent_folder_id,
-                "ship_name": "COMPANY DOCUMENT",  # The parent folder (must exist or be created manually)
-                "parent_category": "User Signature",  # Will be created as subfolder
-                "category": "",  # Empty - file goes directly in User Signature
+                "ship_name": "COMPANY DOCUMENT",  # Parent folder (must exist)
+                "parent_category": "",  # Empty - not used
+                "category": "User Signature",  # Subfolder where file will be uploaded
                 "filename": final_filename,
                 "file_content": file_base64,
                 "content_type": "image/png"
