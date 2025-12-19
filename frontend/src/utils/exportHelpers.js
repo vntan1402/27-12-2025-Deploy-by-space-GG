@@ -7,6 +7,20 @@ import * as XLSX from 'xlsx';
 import { formatDateDisplay } from './dateHelpers';
 
 /**
+ * Remove Vietnamese diacritics for PDF export (jsPDF doesn't support Vietnamese fonts by default)
+ */
+const removeVietnameseDiacritics = (str) => {
+  if (!str) return str;
+  const from = 'àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđÀÁẢÃẠĂẰẮẲẴẶÂẦẤẨẪẬÈÉẺẼẸÊỀẾỂỄỆÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴĐ';
+  const to = 'aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyydAAAAAAAAAAAAAAAAAEEEEEEEEEEEIIIIIOOOOOOOOOOOOOOOOOUUUUUUUUUUUYYYYYD';
+  let result = str;
+  for (let i = 0; i < from.length; i++) {
+    result = result.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+  }
+  return result;
+};
+
+/**
  * Export data to PDF
  * @param {Array} data - Array of objects to export
  * @param {Object} options - Export options
@@ -27,30 +41,35 @@ export const exportToPDF = (data, options = {}) => {
     format: 'a4'
   });
 
+  // Convert Vietnamese text to non-diacritics for PDF compatibility
+  const safeTitle = removeVietnameseDiacritics(title);
+  const safeSubtitle = removeVietnameseDiacritics(subtitle);
+
   // Add title
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.text(title, 14, 15);
+  doc.text(safeTitle, 14, 15);
 
   // Add subtitle if provided
-  if (subtitle) {
+  if (safeSubtitle) {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text(subtitle, 14, 22);
+    doc.text(safeSubtitle, 14, 22);
   }
 
   // Add timestamp
   doc.setFontSize(8);
   doc.setTextColor(100);
   const exportDate = new Date().toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US');
-  doc.text(`${language === 'vi' ? 'Ngày xuất' : 'Export date'}: ${exportDate}`, 14, subtitle ? 28 : 22);
+  doc.text(`${language === 'vi' ? 'Ngay xuat' : 'Export date'}: ${exportDate}`, 14, safeSubtitle ? 28 : 22);
 
-  // Prepare table data
-  const tableColumn = columns.map(col => col.header);
+  // Prepare table data - remove Vietnamese diacritics
+  const tableColumn = columns.map(col => removeVietnameseDiacritics(col.header));
   const tableRows = data.map(row => 
     columns.map(col => {
       const value = col.accessor(row);
-      return value !== null && value !== undefined ? String(value) : '-';
+      const strValue = value !== null && value !== undefined ? String(value) : '-';
+      return removeVietnameseDiacritics(strValue);
     })
   );
 
@@ -58,7 +77,7 @@ export const exportToPDF = (data, options = {}) => {
   doc.autoTable({
     head: [tableColumn],
     body: tableRows,
-    startY: subtitle ? 32 : 26,
+    startY: safeSubtitle ? 32 : 26,
     styles: {
       fontSize: 8,
       cellPadding: 2,
@@ -81,13 +100,13 @@ export const exportToPDF = (data, options = {}) => {
       return acc;
     }, {}),
     margin: { top: 10, right: 10, bottom: 10, left: 10 },
-    didDrawPage: (data) => {
+    didDrawPage: (pageData) => {
       // Footer with page number
       const pageCount = doc.internal.getNumberOfPages();
       doc.setFontSize(8);
       doc.setTextColor(150);
       doc.text(
-        `${language === 'vi' ? 'Trang' : 'Page'} ${data.pageNumber} / ${pageCount}`,
+        `${language === 'vi' ? 'Trang' : 'Page'} ${pageData.pageNumber} / ${pageCount}`,
         doc.internal.pageSize.getWidth() - 25,
         doc.internal.pageSize.getHeight() - 10
       );
