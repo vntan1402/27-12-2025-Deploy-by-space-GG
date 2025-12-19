@@ -254,9 +254,15 @@ export const exportUpcomingSurveysToXLSX = (surveys, options = {}) => {
   
   const columns = [
     { 
-      header: language === 'vi' ? 'Tên Tàu' : 'Ship Name', 
-      accessor: (row) => row.ship_name,
-      excelWidth: 25
+      header: language === 'vi' ? 'Tên Tàu / Công ty' : 'Ship / Company Name', 
+      accessor: (row) => {
+        // For company certificates, show company_name; for ship certificates, show ship_name
+        if (row.certificate_type === 'company') {
+          return row.company_name || row.ship_name;
+        }
+        return row.ship_name;
+      },
+      excelWidth: 35
     },
     { 
       header: language === 'vi' ? 'Loại Certificate' : 'Certificate Type', 
