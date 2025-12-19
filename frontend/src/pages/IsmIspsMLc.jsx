@@ -86,6 +86,7 @@ const IsmIspsMLc = () => {
     show: false, surveys: [], totalCount: 0, 
     company: '', companyName: '', checkDate: ''
   });
+  const [isLoadingUpcomingSurvey, setIsLoadingUpcomingSurvey] = useState(false);
 
   // Context menus
   const [contextMenu, setContextMenu] = useState(null);
