@@ -266,19 +266,31 @@ class UserService:
             # Encode file to base64
             file_base64 = base64.b64encode(processed_bytes).decode('utf-8')
             
-            # Upload to Google Drive using upload_to_folder action
-            # Folder structure: COMPANY DOCUMENT / User Signature (no subfolder)
+            # Step 1: Find or create "COMPANY DOCUMENT" folder
+            logger.info(f"📁 Step 1: Finding/creating COMPANY DOCUMENT folder...")
+            company_doc_folder = await UserService._find_or_create_folder(
+                apps_script_url, parent_folder_id, "COMPANY DOCUMENT"
+            )
+            if not company_doc_folder:
+                raise HTTPException(status_code=500, detail="Could not create COMPANY DOCUMENT folder")
+            
+            # Step 2: Find or create "User Signature" folder inside COMPANY DOCUMENT
+            logger.info(f"📁 Step 2: Finding/creating User Signature folder...")
+            user_sig_folder = await UserService._find_or_create_folder(
+                apps_script_url, company_doc_folder, "User Signature"
+            )
+            if not user_sig_folder:
+                raise HTTPException(status_code=500, detail="Could not create User Signature folder")
+            
+            # Step 3: Upload file directly to User Signature folder
+            logger.info(f"📤 Step 3: Uploading signature file: {final_filename}")
             payload = {
-                "action": "upload_to_nested_folder",
-                "parent_folder_id": parent_folder_id,
-                "folder_path": ["COMPANY DOCUMENT", "User Signature"],  # Only 2 levels
+                "action": "upload_file_to_folder",
+                "folder_id": user_sig_folder,
                 "filename": final_filename,
                 "file_content": file_base64,
                 "content_type": "image/png"
             }
-            
-            logger.info(f"📤 Uploading signature: {final_filename}")
-            logger.info(f"   Folder path: COMPANY DOCUMENT / User Signature")
             
             async with aiohttp.ClientSession() as session:
                 async with session.post(
@@ -326,4 +338,49 @@ class UserService:
             import traceback
             traceback.print_exc()
             raise HTTPException(status_code=500, detail=f"Failed to process signature: {str(e)}")
+
+    @staticmethod
+    async def _find_or_create_folder(apps_script_url: str, parent_folder_id: str, folder_name: str) -> str:
+        """Helper to find or create a folder in Google Drive"""
+        import aiohttp
+        
+        # First try to find existing folder
+        find_payload = {
+            "action": "find_subfolder",
+            "parent_folder_id": parent_folder_id,
+            "folder_name": folder_name
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            # Try to find
+            async with session.post(
+                apps_script_url,
+                json=find_payload,
+                timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    if result.get("success") and result.get("folder_id"):
+                        logger.info(f"   ✓ Found existing folder: {folder_name}")
+                        return result["folder_id"]
+            
+            # Not found, create new
+            create_payload = {
+                "action": "create_folder",
+                "parent_folder_id": parent_folder_id,
+                "folder_name": folder_name
+            }
+            
+            async with session.post(
+                apps_script_url,
+                json=create_payload,
+                timeout=aiohttp.ClientTimeout(total=30)
+            ) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    if result.get("success") and result.get("folder_id"):
+                        logger.info(f"   ✓ Created new folder: {folder_name}")
+                        return result["folder_id"]
+        
+        return None
 
