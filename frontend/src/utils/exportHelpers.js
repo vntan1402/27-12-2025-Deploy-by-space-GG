@@ -73,33 +73,31 @@ export const exportToPDF = (data, options = {}) => {
     })
   );
 
-  // Generate table using autoTable
+  // Generate table using autoTable - full width
   autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
     startY: safeSubtitle ? 32 : 26,
+    tableWidth: 'auto', // Use full page width
     styles: {
-      fontSize: 8,
-      cellPadding: 2,
+      fontSize: 9,
+      cellPadding: 3,
       overflow: 'linebreak',
-      halign: 'left'
+      halign: 'left',
+      valign: 'middle'
     },
     headStyles: {
       fillColor: [59, 130, 246],
       textColor: 255,
       fontStyle: 'bold',
-      fontSize: 8
+      fontSize: 9,
+      halign: 'center'
     },
     alternateRowStyles: {
       fillColor: [245, 247, 250]
     },
-    columnStyles: columns.reduce((acc, col, index) => {
-      if (col.width) {
-        acc[index] = { cellWidth: col.width };
-      }
-      return acc;
-    }, {}),
-    margin: { top: 10, right: 10, bottom: 10, left: 10 },
+    // Remove fixed column widths to allow auto-sizing to full width
+    margin: { top: 10, right: 14, bottom: 15, left: 14 },
     didDrawPage: (pageData) => {
       // Footer with page number
       const pageCount = doc.internal.getNumberOfPages();
