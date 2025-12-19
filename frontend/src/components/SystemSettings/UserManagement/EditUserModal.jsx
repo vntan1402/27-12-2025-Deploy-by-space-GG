@@ -602,20 +602,127 @@ const EditUserModal = ({
             </div>
           </div>
 
+          {/* Signature Upload Section */}
+          <div className="border-t pt-4 mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'vi' ? '✍️ Chữ ký điện tử' : '✍️ Digital Signature'}
+            </label>
+            
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              {/* Current Signature Display */}
+              {currentSignatureUrl && !signaturePreview && (
+                <div className="mb-4">
+                  <p className="text-xs text-gray-500 mb-2">
+                    {language === 'vi' ? 'Chữ ký hiện tại:' : 'Current signature:'}
+                  </p>
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 inline-block">
+                    <img 
+                      src={currentSignatureUrl} 
+                      alt="Current signature" 
+                      className="max-h-20 max-w-xs object-contain"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Signature Preview (new upload) */}
+              {signaturePreview && (
+                <div className="mb-4">
+                  <p className="text-xs text-gray-500 mb-2">
+                    {language === 'vi' ? 'Xem trước (sau khi xử lý sẽ xóa nền):' : 'Preview (background will be removed):'}
+                  </p>
+                  <div className="bg-white border border-gray-200 rounded-lg p-3 inline-block relative">
+                    <img 
+                      src={signaturePreview} 
+                      alt="Signature preview" 
+                      className="max-h-24 max-w-xs object-contain"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleClearSignature}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      title={language === 'vi' ? 'Xóa' : 'Remove'}
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Upload Controls */}
+              <div className="flex items-center gap-3">
+                <input
+                  ref={signatureInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleSignatureSelect}
+                  className="hidden"
+                  id="signature-upload"
+                />
+                <label
+                  htmlFor="signature-upload"
+                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 cursor-pointer text-sm flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {language === 'vi' ? 'Chọn ảnh chữ ký' : 'Select signature image'}
+                </label>
+                
+                {signatureFile && (
+                  <button
+                    type="button"
+                    onClick={handleUploadSignature}
+                    disabled={uploadingSignature}
+                    className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-green-400 text-sm flex items-center gap-2"
+                  >
+                    {uploadingSignature ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {language === 'vi' ? 'Đang xử lý...' : 'Processing...'}
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        {language === 'vi' ? 'Upload & Xử lý' : 'Upload & Process'}
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+              
+              <p className="text-xs text-gray-500 mt-2">
+                {language === 'vi' 
+                  ? '💡 Hệ thống sẽ tự động xóa nền ảnh, chỉ giữ lại nét chữ ký. Hỗ trợ: JPG, PNG, GIF (tối đa 5MB)'
+                  : '💡 System will automatically remove background, keeping only signature strokes. Supports: JPG, PNG, GIF (max 5MB)'}
+              </p>
+            </div>
+          </div>
+
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
               className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all font-medium"
-              disabled={loading}
+              disabled={loading || uploadingSignature}
             >
               {language === 'vi' ? 'Hủy' : 'Cancel'}
             </button>
             <button
               type="submit"
               className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-all font-medium"
-              disabled={loading}
+              disabled={loading || uploadingSignature}
             >
               {loading ? (
                 <div className="flex items-center justify-center">
@@ -627,7 +734,7 @@ const EditUserModal = ({
               )}
             </button>
           </div>
-        </form>
+        </form
       </div>
     </div>
   );
