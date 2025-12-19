@@ -80,11 +80,27 @@ class UserService:
         else:
             filtered = [u for u in users if u.get('id') == current_user.id]
         
-        # Remove password hashes
+        # Remove password hashes and ensure required fields have defaults
+        result = []
         for user in filtered:
             user.pop("password_hash", None)
+            user.pop("_id", None)  # Remove MongoDB _id
+            
+            # Ensure department is a list (not None)
+            if user.get('department') is None:
+                user['department'] = []
+            elif not isinstance(user.get('department'), list):
+                user['department'] = [user['department']] if user['department'] else []
+            
+            # Ensure other required fields have defaults
+            if 'created_at' not in user:
+                user['created_at'] = datetime.now(timezone.utc)
+            if 'permissions' not in user:
+                user['permissions'] = {}
+                
+            result.append(UserResponse(**user))
         
-        return [UserResponse(**u) for u in filtered]
+        return result
     
     @staticmethod
     async def create_user(user_data: UserCreate, current_user: UserResponse) -> UserResponse:
