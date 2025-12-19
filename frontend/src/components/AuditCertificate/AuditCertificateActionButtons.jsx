@@ -11,6 +11,7 @@ export const AuditCertificateActionButtons = ({
   isUpdatingSurveyTypes = false,
   isMultiCertProcessing = false,
   isRefreshing = false,
+  isLoadingUpcomingSurvey = false,
   linksFetching = false,
   linksFetchProgress = { ready: 0, total: 0 },
   onUpdateSurveyTypes,
