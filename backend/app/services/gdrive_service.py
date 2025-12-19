@@ -875,19 +875,21 @@ class GDriveService:
             Folder ID
         """
         try:
-            # Get company info to find root folder
             from app.db.mongodb import mongo_db
-            company = await mongo_db.find_one("companies", {"id": company_id})
             
-            if not company:
-                logger.error(f"Company not found: {company_id}")
+            # Get GDrive config from company_gdrive_config collection
+            config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+            
+            if not config:
+                logger.error(f"No GDrive config found for company: {company_id}")
                 return None
             
-            root_folder_id = company.get('gdrive_folder_id')
+            root_folder_id = config.get('folder_id')
             if not root_folder_id:
-                logger.error(f"Company has no GDrive folder: {company_id}")
+                logger.error(f"Company has no GDrive folder_id in config: {company_id}")
                 return None
             
+            logger.info(f"📁 Starting from root folder: {root_folder_id}")
             current_folder_id = root_folder_id
             
             # Navigate/create each folder in path
@@ -895,9 +897,11 @@ class GDriveService:
                 found_folder = await self.find_subfolder(current_folder_id, folder_name)
                 
                 if found_folder:
+                    logger.info(f"📂 Found existing folder: {folder_name} ({found_folder})")
                     current_folder_id = found_folder
                 else:
                     # Create folder
+                    logger.info(f"📁 Creating new folder: {folder_name}")
                     new_folder = await self.create_folder(current_folder_id, folder_name)
                     if new_folder:
                         current_folder_id = new_folder
