@@ -45,6 +45,7 @@ const SafetyManagementSystem = () => {
     companyName: '',
     checkDate: ''
   });
+  const [isLoadingUpcomingAudit, setIsLoadingUpcomingAudit] = useState(false);
   
   // Context Menu
   const [contextMenu, setContextMenu] = useState(null);
