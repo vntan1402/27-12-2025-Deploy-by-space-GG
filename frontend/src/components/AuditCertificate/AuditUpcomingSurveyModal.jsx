@@ -3,7 +3,10 @@
  * Display upcoming surveys for audit certificates
  */
 import React from 'react';
+import { FileText, FileSpreadsheet } from 'lucide-react';
 import { formatDateDisplay } from '../../utils/dateHelpers';
+import { exportUpcomingSurveysToPDF, exportUpcomingSurveysToXLSX } from '../../utils/exportHelpers';
+import { toast } from 'react-hot-toast';
 
 export const AuditUpcomingSurveyModal = ({
   isOpen,
@@ -19,14 +22,66 @@ export const AuditUpcomingSurveyModal = ({
   // Use company name if available
   const displayCompany = companyName;
 
+  // Export handlers
+  const handleExportPDF = () => {
+    try {
+      exportUpcomingSurveysToPDF(surveys, {
+        language,
+        companyName: displayCompany,
+        totalCount
+      });
+      toast.success(language === 'vi' ? 'Xuất PDF thành công!' : 'PDF exported successfully!');
+    } catch (error) {
+      console.error('Export PDF error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi xuất PDF' : 'Failed to export PDF');
+    }
+  };
+
+  const handleExportXLSX = () => {
+    try {
+      exportUpcomingSurveysToXLSX(surveys, {
+        language,
+        companyName: displayCompany,
+        totalCount
+      });
+      toast.success(language === 'vi' ? 'Xuất Excel thành công!' : 'Excel exported successfully!');
+    } catch (error) {
+      console.error('Export XLSX error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi xuất Excel' : 'Failed to export Excel');
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
       <div className="bg-white rounded-xl shadow-2xl p-6 max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="mb-6">
-          <h3 className="text-xl font-bold text-orange-600 mb-2 flex items-center">
-            ⚠️ {language === 'vi' ? 'Thông báo Audit sắp đến hạn' : 'Upcoming Audit Notification'}
-          </h3>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xl font-bold text-orange-600 flex items-center">
+              ⚠️ {language === 'vi' ? 'Thông báo Audit sắp đến hạn' : 'Upcoming Audit Notification'}
+            </h3>
+            {/* Export Buttons */}
+            {surveys.length > 0 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleExportPDF}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition duration-200"
+                  title={language === 'vi' ? 'Xuất PDF' : 'Export PDF'}
+                >
+                  <FileText size={16} />
+                  <span>PDF</span>
+                </button>
+                <button
+                  onClick={handleExportXLSX}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition duration-200"
+                  title={language === 'vi' ? 'Xuất Excel' : 'Export Excel'}
+                >
+                  <FileSpreadsheet size={16} />
+                  <span>Excel</span>
+                </button>
+              </div>
+            )}
+          </div>
           <p className="text-gray-700 mb-4">
             {language === 'vi' 
               ? 'Các Certificate sau (bao gồm Audit Certificate và Company Certificate) cần đánh giá trong thời gian tới, hãy bố trí đánh giá sớm nhất:'
