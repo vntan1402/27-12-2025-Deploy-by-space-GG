@@ -36,6 +36,8 @@ class UserBase(BaseModel):
     zalo: str  # Required field
     gmail: Optional[str] = None
     is_active: bool = True
+    signature_file_id: Optional[str] = None  # Google Drive file ID
+    signature_url: Optional[str] = None  # URL to view signature image
 
 class UserCreate(UserBase):
     password: str
