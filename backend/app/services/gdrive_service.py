@@ -915,25 +915,26 @@ class GDriveService:
             logger.error(f"Error finding/creating folder path: {e}")
             return None
 
-    async def find_or_create_subfolder(self, parent_folder_id: str, folder_name: str) -> str:
+    async def find_or_create_subfolder(self, parent_folder_id: str, folder_name: str, company_id: str = None) -> str:
         """
         Find or create a subfolder within parent folder
         
         Args:
             parent_folder_id: Parent folder ID
             folder_name: Name of subfolder to find/create
+            company_id: Company ID for getting Apps Script URL
         
         Returns:
             Subfolder ID
         """
         try:
             # Try to find existing folder
-            existing = await self.find_subfolder(parent_folder_id, folder_name)
+            existing = await self.find_subfolder(parent_folder_id, folder_name, company_id)
             if existing:
                 return existing
             
             # Create new folder
-            return await self.create_folder(parent_folder_id, folder_name)
+            return await self.create_folder(parent_folder_id, folder_name, company_id)
             
         except Exception as e:
             logger.error(f"Error finding/creating subfolder {folder_name}: {e}")
