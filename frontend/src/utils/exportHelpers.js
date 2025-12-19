@@ -176,29 +176,42 @@ export const exportUpcomingSurveysToPDF = (surveys, options = {}) => {
   
   const columns = [
     { 
-      header: language === 'vi' ? 'Tên Tàu' : 'Ship Name', 
-      accessor: (row) => row.ship_name,
-      width: 35
+      header: language === 'vi' ? 'Tên Tàu / Công ty' : 'Ship / Company Name', 
+      accessor: (row) => {
+        // For company certificates, show company_name; for ship certificates, show ship_name
+        if (row.certificate_type === 'company') {
+          return row.company_name || row.ship_name;
+        }
+        return row.ship_name;
+      },
+      width: 40
+    },
+    { 
+      header: language === 'vi' ? 'Loại' : 'Type', 
+      accessor: (row) => row.certificate_type === 'company' 
+        ? (language === 'vi' ? 'Công ty' : 'Company') 
+        : (language === 'vi' ? 'Tàu' : 'Ship'),
+      width: 15
     },
     { 
       header: language === 'vi' ? 'Tên Certificate' : 'Certificate Name', 
       accessor: (row) => row.cert_name_display || row.cert_name,
-      width: 45
+      width: 40
     },
     { 
       header: language === 'vi' ? 'Next Survey' : 'Next Survey', 
       accessor: (row) => formatDateDisplay(row.next_survey_date),
-      width: 25
+      width: 22
     },
     { 
       header: language === 'vi' ? 'Loại Survey' : 'Survey Type', 
       accessor: (row) => row.next_survey_type || '-',
-      width: 25
+      width: 22
     },
     { 
       header: language === 'vi' ? 'Last Endorse' : 'Last Endorse', 
       accessor: (row) => formatDateDisplay(row.last_endorse),
-      width: 25
+      width: 22
     },
     { 
       header: language === 'vi' ? 'Tình trạng' : 'Status', 
