@@ -861,3 +861,165 @@ class GDriveService:
                 detail=f"Failed to communicate with Google Drive: {str(e)}"
             )
 
+
+
+    async def find_or_create_folder_by_path(self, company_id: str, path_parts: list) -> str:
+        """
+        Find or create folder by path within company's root folder
+        
+        Args:
+            company_id: Company ID to find root folder
+            path_parts: List of folder names in path, e.g., ["COMPANY DOCUMENT"]
+        
+        Returns:
+            Folder ID
+        """
+        try:
+            # Get company info to find root folder
+            from app.db.mongodb import mongo_db
+            company = await mongo_db.find_one("companies", {"id": company_id})
+            
+            if not company:
+                logger.error(f"Company not found: {company_id}")
+                return None
+            
+            root_folder_id = company.get('gdrive_folder_id')
+            if not root_folder_id:
+                logger.error(f"Company has no GDrive folder: {company_id}")
+                return None
+            
+            current_folder_id = root_folder_id
+            
+            # Navigate/create each folder in path
+            for folder_name in path_parts:
+                found_folder = await self.find_subfolder(current_folder_id, folder_name)
+                
+                if found_folder:
+                    current_folder_id = found_folder
+                else:
+                    # Create folder
+                    new_folder = await self.create_folder(current_folder_id, folder_name)
+                    if new_folder:
+                        current_folder_id = new_folder
+                    else:
+                        logger.error(f"Failed to create folder: {folder_name}")
+                        return None
+            
+            return current_folder_id
+            
+        except Exception as e:
+            logger.error(f"Error finding/creating folder path: {e}")
+            return None
+
+    async def find_or_create_subfolder(self, parent_folder_id: str, folder_name: str) -> str:
+        """
+        Find or create a subfolder within parent folder
+        
+        Args:
+            parent_folder_id: Parent folder ID
+            folder_name: Name of subfolder to find/create
+        
+        Returns:
+            Subfolder ID
+        """
+        try:
+            # Try to find existing folder
+            existing = await self.find_subfolder(parent_folder_id, folder_name)
+            if existing:
+                return existing
+            
+            # Create new folder
+            return await self.create_folder(parent_folder_id, folder_name)
+            
+        except Exception as e:
+            logger.error(f"Error finding/creating subfolder {folder_name}: {e}")
+            return None
+
+    async def find_subfolder(self, parent_folder_id: str, folder_name: str) -> str:
+        """
+        Find subfolder by name within parent folder
+        
+        Returns:
+            Folder ID if found, None otherwise
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                payload = {
+                    "action": "find_subfolder",
+                    "parent_folder_id": parent_folder_id,
+                    "folder_name": folder_name
+                }
+                
+                async with session.post(
+                    self.apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        if result.get("success") and result.get("folder_id"):
+                            return result["folder_id"]
+            return None
+        except Exception as e:
+            logger.warning(f"Error finding subfolder: {e}")
+            return None
+
+    async def create_folder(self, parent_folder_id: str, folder_name: str) -> str:
+        """
+        Create new folder within parent
+        
+        Returns:
+            New folder ID
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                payload = {
+                    "action": "create_folder",
+                    "parent_folder_id": parent_folder_id,
+                    "folder_name": folder_name
+                }
+                
+                async with session.post(
+                    self.apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        if result.get("success") and result.get("folder_id"):
+                            logger.info(f"✅ Created folder: {folder_name} ({result['folder_id']})")
+                            return result["folder_id"]
+                        else:
+                            logger.error(f"Failed to create folder: {result}")
+            return None
+        except Exception as e:
+            logger.error(f"Error creating folder: {e}")
+            return None
+
+    async def delete_file(self, file_id: str) -> bool:
+        """
+        Delete file from Google Drive
+        
+        Returns:
+            True if deleted successfully
+        """
+        try:
+            async with aiohttp.ClientSession() as session:
+                payload = {
+                    "action": "delete_file",
+                    "file_id": file_id
+                }
+                
+                async with session.post(
+                    self.apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        return result.get("success", False)
+            return False
+        except Exception as e:
+            logger.warning(f"Error deleting file: {e}")
+            return False
+
