@@ -224,6 +224,8 @@ class UserService:
         - Process image to remove background
         - Upload to Google Drive: COMPANY DOCUMENT/User Signature
         - Update user record with signature URL
+        
+        Uses the standard upload_file_with_folder_creation action that is supported by Apps Script
         """
         import base64
         import aiohttp
@@ -266,27 +268,19 @@ class UserService:
             # Encode file to base64
             file_base64 = base64.b64encode(processed_bytes).decode('utf-8')
             
-            # Step 1: Find or create "COMPANY DOCUMENT" folder
-            logger.info(f"📁 Step 1: Finding/creating COMPANY DOCUMENT folder...")
-            company_doc_folder = await UserService._find_or_create_folder(
-                apps_script_url, parent_folder_id, "COMPANY DOCUMENT"
-            )
-            if not company_doc_folder:
-                raise HTTPException(status_code=500, detail="Could not create COMPANY DOCUMENT folder")
+            # Use upload_file_with_folder_creation action - the standard approach
+            # Structure: root_folder / ship_name / parent_category / category / file
+            # For signature: root_folder / "COMPANY DOCUMENT" / "User Signature" / "" / file
+            # Since we don't need a third level folder, we put the file directly in User Signature
+            logger.info(f"📤 Uploading signature file: {final_filename}")
+            logger.info(f"   Path: COMPANY DOCUMENT / User Signature")
             
-            # Step 2: Find or create "User Signature" folder inside COMPANY DOCUMENT
-            logger.info(f"📁 Step 2: Finding/creating User Signature folder...")
-            user_sig_folder = await UserService._find_or_create_folder(
-                apps_script_url, company_doc_folder, "User Signature"
-            )
-            if not user_sig_folder:
-                raise HTTPException(status_code=500, detail="Could not create User Signature folder")
-            
-            # Step 3: Upload file directly to User Signature folder
-            logger.info(f"📤 Step 3: Uploading signature file: {final_filename}")
             payload = {
-                "action": "upload_file_to_folder",
-                "folder_id": user_sig_folder,
+                "action": "upload_file_with_folder_creation",
+                "parent_folder_id": parent_folder_id,
+                "ship_name": "COMPANY DOCUMENT",  # First level folder
+                "parent_category": "",  # Empty - not needed
+                "category": "User Signature",  # Second level folder where file will be uploaded
                 "filename": final_filename,
                 "file_content": file_base64,
                 "content_type": "image/png"
@@ -296,10 +290,18 @@ class UserService:
                 async with session.post(
                     apps_script_url,
                     json=payload,
-                    timeout=aiohttp.ClientTimeout(total=60)
+                    timeout=aiohttp.ClientTimeout(total=120)
                 ) as response:
+                    response_text = await response.text()
+                    logger.info(f"📡 Apps Script response status: {response.status}")
+                    
                     if response.status == 200:
-                        result = await response.json()
+                        try:
+                            result = await response.json()
+                        except:
+                            # Try parsing from text
+                            import json
+                            result = json.loads(response_text)
                         
                         if result.get("success"):
                             file_id = result.get("file_id")
@@ -325,10 +327,11 @@ class UserService:
                         else:
                             error_msg = result.get("message", "Unknown error")
                             logger.error(f"❌ Upload failed: {error_msg}")
+                            logger.error(f"   Full response: {result}")
                             raise HTTPException(status_code=500, detail=f"Upload failed: {error_msg}")
                     else:
-                        error_text = await response.text()
-                        logger.error(f"❌ Request failed: {response.status} - {error_text}")
+                        logger.error(f"❌ Request failed: {response.status}")
+                        logger.error(f"   Response: {response_text[:500]}")
                         raise HTTPException(status_code=500, detail=f"Upload request failed: {response.status}")
             
         except HTTPException:
