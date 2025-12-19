@@ -730,6 +730,7 @@ const IsmIspsMLc = () => {
   };
 
   const handleUpcomingSurvey = async () => {
+    setIsLoadingUpcomingSurvey(true);
     try {
       const response = await auditCertificateService.getUpcomingSurveys(30, user.company);
       setUpcomingSurveyModal({
@@ -746,6 +747,8 @@ const IsmIspsMLc = () => {
         ? 'Không thể tải thông tin kiểm tra sắp tới' 
         : 'Failed to load upcoming surveys'
       );
+    } finally {
+      setIsLoadingUpcomingSurvey(false);
     }
   };
 
