@@ -39,9 +39,16 @@ const EditUserModal = ({
   // Initialize form data when user prop changes
   useEffect(() => {
     if (user) {
+      // Strictly check email - only use if it's a valid non-empty string
+      const emailFromDB = (user.email && typeof user.email === 'string' && user.email.trim() !== '' && user.email !== 'null' && user.email !== 'undefined') 
+        ? user.email.trim() 
+        : '';
+      
+      console.log('EditUserModal - Loading user:', user.username, 'Email from DB:', user.email, '-> Using:', emailFromDB);
+      
       setUserData({
         username: user.username || '',
-        email: user.email || '',
+        email: emailFromDB,
         password: '',  // Keep empty, only fill if user wants to change
         full_name: user.full_name || '',
         role: user.role || 'viewer',
