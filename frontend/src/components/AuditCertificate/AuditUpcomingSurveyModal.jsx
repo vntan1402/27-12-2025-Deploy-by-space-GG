@@ -106,7 +106,7 @@ export const AuditUpcomingSurveyModal = ({
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
-                  {language === 'vi' ? 'Tên Tàu' : 'Ship Name'}
+                  {language === 'vi' ? 'Tên Tàu / Công ty' : 'Ship / Company Name'}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
                   {language === 'vi' ? 'Tên Certificate' : 'Cert. Name (Abbreviation)'}
