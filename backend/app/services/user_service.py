@@ -268,11 +268,55 @@ class UserService:
             # Encode file to base64
             file_base64 = base64.b64encode(processed_bytes).decode('utf-8')
             
-            # Use upload_file_with_folder_creation action - the standard approach
+            # Step 1: Check if COMPANY DOCUMENT folder exists, create if not
+            logger.info(f"📁 Checking if COMPANY DOCUMENT folder exists...")
+            
+            async with aiohttp.ClientSession() as session:
+                # Check folder existence
+                check_payload = {
+                    "action": "check_ship_folder_exists",
+                    "parent_folder_id": parent_folder_id,
+                    "ship_name": "COMPANY DOCUMENT"
+                }
+                
+                async with session.post(
+                    apps_script_url,
+                    json=check_payload,
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as check_response:
+                    check_result = await check_response.json()
+                    folder_exists = check_result.get("folder_exists", False)
+                    
+                    if not folder_exists:
+                        # Create COMPANY DOCUMENT folder
+                        logger.info(f"📁 COMPANY DOCUMENT folder not found, creating...")
+                        create_payload = {
+                            "action": "create_complete_ship_structure",
+                            "parent_folder_id": parent_folder_id,
+                            "ship_name": "COMPANY DOCUMENT"
+                        }
+                        
+                        async with session.post(
+                            apps_script_url,
+                            json=create_payload,
+                            timeout=aiohttp.ClientTimeout(total=60)
+                        ) as create_response:
+                            create_result = await create_response.json()
+                            if create_result.get("success"):
+                                logger.info(f"✅ COMPANY DOCUMENT folder created successfully")
+                            else:
+                                error_msg = create_result.get("message", "Unknown error")
+                                logger.error(f"❌ Failed to create COMPANY DOCUMENT folder: {error_msg}")
+                                raise HTTPException(
+                                    status_code=500, 
+                                    detail=f"Could not create COMPANY DOCUMENT folder: {error_msg}"
+                                )
+                    else:
+                        logger.info(f"✅ COMPANY DOCUMENT folder already exists")
+            
+            # Step 2: Upload signature file
             # Apps Script structure: ship_name folder must exist first, then it creates nested folders
-            # 
-            # TESTED WORKING:
-            # - ship_name = "COMPANY DOCUMENT" (parent folder, must exist)
+            # - ship_name = "COMPANY DOCUMENT" (parent folder)
             # - parent_category = "" (empty)
             # - category = "User Signature" (will be created/reused as subfolder)
             # Result: file uploaded to "COMPANY DOCUMENT/User Signature"
@@ -283,7 +327,7 @@ class UserService:
             payload = {
                 "action": "upload_file_with_folder_creation",
                 "parent_folder_id": parent_folder_id,
-                "ship_name": "COMPANY DOCUMENT",  # Parent folder (must exist)
+                "ship_name": "COMPANY DOCUMENT",  # Parent folder (now guaranteed to exist)
                 "parent_category": "",  # Empty - not used
                 "category": "User Signature",  # Subfolder where file will be uploaded
                 "filename": final_filename,
