@@ -225,7 +225,9 @@ class UserService:
         - Upload to Google Drive: COMPANY DOCUMENT/User Signature
         - Update user record with signature URL
         """
-        from app.services.gdrive_service import GDriveService
+        import base64
+        import aiohttp
+        from app.db.mongodb import mongo_db
         from app.utils.signature_processor import process_signature_for_upload
         
         logger.info(f"🖊️ Processing signature for user: {user_id}")
@@ -241,6 +243,19 @@ class UserService:
             raise HTTPException(status_code=400, detail="Company not found for user")
         
         try:
+            # Get GDrive config
+            config = await mongo_db.find_one("company_gdrive_config", {"company_id": company_id})
+            if not config:
+                raise HTTPException(status_code=404, detail="Google Drive not configured for this company")
+            
+            apps_script_url = config.get("web_app_url") or config.get("apps_script_url")
+            parent_folder_id = config.get("folder_id")
+            
+            if not apps_script_url:
+                raise HTTPException(status_code=400, detail="Apps Script URL not configured")
+            if not parent_folder_id:
+                raise HTTPException(status_code=400, detail="Root folder ID not configured")
+            
             # Process signature image (remove background)
             processed_bytes, new_filename = process_signature_for_upload(file_content, filename)
             
@@ -248,42 +263,63 @@ class UserService:
             username = user.get('username', 'user')
             final_filename = f"{username}_{new_filename}"
             
-            # Upload to Google Drive using existing upload_file method
-            # folder_path format: "COMPANY DOCUMENT/User Signature/Signatures"
-            folder_path = "COMPANY DOCUMENT/User Signature/Signatures"
+            # Encode file to base64
+            file_base64 = base64.b64encode(processed_bytes).decode('utf-8')
             
-            upload_result = await GDriveService.upload_file(
-                file_content=processed_bytes,
-                filename=final_filename,
-                content_type='image/png',
-                folder_path=folder_path,
-                company_id=company_id
-            )
-            
-            if not upload_result or not upload_result.get('success'):
-                error_msg = upload_result.get('message', 'Unknown error') if upload_result else 'Upload failed'
-                raise HTTPException(status_code=500, detail=f"Failed to upload signature: {error_msg}")
-            
-            file_id = upload_result.get('file_id')
-            
-            # Get viewable URL
-            signature_url = f"https://drive.google.com/uc?id={file_id}"
-            
-            # Update user record
-            await UserRepository.update(user_id, {
-                'signature_file_id': file_id,
-                'signature_url': signature_url
-            })
-            
-            logger.info(f"✅ Signature uploaded successfully for user {user_id}: {file_id}")
-            
-            return {
-                'success': True,
-                'message': 'Signature uploaded successfully',
-                'file_id': file_id,
-                'signature_url': signature_url,
-                'filename': final_filename
+            # Upload to Google Drive using upload_file_with_folder_creation action
+            # Folder structure: COMPANY DOCUMENT / User Signature / Signatures
+            payload = {
+                "action": "upload_file_with_folder_creation",
+                "parent_folder_id": parent_folder_id,
+                "ship_name": "COMPANY DOCUMENT",  # First level folder
+                "parent_category": "User Signature",  # Second level folder
+                "category": "Signatures",  # Third level folder
+                "filename": final_filename,
+                "file_content": file_base64,
+                "content_type": "image/png"
             }
+            
+            logger.info(f"📤 Uploading signature: {final_filename}")
+            logger.info(f"   Folder path: COMPANY DOCUMENT / User Signature / Signatures")
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=60)
+                ) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        
+                        if result.get("success"):
+                            file_id = result.get("file_id")
+                            
+                            # Get viewable URL
+                            signature_url = f"https://drive.google.com/uc?id={file_id}"
+                            
+                            # Update user record
+                            await UserRepository.update(user_id, {
+                                'signature_file_id': file_id,
+                                'signature_url': signature_url
+                            })
+                            
+                            logger.info(f"✅ Signature uploaded successfully for user {user_id}: {file_id}")
+                            
+                            return {
+                                'success': True,
+                                'message': 'Signature uploaded successfully',
+                                'file_id': file_id,
+                                'signature_url': signature_url,
+                                'filename': final_filename
+                            }
+                        else:
+                            error_msg = result.get("message", "Unknown error")
+                            logger.error(f"❌ Upload failed: {error_msg}")
+                            raise HTTPException(status_code=500, detail=f"Upload failed: {error_msg}")
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"❌ Request failed: {response.status} - {error_text}")
+                        raise HTTPException(status_code=500, detail=f"Upload request failed: {response.status}")
             
         except HTTPException:
             raise
