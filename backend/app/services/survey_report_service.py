@@ -150,9 +150,16 @@ class SurveyReportService:
     @staticmethod
     async def update_survey_report(report_id: str, report_data: SurveyReportUpdate, current_user: UserResponse) -> SurveyReportResponse:
         """Update survey report"""
+        from app.core.permission_checks import check_edit_permission
+        
         report = await mongo_db.find_one(SurveyReportService.collection_name, {"id": report_id})
         if not report:
             raise HTTPException(status_code=404, detail="Survey Report not found")
+        
+        # ⭐ Permission check: Get ship's company and verify department permission
+        ship = await mongo_db.find_one("ships", {"id": report.get("ship_id")})
+        if ship:
+            check_edit_permission(current_user, "survey_report", ship.get("company"))
         
         update_data = report_data.dict(exclude_unset=True)
         
