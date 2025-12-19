@@ -320,7 +320,7 @@ const EditUserModal = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4" autoComplete="off">
           {/* Username (Read-only) and Email - 2 fields per row */}
           <div className="grid grid-cols-2 gap-4">
             {/* Username (Read-only) */}
