@@ -363,9 +363,14 @@ const EditUserModal = ({
                 Email
               </label>
               <input
+                ref={emailInputRef}
                 type="text"
-                name={`email_${Date.now()}`}
-                autoComplete="new-password"
+                id="edit-user-email-field"
+                name="edit_user_email_no_autofill"
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
                 data-lpignore="true"
                 data-form-type="other"
                 value={userData.email}
