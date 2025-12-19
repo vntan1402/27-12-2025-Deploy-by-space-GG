@@ -266,21 +266,19 @@ class UserService:
             # Encode file to base64
             file_base64 = base64.b64encode(processed_bytes).decode('utf-8')
             
-            # Upload to Google Drive using upload_file_with_folder_creation action
-            # Folder structure: COMPANY DOCUMENT / User Signature / Signatures
+            # Upload to Google Drive using upload_to_folder action
+            # Folder structure: COMPANY DOCUMENT / User Signature (no subfolder)
             payload = {
-                "action": "upload_file_with_folder_creation",
+                "action": "upload_to_nested_folder",
                 "parent_folder_id": parent_folder_id,
-                "ship_name": "COMPANY DOCUMENT",  # First level folder
-                "parent_category": "User Signature",  # Second level folder
-                "category": "Signatures",  # Third level folder
+                "folder_path": ["COMPANY DOCUMENT", "User Signature"],  # Only 2 levels
                 "filename": final_filename,
                 "file_content": file_base64,
                 "content_type": "image/png"
             }
             
             logger.info(f"📤 Uploading signature: {final_filename}")
-            logger.info(f"   Folder path: COMPANY DOCUMENT / User Signature / Signatures")
+            logger.info(f"   Folder path: COMPANY DOCUMENT / User Signature")
             
             async with aiohttp.ClientSession() as session:
                 async with session.post(
