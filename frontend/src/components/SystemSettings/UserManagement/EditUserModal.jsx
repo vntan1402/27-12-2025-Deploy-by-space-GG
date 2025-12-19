@@ -734,7 +734,7 @@ const EditUserModal = ({
               )}
             </button>
           </div>
-        </form
+        </form>
       </div>
     </div>
   );
