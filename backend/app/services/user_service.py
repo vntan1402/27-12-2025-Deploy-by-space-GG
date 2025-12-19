@@ -222,7 +222,7 @@ class UserService:
         """
         Upload and process user signature
         - Process image to remove background
-        - Upload to Google Drive: COMPANY DOCUMENT > User Signature
+        - Upload to Google Drive: COMPANY DOCUMENT/User Signature
         - Update user record with signature URL
         """
         from app.services.gdrive_service import GDriveService
@@ -241,30 +241,6 @@ class UserService:
             raise HTTPException(status_code=400, detail="Company not found for user")
         
         try:
-            # Initialize GDrive service
-            gdrive_service = GDriveService()
-            
-            # Get or create "User Signature" folder under COMPANY DOCUMENT
-            # First, find COMPANY DOCUMENT folder
-            company_doc_folder = await gdrive_service.find_or_create_folder_by_path(
-                company_id=company_id,
-                path_parts=["COMPANY DOCUMENT"]
-            )
-            
-            if not company_doc_folder:
-                raise HTTPException(status_code=500, detail="Could not find/create COMPANY DOCUMENT folder")
-            
-            # Find or create "User Signature" folder
-            signature_folder = await gdrive_service.find_or_create_subfolder(
-                parent_folder_id=company_doc_folder,
-                folder_name="User Signature"
-            )
-            
-            if not signature_folder:
-                raise HTTPException(status_code=500, detail="Could not create User Signature folder")
-            
-            logger.info(f"📁 Signature folder ready: {signature_folder}")
-            
             # Process signature image (remove background)
             processed_bytes, new_filename = process_signature_for_upload(file_content, filename)
             
@@ -272,27 +248,23 @@ class UserService:
             username = user.get('username', 'user')
             final_filename = f"{username}_{new_filename}"
             
-            # Delete old signature file if exists
-            old_file_id = user.get('signature_file_id')
-            if old_file_id:
-                try:
-                    await gdrive_service.delete_file(old_file_id)
-                    logger.info(f"🗑️ Deleted old signature file: {old_file_id}")
-                except Exception as e:
-                    logger.warning(f"Could not delete old signature: {e}")
+            # Upload to Google Drive using existing upload_file method
+            # folder_path format: "COMPANY DOCUMENT/User Signature/Signatures"
+            folder_path = "COMPANY DOCUMENT/User Signature/Signatures"
             
-            # Upload to Google Drive
-            upload_result = await gdrive_service.upload_file(
-                folder_id=signature_folder,
+            upload_result = await GDriveService.upload_file(
                 file_content=processed_bytes,
                 filename=final_filename,
-                mime_type='image/png'
+                content_type='image/png',
+                folder_path=folder_path,
+                company_id=company_id
             )
             
-            if not upload_result or not upload_result.get('id'):
-                raise HTTPException(status_code=500, detail="Failed to upload signature to Google Drive")
+            if not upload_result or not upload_result.get('success'):
+                error_msg = upload_result.get('message', 'Unknown error') if upload_result else 'Upload failed'
+                raise HTTPException(status_code=500, detail=f"Failed to upload signature: {error_msg}")
             
-            file_id = upload_result['id']
+            file_id = upload_result.get('file_id')
             
             # Get viewable URL
             signature_url = f"https://drive.google.com/uc?id={file_id}"
@@ -317,5 +289,7 @@ class UserService:
             raise
         except Exception as e:
             logger.error(f"❌ Error uploading signature: {e}")
+            import traceback
+            traceback.print_exc()
             raise HTTPException(status_code=500, detail=f"Failed to process signature: {str(e)}")
 
