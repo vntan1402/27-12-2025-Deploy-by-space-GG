@@ -88,3 +88,33 @@
 - Test on ship: VINASHIP HARMONY (company matches Crewing)
 - Backend permission system working correctly (403 responses verified)
 - Frontend JavaScript fix successful - no setSelectedReports errors
+
+---
+
+## TEST 3: User Signature Upload Feature
+**Status:** TO BE TESTED
+**Date:** December 19, 2025
+
+### Test Scenarios Required:
+1. **Backend API Test - Upload Signature**
+   - Endpoint: `POST /api/users/{user_id}/signature`
+   - File type: PNG/JPG image
+   - Expected: Background removed, uploaded to GDrive `COMPANY DOCUMENT/User Signature`
+   
+2. **Frontend Test - Edit User Modal**
+   - Navigate to System Settings > User Management
+   - Edit any user
+   - Upload signature image
+   - Verify signature URL saved and displayed
+
+3. **Edge Case - Missing COMPANY DOCUMENT folder**
+   - Should auto-create folder if not exists
+
+### Test Credentials:
+- system_admin / YourSecure@Pass2024
+- User IDs to test: safety (91495ddc-7bf2-4c2a-b523-a65e77c6b763)
+
+### Expected Behavior:
+- Image background should be removed automatically
+- File uploaded to Google Drive folder: COMPANY DOCUMENT > User Signature
+- User record updated with signature_url and signature_file_id
