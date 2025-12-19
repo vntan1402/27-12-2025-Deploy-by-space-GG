@@ -35,6 +35,7 @@ const EditUserModal = ({
   const [uploadingSignature, setUploadingSignature] = useState(false);
   const [currentSignatureUrl, setCurrentSignatureUrl] = useState(null);
   const signatureInputRef = useRef(null);
+  const emailInputRef = useRef(null);
 
   // Initialize form data when user prop changes
   useEffect(() => {
@@ -59,6 +60,13 @@ const EditUserModal = ({
       });
       // Set current signature URL if exists
       setCurrentSignatureUrl(user.signature_url || null);
+      
+      // Force clear email input if no email in DB (prevent browser autofill)
+      setTimeout(() => {
+        if (!emailFromDB && emailInputRef.current) {
+          emailInputRef.current.value = '';
+        }
+      }, 100);
     }
   }, [user]);
 
