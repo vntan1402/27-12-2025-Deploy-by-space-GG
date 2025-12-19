@@ -83,6 +83,7 @@ const ClassAndFlagCert = () => {
     companyName: '',
     checkDate: ''
   });
+  const [isLoadingUpcomingSurvey, setIsLoadingUpcomingSurvey] = useState(false);
 
   // Link caching state for certificate files
   const [certificateLinksCache, setCertificateLinksCache] = useState({});
