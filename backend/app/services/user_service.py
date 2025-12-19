@@ -269,18 +269,23 @@ class UserService:
             file_base64 = base64.b64encode(processed_bytes).decode('utf-8')
             
             # Use upload_file_with_folder_creation action - the standard approach
-            # Structure: root_folder / ship_name / parent_category / category / file
-            # For signature: root_folder / "COMPANY DOCUMENT" / "User Signature" / "" / file
-            # Since we don't need a third level folder, we put the file directly in User Signature
+            # Apps Script structure: ship_name folder must exist first, then it creates nested folders
+            # For signature: root_folder / "COMPANY DOCUMENT" (as ship_name) / "User Signature" (as category)
+            # 
+            # The Apps Script looks for ship_name folder first, then creates parent_category/category inside it
+            # Since we want: COMPANY DOCUMENT / User Signature
+            # We set: ship_name = "COMPANY DOCUMENT", category = "User Signature", parent_category = empty
+            # This will create: COMPANY DOCUMENT / User Signature / file
+            
             logger.info(f"📤 Uploading signature file: {final_filename}")
-            logger.info(f"   Path: COMPANY DOCUMENT / User Signature")
+            logger.info(f"   Target path: COMPANY DOCUMENT / User Signature")
             
             payload = {
                 "action": "upload_file_with_folder_creation",
                 "parent_folder_id": parent_folder_id,
-                "ship_name": "COMPANY DOCUMENT",  # First level folder
-                "parent_category": "",  # Empty - not needed
-                "category": "User Signature",  # Second level folder where file will be uploaded
+                "ship_name": "COMPANY DOCUMENT",  # The parent folder (must exist or be created manually)
+                "parent_category": "User Signature",  # Will be created as subfolder
+                "category": "",  # Empty - file goes directly in User Signature
                 "filename": final_filename,
                 "file_content": file_base64,
                 "content_type": "image/png"
