@@ -665,8 +665,6 @@ const EditUserModal = ({
                       alt="Current signature" 
                       className="max-h-20 max-w-xs object-contain"
                       referrerPolicy="no-referrer"
-                      crossOrigin="anonymous"
-                      loading="eager"
                       onLoad={(e) => {
                         e.target.style.opacity = '1';
                       }}
