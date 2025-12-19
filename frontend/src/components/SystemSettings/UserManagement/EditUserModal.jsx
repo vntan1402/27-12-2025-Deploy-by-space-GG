@@ -34,12 +34,16 @@ const EditUserModal = ({
   const [signaturePreview, setSignaturePreview] = useState(null);
   const [uploadingSignature, setUploadingSignature] = useState(false);
   const [currentSignatureUrl, setCurrentSignatureUrl] = useState(null);
+  const [emailReady, setEmailReady] = useState(false); // Prevent autofill
   const signatureInputRef = useRef(null);
   const emailInputRef = useRef(null);
 
   // Initialize form data when user prop changes
   useEffect(() => {
     if (user) {
+      // Reset email ready state
+      setEmailReady(false);
+      
       // Strictly check email - only use if it's a valid non-empty string
       const emailFromDB = (user.email && typeof user.email === 'string' && user.email.trim() !== '' && user.email !== 'null' && user.email !== 'undefined') 
         ? user.email.trim() 
@@ -61,12 +65,14 @@ const EditUserModal = ({
       // Set current signature URL if exists
       setCurrentSignatureUrl(user.signature_url || null);
       
-      // Force clear email input if no email in DB (prevent browser autofill)
+      // Delay enabling email field to prevent browser autofill
       setTimeout(() => {
-        if (!emailFromDB && emailInputRef.current) {
-          emailInputRef.current.value = '';
+        setEmailReady(true);
+        // Force set value from state after autofill attempt
+        if (emailInputRef.current) {
+          emailInputRef.current.value = emailFromDB;
         }
-      }, 100);
+      }, 200);
     }
   }, [user]);
 
