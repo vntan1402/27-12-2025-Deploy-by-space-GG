@@ -380,7 +380,7 @@ const AddUserModal = ({
                   {language === 'vi' ? 'Tàu' : 'Ship'} {isCrewOrOfficerRole && '*'}
                 </label>
                 <select
-                  required={isCrewRole}
+                  required={isCrewOrOfficerRole}
                   value={userData.ship}
                   onChange={(e) => {
                     setUserData(prev => ({ 
