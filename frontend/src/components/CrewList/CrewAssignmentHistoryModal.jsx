@@ -135,24 +135,31 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
 
       // Handle SIGN_OFF: crew leaves the ship
       if (action_type === 'SIGN_OFF' && from_ship) {
-        // Try to find the ship assignment
-        if (shipMap.has(from_ship)) {
-          const assignment = shipMap.get(from_ship);
-          if (!assignment.sign_off_date) {
-            assignment.sign_off_date = action_date;
-            assignment.sign_off_by = performed_by;
-            assignment.action_type = action_type;
+        // Find the ship assignment by ship_name (not by key since key can be record ID)
+        let foundAssignment = null;
+        let foundKey = null;
+        
+        for (const [key, assignment] of shipMap.entries()) {
+          if (assignment.ship_name === from_ship && !assignment.sign_off_date) {
+            foundAssignment = assignment;
+            foundKey = key;
+            break;
           }
+        }
+        
+        if (foundAssignment) {
+          foundAssignment.sign_off_date = sign_off_date || action_date;
+          foundAssignment.sign_off_by = sign_off_by || performed_by;
         } else {
           // SIGN_OFF without prior SIGN_ON record (data inconsistency or missing SIGN_ON)
           // Create a ship entry with sign off only
           console.warn(`⚠️ SIGN_OFF for ${from_ship} but no prior SIGN_ON found. Creating entry.`);
-          shipMap.set(from_ship, {
+          shipMap.set(id || `${from_ship}_signoff_${action_date}`, {
             ship_name: from_ship,
             sign_on_date: null,  // Unknown
             sign_on_by: null,
-            sign_off_date: action_date,
-            sign_off_by: performed_by,
+            sign_off_date: sign_off_date || action_date,
+            sign_off_by: sign_off_by || performed_by,
             action_type: action_type
           });
         }
