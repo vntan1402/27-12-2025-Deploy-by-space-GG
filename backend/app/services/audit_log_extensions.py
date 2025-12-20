@@ -785,10 +785,14 @@ class UserAuditMixin:
         fields_to_check = [
             ('username', 'Username', 'string'),
             ('email', 'Email', 'string'),
-            ('full_name', 'Full Name', 'string'),
+            ('full_name', 'Họ tên', 'string'),
             ('role', 'Role', 'string'),
-            ('department', 'Department', 'string'),
-            ('is_active', 'Status', 'boolean')
+            ('department', 'Phòng ban', 'string'),
+            ('is_active', 'Trạng thái', 'boolean'),
+            ('zalo', 'Số Zalo', 'string'),
+            ('gmail', 'Gmail', 'string'),
+            ('ship', 'Tàu phân công', 'string'),
+            ('crew_id', 'Crew ID', 'string')
         ]
         
         for field, label, value_type in fields_to_check:
