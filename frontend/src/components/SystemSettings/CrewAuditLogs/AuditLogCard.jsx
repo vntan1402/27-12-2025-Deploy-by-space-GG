@@ -67,7 +67,8 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
       // Users
       CREATE_USER: language === 'vi' ? 'Thêm người dùng' : 'Add User',
       UPDATE_USER: language === 'vi' ? 'Sửa người dùng' : 'Update User',
-      DELETE_USER: language === 'vi' ? 'Xóa người dùng' : 'Delete User'
+      DELETE_USER: language === 'vi' ? 'Xóa người dùng' : 'Delete User',
+      UPDATE_USER_SIGNATURE: language === 'vi' ? 'Cập nhật chữ ký' : 'Update Signature'
     };
     return labels[action] || action;
   };
