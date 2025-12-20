@@ -254,7 +254,16 @@ const ClassAndFlagCert = () => {
       prefetchCertificateLinks(data);
     } catch (error) {
       console.error('Failed to fetch certificates:', error);
-      toast.error(language === 'vi' ? 'Không thể tải danh sách chứng chỉ' : 'Failed to load certificates');
+      // Check if it's a permission error (403) - show user-friendly message
+      if (error.response?.status === 403) {
+        const message = error.response?.data?.detail || 
+          (language === 'vi' 
+            ? 'Bạn không có quyền xem Class & Flag Certificates' 
+            : 'You do not have permission to view Class & Flag Certificates');
+        toast.info(message, { duration: 5000 });
+      } else {
+        toast.error(language === 'vi' ? 'Không thể tải danh sách chứng chỉ' : 'Failed to load certificates');
+      }
       setCertificates([]);
     } finally {
       setCertificatesLoading(false);
