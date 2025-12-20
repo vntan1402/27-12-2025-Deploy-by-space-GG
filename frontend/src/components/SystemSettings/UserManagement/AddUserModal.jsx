@@ -51,7 +51,8 @@ const AddUserModal = ({
   // Fetch crew list when ship is selected and role is Crew (viewer)
   useEffect(() => {
     const fetchCrewByShip = async () => {
-      if (userData.role === 'viewer' && userData.ship && userData.ship !== 'Standby') {
+      // Fetch crew for both regular ships AND Standby
+      if (userData.role === 'viewer' && userData.ship) {
         setLoadingCrew(true);
         try {
           const token = localStorage.getItem('token');
