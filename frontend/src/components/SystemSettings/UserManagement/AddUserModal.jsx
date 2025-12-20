@@ -377,7 +377,7 @@ const AddUserModal = ({
             {shouldShowShipDropdown && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Tàu' : 'Ship'} {isCrewRole && '*'}
+                  {language === 'vi' ? 'Tàu' : 'Ship'} {isCrewOrOfficerRole && '*'}
                 </label>
                 <select
                   required={isCrewRole}
