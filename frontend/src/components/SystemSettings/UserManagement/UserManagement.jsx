@@ -25,8 +25,36 @@ const ROLE_HIERARCHY = {
   viewer: 1,
 };
 
+/**
+ * Check if user is a Crewing Manager
+ * Crewing Manager = role 'manager' AND department includes 'crewing'
+ */
+const isCrewingManager = (user) => {
+  if (!user || user.role !== 'manager') return false;
+  const departments = user.department || [];
+  return Array.isArray(departments) 
+    ? departments.some(d => d.toLowerCase() === 'crewing')
+    : departments.toLowerCase() === 'crewing';
+};
+
+/**
+ * Check if user can manage users (Add User, User List buttons)
+ * - Admin, Super Admin, System Admin: can manage all users
+ * - Crewing Manager: can manage Crew and Ship Officer (editor) only
+ */
+const canManageUsers = (user) => {
+  if (!user) return false;
+  if (['admin', 'super_admin', 'system_admin'].includes(user.role)) return true;
+  if (isCrewingManager(user)) return true;
+  return false;
+};
+
 const UserManagement = () => {
   const { user: currentUser, language } = useAuth();
+  
+  // ⭐ Check if current user is Crewing Manager
+  const currentUserIsCrewingManager = isCrewingManager(currentUser);
+  const currentUserCanManageUsers = canManageUsers(currentUser);
   
   // State
   const [users, setUsers] = useState([]);
