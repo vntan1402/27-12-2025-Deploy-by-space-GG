@@ -426,7 +426,7 @@ const EditUserModal = ({
             <div className="relative group">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Họ và tên' : 'Full Name'} *
-                {userData.role === 'viewer' && (
+                {(userData.role === 'viewer' || userData.role === 'editor') && (
                   <span className="ml-1 text-gray-400">🔒</span>
                 )}
               </label>
@@ -436,14 +436,14 @@ const EditUserModal = ({
                 value={userData.full_name}
                 onChange={(e) => setUserData(prev => ({ ...prev, full_name: e.target.value }))}
                 className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  userData.role === 'viewer' ? 'bg-gray-100 cursor-not-allowed' : ''
+                  (userData.role === 'viewer' || userData.role === 'editor') ? 'bg-gray-100 cursor-not-allowed' : ''
                 }`}
                 placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'}
-                disabled={loading || userData.role === 'viewer'}
-                readOnly={userData.role === 'viewer'}
+                disabled={loading || userData.role === 'viewer' || userData.role === 'editor'}
+                readOnly={userData.role === 'viewer' || userData.role === 'editor'}
               />
-              {/* Tooltip for Crew role */}
-              {userData.role === 'viewer' && (
+              {/* Tooltip for Crew/Ship Officer role */}
+              {(userData.role === 'viewer' || userData.role === 'editor') && (
                 <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50">
                   <div className="bg-gray-800 text-white text-xs rounded-lg py-2 px-3 shadow-lg max-w-xs">
                     {language === 'vi' 
