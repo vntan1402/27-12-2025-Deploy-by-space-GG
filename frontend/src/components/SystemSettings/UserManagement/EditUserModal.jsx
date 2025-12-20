@@ -476,13 +476,13 @@ const EditUserModal = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 disabled={loading || isEditingOwnRole}
               >
-                {availableRoles.map(role => (
+                {filteredRoles.map(role => (
                   <option key={role} value={role}>
                     {getRoleDisplayName(role)}
                   </option>
                 ))}
-                {/* Show current role even if not in available roles */}
-                {!availableRoles.includes(userData.role) && (
+                {/* Show current role even if not in available/filtered roles */}
+                {!filteredRoles.includes(userData.role) && (
                   <option value={userData.role}>
                     {getRoleDisplayName(userData.role)}
                   </option>
@@ -491,6 +491,14 @@ const EditUserModal = ({
               {isEditingOwnRole && (
                 <p className="text-xs text-amber-600 mt-1">
                   {language === 'vi' ? 'Không thể thay đổi vai trò của chính mình' : 'Cannot change your own role'}
+                </p>
+              )}
+              {/* ⭐ Show hint for Crewing Manager */}
+              {isCrewingManager && !isEditingOwnRole && (
+                <p className="text-xs text-blue-600 mt-1">
+                  {language === 'vi' 
+                    ? 'Bạn chỉ có thể chỉnh sửa Thuyền viên (Crew) và Sĩ quan tàu (Ship Officer)'
+                    : 'You can only edit Crew and Ship Officer roles'}
                 </p>
               )}
             </div>
