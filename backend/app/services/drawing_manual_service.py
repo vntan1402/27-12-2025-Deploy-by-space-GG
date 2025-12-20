@@ -25,6 +25,13 @@ class DrawingManualService:
     @staticmethod
     async def get_drawings_manuals(ship_id: Optional[str], current_user: UserResponse) -> List[DrawingManualResponse]:
         """Get drawings/manuals with optional ship filter"""
+        from app.models.user import UserRole
+        from app.core import messages
+        
+        # ⭐ Viewer không được phép xem Drawings & Manuals (thuộc Class & Flag Cert)
+        if current_user.role == UserRole.VIEWER:
+            raise HTTPException(status_code=403, detail=messages.VIEWER_CANNOT_VIEW_SHIP_CERTS)
+        
         filters = {}
         if ship_id:
             filters["ship_id"] = ship_id
