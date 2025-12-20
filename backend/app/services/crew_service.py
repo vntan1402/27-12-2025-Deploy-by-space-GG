@@ -38,21 +38,19 @@ class CrewService:
         else:
             crew = await CrewRepository.find_all(company_id=current_user.company)
         
-        # ⭐ NEW: For Editor/Viewer (Ship Officer/Crew), filter by assigned ship
+        # ⭐ For Editor/Viewer (Ship Officer/Crew), filter by assigned ship
         if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
             user_ship_name = getattr(current_user, 'ship', None)
-            if user_ship_name and user_ship_name.strip() and user_ship_name.lower() != 'standby':
-                # Filter crew by ship_sign_on (current ship assignment)
-                crew = [
-                    c for c in crew 
-                    if c.get('ship_sign_on', '').lower() == user_ship_name.lower()
-                ]
-            else:
-                # User on Standby or no ship assigned - can only see Standby crew
-                crew = [
-                    c for c in crew 
-                    if c.get('status', '').lower() == 'standby' or not c.get('ship_sign_on')
-                ]
+            
+            # ⚠️ Standby users cannot view crew list at all
+            if not user_ship_name or not user_ship_name.strip() or user_ship_name.lower() == 'standby':
+                return []  # Return empty list for Standby users
+            
+            # Filter crew by ship_sign_on (current ship assignment)
+            crew = [
+                c for c in crew 
+                if c.get('ship_sign_on', '').lower() == user_ship_name.lower()
+            ]
         
         return [CrewResponse(**member) for member in crew]
     
