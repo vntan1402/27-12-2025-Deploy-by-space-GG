@@ -150,17 +150,33 @@ async def get_crew_by_ship(
     """
     Get crew members by ship name for user creation dropdown
     Returns crew without linked user account
+    
+    If ship_name is "Standby", returns crew with status "Standby"
     """
     from app.db.mongodb import mongo_db
     
     try:
-        # Find crews on this ship (status = on_board or ship_sign_on matches)
-        crews = await mongo_db.find_all("crew", {
-            "$or": [
-                {"ship_sign_on": ship_name},
-                {"ship_sign_on": {"$regex": f"^{ship_name}$", "$options": "i"}}
-            ]
-        })
+        # Build query based on ship_name
+        if ship_name.lower() == "standby":
+            # For Standby: get crews with status "Standby" or ship_sign_on is empty/Standby
+            crews = await mongo_db.find_all("crew", {
+                "$or": [
+                    {"status": "Standby"},
+                    {"status": {"$regex": "^standby$", "$options": "i"}},
+                    {"ship_sign_on": "Standby"},
+                    {"ship_sign_on": {"$regex": "^standby$", "$options": "i"}},
+                    {"ship_sign_on": ""},
+                    {"ship_sign_on": None}
+                ]
+            })
+        else:
+            # Find crews on this ship (ship_sign_on matches)
+            crews = await mongo_db.find_all("crew", {
+                "$or": [
+                    {"ship_sign_on": ship_name},
+                    {"ship_sign_on": {"$regex": f"^{ship_name}$", "$options": "i"}}
+                ]
+            })
         
         # Get all users with crew_id to filter out already linked crews
         users_with_crew = await mongo_db.find_all("users", {"crew_id": {"$exists": True, "$ne": None}})
