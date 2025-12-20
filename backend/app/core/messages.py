@@ -25,6 +25,10 @@ SAFETY_MANAGER_ONLY = "Chỉ Safety Manager hoặc Admin mới có quyền thự
 ADMIN_OWN_COMPANY_ONLY = "Admin chỉ có thể cập nhật thông tin công ty của mình."
 SHIP_ACCESS_DENIED = "Bạn chỉ có thể xem tài liệu của tàu đang sign on."
 
+# ⭐ NEW: Viewer role specific messages
+VIEWER_CANNOT_VIEW_COMPANY_CERTS = "Tài khoản của bạn (Viewer) không có quyền xem Company Certificates. Vui lòng liên hệ Admin để được cấp quyền phù hợp."
+STANDBY_CREW_NO_ACCESS = "Bạn đang ở trạng thái Standby nên không thể xem dữ liệu thuyền viên. Vui lòng liên hệ Admin khi được sign on vào tàu."
+
 # Authentication error messages
 NOT_AUTHENTICATED = "Vui lòng đăng nhập để tiếp tục."
 INVALID_CREDENTIALS = "Tên đăng nhập hoặc mật khẩu không chính xác."
