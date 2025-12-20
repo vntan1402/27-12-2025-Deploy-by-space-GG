@@ -33,7 +33,8 @@ export const AuditLogCard = ({ log, onViewDetails, language }) => {
       // Users
       CREATE_USER: { icon: '👤', color: 'green', bgColor: 'bg-green-50', borderColor: 'border-green-200', textColor: 'text-green-800' },
       UPDATE_USER: { icon: '👥', color: 'blue', bgColor: 'bg-blue-50', borderColor: 'border-blue-200', textColor: 'text-blue-800' },
-      DELETE_USER: { icon: '🗑️', color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' }
+      DELETE_USER: { icon: '🗑️', color: 'red', bgColor: 'bg-red-50', borderColor: 'border-red-200', textColor: 'text-red-800' },
+      UPDATE_USER_SIGNATURE: { icon: '✍️', color: 'purple', bgColor: 'bg-purple-50', borderColor: 'border-purple-200', textColor: 'text-purple-800' }
     };
     return configs[action] || configs.UPDATE;
   };
