@@ -261,10 +261,19 @@ const IsmIspsMLc = () => {
       setAuditCertificates(response.data || []);
     } catch (error) {
       console.error('Failed to fetch audit certificates:', error);
-      toast.error(language === 'vi' 
-        ? 'Không thể tải danh sách chứng chỉ' 
-        : 'Failed to load certificates'
-      );
+      // Check if it's a permission error (403) - show user-friendly message
+      if (error.response?.status === 403) {
+        const message = error.response?.data?.detail || 
+          (language === 'vi' 
+            ? 'Bạn không có quyền xem ISM/ISPS/MLC Documents' 
+            : 'You do not have permission to view ISM/ISPS/MLC Documents');
+        toast.info(message, { duration: 5000 });
+      } else {
+        toast.error(language === 'vi' 
+          ? 'Không thể tải danh sách chứng chỉ' 
+          : 'Failed to load certificates'
+        );
+      }
     } finally {
       setCertificatesLoading(false);
     }
