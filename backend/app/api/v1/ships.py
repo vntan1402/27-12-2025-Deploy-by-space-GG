@@ -31,6 +31,8 @@ async def get_ships(current_user: UserResponse = Depends(get_current_user)):
     """
     try:
         return await ShipService.get_all_ships(current_user)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error fetching ships: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch ships")
