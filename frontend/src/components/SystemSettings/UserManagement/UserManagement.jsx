@@ -250,7 +250,7 @@ const UserManagement = () => {
 
       // For Crew role (viewer): Ship and Crew selection are required
       if (newUserData.role === 'viewer') {
-        if (!newUserData.ship || newUserData.ship === 'Standby') {
+        if (!newUserData.ship) {
           toast.error(language === 'vi' ? 'Vui lòng chọn tàu cho thuyền viên' : 'Please select a ship for crew member');
           return;
         }
