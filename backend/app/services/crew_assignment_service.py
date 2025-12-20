@@ -21,6 +21,37 @@ from app.db.mongodb import mongo_db
 logger = logging.getLogger(__name__)
 
 
+async def sync_user_ship_with_crew(crew_id: str, new_ship: str):
+    """
+    Sync user.ship field when crew's ship changes (sign on/off/transfer)
+    Only affects users linked to this crew via crew_id field
+    
+    Args:
+        crew_id: Crew member's ID
+        new_ship: New ship name (or "Standby" for sign off)
+    """
+    try:
+        # Find user linked to this crew
+        user = await mongo_db.find_one("users", {"crew_id": crew_id})
+        
+        if user:
+            user_id = user.get('id')
+            old_ship = user.get('ship', '')
+            
+            # Update user's ship field
+            await mongo_db.database.users.update_one(
+                {"id": user_id},
+                {"$set": {"ship": new_ship}}
+            )
+            
+            logger.info(f"🔄 Synced user ship: {user.get('username')} from '{old_ship}' to '{new_ship}'")
+        else:
+            logger.debug(f"No user linked to crew {crew_id}")
+            
+    except Exception as e:
+        logger.error(f"❌ Error syncing user ship for crew {crew_id}: {e}")
+
+
 def run_async_file_movement(coro):
     """
     Run async file movement in background without blocking the response
