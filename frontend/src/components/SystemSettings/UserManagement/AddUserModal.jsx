@@ -15,11 +15,17 @@ const AddUserModal = ({
   ships,
   availableRoles,
   loading,
-  currentUser  // Added currentUser prop
+  currentUser,
+  isCrewingManager = false  // ⭐ New prop for Crewing Manager
 }) => {
   // State for crew dropdown when role is Crew (viewer)
   const [crewList, setCrewList] = useState([]);
   const [loadingCrew, setLoadingCrew] = useState(false);
+
+  // ⭐ Filter available roles for Crewing Manager (only Crew and Ship Officer)
+  const filteredRoles = isCrewingManager
+    ? availableRoles.filter(role => role.value === 'viewer' || role.value === 'editor')
+    : availableRoles;
 
   // Lock company field to current user's company on mount (only for non-super_admin and non-system_admin)
   useEffect(() => {
