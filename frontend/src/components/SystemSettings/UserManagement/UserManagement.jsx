@@ -575,22 +575,26 @@ const UserManagement = () => {
         
         {/* ⭐ View Profile button - Show for ALL users to view/edit their own profile */}
         <button
-          onClick={() => {
-            // Find current user in users list and open edit modal
-            const myProfile = users.find(u => u.id === currentUser?.id || u.username === currentUser?.username);
+          onClick={async () => {
+            // First try to find in users list
+            let myProfile = users.find(u => u.id === currentUser?.id || u.username === currentUser?.username);
+            
             if (myProfile) {
               setEditingUser(myProfile);
               setShowEditUser(true);
             } else {
-              // Fetch current user's profile if not in list
-              toast.info(language === 'vi' ? 'Đang tải thông tin...' : 'Loading profile...');
-              fetchUsers().then(() => {
-                const profile = users.find(u => u.id === currentUser?.id || u.username === currentUser?.username);
-                if (profile) {
-                  setEditingUser(profile);
+              // Fetch current user's profile directly from API
+              try {
+                toast.info(language === 'vi' ? 'Đang tải thông tin...' : 'Loading profile...');
+                const response = await userService.getById(currentUser?.id);
+                if (response.data) {
+                  setEditingUser(response.data);
                   setShowEditUser(true);
                 }
-              });
+              } catch (error) {
+                console.error('Failed to fetch profile:', error);
+                toast.error(language === 'vi' ? 'Không thể tải thông tin cá nhân' : 'Failed to load profile');
+              }
             }
           }}
           className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-all font-medium"
