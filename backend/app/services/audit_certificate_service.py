@@ -702,23 +702,39 @@ class AuditCertificateService:
             if company_record:
                 company_name = company_record.get('name_en') or company_record.get('name_vn')
             
-            # Get all ships for this company
-            ships_by_id = await mongo_db.find_all("ships", {"company": user_company})
-            ships_by_name = []
-            if company_name:
-                ships_by_name = await mongo_db.find_all("ships", {"company": company_name})
+            # ⭐ For Editor role: Only check certificates for their assigned ship
+            user_assigned_ship = getattr(current_user, 'ship', None)
+            is_editor = current_user.role == UserRole.EDITOR
             
-            # Combine and deduplicate ships
-            all_ships_dict = {}
-            for ship in ships_by_id + ships_by_name:
-                ship_id = ship.get('id')
-                if ship_id and ship_id not in all_ships_dict:
-                    all_ships_dict[ship_id] = ship
+            if is_editor and user_assigned_ship and user_assigned_ship.strip() and user_assigned_ship.lower() != 'standby':
+                # Editor: Only get their assigned ship
+                logger.info(f"🔍 Editor mode: Only checking ship '{user_assigned_ship}'")
+                assigned_ship = await mongo_db.find_one("ships", {"name": user_assigned_ship, "company": user_company})
+                if not assigned_ship:
+                    # Try with company name
+                    assigned_ship = await mongo_db.find_one("ships", {"name": user_assigned_ship, "company": company_name})
+                
+                ships = [assigned_ship] if assigned_ship else []
+                ship_ids = [assigned_ship.get('id')] if assigned_ship and assigned_ship.get('id') else []
+                logger.info(f"Editor assigned to ship: {user_assigned_ship}, found: {len(ships)} ship(s)")
+            else:
+                # Admin/Manager: Get all ships for this company
+                ships_by_id = await mongo_db.find_all("ships", {"company": user_company})
+                ships_by_name = []
+                if company_name:
+                    ships_by_name = await mongo_db.find_all("ships", {"company": company_name})
+                
+                # Combine and deduplicate ships
+                all_ships_dict = {}
+                for ship in ships_by_id + ships_by_name:
+                    ship_id = ship.get('id')
+                    if ship_id and ship_id not in all_ships_dict:
+                        all_ships_dict[ship_id] = ship
+                
+                ships = list(all_ships_dict.values())
+                ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
             
-            ships = list(all_ships_dict.values())
-            ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
-            
-            logger.info(f"Found {len(ships)} ships for company")
+            logger.info(f"Found {len(ships)} ships to check for upcoming surveys")
             
             if not ship_ids:
                 return {
@@ -737,9 +753,14 @@ class AuditCertificateService:
             
             logger.info(f"📋 Found {len(all_audit_certificates)} audit certificates to check")
             
-            # Get all company certificates for this company
-            company_certificates = await mongo_db.find_all("company_certificates", {"company": user_company})
-            logger.info(f"📋 Found {len(company_certificates)} company certificates to check")
+            # ⭐ For Editor: Don't check company certificates (they don't have access)
+            if is_editor:
+                company_certificates = []
+                logger.info(f"📋 Editor mode: Skipping company certificates check")
+            else:
+                # Get all company certificates for this company
+                company_certificates = await mongo_db.find_all("company_certificates", {"company": user_company})
+                logger.info(f"📋 Found {len(company_certificates)} company certificates to check")
             
             upcoming_surveys = []
             
