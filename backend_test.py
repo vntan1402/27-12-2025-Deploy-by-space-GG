@@ -1,24 +1,30 @@
 #!/usr/bin/env python3
 """
-🧪 COMPREHENSIVE REGRESSION TEST - Permission System & Error Handling
+🧪 STANDBY CREW PERMISSION RESTRICTION TEST
 
-Testing the comprehensive audit and fixes for error handling and permission system:
+Testing the Standby Crew permission restriction feature:
 
-## Test Credentials (as per review request)
-- system_admin / YourSecure@Pass2024 - Full access (for baseline tests)
-- ngoclm - Role: manager, Department: ['technical'] - For permission denial tests
+## Test Objective
+Verify that users with `ship=Standby` CANNOT view:
+1. Crew List (/api/crew)
+2. Crew Certificates (/api/crew-certificates and /api/crew-certificates/all)
 
-## Critical Areas to Test
-1. Permission System Tests (HIGH PRIORITY) - Test with user ngoclm (technical department)
-2. Error Propagation Tests (HIGH PRIORITY) - Verify 403 errors are properly propagated
-3. CRUD Operations Regression Tests (MEDIUM PRIORITY) - With system_admin
-4. Specific Bug Fixes Verification
+## Test Credentials
+- **Standby User:** Crew3 / standby123 (role: viewer, ship: Standby)  
+- **System Admin:** system_admin / YourSecure@Pass2024 (full access for comparison)
+
+## API Endpoints to Test
+1. `GET /api/crew` - Crew list
+2. `GET /api/crew-certificates` - Crew certificates with filters
+3. `GET /api/crew-certificates/all` - All crew certificates
 
 ## Expected Results
-- All permission checks should return 403 with Vietnamese error messages
-- No 500 errors should appear when permission is denied
-- CRUD operations should work normally for authorized users
-- Error responses should have proper detail field with specific messages
+### For Standby User (Crew3):
+- All 3 endpoints should return an EMPTY array `[]` (count = 0)
+- No 403 error, just empty data
+
+### For System Admin:
+- All 3 endpoints should return data (count > 0)
 """
 
 import requests
