@@ -57,7 +57,8 @@ const UserManagement = () => {
     department: [],  // Changed to array
     company: '',
     ship: '',
-    zalo: ''
+    zalo: '',
+    crew_id: ''  // Link to crew record for role=viewer (Crew)
   });
 
   // Fetch data on mount
