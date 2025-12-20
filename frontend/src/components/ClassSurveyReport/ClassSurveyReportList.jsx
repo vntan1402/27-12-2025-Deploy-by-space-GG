@@ -94,7 +94,16 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
       setSurveyReports(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch survey reports:', error);
-      toast.error(language === 'vi' ? 'Không thể tải danh sách báo cáo' : 'Failed to load survey reports');
+      // Check if it's a permission error (403) - show user-friendly message
+      if (error.response?.status === 403) {
+        const message = error.response?.data?.detail || 
+          (language === 'vi' 
+            ? 'Bạn không có quyền xem Survey Reports' 
+            : 'You do not have permission to view Survey Reports');
+        toast.info(message, { duration: 5000 });
+      } else {
+        toast.error(language === 'vi' ? 'Không thể tải danh sách báo cáo' : 'Failed to load survey reports');
+      }
       setSurveyReports([]);
     } finally {
       setLoading(false);
