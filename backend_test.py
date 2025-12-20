@@ -111,160 +111,33 @@ def check_vietnamese_error_message(response):
 
 # Test functions based on review request requirements
 
-def test_permission_denied_crew_creation(headers):
-    """Test ngoclm (technical dept) CANNOT create crew member - should return 403"""
-    crew_data = {
-        "full_name": "Test Crew Member",
-        "full_name_en": "Test Crew Member", 
-        "sex": "M",
-        "date_of_birth": "1990-01-01",
-        "place_of_birth": "Test City",
-        "passport": "TEST123456",
-        "nationality": "VIETNAMESE",
-        "status": "Standby"
-    }
-    
-    response = requests.post(f"{BACKEND_URL}/crew", headers=headers, json=crew_data)
+def test_standby_crew_list_restriction(headers):
+    """Test Standby user CANNOT view crew list - should return empty array"""
+    response = requests.get(f"{BACKEND_URL}/crew", headers=headers)
     return response
 
-def test_permission_denied_crew_update(headers, crew_id):
-    """Test ngoclm (technical dept) CANNOT update crew member - should return 403"""
-    crew_data = {
-        "full_name": "Updated Crew Member",
-        "status": "Active"
-    }
-    
-    response = requests.put(f"{BACKEND_URL}/crew/{crew_id}", headers=headers, json=crew_data)
+def test_standby_crew_certificates_restriction(headers):
+    """Test Standby user CANNOT view crew certificates - should return empty array"""
+    response = requests.get(f"{BACKEND_URL}/crew-certificates", headers=headers)
     return response
 
-def test_permission_denied_crew_delete(headers, crew_id):
-    """Test ngoclm (technical dept) CANNOT delete crew member - should return 403"""
-    response = requests.delete(f"{BACKEND_URL}/crew/{crew_id}", headers=headers)
+def test_standby_crew_certificates_all_restriction(headers):
+    """Test Standby user CANNOT view all crew certificates - should return empty array"""
+    response = requests.get(f"{BACKEND_URL}/crew-certificates/all", headers=headers)
     return response
 
-def test_permission_denied_audit_cert_create_with_file(headers, ship_id):
-    """Test ngoclm (technical dept) CANNOT create audit cert with file - should return 403"""
-    # Create a simple test file
-    test_file_content = b"Test PDF content"
-    files = {
-        'file': ('test.pdf', test_file_content, 'application/pdf')
-    }
-    
-    # Create cert_data as JSON string
-    cert_data = {
-        "cert_name": "Test Audit Certificate",
-        "cert_no": "TEST-001",
-        "cert_type": "Full Term",
-        "issue_date": "2024-01-01",
-        "valid_date": "2027-01-01",
-        "issued_by": "Test Authority"
-    }
-    
-    data = {
-        'cert_data': json.dumps(cert_data)
-    }
-    
-    # Use query parameter for ship_id
-    url = f"{BACKEND_URL}/audit-certificates/create-with-file-override?ship_id={ship_id}"
-    
-    response = requests.post(url, 
-                           headers={"Authorization": headers["Authorization"]}, 
-                           files=files, data=data)
-    return response
-
-def test_permission_denied_audit_cert_update(headers, cert_id):
-    """Test ngoclm (technical dept) CANNOT update audit cert - should return 403"""
-    cert_data = {
-        "cert_name": "Updated Audit Certificate",
-        "status": "Valid"
-    }
-    
-    response = requests.put(f"{BACKEND_URL}/audit-certificates/{cert_id}", headers=headers, json=cert_data)
-    return response
-
-def test_permission_denied_audit_cert_delete(headers, cert_id):
-    """Test ngoclm (technical dept) CANNOT delete audit cert - should return 403"""
-    response = requests.delete(f"{BACKEND_URL}/audit-certificates/{cert_id}", headers=headers)
-    return response
-
-def test_permission_allowed_company_cert_operations(headers, user_info):
-    """Test ngoclm (technical dept) CAN access company certs (technical has access to company_cert_management)"""
-    # Test GET - should be allowed
-    get_response = requests.get(f"{BACKEND_URL}/company-certs", headers=headers)
-    
-    # Test POST - should be allowed for technical department (but need proper company field)
-    cert_data = {
-        "company": user_info.get("company"),  # Add required company field
-        "cert_name": "DOC",
-        "doc_type": "DOC", 
-        "cert_no": "TEST-DOC-001",
-        "issue_date": "2024-01-01",
-        "valid_date": "2027-01-01",
-        "issued_by": "Test Authority"
-    }
-    post_response = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=cert_data)
-    
-    return {
-        "get": get_response,
-        "post": post_response
-    }
-
-def test_error_propagation_approval_documents(headers):
-    """Test GET /api/approval-documents - Should propagate 403 if permission denied"""
-    response = requests.get(f"{BACKEND_URL}/approval-documents", headers=headers)
-    return response
-
-def test_error_propagation_sidebar_structure(headers):
-    """Test GET /api/sidebar-structure - Should return proper error (not dict with success: false)"""
-    response = requests.get(f"{BACKEND_URL}/sidebar-structure", headers=headers)
-    return response
-
-def test_system_admin_crud_operations(headers, test_data, system_user):
-    """Test system_admin can perform all CRUD operations"""
+def test_system_admin_crew_access(headers):
+    """Test System Admin CAN access crew endpoints - should return data"""
     results = {}
     
-    # Test Company Certs CRUD
-    if test_data["ships"]:
-        ship_id = test_data["ships"][0]["id"]
-        
-        # Create Company Cert
-        company_cert_data = {
-            "company": system_user.get("company"),  # Add required company field
-            "cert_name": "DOC",
-            "doc_type": "DOC",
-            "cert_no": "SYS-ADMIN-DOC-001",
-            "issue_date": "2024-01-01",
-            "valid_date": "2027-01-01",
-            "issued_by": "Test Authority"
-        }
-        results["company_cert_create"] = requests.post(f"{BACKEND_URL}/company-certs", headers=headers, json=company_cert_data)
-        
-        # Create Audit Cert
-        audit_cert_data = {
-            "ship_id": ship_id,
-            "cert_name": "Safety Management Certificate",
-            "cert_type": "Full Term",
-            "cert_no": "SYS-ADMIN-SMC-001",
-            "issue_date": "2024-01-01",
-            "valid_date": "2027-01-01",
-            "issued_by": "Test Authority"
-        }
-        results["audit_cert_create"] = requests.post(f"{BACKEND_URL}/audit-certificates", headers=headers, json=audit_cert_data)
-        
-        # Create Crew Member with unique passport
-        import uuid
-        unique_passport = f"SYS{str(uuid.uuid4())[:8].upper()}"
-        crew_data = {
-            "full_name": "System Admin Test Crew",
-            "full_name_en": "System Admin Test Crew",
-            "sex": "M", 
-            "date_of_birth": "1990-01-01",
-            "place_of_birth": "Test City",
-            "passport": unique_passport,
-            "nationality": "VIETNAMESE",
-            "status": "Standby"
-        }
-        results["crew_create"] = requests.post(f"{BACKEND_URL}/crew", headers=headers, json=crew_data)
+    # Test crew list
+    results["crew_list"] = requests.get(f"{BACKEND_URL}/crew", headers=headers)
+    
+    # Test crew certificates
+    results["crew_certificates"] = requests.get(f"{BACKEND_URL}/crew-certificates", headers=headers)
+    
+    # Test all crew certificates
+    results["crew_certificates_all"] = requests.get(f"{BACKEND_URL}/crew-certificates/all", headers=headers)
     
     return results
 
