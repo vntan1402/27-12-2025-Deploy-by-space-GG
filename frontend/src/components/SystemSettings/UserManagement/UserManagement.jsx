@@ -273,8 +273,8 @@ const UserManagement = () => {
       if (!dataToSend.email || dataToSend.email.trim() === '') {
         delete dataToSend.email; // Don't send email field if empty
       }
-      // Remove crew_id if not crew role
-      if (dataToSend.role !== 'viewer') {
+      // Remove crew_id if not crew/officer role
+      if (dataToSend.role !== 'viewer' && dataToSend.role !== 'editor') {
         delete dataToSend.crew_id;
       }
       
