@@ -2,7 +2,8 @@
  * AddUserModal Component
  * Modal for adding new users with role-based validation
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const AddUserModal = ({
   userData,
@@ -16,6 +17,10 @@ const AddUserModal = ({
   loading,
   currentUser  // Added currentUser prop
 }) => {
+  // State for crew dropdown when role is Crew (viewer)
+  const [crewList, setCrewList] = useState([]);
+  const [loadingCrew, setLoadingCrew] = useState(false);
+
   // Lock company field to current user's company on mount (only for non-super_admin and non-system_admin)
   useEffect(() => {
     if (currentUser?.role !== 'super_admin' && currentUser?.role !== 'system_admin' && currentUser?.company && !userData.company) {
@@ -36,7 +41,38 @@ const AddUserModal = ({
         setUserData(prev => ({ ...prev, department: ['ship_crew'] }));
       }
     }
+    // Reset crew-related fields when role changes away from viewer
+    if (userData.role !== 'viewer') {
+      setUserData(prev => ({ ...prev, crew_id: '' }));
+      setCrewList([]);
+    }
   }, [userData.role]);
+
+  // Fetch crew list when ship is selected and role is Crew (viewer)
+  useEffect(() => {
+    const fetchCrewByShip = async () => {
+      if (userData.role === 'viewer' && userData.ship && userData.ship !== 'Standby') {
+        setLoadingCrew(true);
+        try {
+          const token = localStorage.getItem('token');
+          const response = await axios.get(
+            `${process.env.REACT_APP_BACKEND_URL}/api/crew/by-ship/${encodeURIComponent(userData.ship)}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setCrewList(response.data || []);
+        } catch (error) {
+          console.error('Error fetching crew by ship:', error);
+          setCrewList([]);
+        } finally {
+          setLoadingCrew(false);
+        }
+      } else {
+        setCrewList([]);
+      }
+    };
+
+    fetchCrewByShip();
+  }, [userData.ship, userData.role]);
 
   // Note: Department options are filtered based on role:
   // - Crew (viewer): Only Ship Crew (auto-selected)
@@ -46,6 +82,9 @@ const AddUserModal = ({
 
   // Check if role is Crew or Ship Officer (viewer or editor)
   const shouldShowShipDropdown = userData.role === 'viewer' || userData.role === 'editor';
+  
+  // Check if role is Crew (viewer) - requires ship and crew selection
+  const isCrewRole = userData.role === 'viewer';
 
   // Filter ships by selected company
   const getFilteredShips = () => {
