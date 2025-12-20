@@ -39,6 +39,9 @@ async def get_company_certs(
     """Get Company Certificates, optionally filtered by company"""
     try:
         return await CompanyCertService.get_company_certs(company, current_user)
+    except HTTPException as http_ex:
+        # Preserve permission errors (403)
+        raise
     except Exception as e:
         logger.error(f"❌ Error fetching Company Certificates: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Company Certificates")
