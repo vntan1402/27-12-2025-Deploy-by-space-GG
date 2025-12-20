@@ -290,12 +290,12 @@ def check_delete_permission(current_user: UserResponse, document_type: str, targ
     check_manager_department_permission(current_user, document_type, "delete")
 
 
-def filter_documents_by_ship_scope(
+async def filter_documents_by_ship_scope_async(
     documents: List[dict],
     current_user: UserResponse
 ) -> List[dict]:
     """
-    Filter documents for Editor/Viewer based on their assigned ship
+    Filter documents for Editor/Viewer based on their assigned ship (async version)
     
     Rule: Editor and Viewer can only see documents for their assigned ship
           Higher roles see all documents (company-filtered upstream)
@@ -308,7 +308,6 @@ def filter_documents_by_ship_scope(
         Filtered list of documents
     """
     from app.db.mongodb import mongo_db
-    import asyncio
     
     # Only apply to Editor and Viewer roles
     if current_user.role not in [UserRole.EDITOR, UserRole.VIEWER]:
@@ -322,22 +321,8 @@ def filter_documents_by_ship_scope(
         return []
     
     # Get ship ID from ship name
-    async def get_ship_id():
-        ship = await mongo_db.find_one("ships", {"name": user_assigned_ship_name})
-        return ship.get('id', '') if ship else ''
-    
-    # Run async function to get ship ID
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(asyncio.run, get_ship_id())
-                user_ship_id = future.result()
-        else:
-            user_ship_id = loop.run_until_complete(get_ship_id())
-    except RuntimeError:
-        user_ship_id = asyncio.run(get_ship_id())
+    ship = await mongo_db.find_one("ships", {"name": user_assigned_ship_name})
+    user_ship_id = ship.get('id', '') if ship else ''
     
     if not user_ship_id:
         return []
@@ -346,6 +331,34 @@ def filter_documents_by_ship_scope(
     filtered = [
         doc for doc in documents
         if doc.get('ship_id') == user_ship_id
+    ]
+    
+    return filtered
+
+
+def filter_documents_by_ship_scope(
+    documents: List[dict],
+    current_user: UserResponse
+) -> List[dict]:
+    """
+    Sync wrapper for filter_documents_by_ship_scope_async
+    WARNING: Use filter_documents_by_ship_scope_async in async contexts
+    """
+    # Only apply to Editor and Viewer roles
+    if current_user.role not in [UserRole.EDITOR, UserRole.VIEWER]:
+        return documents  # Higher roles see all
+    
+    # Get user's assigned ship NAME (not ID)
+    user_assigned_ship_name = getattr(current_user, 'ship', None)
+    
+    if not user_assigned_ship_name or not user_assigned_ship_name.strip():
+        return []
+    
+    # Can't do async DB lookup in sync function, filter by ship_name field if available
+    # or return all documents and let the caller filter
+    filtered = [
+        doc for doc in documents
+        if doc.get('ship_name', '').lower() == user_assigned_ship_name.lower()
     ]
     
     return filtered
