@@ -30,20 +30,26 @@ class ShipService:
     @staticmethod
     async def get_all_ships(current_user: UserResponse) -> List[ShipResponse]:
         """Get all ships based on user's company and ship assignment"""
+        from app.core import messages
+        
+        # ⭐ Viewer không được phép xem Ship List
+        if current_user.role == UserRole.VIEWER:
+            raise HTTPException(status_code=403, detail=messages.VIEWER_CANNOT_VIEW_SHIPS)
+        
         # Filter by company for non-admin users
         if current_user.role in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             ships = await ShipRepository.find_all()
         else:
             ships = await ShipRepository.find_all(company=current_user.company)
         
-        # For Editor/Viewer, filter by assigned ship NAME
-        if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
+        # For Editor, filter by assigned ship NAME
+        if current_user.role == UserRole.EDITOR:
             user_assigned_ship_name = getattr(current_user, 'ship', None)
             if user_assigned_ship_name and user_assigned_ship_name.strip():
                 # Filter ships by name (case-insensitive)
                 ships = [ship for ship in ships if ship.get('name', '').lower() == user_assigned_ship_name.lower()]
             else:
-                # No assigned ship = no access for editor/viewer
+                # No assigned ship = no access for editor
                 ships = []
         
         return [ShipResponse(**ship) for ship in ships]
