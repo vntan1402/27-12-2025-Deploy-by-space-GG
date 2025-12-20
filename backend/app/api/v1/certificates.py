@@ -62,15 +62,31 @@ async def get_upcoming_surveys(
         if company_record:
             company_name = company_record.get('name_en') or company_record.get('name_vn')
         
-        # Get all ships by company ID or name
-        ships_query = {"$or": [{"company": user_company}]}
-        if company_name:
-            ships_query["$or"].append({"company": company_name})
+        # ⭐ For Editor role: Only check certificates for their assigned ship
+        from app.models.user import UserRole
+        user_assigned_ship = getattr(current_user, 'ship', None)
+        is_editor = current_user.role == UserRole.EDITOR
         
-        ships = await mongo_db.database.ships.find(ships_query).to_list(length=1000)
-        ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
+        if is_editor and user_assigned_ship and user_assigned_ship.strip() and user_assigned_ship.lower() != 'standby':
+            # Editor: Only get their assigned ship
+            logger.info(f"🔍 Editor mode: Only checking ship '{user_assigned_ship}'")
+            ships_query = {"name": user_assigned_ship, "$or": [{"company": user_company}]}
+            if company_name:
+                ships_query["$or"].append({"company": company_name})
+            
+            ships = await mongo_db.database.ships.find(ships_query).to_list(length=10)
+            ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
+            logger.info(f"Editor assigned to ship: {user_assigned_ship}, found: {len(ships)} ship(s)")
+        else:
+            # Admin/Manager: Get all ships by company ID or name
+            ships_query = {"$or": [{"company": user_company}]}
+            if company_name:
+                ships_query["$or"].append({"company": company_name})
+            
+            ships = await mongo_db.database.ships.find(ships_query).to_list(length=1000)
+            ship_ids = [ship.get('id') for ship in ships if ship.get('id')]
         
-        logger.info(f"🚢 Found {len(ships)} ships for company")
+        logger.info(f"🚢 Found {len(ships)} ships to check for upcoming surveys")
         
         if not ship_ids:
             return {
