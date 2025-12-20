@@ -232,9 +232,9 @@ class CrewAssignmentService:
             logger.info(f"     - crew_id: {crew_id}")
             logger.info(f"     - to_ship: {ship_to_search}")
             if existing_record:
-                logger.info(f"   ✅ Found record: {existing_record['id']} for ship: {existing_record.get('to_ship')}")
+                logger.info(f"   ✅ Found record: {existing_record['id']} (type: {existing_record.get('action_type')}) for ship: {existing_record.get('to_ship')}")
             else:
-                logger.warning(f"   ⚠️ No open SIGN_ON record found for ship: {ship_to_search}")
+                logger.warning(f"   ⚠️ No open SIGN_ON/SHIP_TRANSFER record found for ship: {ship_to_search}")
             
             assignment_id = None
             
