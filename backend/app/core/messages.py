@@ -27,6 +27,10 @@ SHIP_ACCESS_DENIED = "Bạn chỉ có thể xem tài liệu của tàu đang sig
 
 # ⭐ NEW: Viewer role specific messages
 VIEWER_CANNOT_VIEW_COMPANY_CERTS = "Tài khoản của bạn (Viewer) không có quyền xem Company Certificates. Vui lòng liên hệ Admin để được cấp quyền phù hợp."
+VIEWER_CANNOT_VIEW_SHIPS = "Tài khoản của bạn (Viewer) không có quyền xem danh sách tàu. Vui lòng liên hệ Admin để được cấp quyền phù hợp."
+VIEWER_CANNOT_VIEW_SURVEY_REPORTS = "Tài khoản của bạn (Viewer) không có quyền xem Survey Reports. Vui lòng liên hệ Admin để được cấp quyền phù hợp."
+VIEWER_CANNOT_VIEW_SHIP_CERTS = "Tài khoản của bạn (Viewer) không có quyền xem Class & Flag Certificates. Vui lòng liên hệ Admin để được cấp quyền phù hợp."
+VIEWER_CANNOT_VIEW_ISM_ISPS_MLC = "Tài khoản của bạn (Viewer) không có quyền xem ISM/ISPS/MLC Documents. Vui lòng liên hệ Admin để được cấp quyền phù hợp."
 STANDBY_CREW_NO_ACCESS = "Bạn đang ở trạng thái Standby nên không thể xem dữ liệu thuyền viên. Vui lòng liên hệ Admin khi được sign on vào tàu."
 
 # Authentication error messages
