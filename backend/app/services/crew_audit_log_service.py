@@ -44,7 +44,7 @@ class CrewAuditLogService(
         'rank': 'Rank',
         'seamen_book': 'Seamen Book',
         'status': 'Status',
-        'ship_sign_on': 'Ship Sign On',
+        'ship_sign_on': 'Tàu Sign On',
         'place_sign_on': 'Place Sign On',
         'date_sign_on': 'Date Sign On',
         'place_sign_off': 'Place Sign Off',
@@ -300,7 +300,7 @@ class CrewAuditLogService(
         changes = [
             {
                 'field': 'ship_sign_on',
-                'field_label': 'Ship Sign On',
+                'field_label': 'Tàu Sign On',
                 'old_value': old_ship or '-',
                 'new_value': ship_name,
                 'value_type': 'string'
@@ -394,7 +394,7 @@ class CrewAuditLogService(
         changes = [
             {
                 'field': 'ship_sign_on',
-                'field_label': 'Ship Sign On',
+                'field_label': 'Tàu Sign On',
                 'old_value': ship_name,
                 'new_value': '-',
                 'value_type': 'string'
