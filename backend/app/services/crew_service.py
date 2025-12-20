@@ -67,19 +67,18 @@ class CrewService:
             if crew.get('company_id') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
             
-            # ⭐ NEW: For Editor/Viewer, also check ship assignment
+            # ⭐ For Editor/Viewer, check ship assignment
             if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
                 user_ship_name = getattr(current_user, 'ship', None)
-                crew_ship = crew.get('ship_sign_on', '')
                 
-                if user_ship_name and user_ship_name.lower() != 'standby':
-                    # User is on a ship - can only access crew on same ship
-                    if crew_ship.lower() != user_ship_name.lower():
-                        raise HTTPException(status_code=403, detail="Access denied - Crew belongs to different ship")
-                else:
-                    # User is on Standby - can only access Standby crew
-                    if crew.get('status', '').lower() != 'standby' and crew_ship:
-                        raise HTTPException(status_code=403, detail="Access denied - Crew is not on Standby")
+                # ⚠️ Standby users cannot access any crew records
+                if not user_ship_name or not user_ship_name.strip() or user_ship_name.lower() == 'standby':
+                    raise HTTPException(status_code=403, detail="Access denied - Standby users cannot view crew records")
+                
+                # Can only access crew on same ship
+                crew_ship = crew.get('ship_sign_on', '')
+                if crew_ship.lower() != user_ship_name.lower():
+                    raise HTTPException(status_code=403, detail="Access denied - Crew belongs to different ship")
         
         return CrewResponse(**crew)
     
