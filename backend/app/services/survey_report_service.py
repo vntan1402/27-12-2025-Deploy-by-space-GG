@@ -27,9 +27,25 @@ class SurveyReportService:
     @staticmethod
     async def get_survey_reports(ship_id: Optional[str], current_user: UserResponse) -> List[SurveyReportResponse]:
         """Get survey reports with optional ship filter"""
+        from app.core.permission_checks import filter_documents_by_ship_scope
+        from app.models.user import UserRole
+        
         filters = {}
         if ship_id:
             filters["ship_id"] = ship_id
+        
+        # For Editor/Viewer, automatically filter by their assigned ship
+        if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
+            user_ship_name = getattr(current_user, 'ship', None)
+            if user_ship_name and user_ship_name.strip():
+                # Get ship ID from name
+                ship = await mongo_db.find_one("ships", {"name": user_ship_name})
+                if ship:
+                    filters["ship_id"] = ship.get('id')
+                else:
+                    return []  # Ship not found, return empty
+            else:
+                return []  # No assigned ship for editor/viewer
         
         reports = await mongo_db.find_all(SurveyReportService.collection_name, filters)
         
