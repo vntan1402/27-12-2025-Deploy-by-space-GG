@@ -39,6 +39,10 @@ class CertificateService:
         from app.models.user import UserRole
         from app.core import messages
         
+        # ⭐ Viewer không được phép xem Class & Flag Certificates
+        if current_user.role == UserRole.VIEWER:
+            raise HTTPException(status_code=403, detail=messages.VIEWER_CANNOT_VIEW_SHIP_CERTS)
+        
         # Add company-based filtering for non-super admins
         if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             # Get ships for user's company
