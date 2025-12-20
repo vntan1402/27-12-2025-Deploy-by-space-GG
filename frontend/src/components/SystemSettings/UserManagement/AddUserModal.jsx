@@ -338,7 +338,7 @@ const AddUserModal = ({
                   disabled={loading}
                 />
               )}
-              {isCrewRole && userData.ship && userData.ship !== 'Standby' && crewList.length === 0 && !loadingCrew && (
+              {isCrewOrOfficerRole && userData.ship && crewList.length === 0 && !loadingCrew && (
                 <p className="text-xs text-amber-600 mt-1">
                   {language === 'vi' 
                     ? 'Tất cả thuyền viên trên tàu này đã có tài khoản' 
