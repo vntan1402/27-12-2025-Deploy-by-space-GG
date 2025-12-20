@@ -84,8 +84,8 @@ const AddUserModal = ({
   // Check if role is Crew or Ship Officer (viewer or editor)
   const shouldShowShipDropdown = userData.role === 'viewer' || userData.role === 'editor';
   
-  // Check if role is Crew (viewer) - requires ship and crew selection
-  const isCrewRole = userData.role === 'viewer';
+  // Check if role is Crew (viewer) or Ship Officer (editor) - requires ship and crew selection
+  const isCrewOrOfficerRole = userData.role === 'viewer' || userData.role === 'editor';
 
   // Filter ships by selected company
   const getFilteredShips = () => {
