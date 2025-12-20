@@ -20,6 +20,23 @@ async def get_users(current_user: UserResponse = Depends(get_current_user)):
         logger.error(f"❌ Error fetching users: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch users")
 
+@router.get("/{user_id}", response_model=UserResponse)
+async def get_user_by_id(
+    user_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get a single user by ID
+    Users can only get their own profile unless they are admin+
+    """
+    try:
+        return await UserService.get_user_by_id(user_id, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error fetching user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch user")
+
 @router.post("", response_model=UserResponse)
 async def create_user(
     user_data: UserCreate,
