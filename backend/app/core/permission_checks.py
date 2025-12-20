@@ -79,19 +79,41 @@ def check_editor_viewer_ship_scope(
     Raises:
         HTTPException(403): If Editor/Viewer doesn't have access to this ship
     """
+    from app.db.mongodb import mongo_db
+    import asyncio
+    
     # Only apply to Editor and Viewer roles
     if current_user.role not in [UserRole.EDITOR, UserRole.VIEWER]:
         return  # Higher roles have broader access
     
-    # Check if user has assigned_ship_id
-    user_assigned_ship = getattr(current_user, 'assigned_ship_id', None)
+    # Get user's assigned ship NAME (not ID)
+    user_assigned_ship_name = getattr(current_user, 'ship', None)
     
-    if not user_assigned_ship:
+    if not user_assigned_ship_name or not user_assigned_ship_name.strip():
         # Editor/Viewer without assigned ship cannot access anything
         raise HTTPException(status_code=403, detail=messages.SHIP_ACCESS_DENIED)
     
-    # Check if target ship matches assigned ship
-    if user_assigned_ship != target_ship_id:
+    # Get target ship to compare by name
+    async def get_ship_name():
+        ship = await mongo_db.find_one("ships", {"id": target_ship_id})
+        return ship.get('name', '') if ship else ''
+    
+    # Run async function
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # We're already in an async context, create a new task
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, get_ship_name())
+                target_ship_name = future.result()
+        else:
+            target_ship_name = loop.run_until_complete(get_ship_name())
+    except RuntimeError:
+        target_ship_name = asyncio.run(get_ship_name())
+    
+    # Check if target ship matches assigned ship (case-insensitive)
+    if user_assigned_ship_name.lower() != target_ship_name.lower():
         raise HTTPException(status_code=403, detail=messages.SHIP_ACCESS_DENIED)
 
 
