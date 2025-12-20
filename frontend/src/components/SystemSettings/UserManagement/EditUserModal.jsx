@@ -491,15 +491,20 @@ const EditUserModal = ({
 
             {/* Ship - Only show if ship_crew is selected in department */}
             {isShipCrewSelected && (
-              <div>
+              <div className="relative group">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {language === 'vi' ? 'Tàu' : 'Ship'}
+                  {userData.role === 'viewer' && (
+                    <span className="ml-1 text-gray-400">🔒</span>
+                  )}
                 </label>
                 <select
                   value={userData.ship}
                   onChange={(e) => setUserData(prev => ({ ...prev, ship: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled={loading || !userData.company}
+                  className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                    userData.role === 'viewer' ? 'bg-gray-100 cursor-not-allowed' : ''
+                  }`}
+                  disabled={loading || !userData.company || userData.role === 'viewer'}
                 >
                   <option value="">{language === 'vi' ? 'Chọn tàu' : 'Select ship'}</option>
                   <option value="Standby">{language === 'vi' ? '⏸️ Standby' : '⏸️ Standby'}</option>
@@ -509,12 +514,23 @@ const EditUserModal = ({
                     </option>
                   ))}
                 </select>
-                {!userData.company && (
+                {/* Tooltip for Crew role */}
+                {userData.role === 'viewer' && (
+                  <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50">
+                    <div className="bg-gray-800 text-white text-xs rounded-lg py-2 px-3 shadow-lg max-w-xs">
+                      {language === 'vi' 
+                        ? '💡 Tàu được cập nhật tự động khi Sign On/Sign Off trong Crew Record (Quản lý thuyền viên)' 
+                        : '💡 Ship is updated automatically when Sign On/Sign Off in Crew Record (Crew Management)'}
+                      <div className="absolute left-4 top-full w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-gray-800"></div>
+                    </div>
+                  </div>
+                )}
+                {!userData.company && userData.role !== 'viewer' && (
                   <p className="text-xs text-amber-600 mt-1">
                     {language === 'vi' ? 'Chọn công ty trước' : 'Select company first'}
                   </p>
                 )}
-                {userData.company && filteredShips.length === 0 && (
+                {userData.company && filteredShips.length === 0 && userData.role !== 'viewer' && (
                   <p className="text-xs text-gray-500 mt-1">
                     {language === 'vi' ? 'Chọn "Standby" nếu chưa có tàu' : 'Select "Standby" if no ship assigned'}
                   </p>
