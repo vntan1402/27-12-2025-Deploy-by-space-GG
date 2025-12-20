@@ -564,16 +564,30 @@ const UserManagement = () => {
             }`}
           >
             {showUserList 
-            ? (language === 'vi' ? 'Ẩn' : 'Hide')
-            : (currentUserIsCrewingManager
-                ? (language === 'vi' ? 'Danh sách thuyền viên' : 'Crew List')
-                : (currentUser?.role === 'viewer' || currentUser?.role === 'editor' || currentUser?.role === 'manager'
-                    ? (language === 'vi' ? 'Xem thông tin' : 'View Profile')
-                    : (language === 'vi' ? 'Danh sách người dùng' : 'User List')
-                  )
-              )
-          }
-        </button>
+              ? (language === 'vi' ? 'Ẩn' : 'Hide')
+              : (currentUserIsCrewingManager
+                  ? (language === 'vi' ? 'Danh sách thuyền viên' : 'Crew List')
+                  : (language === 'vi' ? 'Danh sách người dùng' : 'User List')
+                )
+            }
+          </button>
+        )}
+        
+        {/* ⭐ View Profile button - Show for Viewer, Editor, and non-Crewing Manager */}
+        {!currentUserCanManageUsers && (currentUser?.role === 'viewer' || currentUser?.role === 'editor' || currentUser?.role === 'manager') && (
+          <button
+            onClick={() => setShowUserList(!showUserList)}
+            className={`px-6 py-2 rounded-lg transition-all font-medium ${
+              showUserList 
+                ? 'bg-red-600 hover:bg-red-700 text-white' 
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
+            {showUserList 
+              ? (language === 'vi' ? 'Ẩn' : 'Hide')
+              : (language === 'vi' ? 'Xem thông tin' : 'View Profile')
+            }
+          </button>
         )}
       </div>
 
