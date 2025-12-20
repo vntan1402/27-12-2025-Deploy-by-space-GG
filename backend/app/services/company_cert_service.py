@@ -33,10 +33,10 @@ class CompanyCertService:
         from app.core.permission_checks import can_view_company_certificates, check_company_access
         from app.core import messages
         
-        # ⭐ NEW: Check if user can view Company Certificates
-        # Viewer role cannot access Company Certificates
+        # ⭐ Check if user can view Company Certificates
+        # Viewer role cannot access Company Certificates - show clear message
         if not can_view_company_certificates(current_user):
-            raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED)
+            raise HTTPException(status_code=403, detail=messages.VIEWER_CANNOT_VIEW_COMPANY_CERTS)
         
         filters = {}
         if company:
