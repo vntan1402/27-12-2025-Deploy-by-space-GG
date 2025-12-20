@@ -25,6 +25,13 @@ class ApprovalDocumentService:
     @staticmethod
     async def get_approval_documents(ship_id: Optional[str], current_user: UserResponse) -> List[ApprovalDocumentResponse]:
         """Get approval documents with optional ship filter"""
+        from app.models.user import UserRole
+        from app.core import messages
+        
+        # ⭐ Viewer không được phép xem Approval Documents (thuộc ISM/ISPS/MLC)
+        if current_user.role == UserRole.VIEWER:
+            raise HTTPException(status_code=403, detail=messages.VIEWER_CANNOT_VIEW_ISM_ISPS_MLC)
+        
         filters = {}
         if ship_id:
             filters["ship_id"] = ship_id
