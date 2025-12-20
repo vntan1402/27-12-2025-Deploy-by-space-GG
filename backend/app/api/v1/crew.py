@@ -141,6 +141,50 @@ def check_editor_permission(current_user: UserResponse = Depends(get_current_use
         raise HTTPException(status_code=403, detail=messages.PERMISSION_DENIED)
     return current_user
 
+
+@router.get("/by-ship/{ship_name}")
+async def get_crew_by_ship(
+    ship_name: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get crew members by ship name for user creation dropdown
+    Returns crew without linked user account
+    """
+    from app.db.mongodb import mongo_db
+    
+    try:
+        # Find crews on this ship (status = on_board or ship_sign_on matches)
+        crews = await mongo_db.find_all("crew", {
+            "$or": [
+                {"ship_sign_on": ship_name},
+                {"ship_sign_on": {"$regex": f"^{ship_name}$", "$options": "i"}}
+            ]
+        })
+        
+        # Get all users with crew_id to filter out already linked crews
+        users_with_crew = await mongo_db.find_all("users", {"crew_id": {"$exists": True, "$ne": None}})
+        linked_crew_ids = [u.get('crew_id') for u in users_with_crew if u.get('crew_id')]
+        
+        # Filter out crews that already have user accounts
+        available_crews = []
+        for crew in crews:
+            if crew.get('id') not in linked_crew_ids:
+                available_crews.append({
+                    'id': crew.get('id'),
+                    'full_name': crew.get('full_name', ''),
+                    'full_name_en': crew.get('full_name_en', ''),
+                    'rank': crew.get('rank', ''),
+                    'status': crew.get('status', ''),
+                    'ship_sign_on': crew.get('ship_sign_on', '')
+                })
+        
+        return available_crews
+    except Exception as e:
+        logger.error(f"❌ Error fetching crew by ship: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch crew by ship")
+
+
 @router.get("", response_model=List[CrewResponse])
 async def get_crew(current_user: UserResponse = Depends(get_current_user)):
     """
