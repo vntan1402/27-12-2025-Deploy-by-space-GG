@@ -27,6 +27,13 @@ class OtherDocumentService:
     @staticmethod
     async def get_other_documents(ship_id: Optional[str], current_user: UserResponse) -> List[OtherDocumentResponse]:
         """Get other documents with optional ship filter"""
+        from app.models.user import UserRole
+        from app.core import messages
+        
+        # ⭐ Viewer không được phép xem Other Documents (thuộc Class & Flag Cert)
+        if current_user.role == UserRole.VIEWER:
+            raise HTTPException(status_code=403, detail=messages.VIEWER_CANNOT_VIEW_SHIP_CERTS)
+        
         filters = {}
         if ship_id:
             filters["ship_id"] = ship_id
