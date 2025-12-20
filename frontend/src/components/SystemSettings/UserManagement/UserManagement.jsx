@@ -241,6 +241,12 @@ const UserManagement = () => {
         return;
       }
 
+      // Validate role is selected
+      if (!newUserData.role) {
+        toast.error(language === 'vi' ? 'Vui lòng chọn vai trò cho người dùng' : 'Please select a role for the user');
+        return;
+      }
+
       // Check permission to create user with selected role
       if (!canCreateUserWithRole(newUserData.role)) {
         toast.error(language === 'vi' ? 'Bạn không có quyền tạo người dùng với vai trò này' : 'You do not have permission to create user with this role');
