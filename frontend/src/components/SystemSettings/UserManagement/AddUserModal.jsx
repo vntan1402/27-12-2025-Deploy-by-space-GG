@@ -388,7 +388,7 @@ const AddUserModal = ({
                       ship: e.target.value,
                       // Reset crew selection when ship changes
                       crew_id: '',
-                      full_name: isCrewRole ? '' : prev.full_name
+                      full_name: isCrewOrOfficerRole ? '' : prev.full_name
                     }));
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
