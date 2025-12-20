@@ -1,8 +1,11 @@
-# Test Results - Permission System & JavaScript Fix
+# Test Results - Permission System & Standby Crew Restrictions
 
 ## Current Testing Focus
-1. **JavaScript Fix:** Test right-click context menu on Audit Report list - should NOT throw `setSelectedReports is not defined` error
-2. **Permission System:** Verify Crewing user CANNOT delete/bulk-delete Audit Reports (ISM-ISPS-MLC category)
+1. **Standby Crew Permission Restriction:** Verify that users with `ship=Standby` and `role=viewer/editor` CANNOT view Crew List or Crew Certificates
+
+## Test Credentials
+- **Standby User:** Crew3 / standby123 (role: viewer, ship: Standby)
+- **System Admin:** system_admin / YourSecure@Pass2024 (full access)
 
 ## Test Scenarios
 
