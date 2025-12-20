@@ -48,8 +48,8 @@ except:
 
 # Test users as specified in review request
 TEST_USERS = {
-    "system_admin": {"password": "YourSecure@Pass2024", "role": "system_admin", "departments": ["all"], "actual_user": "system_admin"},
-    "ngoclm": {"password": "123456", "role": "manager", "departments": ["technical"], "actual_user": "ngoclm"}  # Technical department user for permission denial tests
+    "system_admin": {"password": "YourSecure@Pass2024", "role": "system_admin", "ship": None, "actual_user": "system_admin"},
+    "Crew3": {"password": "standby123", "role": "viewer", "ship": "Standby", "actual_user": "Crew3"}  # Standby user for permission restriction tests
 }
 
 def login(username, password):
