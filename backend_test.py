@@ -36,9 +36,9 @@ try:
                 BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
                 break
         else:
-            BACKEND_URL = "https://permission-audit-1.preview.emergentagent.com/api"
+            BACKEND_URL = "https://shipuser-sync.preview.emergentagent.com/api"
 except:
-    BACKEND_URL = "https://permission-audit-1.preview.emergentagent.com/api"
+    BACKEND_URL = "https://shipuser-sync.preview.emergentagent.com/api"
 
 # Test users as specified in review request
 TEST_USERS = {
