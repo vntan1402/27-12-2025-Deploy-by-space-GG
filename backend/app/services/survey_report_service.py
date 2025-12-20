@@ -29,13 +29,18 @@ class SurveyReportService:
         """Get survey reports with optional ship filter"""
         from app.core.permission_checks import filter_documents_by_ship_scope
         from app.models.user import UserRole
+        from app.core import messages
+        
+        # ⭐ Viewer không được phép xem Survey Reports
+        if current_user.role == UserRole.VIEWER:
+            raise HTTPException(status_code=403, detail=messages.VIEWER_CANNOT_VIEW_SURVEY_REPORTS)
         
         filters = {}
         if ship_id:
             filters["ship_id"] = ship_id
         
-        # For Editor/Viewer, automatically filter by their assigned ship
-        if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
+        # For Editor, automatically filter by their assigned ship
+        if current_user.role == UserRole.EDITOR:
             user_ship_name = getattr(current_user, 'ship', None)
             if user_ship_name and user_ship_name.strip():
                 # Get ship ID from name
@@ -45,7 +50,7 @@ class SurveyReportService:
                 else:
                     return []  # Ship not found, return empty
             else:
-                return []  # No assigned ship for editor/viewer
+                return []  # No assigned ship for editor
         
         reports = await mongo_db.find_all(SurveyReportService.collection_name, filters)
         
