@@ -565,12 +565,16 @@ const UserManagement = () => {
           >
             {showUserList 
             ? (language === 'vi' ? 'Ẩn' : 'Hide')
-            : (currentUser?.role === 'viewer' || currentUser?.role === 'editor' || currentUser?.role === 'manager'
-                ? (language === 'vi' ? 'Xem thông tin' : 'View Profile')
-                : (language === 'vi' ? 'Danh sách người dùng' : 'User List')
+            : (currentUserIsCrewingManager
+                ? (language === 'vi' ? 'Danh sách thuyền viên' : 'Crew List')
+                : (currentUser?.role === 'viewer' || currentUser?.role === 'editor' || currentUser?.role === 'manager'
+                    ? (language === 'vi' ? 'Xem thông tin' : 'View Profile')
+                    : (language === 'vi' ? 'Danh sách người dùng' : 'User List')
+                  )
               )
           }
         </button>
+        )}
       </div>
 
       {/* Search and Filters - For Super Admin and System Admin */}
