@@ -877,7 +877,53 @@ class UserAuditMixin:
         }
         
         return await self.repository.create_log(log_data)
-
+    
+    async def log_user_signature_update(
+        self,
+        user_data: dict,
+        performed_by_user: dict,
+        old_signature_url: Optional[str] = None,
+        new_signature_url: Optional[str] = None,
+        filename: Optional[str] = None,
+        notes: Optional[str] = None
+    ) -> dict:
+        """Log user signature upload/update"""
+        username = user_data.get('username', 'Unknown')
+        full_name = user_data.get('full_name', username)
+        
+        changes = [{
+            'field': 'signature_url',
+            'field_label': 'Chữ ký điện tử',
+            'old_value': old_signature_url or 'Chưa có',
+            'new_value': new_signature_url or filename or 'Đã cập nhật',
+            'value_type': 'string'
+        }]
+        
+        log_data = {
+            'id': str(uuid4()),
+            'entity_type': 'user',
+            'entity_id': user_data.get('id'),
+            'entity_name': full_name,
+            'company_id': performed_by_user.get('company'),
+            'ship_name': '-',
+            'action': 'UPDATE_USER_SIGNATURE',
+            'action_category': 'SYSTEM',
+            'performed_by': performed_by_user.get('username'),
+            'performed_by_id': performed_by_user.get('id'),
+            'performed_by_name': performed_by_user.get('full_name'),
+            'performed_at': datetime.now(timezone.utc),
+            'changes': changes,
+            'notes': notes or f'Cập nhật chữ ký điện tử cho {full_name}',
+            'source': 'WEB_UI',
+            'metadata': {
+                'user_id': user_data.get('id'),
+                'username': username,
+                'filename': filename,
+                'signature_url': new_signature_url
+            }
+        }
+        
+        return await self.repository.create_log(log_data)
 
 
 class DocumentAuditMixin:
