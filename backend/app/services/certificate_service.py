@@ -56,8 +56,8 @@ class CertificateService:
             certificates = [cert for cert in all_certificates if cert.get('ship_id') in company_ship_ids]
             
             # ⭐ NEW: For Editor/Viewer, filter by assigned ship
-            from app.core.permission_checks import filter_documents_by_ship_scope
-            certificates = filter_documents_by_ship_scope(certificates, current_user)
+            from app.core.permission_checks import filter_documents_by_ship_scope_async
+            certificates = await filter_documents_by_ship_scope_async(certificates, current_user)
         else:
             certificates = await CertificateRepository.find_all(ship_id=ship_id)
         
