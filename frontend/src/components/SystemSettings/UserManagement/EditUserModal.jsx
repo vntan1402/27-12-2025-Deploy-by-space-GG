@@ -15,7 +15,8 @@ const EditUserModal = ({
   ships,
   availableRoles,
   loading,
-  currentUser
+  currentUser,
+  isCrewingManager = false  // ⭐ New prop for Crewing Manager
 }) => {
   const [userData, setUserData] = useState({
     username: '',
@@ -28,6 +29,11 @@ const EditUserModal = ({
     ship: '',
     zalo: ''
   });
+
+  // ⭐ Filter available roles for Crewing Manager (only Crew and Ship Officer)
+  const filteredRoles = isCrewingManager
+    ? availableRoles.filter(role => role.value === 'viewer' || role.value === 'editor')
+    : availableRoles;
   
   // Signature upload state
   const [signatureFile, setSignatureFile] = useState(null);
