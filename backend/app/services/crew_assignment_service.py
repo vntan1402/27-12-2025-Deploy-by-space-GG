@@ -202,9 +202,10 @@ class CrewAssignmentService:
             # Step 4: Update existing assignment record (not create new)
             logger.info(f"📝 Updating assignment history with sign off info...")
             
-            # Find the most recent SIGN_ON record for this crew on the specified ship
+            # Find the most recent SIGN_ON or SHIP_TRANSFER record for this crew on the specified ship
             from app.db.mongodb import mongo_db
             
+            # First try to find SIGN_ON record
             existing_record = await mongo_db.database.crew_assignment_history.find_one(
                 {
                     'crew_id': crew_id,
@@ -215,7 +216,19 @@ class CrewAssignmentService:
                 sort=[('action_date', -1)]  # Get most recent
             )
             
-            logger.info(f"   Searching for open SIGN_ON record:")
+            # If no SIGN_ON found, try SHIP_TRANSFER (crew transferred to this ship)
+            if not existing_record:
+                existing_record = await mongo_db.database.crew_assignment_history.find_one(
+                    {
+                        'crew_id': crew_id,
+                        'to_ship': ship_to_search,
+                        'action_type': 'SHIP_TRANSFER',
+                        'sign_off_date': None
+                    },
+                    sort=[('action_date', -1)]
+                )
+            
+            logger.info(f"   Searching for open SIGN_ON/SHIP_TRANSFER record:")
             logger.info(f"     - crew_id: {crew_id}")
             logger.info(f"     - to_ship: {ship_to_search}")
             if existing_record:
