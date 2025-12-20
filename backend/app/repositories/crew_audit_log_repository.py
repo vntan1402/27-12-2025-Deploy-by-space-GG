@@ -120,9 +120,13 @@ class CrewAuditLogRepository:
             if end_date:
                 query['performed_at']['$lte'] = end_date
         
-        # Action filter
+        # Action filter - supports both exact match and prefix match
         if action and action != 'all':
-            query['action'] = action
+            # For generic actions (CREATE, UPDATE, DELETE), match all variants
+            if action in ['CREATE', 'UPDATE', 'DELETE']:
+                query['action'] = {'$regex': f'^{action}', '$options': 'i'}
+            else:
+                query['action'] = action
         
         # User filter
         if performed_by and performed_by != 'all':
