@@ -248,10 +248,10 @@ const UserManagement = () => {
         return;
       }
 
-      // For Crew role (viewer): Ship and Crew selection are required
-      if (newUserData.role === 'viewer') {
+      // For Crew role (viewer) or Ship Officer (editor): Ship and Crew selection are required
+      if (newUserData.role === 'viewer' || newUserData.role === 'editor') {
         if (!newUserData.ship) {
-          toast.error(language === 'vi' ? 'Vui lòng chọn tàu cho thuyền viên' : 'Please select a ship for crew member');
+          toast.error(language === 'vi' ? 'Vui lòng chọn tàu' : 'Please select a ship');
           return;
         }
         if (!newUserData.crew_id) {
