@@ -115,7 +115,17 @@ const UserManagement = () => {
       if (currentUser && (currentUser.role === 'viewer' || currentUser.role === 'editor')) {
         data = data.filter(user => user.id === currentUser.id || user.username === currentUser.username);
       }
-      // Manager: only see themselves (self-service profile update)
+      // ⭐ Crewing Manager: only see users with role 'viewer' (Crew) or 'editor' (Ship Officer)
+      else if (currentUserIsCrewingManager) {
+        data = data.filter(user => 
+          user.role === 'viewer' || user.role === 'editor'
+        );
+        // Also filter by company
+        if (currentUser.company) {
+          data = data.filter(user => user.company === currentUser.company);
+        }
+      }
+      // Manager (not Crewing): only see themselves (self-service profile update)
       else if (currentUser && currentUser.role === 'manager') {
         data = data.filter(user => user.id === currentUser.id || user.username === currentUser.username);
       }
