@@ -18,7 +18,10 @@ export const AuditCertificateActionButtons = ({
   onUpcomingSurvey,
   onAddCertificate,
   onRefresh,
+  userRole = null,  // ⭐ Thêm prop userRole để ẩn nút cho Viewer
 }) => {
+  // ⭐ Kiểm tra user có phải là Viewer không
+  const isViewer = userRole === 'viewer';
   return (
     <div className="flex justify-between items-center mb-4">
       <div className="flex items-center gap-3">
