@@ -27,6 +27,8 @@ async def get_other_audit_documents(
     """Get Other Audit Documents, optionally filtered by ship_id"""
     try:
         return await OtherAuditDocumentService.get_other_audit_documents(ship_id, current_user)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error fetching Other Audit Documents: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Other Audit Documents")
