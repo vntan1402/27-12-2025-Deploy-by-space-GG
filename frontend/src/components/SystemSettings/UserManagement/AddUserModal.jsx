@@ -308,23 +308,21 @@ const AddUserModal = ({
                     }));
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  disabled={loading || loadingCrew || !userData.ship || userData.ship === 'Standby'}
+                  disabled={loading || loadingCrew || !userData.ship}
                 >
                   <option value="">
                     {loadingCrew 
                       ? (language === 'vi' ? 'Đang tải...' : 'Loading...')
                       : !userData.ship 
                         ? (language === 'vi' ? '-- Chọn tàu trước --' : '-- Select ship first --')
-                        : userData.ship === 'Standby'
-                          ? (language === 'vi' ? '-- Không áp dụng cho Standby --' : '-- Not applicable for Standby --')
-                          : crewList.length === 0
-                            ? (language === 'vi' ? '-- Không có thuyền viên --' : '-- No crew available --')
-                            : (language === 'vi' ? '-- Chọn thuyền viên --' : '-- Select crew member --')
+                        : crewList.length === 0
+                          ? (language === 'vi' ? '-- Không có thuyền viên --' : '-- No crew available --')
+                          : (language === 'vi' ? '-- Chọn thuyền viên --' : '-- Select crew member --')
                     }
                   </option>
                   {crewList.map(crew => (
                     <option key={crew.id} value={crew.id}>
-                      {crew.full_name} - {crew.rank || 'N/A'}
+                      {crew.full_name} - {crew.rank || 'N/A'} {userData.ship === 'Standby' && crew.status ? `(${crew.status})` : ''}
                     </option>
                   ))}
                 </select>
