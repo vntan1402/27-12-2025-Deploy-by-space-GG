@@ -736,6 +736,7 @@ const UserManagement = () => {
           availableRoles={getAvailableRoles()}
           loading={loading}
           currentUser={currentUser}
+          isCrewingManager={currentUserIsCrewingManager}
         />
       )}
     </div>
