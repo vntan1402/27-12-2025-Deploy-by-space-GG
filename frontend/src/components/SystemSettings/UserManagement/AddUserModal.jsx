@@ -288,20 +288,64 @@ const AddUserModal = ({
               />
             </div>
 
-            {/* Full Name */}
+            {/* Full Name - Dropdown for Crew role, Input for others */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Họ và tên' : 'Full Name'} *
               </label>
-              <input
-                type="text"
-                required
-                value={userData.full_name}
-                onChange={(e) => setUserData(prev => ({ ...prev, full_name: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'}
-                disabled={loading}
-              />
+              {isCrewRole ? (
+                // Dropdown for Crew role - select from crew list
+                <select
+                  required
+                  value={userData.crew_id || ''}
+                  onChange={(e) => {
+                    const selectedCrew = crewList.find(c => c.id === e.target.value);
+                    setUserData(prev => ({
+                      ...prev,
+                      crew_id: e.target.value,
+                      full_name: selectedCrew ? selectedCrew.full_name : ''
+                    }));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={loading || loadingCrew || !userData.ship || userData.ship === 'Standby'}
+                >
+                  <option value="">
+                    {loadingCrew 
+                      ? (language === 'vi' ? 'Đang tải...' : 'Loading...')
+                      : !userData.ship 
+                        ? (language === 'vi' ? '-- Chọn tàu trước --' : '-- Select ship first --')
+                        : userData.ship === 'Standby'
+                          ? (language === 'vi' ? '-- Không áp dụng cho Standby --' : '-- Not applicable for Standby --')
+                          : crewList.length === 0
+                            ? (language === 'vi' ? '-- Không có thuyền viên --' : '-- No crew available --')
+                            : (language === 'vi' ? '-- Chọn thuyền viên --' : '-- Select crew member --')
+                    }
+                  </option>
+                  {crewList.map(crew => (
+                    <option key={crew.id} value={crew.id}>
+                      {crew.full_name} - {crew.rank || 'N/A'}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                // Input for other roles
+                <input
+                  type="text"
+                  required
+                  value={userData.full_name}
+                  onChange={(e) => setUserData(prev => ({ ...prev, full_name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'}
+                  disabled={loading}
+                />
+              )}
+              {isCrewRole && userData.ship && userData.ship !== 'Standby' && crewList.length === 0 && !loadingCrew && (
+                <p className="text-xs text-amber-600 mt-1">
+                  {language === 'vi' 
+                    ? 'Tất cả thuyền viên trên tàu này đã có tài khoản' 
+                    : 'All crew members on this ship already have accounts'}
+                </p>
+              )}
             </div>
           </div>
 
