@@ -120,14 +120,15 @@ export const CrewAssignmentHistoryModal = ({ crew, onClose }) => {
         }
 
         // Step 2: Create new to_ship assignment with unique key
+        // Also read sign_off_date/sign_off_by from record if available (crew already signed off)
         if (to_ship) {
           const uniqueKey = id || `${to_ship}_${action_date}`;
           shipMap.set(uniqueKey, {
             ship_name: to_ship,
             sign_on_date: action_date,
             sign_on_by: performed_by,
-            sign_off_date: null,
-            sign_off_by: null,
+            sign_off_date: sign_off_date || null,  // Read from record if exists
+            sign_off_by: sign_off_by || null,      // Read from record if exists
             action_type: action_type
           });
         }
