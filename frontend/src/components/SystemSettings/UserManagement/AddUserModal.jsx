@@ -41,18 +41,18 @@ const AddUserModal = ({
         setUserData(prev => ({ ...prev, department: ['ship_crew'] }));
       }
     }
-    // Reset crew-related fields when role changes away from viewer
-    if (userData.role !== 'viewer') {
+    // Reset crew-related fields when role changes away from viewer/editor
+    if (userData.role !== 'viewer' && userData.role !== 'editor') {
       setUserData(prev => ({ ...prev, crew_id: '' }));
       setCrewList([]);
     }
   }, [userData.role]);
 
-  // Fetch crew list when ship is selected and role is Crew (viewer)
+  // Fetch crew list when ship is selected and role is Crew (viewer) or Ship Officer (editor)
   useEffect(() => {
     const fetchCrewByShip = async () => {
       // Fetch crew for both regular ships AND Standby
-      if (userData.role === 'viewer' && userData.ship) {
+      if ((userData.role === 'viewer' || userData.role === 'editor') && userData.ship) {
         setLoadingCrew(true);
         try {
           const token = localStorage.getItem('token');
