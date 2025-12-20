@@ -371,12 +371,20 @@ const AddUserModal = ({
                 <option value="">
                   {language === 'vi' ? '-- Chọn vai trò --' : '-- Select role --'}
                 </option>
-                {availableRoles.map(role => (
+                {filteredRoles.map(role => (
                   <option key={role} value={role}>
                     {getRoleDisplayName(role)}
                   </option>
                 ))}
               </select>
+              {/* ⭐ Show hint for Crewing Manager */}
+              {isCrewingManager && (
+                <p className="text-xs text-blue-600 mt-1">
+                  {language === 'vi' 
+                    ? 'Bạn chỉ có thể tạo tài khoản cho Thuyền viên (Crew) và Sĩ quan tàu (Ship Officer)'
+                    : 'You can only create accounts for Crew and Ship Officer'}
+                </p>
+              )}
             </div>
 
             {/* Ship - Only show if role is Crew or Ship Officer */}
