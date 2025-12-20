@@ -30,6 +30,11 @@ class AuditCertificateService:
         """Get audit certificates with optional ship and type filter"""
         from app.models.user import UserRole
         from app.core.permission_checks import filter_documents_by_ship_scope
+        from app.core import messages
+        
+        # ⭐ Viewer không được phép xem ISM/ISPS/MLC Documents
+        if current_user.role == UserRole.VIEWER:
+            raise HTTPException(status_code=403, detail=messages.VIEWER_CANNOT_VIEW_ISM_ISPS_MLC)
         
         filters = {}
         if ship_id:
@@ -45,12 +50,11 @@ class AuditCertificateService:
             
             # Filter by company ships if ship_id specified
             if ship_id and ship_id not in company_ship_ids:
-                from app.core import messages
                 raise HTTPException(status_code=403, detail=messages.ACCESS_DENIED_SHIP)
         
         certs = await mongo_db.find_all(AuditCertificateService.collection_name, filters)
         
-        # ⭐ NEW: For Editor/Viewer, filter by assigned ship
+        # ⭐ For Editor, filter by assigned ship
         if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             certs = filter_documents_by_ship_scope(certs, current_user)
         
