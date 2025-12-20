@@ -30,6 +30,8 @@ async def get_audit_certificates(
     """Get Audit Certificates (ISM/ISPS/MLC), optionally filtered by ship_id and cert_type"""
     try:
         return await AuditCertificateService.get_audit_certificates(ship_id, cert_type, current_user)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error fetching Audit Certificates: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Audit Certificates")
