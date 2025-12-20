@@ -235,8 +235,8 @@ const UserManagement = () => {
    */
   const handleAddUser = async () => {
     try {
-      // Validate required fields (email is optional now)
-      if (!newUserData.username || !newUserData.password || !newUserData.full_name || !newUserData.zalo) {
+      // Validate required fields (email and zalo are optional)
+      if (!newUserData.username || !newUserData.password || !newUserData.full_name) {
         toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc' : 'Please fill in all required fields');
         return;
       }
