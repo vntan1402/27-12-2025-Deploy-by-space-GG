@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from fastapi import HTTPException, BackgroundTasks
 
 from app.models.audit_certificate import AuditCertificateCreate, AuditCertificateUpdate, AuditCertificateResponse, BulkDeleteAuditCertificateRequest
-from app.models.user import UserResponse
+from app.models.user import UserResponse, UserRole
 from app.db.mongodb import mongo_db
 from app.utils.certificate_abbreviation import generate_certificate_abbreviation
 from app.utils.issued_by_abbreviation import generate_organization_abbreviation
