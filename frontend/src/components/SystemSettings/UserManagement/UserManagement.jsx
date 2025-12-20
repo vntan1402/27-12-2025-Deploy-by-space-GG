@@ -248,6 +248,18 @@ const UserManagement = () => {
         return;
       }
 
+      // For Crew role (viewer): Ship and Crew selection are required
+      if (newUserData.role === 'viewer') {
+        if (!newUserData.ship || newUserData.ship === 'Standby') {
+          toast.error(language === 'vi' ? 'Vui lòng chọn tàu cho thuyền viên' : 'Please select a ship for crew member');
+          return;
+        }
+        if (!newUserData.crew_id) {
+          toast.error(language === 'vi' ? 'Vui lòng chọn thuyền viên từ danh sách' : 'Please select a crew member from the list');
+          return;
+        }
+      }
+
       // Check permission to create user with selected role
       if (!canCreateUserWithRole(newUserData.role)) {
         toast.error(language === 'vi' ? 'Bạn không có quyền tạo người dùng với vai trò này' : 'You do not have permission to create user with this role');
@@ -260,6 +272,10 @@ const UserManagement = () => {
       const dataToSend = { ...newUserData };
       if (!dataToSend.email || dataToSend.email.trim() === '') {
         delete dataToSend.email; // Don't send email field if empty
+      }
+      // Remove crew_id if not crew role
+      if (dataToSend.role !== 'viewer') {
+        delete dataToSend.crew_id;
       }
       
       const response = await userService.create(dataToSend);
