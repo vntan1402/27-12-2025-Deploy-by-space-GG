@@ -87,11 +87,11 @@ export const AuditLogDetailModal = ({ log, onClose, language }) => {
                 <div className="text-gray-900 font-mono bg-white px-2 py-1 rounded mt-1">{log.id}</div>
               </div>
               <div>
-                <span className="font-semibold text-gray-700">{language === 'vi' ? 'Crew ID:' : 'Crew ID:'}</span>
+                <span className="font-semibold text-gray-700">ID:</span>
                 <div className="text-gray-900 font-mono bg-white px-2 py-1 rounded mt-1">{log.entity_id}</div>
               </div>
               <div>
-                <span className="font-semibold text-gray-700">{language === 'vi' ? 'Tên Crew:' : 'Crew Name:'}</span>
+                <span className="font-semibold text-gray-700">{language === 'vi' ? 'Tên:' : 'Name:'}</span>
                 <div className="text-gray-900 font-bold bg-white px-2 py-1 rounded mt-1">{log.entity_name}</div>
               </div>
               <div>
