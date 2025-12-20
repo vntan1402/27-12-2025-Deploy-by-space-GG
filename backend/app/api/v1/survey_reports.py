@@ -26,6 +26,8 @@ async def get_survey_reports(
     """Get Survey Reports, optionally filtered by ship_id"""
     try:
         return await SurveyReportService.get_survey_reports(ship_id, current_user)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error fetching Survey Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Survey Reports")
