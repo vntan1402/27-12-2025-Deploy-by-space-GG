@@ -538,26 +538,32 @@ const UserManagement = () => {
     <div>
       {/* Action Buttons */}
       <div className="mb-6 flex space-x-4">
-        {/* Add User button - Hidden for viewer, editor, and manager */}
-        {currentUser?.role !== 'viewer' && currentUser?.role !== 'editor' && currentUser?.role !== 'manager' && (
+        {/* Add User button - Show for Admin+, or Crewing Manager */}
+        {currentUserCanManageUsers && (
           <button
             onClick={() => setShowAddUser(true)}
             className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-all font-medium"
           >
             {language === 'vi' ? 'Thêm người dùng' : 'Add User'}
+            {currentUserIsCrewingManager && (
+              <span className="ml-1 text-xs opacity-75">
+                ({language === 'vi' ? 'Thuyền viên' : 'Crew'})
+              </span>
+            )}
           </button>
         )}
         
-        {/* User List Toggle button */}
-        <button
-          onClick={() => setShowUserList(!showUserList)}
-          className={`px-6 py-2 rounded-lg transition-all font-medium ${
-            showUserList 
-              ? 'bg-red-600 hover:bg-red-700 text-white' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-          }`}
-        >
-          {showUserList 
+        {/* User List Toggle button - Show for Admin+, or Crewing Manager */}
+        {currentUserCanManageUsers && (
+          <button
+            onClick={() => setShowUserList(!showUserList)}
+            className={`px-6 py-2 rounded-lg transition-all font-medium ${
+              showUserList 
+                ? 'bg-red-600 hover:bg-red-700 text-white' 
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
+            {showUserList 
             ? (language === 'vi' ? 'Ẩn' : 'Hide')
             : (currentUser?.role === 'viewer' || currentUser?.role === 'editor' || currentUser?.role === 'manager'
                 ? (language === 'vi' ? 'Xem thông tin' : 'View Profile')
