@@ -131,6 +131,8 @@ async def get_audit_reports(
     """Get Audit Reports (ISM/ISPS/MLC), optionally filtered by ship_id and audit_type"""
     try:
         return await AuditReportService.get_audit_reports(ship_id, audit_type, current_user)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error fetching Audit Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Audit Reports")
