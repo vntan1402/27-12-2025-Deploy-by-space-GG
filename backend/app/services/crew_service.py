@@ -32,6 +32,8 @@ class CrewService:
     @staticmethod
     async def get_all_crew(current_user: UserResponse) -> List[CrewResponse]:
         """Get all crew based on user's company and ship assignment"""
+        from app.core import messages
+        
         # Filter by company for non-admin users
         if current_user.role in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             crew = await CrewRepository.find_all()
@@ -44,6 +46,7 @@ class CrewService:
             
             # ⚠️ Standby users cannot view crew list at all
             if not user_ship_name or not user_ship_name.strip() or user_ship_name.lower() == 'standby':
+                logger.info(f"ℹ️ Standby user {current_user.username} - returning empty crew list")
                 return []  # Return empty list for Standby users
             
             # Filter crew by ship_sign_on (current ship assignment)
