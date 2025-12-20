@@ -109,9 +109,18 @@ const OtherDocumentsTable = ({ selectedShip }) => {
       setDocuments(data);
     } catch (error) {
       console.error('Failed to fetch other documents:', error);
-      toast.error(language === 'vi' 
-        ? 'Không thể tải danh sách tài liệu' 
-        : 'Failed to load documents');
+      // Check if it's a permission error (403) - show user-friendly message
+      if (error.response?.status === 403) {
+        const message = error.response?.data?.detail || 
+          (language === 'vi' 
+            ? 'Bạn không có quyền xem Other Documents' 
+            : 'You do not have permission to view Other Documents');
+        toast.info(message, { duration: 5000 });
+      } else {
+        toast.error(language === 'vi' 
+          ? 'Không thể tải danh sách tài liệu' 
+          : 'Failed to load documents');
+      }
     } finally {
       setLoading(false);
     }
