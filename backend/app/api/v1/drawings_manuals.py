@@ -26,6 +26,8 @@ async def get_drawings_manuals(
     """Get Drawings & Manuals, optionally filtered by ship_id"""
     try:
         return await DrawingManualService.get_drawings_manuals(ship_id, current_user)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error fetching Drawings & Manuals: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Drawings & Manuals")
