@@ -573,7 +573,32 @@ const UserManagement = () => {
           </button>
         )}
         
-        {/* ⭐ View Profile button - Show for Viewer, Editor, and non-Crewing Manager */}
+        {/* ⭐ View Profile button - Show for ALL users to view/edit their own profile */}
+        <button
+          onClick={() => {
+            // Find current user in users list and open edit modal
+            const myProfile = users.find(u => u.id === currentUser?.id || u.username === currentUser?.username);
+            if (myProfile) {
+              setEditingUser(myProfile);
+              setShowEditUser(true);
+            } else {
+              // Fetch current user's profile if not in list
+              toast.info(language === 'vi' ? 'Đang tải thông tin...' : 'Loading profile...');
+              fetchUsers().then(() => {
+                const profile = users.find(u => u.id === currentUser?.id || u.username === currentUser?.username);
+                if (profile) {
+                  setEditingUser(profile);
+                  setShowEditUser(true);
+                }
+              });
+            }
+          }}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-all font-medium"
+        >
+          {language === 'vi' ? 'Thông tin cá nhân' : 'My Profile'}
+        </button>
+        
+        {/* View Profile button for users who can't manage users (Viewer, Editor, non-Crewing Manager) */}
         {!currentUserCanManageUsers && (currentUser?.role === 'viewer' || currentUser?.role === 'editor' || currentUser?.role === 'manager') && (
           <button
             onClick={() => setShowUserList(!showUserList)}
@@ -585,7 +610,7 @@ const UserManagement = () => {
           >
             {showUserList 
               ? (language === 'vi' ? 'Ẩn' : 'Hide')
-              : (language === 'vi' ? 'Xem thông tin' : 'View Profile')
+              : (language === 'vi' ? 'Xem thông tin' : 'View Info')
             }
           </button>
         )}
