@@ -122,6 +122,13 @@ class OtherAuditDocumentService:
     @staticmethod
     async def get_other_audit_documents(ship_id: Optional[str], current_user: UserResponse) -> List[OtherAuditDocumentResponse]:
         """Get other audit documents with optional ship filter"""
+        from app.models.user import UserRole
+        from app.core import messages
+        
+        # ⭐ Viewer không được phép xem Other Audit Documents (thuộc ISM/ISPS/MLC)
+        if current_user.role == UserRole.VIEWER:
+            raise HTTPException(status_code=403, detail=messages.VIEWER_CANNOT_VIEW_ISM_ISPS_MLC)
+        
         filters = {}
         if ship_id:
             filters["ship_id"] = ship_id
