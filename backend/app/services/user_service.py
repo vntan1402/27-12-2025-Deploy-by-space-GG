@@ -430,6 +430,25 @@ class UserService:
                             
                             logger.info(f"✅ Signature uploaded successfully for user {user_id}: {file_id}")
                             
+                            # Log audit for signature update
+                            try:
+                                audit_service = UserService.get_audit_log_service()
+                                performed_by_dict = {
+                                    'id': current_user.id,
+                                    'username': current_user.username,
+                                    'full_name': current_user.full_name,
+                                    'company': current_user.company
+                                }
+                                await audit_service.log_user_signature_update(
+                                    user_data=user,
+                                    performed_by_user=performed_by_dict,
+                                    old_signature_url=user.get('signature_url'),
+                                    new_signature_url=signature_url,
+                                    filename=final_filename
+                                )
+                            except Exception as e:
+                                logger.error(f"Failed to create audit log for signature: {e}")
+                            
                             return {
                                 'success': True,
                                 'message': 'Signature uploaded successfully',
