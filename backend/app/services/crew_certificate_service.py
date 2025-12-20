@@ -256,6 +256,13 @@ class CrewCertificateService:
         Get ALL crew certificates for the company (no ship filter)
         Includes both ship-assigned and Standby crew certificates
         """
+        # ⚠️ Standby users (Editor/Viewer with ship="Standby") cannot view crew certificates
+        if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
+            user_ship_name = getattr(current_user, 'ship', None)
+            if not user_ship_name or not user_ship_name.strip() or user_ship_name.lower() == 'standby':
+                logger.warning(f"🚫 Standby user {current_user.username} blocked from viewing crew certificates")
+                return []  # Return empty list for Standby users
+        
         filters = {}
         
         # Add company filter - required for all users except system admin
@@ -283,6 +290,13 @@ class CrewCertificateService:
         """Get crew certificates with optional filters"""
         from app.core.permission_checks import filter_documents_by_ship_scope
         from app.db.mongodb import mongo_db
+        
+        # ⚠️ Standby users (Editor/Viewer with ship="Standby") cannot view crew certificates
+        if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
+            user_ship_name = getattr(current_user, 'ship', None)
+            if not user_ship_name or not user_ship_name.strip() or user_ship_name.lower() == 'standby':
+                logger.warning(f"🚫 Standby user {current_user.username} blocked from viewing crew certificates")
+                return []  # Return empty list for Standby users
         
         filters = {}
         
