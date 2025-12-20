@@ -1164,7 +1164,16 @@ const IsmIspsMLc = () => {
       setAuditReports(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Failed to fetch audit reports:', error);
-      toast.error(language === 'vi' ? 'Không thể tải audit reports' : 'Failed to load audit reports');
+      // Check if it's a permission error (403) - show user-friendly message
+      if (error.response?.status === 403) {
+        const message = error.response?.data?.detail || 
+          (language === 'vi' 
+            ? 'Bạn không có quyền xem Audit Reports' 
+            : 'You do not have permission to view Audit Reports');
+        toast.info(message, { duration: 5000 });
+      } else {
+        toast.error(language === 'vi' ? 'Không thể tải audit reports' : 'Failed to load audit reports');
+      }
       setAuditReports([]);
     } finally {
       setAuditReportsLoading(false);
