@@ -26,6 +26,13 @@ class AuditReportService:
     @staticmethod
     async def get_audit_reports(ship_id: Optional[str], audit_type: Optional[str], current_user: UserResponse) -> List[AuditReportResponse]:
         """Get audit reports with optional ship and type filter"""
+        from app.models.user import UserRole
+        from app.core import messages
+        
+        # ⭐ Viewer không được phép xem ISM/ISPS/MLC Documents (Audit Reports)
+        if current_user.role == UserRole.VIEWER:
+            raise HTTPException(status_code=403, detail=messages.VIEWER_CANNOT_VIEW_ISM_ISPS_MLC)
+        
         filters = {}
         if ship_id:
             filters["ship_id"] = ship_id
