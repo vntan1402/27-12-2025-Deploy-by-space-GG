@@ -31,12 +31,28 @@ class CrewService:
     
     @staticmethod
     async def get_all_crew(current_user: UserResponse) -> List[CrewResponse]:
-        """Get all crew based on user's company"""
+        """Get all crew based on user's company and ship assignment"""
         # Filter by company for non-admin users
         if current_user.role in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             crew = await CrewRepository.find_all()
         else:
             crew = await CrewRepository.find_all(company_id=current_user.company)
+        
+        # ⭐ NEW: For Editor/Viewer (Ship Officer/Crew), filter by assigned ship
+        if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
+            user_ship_name = getattr(current_user, 'ship', None)
+            if user_ship_name and user_ship_name.strip() and user_ship_name.lower() != 'standby':
+                # Filter crew by ship_sign_on (current ship assignment)
+                crew = [
+                    c for c in crew 
+                    if c.get('ship_sign_on', '').lower() == user_ship_name.lower()
+                ]
+            else:
+                # User on Standby or no ship assigned - can only see Standby crew
+                crew = [
+                    c for c in crew 
+                    if c.get('status', '').lower() == 'standby' or not c.get('ship_sign_on')
+                ]
         
         return [CrewResponse(**member) for member in crew]
     
@@ -52,6 +68,20 @@ class CrewService:
         if current_user.role not in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             if crew.get('company_id') != current_user.company:
                 raise HTTPException(status_code=403, detail="Access denied")
+            
+            # ⭐ NEW: For Editor/Viewer, also check ship assignment
+            if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
+                user_ship_name = getattr(current_user, 'ship', None)
+                crew_ship = crew.get('ship_sign_on', '')
+                
+                if user_ship_name and user_ship_name.lower() != 'standby':
+                    # User is on a ship - can only access crew on same ship
+                    if crew_ship.lower() != user_ship_name.lower():
+                        raise HTTPException(status_code=403, detail="Access denied - Crew belongs to different ship")
+                else:
+                    # User is on Standby - can only access Standby crew
+                    if crew.get('status', '').lower() != 'standby' and crew_ship:
+                        raise HTTPException(status_code=403, detail="Access denied - Crew is not on Standby")
         
         return CrewResponse(**crew)
     
