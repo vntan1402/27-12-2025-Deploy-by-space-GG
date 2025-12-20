@@ -38,6 +38,7 @@ class UserBase(BaseModel):
     is_active: bool = True
     signature_file_id: Optional[str] = None  # Google Drive file ID
     signature_url: Optional[str] = None  # URL to view signature image
+    crew_id: Optional[str] = None  # Link to crew record for role=viewer (Crew)
 
 class UserCreate(UserBase):
     password: str
@@ -53,6 +54,7 @@ class UserUpdate(BaseModel):
     gmail: Optional[str] = None
     is_active: Optional[bool] = None
     password: Optional[str] = None
+    crew_id: Optional[str] = None  # Link to crew record
     signature_file_id: Optional[str] = None
     signature_url: Optional[str] = None
 
