@@ -307,21 +307,45 @@ def filter_documents_by_ship_scope(
     Returns:
         Filtered list of documents
     """
+    from app.db.mongodb import mongo_db
+    import asyncio
+    
     # Only apply to Editor and Viewer roles
     if current_user.role not in [UserRole.EDITOR, UserRole.VIEWER]:
         return documents  # Higher roles see all
     
-    # Get user's assigned ship
-    user_assigned_ship = getattr(current_user, 'assigned_ship_id', None)
+    # Get user's assigned ship NAME (not ID)
+    user_assigned_ship_name = getattr(current_user, 'ship', None)
     
-    if not user_assigned_ship:
+    if not user_assigned_ship_name or not user_assigned_ship_name.strip():
         # Editor/Viewer without assigned ship sees nothing
+        return []
+    
+    # Get ship ID from ship name
+    async def get_ship_id():
+        ship = await mongo_db.find_one("ships", {"name": user_assigned_ship_name})
+        return ship.get('id', '') if ship else ''
+    
+    # Run async function to get ship ID
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, get_ship_id())
+                user_ship_id = future.result()
+        else:
+            user_ship_id = loop.run_until_complete(get_ship_id())
+    except RuntimeError:
+        user_ship_id = asyncio.run(get_ship_id())
+    
+    if not user_ship_id:
         return []
     
     # Filter documents by ship_id
     filtered = [
         doc for doc in documents
-        if doc.get('ship_id') == user_assigned_ship
+        if doc.get('ship_id') == user_ship_id
     ]
     
     return filtered
