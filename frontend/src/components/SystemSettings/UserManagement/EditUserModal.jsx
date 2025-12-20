@@ -31,8 +31,9 @@ const EditUserModal = ({
   });
 
   // ⭐ Filter available roles for Crewing Manager (only Crew and Ship Officer)
+  // availableRoles is an array of strings like ['viewer', 'editor', ...]
   const filteredRoles = isCrewingManager
-    ? availableRoles.filter(role => role.value === 'viewer' || role.value === 'editor')
+    ? availableRoles.filter(role => role === 'viewer' || role === 'editor')
     : availableRoles;
   
   // Signature upload state
