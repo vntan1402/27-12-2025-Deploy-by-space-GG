@@ -294,7 +294,7 @@ const AddUserModal = ({
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Họ và tên' : 'Full Name'} *
               </label>
-              {isCrewRole ? (
+              {isCrewOrOfficerRole ? (
                 // Dropdown for Crew role - select from crew list
                 <select
                   required
