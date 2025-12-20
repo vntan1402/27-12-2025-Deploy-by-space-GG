@@ -92,7 +92,16 @@ const SafetyManagementSystem = () => {
       setCompanyCerts(certs);
     } catch (error) {
       console.error('Error loading company certs:', error);
-      toast.error('Failed to load certificates');
+      // Check if it's a permission error (403) - show user-friendly message
+      if (error.response?.status === 403) {
+        const message = error.response?.data?.detail || 
+          (language === 'vi' 
+            ? 'Bạn không có quyền xem Company Certificates' 
+            : 'You do not have permission to view Company Certificates');
+        toast.info(message, { duration: 5000 });
+      } else {
+        toast.error(language === 'vi' ? 'Không thể tải certificates' : 'Failed to load certificates');
+      }
     } finally {
       setCertsLoading(false);
     }
