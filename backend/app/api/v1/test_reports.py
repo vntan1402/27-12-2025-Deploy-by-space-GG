@@ -26,6 +26,8 @@ async def get_test_reports(
     """Get Test Reports, optionally filtered by ship_id"""
     try:
         return await TestReportService.get_test_reports(ship_id, current_user)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error fetching Test Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch Test Reports")
