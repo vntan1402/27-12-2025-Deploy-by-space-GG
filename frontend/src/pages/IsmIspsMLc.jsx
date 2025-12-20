@@ -1829,6 +1829,7 @@ const IsmIspsMLc = () => {
                 onUpcomingSurvey={handleUpcomingSurvey}
                 onAddCertificate={handleAddCertificate}
                 onRefresh={handleRefreshCertificates}
+                userRole={user?.role}
               />
 
               {/* Filters */}
