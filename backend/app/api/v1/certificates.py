@@ -33,6 +33,8 @@ async def get_certificates(
     """
     try:
         return await CertificateService.get_certificates(ship_id, current_user)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error fetching certificates: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch certificates")
