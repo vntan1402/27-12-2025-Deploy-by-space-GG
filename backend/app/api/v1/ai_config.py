@@ -19,10 +19,11 @@ def check_admin_permission(current_user: UserResponse = Depends(get_current_user
 
 @router.get("", response_model=AIConfigResponse)
 async def get_ai_config(
-    current_user: UserResponse = Depends(check_admin_permission)
+    current_user: UserResponse = Depends(get_current_user)
 ):
     """
-    Get AI configuration for current company (Admin+ role required)
+    Get AI configuration for current company (All authenticated users can view)
+    Note: Only Admin+ can update AI config
     """
     try:
         return await AIConfigService.get_ai_config(current_user)
