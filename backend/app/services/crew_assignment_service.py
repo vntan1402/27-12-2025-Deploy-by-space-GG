@@ -652,6 +652,9 @@ class CrewAssignmentService:
             await CrewRepository.update(crew_id, update_data)
             logger.info(f"✅ Crew ship updated to {to_ship_name}")
             
+            # ⭐ Sync linked user's ship to new ship
+            await sync_user_ship_with_crew(crew_id, to_ship_name)
+            
             # Step 4: Create audit trail
             logger.info(f"📝 Creating audit trail...")
             
