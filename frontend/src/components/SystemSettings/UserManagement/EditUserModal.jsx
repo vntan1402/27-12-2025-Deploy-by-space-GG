@@ -423,19 +423,36 @@ const EditUserModal = ({
             </div>
 
             {/* Full Name */}
-            <div>
+            <div className="relative group">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Họ và tên' : 'Full Name'} *
+                {userData.role === 'viewer' && (
+                  <span className="ml-1 text-gray-400">🔒</span>
+                )}
               </label>
               <input
                 type="text"
                 required
                 value={userData.full_name}
                 onChange={(e) => setUserData(prev => ({ ...prev, full_name: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  userData.role === 'viewer' ? 'bg-gray-100 cursor-not-allowed' : ''
+                }`}
                 placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'}
-                disabled={loading}
+                disabled={loading || userData.role === 'viewer'}
+                readOnly={userData.role === 'viewer'}
               />
+              {/* Tooltip for Crew role */}
+              {userData.role === 'viewer' && (
+                <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-50">
+                  <div className="bg-gray-800 text-white text-xs rounded-lg py-2 px-3 shadow-lg max-w-xs">
+                    {language === 'vi' 
+                      ? '💡 Để thay đổi họ tên, vui lòng chỉnh sửa trong Crew Record (Quản lý thuyền viên)' 
+                      : '💡 To change full name, please edit in Crew Record (Crew Management)'}
+                    <div className="absolute left-4 top-full w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-gray-800"></div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
