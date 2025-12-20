@@ -378,16 +378,27 @@ const AddUserModal = ({
             {shouldShowShipDropdown && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Tàu' : 'Ship'}
+                  {language === 'vi' ? 'Tàu' : 'Ship'} {isCrewRole && '*'}
                 </label>
                 <select
+                  required={isCrewRole}
                   value={userData.ship}
-                  onChange={(e) => setUserData(prev => ({ ...prev, ship: e.target.value }))}
+                  onChange={(e) => {
+                    setUserData(prev => ({ 
+                      ...prev, 
+                      ship: e.target.value,
+                      // Reset crew selection when ship changes
+                      crew_id: '',
+                      full_name: isCrewRole ? '' : prev.full_name
+                    }));
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={loading || !userData.company}
                 >
                   <option value="">{language === 'vi' ? 'Chọn tàu' : 'Select ship'}</option>
-                  <option value="Standby">{language === 'vi' ? '⏸️ Standby' : '⏸️ Standby'}</option>
+                  {!isCrewRole && (
+                    <option value="Standby">{language === 'vi' ? '⏸️ Standby' : '⏸️ Standby'}</option>
+                  )}
                   {filteredShips.map(ship => (
                     <option key={ship.id} value={ship.name}>
                       {ship.name}
