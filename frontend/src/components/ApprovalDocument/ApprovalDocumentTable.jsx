@@ -109,8 +109,17 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
       const response = await approvalDocumentService.getAll(selectedShip.id);
       setDocuments(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch drawings & manuals:', error);
-      toast.error(language === 'vi' ? 'Không thể tải danh sách tài liệu' : 'Failed to load documents');
+      console.error('Failed to fetch approval documents:', error);
+      // Check if it's a permission error (403) - show user-friendly message
+      if (error.response?.status === 403) {
+        const message = error.response?.data?.detail || 
+          (language === 'vi' 
+            ? 'Bạn không có quyền xem Approval Documents' 
+            : 'You do not have permission to view Approval Documents');
+        toast.info(message, { duration: 5000 });
+      } else {
+        toast.error(language === 'vi' ? 'Không thể tải danh sách tài liệu' : 'Failed to load documents');
+      }
       setDocuments([]);
     } finally {
       setLoading(false);
