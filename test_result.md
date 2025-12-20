@@ -94,7 +94,58 @@
 
 ---
 
-## TEST 3: User Signature Upload Feature
+## ✅ TEST 3: Standby Crew Permission Restriction Feature
+**Status:** PASSED
+**Tested by:** Testing Agent using Backend API Tests
+**Date:** December 19, 2025
+
+### Test Objective
+Verify that users with `ship=Standby` CANNOT view:
+1. Crew List (/api/crew)
+2. Crew Certificates (/api/crew-certificates and /api/crew-certificates/all)
+
+### Test Credentials Used
+- **Standby User:** Crew3 / standby123 (role: viewer, ship: Standby)  
+- **System Admin:** system_admin / YourSecure@Pass2024 (full access for comparison)
+
+### API Endpoints Tested
+1. `GET /api/crew` - Crew list
+2. `GET /api/crew-certificates` - Crew certificates with filters
+3. `GET /api/crew-certificates/all` - All crew certificates
+
+### ✅ Test Results - ALL PASSED (4/4 - 100%)
+
+#### Standby User (Crew3) Tests:
+1. ✅ **GET /api/crew** - Returns empty array `[]` (count: 0) ✓
+2. ✅ **GET /api/crew-certificates** - Returns empty array `[]` (count: 0) ✓
+3. ✅ **GET /api/crew-certificates/all** - Returns empty array `[]` (count: 0) ✓
+
+#### System Admin Comparison Test:
+4. ✅ **All endpoints** - Returns data (count > 0) ✓
+
+### Key Findings:
+- ✅ Standby users correctly blocked from viewing crew data
+- ✅ System admin retains full access
+- ✅ All endpoints return empty arrays (not 403 errors) for Standby users
+- ✅ No system errors or crashes during testing
+- ✅ Permission filtering implemented correctly in backend services
+
+### Technical Implementation Verified:
+- ✅ `CrewService.get_all_crew()` - Lines 46-47: Returns `[]` for Standby users
+- ✅ `CrewCertificateService.get_all_crew_certificates()` - Lines 262-264: Returns `[]` for Standby users  
+- ✅ `CrewCertificateService.get_crew_certificates()` - Lines 297-299: Returns `[]` for Standby users
+- ✅ Permission check: `user_ship_name.lower() == 'standby'` working correctly
+
+### Backend Test Results Summary:
+```
+🔴 STANDBY USER RESTRICTION TESTS: 3/3 passed (100.0%)
+🟢 SYSTEM ADMIN ACCESS TESTS: 1/1 passed (100.0%)
+📈 OVERALL SUCCESS RATE: 4/4 (100.0%)
+```
+
+---
+
+## TEST 4: User Signature Upload Feature
 **Status:** TO BE TESTED
 **Date:** December 19, 2025
 
