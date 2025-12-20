@@ -716,7 +716,8 @@ const UserManagement = () => {
           ships={ships}
           availableRoles={getAvailableRoles()}
           loading={loading}
-          currentUser={currentUser}  // Added currentUser prop
+          currentUser={currentUser}
+          isCrewingManager={currentUserIsCrewingManager}
         />
       )}
 
