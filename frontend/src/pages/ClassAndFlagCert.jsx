@@ -1590,6 +1590,7 @@ const ClassAndFlagCert = () => {
               onUpcomingSurvey={handleUpcomingSurvey}
               onAddCertificate={handleAddShipCertificate}
               onRefresh={handleRefreshCertificates}
+              userRole={user?.role}
             />
 
             {/* Page Description - Below Title */}
