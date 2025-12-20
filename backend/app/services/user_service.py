@@ -103,6 +103,53 @@ class UserService:
         return result
     
     @staticmethod
+    async def get_user_by_id(user_id: str, current_user: UserResponse) -> UserResponse:
+        """
+        Get a single user by ID
+        - Users can get their own profile
+        - Admin+ can get any user in their company
+        - System Admin can get any user
+        """
+        from app.models.user import UserRole
+        
+        # Fetch user from database
+        user = await UserRepository.find_by_id(user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Permission check
+        is_own_profile = user.get('id') == current_user.id or user.get('username') == current_user.username
+        is_admin_plus = current_user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN]
+        is_same_company = user.get('company') == current_user.company
+        
+        # Allow if: own profile, or admin+ in same company, or system_admin
+        if not is_own_profile:
+            if current_user.role == UserRole.SYSTEM_ADMIN:
+                pass  # System admin can access anyone
+            elif is_admin_plus and is_same_company:
+                pass  # Admin can access users in same company
+            else:
+                raise HTTPException(status_code=403, detail="You can only view your own profile")
+        
+        # Clean up response
+        user.pop("password_hash", None)
+        user.pop("_id", None)
+        
+        # Ensure department is a list
+        if user.get('department') is None:
+            user['department'] = []
+        elif not isinstance(user.get('department'), list):
+            user['department'] = [user['department']] if user['department'] else []
+        
+        # Ensure other required fields
+        if 'created_at' not in user:
+            user['created_at'] = datetime.now(timezone.utc)
+        if 'permissions' not in user:
+            user['permissions'] = {}
+        
+        return UserResponse(**user)
+    
+    @staticmethod
     async def create_user(user_data: UserCreate, current_user: UserResponse) -> UserResponse:
         """Create new user"""
         # Check if username exists
