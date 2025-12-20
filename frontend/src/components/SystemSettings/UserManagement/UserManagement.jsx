@@ -297,7 +297,8 @@ const UserManagement = () => {
         department: [],  // Array
         company: '',
         ship: '',
-        zalo: ''
+        zalo: '',
+        crew_id: ''
       });
       
       setShowAddUser(false);
