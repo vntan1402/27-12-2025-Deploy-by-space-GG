@@ -557,7 +557,7 @@ export const EditCrewModal = ({
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
+                  {language === 'vi' ? 'Tàu Sign On' : 'Ship Sign On'}
                   {loadingShips && (
                     <span className="ml-2 text-xs text-gray-500">
                       {language === 'vi' ? '(Đang tải...)' : '(Loading...)'}

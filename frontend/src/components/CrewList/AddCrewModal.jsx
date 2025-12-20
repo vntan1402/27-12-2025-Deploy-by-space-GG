@@ -837,7 +837,7 @@ export const AddCrewModal = ({
                 {formData.status !== 'Standby' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
+                      {language === 'vi' ? 'Tàu Sign On' : 'Ship Sign On'}
                     </label>
                     <input
                       type="text"

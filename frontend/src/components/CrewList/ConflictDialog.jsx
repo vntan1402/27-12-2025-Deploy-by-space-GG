@@ -92,7 +92,7 @@ export const ConflictDialog = ({
                 {your_values.ship_sign_on !== undefined && (
                   <tr>
                     <td className="px-4 py-3 text-sm font-medium text-gray-900 border-r">
-                      {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
+                      {language === 'vi' ? 'Tàu Sign On' : 'Ship Sign On'}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-700 border-r bg-green-50 font-semibold">
                       {current_ship || '-'}

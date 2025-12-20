@@ -325,7 +325,7 @@ export const BulkEditShipSignOnModal = ({
             )}
             
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
+              {language === 'vi' ? 'Tàu Sign On' : 'Ship Sign On'}
             </label>
             {ships && ships.length > 0 ? (
               <select

@@ -1919,7 +1919,7 @@ export const CrewListTable = ({
           {/* Ship Sign On Filter */}
           <div className="flex items-center space-x-2 min-w-[200px]">
             <label className="text-sm font-medium text-gray-700 whitespace-nowrap">
-              {language === 'vi' ? 'Tàu đăng ký:' : 'Ship Sign On:'}
+              {language === 'vi' ? 'Tàu Sign On:' : 'Ship Sign On:'}
             </label>
             <select 
               value={filters.ship_sign_on}
@@ -2079,7 +2079,7 @@ export const CrewListTable = ({
                   onClick={() => handleSort('ship_sign_on')}
                   className="px-4 py-3 text-left text-sm font-bold text-gray-700 tracking-wider border-r border-gray-200 cursor-pointer hover:bg-gray-100"
                 >
-                  {language === 'vi' ? 'Tàu đăng ký' : 'Ship Sign On'}
+                  {language === 'vi' ? 'Tàu Sign On' : 'Ship Sign On'}
                   {getSortIcon('ship_sign_on')}
                 </th>
                 
