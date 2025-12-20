@@ -29,20 +29,21 @@ class ShipService:
     
     @staticmethod
     async def get_all_ships(current_user: UserResponse) -> List[ShipResponse]:
-        """Get all ships based on user's company"""
+        """Get all ships based on user's company and ship assignment"""
         # Filter by company for non-admin users
         if current_user.role in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]:
             ships = await ShipRepository.find_all()
         else:
             ships = await ShipRepository.find_all(company=current_user.company)
         
-        # ⭐ NEW: For Editor/Viewer, filter by assigned ship
+        # For Editor/Viewer, filter by assigned ship NAME
         if current_user.role in [UserRole.EDITOR, UserRole.VIEWER]:
-            user_assigned_ship = getattr(current_user, 'assigned_ship_id', None)
-            if user_assigned_ship:
-                ships = [ship for ship in ships if ship.get('id') == user_assigned_ship]
+            user_assigned_ship_name = getattr(current_user, 'ship', None)
+            if user_assigned_ship_name and user_assigned_ship_name.strip():
+                # Filter ships by name (case-insensitive)
+                ships = [ship for ship in ships if ship.get('name', '').lower() == user_assigned_ship_name.lower()]
             else:
-                # No assigned ship = no access
+                # No assigned ship = no access for editor/viewer
                 ships = []
         
         return [ShipResponse(**ship) for ship in ships]
