@@ -196,6 +196,9 @@ class CrewAssignmentService:
             await CrewRepository.update(crew_id, update_data)
             logger.info(f"✅ Crew status updated to Standby")
             
+            # ⭐ Sync linked user's ship to "Standby"
+            await sync_user_ship_with_crew(crew_id, "Standby")
+            
             # Step 4: Update existing assignment record (not create new)
             logger.info(f"📝 Updating assignment history with sign off info...")
             
