@@ -17,6 +17,9 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
   const [monthlyFee, setMonthlyFee] = useState(null);
   const [calculatingFee, setCalculatingFee] = useState(false);
   
+  // Check if user can calculate fee (admin and above)
+  const canCalculateFee = currentUser?.role && ['admin', 'super_admin', 'system_admin'].includes(currentUser.role);
+  
   // New states for detail lists
   const [showShipsList, setShowShipsList] = useState(false);
   const [showUsersList, setShowUsersList] = useState(false);
