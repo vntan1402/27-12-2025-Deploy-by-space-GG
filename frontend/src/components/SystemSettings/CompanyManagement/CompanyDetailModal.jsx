@@ -403,7 +403,7 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
                     {language === 'vi' ? company.name_en : company.name_vn}
                   </p>
                 </div>
-                {monthlyFee !== null && (
+                {canCalculateFee && monthlyFee !== null && (
                   <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-lg shadow-lg">
                     <p className="text-xs font-medium">
                       {language === 'vi' ? 'Phí hàng tháng' : 'Monthly Fee'}
