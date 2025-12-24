@@ -1,30 +1,38 @@
 #!/usr/bin/env python3
 """
-🧪 STANDBY CREW PERMISSION RESTRICTION TEST
+🧪 COMPREHENSIVE BACKEND API TESTING (PRE-DEPLOYMENT)
 
-Testing the Standby Crew permission restriction feature:
+Testing all critical backend flows before production deployment:
 
 ## Test Objective
-Verify that users with `ship=Standby` CANNOT view:
-1. Crew List (/api/crew)
-2. Crew Certificates (/api/crew-certificates and /api/crew-certificates/all)
+Comprehensive testing of:
+1. Authentication flows (all 4 test users)
+2. AI Configuration endpoints
+3. Ship Certificates Multi-Upload
+4. Audit Certificates Multi-Upload  
+5. User Management endpoints
+6. Permission system tests
+7. GDrive Configuration
 
 ## Test Credentials
-- **Standby User:** Crew3 / standby123 (role: viewer, ship: Standby)  
-- **System Admin:** system_admin / YourSecure@Pass2024 (full access for comparison)
+- **system_admin** / `YourSecure@Pass2024` (Full access - System Admin)
+- **Crew4** / `123456` (Editor role - Ship Officer)
+- **Crew3** / `123456` (Viewer role - Crew)
+- **crewing_manager** / `123456` (Manager in crewing department)
 
-## API Endpoints to Test
-1. `GET /api/crew` - Crew list
-2. `GET /api/crew-certificates` - Crew certificates with filters
-3. `GET /api/crew-certificates/all` - All crew certificates
-
-## Expected Results
-### For Standby User (Crew3):
-- All 3 endpoints should return an EMPTY array `[]` (count = 0)
-- No 403 error, just empty data
-
-### For System Admin:
-- All 3 endpoints should return data (count > 0)
+## Critical Flows to Test
+- POST /api/auth/login - Test login for all 4 users above
+- GET /api/verify-token - Verify token validity
+- GET /api/ai-config - Get AI config (should work for all authenticated users)
+- POST /api/ai-config - Create/Update AI config (admin only)
+- GET /api/ships - Get ships list first
+- POST /api/certificates/multi-upload?ship_id={ship_id} - Test with a small test file
+- POST /api/audit-certificates/multi-upload?ship_id={ship_id} - This was the failing endpoint
+- GET /api/users - Get users list (admin only)
+- GET /api/users/{user_id} - Get single user (new endpoint)
+- PUT /api/users/{user_id} - Update user
+- GET /api/gdrive/config - Check for Pydantic validation errors
+- GET /api/gdrive/status - Check GDrive status
 """
 
 import requests
