@@ -707,7 +707,7 @@ async def create_audit_certificate_with_file_override(
             "summary_file_id": summary_file_id,  # ⭐ NEW: Store summary file ID
             "file_name": file.filename,
             "created_at": datetime.now(timezone.utc),
-            "company": company_id
+            "company": ship_company_id
         }
         
         logger.info(f"💾 Creating DB record with file_id={file_id}")
