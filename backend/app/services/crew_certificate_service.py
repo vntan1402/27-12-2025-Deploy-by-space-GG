@@ -983,7 +983,8 @@ class CrewCertificateService:
                 provider = ai_config.provider
                 model = ai_config.model
             except:
-                ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+                from app.utils.ai_config_helper import get_ai_config as get_ai_config_helper
+                ai_config_doc = await get_ai_config_helper()
                 provider = ai_config_doc.get("provider", "google") if ai_config_doc else "google"
                 model = ai_config_doc.get("model", "gemini-2.0-flash") if ai_config_doc else "gemini-2.0-flash"
             
