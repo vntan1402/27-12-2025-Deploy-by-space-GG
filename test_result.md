@@ -176,7 +176,7 @@ Verify that users with `ship=Standby` CANNOT view:
 ---
 
 ## TEST 5: Comprehensive Backend API Testing (Pre-Deployment)
-**Status:** IN PROGRESS
+**Status:** COMPLETED WITH ISSUES
 **Date:** December 24, 2025
 
 ### Test Objective:
@@ -193,10 +193,78 @@ Kiểm tra toàn diện các flow quan trọng trước khi deploy Production:
 - system_admin / YourSecure@Pass2024 (Full access)
 - Crew4 / 123456 (Editor - Ship Officer)
 - Crew3 / 123456 (Viewer - Crew)
+- crewing_manager / 123456 (Manager in crewing department)
 
-### Critical Flows to Test:
-- POST /api/certificates/multi-upload
-- POST /api/audit-certificates/multi-upload
-- GET/POST/PUT /api/ai-config
-- GET /api/users, PUT /api/users/{id}
-- Permission checks for different roles
+### ✅ PASSED TESTS (15/18 - 83.3%):
+1. **Authentication Flow** - All 4 users can login successfully
+2. **AI Configuration GET** - All authenticated users can access AI config
+3. **AI Configuration POST** - Admin-only access working correctly
+4. **Ships List** - GET /api/ships working
+5. **Ship Certificates Multi-Upload** - POST /api/certificates/multi-upload working (endpoint responds 200)
+6. **Audit Certificates Multi-Upload** - POST /api/audit-certificates/multi-upload working (endpoint responds 200)
+7. **Users List** - GET /api/users working for admin
+8. **Get User by ID** - GET /api/users/{id} working
+9. **GDrive Status** - GET /api/gdrive/status working
+
+### ❌ FAILED TESTS (3/18):
+
+#### 1. **Permission System Issues** (2 failures)
+- **Issue**: GET /api/users endpoint returns 200 for Viewer and Editor roles instead of 403
+- **Root Cause**: The users endpoint uses role-based filtering instead of blocking non-admin access entirely
+- **Current Behavior**: 
+  - Crew3 (Viewer) gets 200 and sees filtered user list
+  - Crew4 (Editor) gets 200 and sees filtered user list
+- **Expected Behavior**: Should return 403 for non-admin users
+- **Impact**: Medium - Users can see user lists they shouldn't have access to
+
+#### 2. **GDrive Configuration Error** (1 failure)
+- **Issue**: GET /api/gdrive/config returns 500 Internal Server Error
+- **Root Cause**: Pydantic validation error - `id` field missing from GDriveConfigResponse
+- **Error Details**: 
+  ```
+  1 validation error for GDriveConfigResponse
+  id
+    Field required [type=missing, input_value={'_id': '6901d61c3905dca7...419a-bd44-eb431ba28119'}, input_type=dict]
+  ```
+- **Root Cause**: Database returns `_id` but model expects `id` field
+- **Impact**: High - Admin cannot access GDrive configuration
+
+### 📋 DETAILED TEST RESULTS:
+```
+✅ PASS - AUTH system_admin
+✅ PASS - AUTH Crew4  
+✅ PASS - AUTH Crew3
+✅ PASS - AUTH crewing_manager
+✅ PASS - AI CONFIG GET system_admin
+✅ PASS - AI CONFIG GET Crew4
+✅ PASS - AI CONFIG GET Crew3
+✅ PASS - AI CONFIG GET crewing_manager
+✅ PASS - AI CONFIG POST (admin)
+✅ PASS - SHIPS LIST
+✅ PASS - SHIP CERT MULTI-UPLOAD
+✅ PASS - AUDIT CERT MULTI-UPLOAD  
+✅ PASS - USERS LIST (admin)
+✅ PASS - GET USER BY ID
+❌ FAIL - PERMISSION - Crew3 blocked from admin
+❌ FAIL - PERMISSION - Crew4 blocked from admin
+❌ FAIL - GDRIVE CONFIG
+✅ PASS - GDRIVE STATUS
+```
+
+### 🔧 REQUIRED FIXES:
+
+#### Priority 1 (High): GDrive Configuration
+- **File**: `/app/backend/app/services/gdrive_service.py` or repository layer
+- **Fix**: Map MongoDB `_id` field to `id` in GDriveConfigResponse
+- **Code Change**: Ensure `config["id"] = config.pop("_id", str(uuid.uuid4()))` before creating response
+
+#### Priority 2 (Medium): Permission System  
+- **File**: `/app/backend/app/api/v1/users.py`
+- **Fix**: Add `check_admin_permission` decorator to `get_users` endpoint
+- **Alternative**: Update service logic to block non-admin access entirely instead of filtering
+
+### 🎯 DEPLOYMENT READINESS:
+- **Overall**: 83.3% pass rate - **NEEDS FIXES BEFORE PRODUCTION**
+- **Critical Systems**: Authentication, AI Config, Multi-Upload all working
+- **Blocking Issues**: GDrive config error prevents admin functionality
+- **Security Issues**: Permission system allows unauthorized user list access
