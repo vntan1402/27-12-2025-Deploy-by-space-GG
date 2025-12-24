@@ -436,7 +436,7 @@ async def multi_upload_audit_certificates(
                     filename=file.filename,
                     content_type=file.content_type,
                     folder_path=f"{ship.get('name')}/ISM - ISPS - MLC/Audit Certificates",
-                    company_id=company_id
+                    company_id=ship_company_id
                 )
                 
                 if not upload_result.get("success"):
