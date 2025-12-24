@@ -172,3 +172,31 @@ Verify that users with `ship=Standby` CANNOT view:
 - Image background should be removed automatically
 - File uploaded to Google Drive folder: COMPANY DOCUMENT > User Signature
 - User record updated with signature_url and signature_file_id
+
+---
+
+## TEST 5: Comprehensive Backend API Testing (Pre-Deployment)
+**Status:** IN PROGRESS
+**Date:** December 24, 2025
+
+### Test Objective:
+Kiểm tra toàn diện các flow quan trọng trước khi deploy Production:
+1. Authentication flows
+2. Ship Certificate CRUD + Multi-upload
+3. Audit Certificate CRUD + Multi-upload  
+4. Crew Certificate operations
+5. User management
+6. AI Configuration
+7. Permission system
+
+### Test Credentials:
+- system_admin / YourSecure@Pass2024 (Full access)
+- Crew4 / 123456 (Editor - Ship Officer)
+- Crew3 / 123456 (Viewer - Crew)
+
+### Critical Flows to Test:
+- POST /api/certificates/multi-upload
+- POST /api/audit-certificates/multi-upload
+- GET/POST/PUT /api/ai-config
+- GET /api/users, PUT /api/users/{id}
+- Permission checks for different roles
