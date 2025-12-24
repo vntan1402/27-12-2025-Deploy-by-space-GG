@@ -892,8 +892,9 @@ class CrewCertificateService:
             
             logger.info(f"👤 Analyzing certificate for: {crew_name} (Passport: {passport})")
             
-            # Step 1: Get Document AI configuration (EXACT MATCH with passport)
-            ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+            # Step 1: Get Document AI configuration with fallback queries
+            from app.utils.ai_config_helper import get_ai_config
+            ai_config_doc = await get_ai_config()
             if not ai_config_doc:
                 return {
                     "success": False,
