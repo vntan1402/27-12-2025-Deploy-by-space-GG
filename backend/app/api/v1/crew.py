@@ -559,11 +559,12 @@ async def analyze_passport_file(
         
         # Get company information
         from app.db.mongodb import mongo_db
+        from app.utils.ai_config_helper import get_ai_config
         
         company_id = current_user.company
         
-        # Get AI configuration for Document AI (system-wide configuration)
-        ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+        # Get AI configuration with fallback queries
+        ai_config_doc = await get_ai_config()
         if not ai_config_doc:
             return {
                 "success": False,
