@@ -21,6 +21,14 @@ class GDriveConfigRepository:
                 GDriveConfigRepository.collection_name,
                 {"company_id": company}
             )
+            if config:
+                # Remove MongoDB _id and ensure id field exists
+                config.pop("_id", None)
+                if "id" not in config:
+                    config["id"] = str(uuid.uuid4())
+                # Map company_id to company for response model
+                if "company_id" in config and "company" not in config:
+                    config["company"] = config["company_id"]
             return config
         except Exception as e:
             logger.error(f"Error getting GDrive config for company {company}: {e}")
