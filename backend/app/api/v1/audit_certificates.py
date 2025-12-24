@@ -679,7 +679,7 @@ async def create_audit_certificate_with_file_override(
                     filename=summary_filename,
                     content_type="text/plain",
                     folder_path=f"{ship.get('name')}/ISM - ISPS - MLC/Audit Certificates",
-                    company_id=company_id
+                    company_id=ship_company_id
                 )
                 
                 if summary_upload_result.get("success"):
