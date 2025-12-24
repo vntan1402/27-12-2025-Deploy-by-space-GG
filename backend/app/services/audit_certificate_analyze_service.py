@@ -138,8 +138,9 @@ class AuditCertificateAnalyzeService:
             ship_name = ship.get("name", "Unknown Ship")
             ship_imo = ship.get("imo", "")
             
-            # Get AI configuration
-            ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+            # Get AI configuration with fallback queries
+            from app.utils.ai_config_helper import get_ai_config
+            ai_config_doc = await get_ai_config()
             if not ai_config_doc:
                 raise HTTPException(
                     status_code=404,
