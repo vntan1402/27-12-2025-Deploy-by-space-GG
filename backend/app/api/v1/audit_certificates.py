@@ -510,7 +510,7 @@ async def multi_upload_audit_certificates(
                     "summary_file_id": summary_file_id,  # ⭐ NEW: Store summary file ID
                     "file_name": file.filename,
                     "created_at": datetime.now(timezone.utc),
-                    "company": company_id
+                    "company": ship_company_id
                 }
                 
                 # Create in database
