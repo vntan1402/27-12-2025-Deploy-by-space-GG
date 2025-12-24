@@ -694,11 +694,17 @@ IMPORTANT DATE EXAMPLES:
                 if existing.get('valid_date', '').strip() == valid_date:
                     matches += 1
             
+            # Compare last_endorse field
+            if last_endorse:
+                total += 1
+                if existing.get('last_endorse', '').strip() == last_endorse:
+                    matches += 1
+            
             if total > 0:
                 similarity = matches / total
             
-            # Consider it a duplicate if similarity >= 50%
-            if similarity >= 0.5:
+            # Consider it a duplicate only if similarity = 100% (exact match)
+            if similarity >= 1.0:
                 duplicates.append({
                     'certificate': existing,
                     'similarity': similarity
