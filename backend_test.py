@@ -299,135 +299,259 @@ def run_test(test_name, test_func, expected_status=200, expected_admin_only=Fals
 
 # Main test execution
 def main():
-    print("🧪 STANDBY CREW PERMISSION RESTRICTION TEST")
+    print("🧪 COMPREHENSIVE BACKEND API TESTING (PRE-DEPLOYMENT)")
     print("=" * 80)
     print(f"Backend URL: {BACKEND_URL}")
     print("\nTest Credentials:")
-    print("- Crew3 / standby123 - Standby user (role: viewer, ship: Standby)")
-    print("- system_admin / YourSecure@Pass2024 - Full access (for comparison)")
+    print("- system_admin / YourSecure@Pass2024 - Full access (System Admin)")
+    print("- Crew4 / 123456 - Editor role (Ship Officer)")
+    print("- Crew3 / 123456 - Viewer role (Crew)")
+    print("- crewing_manager / 123456 - Manager in crewing department")
     
     # Test results tracking
     test_results = []
-    standby_tests = []
-    admin_tests = []
+    all_tests = []
     
     try:
-        # Test authentication first
-        print("\n📋 Authentication Tests...")
-        
-        try:
-            system_headers = get_headers("system_admin")
-            system_user = get_user_info(system_headers)
-            print(f"   ✅ system_admin login successful - Role: {system_user.get('role', 'unknown')}")
-        except Exception as e:
-            print(f"   ❌ system_admin login failed: {e}")
-            return
-        
-        try:
-            crew3_headers = get_headers("Crew3")
-            crew3_user = get_user_info(crew3_headers)
-            print(f"   ✅ Crew3 login successful - Role: {crew3_user.get('role', 'unknown')}, Ship: {crew3_user.get('ship', 'unknown')}")
-        except Exception as e:
-            print(f"   ❌ Crew3 login failed: {e}")
-            return
-        
+        # Test 1: Authentication Tests
         print("\n" + "=" * 80)
-        
-        print("🔴 HIGH PRIORITY: Standby Crew Permission Restriction Tests")
-        
-        # Test 1: Standby user CANNOT view crew list
-        print("\n1. Standby User - Crew List Restriction")
-        success, response = run_test(
-            "Crew3 (Standby) tries to get crew list",
-            lambda: test_standby_crew_list_restriction(crew3_headers),
-            expected_empty=True,
-            expected_success=True
-        )
-        standby_tests.append(("Crew List Blocked", success))
-        test_results.append(("GET /api/crew (Standby)", "✅ Empty array returned" if success else "❌ FAILED"))
-        
-        # Test 2: Standby user CANNOT view crew certificates
-        print("\n2. Standby User - Crew Certificates Restriction")
-        success, response = run_test(
-            "Crew3 (Standby) tries to get crew certificates",
-            lambda: test_standby_crew_certificates_restriction(crew3_headers),
-            expected_empty=True,
-            expected_success=True
-        )
-        standby_tests.append(("Crew Certificates Blocked", success))
-        test_results.append(("GET /api/crew-certificates (Standby)", "✅ Empty array returned" if success else "❌ FAILED"))
-        
-        # Test 3: Standby user CANNOT view all crew certificates
-        print("\n3. Standby User - All Crew Certificates Restriction")
-        success, response = run_test(
-            "Crew3 (Standby) tries to get all crew certificates",
-            lambda: test_standby_crew_certificates_all_restriction(crew3_headers),
-            expected_empty=True,
-            expected_success=True
-        )
-        standby_tests.append(("All Crew Certificates Blocked", success))
-        test_results.append(("GET /api/crew-certificates/all (Standby)", "✅ Empty array returned" if success else "❌ FAILED"))
-        
-        print("\n🟢 COMPARISON: System Admin Access Tests")
-        
-        # Test 4: System Admin CAN access all endpoints
-        print("\n4. System Admin - Full Access Verification")
-        success, response = run_test(
-            "system_admin accesses crew endpoints",
-            lambda: test_system_admin_crew_access(system_headers),
-            expected_empty=False,
-            expected_success=True
-        )
-        admin_tests.append(("System Admin Access", success))
-        test_results.append(("System Admin Crew Access", "✅ Data returned" if success else "❌ FAILED"))
-        
-        # Calculate success rates
-        standby_success = sum(1 for _, success in standby_tests if success)
-        standby_total = len(standby_tests)
-        admin_success = sum(1 for _, success in admin_tests if success)
-        admin_total = len(admin_tests)
-        
-        total_success = standby_success + admin_success
-        total_tests = standby_total + admin_total
-        
-        print("\n" + "=" * 80)
-        print("📊 STANDBY CREW PERMISSION RESTRICTION TEST RESULTS")
+        print("🔐 AUTHENTICATION FLOW TESTS")
         print("=" * 80)
         
-        print(f"\n🔴 STANDBY USER RESTRICTION TESTS: {standby_success}/{standby_total} passed ({(standby_success/standby_total*100):.1f}%)")
-        print(f"🟢 SYSTEM ADMIN ACCESS TESTS: {admin_success}/{admin_total} passed ({(admin_success/admin_total*100):.1f}%)")
-        print(f"\n📈 OVERALL SUCCESS RATE: {total_success}/{total_tests} ({(total_success/total_tests*100):.1f}%)")
+        user_sessions = {}
+        
+        for username in TEST_USERS.keys():
+            print(f"\n📋 Testing authentication for: {username}")
+            auth_result = test_authentication_flow(username)
+            
+            if auth_result["success"]:
+                user_sessions[username] = auth_result
+                user_info = auth_result["user_info"]
+                print(f"   ✅ {username} login successful - Role: {user_info.get('role', 'unknown')}")
+                test_results.append((f"AUTH {username}", "✅ PASS"))
+                all_tests.append(("auth", True))
+            else:
+                print(f"   ❌ {username} login failed: {auth_result['error']}")
+                test_results.append((f"AUTH {username}", f"❌ FAIL - {auth_result['error']}"))
+                all_tests.append(("auth", False))
+        
+        # Continue only if we have at least system_admin session
+        if "system_admin" not in user_sessions:
+            print("\n❌ CRITICAL: system_admin authentication failed. Cannot continue tests.")
+            return
+        
+        admin_headers = user_sessions["system_admin"]["headers"]
+        
+        # Test 2: AI Configuration Tests
+        print("\n" + "=" * 80)
+        print("🤖 AI CONFIGURATION TESTS")
+        print("=" * 80)
+        
+        # Test AI config GET for all users
+        for username, session in user_sessions.items():
+            success, response = run_test(
+                f"GET /api/ai-config ({username})",
+                lambda: test_ai_config_get(session["headers"]),
+                expected_status=200
+            )
+            test_results.append((f"AI CONFIG GET {username}", "✅ PASS" if success else "❌ FAIL"))
+            all_tests.append(("ai_config_get", success))
+        
+        # Test AI config POST (admin only)
+        success, response = run_test(
+            "POST /api/ai-config (system_admin)",
+            lambda: test_ai_config_post(admin_headers),
+            expected_status=200
+        )
+        test_results.append(("AI CONFIG POST (admin)", "✅ PASS" if success else "❌ FAIL"))
+        all_tests.append(("ai_config_post", success))
+        
+        # Test 3: Ships and Multi-Upload Tests
+        print("\n" + "=" * 80)
+        print("🚢 SHIPS AND MULTI-UPLOAD TESTS")
+        print("=" * 80)
+        
+        # Get ships list first
+        success, ships_response = run_test(
+            "GET /api/ships",
+            lambda: test_ships_list(admin_headers),
+            expected_status=200
+        )
+        test_results.append(("SHIPS LIST", "✅ PASS" if success else "❌ FAIL"))
+        all_tests.append(("ships_list", success))
+        
+        ship_id = None
+        if success and ships_response.status_code == 200:
+            try:
+                ships_data = ships_response.json()
+                if ships_data and len(ships_data) > 0:
+                    ship_id = ships_data[0].get("id")
+                    print(f"   📋 Using ship_id: {ship_id}")
+            except:
+                pass
+        
+        if ship_id:
+            # Test ship certificates multi-upload
+            success, response = run_test(
+                f"POST /api/certificates/multi-upload (ship_id={ship_id})",
+                lambda: test_certificates_multi_upload(admin_headers, ship_id),
+                expected_status=200
+            )
+            test_results.append(("SHIP CERT MULTI-UPLOAD", "✅ PASS" if success else "❌ FAIL"))
+            all_tests.append(("cert_multi_upload", success))
+            
+            # Test audit certificates multi-upload
+            success, response = run_test(
+                f"POST /api/audit-certificates/multi-upload (ship_id={ship_id})",
+                lambda: test_audit_certificates_multi_upload(admin_headers, ship_id),
+                expected_status=200
+            )
+            test_results.append(("AUDIT CERT MULTI-UPLOAD", "✅ PASS" if success else "❌ FAIL"))
+            all_tests.append(("audit_cert_multi_upload", success))
+        else:
+            print("   ⚠️ No ship_id available, skipping multi-upload tests")
+            test_results.append(("SHIP CERT MULTI-UPLOAD", "⚠️ SKIP - No ship available"))
+            test_results.append(("AUDIT CERT MULTI-UPLOAD", "⚠️ SKIP - No ship available"))
+        
+        # Test 4: User Management Tests
+        print("\n" + "=" * 80)
+        print("👥 USER MANAGEMENT TESTS")
+        print("=" * 80)
+        
+        # Test users list (admin only)
+        success, users_response = run_test(
+            "GET /api/users (system_admin)",
+            lambda: test_users_list(admin_headers),
+            expected_status=200
+        )
+        test_results.append(("USERS LIST (admin)", "✅ PASS" if success else "❌ FAIL"))
+        all_tests.append(("users_list", success))
+        
+        # Get a user ID for testing
+        user_id = None
+        if success and users_response.status_code == 200:
+            try:
+                users_data = users_response.json()
+                if users_data and len(users_data) > 0:
+                    user_id = users_data[0].get("id")
+                    print(f"   📋 Using user_id: {user_id}")
+            except:
+                pass
+        
+        if user_id:
+            # Test get single user
+            success, response = run_test(
+                f"GET /api/users/{user_id}",
+                lambda: test_user_by_id(admin_headers, user_id),
+                expected_status=200
+            )
+            test_results.append(("GET USER BY ID", "✅ PASS" if success else "❌ FAIL"))
+            all_tests.append(("user_by_id", success))
+            
+            # Test update user (just test the endpoint, don't actually change data)
+            # success, response = run_test(
+            #     f"PUT /api/users/{user_id}",
+            #     lambda: test_user_update(admin_headers, user_id),
+            #     expected_status=200
+            # )
+            # test_results.append(("UPDATE USER", "✅ PASS" if success else "❌ FAIL"))
+            # all_tests.append(("user_update", success))
+        
+        # Test 5: Permission System Tests
+        print("\n" + "=" * 80)
+        print("🔒 PERMISSION SYSTEM TESTS")
+        print("=" * 80)
+        
+        # Test that Viewer (Crew3) cannot access admin endpoints
+        if "Crew3" in user_sessions:
+            crew3_headers = user_sessions["Crew3"]["headers"]
+            success, response = run_test(
+                "Permission check - Crew3 (Viewer) accessing admin endpoints",
+                lambda: test_permission_system(crew3_headers, "viewer"),
+                expected_admin_only=True
+            )
+            test_results.append(("PERMISSION - Crew3 blocked from admin", "✅ PASS" if success else "❌ FAIL"))
+            all_tests.append(("permission_crew3", success))
+        
+        # Test that Editor (Crew4) has limited access
+        if "Crew4" in user_sessions:
+            crew4_headers = user_sessions["Crew4"]["headers"]
+            success, response = run_test(
+                "Permission check - Crew4 (Editor) accessing admin endpoints",
+                lambda: test_permission_system(crew4_headers, "editor"),
+                expected_admin_only=True
+            )
+            test_results.append(("PERMISSION - Crew4 blocked from admin", "✅ PASS" if success else "❌ FAIL"))
+            all_tests.append(("permission_crew4", success))
+        
+        # Test 6: GDrive Configuration Tests
+        print("\n" + "=" * 80)
+        print("☁️ GDRIVE CONFIGURATION TESTS")
+        print("=" * 80)
+        
+        # Test GDrive config (admin only)
+        success, response = run_test(
+            "GET /api/gdrive/config (system_admin)",
+            lambda: test_gdrive_config(admin_headers),
+            expected_status=200
+        )
+        test_results.append(("GDRIVE CONFIG", "✅ PASS" if success else "❌ FAIL"))
+        all_tests.append(("gdrive_config", success))
+        
+        # Test GDrive status (all users)
+        success, response = run_test(
+            "GET /api/gdrive/status (system_admin)",
+            lambda: test_gdrive_status(admin_headers),
+            expected_status=200
+        )
+        test_results.append(("GDRIVE STATUS", "✅ PASS" if success else "❌ FAIL"))
+        all_tests.append(("gdrive_status", success))
+        
+        # Calculate success rates
+        total_tests = len(all_tests)
+        successful_tests = sum(1 for _, success in all_tests if success)
+        
+        print("\n" + "=" * 80)
+        print("📊 COMPREHENSIVE BACKEND API TEST RESULTS")
+        print("=" * 80)
+        
+        print(f"\n📈 OVERALL SUCCESS RATE: {successful_tests}/{total_tests} ({(successful_tests/total_tests*100):.1f}%)")
         
         print(f"\n📋 DETAILED RESULTS:")
         for test_name, result in test_results:
-            print(f"   {result}")
+            print(f"   {result} - {test_name}")
         
         # Final assessment
-        if total_success == total_tests:
-            print(f"\n✅ STANDBY CREW PERMISSION RESTRICTION TEST PASSED!")
-            print(f"🎉 Standby users correctly blocked from viewing crew data")
-            print(f"🎉 System admin retains full access")
-            print(f"🎉 All endpoints return empty arrays (not 403 errors) for Standby users")
-        elif standby_success == standby_total:
-            print(f"\n✅ STANDBY RESTRICTION WORKING CORRECTLY")
-            print(f"✅ All Standby user tests passed")
-            print(f"⚠️ Some system admin access issues detected")
+        if successful_tests == total_tests:
+            print(f"\n✅ ALL BACKEND API TESTS PASSED!")
+            print(f"🎉 System ready for production deployment")
+        elif successful_tests >= total_tests * 0.8:  # 80% pass rate
+            print(f"\n⚠️ MOST TESTS PASSED ({successful_tests}/{total_tests})")
+            print(f"🔍 Review failed tests before deployment")
         else:
-            print(f"\n❌ CRITICAL STANDBY PERMISSION ISSUES FOUND")
-            print(f"🚨 {standby_total - standby_success} Standby restriction test(s) failed")
+            print(f"\n❌ CRITICAL ISSUES FOUND")
+            print(f"🚨 {total_tests - successful_tests} test(s) failed - System not ready for deployment")
         
         print(f"\n🎯 KEY FINDINGS:")
-        print(f"   - Standby user blocked from crew list: {'✅ Working' if standby_success >= 1 else '❌ Failed'}")
-        print(f"   - Standby user blocked from crew certificates: {'✅ Working' if standby_success >= 2 else '❌ Failed'}")
-        print(f"   - Standby user blocked from all crew certificates: {'✅ Working' if standby_success >= 3 else '❌ Failed'}")
-        print(f"   - System admin retains access: {'✅ Working' if admin_success >= 1 else '❌ Failed'}")
-        print(f"   - Empty arrays returned (not 403 errors): {'✅ Working' if standby_success == standby_total else '❌ Some endpoints return errors'}")
+        auth_success = sum(1 for test_type, success in all_tests if test_type == "auth" and success)
+        auth_total = sum(1 for test_type, _ in all_tests if test_type == "auth")
+        print(f"   - Authentication: {auth_success}/{auth_total} users can login")
         
-        print(f"\n📋 SPECIFIC FEATURE VERIFICATION:")
-        print(f"   ✅ GET /api/crew returns empty array for Standby users: {'✅' if any('GET /api/crew (Standby)' in result and 'Empty array' in result for result in test_results) else '❌'}")
-        print(f"   ✅ GET /api/crew-certificates returns empty array for Standby users: {'✅' if any('crew-certificates (Standby)' in result and 'Empty array' in result for result in test_results) else '❌'}")
-        print(f"   ✅ GET /api/crew-certificates/all returns empty array for Standby users: {'✅' if any('crew-certificates/all (Standby)' in result and 'Empty array' in result for result in test_results) else '❌'}")
-        print(f"   ✅ System admin can access all endpoints: {'✅' if any('System Admin Crew Access' in result and 'Data returned' in result for result in test_results) else '❌'}")
+        ai_success = sum(1 for test_type, success in all_tests if "ai_config" in test_type and success)
+        ai_total = sum(1 for test_type, _ in all_tests if "ai_config" in test_type)
+        print(f"   - AI Configuration: {ai_success}/{ai_total} endpoints working")
+        
+        upload_success = sum(1 for test_type, success in all_tests if "upload" in test_type and success)
+        upload_total = sum(1 for test_type, _ in all_tests if "upload" in test_type)
+        print(f"   - Multi-Upload: {upload_success}/{upload_total} endpoints working")
+        
+        permission_success = sum(1 for test_type, success in all_tests if "permission" in test_type and success)
+        permission_total = sum(1 for test_type, _ in all_tests if "permission" in test_type)
+        print(f"   - Permission System: {permission_success}/{permission_total} checks working")
+        
+        gdrive_success = sum(1 for test_type, success in all_tests if "gdrive" in test_type and success)
+        gdrive_total = sum(1 for test_type, _ in all_tests if "gdrive" in test_type)
+        print(f"   - GDrive Integration: {gdrive_success}/{gdrive_total} endpoints working")
         
     except Exception as e:
         print(f"\n❌ Test execution failed: {str(e)}")
