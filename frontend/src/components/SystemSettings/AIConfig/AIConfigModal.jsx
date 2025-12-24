@@ -8,9 +8,9 @@ const AIConfigModal = ({ config: initialConfig, onClose, onSave }) => {
   const [config, setConfig] = useState(initialConfig);
 
   const providers = [
-    { value: 'openai', label: 'OpenAI', models: ['gpt-4o', 'gpt-4', 'gpt-3.5-turbo'] },
+    { value: 'openai', label: 'OpenAI', models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4', 'gpt-3.5-turbo'] },
     { value: 'anthropic', label: 'Anthropic', models: ['claude-3-sonnet', 'claude-3-haiku'] },
-    { value: 'google', label: 'Google', models: ['gemini-pro', 'gemini-pro-vision'] },
+    { value: 'google', label: 'Google', models: ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'] },
     { value: 'emergent', label: 'Emergent LLM', models: ['gemini-2.0-flash', 'gpt-4o', 'claude-3-sonnet'] }
   ];
 
