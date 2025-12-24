@@ -29,12 +29,13 @@ class GDriveConfigUpdate(BaseModel):
 class GDriveConfigResponse(GDriveConfigBase):
     """Response model for Google Drive configuration"""
     id: str
-    company: str
+    company: Optional[str] = None
     is_configured: bool = False
     last_sync: Optional[datetime] = None
     updated_by: Optional[str] = None
     updated_at: Optional[datetime] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
+    test_result: Optional[str] = None
 
     class Config:
         from_attributes = True
