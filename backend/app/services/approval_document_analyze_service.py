@@ -126,8 +126,9 @@ class ApprovalDocumentAnalyzeService:
             
             ship_name = ship.get("name", "Unknown Ship")
             
-            # Get AI configuration for Document AI
-            ai_config = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+            # Get AI configuration with fallback queries
+            from app.utils.ai_config_helper import get_ai_config as get_ai_config_helper
+            ai_config = await get_ai_config_helper()
             if not ai_config:
                 raise HTTPException(
                     status_code=404,
