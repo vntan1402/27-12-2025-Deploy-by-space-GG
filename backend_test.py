@@ -252,7 +252,7 @@ def test_permission_system(headers, expected_role):
     
     return results
 
-def run_test(test_name, test_func, expected_empty=False, expected_success=True):
+def run_test(test_name, test_func, expected_status=200, expected_admin_only=False):
     """Run a single test and return results"""
     try:
         print(f"\n   🧪 {test_name}")
@@ -260,60 +260,33 @@ def run_test(test_name, test_func, expected_empty=False, expected_success=True):
         
         # Handle different response types
         if isinstance(result, dict):
-            # Multiple responses (like system admin tests)
+            # Multiple responses (like permission system tests)
             success = True
             for operation, response in result.items():
-                if expected_success:
-                    op_success = response.status_code in [200, 201]
-                    if op_success and expected_empty:
-                        # Check if response is empty array
-                        try:
-                            data = response.json()
-                            op_success = isinstance(data, list) and len(data) == 0
-                        except:
-                            op_success = False
-                else:
+                if expected_admin_only:
+                    # For admin-only endpoints, non-admin should get 403
                     op_success = response.status_code == 403
+                else:
+                    op_success = response.status_code == expected_status
                 
                 success = success and op_success
                 status_icon = "✅" if op_success else "❌"
                 
-                if expected_empty and response.status_code == 200:
-                    try:
-                        data = response.json()
-                        count = len(data) if isinstance(data, list) else "N/A"
-                        print(f"      {status_icon} {operation}: {response.status_code} (count: {count})")
-                    except:
-                        print(f"      {status_icon} {operation}: {response.status_code}")
-                else:
-                    print(f"      {status_icon} {operation}: {response.status_code}")
+                print(f"      {status_icon} {operation}: {response.status_code}")
                 
                 if not op_success:
                     print(f"         📝 Response: {response.text[:100]}...")
         else:
             # Single response
             response = result
-            if expected_success:
-                success = response.status_code in [200, 201]
-                if success and expected_empty:
-                    # Check if response is empty array
-                    try:
-                        data = response.json()
-                        success = isinstance(data, list) and len(data) == 0
-                        count = len(data) if isinstance(data, list) else "N/A"
-                        result_icon = "✅" if success else "❌"
-                        print(f"      {result_icon} Expected: Empty array, Got: {response.status_code} (count: {count})")
-                    except:
-                        success = False
-                        result_icon = "❌"
-                        print(f"      {result_icon} Expected: Empty array, Got: {response.status_code} (invalid JSON)")
-                else:
-                    result_icon = "✅" if success else "❌"
-                    print(f"      {result_icon} Expected: Success (200/201), Got: {response.status_code}")
-            else:
+            if expected_admin_only:
                 success = response.status_code == 403
                 result_icon = "✅" if success else "❌"
-                print(f"      {result_icon} Expected: 403 (Forbidden), Got: {response.status_code}")
+                print(f"      {result_icon} Expected: 403 (Admin Only), Got: {response.status_code}")
+            else:
+                success = response.status_code == expected_status
+                result_icon = "✅" if success else "❌"
+                print(f"      {result_icon} Expected: {expected_status}, Got: {response.status_code}")
             
             if not success:
                 print(f"      📝 Response: {response.text[:200]}...")
