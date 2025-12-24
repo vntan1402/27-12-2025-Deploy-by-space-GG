@@ -135,8 +135,14 @@ class ShipCertificateAnalyzeService:
             ship_name = ship.get("name", "Unknown Ship")
             ship_imo = ship.get("imo", "")
             
-            # Get AI configuration
-            ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+            # Get AI configuration (system-wide config without company field)
+            ai_config_doc = await mongo_db.find_one("ai_config", {"company": {"$exists": False}})
+            if not ai_config_doc:
+                # Fallback: try to find by id for backward compatibility
+                ai_config_doc = await mongo_db.find_one("ai_config", {"id": "system_ai"})
+            if not ai_config_doc:
+                # Try any ai_config document as last resort
+                ai_config_doc = await mongo_db.find_one("ai_config", {})
             if not ai_config_doc:
                 raise HTTPException(
                     status_code=404,
