@@ -121,33 +121,134 @@ def check_vietnamese_error_message(response):
 
 # Test functions based on review request requirements
 
-def test_standby_crew_list_restriction(headers):
-    """Test Standby user CANNOT view crew list - should return empty array"""
-    response = requests.get(f"{BACKEND_URL}/crew", headers=headers)
+def test_authentication_flow(username):
+    """Test authentication for a specific user"""
+    try:
+        user_config = TEST_USERS[username]
+        actual_username = user_config.get("actual_user", username)
+        password = user_config["password"]
+        
+        # Test login
+        response = requests.post(f"{BACKEND_URL}/auth/login", json={"username": actual_username, "password": password})
+        if response.status_code != 200:
+            return {"success": False, "error": f"Login failed: {response.status_code} - {response.text}"}
+        
+        token_data = response.json()
+        access_token = token_data.get("access_token")
+        
+        if not access_token:
+            return {"success": False, "error": "No access token received"}
+        
+        # Test token verification
+        headers = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+        verify_response = requests.get(f"{BACKEND_URL}/verify-token", headers=headers)
+        
+        if verify_response.status_code != 200:
+            return {"success": False, "error": f"Token verification failed: {verify_response.status_code}"}
+        
+        user_info = verify_response.json().get("user", {})
+        
+        return {
+            "success": True, 
+            "token": access_token,
+            "user_info": user_info,
+            "headers": headers
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+def test_ai_config_get(headers):
+    """Test GET /api/ai-config - should work for all authenticated users"""
+    response = requests.get(f"{BACKEND_URL}/ai-config", headers=headers)
     return response
 
-def test_standby_crew_certificates_restriction(headers):
-    """Test Standby user CANNOT view crew certificates - should return empty array"""
-    response = requests.get(f"{BACKEND_URL}/crew-certificates", headers=headers)
+def test_ai_config_post(headers):
+    """Test POST /api/ai-config - admin only"""
+    test_config = {
+        "project_id": "test-project",
+        "location": "us",
+        "processor_id": "test-processor"
+    }
+    response = requests.post(f"{BACKEND_URL}/ai-config", json=test_config, headers=headers)
     return response
 
-def test_standby_crew_certificates_all_restriction(headers):
-    """Test Standby user CANNOT view all crew certificates - should return empty array"""
-    response = requests.get(f"{BACKEND_URL}/crew-certificates/all", headers=headers)
+def test_ships_list(headers):
+    """Test GET /api/ships - get ships list"""
+    response = requests.get(f"{BACKEND_URL}/ships", headers=headers)
     return response
 
-def test_system_admin_crew_access(headers):
-    """Test System Admin CAN access crew endpoints - should return data"""
+def test_certificates_multi_upload(headers, ship_id):
+    """Test POST /api/certificates/multi-upload - ship certificates multi-upload"""
+    # Create a small test file
+    test_file_content = b"Test certificate file content"
+    files = [('files', ('test_cert.pdf', test_file_content, 'application/pdf'))]
+    
+    # Remove Content-Type header for multipart upload
+    upload_headers = {k: v for k, v in headers.items() if k != 'Content-Type'}
+    
+    response = requests.post(
+        f"{BACKEND_URL}/certificates/multi-upload?ship_id={ship_id}", 
+        files=files, 
+        headers=upload_headers
+    )
+    return response
+
+def test_audit_certificates_multi_upload(headers, ship_id):
+    """Test POST /api/audit-certificates/multi-upload - audit certificates multi-upload"""
+    # Create a small test file
+    test_file_content = b"Test audit certificate file content"
+    files = [('files', ('test_audit_cert.pdf', test_file_content, 'application/pdf'))]
+    
+    # Remove Content-Type header for multipart upload
+    upload_headers = {k: v for k, v in headers.items() if k != 'Content-Type'}
+    
+    response = requests.post(
+        f"{BACKEND_URL}/audit-certificates/multi-upload?ship_id={ship_id}", 
+        files=files, 
+        headers=upload_headers
+    )
+    return response
+
+def test_users_list(headers):
+    """Test GET /api/users - get users list (admin only)"""
+    response = requests.get(f"{BACKEND_URL}/users", headers=headers)
+    return response
+
+def test_user_by_id(headers, user_id):
+    """Test GET /api/users/{user_id} - get single user"""
+    response = requests.get(f"{BACKEND_URL}/users/{user_id}", headers=headers)
+    return response
+
+def test_user_update(headers, user_id):
+    """Test PUT /api/users/{user_id} - update user"""
+    update_data = {
+        "full_name": "Updated Test User"
+    }
+    response = requests.put(f"{BACKEND_URL}/users/{user_id}", json=update_data, headers=headers)
+    return response
+
+def test_gdrive_config(headers):
+    """Test GET /api/gdrive/config - check for Pydantic validation errors"""
+    response = requests.get(f"{BACKEND_URL}/gdrive/config", headers=headers)
+    return response
+
+def test_gdrive_status(headers):
+    """Test GET /api/gdrive/status - check GDrive status"""
+    response = requests.get(f"{BACKEND_URL}/gdrive/status", headers=headers)
+    return response
+
+def test_permission_system(headers, expected_role):
+    """Test permission system - check that viewer cannot access admin endpoints"""
     results = {}
     
-    # Test crew list
-    results["crew_list"] = requests.get(f"{BACKEND_URL}/crew", headers=headers)
+    # Test AI config POST (admin only)
+    results["ai_config_post"] = test_ai_config_post(headers)
     
-    # Test crew certificates
-    results["crew_certificates"] = requests.get(f"{BACKEND_URL}/crew-certificates", headers=headers)
+    # Test users list (admin only)
+    results["users_list"] = test_users_list(headers)
     
-    # Test all crew certificates
-    results["crew_certificates_all"] = requests.get(f"{BACKEND_URL}/crew-certificates/all", headers=headers)
+    # Test GDrive config (admin only)
+    results["gdrive_config"] = test_gdrive_config(headers)
     
     return results
 
