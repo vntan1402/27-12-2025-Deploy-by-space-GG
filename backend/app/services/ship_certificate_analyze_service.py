@@ -336,12 +336,15 @@ class ShipCertificateAnalyzeService:
                 current_ship=ship
             )
             
-            # Check for duplicates
+            # Check for duplicates with all 5 fields
             duplicate_warning = await ShipCertificateAnalyzeService.check_duplicate(
                 ship_id=ship["id"],
                 cert_name=extracted_info.get('cert_name'),
                 cert_no=extracted_info.get('cert_no'),
-                current_user=current_user
+                current_user=current_user,
+                issue_date=extracted_info.get('issue_date'),
+                valid_date=extracted_info.get('valid_date'),
+                last_endorse=extracted_info.get('last_endorse')
             )
             
             return {
@@ -429,12 +432,15 @@ class ShipCertificateAnalyzeService:
                 current_ship=ship
             )
             
-            # Check for duplicates
+            # Check for duplicates with all 5 fields
             duplicate_warning = await ShipCertificateAnalyzeService.check_duplicate(
                 ship_id=ship["id"],
                 cert_name=extracted_info.get('cert_name'),
                 cert_no=extracted_info.get('cert_no'),
-                current_user=current_user
+                current_user=current_user,
+                issue_date=extracted_info.get('issue_date'),
+                valid_date=extracted_info.get('valid_date'),
+                last_endorse=extracted_info.get('last_endorse')
             )
             
             return {
