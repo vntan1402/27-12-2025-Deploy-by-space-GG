@@ -29,8 +29,8 @@ SHIP_CERTIFICATE_CATEGORIES = {
         "SAFETY CERTIFICATE",
         "SOLAS CERTIFICATE",
         "CSSC",
-        "CSEC",
-        "CSRC",
+        "CSSE",
+        "CSSR",
         "PSSC",
     ],
     "load_line": [
