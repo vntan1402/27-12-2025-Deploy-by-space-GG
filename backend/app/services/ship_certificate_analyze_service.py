@@ -506,35 +506,82 @@ class ShipCertificateAnalyzeService:
         ship_id: str,
         cert_name: Optional[str],
         cert_no: Optional[str],
-        current_user: UserResponse
+        current_user: UserResponse,
+        issue_date: Optional[str] = None,
+        valid_date: Optional[str] = None,
+        last_endorse: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
         """
-        Check for duplicate certificates based on cert_no AND cert_name
+        Check for duplicate certificates based on 100% match on 5 fields:
+        cert_name, cert_no, issue_date, valid_date, last_endorse
         
-        Returns duplicate warning only if BOTH cert_no AND cert_name match
+        Returns duplicate warning only if ALL provided fields match exactly
         """
         try:
-            if not cert_no or not cert_name:
+            cert_name = (cert_name or '').strip()
+            cert_no = (cert_no or '').strip()
+            issue_date = (issue_date or '').strip()
+            valid_date = (valid_date or '').strip()
+            last_endorse = (last_endorse or '').strip()
+            
+            if not cert_name and not cert_no:
                 return None
             
-            # Check for exact duplicate: same ship_id + cert_no + cert_name
-            existing_cert = await mongo_db.find_one("certificates", {
-                "ship_id": ship_id,
-                "cert_no": cert_no,
-                "cert_name": {"$regex": f"^{cert_name}$", "$options": "i"}  # Case-insensitive match
-            })
+            # Build query to find potential duplicates by cert_no
+            query = {"ship_id": ship_id}
+            if cert_no:
+                query["cert_no"] = cert_no
             
-            if existing_cert:
-                return {
-                    "has_duplicate": True,
-                    "message": f"Duplicate certificate found: {cert_name} ({cert_no})",
-                    "existing_certificate": {
-                        "id": existing_cert.get("id"),
-                        "cert_name": existing_cert.get("cert_name"),
-                        "cert_no": existing_cert.get("cert_no"),
-                        "issue_date": existing_cert.get("issue_date")
+            # Find potential duplicates
+            existing_certs = await mongo_db.find("certificates", query)
+            
+            if not existing_certs:
+                return None
+            
+            # Check for 100% match on all provided fields
+            for existing in existing_certs:
+                matches = 0
+                total = 0
+                
+                if cert_name:
+                    total += 1
+                    if existing.get('cert_name', '').strip().lower() == cert_name.lower():
+                        matches += 1
+                
+                if cert_no:
+                    total += 1
+                    if existing.get('cert_no', '').strip() == cert_no:
+                        matches += 1
+                
+                if issue_date:
+                    total += 1
+                    if existing.get('issue_date', '').strip() == issue_date:
+                        matches += 1
+                
+                if valid_date:
+                    total += 1
+                    if existing.get('valid_date', '').strip() == valid_date:
+                        matches += 1
+                
+                if last_endorse:
+                    total += 1
+                    if existing.get('last_endorse', '').strip() == last_endorse:
+                        matches += 1
+                
+                # Only consider duplicate if 100% match
+                if total > 0 and matches == total:
+                    return {
+                        "has_duplicate": True,
+                        "message": f"Duplicate certificate found: {cert_name} ({cert_no})",
+                        "existing_certificate": {
+                            "id": existing.get("id"),
+                            "cert_name": existing.get("cert_name"),
+                            "cert_no": existing.get("cert_no"),
+                            "issue_date": existing.get("issue_date"),
+                            "valid_date": existing.get("valid_date"),
+                            "last_endorse": existing.get("last_endorse")
+                        }
                     }
-                }
             
             return None
             
