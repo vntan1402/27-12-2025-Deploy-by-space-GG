@@ -264,8 +264,8 @@ This certificate should belong to one of these categories:
 
 2. **Safety Certificates (SOLAS)**
    - Cargo Ship Safety Construction Certificate (CSSC)
-   - Cargo Ship Safety Equipment Certificate (CSEC)
-   - Cargo Ship Safety Radio Certificate (CSRC)
+   - Cargo Ship Safety Equipment Certificate (CSSE)
+   - Cargo Ship Safety Radio Certificate (CSSR)
    - Passenger Ship Safety Certificate (PSSC)
    - Keywords: "SAFETY", "SOLAS", "CARGO SHIP"
 
