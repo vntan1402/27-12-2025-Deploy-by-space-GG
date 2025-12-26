@@ -491,22 +491,28 @@ class CertificateMultiUploadService:
                         headers=headers
                     )
                     
-                    # Create mock user for the service
+                    # Get real user from database (convert document to UserResponse)
                     from app.models.user import UserResponse, UserRole
                     from datetime import datetime, timezone
                     
-                    mock_user = UserResponse(
-                        id=user_id,
-                        email=user_doc.get("email", ""),
-                        username=user_doc.get("username", ""),
+                    # Build UserResponse from database document
+                    real_user = UserResponse(
+                        id=user_doc["id"],
+                        email=user_doc.get("email") or "",
+                        username=user_doc["username"],
                         full_name=user_doc.get("full_name", ""),
                         role=UserRole(user_doc.get("role", "viewer")),
-                        company=company_id,
-                        department=user_doc.get("department", []),
+                        company=user_doc.get("company") or company_id,
+                        department=user_doc.get("department") or [],
                         ship=user_doc.get("ship"),
-                        is_active=True,
-                        created_at=user_doc.get("created_at", datetime.now(timezone.utc)),
-                        permissions=user_doc.get("permissions", {})
+                        zalo=user_doc.get("zalo"),
+                        gmail=user_doc.get("gmail"),
+                        is_active=user_doc.get("is_active", True),
+                        signature_file_id=user_doc.get("signature_file_id"),
+                        signature_url=user_doc.get("signature_url"),
+                        crew_id=user_doc.get("crew_id"),
+                        created_at=user_doc.get("created_at") or datetime.now(timezone.utc),
+                        permissions=user_doc.get("permissions") or {}
                     )
                     
                     # Update progress - starting Document AI
@@ -522,7 +528,7 @@ class CertificateMultiUploadService:
                         ship=ship,
                         ai_config=ai_config,
                         gdrive_config_doc=gdrive_config_doc,
-                        current_user=mock_user,
+                        current_user=real_user,
                         db=db
                     )
                     
