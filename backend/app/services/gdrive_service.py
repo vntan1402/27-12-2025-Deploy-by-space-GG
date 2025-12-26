@@ -685,30 +685,63 @@ class GDriveService:
                                         "message": error_msg
                                     }
                             else:
-                        error_text = await response.text()
-                        logger.error(f"❌ Request failed: {response.status}")
-                        logger.error(f"   Error response: {error_text}")
-                        
-                        # Special handling for rate limit (429) errors
-                        if response.status == 429:
-                            logger.warning("⚠️ Google Drive rate limit hit (429). Client should retry with backoff.")
-                            raise HTTPException(
-                                status_code=429,
-                                detail="Google Drive rate limit exceeded. Please try again in a moment."
-                            )
-                        
-                        # For other errors, check if it's in the error text
-                        if "429" in error_text or "rate limit" in error_text.lower() or "too many requests" in error_text.lower():
-                            logger.warning("⚠️ Google Drive rate limit detected in error message.")
-                            raise HTTPException(
-                                status_code=429,
-                                detail="Google Drive rate limit exceeded. Please try again in a moment."
-                            )
-                        
-                        return {
-                            "success": False,
-                            "message": f"Apps Script error: {response.status}"
-                        }
+                                error_text = await response.text()
+                                logger.error(f"❌ Request failed: {response.status}")
+                                logger.error(f"   Error response: {error_text}")
+                                
+                                # Special handling for rate limit (429) errors
+                                if response.status == 429:
+                                    logger.warning("⚠️ Google Drive rate limit hit (429). Client should retry with backoff.")
+                                    raise HTTPException(
+                                        status_code=429,
+                                        detail="Google Drive rate limit exceeded. Please try again in a moment."
+                                    )
+                                
+                                # For other errors, check if it's in the error text
+                                if "429" in error_text or "rate limit" in error_text.lower() or "too many requests" in error_text.lower():
+                                    logger.warning("⚠️ Google Drive rate limit detected in error message.")
+                                    raise HTTPException(
+                                        status_code=429,
+                                        detail="Google Drive rate limit exceeded. Please try again in a moment."
+                                    )
+                                
+                                # Retry on server errors
+                                last_error = f"Apps Script error: {response.status}"
+                                retry_count += 1
+                                if retry_count <= max_retries:
+                                    logger.info(f"🔄 Retrying upload... (attempt {retry_count + 1}/{max_retries + 1})")
+                                    await asyncio.sleep(3)
+                                    continue
+                                
+                                return {
+                                    "success": False,
+                                    "message": f"Apps Script error: {response.status}"
+                                }
+                                
+                except asyncio.TimeoutError:
+                    last_error = "Upload request timed out"
+                    retry_count += 1
+                    if retry_count <= max_retries:
+                        logger.warning(f"⏰ Upload timeout on attempt {retry_count}, retrying...")
+                        await asyncio.sleep(3)
+                        continue
+                    break
+                    
+                except aiohttp.ClientError as e:
+                    last_error = f"Network error: {str(e)}"
+                    retry_count += 1
+                    if retry_count <= max_retries:
+                        logger.warning(f"🌐 Network error on attempt {retry_count}, retrying...")
+                        await asyncio.sleep(3)
+                        continue
+                    break
+            
+            # All retries exhausted
+            logger.error(f"❌ Upload failed after {max_retries + 1} attempts: {last_error}")
+            return {
+                "success": False,
+                "message": f"{last_error} (after {max_retries + 1} attempts)"
+            }
         
         except HTTPException:
             raise
