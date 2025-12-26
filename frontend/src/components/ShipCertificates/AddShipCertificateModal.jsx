@@ -317,17 +317,137 @@ export const AddShipCertificateModal = ({
     let slowPathTaskId = null;
 
     try {
-      // ⭐ NEW: Use Smart Upload endpoint - sends all files at once
-      // Backend will automatically categorize into FAST/SLOW paths
-      const formData = new FormData();
-      fileArray.forEach(file => {
-        formData.append('files', file);
-      });
+      // ⭐ NEW: Upload files ONE BY ONE with 2s stagger (like Audit Certificate)
+      // This prevents backend overload and timeout issues
+      console.log(`📤 Smart Upload: Processing ${totalFiles} files one by one (2s stagger)...`);
 
-      // Update all files to processing state
-      fileArray.forEach(file => {
-        setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
-        setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? 'Đang phân tích text layer...' : 'Analyzing text layer...' }));
+      const uploadResults = [];
+      
+      for (let i = 0; i < fileArray.length; i++) {
+        const file = fileArray[i];
+        
+        // Stagger: wait 2s between files (except first file)
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        
+        try {
+          // Update status to processing
+          setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+          setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? `Đang xử lý (${i + 1}/${totalFiles})...` : `Processing (${i + 1}/${totalFiles})...` }));
+          
+          setMultiCertUploads(prev => prev.map((upload, idx) => 
+            idx === i 
+              ? { ...upload, status: 'uploading', stage: language === 'vi' ? `Đang upload (${i + 1}/${totalFiles})...` : `Uploading (${i + 1}/${totalFiles})...` }
+              : upload
+          ));
+
+          // Create FormData for SINGLE file
+          const formData = new FormData();
+          formData.append('files', file);
+
+          console.log(`📤 [${i + 1}/${totalFiles}] Uploading: ${file.name}`);
+
+          // Upload single file
+          const response = await api.post(
+            `/api/certificates/multi-upload-smart?ship_id=${selectedShip.id}`,
+            formData,
+            {
+              headers: { 'Content-Type': 'multipart/form-data' },
+              timeout: 60000, // 60 seconds per file (enough for single file)
+              onUploadProgress: (progressEvent) => {
+                const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                setFileProgressMap(prev => ({ ...prev, [file.name]: Math.min(progress, 30) }));
+              }
+            }
+          );
+
+          console.log(`📥 [${i + 1}/${totalFiles}] Response:`, response.data);
+
+          const { fast_path_results = [], slow_path_task_id, summary } = response.data;
+
+          // Process result for this file
+          if (fast_path_results.length > 0) {
+            const result = fast_path_results[0];
+            
+            if (result.status === 'success' || result.status === 'completed' || result.status === 'success_with_reference_note') {
+              successCount++;
+              
+              setFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
+              setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
+              setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? '✅ FAST PATH - Hoàn thành' : '✅ FAST PATH - Completed' }));
+              setBatchProgress(prev => ({ ...prev, current: prev.current + 1 }));
+              
+              setMultiCertUploads(prev => prev.map((upload, idx) => 
+                idx === i 
+                  ? { ...upload, status: 'completed', progress: 100, stage: '✅ FAST PATH', extracted_info: result.extracted_info }
+                  : upload
+              ));
+
+              if (!firstSuccessInfo && result.extracted_info) {
+                firstSuccessInfo = result.extracted_info;
+              }
+
+              toast.success(`✅ ${file.name} (${i + 1}/${totalFiles})`);
+              uploadResults.push({ status: 'success', filename: file.name, result });
+            } else {
+              failedCount++;
+              
+              setFileStatusMap(prev => ({ ...prev, [file.name]: 'failed' }));
+              setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
+              setFileSubStatusMap(prev => ({ ...prev, [file.name]: result.message || 'Error' }));
+              
+              setMultiCertUploads(prev => prev.map((upload, idx) => 
+                idx === i 
+                  ? { ...upload, status: 'failed', progress: 100, stage: '❌ Failed', error: result.message }
+                  : upload
+              ));
+
+              toast.error(`❌ ${file.name}: ${result.message || 'Error'}`);
+              uploadResults.push({ status: 'error', filename: file.name, error: result.message });
+            }
+          } else if (slow_path_task_id) {
+            // File went to SLOW PATH
+            slowPathTaskId = slow_path_task_id;
+            
+            setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+            setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? '🔄 SLOW PATH - Đang xử lý background...' : '🔄 SLOW PATH - Background processing...' }));
+            
+            setMultiCertUploads(prev => prev.map((upload, idx) => 
+              idx === i 
+                ? { ...upload, status: 'processing', stage: '🔄 SLOW PATH' }
+                : upload
+            ));
+            
+            uploadResults.push({ status: 'slow_path', filename: file.name, task_id: slow_path_task_id });
+          }
+
+        } catch (fileError) {
+          failedCount++;
+          console.error(`❌ [${i + 1}/${totalFiles}] Upload error for ${file.name}:`, fileError);
+          
+          setFileStatusMap(prev => ({ ...prev, [file.name]: 'failed' }));
+          setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
+          setFileSubStatusMap(prev => ({ ...prev, [file.name]: fileError.response?.data?.detail || fileError.message }));
+          
+          setMultiCertUploads(prev => prev.map((upload, idx) => 
+            idx === i 
+              ? { ...upload, status: 'failed', progress: 100, stage: '❌ Error', error: fileError.message }
+              : upload
+          ));
+
+          toast.error(`❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`);
+          uploadResults.push({ status: 'error', filename: file.name, error: fileError.message });
+        }
+      }
+
+      // Handle SLOW PATH polling if any files went to slow path
+      const slowPathFiles = uploadResults.filter(r => r.status === 'slow_path');
+      if (slowPathFiles.length > 0 && slowPathTaskId) {
+        toast.info(language === 'vi'
+          ? `🔄 ${slowPathFiles.length} file đang xử lý background...`
+          : `🔄 ${slowPathFiles.length} files processing in background...`
+        );
       });
 
       console.log(`📤 Smart Upload: Sending ${totalFiles} files to backend...`);
