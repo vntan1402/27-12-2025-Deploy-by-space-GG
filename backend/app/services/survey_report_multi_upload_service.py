@@ -6,6 +6,7 @@ import logging
 import os
 import base64
 import tempfile
+import io
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -19,20 +20,43 @@ from app.models.upload_task import TaskStatus, ProcessingType
 
 logger = logging.getLogger(__name__)
 
-# Threshold for using text layer path
-TEXT_LAYER_THRESHOLD = 400  # characters
+# Thresholds for path selection
+PAGE_THRESHOLD = 15  # Ngưỡng số trang để quyết định path
+TEXT_LAYER_THRESHOLD = 400  # Ngưỡng ký tự cho text layer
 
 
 class SurveyReportMultiUploadService:
     """Service for handling survey report uploads with Smart Upload"""
     
     @staticmethod
+    def get_pdf_page_count(file_content: bytes) -> int:
+        """
+        Get number of pages in PDF file
+        
+        Args:
+            file_content: PDF file bytes
+            
+        Returns:
+            Number of pages, or 0 if cannot determine
+        """
+        try:
+            import pdfplumber
+            pdf_file = io.BytesIO(file_content)
+            with pdfplumber.open(pdf_file) as pdf:
+                return len(pdf.pages)
+        except Exception as e:
+            logger.warning(f"Cannot get page count: {e}")
+            return 0
+    
+    @staticmethod
     def quick_check_processing_path(file_content: bytes, filename: str) -> Dict[str, Any]:
         """
-        Quickly determine whether file should use FAST or SLOW path
+        Determine whether file should use FAST or SLOW path
         
-        FAST PATH: PDF with text layer >= threshold
-        SLOW PATH: Scanned PDF or image files
+        Logic mới:
+        - File ≤15 trang → SLOW PATH (Document AI xử lý toàn bộ)
+        - File >15 trang + có text layer (≥400 chars) → FAST PATH
+        - File >15 trang + không có text layer → SLOW PATH (split 10 đầu + 10 cuối)
         """
         from app.utils.pdf_text_extractor import extract_text_from_pdf_text_layer
         
@@ -41,13 +65,15 @@ class SurveyReportMultiUploadService:
             "reason": "Default to SLOW path",
             "has_text_layer": False,
             "text_char_count": 0,
-            "is_image": False
+            "page_count": 0,
+            "is_image": False,
+            "needs_split": False
         }
         
-        # Check if image file
+        # Check if image file - always SLOW PATH
         if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.tif', '.bmp')):
             result["is_image"] = True
-            result["reason"] = "Image file requires OCR"
+            result["reason"] = "Image file - dùng Document AI"
             return result
         
         # Check if PDF
@@ -55,7 +81,19 @@ class SurveyReportMultiUploadService:
             result["reason"] = f"Unknown file type: {filename}"
             return result
         
-        # Try to extract text layer from PDF
+        # Step 1: Get page count
+        page_count = SurveyReportMultiUploadService.get_pdf_page_count(file_content)
+        result["page_count"] = page_count
+        
+        logger.info(f"📄 {filename}: {page_count} trang")
+        
+        # Step 2: If ≤15 pages → SLOW PATH (Document AI processes entire file)
+        if page_count <= PAGE_THRESHOLD:
+            result["path"] = "SLOW_PATH"
+            result["reason"] = f"File có {page_count} trang (≤{PAGE_THRESHOLD}) - dùng Document AI toàn bộ"
+            return result
+        
+        # Step 3: File >15 pages → Check text layer
         try:
             text_content = extract_text_from_pdf_text_layer(file_content)
             char_count = len(text_content.strip()) if text_content else 0
@@ -64,14 +102,20 @@ class SurveyReportMultiUploadService:
             result["has_text_layer"] = char_count >= TEXT_LAYER_THRESHOLD
             
             if char_count >= TEXT_LAYER_THRESHOLD:
+                # >15 pages + has text layer → FAST PATH
                 result["path"] = "FAST_PATH"
-                result["reason"] = f"Has text layer ({char_count} chars)"
+                result["reason"] = f"File {page_count} trang (>{PAGE_THRESHOLD}) có text layer ({char_count} chars) - dùng FAST PATH"
             else:
-                result["reason"] = f"Text layer too short ({char_count} chars < {TEXT_LAYER_THRESHOLD})"
+                # >15 pages + no text layer → SLOW PATH with split
+                result["path"] = "SLOW_PATH"
+                result["needs_split"] = True
+                result["reason"] = f"File {page_count} trang (>{PAGE_THRESHOLD}) không có text layer - split 10 đầu + 10 cuối, dùng Document AI"
                 
         except Exception as e:
             logger.warning(f"Text extraction failed for {filename}: {e}")
-            result["reason"] = f"Text extraction failed: {e}"
+            result["path"] = "SLOW_PATH"
+            result["needs_split"] = page_count > PAGE_THRESHOLD
+            result["reason"] = f"Text extraction failed - dùng Document AI"
         
         return result
     
