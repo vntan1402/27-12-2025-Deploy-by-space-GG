@@ -412,10 +412,16 @@ class SurveyReportAnalyzeService:
     ) -> Dict[str, Any]:
         """Process a large PDF (>15 pages) by splitting into chunks"""
         from app.utils.document_ai_helper import analyze_survey_report_with_document_ai
+        import time
+        import aiohttp
+        
+        process_start_time = time.time()
+        logger.info(f"⏱️ [TIMING] Starting large PDF processing: {filename} ({total_pages} pages)")
         
         chunks = splitter.split_pdf(file_content, filename)
         total_chunks = len(chunks)
-        logger.info(f"📦 Created {total_chunks} chunks from {total_pages}-page PDF")
+        split_time = time.time() - process_start_time
+        logger.info(f"⏱️ [TIMING] PDF split completed in {split_time:.2f}s - Created {total_chunks} chunks")
         
         # LIMIT: Process max 5 chunks only (like backend-v1)
         MAX_CHUNKS = 5
