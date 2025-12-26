@@ -672,12 +672,14 @@ class CertificateMultiUploadService:
                 
                 # Upload summary to GDrive with text/plain MIME type
                 # ⭐ NEW: Use parent_category structure
+                step_start = time.time()
                 summary_upload_result = await CertificateMultiUploadService._upload_to_gdrive_with_parent(
                     gdrive_config_doc, summary_bytes, summary_filename, ship_name,
                     "Class & Flag Cert",  # parent_category
                     "Certificates",       # category
                     content_type="text/plain"  # ⭐ Explicitly set MIME type for text files
                 )
+                timing['4_gdrive_upload_summary'] = round(time.time() - step_start, 2)
                 
                 if summary_upload_result.get("success"):
                     summary_file_id = summary_upload_result.get("file_id")
