@@ -477,16 +477,19 @@ class CertificateMultiUploadService:
                     with open(temp_file["temp_path"], "rb") as f:
                         file_content = f.read()
                     
-                    # Create mock UploadFile
+                    # Create mock UploadFile with headers for content_type
                     from io import BytesIO
-                    from fastapi import UploadFile as FastAPIUploadFile
+                    from starlette.datastructures import UploadFile as StarletteUploadFile, Headers
                     
                     file_obj = BytesIO(file_content)
-                    mock_file = FastAPIUploadFile(
+                    content_type = temp_file.get("content_type", "application/pdf")
+                    headers = Headers({"content-type": content_type})
+                    
+                    mock_file = StarletteUploadFile(
                         file=file_obj,
-                        filename=temp_file["filename"]
+                        filename=temp_file["filename"],
+                        headers=headers
                     )
-                    mock_file.content_type = temp_file.get("content_type", "application/pdf")
                     
                     # Create mock user for the service
                     from app.models.user import UserResponse, UserRole
