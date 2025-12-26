@@ -3,6 +3,7 @@ import os
 import json
 import io
 import asyncio
+import aiohttp
 from typing import Dict, Any, Optional
 from datetime import datetime
 from fastapi import HTTPException
