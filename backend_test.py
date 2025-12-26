@@ -1,38 +1,32 @@
 #!/usr/bin/env python3
 """
-🧪 COMPREHENSIVE BACKEND API TESTING (PRE-DEPLOYMENT)
+🧪 SURVEY REPORT SMART UPLOAD TESTING
 
-Testing all critical backend flows before production deployment:
+Testing the new Survey Report Smart Upload feature for Ship Management System:
 
 ## Test Objective
-Comprehensive testing of:
-1. Authentication flows (all 4 test users)
-2. AI Configuration endpoints
-3. Ship Certificates Multi-Upload
-4. Audit Certificates Multi-Upload  
-5. User Management endpoints
-6. Permission system tests
-7. GDrive Configuration
+Test the new Survey Report Smart Upload feature:
+1. Authentication with admin1/123456
+2. Smart Upload API endpoint (FAST/SLOW path)
+3. Task Status polling for SLOW PATH
+4. Survey Report creation verification
 
 ## Test Credentials
-- **system_admin** / `YourSecure@Pass2024` (Full access - System Admin)
-- **Crew4** / `123456` (Editor role - Ship Officer)
-- **Crew3** / `123456` (Viewer role - Crew)
-- **crewing_manager** / `123456` (Manager in crewing department)
+- **admin1** / `123456` (Admin access for testing)
 
-## Critical Flows to Test
-- POST /api/auth/login - Test login for all 4 users above
-- GET /api/verify-token - Verify token validity
-- GET /api/ai-config - Get AI config (should work for all authenticated users)
-- POST /api/ai-config - Create/Update AI config (admin only)
-- GET /api/ships - Get ships list first
-- POST /api/certificates/multi-upload?ship_id={ship_id} - Test with a small test file
-- POST /api/audit-certificates/multi-upload?ship_id={ship_id} - This was the failing endpoint
-- GET /api/users - Get users list (admin only)
-- GET /api/users/{user_id} - Get single user (new endpoint)
-- PUT /api/users/{user_id} - Update user
-- GET /api/gdrive/config - Check for Pydantic validation errors
-- GET /api/gdrive/status - Check GDrive status
+## New API Endpoints to Test
+- POST /api/survey-reports/multi-upload-smart?ship_id={ship_id} - Smart multi-upload with FAST/SLOW path
+- GET /api/survey-reports/upload-task/{task_id} - Poll task status for SLOW PATH
+
+## Test Scenarios
+1. Login and get auth token
+2. Get a ship_id from /api/ships endpoint
+3. Create a simple test PDF file with text content
+4. Upload the PDF to smart upload endpoint
+5. Verify response contains fast_path_results or slow_path_task_id
+6. Verify summary object contains file counts
+7. Test task status endpoint if slow_path_task_id returned
+8. Verify survey report was created in /api/survey-reports
 """
 
 import requests
