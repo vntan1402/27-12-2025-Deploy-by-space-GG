@@ -311,12 +311,25 @@ class CertificateMultiUploadService:
             fast_results = []
             for file_data in fast_path_files:
                 try:
-                    # Create a mock UploadFile with the content we already read
-                    file = file_data["file"]
-                    file._file.seek(0)  # Reset file position
+                    # Create a new UploadFile from the content we already read
+                    from io import BytesIO
+                    from fastapi import UploadFile as FastAPIUploadFile
+                    
+                    file_content = file_data["content"]
+                    original_file = file_data["file"]
+                    
+                    # Create BytesIO from content
+                    file_obj = BytesIO(file_content)
+                    
+                    # Create new UploadFile
+                    mock_file = FastAPIUploadFile(
+                        file=file_obj,
+                        filename=original_file.filename
+                    )
+                    mock_file.content_type = original_file.content_type or "application/pdf"
                     
                     result = await CertificateMultiUploadService._process_single_file(
-                        file=file,
+                        file=mock_file,
                         ship_id=ship_id,
                         ship=ship,
                         ai_config=ai_config,
@@ -329,6 +342,8 @@ class CertificateMultiUploadService:
                     
                 except Exception as e:
                     logger.error(f"❌ FAST PATH error for {file_data['file'].filename}: {e}")
+                    import traceback
+                    logger.error(traceback.format_exc())
                     fast_results.append({
                         "filename": file_data["file"].filename,
                         "status": "error",
