@@ -115,7 +115,7 @@ class SurveyReportMultiUploadService:
             logger.warning(f"Text extraction failed for {filename}: {e}")
             result["path"] = "SLOW_PATH"
             result["needs_split"] = page_count > PAGE_THRESHOLD
-            result["reason"] = f"Text extraction failed - dùng Document AI"
+            result["reason"] = "Text extraction failed - dùng Document AI"
         
         return result
     
