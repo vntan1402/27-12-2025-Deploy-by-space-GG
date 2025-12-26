@@ -4,10 +4,111 @@ Extracts native text layer from PDF files (non-OCR)
 """
 import logging
 import io
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 import pdfplumber
 
 logger = logging.getLogger(__name__)
+
+# Constants
+TEXT_LAYER_THRESHOLD = 400  # Minimum characters to consider text layer valid
+
+
+def quick_check_text_layer(file_bytes: bytes, filename: str) -> Dict[str, Any]:
+    """
+    Quick synchronous check if PDF has sufficient text layer
+    This is a fast operation (~100ms) to decide fast/slow path
+    
+    Args:
+        file_bytes: PDF file bytes
+        filename: Original filename
+        
+    Returns:
+        Dict with:
+        - has_sufficient_text: bool (>= TEXT_LAYER_THRESHOLD chars)
+        - text_content: str (extracted text if sufficient)
+        - char_count: int
+        - page_count: int
+    """
+    try:
+        logger.info(f"⚡ Quick text layer check for: {filename}")
+        
+        pdf_file = io.BytesIO(file_bytes)
+        
+        with pdfplumber.open(pdf_file) as pdf:
+            page_count = len(pdf.pages)
+            all_text = []
+            
+            for i, page in enumerate(pdf.pages, start=1):
+                try:
+                    page_text = page.extract_text() or ""
+                    if page_text.strip():
+                        all_text.append(f"--- Page {i} ---\n{page_text}\n")
+                except Exception as e:
+                    logger.warning(f"⚠️ Error reading page {i}: {e}")
+                    continue
+            
+            full_text = "\n".join(all_text)
+            char_count = len(full_text.strip())
+            has_sufficient = char_count >= TEXT_LAYER_THRESHOLD
+            
+            logger.info(f"   📊 Pages: {page_count}, Characters: {char_count}, Sufficient: {has_sufficient}")
+            
+            return {
+                "has_sufficient_text": has_sufficient,
+                "text_content": full_text if has_sufficient else None,
+                "char_count": char_count,
+                "page_count": page_count,
+                "threshold": TEXT_LAYER_THRESHOLD
+            }
+            
+    except Exception as e:
+        logger.error(f"❌ Quick text check failed for {filename}: {e}")
+        return {
+            "has_sufficient_text": False,
+            "text_content": None,
+            "char_count": 0,
+            "page_count": 0,
+            "error": str(e)
+        }
+
+
+def format_text_layer_summary(text_content: str, filename: str, page_count: int, char_count: int) -> str:
+    """
+    Format extracted text layer into summary format
+    
+    Args:
+        text_content: Extracted text from PDF
+        filename: Original filename
+        page_count: Number of pages
+        char_count: Character count
+        
+    Returns:
+        Formatted summary string
+    """
+    summary_parts = []
+    
+    # Header
+    summary_parts.append("=" * 80)
+    summary_parts.append("CERTIFICATE SUMMARY - TEXT LAYER EXTRACTION")
+    summary_parts.append(f"File: {filename}")
+    summary_parts.append(f"Processing: FAST PATH (Native PDF Text)")
+    summary_parts.append("=" * 80)
+    summary_parts.append("")
+    
+    # Content info
+    summary_parts.append("=" * 80)
+    summary_parts.append("TEXT LAYER CONTENT (Native PDF Text)")
+    summary_parts.append(f"Source: Direct extraction from PDF text layer")
+    summary_parts.append(f"Pages: {page_count}")
+    summary_parts.append(f"Characters: {char_count}")
+    summary_parts.append("=" * 80)
+    summary_parts.append("")
+    
+    # Actual content
+    summary_parts.append(text_content)
+    summary_parts.append("")
+    
+    return "\n".join(summary_parts)
 
 
 async def extract_text_layer_from_pdf(
