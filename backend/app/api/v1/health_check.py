@@ -244,7 +244,21 @@ async def _test_document_ai_connectivity(company_id: str) -> Dict[str, Any]:
             result["message"] = "AI configuration not found"
             return result
         
-        doc_ai_config = ai_config.get("document_ai_config", {})
+        # Check both possible field names: document_ai and document_ai_config
+        doc_ai_config = ai_config.get("document_ai") or ai_config.get("document_ai_config", {})
+        
+        if not doc_ai_config:
+            result["status"] = "unhealthy"
+            result["message"] = "Document AI not configured in AI settings"
+            return result
+        
+        # Check if Document AI is enabled
+        if not doc_ai_config.get("enabled", False):
+            result["status"] = "unhealthy"
+            result["message"] = "Document AI is disabled"
+            result["details"]["enabled"] = False
+            return result
+        
         apps_script_url = doc_ai_config.get("apps_script_url")
         project_id = doc_ai_config.get("project_id")
         processor_id = doc_ai_config.get("processor_id")
@@ -281,7 +295,7 @@ async def _test_document_ai_connectivity(company_id: str) -> Dict[str, Any]:
                 result["latency_ms"] = round(elapsed_ms, 2)
                 result["details"]["http_status"] = response.status
                 result["details"]["project_id"] = project_id
-                result["details"]["processor_id"] = processor_id[:8] + "..."
+                result["details"]["processor_id"] = processor_id[:8] + "..." if processor_id else "N/A"
                 
                 if response.status == 200:
                     result["status"] = "healthy"
