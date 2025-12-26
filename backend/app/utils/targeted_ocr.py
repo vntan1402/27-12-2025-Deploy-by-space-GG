@@ -186,6 +186,106 @@ class TargetedOCRProcessor:
         
         return result
     
+    def extract_from_image(
+        self, 
+        image_content: bytes, 
+        report_no_field: str = 'cert_no'
+    ) -> Dict[str, Optional[str]]:
+        """
+        Extract cert_no and other fields from image file (JPG, PNG) header/footer
+        
+        Args:
+            image_content: Image file content as bytes
+            report_no_field: Field name for cert/report number (default: 'cert_no')
+        
+        Returns:
+            Dict with extracted fields and metadata
+        """
+        result = {
+            'report_form': None,
+            report_no_field: None,
+            'header_text': '',
+            'footer_text': '',
+            'ocr_success': False,
+            'ocr_error': None
+        }
+        
+        if not TESSERACT_AVAILABLE:
+            result['ocr_error'] = "Tesseract OCR not available"
+            logger.warning("⚠️ Tesseract OCR not available for image processing")
+            return result
+        
+        try:
+            logger.info(f"🔍 Starting targeted OCR on image for {report_no_field}")
+            
+            # Load image from bytes
+            image = Image.open(io.BytesIO(image_content))
+            
+            # Convert to RGB if necessary (for PNG with alpha channel)
+            if image.mode in ('RGBA', 'LA', 'P'):
+                image = image.convert('RGB')
+            
+            # Extract header and footer
+            header_text = self._extract_header(image)
+            footer_text = self._extract_footer(image)
+            
+            result['header_text'] = header_text
+            result['footer_text'] = footer_text
+            
+            logger.info(f"📋 Image Header text: {len(header_text)} chars")
+            logger.info(f"📋 Image Footer text: {len(footer_text)} chars")
+            
+            # Extract fields using pattern matching
+            combined_text = header_text + "\n" + footer_text
+            
+            # Extract report_form (if applicable)
+            report_form = self._extract_report_form(combined_text)
+            if report_form:
+                result['report_form'] = report_form
+                logger.info(f"✅ Extracted report_form from image: '{report_form}'")
+            
+            # Extract cert_no/report_no
+            report_no = self._extract_report_no(combined_text)
+            if report_no:
+                result[report_no_field] = report_no
+                logger.info(f"✅ Extracted {report_no_field} from image: '{report_no}'")
+            
+            # Also try to extract cert number patterns specifically
+            cert_no = self._extract_cert_no(combined_text)
+            if cert_no and not result.get(report_no_field):
+                result[report_no_field] = cert_no
+                logger.info(f"✅ Extracted {report_no_field} via cert pattern: '{cert_no}'")
+            
+            result['ocr_success'] = True
+            logger.info(f"✅ Image targeted OCR completed successfully")
+            
+        except Exception as e:
+            result['ocr_error'] = str(e)
+            logger.error(f"❌ Image targeted OCR failed: {e}")
+        
+        return result
+    
+    def _extract_cert_no(self, text: str) -> Optional[str]:
+        """Extract certificate number from text using various patterns"""
+        patterns = [
+            # Common cert number patterns
+            r'(?:Certificate\s*(?:No\.?|Number|#)\s*[:.]?\s*)([A-Z0-9\-/]+)',
+            r'(?:Cert\.?\s*(?:No\.?|Number|#)\s*[:.]?\s*)([A-Z0-9\-/]+)',
+            r'(?:No\.?\s*[:.]?\s*)(\d{5,})',  # Just "No." followed by numbers
+            r'(?:Number\s*[:.]?\s*)(\d{5,})',
+            # Pattern like "2305447" (7 digits)
+            r'\b(\d{7})\b',
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                cert_no = match.group(1).strip()
+                if cert_no and len(cert_no) >= 4:  # Minimum 4 chars
+                    return cert_no
+        
+        return None
+    
     def _extract_header(self, image: Image.Image) -> str:
         """Extract text from header region (top 15%)"""
         width, height = image.size
