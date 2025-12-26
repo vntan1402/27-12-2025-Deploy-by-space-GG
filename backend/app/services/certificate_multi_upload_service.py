@@ -281,6 +281,9 @@ class CertificateMultiUploadService:
         validation_warning = analysis_result.get("validation_warning")
         duplicate_warning = analysis_result.get("duplicate_warning")
         
+        # ⭐ Add filename to extracted_info for certificate creation
+        extracted_info["filename"] = file.filename
+        
         logger.info(f"✅ AI Analysis successful for {file.filename}")
         logger.info(f"   Summary text: {len(summary_text)} characters")
         logger.info(f"   Extracted fields: {list(extracted_info.keys())}")
