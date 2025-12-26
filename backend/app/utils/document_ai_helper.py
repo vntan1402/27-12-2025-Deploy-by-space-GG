@@ -112,21 +112,31 @@ async def analyze_document_with_document_ai(
         
         while retry_count <= max_retries:
             try:
-                import time
                 start_time = time.time()
                 logger.info(f"⏱️ [TIMING] Starting Document AI request (attempt {retry_count + 1})...")
+                logger.info(f"⏱️ [TIMING] Payload size: {len(str(payload))} chars (~{len(str(payload))/1024/1024:.2f} MB)")
                 
                 async with aiohttp.ClientSession() as session:
+                    # Time the actual HTTP POST
+                    post_start = time.time()
                     async with session.post(
                         apps_script_url,
                         json=payload,
                         timeout=aiohttp.ClientTimeout(total=180)  # 3 minutes
                     ) as response:
-                        elapsed_time = time.time() - start_time
-                        logger.info(f"⏱️ [TIMING] Document AI response received in {elapsed_time:.2f}s (status: {response.status})")
+                        # Time to first byte (TTFB) - when we start receiving response
+                        ttfb_time = time.time() - post_start
+                        logger.info(f"⏱️ [TIMING] Time to first byte (TTFB): {ttfb_time:.2f}s")
                         
                         if response.status == 200:
+                            # Time to read full response
+                            read_start = time.time()
                             result = await response.json()
+                            read_time = time.time() - read_start
+                            
+                            elapsed_time = time.time() - start_time
+                            logger.info(f"⏱️ [TIMING] Response read time: {read_time:.2f}s")
+                            logger.info(f"⏱️ [TIMING] Total Document AI request: {elapsed_time:.2f}s (TTFB: {ttfb_time:.2f}s + Read: {read_time:.2f}s)")
                             
                             logger.info(f"📦 Apps Script response keys: {list(result.keys())}")
                             
