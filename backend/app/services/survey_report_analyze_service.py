@@ -455,221 +455,230 @@ class SurveyReportAnalyzeService:
         analysis_result: Dict,
         total_pages: int
     ) -> Dict[str, Any]:
-        """Process a large PDF (>15 pages) by splitting into chunks"""
+        """
+        Process large PDF (>15 pages) with NEW SMART logic:
+        
+        1. Check text layer first (for entire PDF)
+        2. If has text layer >= 400 chars → FAST PATH (no split, no Document AI)
+        3. If no text layer → SLOW PATH:
+           - Split: 10 first pages + 10 last pages
+           - Document AI for 2 chunks
+           - OCR header/footer for Report Form
+        """
         from app.utils.document_ai_helper import analyze_survey_report_with_document_ai
+        from app.utils.pdf_text_extractor import quick_check_text_layer, TEXT_LAYER_THRESHOLD
+        from app.utils.pdf_splitter import split_first_and_last
         import time
-        import aiohttp
         
         process_start_time = time.time()
         logger.info(f"⏱️ [TIMING] Starting large PDF processing: {filename} ({total_pages} pages)")
         
-        chunks = splitter.split_pdf(file_content, filename)
-        total_chunks = len(chunks)
-        split_time = time.time() - process_start_time
-        logger.info(f"⏱️ [TIMING] PDF split completed in {split_time:.2f}s - Created {total_chunks} chunks")
+        # ⭐ Step 1: Check text layer for ENTIRE PDF
+        logger.info(f"⚡ SMART PATH: Checking text layer for large PDF ({total_pages} pages)...")
+        text_check = quick_check_text_layer(file_content, filename)
+        char_count = text_check.get("char_count", 0)
         
-        # LIMIT: Process max 5 chunks only (like backend-v1)
-        MAX_CHUNKS = 5
-        chunks_to_process = chunks[:MAX_CHUNKS]
-        skipped_chunks = total_chunks - len(chunks_to_process)
+        processing_path = None
+        summary_text = ""
         
-        if skipped_chunks > 0:
-            logger.warning(f"⚠️ File has {total_chunks} chunks. Processing first {MAX_CHUNKS} chunks only, skipping {skipped_chunks} chunks")
-            # Calculate skipped pages
-            skipped_pages = sum(chunk.get('page_count', 0) for chunk in chunks[MAX_CHUNKS:])
-            processed_pages = total_pages - skipped_pages
-            logger.info(f"📊 Processing {processed_pages}/{total_pages} pages ({skipped_pages} pages skipped)")
-        
-        analysis_result['_split_info'] = {
-            'was_split': True,
-            'total_pages': total_pages,
-            'total_chunks': total_chunks,
-            'processed_chunks': len(chunks_to_process),
-            'skipped_chunks': skipped_chunks,
-            'max_chunks_limit': MAX_CHUNKS,
-            'was_limited': skipped_chunks > 0
-        }
-        
-        # Step 1: Process chunks with Document AI (Staggered Parallel Processing)
-        # Start each chunk with 2s delay to avoid rate limits, but process in parallel
-        import asyncio
-        
-        async def process_single_chunk(chunk, chunk_index):
-            """Process a single chunk with Document AI"""
-            logger.info(f"🔄 Processing chunk {chunk_index+1}/{len(chunks_to_process)} (pages {chunk['page_range']})")
+        if text_check.get("has_sufficient_text"):
+            # ✅ FAST PATH - Use text layer only (no Document AI, no splitting!)
+            processing_path = "FAST_PATH"
+            logger.info(f"⚡ FAST PATH selected for large PDF: {char_count} chars >= {TEXT_LAYER_THRESHOLD} threshold")
+            logger.info(f"   ✅ Skipping Document AI & splitting - using text layer for ALL {total_pages} pages")
             
-            try:
-                doc_ai_result = await analyze_survey_report_with_document_ai(
-                    file_content=chunk['content'],
-                    filename=chunk['filename'],
-                    content_type='application/pdf',
-                    document_ai_config=document_ai_config
-                )
-                
-                if doc_ai_result.get('success'):
-                    summary_text = doc_ai_result.get('data', {}).get('summary', '')
-                    
-                    if summary_text:
-                        logger.info(f"✅ Chunk {chunk_index+1} completed - {len(summary_text)} chars")
-                        return {
-                            'success': True,
-                            'chunk_num': chunk['chunk_num'],
-                            'page_range': chunk['page_range'],
-                            'summary_text': summary_text
-                        }
-                    else:
-                        logger.warning(f"⚠️ Chunk {chunk_index+1} returned empty summary")
-                        return {
-                            'success': False,
-                            'chunk_num': chunk['chunk_num'],
-                            'page_range': chunk['page_range'],
-                            'error': 'Empty summary'
-                        }
-                else:
-                    error_msg = doc_ai_result.get('message', 'Unknown error')
-                    logger.error(f"❌ Chunk {chunk_index+1} failed: {error_msg}")
-                    return {
-                        'success': False,
-                        'chunk_num': chunk['chunk_num'],
-                        'page_range': chunk['page_range'],
-                        'error': error_msg
-                    }
-            except Exception as e:
-                logger.error(f"❌ Chunk {chunk_index+1} exception: {e}")
-                return {
-                    'success': False,
-                    'chunk_num': chunk['chunk_num'],
-                    'page_range': chunk['page_range'],
-                    'error': str(e)
-                }
-        
-        # Create tasks with staggered start (1s delay between each chunk start - reduced from 2s for production)
-        logger.info(f"🚀 Starting staggered parallel processing of {len(chunks_to_process)} chunks (1s delay between starts)...")
-        
-        # Warm up Apps Script before heavy processing (helps with cold start)
-        import time
-        warmup_start = time.time()
-        logger.info("🔥 Warming up Apps Script connection...")
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    document_ai_config.get("apps_script_url"),
-                    json={"action": "ping"},
-                    timeout=aiohttp.ClientTimeout(total=10)
-                ) as response:
-                    warmup_elapsed = time.time() - warmup_start
-                    logger.info(f"🔥 Apps Script warmup completed in {warmup_elapsed:.2f}s (status: {response.status})")
-        except Exception as warmup_error:
-            logger.warning(f"⚠️ Apps Script warmup failed (continuing anyway): {warmup_error}")
-        
-        tasks = []
-        for i, chunk in enumerate(chunks_to_process):
-            # Add 1s delay before starting each chunk (except first) - reduced for faster processing
-            if i > 0:
-                logger.info(f"⏳ Waiting 1s before starting chunk {i+1}...")
-                await asyncio.sleep(1)
-            
-            # Create and start task immediately
-            task = asyncio.create_task(process_single_chunk(chunk, i))
-            tasks.append(task)
-            logger.info(f"🚀 Chunk {i+1} task created and started")
-        
-        # Wait for all chunks to complete (parallel execution)
-        logger.info(f"⏳ Waiting for all {len(chunks_to_process)} chunks to complete...")
-        chunk_results = await asyncio.gather(*tasks, return_exceptions=True)
-        
-        # Handle exceptions in results
-        processed_results = []
-        for i, result in enumerate(chunk_results):
-            if isinstance(result, Exception):
-                logger.error(f"❌ Chunk {i+1} raised exception: {result}")
-                processed_results.append({
-                    'success': False,
-                    'chunk_num': i + 1,
-                    'error': str(result)
-                })
-            else:
-                processed_results.append(result)
-        
-        chunk_results = processed_results
-        
-        # Step 2: Merge summaries
-        successful_chunks = [cr for cr in chunk_results if cr.get('success')]
-        
-        if not successful_chunks:
-            logger.error("❌ All chunks failed processing")
-            analysis_result['processing_method'] = "all_chunks_failed"
-            analysis_result['_summary_text'] = ""
-            return analysis_result
-        
-        failed_chunks = len(chunks_to_process) - len(successful_chunks)
-        logger.info(f"✅ Split PDF processing complete: {len(successful_chunks)}/{len(chunks_to_process)} chunks successful, {failed_chunks} failed, {skipped_chunks} chunks skipped")
-        
-        # Create merged summary using PDFSplitter helper
-        temp_merged_data = {
-            'survey_report_name': 'Processing...',
-            'survey_report_no': 'Processing...',
-            'issued_by': 'Processing...',
-            'issued_date': 'Processing...'
-        }
-        
-        merged_summary = create_enhanced_merged_summary(
-            chunk_results=chunk_results,
-            merged_data=temp_merged_data,
-            original_filename=filename,
-            total_pages=total_pages,
-            document_type='survey_report'
-        )
-        
-        logger.info(f"📄 Merged summary created: {len(merged_summary)} chars")
-        
-        # Step 3: Perform Targeted OCR on first chunk
-        if chunks:
-            ocr_metadata = await SurveyReportAnalyzeService._perform_targeted_ocr(
-                chunks[0]['content'],
-                "first_chunk"
+            # Format text layer as summary
+            from app.utils.pdf_text_extractor import format_text_layer_summary
+            summary_text = format_text_layer_summary(
+                text_content=text_check["text_content"],
+                filename=filename,
+                page_count=total_pages,
+                char_count=char_count
             )
-            analysis_result['_ocr_info'] = ocr_metadata
             
-            # Merge OCR if successful
-            if ocr_metadata.get('ocr_success'):
+            logger.info(f"✅ Text layer summary: {len(summary_text)} characters")
+            
+            analysis_result['_split_info'] = {
+                'was_split': False,
+                'total_pages': total_pages,
+                'processing_path': 'FAST_PATH',
+                'text_layer_chars': char_count,
+                'document_ai_calls': 0,
+                'note': 'Used text layer extraction - no splitting required'
+            }
+            analysis_result['processing_method'] = "text_layer_fast_path_large_pdf"
+            
+        else:
+            # ⚠️ SLOW PATH - Need Document AI (10 first + 10 last pages)
+            processing_path = "SLOW_PATH"
+            logger.info(f"🐢 SLOW PATH selected for large PDF: {char_count} chars < {TEXT_LAYER_THRESHOLD} threshold")
+            logger.info(f"   📄 Large scanned PDF - splitting into first 10 + last 10 pages")
+            
+            # Split into 2 chunks: first 10 + last 10 pages
+            chunks = split_first_and_last(file_content, filename, first_pages=10, last_pages=10)
+            
+            analysis_result['_split_info'] = {
+                'was_split': True,
+                'total_pages': total_pages,
+                'processing_path': 'SLOW_PATH',
+                'text_layer_chars': char_count,
+                'chunks_count': len(chunks),
+                'chunks_description': 'first_10_last_10',
+                'processed_pages': sum(c.get('page_count', 0) for c in chunks),
+                'skipped_pages': total_pages - sum(c.get('page_count', 0) for c in chunks),
+                'document_ai_calls': len(chunks)
+            }
+            
+            # Process chunks with Document AI
+            import asyncio
+            
+            async def process_chunk_with_doc_ai(chunk, chunk_index):
+                """Process a single chunk with Document AI"""
+                chunk_type = chunk.get('chunk_type', 'unknown')
+                logger.info(f"🔄 Processing {chunk_type} chunk (pages {chunk['page_range']})")
+                
                 try:
-                    from app.utils.targeted_ocr import get_ocr_processor
-                    ocr_processor = get_ocr_processor()
-                    ocr_result = ocr_processor.extract_from_pdf(
-                        chunks[0]['content'], 
-                        page_num=0,
-                        report_no_field='survey_report_no'
+                    doc_ai_result = await analyze_survey_report_with_document_ai(
+                        file_content=chunk['content'],
+                        filename=chunk['filename'],
+                        content_type='application/pdf',
+                        document_ai_config=document_ai_config
                     )
                     
-                    if ocr_result.get('ocr_success'):
-                        header_text = ocr_result.get('header_text', '').strip()
-                        footer_text = ocr_result.get('footer_text', '').strip()
-                        
-                        if header_text or footer_text:
-                            ocr_section = "\n\n" + "="*60 + "\n"
-                            ocr_section += "OCR HEADER/FOOTER (from first page)\n"
-                            ocr_section += "="*60 + "\n\n"
-                            
-                            if header_text:
-                                ocr_section += "=== HEADER ===\n" + header_text + "\n\n"
-                            if footer_text:
-                                ocr_section += "=== FOOTER ===\n" + footer_text + "\n\n"
-                            
-                            merged_summary = merged_summary + ocr_section
-                            logger.info(f"✅ Merged summary with OCR: {len(merged_summary)} chars")
-                except Exception as ocr_error:
-                    logger.warning(f"⚠️ Failed to merge OCR: {ocr_error}")
+                    if doc_ai_result.get('success'):
+                        chunk_summary = doc_ai_result.get('data', {}).get('summary', '')
+                        if chunk_summary:
+                            logger.info(f"✅ {chunk_type.capitalize()} chunk completed - {len(chunk_summary)} chars")
+                            return {
+                                'success': True,
+                                'chunk_type': chunk_type,
+                                'chunk_num': chunk['chunk_num'],
+                                'page_range': chunk['page_range'],
+                                'summary_text': chunk_summary
+                            }
+                    
+                    return {
+                        'success': False,
+                        'chunk_type': chunk_type,
+                        'chunk_num': chunk['chunk_num'],
+                        'page_range': chunk['page_range'],
+                        'error': doc_ai_result.get('message', 'Empty or failed')
+                    }
+                    
+                except Exception as e:
+                    logger.error(f"❌ {chunk_type.capitalize()} chunk exception: {e}")
+                    return {
+                        'success': False,
+                        'chunk_type': chunk_type,
+                        'chunk_num': chunk['chunk_num'],
+                        'error': str(e)
+                    }
+            
+            # Process both chunks (can be parallel or sequential)
+            logger.info(f"🚀 Processing {len(chunks)} chunks with Document AI...")
+            
+            chunk_results = []
+            for i, chunk in enumerate(chunks):
+                result = await process_chunk_with_doc_ai(chunk, i)
+                chunk_results.append(result)
+                # Small delay between chunks
+                if i < len(chunks) - 1:
+                    await asyncio.sleep(1)
+            
+            # Merge chunk summaries
+            successful_chunks = [cr for cr in chunk_results if cr.get('success')]
+            
+            if not successful_chunks:
+                logger.error("❌ All chunks failed processing")
+                analysis_result['processing_method'] = "all_chunks_failed"
+                analysis_result['_summary_text'] = ""
+                return analysis_result
+            
+            # Build merged summary
+            summary_parts = []
+            summary_parts.append("=" * 80)
+            summary_parts.append("SURVEY REPORT SUMMARY - FIRST/LAST PAGES EXTRACTION")
+            summary_parts.append(f"File: {filename}")
+            summary_parts.append(f"Total Pages: {total_pages}")
+            summary_parts.append(f"Processing: SLOW PATH (Scanned PDF - Document AI)")
+            summary_parts.append("=" * 80)
+            summary_parts.append("")
+            
+            for cr in chunk_results:
+                chunk_type = cr.get('chunk_type', 'unknown').upper()
+                page_range = cr.get('page_range', 'Unknown')
+                
+                summary_parts.append("=" * 80)
+                summary_parts.append(f"{chunk_type} PAGES (Pages {page_range})")
+                summary_parts.append("=" * 80)
+                
+                if cr.get('success'):
+                    summary_parts.append(cr.get('summary_text', ''))
+                else:
+                    summary_parts.append(f"[Processing failed: {cr.get('error', 'Unknown error')}]")
+                
+                summary_parts.append("")
+            
+            summary_text = "\n".join(summary_parts)
+            logger.info(f"📄 Merged summary from {len(successful_chunks)}/{len(chunks)} chunks: {len(summary_text)} chars")
+            
+            analysis_result['_split_info']['successful_chunks'] = len(successful_chunks)
+            analysis_result['_split_info']['failed_chunks'] = len(chunks) - len(successful_chunks)
+            analysis_result['processing_method'] = "slow_path_first_last_pages"
         
-        # Step 4: Extract fields from merged summary with System AI
-        logger.info("🧠 Extracting fields from merged summary...")
+        # ⭐ Step 2: OCR Header/Footer for Report Form (both paths)
+        logger.info("🔍 Running targeted OCR for Report Form...")
+        ocr_metadata = await SurveyReportAnalyzeService._perform_targeted_ocr(
+            file_content,
+            "large_pdf_first_page"
+        )
+        analysis_result['_ocr_info'] = ocr_metadata
+        
+        # Merge OCR text into summary
+        if ocr_metadata.get('ocr_success') and ocr_metadata.get('ocr_text_merged'):
+            try:
+                from app.utils.targeted_ocr import get_ocr_processor
+                ocr_processor = get_ocr_processor()
+                ocr_result = ocr_processor.extract_from_pdf(
+                    file_content, 
+                    page_num=0,
+                    report_no_field='survey_report_no'
+                )
+                
+                if ocr_result.get('ocr_success'):
+                    header_text = ocr_result.get('header_text', '').strip()
+                    footer_text = ocr_result.get('footer_text', '').strip()
+                    report_form = ocr_result.get('report_form')
+                    report_no = ocr_result.get('survey_report_no')
+                    
+                    if header_text or footer_text or report_form or report_no:
+                        ocr_section = "\n\n" + "="*60 + "\n"
+                        ocr_section += "HEADER/FOOTER OCR EXTRACTION (First Page)\n"
+                        ocr_section += "="*60 + "\n\n"
+                        
+                        if report_form:
+                            ocr_section += f"Report Form (OCR): {report_form}\n"
+                        if report_no:
+                            ocr_section += f"Report No (OCR): {report_no}\n"
+                        if header_text:
+                            ocr_section += f"\n=== HEADER ===\n{header_text}\n"
+                        if footer_text:
+                            ocr_section += f"\n=== FOOTER ===\n{footer_text}\n"
+                        
+                        summary_text = summary_text + ocr_section
+                        logger.info(f"✅ Enhanced summary with OCR: report_form={report_form}, report_no={report_no}")
+            except Exception as ocr_error:
+                logger.warning(f"⚠️ Failed to merge OCR: {ocr_error}")
+        
+        # ⭐ Step 3: Extract fields with Gemini AI
+        logger.info("🧠 Extracting fields from summary...")
         
         ai_provider = ai_config_doc.get("provider", "google")
         ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
         use_emergent_key = ai_config_doc.get("use_emergent_key", True)
         
         extracted_fields = await extract_survey_report_fields_from_summary(
-            merged_summary,
+            summary_text,
             ai_provider,
             ai_model,
             use_emergent_key,
@@ -677,57 +686,40 @@ class SurveyReportAnalyzeService:
         )
         
         if extracted_fields:
-            logger.info("✅ System AI extraction from merged summary completed")
+            logger.info(f"✅ Field extraction completed ({processing_path})")
             
-            # Normalize issued_by to standard abbreviation (large PDF)
+            # Normalize issued_by
             if extracted_fields.get('issued_by'):
                 try:
                     from app.utils.issued_by_abbreviation import normalize_issued_by
-                    
-                    original_issued_by = extracted_fields['issued_by']
-                    normalized_issued_by = normalize_issued_by(original_issued_by)
-                    
-                    if normalized_issued_by != original_issued_by:
-                        extracted_fields['issued_by'] = normalized_issued_by
-                        logger.info(f"✅ Normalized Issued By (large PDF): '{original_issued_by}' → '{normalized_issued_by}'")
-                    else:
-                        logger.info(f"ℹ️ Issued By kept as (large PDF): '{original_issued_by}'")
-                        
-                except Exception as norm_error:
-                    logger.error(f"❌ Error normalizing issued_by (large PDF): {norm_error}")
-                    # Keep original value if normalization fails
+                    original = extracted_fields['issued_by']
+                    normalized = normalize_issued_by(original)
+                    if normalized != original:
+                        extracted_fields['issued_by'] = normalized
+                        logger.info(f"✅ Normalized Issued By: '{original}' → '{normalized}'")
+                except Exception as e:
+                    logger.warning(f"⚠️ Normalization error: {e}")
             
             analysis_result.update(extracted_fields)
-            
-            # Recreate summary with extracted data
-            final_summary = create_enhanced_merged_summary(
-                chunk_results=chunk_results,
-                merged_data=extracted_fields,
-                original_filename=filename,
-                total_pages=total_pages,
-                document_type='survey_report'
-            )
-            
-            analysis_result['_summary_text'] = final_summary
-            analysis_result['processing_method'] = "split_pdf_full_analysis"
-            
-            # Update split info with detailed stats
-            analysis_result['_split_info']['successful_chunks'] = len(successful_chunks)
-            analysis_result['_split_info']['failed_chunks'] = failed_chunks
-            analysis_result['_split_info']['has_failures'] = failed_chunks > 0
-            analysis_result['_split_info']['partial_success'] = len(successful_chunks) > 0 and failed_chunks > 0
         else:
-            logger.warning("⚠️ System AI extraction returned no fields")
-            analysis_result['_summary_text'] = merged_summary
-            analysis_result['processing_method'] = "split_pdf_merge_only"
+            logger.warning("⚠️ Field extraction returned no results")
         
-        # Log total processing time
-        total_process_time = time.time() - process_start_time
-        logger.info(f"⏱️ [TIMING] Large PDF processing completed in {total_process_time:.2f}s")
+        # Try to extract report_form from filename if not found
+        if not analysis_result.get('report_form'):
+            filename_form = extract_report_form_from_filename(filename)
+            if filename_form:
+                analysis_result['report_form'] = filename_form
+                logger.info(f"✅ Extracted report_form from filename: '{filename_form}'")
+        
+        analysis_result['_summary_text'] = summary_text
+        analysis_result['_processing_path'] = processing_path
+        
+        # Log timing
+        total_time = time.time() - process_start_time
+        logger.info(f"⏱️ [TIMING] Large PDF processing completed in {total_time:.2f}s ({processing_path})")
         analysis_result['_timing'] = {
-            'total_processing_seconds': round(total_process_time, 2),
-            'chunks_processed': len(chunks_to_process),
-            'chunks_successful': len(successful_chunks),
+            'total_seconds': round(total_time, 2),
+            'processing_path': processing_path,
             'total_pages': total_pages
         }
         
