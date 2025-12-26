@@ -780,14 +780,19 @@ def test_survey_reports_list(headers, ship_id=None):
                 successful_fast = sum(1 for r in fast_path_results if r.get("status") == "success")
                 print(f"   ✅ Fast Path processing: {successful_fast}/{len(fast_path_results)} files successful")
         
+        # Check if slow path worked
+        slow_path_success = any("survey_upload_slow" in test_type for test_type, success in all_tests if success)
+        if slow_path_success:
+            print(f"   ✅ Slow Path upload endpoint working")
+        
         # Check if task polling worked
         task_success = any("task_status" in test_type for test_type, success in all_tests if success)
         if task_success:
             print(f"   ✅ Task status polling working")
-        elif task_id:
+        elif slow_task_id:
             print(f"   ❌ Task status polling failed")
         else:
-            print(f"   ℹ️ No slow path tasks created (all fast path)")
+            print(f"   ℹ️ Task polling tested with 404 response (expected)")
         
         # Check if reports were created
         reports_success = any("survey_reports_list" in test_type for test_type, success in all_tests if success)
