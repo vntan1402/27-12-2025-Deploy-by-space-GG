@@ -106,12 +106,19 @@ async def analyze_document_with_document_ai(
         
         while retry_count <= max_retries:
             try:
+                import time
+                start_time = time.time()
+                logger.info(f"⏱️ [TIMING] Starting Document AI request (attempt {retry_count + 1})...")
+                
                 async with aiohttp.ClientSession() as session:
                     async with session.post(
                         apps_script_url,
                         json=payload,
                         timeout=aiohttp.ClientTimeout(total=180)  # 3 minutes
                     ) as response:
+                        elapsed_time = time.time() - start_time
+                        logger.info(f"⏱️ [TIMING] Document AI response received in {elapsed_time:.2f}s (status: {response.status})")
+                        
                         if response.status == 200:
                             result = await response.json()
                             
@@ -121,7 +128,7 @@ async def analyze_document_with_document_ai(
                                 summary = result.get("data", {}).get("summary", "")
                                 confidence = result.get("data", {}).get("confidence", 0.0)
                                 
-                                logger.info(f"✅ Document AI completed for {document_type}")
+                                logger.info(f"✅ Document AI completed for {document_type} in {elapsed_time:.2f}s")
                                 logger.info(f"   Summary length: {len(summary)} characters")
                                 logger.info(f"   Confidence: {confidence}")
                                 logger.info(f"   Full response: {result}")
