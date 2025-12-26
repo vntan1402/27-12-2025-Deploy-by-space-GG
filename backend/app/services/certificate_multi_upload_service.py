@@ -313,7 +313,7 @@ class CertificateMultiUploadService:
                 try:
                     # Create a new UploadFile from the content we already read
                     from io import BytesIO
-                    from fastapi import UploadFile as FastAPIUploadFile
+                    from starlette.datastructures import UploadFile as StarletteUploadFile, Headers
                     
                     file_content = file_data["content"]
                     original_file = file_data["file"]
@@ -321,12 +321,16 @@ class CertificateMultiUploadService:
                     # Create BytesIO from content
                     file_obj = BytesIO(file_content)
                     
-                    # Create new UploadFile
-                    mock_file = FastAPIUploadFile(
+                    # Create headers with content-type
+                    content_type = original_file.content_type or "application/pdf"
+                    headers = Headers({"content-type": content_type})
+                    
+                    # Create new UploadFile with headers
+                    mock_file = StarletteUploadFile(
                         file=file_obj,
-                        filename=original_file.filename
+                        filename=original_file.filename,
+                        headers=headers
                     )
-                    mock_file.content_type = original_file.content_type or "application/pdf"
                     
                     result = await CertificateMultiUploadService._process_single_file(
                         file=mock_file,
