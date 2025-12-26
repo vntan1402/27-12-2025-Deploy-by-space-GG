@@ -231,88 +231,138 @@ class ShipCertificateAnalyzeService:
         ai_config_doc: dict,
         current_user: UserResponse
     ) -> Dict[str, Any]:
-        """Process file ≤15 pages (or images) - single Document AI call"""
+        """
+        Process file ≤15 pages (or images) with SMART PATH selection:
+        - FAST PATH: If text layer >= 400 chars, use text layer only (no Document AI)
+        - SLOW PATH: If text layer < 400 chars, use Document AI (OCR)
+        """
         try:
-            logger.info("📄 Processing small file/image (single Document AI call)")
-            
-            # Call Document AI
-            from app.utils.document_ai_helper import analyze_document_with_document_ai
-            
-            # Determine MIME type
+            # Determine file type
             file_ext = filename.lower().split('.')[-1] if '.' in filename else 'pdf'
-            mime_type_mapping = {
-                'pdf': 'application/pdf',
-                'jpg': 'image/jpeg',
-                'jpeg': 'image/jpeg',
-                'png': 'image/png'
-            }
-            content_type = mime_type_mapping.get(file_ext, 'application/pdf')
+            is_pdf = file_ext == 'pdf'
             
-            # ⭐ NEW: PARALLEL PROCESSING - Text Layer + Document AI
-            logger.info(f"🚀 Starting parallel extraction: Text Layer + Document AI")
-            
-            # Import text extractor
-            from app.utils.pdf_text_extractor import extract_text_layer_from_pdf, merge_text_layer_and_document_ai
-            
-            # Run both extractions in parallel
-            text_layer_task = extract_text_layer_from_pdf(
-                file_content=file_bytes,
-                filename=filename
+            # Import utilities
+            from app.utils.pdf_text_extractor import (
+                quick_check_text_layer, 
+                format_text_layer_summary,
+                TEXT_LAYER_THRESHOLD
             )
             
-            doc_ai_task = analyze_document_with_document_ai(
-                file_content=file_bytes,
-                filename=filename,
-                content_type=content_type,
-                document_ai_config=document_ai_config,
-                document_type='other'  # Ship certificates - general type
-            )
+            summary_text = None
+            processing_path = None
             
-            # Wait for both to complete
-            import asyncio
-            text_layer_result, doc_ai_result = await asyncio.gather(
-                text_layer_task,
-                doc_ai_task,
-                return_exceptions=True
-            )
-            
-            # Handle exceptions
-            if isinstance(text_layer_result, Exception):
-                logger.warning(f"⚠️ Text layer extraction failed: {text_layer_result}")
-                text_layer_result = {"success": False, "text": "", "has_text_layer": False}
-            
-            if isinstance(doc_ai_result, Exception):
-                logger.error(f"❌ Document AI failed: {doc_ai_result}")
-                doc_ai_result = {"success": False}
-            
-            # Log results
-            if text_layer_result.get("has_text_layer"):
-                logger.info(f"✅ Text layer: {text_layer_result.get('total_characters', 0)} characters")
+            # ⭐ SMART PATH SELECTION (PDF only)
+            if is_pdf:
+                logger.info(f"⚡ SMART PATH: Checking text layer for {filename}...")
+                
+                # Quick check text layer (synchronous, fast)
+                text_check = quick_check_text_layer(file_bytes, filename)
+                char_count = text_check.get("char_count", 0)
+                
+                if text_check.get("has_sufficient_text"):
+                    # ✅ FAST PATH - Use text layer only
+                    processing_path = "FAST_PATH"
+                    logger.info(f"⚡ FAST PATH selected: {char_count} chars >= {TEXT_LAYER_THRESHOLD} threshold")
+                    logger.info(f"   ✅ Skipping Document AI call - using text layer only")
+                    
+                    # Format text layer as summary
+                    summary_text = format_text_layer_summary(
+                        text_content=text_check["text_content"],
+                        filename=filename,
+                        page_count=text_check["page_count"],
+                        char_count=char_count
+                    )
+                    
+                    logger.info(f"✅ Text layer summary: {len(summary_text)} characters")
+                else:
+                    # ⚠️ SLOW PATH - Need Document AI
+                    processing_path = "SLOW_PATH"
+                    logger.info(f"🐢 SLOW PATH selected: {char_count} chars < {TEXT_LAYER_THRESHOLD} threshold")
+                    logger.info(f"   📄 PDF appears to be scanned/image - calling Document AI...")
             else:
-                logger.info(f"⚠️ No text layer found (scanned PDF)")
+                # Image files always need Document AI
+                processing_path = "SLOW_PATH"
+                logger.info(f"🐢 SLOW PATH: Image file detected ({file_ext}), using Document AI")
             
-            if doc_ai_result.get("success"):
-                doc_ai_summary = doc_ai_result.get("data", {}).get("summary", "")
-                logger.info(f"✅ Document AI: {len(doc_ai_summary)} characters")
-            else:
-                logger.warning(f"⚠️ Document AI failed or empty")
+            # ⚠️ SLOW PATH - Call Document AI
+            if processing_path == "SLOW_PATH":
+                from app.utils.document_ai_helper import analyze_document_with_document_ai
+                from app.utils.pdf_text_extractor import merge_text_layer_and_document_ai, extract_text_layer_from_pdf
+                
+                mime_type_mapping = {
+                    'pdf': 'application/pdf',
+                    'jpg': 'image/jpeg',
+                    'jpeg': 'image/jpeg',
+                    'png': 'image/png'
+                }
+                content_type = mime_type_mapping.get(file_ext, 'application/pdf')
+                
+                logger.info(f"🚀 Starting Document AI analysis...")
+                
+                # For PDF, also get text layer for merging
+                if is_pdf:
+                    import asyncio
+                    text_layer_task = extract_text_layer_from_pdf(
+                        file_content=file_bytes,
+                        filename=filename
+                    )
+                    
+                    doc_ai_task = analyze_document_with_document_ai(
+                        file_content=file_bytes,
+                        filename=filename,
+                        content_type=content_type,
+                        document_ai_config=document_ai_config,
+                        document_type='other'
+                    )
+                    
+                    text_layer_result, doc_ai_result = await asyncio.gather(
+                        text_layer_task,
+                        doc_ai_task,
+                        return_exceptions=True
+                    )
+                    
+                    if isinstance(text_layer_result, Exception):
+                        text_layer_result = {"success": False, "text": "", "has_text_layer": False}
+                    
+                    if isinstance(doc_ai_result, Exception):
+                        logger.error(f"❌ Document AI failed: {doc_ai_result}")
+                        doc_ai_result = {"success": False}
+                    
+                    # Merge results
+                    summary_text = merge_text_layer_and_document_ai(
+                        text_layer_result=text_layer_result,
+                        document_ai_result=doc_ai_result,
+                        filename=filename
+                    )
+                else:
+                    # Image file - Document AI only
+                    doc_ai_result = await analyze_document_with_document_ai(
+                        file_content=file_bytes,
+                        filename=filename,
+                        content_type=content_type,
+                        document_ai_config=document_ai_config,
+                        document_type='other'
+                    )
+                    
+                    if doc_ai_result and doc_ai_result.get("success"):
+                        summary_text = doc_ai_result.get("data", {}).get("summary", "")
+                    else:
+                        summary_text = ""
+                
+                if doc_ai_result.get("success"):
+                    doc_ai_summary = doc_ai_result.get("data", {}).get("summary", "")
+                    logger.info(f"✅ Document AI completed: {len(doc_ai_summary)} characters")
             
-            # ⭐ NEW: Merge both results
-            summary_text = merge_text_layer_and_document_ai(
-                text_layer_result=text_layer_result,
-                document_ai_result=doc_ai_result,
-                filename=filename
-            )
-            
+            # Validate summary
             if not summary_text or len(summary_text.strip()) < 100:
                 raise HTTPException(
                     status_code=400,
-                    detail="Could not extract sufficient text from document (both text layer and OCR failed)"
+                    detail="Could not extract sufficient text from document"
                 )
             
-            logger.info(f"✅ Merged summary: {len(summary_text)} total characters")
+            logger.info(f"✅ Final summary ({processing_path}): {len(summary_text)} total characters")
             
-            # Extract fields with System AI
+            # Extract fields with System AI (Gemini)
             extracted_info = await extract_ship_certificate_fields_from_summary(
                 summary_text=summary_text,
                 filename=filename,
@@ -325,6 +375,9 @@ class ShipCertificateAnalyzeService:
                     detail="Could not extract certificate information from document"
                 )
             
+            # Add processing metadata
+            extracted_info['_processing_path'] = processing_path
+            
             # Normalize issued_by
             if extracted_info.get('issued_by'):
                 extracted_info['issued_by'] = normalize_issued_by(extracted_info['issued_by'])
@@ -336,7 +389,7 @@ class ShipCertificateAnalyzeService:
                 current_ship=ship
             )
             
-            # Check for duplicates with all 5 fields
+            # Check for duplicates
             duplicate_warning = await ShipCertificateAnalyzeService.check_duplicate(
                 ship_id=ship["id"],
                 cert_name=extracted_info.get('cert_name'),
@@ -350,7 +403,8 @@ class ShipCertificateAnalyzeService:
             return {
                 "success": True,
                 "extracted_info": extracted_info,
-                "summary_text": summary_text,  # ⭐ Return summary text for storage
+                "summary_text": summary_text,
+                "processing_path": processing_path,  # ⭐ Return which path was used
                 "validation_warning": validation_warning,
                 "duplicate_warning": duplicate_warning
             }
