@@ -32,9 +32,9 @@ try:
                 BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
                 break
         else:
-            BACKEND_URL = "https://pdf-ocr-queue.preview.emergentagent.com/api"
+            BACKEND_URL = "https://smart-upload-2.preview.emergentagent.com/api"
 except:
-    BACKEND_URL = "https://pdf-ocr-queue.preview.emergentagent.com/api"
+    BACKEND_URL = "https://smart-upload-2.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_USERNAME = "system_admin"

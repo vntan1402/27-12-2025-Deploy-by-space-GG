@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://pdf-ocr-queue.preview.emergentagent.com/api"
+API_URL="https://smart-upload-2.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \

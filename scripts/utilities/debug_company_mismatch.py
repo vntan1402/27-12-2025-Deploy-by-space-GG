@@ -7,7 +7,7 @@ import requests
 import json
 
 # Backend URL
-BACKEND_URL = "https://pdf-ocr-queue.preview.emergentagent.com/api"
+BACKEND_URL = "https://smart-upload-2.preview.emergentagent.com/api"
 
 def debug_company_mismatch():
     """Debug the company ID mismatch"""
