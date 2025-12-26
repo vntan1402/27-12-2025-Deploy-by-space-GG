@@ -337,7 +337,7 @@ export const AddShipCertificateModal = ({
         formData,
         {
           headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 60000, // 60 seconds - enough for FAST path files
+          timeout: 120000, // 120 seconds - increased for production
           onUploadProgress: (progressEvent) => {
             const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             // Update progress for all files during upload
