@@ -539,7 +539,7 @@ class ShipCertificateAnalyzeService:
                 query["cert_no"] = cert_no
             
             # Find potential duplicates
-            existing_certs = await mongo_db.find("certificates", query)
+            existing_certs = await mongo_db.find_all("certificates", query)
             
             if not existing_certs:
                 return None
