@@ -6,11 +6,13 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import ConnectivityHealthCheck from './ConnectivityHealthCheck';
+import BandwidthTest from './BandwidthTest';
 
 const AdminTools = () => {
   const navigate = useNavigate();
   const { language } = useAuth();
   const [showHealthCheck, setShowHealthCheck] = useState(false);
+  const [showBandwidthTest, setShowBandwidthTest] = useState(false);
 
   const tools = [
     {
@@ -23,6 +25,17 @@ const AdminTools = () => {
       action: () => setShowHealthCheck(true),
       badge: null,
       color: 'green'
+    },
+    {
+      id: 'bandwidth-test',
+      icon: '📊',
+      title: language === 'vi' ? 'Kiểm tra Băng thông' : 'Bandwidth Test',
+      description: language === 'vi' 
+        ? 'Đo tốc độ upload với các kích thước file khác nhau (100KB - 3MB) để xác định bottleneck'
+        : 'Measure upload speed with different file sizes (100KB - 3MB) to identify bottlenecks',
+      action: () => setShowBandwidthTest(true),
+      badge: 'New',
+      color: 'purple'
     },
     {
       id: 'system-audit-logs',
