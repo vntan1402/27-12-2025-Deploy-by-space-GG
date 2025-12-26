@@ -1077,9 +1077,14 @@ class GDriveService:
             logger.error(f"Error creating folder: {e}")
             return None
 
-    async def delete_file(self, file_id: str, company_id: str = None) -> bool:
+    async def delete_file(self, file_id: str, company_id: str = None, permanent_delete: bool = False) -> bool:
         """
         Delete file from Google Drive
+        
+        Args:
+            file_id: Google Drive file ID
+            company_id: Company ID for config lookup
+            permanent_delete: If True, permanently delete; if False, move to trash
         
         Returns:
             True if deleted successfully
@@ -1103,7 +1108,8 @@ class GDriveService:
             async with aiohttp.ClientSession() as session:
                 payload = {
                     "action": "delete_file",
-                    "file_id": file_id
+                    "file_id": file_id,
+                    "permanent": permanent_delete
                 }
                 
                 async with session.post(
