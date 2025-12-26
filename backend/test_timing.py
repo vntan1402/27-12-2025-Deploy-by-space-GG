@@ -1,10 +1,13 @@
 """Test timing for Certificate FAST PATH"""
 import asyncio
 import time
-import base64
 import os
 import sys
 sys.path.insert(0, '/app/backend')
+
+os.environ['MONGO_URL'] = 'mongodb://localhost:27017/ship_management'
+os.environ['DB_NAME'] = 'ship_management'
+os.environ['EMERGENT_LLM_KEY'] = os.environ.get('EMERGENT_LLM_KEY', 'sk-emergent-eEe35Fb1b449940199')
 
 from app.db.mongodb import mongo_db
 
@@ -15,11 +18,8 @@ async def test_timing():
     # Find a test PDF with text layer
     test_file = "/app/backend/tests/test_files/sample_cert.pdf"
     
-    # Create a simple test file if not exists
     if not os.path.exists(test_file):
-        os.makedirs("/app/backend/tests/test_files", exist_ok=True)
-        # Create a simple PDF-like content for testing
-        print("❌ No test file found. Please upload a real PDF for timing test.")
+        print("❌ No test file found")
         return
     
     with open(test_file, 'rb') as f:
@@ -50,51 +50,82 @@ async def test_timing():
     print(f"2️⃣ detect_ocr_quality: {t2:.2f}s")
     print(f"   Result: quality={quality['quality_score']}%, needs_correction={quality['needs_correction']}")
     
-    # Test 3: AI Text Correction (if needed)
-    if quality["needs_correction"]:
-        from app.utils.text_layer_correction import correct_text_layer_with_ai
-        
-        # Get AI config
-        ai_config = await mongo_db.find_one("ai_configs", {})
-        
-        start = time.time()
-        correction = await correct_text_layer_with_ai(
-            text_check["text_content"], "test.pdf", ai_config
-        )
-        t3 = time.time() - start
-        print(f"3️⃣ correct_text_layer_with_ai: {t3:.2f}s")
-    else:
-        print(f"3️⃣ AI Text Correction: SKIPPED (quality good)")
-        t3 = 0
-    
-    # Test 4: Extract fields with Gemini
-    from app.utils.ship_certificate_ai import extract_ship_certificate_fields_from_summary
+    # Test 3: Format summary
     from app.utils.pdf_text_extractor import format_text_layer_summary
     
     summary_text = format_text_layer_summary(
         text_check["text_content"], "test.pdf", 
         text_check.get("page_count", 1), text_check.get("char_count", 0)
     )
+    print(f"3️⃣ Summary formatted: {len(summary_text)} chars")
     
-    ai_config = await mongo_db.find_one("ai_configs", {})
+    # Test 4: Extract fields with Gemini
+    from app.utils.ship_certificate_ai import extract_ship_certificate_fields_from_summary
+    
+    # Create proper ai_config
+    ai_config = {
+        "provider": "google",
+        "model": "gemini-2.0-flash",
+        "api_key": os.environ.get('EMERGENT_LLM_KEY')
+    }
     
     start = time.time()
     extracted = await extract_ship_certificate_fields_from_summary(summary_text, "test.pdf", ai_config)
     t4 = time.time() - start
     print(f"4️⃣ extract_fields (Gemini): {t4:.2f}s")
-    print(f"   Extracted: {list(extracted.keys()) if extracted else 'None'}")
+    if extracted:
+        print(f"   cert_name: {extracted.get('cert_name', 'N/A')}")
+        print(f"   cert_no: {extracted.get('cert_no', 'N/A')}")
     
-    # Test 5: Google Drive upload (simulated - need real config)
-    print(f"5️⃣ Google Drive Upload: ~10-30s (depends on file size and network)")
+    # Test 5: Simulate GDrive upload timing
+    print(f"\n5️⃣ Google Drive Upload: Testing...")
+    
+    # Get GDrive config
+    db = mongo_db.database
+    gdrive_config = await db.company_gdrive_config.find_one({})
+    
+    if gdrive_config:
+        from app.utils.gdrive_helper import upload_file_with_parent_category
+        
+        # Upload a small text file to test timing
+        test_content = b"Test timing file"
+        
+        start = time.time()
+        result = await upload_file_with_parent_category(
+            gdrive_config, test_content, "timing_test.txt", 
+            "TEST_SHIP", "Class & Flag Cert", "Certificates", "text/plain"
+        )
+        t5 = time.time() - start
+        print(f"   GDrive upload (small file): {t5:.2f}s")
+        
+        # Test with larger file (the PDF)
+        start = time.time()
+        result = await upload_file_with_parent_category(
+            gdrive_config, file_content, "timing_test.pdf", 
+            "TEST_SHIP", "Class & Flag Cert", "Certificates", "application/pdf"
+        )
+        t6 = time.time() - start
+        print(f"   GDrive upload (1MB PDF): {t6:.2f}s")
+    else:
+        print("   ⚠️ No GDrive config found")
+        t5 = t6 = 0
     
     print("\n" + "=" * 60)
-    print(f"📊 TOTAL ANALYSIS TIME (without GDrive): {t1 + t2 + t3 + t4:.2f}s")
+    total = t1 + t2 + t4 + t5 + t6
+    print(f"📊 TOTAL PROCESSING TIME: {total:.2f}s")
     print("\n💡 Bottleneck Analysis:")
-    times = [("quick_check", t1), ("detect_quality", t2), ("ai_correction", t3), ("gemini_extract", t4)]
+    times = [
+        ("1. Text extraction", t1), 
+        ("2. Quality check", t2), 
+        ("4. Gemini extract", t4),
+        ("5. GDrive small", t5),
+        ("6. GDrive PDF", t6)
+    ]
     times.sort(key=lambda x: x[1], reverse=True)
     for name, t in times:
-        pct = (t / (t1 + t2 + t3 + t4)) * 100 if (t1 + t2 + t3 + t4) > 0 else 0
-        print(f"   {name}: {t:.2f}s ({pct:.1f}%)")
+        pct = (t / total) * 100 if total > 0 else 0
+        bar = "█" * int(pct / 5)
+        print(f"   {name}: {t:.2f}s ({pct:.1f}%) {bar}")
 
 if __name__ == "__main__":
     asyncio.run(test_timing())
