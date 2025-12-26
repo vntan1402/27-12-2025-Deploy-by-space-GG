@@ -283,8 +283,104 @@ const ConnectivityHealthCheck = ({ onClose }) => {
             </div>
           )}
 
+          {/* Production Diagnostic Results */}
+          {diagnosticResults && (
+            <div className="space-y-4 mt-6">
+              <h4 className="font-semibold text-gray-700 flex items-center gap-2">
+                🔬 {language === 'vi' ? 'Kết quả Chẩn đoán Production' : 'Production Diagnostic Results'}
+              </h4>
+              
+              {/* Stability Rating */}
+              <div className={`p-4 rounded-xl border-2 ${
+                diagnosticResults.summary?.stability_rating === 'excellent' ? 'bg-green-50 border-green-200' :
+                diagnosticResults.summary?.stability_rating === 'good' ? 'bg-green-50 border-green-200' :
+                diagnosticResults.summary?.stability_rating === 'slow' ? 'bg-yellow-50 border-yellow-200' :
+                'bg-red-50 border-red-200'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h5 className="font-bold text-lg">
+                      {language === 'vi' ? 'Độ ổn định kết nối' : 'Connection Stability'}
+                    </h5>
+                    <p className="text-sm opacity-80">
+                      {diagnosticResults.summary?.stability_rating === 'excellent' && (language === 'vi' ? 'Xuất sắc - Kết nối rất nhanh và ổn định' : 'Excellent - Very fast and stable')}
+                      {diagnosticResults.summary?.stability_rating === 'good' && (language === 'vi' ? 'Tốt - Kết nối ổn định' : 'Good - Stable connection')}
+                      {diagnosticResults.summary?.stability_rating === 'slow' && (language === 'vi' ? 'Chậm - Kết nối ổn định nhưng chậm' : 'Slow - Stable but slow')}
+                      {diagnosticResults.summary?.stability_rating === 'unstable' && (language === 'vi' ? 'Không ổn định - Có thể gây timeout' : 'Unstable - May cause timeouts')}
+                      {diagnosticResults.summary?.stability_rating === 'poor' && (language === 'vi' ? 'Kém - Kết nối rất không ổn định' : 'Poor - Very unstable connection')}
+                    </p>
+                  </div>
+                  <div className="text-4xl">
+                    {diagnosticResults.summary?.stability_rating === 'excellent' && '🚀'}
+                    {diagnosticResults.summary?.stability_rating === 'good' && '✅'}
+                    {diagnosticResults.summary?.stability_rating === 'slow' && '🐢'}
+                    {diagnosticResults.summary?.stability_rating === 'unstable' && '⚠️'}
+                    {diagnosticResults.summary?.stability_rating === 'poor' && '❌'}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Ping Test Results */}
+              <div className="grid grid-cols-3 gap-3">
+                {diagnosticResults.ping_tests?.map((ping, idx) => (
+                  <div key={idx} className={`p-3 rounded-lg text-center ${
+                    ping.status === 'success' ? 'bg-green-50' : 
+                    ping.status === 'timeout' ? 'bg-red-50' : 'bg-yellow-50'
+                  }`}>
+                    <div className="text-sm text-gray-500">Ping #{ping.ping_number}</div>
+                    <div className={`text-lg font-bold ${getLatencyColor(ping.latency_ms)}`}>
+                      {ping.latency_ms ? formatLatency(ping.latency_ms) : ping.status}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Latency Stats */}
+              <div className="grid grid-cols-4 gap-3">
+                <div className="bg-gray-50 p-3 rounded-lg text-center">
+                  <div className={`text-xl font-bold ${getLatencyColor(diagnosticResults.summary?.avg_latency_ms)}`}>
+                    {formatLatency(diagnosticResults.summary?.avg_latency_ms)}
+                  </div>
+                  <div className="text-xs text-gray-500">{language === 'vi' ? 'Trung bình' : 'Average'}</div>
+                </div>
+                <div className="bg-green-50 p-3 rounded-lg text-center">
+                  <div className={`text-xl font-bold ${getLatencyColor(diagnosticResults.summary?.min_latency_ms)}`}>
+                    {formatLatency(diagnosticResults.summary?.min_latency_ms)}
+                  </div>
+                  <div className="text-xs text-gray-500">{language === 'vi' ? 'Nhanh nhất' : 'Min'}</div>
+                </div>
+                <div className="bg-red-50 p-3 rounded-lg text-center">
+                  <div className={`text-xl font-bold ${getLatencyColor(diagnosticResults.summary?.max_latency_ms)}`}>
+                    {formatLatency(diagnosticResults.summary?.max_latency_ms)}
+                  </div>
+                  <div className="text-xs text-gray-500">{language === 'vi' ? 'Chậm nhất' : 'Max'}</div>
+                </div>
+                <div className="bg-blue-50 p-3 rounded-lg text-center">
+                  <div className="text-xl font-bold text-blue-600">
+                    {diagnosticResults.summary?.successful_pings}/{diagnosticResults.summary?.total_pings}
+                  </div>
+                  <div className="text-xs text-gray-500">{language === 'vi' ? 'Thành công' : 'Success'}</div>
+                </div>
+              </div>
+              
+              {/* Recommendation based on results */}
+              {diagnosticResults.summary?.avg_latency_ms > 5000 && (
+                <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                  <div className="font-semibold text-yellow-800 mb-2">
+                    ⚠️ {language === 'vi' ? 'Khuyến nghị' : 'Recommendation'}
+                  </div>
+                  <p className="text-sm text-yellow-700">
+                    {language === 'vi' 
+                      ? 'Latency cao (>5s) có thể gây timeout khi xử lý file lớn. Hãy thử upload file nhỏ hơn hoặc liên hệ IT để kiểm tra kết nối mạng.'
+                      : 'High latency (>5s) may cause timeouts with large files. Try uploading smaller files or contact IT to check network connection.'}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Instructions when no results */}
-          {!results && !loading && (
+          {!results && !diagnosticResults && !loading && !diagnosticLoading && (
             <div className="text-center py-8">
               <div className="text-6xl mb-4">🔍</div>
               <h3 className="text-lg font-semibold text-gray-700 mb-2">
