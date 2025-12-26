@@ -266,7 +266,9 @@ const ClassSurveyReport = () => {
   // ==================== BATCH PROCESSING FUNCTIONS ====================
   
   /**
-   * Start batch processing for multiple files
+   * Start batch processing for multiple files using Smart Upload
+   * - FAST PATH: PDF with text layer - processed immediately
+   * - SLOW PATH: Scanned PDF/images - background processing with polling
    */
   const startBatchProcessing = async (files) => {
     if (!selectedShip) {
@@ -287,8 +289,8 @@ const ClassSurveyReport = () => {
     files.forEach(file => {
       initialProgressMap[file.name] = 0;
       initialStatusMap[file.name] = 'waiting';
-      initialSubStatusMap[file.name] = null;
-      initialFileObjectsMap[file.name] = file; // Store file object for retry
+      initialSubStatusMap[file.name] = language === 'vi' ? 'Đang phân tích...' : 'Analyzing...';
+      initialFileObjectsMap[file.name] = file;
     });
     
     setFileProgressMap(initialProgressMap);
@@ -297,44 +299,257 @@ const ClassSurveyReport = () => {
     setFileObjectsMap(initialFileObjectsMap);
     setBatchResults([]);
     
-    const STAGGER_DELAY = 5000; // 5 seconds between file starts
     const results = [];
+    let completedCount = 0;
     
-    // Process files with staggered start
-    const promises = files.map((file, index) => {
-      return new Promise((resolve) => {
-        setTimeout(async () => {
-          const result = await processSingleFile(file);
-          results.push(result);
-          setBatchProgress({ current: results.length, total: files.length });
-          resolve(result);
-        }, index * STAGGER_DELAY);
+    try {
+      // Show smart upload info
+      toast.info(
+        language === 'vi' 
+          ? `🚀 Smart Upload: ${files.length} files (FAST path cho PDF có text, SLOW path cho PDF scan)...`
+          : `🚀 Smart Upload: ${files.length} files (FAST path for text PDFs, SLOW path for scanned PDFs)...`
+      );
+      
+      // Update all files to uploading state
+      files.forEach(file => {
+        setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 10 }));
+        setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? 'Đang upload...' : 'Uploading...' }));
       });
-    });
-    
-    // Wait for all files to complete
-    await Promise.all(promises);
-    
-    // Show results
-    setIsBatchProcessing(false);
-    setBatchResults(results);
-    setShowBatchResults(true);
-    
-    // Refresh ClassSurveyReportList component (will trigger via key change)
-    // The component will re-fetch when selectedShip changes
-    
-    // Summary toast
-    const successCount = results.filter(r => r.success).length;
-    const failCount = results.length - successCount;
-    toast.success(
-      language === 'vi'
-        ? `✅ Đã xử lý ${results.length} files: ${successCount} thành công, ${failCount} thất bại`
-        : `✅ Processed ${results.length} files: ${successCount} success, ${failCount} failed`
-    );
+      
+      // Call Smart Upload API
+      const response = await surveyReportService.multiUploadSmart(selectedShip.id, files);
+      const data = response.data || response;
+      
+      const { fast_path_results = [], slow_path_task_id, summary } = data;
+      
+      // Process FAST PATH results immediately
+      for (const result of fast_path_results) {
+        const filename = result.filename;
+        
+        if (result.status === 'success') {
+          completedCount++;
+          
+          setFileStatusMap(prev => ({ ...prev, [filename]: 'completed' }));
+          setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
+          setFileSubStatusMap(prev => ({ ...prev, [filename]: language === 'vi' ? '✅ FAST PATH - Hoàn thành' : '✅ FAST PATH - Completed' }));
+          setBatchProgress(prev => ({ ...prev, current: prev.current + 1 }));
+          
+          results.push({
+            filename,
+            success: true,
+            surveyReportCreated: true,
+            fileUploaded: true,
+            surveyReportName: result.extracted_info?.survey_report_name || filename,
+            surveyReportNo: result.extracted_info?.survey_report_no || '',
+            error: null
+          });
+        } else {
+          completedCount++;
+          
+          setFileStatusMap(prev => ({ ...prev, [filename]: 'error' }));
+          setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
+          setFileSubStatusMap(prev => ({ ...prev, [filename]: result.message || 'Error' }));
+          
+          results.push({
+            filename,
+            success: false,
+            surveyReportCreated: false,
+            fileUploaded: false,
+            surveyReportName: '',
+            surveyReportNo: '',
+            error: result.message || 'Processing failed'
+          });
+        }
+      }
+      
+      // Handle SLOW PATH files (background processing with polling)
+      if (slow_path_task_id) {
+        const slowPathCount = summary?.slow_path_count || 0;
+        
+        toast.info(
+          language === 'vi'
+            ? `🔄 ${slowPathCount} file PDF scan đang xử lý background (có thể mất 1-2 phút)...`
+            : `🔄 ${slowPathCount} scanned PDF files processing in background (may take 1-2 minutes)...`
+        );
+        
+        // Mark SLOW PATH files as processing
+        const fastPathFilenames = fast_path_results.map(r => r.filename);
+        files.forEach(file => {
+          if (!fastPathFilenames.includes(file.name)) {
+            setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+            setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? '🔄 SLOW PATH - Đang OCR...' : '🔄 SLOW PATH - OCR processing...' }));
+            setFileProgressMap(prev => ({ ...prev, [file.name]: 30 }));
+          }
+        });
+        
+        // Poll for SLOW PATH completion
+        const pollResults = await pollSlowPathTask(slow_path_task_id, files, fastPathFilenames);
+        results.push(...pollResults);
+        completedCount += pollResults.length;
+      }
+      
+      // All done - show results
+      setIsBatchProcessing(false);
+      setBatchResults(results);
+      setShowBatchResults(true);
+      
+      // Refresh list
+      setListRefreshKey(prev => prev + 1);
+      
+      // Summary toast
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.length - successCount;
+      toast.success(
+        language === 'vi'
+          ? `✅ Đã xử lý ${results.length} files: ${successCount} thành công, ${failCount} thất bại`
+          : `✅ Processed ${results.length} files: ${successCount} success, ${failCount} failed`
+      );
+      
+    } catch (error) {
+      console.error('Smart upload error:', error);
+      toast.error(
+        language === 'vi'
+          ? `❌ Lỗi upload: ${error.message || 'Unknown error'}`
+          : `❌ Upload error: ${error.message || 'Unknown error'}`
+      );
+      
+      // Mark all as failed
+      files.forEach(file => {
+        setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
+        results.push({
+          filename: file.name,
+          success: false,
+          surveyReportCreated: false,
+          fileUploaded: false,
+          surveyReportName: '',
+          surveyReportNo: '',
+          error: error.message || 'Upload failed'
+        });
+      });
+      
+      setIsBatchProcessing(false);
+      setBatchResults(results);
+      setShowBatchResults(true);
+    }
   };
 
   /**
-   * Process a single file in batch mode
+   * Poll for SLOW PATH task completion
+   */
+  const pollSlowPathTask = async (taskId, allFiles, fastPathFilenames) => {
+    const results = [];
+    const slowPathFiles = allFiles.filter(f => !fastPathFilenames.includes(f.name));
+    const maxPolls = 60; // Max 5 minutes (60 * 5 seconds)
+    let pollCount = 0;
+    
+    while (pollCount < maxPolls) {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+        
+        const response = await surveyReportService.getUploadTaskStatus(taskId);
+        const task = response.data || response;
+        
+        console.log('📊 Task status:', task.status, task);
+        
+        // Update progress for each file
+        if (task.files) {
+          task.files.forEach((fileTask, idx) => {
+            const filename = fileTask.filename;
+            const progress = fileTask.progress || 0;
+            
+            setFileProgressMap(prev => ({ ...prev, [filename]: progress }));
+            
+            if (fileTask.status === 'completed' && !results.find(r => r.filename === filename)) {
+              setFileStatusMap(prev => ({ ...prev, [filename]: 'completed' }));
+              setFileSubStatusMap(prev => ({ ...prev, [filename]: language === 'vi' ? '✅ SLOW PATH - Hoàn thành' : '✅ SLOW PATH - Completed' }));
+              setBatchProgress(prev => ({ ...prev, current: prev.current + 1 }));
+              
+              results.push({
+                filename,
+                success: true,
+                surveyReportCreated: true,
+                fileUploaded: true,
+                surveyReportName: fileTask.result?.survey_report_name || filename,
+                surveyReportNo: fileTask.result?.survey_report_no || '',
+                error: null
+              });
+            } else if (fileTask.status === 'failed' && !results.find(r => r.filename === filename)) {
+              setFileStatusMap(prev => ({ ...prev, [filename]: 'error' }));
+              setFileSubStatusMap(prev => ({ ...prev, [filename]: fileTask.error || 'Failed' }));
+              
+              results.push({
+                filename,
+                success: false,
+                surveyReportCreated: false,
+                fileUploaded: false,
+                surveyReportName: '',
+                surveyReportNo: '',
+                error: fileTask.error || 'Processing failed'
+              });
+            } else if (fileTask.status === 'processing') {
+              setFileSubStatusMap(prev => ({ 
+                ...prev, 
+                [filename]: language === 'vi' 
+                  ? `🔄 Đang xử lý... ${progress}%` 
+                  : `🔄 Processing... ${progress}%` 
+              }));
+            }
+          });
+        }
+        
+        // Check if task is complete
+        if (task.status === 'completed' || task.status === 'failed') {
+          // Add any remaining files that weren't tracked
+          slowPathFiles.forEach(file => {
+            if (!results.find(r => r.filename === file.name)) {
+              results.push({
+                filename: file.name,
+                success: false,
+                surveyReportCreated: false,
+                fileUploaded: false,
+                surveyReportName: '',
+                surveyReportNo: '',
+                error: 'Task completed without result'
+              });
+            }
+          });
+          break;
+        }
+        
+        pollCount++;
+      } catch (pollError) {
+        console.error('Poll error:', pollError);
+        pollCount++;
+      }
+    }
+    
+    // Timeout - mark remaining as failed
+    if (pollCount >= maxPolls) {
+      slowPathFiles.forEach(file => {
+        if (!results.find(r => r.filename === file.name)) {
+          setFileStatusMap(prev => ({ ...prev, [file.name]: 'error' }));
+          setFileSubStatusMap(prev => ({ ...prev, [file.name]: 'Timeout' }));
+          
+          results.push({
+            filename: file.name,
+            success: false,
+            surveyReportCreated: false,
+            fileUploaded: false,
+            surveyReportName: '',
+            surveyReportNo: '',
+            error: 'Processing timeout'
+          });
+        }
+      });
+    }
+    
+    return results;
+  };
+
+  /**
+   * Process a single file in batch mode (legacy - kept for retry)
    */
   const processSingleFile = async (file) => {
     const result = {
