@@ -192,3 +192,70 @@ async def upload_survey_report_files(
             status_code=500,
             detail=f"Failed to upload survey report files: {str(e)}"
         )
+
+
+
+@router.post("/multi-upload-smart")
+async def multi_survey_report_upload_smart(
+    ship_id: str = Query(..., description="Ship ID for survey report upload"),
+    files: List[UploadFile] = File(..., description="Survey report files to upload"),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Smart multi-upload with automatic FAST/SLOW path selection for Survey Reports
+    
+    - FAST PATH: PDF with text layer >= 400 chars → Process immediately (~2-5s)
+    - SLOW PATH: Scanned PDF/Image → Background processing, return task_id
+    
+    Returns:
+    - For FAST PATH files: Immediate results
+    - For SLOW PATH files: task_id for polling
+    """
+    from app.services.survey_report_multi_upload_service import SurveyReportMultiUploadService
+    
+    try:
+        logger.info(f"📤 Smart multi-upload started: {len(files)} files for ship {ship_id}")
+        
+        result = await SurveyReportMultiUploadService.process_multi_upload_smart(
+            ship_id=ship_id,
+            files=files,
+            current_user=current_user,
+            background_tasks=background_tasks
+        )
+        
+        logger.info(f"✅ Smart multi-upload response ready")
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Smart multi-upload error: {e}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+
+@router.get("/upload-task/{task_id}")
+async def get_survey_upload_task_status(
+    task_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Get status of a background survey report upload task
+    
+    Poll this endpoint to check progress of SLOW PATH uploads
+    """
+    from app.services.upload_task_service import UploadTaskService
+    
+    try:
+        task = await UploadTaskService.get_task(task_id)
+        
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+        
+        return task
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error getting task status: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get task status: {str(e)}")
