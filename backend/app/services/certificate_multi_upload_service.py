@@ -493,6 +493,8 @@ class CertificateMultiUploadService:
                     
                     # Create mock user for the service
                     from app.models.user import UserResponse, UserRole
+                    from datetime import datetime, timezone
+                    
                     mock_user = UserResponse(
                         id=user_id,
                         email=user_doc.get("email", ""),
@@ -500,9 +502,11 @@ class CertificateMultiUploadService:
                         full_name=user_doc.get("full_name", ""),
                         role=UserRole(user_doc.get("role", "viewer")),
                         company=company_id,
-                        department=user_doc.get("department"),
+                        department=user_doc.get("department", []),
                         ship=user_doc.get("ship"),
-                        is_active=True
+                        is_active=True,
+                        created_at=user_doc.get("created_at", datetime.now(timezone.utc)),
+                        permissions=user_doc.get("permissions", {})
                     )
                     
                     # Update progress - starting Document AI
