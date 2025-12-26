@@ -69,6 +69,11 @@ const AdminTools = () => {
 
   return (
     <div className="space-y-4">
+      {/* Health Check Modal */}
+      {showHealthCheck && (
+        <ConnectivityHealthCheck onClose={() => setShowHealthCheck(false)} />
+      )}
+
       {/* Tools Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {tools.map((tool) => {
@@ -77,7 +82,7 @@ const AdminTools = () => {
           return (
             <button
               key={tool.id}
-              onClick={() => navigate(tool.route)}
+              onClick={() => tool.action ? tool.action() : navigate(tool.route)}
               className={`
                 ${colorClasses.bg} ${colorClasses.border}
                 border-2 rounded-xl p-5 text-left
