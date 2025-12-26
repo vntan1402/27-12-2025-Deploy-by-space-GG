@@ -645,39 +645,46 @@ class GDriveService:
             logger.info(f"📁 Folder path: {ship_name} / {parent_category} / {category}")
             logger.info(f"   Apps Script will check/reuse existing folders before creating new ones")
             
-            # Call Apps Script (180s timeout for large files)
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    apps_script_url,
-                    json=payload,
-                    timeout=aiohttp.ClientTimeout(total=180)
-                ) as response:
-                    if response.status == 200:
-                        result = await response.json()
-                        
-                        if result.get("success"):
-                            # Apps Script returns 'file_id' in the response
-                            file_id = result.get("file_id")
-                            file_path = result.get("file_path", "")
-                            
-                            logger.info(f"✅ File uploaded successfully")
-                            logger.info(f"   File ID: {file_id}")
-                            logger.info(f"   Path: {file_path}")
-                            
-                            return {
-                                "success": True,
-                                "file_id": file_id,
-                                "file_path": file_path,
-                                "message": "File uploaded successfully"
-                            }
-                        else:
-                            error_msg = result.get("message", "Unknown error")
-                            logger.error(f"❌ Upload failed: {error_msg}")
-                            return {
-                                "success": False,
-                                "message": error_msg
-                            }
-                    else:
+            # Call Apps Script with extended timeout (300s for production stability)
+            # Retry logic for better reliability in production
+            max_retries = 2
+            retry_count = 0
+            last_error = None
+            
+            while retry_count <= max_retries:
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.post(
+                            apps_script_url,
+                            json=payload,
+                            timeout=aiohttp.ClientTimeout(total=300)  # 5 minutes
+                        ) as response:
+                            if response.status == 200:
+                                result = await response.json()
+                                
+                                if result.get("success"):
+                                    # Apps Script returns 'file_id' in the response
+                                    file_id = result.get("file_id")
+                                    file_path = result.get("file_path", "")
+                                    
+                                    logger.info(f"✅ File uploaded successfully")
+                                    logger.info(f"   File ID: {file_id}")
+                                    logger.info(f"   Path: {file_path}")
+                                    
+                                    return {
+                                        "success": True,
+                                        "file_id": file_id,
+                                        "file_path": file_path,
+                                        "message": "File uploaded successfully"
+                                    }
+                                else:
+                                    error_msg = result.get("message", "Unknown error")
+                                    logger.error(f"❌ Upload failed: {error_msg}")
+                                    return {
+                                        "success": False,
+                                        "message": error_msg
+                                    }
+                            else:
                         error_text = await response.text()
                         logger.error(f"❌ Request failed: {response.status}")
                         logger.error(f"   Error response: {error_text}")
