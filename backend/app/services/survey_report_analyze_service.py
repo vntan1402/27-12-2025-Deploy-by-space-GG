@@ -305,6 +305,8 @@ class SurveyReportAnalyzeService:
         
         summary_text = ""
         processing_path = None
+        char_count = 0  # Initialize char_count
+        text_check = None  # Initialize text_check
         
         # ⭐ NEW SMART PATH SELECTION LOGIC
         logger.info(f"⚡ SMART PATH: Checking file {filename} ({total_pages} pages)...")
