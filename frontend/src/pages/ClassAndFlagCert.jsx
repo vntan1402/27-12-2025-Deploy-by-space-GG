@@ -630,7 +630,7 @@ const ClassAndFlagCert = () => {
         toast.success(language === 'vi' 
           ? `✅ Hoàn thành! Đã cập nhật Next Survey cho ${result.updated_count}/${result.total_certificates} chứng chỉ của tàu ${result.ship_name}`
           : `✅ Complete! Updated Next Survey for ${result.updated_count}/${result.total_certificates} certificates of ship ${result.ship_name}`,
-          { id: 'update-survey' }
+          { id: 'update-survey', duration: 5000 }
         );
         
         // Show sample changes
@@ -657,7 +657,7 @@ const ClassAndFlagCert = () => {
         toast.warning(result.message || (language === 'vi' 
           ? 'Không thể cập nhật Next Survey'
           : 'Could not update Next Survey'
-        ));
+        ), { duration: 5000 });
       }
     } catch (error) {
       console.error('Next Survey update error:', error);
@@ -665,7 +665,7 @@ const ClassAndFlagCert = () => {
       toast.error(language === 'vi' 
         ? `❌ Lỗi: ${errorMessage}`
         : `❌ Error: ${errorMessage}`,
-        { id: 'update-survey' }
+        { id: 'update-survey', duration: 5000 }
       );
     } finally {
       setIsUpdatingSurveyTypes(false);
