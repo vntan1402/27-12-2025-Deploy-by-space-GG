@@ -256,12 +256,63 @@ def test_survey_upload_task_status(headers, task_id):
     response = requests.get(f"{BACKEND_URL}/survey-reports/upload-task/{task_id}", headers=headers)
     return response
 
-def test_survey_reports_list(headers, ship_id=None):
-    """Test GET /api/survey-reports - Get survey reports list"""
-    url = f"{BACKEND_URL}/survey-reports"
-    if ship_id:
-        url += f"?ship_id={ship_id}"
-    response = requests.get(url, headers=headers)
+def create_test_scanned_pdf():
+    """Create a simple PDF file without text layer to trigger SLOW PATH"""
+    # Create a minimal PDF without text layer (simulates scanned document)
+    pdf_content = b"""%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+>>
+endobj
+
+xref
+0 4
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+trailer
+<<
+/Size 4
+/Root 1 0 R
+>>
+startxref
+180
+%%EOF"""
+    return pdf_content
+
+def test_survey_report_smart_upload_slow_path(headers, ship_id):
+    """Test POST /api/survey-reports/multi-upload-smart with scanned PDF (SLOW PATH)"""
+    # Create test scanned PDF file (no text layer)
+    pdf_content = create_test_scanned_pdf()
+    files = [('files', ('scanned_survey_report.pdf', pdf_content, 'application/pdf'))]
+    
+    # Remove Content-Type header for multipart upload
+    upload_headers = {k: v for k, v in headers.items() if k != 'Content-Type'}
+    
+    response = requests.post(
+        f"{BACKEND_URL}/survey-reports/multi-upload-smart?ship_id={ship_id}", 
+        files=files, 
+        headers=upload_headers
+    )
     return response
 
 # Test functions based on review request requirements
