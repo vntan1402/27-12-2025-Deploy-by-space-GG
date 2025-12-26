@@ -140,6 +140,25 @@ class CertificateMultiUploadService:
                     detail="Google Drive not configured. Please configure Google Drive first."
                 )
             
+            # Step 3.5: Warmup Apps Script to avoid cold start delay
+            apps_script_url = gdrive_config_doc.get("web_app_url") or gdrive_config_doc.get("apps_script_url")
+            if apps_script_url and len(files) > 0:
+                import aiohttp
+                import time
+                warmup_start = time.time()
+                logger.info("🔥 Warming up Apps Script before processing certificates...")
+                try:
+                    async with aiohttp.ClientSession() as session:
+                        async with session.post(
+                            apps_script_url,
+                            json={"action": "ping"},
+                            timeout=aiohttp.ClientTimeout(total=15)
+                        ) as response:
+                            warmup_elapsed = time.time() - warmup_start
+                            logger.info(f"🔥 Apps Script warmup completed in {warmup_elapsed:.2f}s (status: {response.status})")
+                except Exception as warmup_error:
+                    logger.warning(f"⚠️ Apps Script warmup failed (continuing anyway): {warmup_error}")
+            
             # Step 4: Process each file
             for file in files:
                 try:
