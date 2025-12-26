@@ -10,7 +10,9 @@ import { toast } from 'react-toastify';
 const ConnectivityHealthCheck = ({ onClose }) => {
   const { language } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [diagnosticLoading, setDiagnosticLoading] = useState(false);
   const [results, setResults] = useState(null);
+  const [diagnosticResults, setDiagnosticResults] = useState(null);
 
   const runHealthCheck = async () => {
     setLoading(true);
@@ -32,6 +34,30 @@ const ConnectivityHealthCheck = ({ onClose }) => {
       toast.error(language === 'vi' ? 'Không thể kiểm tra kết nối' : 'Failed to check connectivity');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const runProductionDiagnostic = async () => {
+    setDiagnosticLoading(true);
+    setDiagnosticResults(null);
+    
+    try {
+      const response = await api.get('/api/health/production-diagnostic');
+      setDiagnosticResults(response.data);
+      
+      const rating = response.data.summary?.stability_rating;
+      if (rating === 'excellent' || rating === 'good') {
+        toast.success(language === 'vi' ? `Kết nối ổn định: ${rating}` : `Connection stable: ${rating}`);
+      } else if (rating === 'slow') {
+        toast.warning(language === 'vi' ? 'Kết nối chậm nhưng ổn định' : 'Connection slow but stable');
+      } else {
+        toast.error(language === 'vi' ? `Kết nối không ổn định: ${rating}` : `Unstable connection: ${rating}`);
+      }
+    } catch (error) {
+      console.error('Diagnostic error:', error);
+      toast.error(language === 'vi' ? 'Không thể chạy diagnostic' : 'Failed to run diagnostic');
+    } finally {
+      setDiagnosticLoading(false);
     }
   };
 
