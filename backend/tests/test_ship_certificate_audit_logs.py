@@ -27,7 +27,7 @@ class ShipCertificateAuditLogsTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up test environment"""
-        cls.BACKEND_URL = "https://fileflow-32.preview.emergentagent.com/api"
+        cls.BACKEND_URL = "https://pdf-ocr-queue.preview.emergentagent.com/api"
         cls.USERNAME = "admin1"
         cls.PASSWORD = "123456"
         
