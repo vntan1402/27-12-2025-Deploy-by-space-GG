@@ -1,47 +1,47 @@
 <analysis>**original_problem_statement:**
-The user's initial goal was to fix a broken user signature upload feature. This expanded into a series of bug fixes and UI/UX improvements. In this session, the user reported numerous issues ranging from UI text corrections and feature enhancements to critical deployment-blocking errors in the production environment. The agent worked through these issues, culminating in an investigation of a production-specific timeout problem with a core feature.
+The user's initial goal was to fix a broken user signature upload feature. This expanded into a series of bug fixes and UI/UX improvements. In the previous session, the focus was on a production-specific timeout error during Survey Report analysis. In this session, the user continued to report critical performance issues and timeouts in the production environment, this time related to both large Survey Reports and multi-file Certificate uploads. The user also reported several new bugs, including missing data in the UI and backend errors. The agent's work involved deep-diving into the performance discrepancies between the preview and production environments, implementing new diagnostic tools, and fixing several critical bugs discovered along the way.
 
 **PRODUCT REQUIREMENTS from this session:**
-- **(Completed)** Verify the My Profile button fix for the Crewing Manager role.
-- **(Completed)** Make the System Settings button visible to all user roles.
-- **(Completed)** Implement audit logging for all user information updates, including Zalo, Gmail, Ship, Crew ID, and electronic signatures.
-- **(Completed)** Correct various UI labels and translations, such as Crew ID to ID and Tàu đăng ký to Tàu Sign On.
-- **(Completed)** Restrict the Calculate Monthly Fee feature to admin-level roles.
-- **(Completed)** Update the monthly fee calculation formula for crew members.
-- **(Completed)** Resolve multiple critical deployment errors, including  misconfigurations, Pydantic validation failures, inconsistent AI configuration fetching logic, deprecated LLM model usage (), and undefined variable errors ().
-- **(Completed)** Unify and correct the duplicate certificate detection logic to be stricter and more consistent.
-- **(Completed)** Guide the user to update their Google Apps Script to align the Google Drive folder structure with the backend's definition.
-- **(Completed)** Correct the AI logic for generating certificate abbreviations (e.g., CSEC → CSSE).
-- **(Completed)** Implement a retry mechanism for critical external API calls to improve production stability.
-- **(Completed)** Create a Connectivity Health Check tool within the admin panel for diagnosing production performance issues.
-- **(In Progress)** Investigate and resolve a production-specific timeout error occurring during Survey Report analysis.
+- **(In Progress)** Investigate and resolve production-specific timeout errors for Survey Report and Certificate uploads.
+- **(In Progress)** Implement a Bandwidth Test tool in the Admin Tools section to help diagnose network performance.
+- **(Completed)** Fix a bug where the  was not being saved to the database for newly uploaded certificates, causing the UI to display No file name available.
+- **(Completed)** Fix a critical backend error () that prevented background file cleanup tasks from running.
+- **(Completed)** Fix multiple other backend errors found during debugging, including incorrect MongoDB queries ( vs ) and  errors on duplicate checks.
+- **(Completed)** Increase the frontend timeout for certificate multi-uploads to 180 seconds to provide a larger buffer.
+- **(Completed)** Add detailed timing logs (including Time to First Byte - TTFB) to the Document AI helper to precisely measure each step of the external API call.
 
 **User's preferred language**: Vietnamese
 
 **what currently exists?**
-The application is largely stable, with a significant number of bugs, deployment blockers, and feature enhancements having been completed in this session. The audit logging system is now comprehensive for user management. Critical production deployment errors have been resolved, and the application's logic for handling external services has been made more resilient with retry mechanisms. A new admin tool for diagnosing network connectivity has been successfully implemented. The logic for duplicate certificate detection and certificate abbreviation has been corrected and unified. The last remaining high-priority task is diagnosing a performance issue in the production environment.
+The application has several new bug fixes and a new Bandwidth Test diagnostic tool in the admin panel. The root cause of the production performance issues has been narrowed down. Initial theories about network bandwidth have been disproven by the new tool. The bottleneck was identified first in the PDF splitting process for large files (which took 62s on Production vs. 3s on Preview) and then, more importantly, in the inconsistent processing time of the first file in a batch by the external Google Document AI service (sometimes taking >150s, other times ~10s). Several critical backend bugs related to database queries and background tasks have been fixed. The agent has just added even more detailed timing logs to the backend, which have been deployed, to get a final, precise breakdown of where the time is spent during the slow requests.
 
 **Last working item**:
--   **Last item agent was working:** The agent was investigating a production timeout error () that occurs when a user analyzes a Survey Report. After analyzing production logs for the  endpoint, the agent found that the backend processing for a large 35-page PDF was completed successfully in approximately 40 seconds, which is well under the 180-second frontend timeout.
+-   **Last item agent was working:** The agent was analyzing the newest production logs for a multi-file certificate upload. These logs were generated after deploying code that added detailed timing breakdowns (Base64 encoding, payload building, TTFB, and response read time) to the  service. The user re-uploaded the exact same file that previously took 155s to process. The goal was to use the new detailed logs to pinpoint the exact step causing the massive, inconsistent delay.
 -   **Status:** USER VERIFICATION PENDING
--   **Agent Testing Done:** Y (Analyzed production logs which showed successful backend processing).
--   **Which testing method agent to use?** Manual testing by user. The agent has concluded the backend logic is not the bottleneck and is waiting for the user to provide more details about the timeout (e.g., the specific file causing it, its size/page count, and the frequency of the error) to continue debugging.
--   **User Testing Done:** N
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** Manual testing by user. The user needs to provide the latest production logs from the re-upload of the problematic file. The agent is waiting for these logs to analyze.
+-   **User Testing Done:** Y (User has performed the upload on production and has the logs).
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Production Timeout on Survey Report Analysis (P0)**
-    -   **Description:** The user reported a 180-second timeout from the frontend when analyzing survey reports in the production environment. This is a critical blocker for a core feature.
-    -   **Attempted fixes:** The agent analyzed production logs and confirmed that the backend processing for a 35-page document is efficient (~40s). The agent has also previously implemented retry logic for external calls.
+-   **Issue 1: Inconsistent Production Timeout on File Uploads (P0)**
+    -   **Description:** File uploads (both Survey Reports and Certificates) are experiencing extreme and inconsistent processing times on the production environment. A file that takes 155s to process one time might take only 8s the next. This causes frontend timeouts (120s/180s), but the backend often finishes successfully, leading to a confusing user experience where an error is shown but the file is actually created.
+    -   **Attempted fixes:**
+        -   Increased frontend timeouts to 180s-300s.
+        -   Built Connectivity and Bandwidth testing tools, which confirmed good network bandwidth (~6 Mbps).
+        -   Identified and logged a PDF splitting bottleneck for large reports (62s).
+        -   Identified the first file is slow pattern (155s vs. ~13s for subsequent files), suggesting a cold start issue.
+        -   Added a warmup ping before processing.
+        -   Added detailed TTFB timing logs to  to isolate the slow step.
+        -   Fixed several critical backend bugs ( call,  vs ,  errors).
     -   **Next debug checklist:**
-        1.  Wait for the user to provide details about the file causing the timeout (size, page count).
-        2.  Ask if the timeout is consistent or intermittent.
-        3.  Inquire if the issue occurs when uploading multiple files at once.
-        4.  Attempt to reproduce the issue with a similarly large file if possible.
-        5.  Consider adding more granular timing logs around file transfer steps (e.g., base64 encoding/decoding) if the issue persists.
-    -   **Why fix this issue and what will be achieved with the fix?** This will restore a critical user workflow in the production environment.
+        1.  Analyze the latest production logs from the user, which contain the new detailed  breakdown for the file that previously took 155s.
+        2.  Identify which specific step is responsible for the long delay: Base64 encoding (CPU), Time To First Byte (network/external processing), or Response Read time.
+        3.  If TTFB is the confirmed bottleneck, confirm the Background Processing solution with the user. This involves responding to the frontend immediately and handling the long-running AI analysis and GDrive uploads in a background task. This is the most robust solution to prevent UI timeouts regardless of processing time.
+        4.  If the user agrees, implement the background processing logic for the multi-certificate upload flow.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a critical production issue blocking a core user workflow. Fixing it will make the file upload feature reliable and provide a good user experience by decoupling the UI from long-running backend processes.
     -   **Status:** IN PROGRESS
     -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Both (Backend via logs, Frontend via user testing on production).
+    -   **Should Test frontend/backend/both after fix?** Both.
     -   **Blocked on other issue:** None.
 -   **Issue 2: AI Incorrectly Extracts Certificate Name (P3)**
     -   **Description:** A recurring issue where the AI analysis fails to extract the full name from certificate documents.
@@ -57,32 +57,29 @@ The application is largely stable, with a significant number of bugs, deployment
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   (P1) Run backend testing agent for a full regression test after the production timeout issue is resolved.
+    -   (P1) Implement Background Processing for certificate and survey report uploads to provide a robust, long-term solution to the timeout issue.
+    -   (P2) Run backend testing agent for a full regression test once the production performance issue is fully resolved.
     -   (P2) Implement SMS Procedures Page (Phase 2).
     -   (P2) Implement Record Template Page (Phase 3).
     -   (P2) Implement Ship Record Page (Phase 4).
 -   **Future Tasks:**
     -   (P3) Plan and Implement CV Mail Merge Feature.
-    -   (P3) Implement an Export/Import data feature in System Settings as an alternative to direct database access.
+    -   (P3) Implement an Export/Import data feature in System Settings.
 
 **Completed work in this session**
--   **UI and UX Fixes (DONE):**
-    -   System Settings button is now visible to all roles.
-    -   UI labels in the Audit Log modal and Ship Sign On text have been corrected.
--   **Audit Logging Enhancements (DONE):**
-    -   Implemented full audit logging for user creation, updates (including Zalo, Gmail, ship assignment), deletion, and signature changes.
--   **Business Logic and Permissions (DONE):**
-    -   Restricted the Calculate Monthly Fee feature to admin-level roles.
-    -   Updated the crew member fee calculation from 2.5% to 1%.
-    -   Unified and hardened the duplicate certificate detection logic to require a 100% match on 5 key fields.
-    -   Corrected the AI prompt to generate proper certificate abbreviations (CSSE, CSSR).
--   **Production Deployment Fixes (DONE):**
-    -   Resolved multiple deployment blockers related to , Pydantic validation, inconsistent AI config fetching, deprecated  model, and undefined variables.
-    -   Fixed a GDrive config bug identified by the backend testing agent.
--   **New Admin Tool (DONE):**
-    -   Created a Connectivity Health Check tool in the UI for admins to diagnose production latency issues.
--   **Production Resiliency (DONE):**
-    -   Added a retry mechanism (3 attempts) to critical external API calls (Document AI, GDrive) to handle transient network issues.
+-   **New Feature - Bandwidth Test Tool (DONE):**
+    -   Created a new backend endpoint .
+    -   Created a new frontend component  in Admin Tools to test upload/download speeds to the external Google Apps Script service.
+-   **Performance & Timeout Fixes (DONE):**
+    -   Increased frontend timeout for certificate multi-uploads to 180s (, ).
+    -   Added detailed timing logs (Base64 encoding, TTFB, response read) to  for granular performance analysis.
+    -   Added a warmup ping to  to mitigate potential cold start issues.
+-   **Critical Bug Fixes (DONE):**
+    -   **Missing Filename:** Fixed a bug where the certificate  was not being saved to the database by passing it correctly through the analysis pipeline ().
+    -   **Background Task Crash:** Fixed a  in  by correctly instantiating  before calling the  method.
+    -   **Database Query Error:** Replaced incorrect  calls with the correct wrapper method  in .
+    -   ** Error:** Added safe access () in  to prevent crashes when checking for duplicates if a field is missing.
+    -   **Linting Errors:** Added missing  import in .
 
 **Earlier issues found/mentioned but not fixed**
 -   **Issue 1: AI Incorrectly Extracts Certificate Name (Recurring):** A known recurring issue from previous sessions that has not been tackled yet.
@@ -96,71 +93,64 @@ The application is largely stable, with a significant number of bugs, deployment
 
 
 **Key Technical Concepts**
--   **Production Debugging:** Diagnosing issues that only manifest in the production environment, such as configuration differences (, ), data validation errors, and performance bottlenecks (timeouts).
--   **Resiliency Patterns:** Implemented a **retry** mechanism for critical network calls to handle transient errors and network latency, making the application more robust in a production setting.
--   **Centralized Configuration Fetching:** Refactored over 10 files to use a single helper function () with multiple fallback queries. This resolved a major deployment blocker caused by inconsistent data schemas between preview and production databases.
--   **Asynchronous Staggered Processing:** The survey report analysis uses  and  to process large PDF chunks in parallel but with a slight delay between starting each task, preventing rate-limiting from external APIs.
+-   **Inconsistent Production Performance:** The core problem is that identical operations have vastly different execution times on the production environment (8s vs 155s), pointing towards environmental factors (like cold starts or resource contention) rather than deterministic code logic.
+-   **Time to First Byte (TTFB) Analysis:** The agent instrumented the code with detailed timing logs to measure TTFB for external API calls. This is a crucial debugging technique to distinguish between local processing (like Base64 encoding), network latency, and external service processing time.
+-   **Synchronous vs. Asynchronous UX:** The current synchronous request-response model causes the frontend to time out while waiting for the backend. The agent correctly identified that even if the performance issue is resolved, a background processing model is a more robust architectural choice for long-running tasks to improve user experience.
 
 **key DB schema**
--   **ai_config:** Discovered and handled inconsistencies in how this document is stored. In production, it's created with a random UUID uid=0(root) gid=0(root) groups=0(root) and no  field. The new  now queries for all possible formats to ensure it's always found.
--   **gdrive_config:** Resolved a production crash by making fields (, )  in the Pydantic model, as production data was missing them. Also fixed the  vs. uid=0(root) gid=0(root) groups=0(root) mapping in the repository layer.
+-   **certificates**: Modified to ensure  field is correctly populated upon creation. No schema change, but data integrity was fixed.
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   **/app/backend/app/services/survey_report_analyze_service.py**: Contains the logic for asynchronous, chunked analysis of large PDF files, which is currently under investigation for production timeouts.
--   **/app/backend/app/utils/ai_config_helper.py**: A new, critical helper that unifies the logic for fetching the system's AI configuration, resolving a major deployment blocker.
--   **/app/backend/app/api/v1/health_check.py**: A new API endpoint created for diagnosing production connectivity and latency issues.
--   **/app/frontend/src/components/SystemSettings/AdminTools/ConnectivityHealthCheck.jsx**: The new frontend component that provides a UI for the health check tool.
--   **/app/backend/app/services/ship_certificate_analyze_service.py**: Modified to unify the duplicate certificate detection logic.
--   **/app/backend/app/utils/document_ai_helper.py**: Modified to add retry logic and timing logs for better production stability and debugging.
--   **/app/backend/app/services/gdrive_service.py**: Modified to add retry logic for Google Drive uploads.
+-   **/app/backend/app/utils/document_ai_helper.py**: The most recently modified file, containing the new detailed timing logs. The next agent must analyze logs generated from this code.
+-   **/app/backend/app/services/certificate_multi_upload_service.py**: Contains the main loop for processing certificate uploads. This is where a background processing refactor would likely take place.
+-   **/app/backend/app/utils/background_tasks.py**: Was fixed to correct a critical bug in how  was being called.
+-   **/app/frontend/src/components/SystemSettings/AdminTools/BandwidthTest.jsx**: The new frontend component for the bandwidth test tool.
+-   **/app/frontend/src/components/ShipCertificates/AddShipCertificateModal.jsx**: The frontend modal where the upload process is initiated and where timeouts were adjusted.
 
 **Areas that need refactoring**:
--   The duplicate check logic was inconsistent between two services and has now been unified. This is a significant improvement.
+-   The certificate and survey report upload flows should be refactored from a synchronous request-response model to an asynchronous, background job model. This will definitively solve the user-facing timeout issue and make the system more resilient to performance fluctuations of external services.
 
 **key api endpoints**
--   : The endpoint under investigation for production timeouts. It handles large file uploads and long-running, asynchronous analysis.
--   : A new diagnostic endpoint to check latency to external services like Google Apps Script and Document AI.
--   : Was failing in production due to a Pydantic validation error, which has been fixed.
--   : Was failing due to a , which has been fixed.
+-   : The primary endpoint under investigation for performance issues.
+-   : A new diagnostic endpoint to test network throughput to Google Apps Script.
 
 **Critical Info for New Agent**
 -   **You must respond in Vietnamese.**
--   Your immediate task is to continue investigating the **production timeout on Survey Report analysis**. The backend processing seems fast (~40s for a 35-page PDF), so the issue might be related to network latency, very large files (>50 pages), or Google Apps Script cold starts. You need to get more information from the user about the specific circumstances of the timeout.
--   The application now has a **Connectivity Health Check** tool in . You should advise the user to run this tool on production to gather real latency data, which will be crucial for debugging.
--   All identified backend testing failures from the testing agent have been resolved or clarified as working as designed. The backend is considered stable.
+-   Your immediate task is to ask the user for the **latest production logs** for the file upload that previously took 155s. The code with detailed TTFB timing has been deployed, and these new logs are essential for the final diagnosis.
+-   The core problem is **INCONSISTENT** performance on production, not consistently slow performance. A file that takes 155s one time can take 8s another. Bandwidth has been ruled out as the primary bottleneck.
+-   The user has reported that even when the frontend times out, the files are often successfully created in the backend. This is a key piece of evidence. It confirms the backend process is completing, just too slowly for a synchronous request.
+-   Based on all the evidence, the most robust long-term solution is to **refactor the upload process into a background job**. After analyzing the new timing logs, you should propose this solution to the user as the definitive fix for the timeout problem.
 
 **documents and test_reports created in this job**
--   /app/test_reports/iteration_1.json
+-   None.
 
 **Last 10 User Messages and any pending HUMAN messages**
--   user: Hãy tạo công cụ trong System Setting> Admin Tools để tôi có thể chạy API này
--   user: Chạy API này bằng cách nào
--   user: tạo API endpoint kiểm tra kết nối
--   user: tôi thấy tốc độ kết nối đến server của production quá chậm và không ổn định, làm cách nào để kiểm tra kết nối này
--   user: giữ nguyên time out 180s , không tăng lên 300s
--   user: Khi tôi upload file trên bản preview tốc độ nhanh và xử lý thành công nhưng chạy bản production thì tốc độ rất chậm và thường báo lỗi timeout
--   user: không cần cập nhật các certificate cũ
--   user: Cargo Ship Safety Radio Certificate đang được viết tắt thành CSRC ( đúng nguyên tắc phải là CSSC) Cargo Ship Safety Equipment Certificate đang được viết tắt thành CSEC ( đúng nguyên tắc phải là CSSE) Hãy kiểm tra lại logic tạo tên viết tắt
--   user: tôi đã cập nhật lại app script, đã hoạt động tốt
--   user: Option 2: Cập nhật theo backend code (gộp ISM-ISPS-MLC + thêm SMS, Technical)
+-   user: log chỉ share 100 log, có cách nào share nhiều hơn không
+-   user: kiểm tra lại timing của từng file, so sánh với timing của Preview tôi vừa upload các file đó
+-   user: Use deployment agent to identify the issues. Sharing build error logs...
+-   user: chạy trên preview upload nhiều file cùng lúc với cùng app script không bị chậm. Tôi vừa upload 5 file đó trên Preview, hãy xem log để so sánh
+-   user: Use deployment agent to identify the issues. Sharing build error logs...
+-   user: có thể cho tôi biết file đầu tiên mất 155.07s gồm các bước xử lý nào, lâu nhất ở bước nào không
+-   user: Use deployment agent to identify the issues. Sharing build error logs...
+-   user: Preview và Production dùng chung Apps Script URL / Document AI config Bandwidth test trên Preview cho kết quả khoảng 6 Mbps Tôi vửa upload 5 file trên Preview, hãy xem log mới nhất để biết kết quả chi tiết
+-   user: vấn đề là khi chạy preview thì không gặp vấn đề gì với cold start
+-   user: Use deployment agent to identify the issues. Sharing build error logs...
 
 **Project Health Check:**
--   **Broken:** A core feature, Survey Report Analysis, is reportedly timing out in the production environment. This is the highest priority issue to investigate.
--   **Mocked:** None.
+-   **Broken:** The file upload feature on production is unreliable due to inconsistent, long processing times causing frontend timeouts. This is a critical issue impacting a core workflow.
 
 **3rd Party Integrations**
--   **Google Drive API:** Used for all file and folder storage, accessed via a custom Google Apps Script. Latency to this service is a potential cause of production issues.
+-   **Google Drive API:** Used for all file and folder storage, accessed via a custom Google Apps Script. Its performance consistency from the production environment is under investigation.
 -   **Emergent LLM Key (Gemini):** Uses  for AI document analysis.
 -   **Pillow / opencv-python-headless:** Used on the backend for image processing and OCR.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES. The backend testing agent was used. It identified a critical bug in the GDrive config endpoint, which was subsequently fixed.
+-   **Testing agent used after significant changes:** NO. The agent performed targeted manual testing of new features and bug fixes.
 -   **Troubleshoot agent used after agent stuck in loop:** NO.
--   **Test files created:**
-    -   /app/test_reports/iteration_1.json
+-   **Test files created:** None.
 -   **Known regressions:** None.
 
 **Credentials to test flow:**
@@ -169,4 +159,5 @@ The application is largely stable, with a significant number of bugs, deployment
 -   **Crew3** /  (Role: )
 
 **What agent forgot to execute**
--   The agent did not address the two recurring issues from the original handoff: AI Incorrectly Extracts Certificate Name and Frontend Login Form Validation Bug. These tasks remain in the backlog.</analysis>
+-   The agent correctly identified that background processing is the best solution but has not yet implemented it, pending final log analysis and user confirmation.
+-   The two long-standing recurring issues (AI Incorrectly Extracts Certificate Name and Frontend Login Form Validation Bug) have not been addressed.</analysis>
