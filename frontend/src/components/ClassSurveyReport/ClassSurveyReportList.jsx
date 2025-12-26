@@ -115,8 +115,8 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     if (!selectedShip) return;
 
     try {
-      const { certificateService } = await import('../../services');
-      const response = await certificateService.getAll(selectedShip.id);
+      const { shipCertificateService } = await import('../../services');
+      const response = await shipCertificateService.getAll(selectedShip.id);
       const data = response.data || response || [];
       setCertificates(Array.isArray(data) ? data : []);
     } catch (error) {
