@@ -99,8 +99,7 @@ async def analyze_document_with_document_ai(
         
         logger.info(f"📤 Sending request to Apps Script: {apps_script_url}")
         
-        # Call Apps Script with extended timeout (300s for production stability)
-        # Production environments often have higher latency
+        # Call Apps Script with timeout (180s) + retry logic for production stability
         max_retries = 2
         retry_count = 0
         last_error = None
@@ -111,7 +110,7 @@ async def analyze_document_with_document_ai(
                     async with session.post(
                         apps_script_url,
                         json=payload,
-                        timeout=aiohttp.ClientTimeout(total=300)  # 5 minutes for production
+                        timeout=aiohttp.ClientTimeout(total=180)  # 3 minutes
                     ) as response:
                         if response.status == 200:
                             result = await response.json()
