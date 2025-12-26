@@ -94,20 +94,19 @@ async def correct_text_layer_with_ai(
         
         logger.info(f"   🤖 Using {provider}/{model} for text correction")
         
-        # Call Gemini AI
-        from emergentintegrations.llm.chat import chat, Message, Role
+        # Call Gemini AI using LlmChat
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
         
-        messages = [
-            Message(role=Role.USER, content=prompt)
-        ]
-        
-        response = await chat(
+        chat = LlmChat(
             api_key=os.getenv("EMERGENT_LLM_KEY"),
-            model=f"{provider}/{model}",
-            messages=messages
+            model=f"{provider}/{model}"
         )
         
-        corrected_text = response.message.strip()
+        response = await chat.send_message_async(
+            UserMessage(content=prompt)
+        )
+        
+        corrected_text = response.strip()
         
         # Validate response
         if not corrected_text or len(corrected_text) < len(text_content) * 0.5:
