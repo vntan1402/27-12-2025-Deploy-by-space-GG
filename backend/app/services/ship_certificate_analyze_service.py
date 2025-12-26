@@ -7,6 +7,7 @@ import logging
 import base64
 import asyncio
 import traceback
+import io
 from typing import Dict, Any, Optional
 from fastapi import HTTPException
 
@@ -23,10 +24,23 @@ logger = logging.getLogger(__name__)
 
 # Constants
 TEXT_LAYER_THRESHOLD = 400  # Minimum chars to use fast path
+PAGE_THRESHOLD = 15  # Files with ≤15 pages use SLOW PATH for better accuracy
 
 
 class ShipCertificateAnalyzeService:
     """Service for analyzing ship certificate files with AI"""
+    
+    @staticmethod
+    def get_pdf_page_count(file_bytes: bytes) -> int:
+        """Get number of pages in PDF"""
+        try:
+            import pdfplumber
+            pdf_file = io.BytesIO(file_bytes)
+            with pdfplumber.open(pdf_file) as pdf:
+                return len(pdf.pages)
+        except Exception as e:
+            logger.warning(f"Cannot get page count: {e}")
+            return 0
     
     @staticmethod
     def quick_check_processing_path(file_bytes: bytes, filename: str) -> Dict[str, Any]:
@@ -34,11 +48,17 @@ class ShipCertificateAnalyzeService:
         Quick check to determine if file needs FAST PATH or SLOW PATH (background)
         This is a synchronous, fast operation (~100ms)
         
+        NEW LOGIC (same as Survey Report):
+        - File ≤15 pages → SLOW PATH (Document AI for accuracy)
+        - File >15 pages + has text layer → FAST PATH
+        - File >15 pages + no text layer → SLOW PATH
+        
         Returns:
             dict: {
                 "path": "FAST_PATH" | "SLOW_PATH",
                 "has_text_layer": bool,
                 "char_count": int,
+                "page_count": int,
                 "text_content": str | None (only if FAST_PATH),
                 "reason": str
             }
@@ -53,12 +73,30 @@ class ShipCertificateAnalyzeService:
                 "path": "SLOW_PATH",
                 "has_text_layer": False,
                 "char_count": 0,
+                "page_count": 1,
                 "text_content": None,
-                "reason": f"Image file ({file_ext}) requires Document AI OCR"
+                "reason": f"Image file ({file_ext}) - dùng Document AI"
             }
         
-        # For PDFs, check text layer
+        # For PDFs, check page count first, then text layer
         if file_ext == 'pdf':
+            # Step 1: Get page count
+            page_count = ShipCertificateAnalyzeService.get_pdf_page_count(file_bytes)
+            
+            logger.info(f"📄 {filename}: {page_count} trang")
+            
+            # Step 2: Files ≤15 pages → SLOW PATH for better accuracy
+            if page_count <= PAGE_THRESHOLD:
+                return {
+                    "path": "SLOW_PATH",
+                    "has_text_layer": False,
+                    "char_count": 0,
+                    "page_count": page_count,
+                    "text_content": None,
+                    "reason": f"File có {page_count} trang (≤{PAGE_THRESHOLD}) - dùng Document AI cho độ chính xác cao"
+                }
+            
+            # Step 3: Files >15 pages → Check text layer
             text_check = quick_check_text_layer(file_bytes, filename)
             
             if text_check.get("has_sufficient_text"):
@@ -66,17 +104,18 @@ class ShipCertificateAnalyzeService:
                     "path": "FAST_PATH",
                     "has_text_layer": True,
                     "char_count": text_check["char_count"],
+                    "page_count": page_count,
                     "text_content": text_check["text_content"],
-                    "page_count": text_check["page_count"],
-                    "reason": f"Text layer found: {text_check['char_count']} chars >= {TEXT_LAYER_THRESHOLD} threshold"
+                    "reason": f"File {page_count} trang (>{PAGE_THRESHOLD}) có text layer ({text_check['char_count']} chars) - FAST PATH"
                 }
             else:
                 return {
                     "path": "SLOW_PATH",
                     "has_text_layer": False,
                     "char_count": text_check.get("char_count", 0),
+                    "page_count": page_count,
                     "text_content": None,
-                    "reason": f"Insufficient text layer: {text_check.get('char_count', 0)} chars < {TEXT_LAYER_THRESHOLD} threshold (scanned PDF)"
+                    "reason": f"File {page_count} trang (>{PAGE_THRESHOLD}) không có text layer - SLOW PATH với split"
                 }
         
         # Unknown file type - try SLOW PATH
