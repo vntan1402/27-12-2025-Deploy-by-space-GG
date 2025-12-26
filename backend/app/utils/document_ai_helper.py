@@ -82,10 +82,14 @@ async def analyze_document_with_document_ai(
             }
         
         # Encode file to base64
+        import time
+        encode_start = time.time()
         file_base64 = base64.b64encode(file_content).decode('utf-8')
-        logger.info(f"📦 Encoded file to base64: {len(file_base64)} chars")
+        encode_time = time.time() - encode_start
+        logger.info(f"📦 Encoded file to base64: {len(file_base64)} chars (took {encode_time:.2f}s)")
         
         # Build request payload
+        payload_start = time.time()
         payload = {
             "action": "analyze_maritime_document_ai",
             "file_content": file_base64,
@@ -96,6 +100,8 @@ async def analyze_document_with_document_ai(
             "location": location,
             "document_type": document_type  # Dynamic value
         }
+        payload_time = time.time() - payload_start
+        logger.info(f"📦 Built payload (took {payload_time:.3f}s)")
         
         logger.info(f"📤 Sending request to Apps Script: {apps_script_url}")
         
