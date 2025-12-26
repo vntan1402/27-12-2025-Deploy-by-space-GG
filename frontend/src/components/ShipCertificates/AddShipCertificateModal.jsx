@@ -448,128 +448,22 @@ export const AddShipCertificateModal = ({
           ? `🔄 ${slowPathFiles.length} file đang xử lý background...`
           : `🔄 ${slowPathFiles.length} files processing in background...`
         );
-      });
-
-      console.log(`📤 Smart Upload: Sending ${totalFiles} files to backend...`);
-
-      const response = await api.post(
-        `/api/certificates/multi-upload-smart?ship_id=${selectedShip.id}`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 120000, // 120 seconds - increased for production
-          onUploadProgress: (progressEvent) => {
-            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            // Update progress for all files during upload
-            fileArray.forEach(file => {
-              setFileProgressMap(prev => ({ ...prev, [file.name]: Math.min(progress, 30) })); // Cap at 30% during upload
-            });
-          }
-        }
-      );
-
-      console.log('📥 Smart Upload Response:', response.data);
-
-      const { fast_path_results = [], slow_path_task_id, summary } = response.data;
-
-      // Process FAST PATH results immediately
-      for (const result of fast_path_results) {
-        const filename = result.filename;
         
-        if (result.status === 'success' || result.status === 'completed') {
-          successCount++;
-          
-          // Update UI for successful file
-          setFileStatusMap(prev => ({ ...prev, [filename]: 'completed' }));
-          setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
-          setFileSubStatusMap(prev => ({ ...prev, [filename]: language === 'vi' ? '✅ FAST PATH - Hoàn thành' : '✅ FAST PATH - Completed' }));
-          setBatchProgress(prev => ({ ...prev, current: prev.current + 1 }));
-          
-          setMultiCertUploads(prev => prev.map(upload => 
-            upload.filename === filename 
-              ? {
-                  ...upload,
-                  status: 'completed',
-                  progress: 100,
-                  stage: language === 'vi' ? '✅ FAST PATH' : '✅ FAST PATH',
-                  extracted_info: result.extracted_info
-                }
-              : upload
-          ));
-
-          // Capture first success for auto-fill
-          if (!firstSuccessInfo && result.extracted_info) {
-            firstSuccessInfo = result.extracted_info;
-            console.log('✅ First success with extracted_info:', firstSuccessInfo);
-          }
-        } else {
-          failedCount++;
-          
-          // Update UI for failed file
-          setFileStatusMap(prev => ({ ...prev, [filename]: 'failed' }));
-          setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
-          setFileSubStatusMap(prev => ({ ...prev, [filename]: result.message || 'Error' }));
-          
-          setMultiCertUploads(prev => prev.map(upload => 
-            upload.filename === filename 
-              ? {
-                  ...upload,
-                  status: 'failed',
-                  progress: 100,
-                  stage: language === 'vi' ? '❌ Thất bại' : '❌ Failed',
-                  error: result.message
-                }
-              : upload
-          ));
-        }
-      }
-
-      // Handle SLOW PATH files (background processing)
-      if (slow_path_task_id) {
-        slowPathTaskId = slow_path_task_id;
-        const slowPathCount = summary?.slow_path_count || 0;
-        
-        toast.info(language === 'vi'
-          ? `🔄 ${slowPathCount} file PDF scan đang xử lý background (có thể mất 1-2 phút)...`
-          : `🔄 ${slowPathCount} scanned PDF files processing in background (may take 1-2 minutes)...`
-        );
-
-        // Mark SLOW PATH files as processing
-        const fastPathFilenames = fast_path_results.map(r => r.filename);
-        fileArray.forEach(file => {
-          if (!fastPathFilenames.includes(file.name)) {
-            setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
-            setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? '🔄 SLOW PATH - Đang OCR...' : '🔄 SLOW PATH - OCR processing...' }));
-            setFileProgressMap(prev => ({ ...prev, [file.name]: 50 }));
-            
-            setMultiCertUploads(prev => prev.map(upload => 
-              upload.filename === file.name 
-                ? {
-                    ...upload,
-                    status: 'processing',
-                    progress: 50,
-                    stage: language === 'vi' ? '🔄 SLOW PATH - Background' : '🔄 SLOW PATH - Background'
-                  }
-                : upload
-            ));
-          }
-        });
-
         // Poll for SLOW PATH completion
-        const pollInterval = setInterval(async () => {
-          try {
-            const taskResponse = await api.get(`/api/certificates/upload-task/${slow_path_task_id}`);
-            const task = taskResponse.data;
-            
-            console.log('📊 Task status:', task.status, task);
+        const pollSlowPath = async () => {
+          const pollInterval = setInterval(async () => {
+            try {
+              const taskResponse = await api.get(`/api/certificates/upload-task/${slowPathTaskId}`);
+              const task = taskResponse.data;
+              
+              console.log('📊 Task status:', task.status, task);
 
-            // Update progress for each file
-            if (task.files) {
-              task.files.forEach((fileTask, idx) => {
-                const filename = fileTask.filename;
-                
-                if (fileTask.status === 'completed') {
-                  if (!fileStatusMap[filename] || fileStatusMap[filename] !== 'completed') {
+              // Update progress for each file
+              if (task.files) {
+                task.files.forEach((fileTask) => {
+                  const filename = fileTask.filename;
+                  
+                  if (fileTask.status === 'completed') {
                     successCount++;
                     setFileStatusMap(prev => ({ ...prev, [filename]: 'completed' }));
                     setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
@@ -578,23 +472,14 @@ export const AddShipCertificateModal = ({
                     
                     setMultiCertUploads(prev => prev.map(upload => 
                       upload.filename === filename 
-                        ? {
-                            ...upload,
-                            status: 'completed',
-                            progress: 100,
-                            stage: language === 'vi' ? '✅ SLOW PATH' : '✅ SLOW PATH',
-                            extracted_info: fileTask.result?.extracted_info
-                          }
+                        ? { ...upload, status: 'completed', progress: 100, stage: '✅ SLOW PATH', extracted_info: fileTask.result?.extracted_info }
                         : upload
                     ));
 
-                    // Capture first success if not already set
                     if (!firstSuccessInfo && fileTask.result?.extracted_info) {
                       firstSuccessInfo = fileTask.result.extracted_info;
                     }
-                  }
-                } else if (fileTask.status === 'failed') {
-                  if (!fileStatusMap[filename] || fileStatusMap[filename] !== 'failed') {
+                  } else if (fileTask.status === 'failed') {
                     failedCount++;
                     setFileStatusMap(prev => ({ ...prev, [filename]: 'failed' }));
                     setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
@@ -602,56 +487,44 @@ export const AddShipCertificateModal = ({
                     
                     setMultiCertUploads(prev => prev.map(upload => 
                       upload.filename === filename 
-                        ? {
-                            ...upload,
-                            status: 'failed',
-                            progress: 100,
-                            stage: language === 'vi' ? '❌ Thất bại' : '❌ Failed',
-                            error: fileTask.error
-                          }
+                        ? { ...upload, status: 'failed', progress: 100, stage: '❌ Failed', error: fileTask.error }
                         : upload
                     ));
+                  } else if (fileTask.status === 'processing') {
+                    setFileProgressMap(prev => ({ ...prev, [filename]: fileTask.progress || 50 }));
                   }
-                } else if (fileTask.status === 'processing') {
-                  setFileProgressMap(prev => ({ ...prev, [filename]: fileTask.progress || 50 }));
-                }
-              });
-            }
+                });
+              }
 
-            // Check if task is complete
-            if (task.status === 'completed' || task.status === 'failed') {
-              clearInterval(pollInterval);
-              
-              // Finalize results
-              finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
+              // Check if task is complete
+              if (task.status === 'completed' || task.status === 'failed') {
+                clearInterval(pollInterval);
+                finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
+              }
+            } catch (pollError) {
+              console.error('❌ Polling error:', pollError);
             }
-          } catch (pollError) {
-            console.error('❌ Polling error:', pollError);
-            // Continue polling unless max attempts reached
-          }
-        }, 3000); // Poll every 3 seconds
+          }, 3000);
 
-        // Set timeout to stop polling after 5 minutes
-        setTimeout(() => {
-          clearInterval(pollInterval);
-          if (slowPathTaskId) {
+          // Timeout after 5 minutes
+          setTimeout(() => {
+            clearInterval(pollInterval);
             toast.warning(language === 'vi'
-              ? '⚠️ Background processing timeout. Vui lòng refresh để xem kết quả.'
-              : '⚠️ Background processing timeout. Please refresh to see results.'
+              ? '⚠️ Background processing timeout.'
+              : '⚠️ Background processing timeout.'
             );
             finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
-          }
-        }, 300000); // 5 minutes timeout
+          }, 300000);
+        };
 
+        pollSlowPath();
       } else {
-        // No SLOW PATH files - finalize immediately
+        // No SLOW PATH - finalize immediately
         finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
       }
 
     } catch (error) {
       console.error('❌ Smart upload error:', error);
-      
-      // Close processing modal
       setShowBatchProcessing(false);
       
       toast.error(language === 'vi' 
