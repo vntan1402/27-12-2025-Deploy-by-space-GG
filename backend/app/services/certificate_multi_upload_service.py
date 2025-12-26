@@ -1417,8 +1417,9 @@ IMPORTANT DATE EXAMPLES:
         ship_id: str,
         validation_note: Optional[str],
         db: Any,
-        summary_file_id: Optional[str] = None,  # ⭐ NEW
-        extracted_ship_name: Optional[str] = None  # ⭐ NEW
+        summary_file_id: Optional[str] = None,
+        extracted_ship_name: Optional[str] = None,
+        file_pending_upload: bool = False  # ⭐ NEW: Flag for background upload
     ) -> Dict[str, Any]:
         """Create certificate record from AI analysis"""
         try:
@@ -1463,7 +1464,7 @@ IMPORTANT DATE EXAMPLES:
                 "id": cert_id,
                 "ship_id": ship_id,
                 "ship_name": ship_name,
-                "extracted_ship_name": extracted_ship_name or analysis_result.get("ship_name"),  # ⭐ Ship name from certificate
+                "extracted_ship_name": extracted_ship_name or analysis_result.get("ship_name"),
                 "cert_name": cert_name,
                 "cert_abbreviation": cert_abbreviation,
                 "cert_no": analysis_result.get("cert_no", "Unknown"),
@@ -1478,12 +1479,13 @@ IMPORTANT DATE EXAMPLES:
                 "category": "certificates",
                 "sensitivity_level": "internal",
                 "file_name": analysis_result.get("filename"),  # Original filename
-                "file_uploaded": upload_result.get("success", False),
+                "file_uploaded": upload_result.get("success", False) if not file_pending_upload else False,
+                "file_pending_upload": file_pending_upload,  # ⭐ NEW: Track pending upload
                 "google_drive_file_id": upload_result.get("file_id"),
                 "google_drive_file_url": upload_result.get("file_url"),
                 "google_drive_folder_path": upload_result.get("folder_path"),
                 "file_path": upload_result.get("file_path"),
-                "summary_file_id": summary_file_id,  # ⭐ NEW: Summary file ID
+                "summary_file_id": summary_file_id,
                 "text_content": analysis_result.get("text_content"),  # For future re-analysis
                 "created_by": current_user.email,
                 "created_at": datetime.now(timezone.utc).isoformat(),
@@ -1491,7 +1493,7 @@ IMPORTANT DATE EXAMPLES:
             }
             
             # Remove None values but preserve important fields
-            preserved_fields = ['extracted_ship_name', 'text_content', 'notes']
+            preserved_fields = ['extracted_ship_name', 'text_content', 'notes', 'file_pending_upload']
             cert_doc = {k: v for k, v in cert_doc.items() if v is not None or k in preserved_fields}
             
             # Insert into database
