@@ -492,14 +492,31 @@ class SurveyReportAnalyzeService:
                     'error': str(e)
                 }
         
-        # Create tasks with staggered start (2s delay between each chunk start)
-        logger.info(f"🚀 Starting staggered parallel processing of {len(chunks_to_process)} chunks (2s delay between starts)...")
+        # Create tasks with staggered start (1s delay between each chunk start - reduced from 2s for production)
+        logger.info(f"🚀 Starting staggered parallel processing of {len(chunks_to_process)} chunks (1s delay between starts)...")
+        
+        # Warm up Apps Script before heavy processing (helps with cold start)
+        import time
+        warmup_start = time.time()
+        logger.info("🔥 Warming up Apps Script connection...")
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    document_ai_config.get("apps_script_url"),
+                    json={"action": "ping"},
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    warmup_elapsed = time.time() - warmup_start
+                    logger.info(f"🔥 Apps Script warmup completed in {warmup_elapsed:.2f}s (status: {response.status})")
+        except Exception as warmup_error:
+            logger.warning(f"⚠️ Apps Script warmup failed (continuing anyway): {warmup_error}")
+        
         tasks = []
         for i, chunk in enumerate(chunks_to_process):
-            # Add 2s delay before starting each chunk (except first)
+            # Add 1s delay before starting each chunk (except first) - reduced for faster processing
             if i > 0:
-                logger.info(f"⏳ Waiting 2s before starting chunk {i+1}...")
-                await asyncio.sleep(2)
+                logger.info(f"⏳ Waiting 1s before starting chunk {i+1}...")
+                await asyncio.sleep(1)
             
             # Create and start task immediately
             task = asyncio.create_task(process_single_chunk(chunk, i))
