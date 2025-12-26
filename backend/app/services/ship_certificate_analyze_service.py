@@ -551,27 +551,32 @@ class ShipCertificateAnalyzeService:
                 
                 if cert_name:
                     total += 1
-                    if existing.get('cert_name', '').strip().lower() == cert_name.lower():
+                    existing_cert_name = existing.get('cert_name') or ''
+                    if existing_cert_name.strip().lower() == cert_name.lower():
                         matches += 1
                 
                 if cert_no:
                     total += 1
-                    if existing.get('cert_no', '').strip() == cert_no:
+                    existing_cert_no = existing.get('cert_no') or ''
+                    if existing_cert_no.strip() == cert_no:
                         matches += 1
                 
                 if issue_date:
                     total += 1
-                    if existing.get('issue_date', '').strip() == issue_date:
+                    existing_issue_date = existing.get('issue_date') or ''
+                    if existing_issue_date.strip() == issue_date:
                         matches += 1
                 
                 if valid_date:
                     total += 1
-                    if existing.get('valid_date', '').strip() == valid_date:
+                    existing_valid_date = existing.get('valid_date') or ''
+                    if existing_valid_date.strip() == valid_date:
                         matches += 1
                 
                 if last_endorse:
                     total += 1
-                    if existing.get('last_endorse', '').strip() == last_endorse:
+                    existing_last_endorse = existing.get('last_endorse') or ''
+                    if existing_last_endorse.strip() == last_endorse:
                         matches += 1
                 
                 # Only consider duplicate if 100% match
