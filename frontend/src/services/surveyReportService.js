@@ -86,7 +86,7 @@ export const surveyReportService = {
     
     return api.post(API_ENDPOINTS.SURVEY_REPORT_ANALYZE, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: API_TIMEOUT.AI_ANALYSIS, // 90 seconds for large PDFs
+      timeout: API_TIMEOUT.AI_ANALYSIS, // 300 seconds (5 min) for large PDFs - production needs more time
     });
   },
 
