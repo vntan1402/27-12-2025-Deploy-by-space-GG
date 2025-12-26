@@ -692,6 +692,7 @@ class CertificateMultiUploadService:
                 # Don't fail the entire upload if summary fails
         
         # Create certificate record with summary_file_id
+        step_start = time.time()
         cert_result = await CertificateMultiUploadService._create_certificate_from_analysis(
             extracted_info, 
             upload_result, 
@@ -702,6 +703,15 @@ class CertificateMultiUploadService:
             summary_file_id=summary_file_id,  # ⭐ NEW: Pass summary file ID
             extracted_ship_name=extracted_ship_name  # ⭐ NEW: Pass extracted ship name
         )
+        timing['5_create_cert_db'] = round(time.time() - step_start, 2)
+        
+        # Calculate total time
+        timing['TOTAL'] = round(time.time() - total_start, 2)
+        
+        # Log timing analysis
+        logger.info(f"⏱️ TIMING ANALYSIS for {file.filename}:")
+        for step, duration in timing.items():
+            logger.info(f"   {step}: {duration}s")
         
         # Determine final status
         if validation_note and progress_message:
