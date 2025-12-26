@@ -281,15 +281,19 @@ class SurveyReportAnalyzeService:
         total_pages: int
     ) -> Dict[str, Any]:
         """
-        Process a single PDF (≤15 pages) with SMART PATH selection:
-        - FAST PATH: If text layer >= 400 chars, use text layer only (no Document AI)
-        - SLOW PATH: If text layer < 400 chars, use Document AI (OCR)
+        Process a single PDF with SMART PATH selection based on NEW LOGIC:
+        
+        - File ≤15 trang → Luôn dùng SLOW PATH (Document AI toàn bộ)
+        - File >15 trang + có text layer (≥400 chars) → FAST PATH
+        - File >15 trang + không có text layer → SLOW PATH (split 10+10)
         """
         from app.utils.pdf_text_extractor import (
             quick_check_text_layer,
             format_text_layer_summary,
             TEXT_LAYER_THRESHOLD
         )
+        
+        PAGE_THRESHOLD = 15  # Ngưỡng số trang
         
         logger.info(f"🔄 Processing single PDF: {filename} ({total_pages} pages)")
         
@@ -302,17 +306,36 @@ class SurveyReportAnalyzeService:
         summary_text = ""
         processing_path = None
         
-        # ⭐ SMART PATH SELECTION
-        logger.info(f"⚡ SMART PATH: Checking text layer for {filename}...")
-        text_check = quick_check_text_layer(file_content, filename)
-        char_count = text_check.get("char_count", 0)
+        # ⭐ NEW SMART PATH SELECTION LOGIC
+        logger.info(f"⚡ SMART PATH: Checking file {filename} ({total_pages} pages)...")
         
-        if text_check.get("has_sufficient_text"):
-            # ✅ FAST PATH - Use text layer with AI correction if needed
-            processing_path = "FAST_PATH"
-            logger.info(f"⚡ FAST PATH selected: {char_count} chars >= {TEXT_LAYER_THRESHOLD} threshold")
+        # Step 1: Check page count first
+        if total_pages <= PAGE_THRESHOLD:
+            # ≤15 trang → Luôn dùng SLOW PATH (Document AI toàn bộ)
+            processing_path = "SLOW_PATH"
+            logger.info(f"🐢 SLOW PATH selected: File có {total_pages} trang (≤{PAGE_THRESHOLD}) - dùng Document AI toàn bộ")
             
-            # ⭐ Check text quality and apply AI correction if needed
+        else:
+            # >15 trang → Kiểm tra text layer
+            text_check = quick_check_text_layer(file_content, filename)
+            char_count = text_check.get("char_count", 0)
+            
+            if text_check.get("has_sufficient_text"):
+                # >15 trang + có text layer → FAST PATH
+                processing_path = "FAST_PATH"
+                logger.info(f"⚡ FAST PATH selected: File {total_pages} trang (>{PAGE_THRESHOLD}) có text layer ({char_count} chars)")
+            else:
+                # >15 trang + không có text layer → SLOW PATH
+                processing_path = "SLOW_PATH"
+                logger.info(f"🐢 SLOW PATH selected: File {total_pages} trang (>{PAGE_THRESHOLD}) không có text layer ({char_count} chars)")
+        
+        # ⭐ Process based on selected path
+        if processing_path == "FAST_PATH":
+            # FAST PATH - Use text layer with AI correction if needed
+            text_check = quick_check_text_layer(file_content, filename)
+            char_count = text_check.get("char_count", 0)
+            
+            # Check text quality and apply AI correction if needed
             from app.utils.text_layer_correction import (
                 correct_text_layer_with_ai,
                 detect_ocr_quality
