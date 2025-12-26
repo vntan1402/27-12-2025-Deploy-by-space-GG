@@ -323,3 +323,113 @@ async def _test_document_ai_connectivity(company_id: str) -> Dict[str, Any]:
         result["details"]["error"] = str(e)
     
     return result
+
+
+@router.get("/production-diagnostic")
+async def production_diagnostic(
+    current_user: UserResponse = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Advanced production diagnostic test.
+    
+    Runs multiple ping tests to calculate average latency and detect
+    intermittent connectivity issues.
+    """
+    results = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "user": current_user.username,
+        "test_type": "production_diagnostic",
+        "ping_tests": [],
+        "summary": {
+            "total_pings": 3,
+            "successful_pings": 0,
+            "avg_latency_ms": 0,
+            "min_latency_ms": None,
+            "max_latency_ms": None,
+            "latency_variance": None,
+            "stability_rating": "unknown"
+        }
+    }
+    
+    # Get AI config
+    ai_config = await get_ai_config()
+    if not ai_config:
+        results["error"] = "AI configuration not found"
+        return results
+    
+    doc_ai_config = ai_config.get("document_ai") or ai_config.get("document_ai_config", {})
+    apps_script_url = doc_ai_config.get("apps_script_url") if doc_ai_config else None
+    
+    if not apps_script_url:
+        results["error"] = "Apps Script URL not configured"
+        return results
+    
+    # Run 3 ping tests
+    latencies = []
+    for i in range(3):
+        ping_result = {
+            "ping_number": i + 1,
+            "latency_ms": None,
+            "status": "unknown"
+        }
+        
+        try:
+            start_time = time.time()
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    apps_script_url,
+                    json={"action": "ping"},
+                    timeout=aiohttp.ClientTimeout(total=30)
+                ) as response:
+                    elapsed_ms = (time.time() - start_time) * 1000
+                    
+                    ping_result["latency_ms"] = round(elapsed_ms, 2)
+                    ping_result["http_status"] = response.status
+                    
+                    if response.status == 200:
+                        ping_result["status"] = "success"
+                        results["summary"]["successful_pings"] += 1
+                        latencies.append(elapsed_ms)
+                    else:
+                        ping_result["status"] = "degraded"
+                        
+        except asyncio.TimeoutError:
+            ping_result["status"] = "timeout"
+            ping_result["error"] = "Timed out (>30s)"
+            
+        except Exception as e:
+            ping_result["status"] = "error"
+            ping_result["error"] = str(e)
+        
+        results["ping_tests"].append(ping_result)
+        
+        # Wait 1 second between pings
+        if i < 2:
+            await asyncio.sleep(1)
+    
+    # Calculate statistics
+    if latencies:
+        results["summary"]["avg_latency_ms"] = round(sum(latencies) / len(latencies), 2)
+        results["summary"]["min_latency_ms"] = round(min(latencies), 2)
+        results["summary"]["max_latency_ms"] = round(max(latencies), 2)
+        
+        if len(latencies) > 1:
+            avg = results["summary"]["avg_latency_ms"]
+            variance = sum((x - avg) ** 2 for x in latencies) / len(latencies)
+            results["summary"]["latency_variance"] = round(variance, 2)
+        
+        # Stability rating
+        if results["summary"]["successful_pings"] == 3:
+            if results["summary"]["avg_latency_ms"] < 2000:
+                results["summary"]["stability_rating"] = "excellent"
+            elif results["summary"]["avg_latency_ms"] < 5000:
+                results["summary"]["stability_rating"] = "good"
+            else:
+                results["summary"]["stability_rating"] = "slow"
+        elif results["summary"]["successful_pings"] >= 2:
+            results["summary"]["stability_rating"] = "unstable"
+        else:
+            results["summary"]["stability_rating"] = "poor"
+    
+    return results
