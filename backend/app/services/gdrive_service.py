@@ -646,8 +646,7 @@ class GDriveService:
             logger.info(f"📁 Folder path: {ship_name} / {parent_category} / {category}")
             logger.info(f"   Apps Script will check/reuse existing folders before creating new ones")
             
-            # Call Apps Script with extended timeout (300s for production stability)
-            # Retry logic for better reliability in production
+            # Call Apps Script with timeout (180s) + retry logic for production stability
             max_retries = 2
             retry_count = 0
             last_error = None
