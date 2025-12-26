@@ -493,6 +493,14 @@ def run_test(test_name, test_func, expected_status=200, expected_admin_only=Fals
         print(f"      ❌ Test failed with exception: {e}")
         return False, None
 
+def test_survey_reports_list(headers, ship_id=None):
+    """Test GET /api/survey-reports - Get survey reports list"""
+    url = f"{BACKEND_URL}/survey-reports"
+    if ship_id:
+        url += f"?ship_id={ship_id}"
+    response = requests.get(url, headers=headers)
+    return response
+
 # Main test execution
 def main():
     print("🧪 SURVEY REPORT SMART UPLOAD TESTING")
