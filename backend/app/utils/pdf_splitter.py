@@ -504,3 +504,107 @@ def merge_approval_document_results(chunk_results: List[Dict]) -> Dict:
     """
     return merge_analysis_results(chunk_results, document_type='approval_document')
 
+
+def split_first_and_last(
+    pdf_content: bytes, 
+    filename: str,
+    first_pages: int = 10, 
+    last_pages: int = 10
+) -> List[Dict]:
+    """
+    Split PDF into 2 chunks: first N pages and last N pages
+    Optimized for Survey Reports where key info is usually at beginning and end
+    
+    Args:
+        pdf_content: PDF file as bytes
+        filename: Original filename
+        first_pages: Number of pages to take from beginning (default: 10)
+        last_pages: Number of pages to take from end (default: 10)
+    
+    Returns:
+        List of 2 chunks:
+        - Chunk 1: First N pages (pages 1 to first_pages)
+        - Chunk 2: Last N pages (pages total-last_pages+1 to total)
+        
+        If PDF has <= first_pages + last_pages, returns single chunk with all pages.
+    """
+    try:
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_content))
+        total_pages = len(pdf_reader.pages)
+        base_filename = filename.rsplit('.', 1)[0] if '.' in filename else filename
+        
+        logger.info(f"🔪 Split first/last: {filename} ({total_pages} pages) → first {first_pages} + last {last_pages}")
+        
+        # If PDF is small enough, no need to split
+        if total_pages <= first_pages + last_pages:
+            logger.info(f"  📄 PDF has {total_pages} pages, returning as single chunk (no overlap)")
+            return [{
+                'content': pdf_content,
+                'chunk_num': 1,
+                'chunk_type': 'full',
+                'page_range': f'1-{total_pages}',
+                'start_page': 1,
+                'end_page': total_pages,
+                'page_count': total_pages,
+                'filename': filename,
+                'size_bytes': len(pdf_content)
+            }]
+        
+        chunks = []
+        
+        # Chunk 1: First N pages
+        first_chunk_writer = PyPDF2.PdfWriter()
+        for page_num in range(0, first_pages):
+            first_chunk_writer.add_page(pdf_reader.pages[page_num])
+        
+        first_chunk_io = io.BytesIO()
+        first_chunk_writer.write(first_chunk_io)
+        first_chunk_content = first_chunk_io.getvalue()
+        
+        chunks.append({
+            'content': first_chunk_content,
+            'chunk_num': 1,
+            'chunk_type': 'first',
+            'page_range': f'1-{first_pages}',
+            'start_page': 1,
+            'end_page': first_pages,
+            'page_count': first_pages,
+            'filename': f'{base_filename}_first{first_pages}.pdf',
+            'size_bytes': len(first_chunk_content)
+        })
+        logger.info(f"  ✅ Chunk 1 (First): pages 1-{first_pages}, size: {len(first_chunk_content)} bytes")
+        
+        # Chunk 2: Last N pages
+        last_start = total_pages - last_pages  # 0-indexed start
+        last_chunk_writer = PyPDF2.PdfWriter()
+        for page_num in range(last_start, total_pages):
+            last_chunk_writer.add_page(pdf_reader.pages[page_num])
+        
+        last_chunk_io = io.BytesIO()
+        last_chunk_writer.write(last_chunk_io)
+        last_chunk_content = last_chunk_io.getvalue()
+        
+        chunks.append({
+            'content': last_chunk_content,
+            'chunk_num': 2,
+            'chunk_type': 'last',
+            'page_range': f'{last_start + 1}-{total_pages}',
+            'start_page': last_start + 1,
+            'end_page': total_pages,
+            'page_count': last_pages,
+            'filename': f'{base_filename}_last{last_pages}.pdf',
+            'size_bytes': len(last_chunk_content)
+        })
+        logger.info(f"  ✅ Chunk 2 (Last): pages {last_start + 1}-{total_pages}, size: {len(last_chunk_content)} bytes")
+        
+        # Log summary
+        total_processed_pages = first_pages + last_pages
+        skipped_pages = total_pages - total_processed_pages
+        logger.info(f"📦 Split complete: 2 chunks, {total_processed_pages} pages processed, {skipped_pages} pages skipped (middle)")
+        
+        return chunks
+        
+    except Exception as e:
+        logger.error(f"❌ Error splitting PDF first/last: {e}")
+        raise ValueError(f"Failed to split PDF: {str(e)}")
+
