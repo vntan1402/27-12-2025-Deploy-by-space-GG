@@ -653,12 +653,18 @@ class GDriveService:
             
             while retry_count <= max_retries:
                 try:
+                    import time
+                    start_time = time.time()
+                    logger.info(f"⏱️ [TIMING] Starting GDrive upload (attempt {retry_count + 1})...")
+                    
                     async with aiohttp.ClientSession() as session:
                         async with session.post(
                             apps_script_url,
                             json=payload,
                             timeout=aiohttp.ClientTimeout(total=180)  # 3 minutes
                         ) as response:
+                            elapsed_time = time.time() - start_time
+                            logger.info(f"⏱️ [TIMING] GDrive upload response in {elapsed_time:.2f}s (status: {response.status})")
                             if response.status == 200:
                                 result = await response.json()
                                 
