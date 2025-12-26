@@ -227,14 +227,15 @@ class CertificateMultiUploadService:
         background_tasks: BackgroundTasks
     ) -> Dict[str, Any]:
         """
-        Smart multi-upload with automatic FAST/SLOW path selection
+        Smart multi-upload - ALL files go to SLOW PATH (background processing)
         
-        - FAST PATH: PDF with text layer >= 400 chars → Process immediately
-        - SLOW PATH: Scanned PDF/Image → Create background task, return task_id
+        This ensures:
+        - Immediate response (no timeout)
+        - All processing happens in background
+        - Frontend polls for completion
         
-        Returns mixed results with immediate results and task_ids for background processing
+        Returns task_id for polling
         """
-        from app.services.ship_certificate_analyze_service import ShipCertificateAnalyzeService
         from app.services.upload_task_service import UploadTaskService
         from app.models.upload_task import TaskStatus, ProcessingType
         import tempfile
@@ -277,138 +278,65 @@ class CertificateMultiUploadService:
             if not gdrive_config_doc:
                 raise HTTPException(status_code=500, detail="Google Drive not configured")
             
-            # Step 3: Categorize files into FAST and SLOW paths
-            fast_path_files = []
-            slow_path_files = []
+            # Step 3: ALL files go to SLOW PATH (background processing)
+            # This prevents timeout issues on production
+            logger.info(f"📊 Processing {len(files)} files via SLOW PATH (background)")
             
+            # Save ALL files to temp storage for background processing
+            temp_files = []
             for file in files:
                 file_content = await file.read()
-                await file.seek(0)  # Reset for later use
                 
-                # Quick check processing path
-                path_info = ShipCertificateAnalyzeService.quick_check_processing_path(
-                    file_content, file.filename
-                )
+                # Save to temp file
+                temp_dir = tempfile.mkdtemp(prefix="cert_upload_")
+                temp_path = os_module.path.join(temp_dir, file.filename)
                 
-                logger.info(f"📁 {file.filename}: {path_info['path']} - {path_info['reason']}")
+                with open(temp_path, "wb") as f:
+                    f.write(file_content)
                 
-                if path_info["path"] == "FAST_PATH":
-                    fast_path_files.append({
-                        "file": file,
-                        "content": file_content,
-                        "path_info": path_info
-                    })
-                else:
-                    slow_path_files.append({
-                        "file": file,
-                        "content": file_content,
-                        "path_info": path_info
-                    })
+                temp_files.append({
+                    "temp_path": temp_path,
+                    "filename": file.filename,
+                    "content_type": file.content_type,
+                    "path_info": {"path": "SLOW_PATH", "reason": "Background processing for reliability"}
+                })
+                
+                logger.info(f"📁 {file.filename}: Queued for background processing")
             
-            logger.info(f"📊 Path distribution: {len(fast_path_files)} FAST, {len(slow_path_files)} SLOW")
+            # Step 4: Create task in database
+            task_id = await UploadTaskService.create_task(
+                task_type="certificate",
+                ship_id=ship_id,
+                filenames=[f["filename"] for f in temp_files],
+                current_user=current_user
+            )
             
-            # Step 4: Process FAST PATH files immediately
-            fast_results = []
-            for file_data in fast_path_files:
-                try:
-                    # Create a new UploadFile from the content we already read
-                    from io import BytesIO
-                    from starlette.datastructures import UploadFile as StarletteUploadFile, Headers
-                    
-                    file_content = file_data["content"]
-                    original_file = file_data["file"]
-                    
-                    # Create BytesIO from content
-                    file_obj = BytesIO(file_content)
-                    
-                    # Create headers with content-type
-                    content_type = original_file.content_type or "application/pdf"
-                    headers = Headers({"content-type": content_type})
-                    
-                    # Create new UploadFile with headers
-                    mock_file = StarletteUploadFile(
-                        file=file_obj,
-                        filename=original_file.filename,
-                        headers=headers
-                    )
-                    
-                    result = await CertificateMultiUploadService._process_single_file(
-                        file=mock_file,
-                        ship_id=ship_id,
-                        ship=ship,
-                        ai_config=ai_config,
-                        gdrive_config_doc=gdrive_config_doc,
-                        current_user=current_user,
-                        db=db
-                    )
-                    result["processing_path"] = "FAST_PATH"
-                    fast_results.append(result)
-                    
-                except Exception as e:
-                    logger.error(f"❌ FAST PATH error for {file_data['file'].filename}: {e}")
-                    import traceback
-                    logger.error(traceback.format_exc())
-                    fast_results.append({
-                        "filename": file_data["file"].filename,
-                        "status": "error",
-                        "message": str(e),
-                        "processing_path": "FAST_PATH"
-                    })
+            # Step 5: Schedule background processing
+            background_tasks.add_task(
+                CertificateMultiUploadService._process_slow_path_background,
+                task_id=task_id,
+                temp_files=temp_files,
+                ship_id=ship_id,
+                ship=ship,
+                ai_config=ai_config,
+                gdrive_config_doc=gdrive_config_doc,
+                user_id=current_user.id,
+                company_id=current_user.company
+            )
             
-            # Step 5: Create background task for SLOW PATH files
-            task_id = None
-            if slow_path_files:
-                # Save files to temp storage for background processing
-                temp_files = []
-                for file_data in slow_path_files:
-                    # Save to temp file
-                    temp_dir = tempfile.mkdtemp(prefix="cert_upload_")
-                    temp_path = os_module.path.join(temp_dir, file_data["file"].filename)
-                    
-                    with open(temp_path, "wb") as f:
-                        f.write(file_data["content"])
-                    
-                    temp_files.append({
-                        "temp_path": temp_path,
-                        "filename": file_data["file"].filename,
-                        "content_type": file_data["file"].content_type,
-                        "path_info": file_data["path_info"]
-                    })
-                
-                # Create task in database
-                task_id = await UploadTaskService.create_task(
-                    task_type="certificate",
-                    ship_id=ship_id,
-                    filenames=[f["filename"] for f in temp_files],
-                    current_user=current_user
-                )
-                
-                # Schedule background processing
-                background_tasks.add_task(
-                    CertificateMultiUploadService._process_slow_path_background,
-                    task_id=task_id,
-                    temp_files=temp_files,
-                    ship_id=ship_id,
-                    ship=ship,
-                    ai_config=ai_config,
-                    gdrive_config_doc=gdrive_config_doc,
-                    user_id=current_user.id,
-                    company_id=current_user.company
-                )
-                
-                logger.info(f"📋 Created background task {task_id} for {len(slow_path_files)} SLOW PATH files")
+            logger.info(f"📋 Created background task {task_id} for {len(files)} files")
             
-            # Step 6: Build response
+            # Step 6: Build response - return immediately with task_id
             response = {
-                "fast_path_results": fast_results,
+                "fast_path_results": [],  # No FAST PATH anymore
                 "slow_path_task_id": task_id,
                 "summary": {
                     "total_files": len(files),
-                    "fast_path_count": len(fast_path_files),
-                    "slow_path_count": len(slow_path_files),
-                    "fast_path_completed": len([r for r in fast_results if r.get("status") == "success"]),
-                    "fast_path_errors": len([r for r in fast_results if r.get("status") == "error"]),
-                    "slow_path_processing": len(slow_path_files) > 0
+                    "fast_path_count": 0,
+                    "slow_path_count": len(files),
+                    "fast_path_completed": 0,
+                    "fast_path_errors": 0,
+                    "slow_path_processing": True
                 },
                 "ship": {
                     "id": ship_id,
