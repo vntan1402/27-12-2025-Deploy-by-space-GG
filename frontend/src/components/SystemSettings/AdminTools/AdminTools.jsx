@@ -2,15 +2,28 @@
  * Admin Tools Component
  * Provides access to administrative tools and utilities
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
+import ConnectivityHealthCheck from './ConnectivityHealthCheck';
 
 const AdminTools = () => {
   const navigate = useNavigate();
   const { language } = useAuth();
+  const [showHealthCheck, setShowHealthCheck] = useState(false);
 
   const tools = [
+    {
+      id: 'connectivity-health-check',
+      icon: '🔌',
+      title: language === 'vi' ? 'Kiểm tra kết nối' : 'Connectivity Health Check',
+      description: language === 'vi' 
+        ? 'Kiểm tra kết nối đến Google Apps Script, Document AI và các dịch vụ bên ngoài'
+        : 'Test connections to Google Apps Script, Document AI and external services',
+      action: () => setShowHealthCheck(true),
+      badge: null,
+      color: 'green'
+    },
     {
       id: 'system-audit-logs',
       icon: '📋',
