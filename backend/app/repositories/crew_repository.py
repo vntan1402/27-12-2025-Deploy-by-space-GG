@@ -41,10 +41,8 @@ class CrewRepository:
     
     @staticmethod
     async def bulk_delete(crew_ids: List[str]) -> int:
-        """Delete multiple crew members"""
-        deleted_count = 0
-        for crew_id in crew_ids:
-            success = await mongo_db.delete("crew", {"id": crew_id})
-            if success:
-                deleted_count += 1
-        return deleted_count
+        """Delete multiple crew members using batch operation"""
+        if not crew_ids:
+            return 0
+        result = await mongo_db.database["crew"].delete_many({"id": {"$in": crew_ids}})
+        return result.deleted_count

@@ -41,13 +41,11 @@ class CrewCertificateRepository:
     
     @staticmethod
     async def bulk_delete(cert_ids: List[str]) -> int:
-        """Delete multiple crew certificates"""
-        deleted_count = 0
-        for cert_id in cert_ids:
-            success = await mongo_db.delete("crew_certificates", {"id": cert_id})
-            if success:
-                deleted_count += 1
-        return deleted_count
+        """Delete multiple crew certificates using batch operation"""
+        if not cert_ids:
+            return 0
+        result = await mongo_db.database["crew_certificates"].delete_many({"id": {"$in": cert_ids}})
+        return result.deleted_count
     
     @staticmethod
     async def check_duplicate(crew_id: str, cert_name: Optional[str] = None, cert_no: Optional[str] = None) -> Optional[Dict[str, Any]]:
