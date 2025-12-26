@@ -188,7 +188,29 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
       
     } catch (error) {
       console.error('AI analysis error:', error);
-      toast.error(language === 'vi' ? '❌ Lỗi phân tích file. Vui lòng nhập thủ công.' : '❌ Analysis failed. Please enter manually.');
+      
+      // Detect timeout vs other errors for better UX
+      const isTimeout = error.code === 'ECONNABORTED' || 
+                       error.message?.includes('timeout') ||
+                       error.message?.includes('180000ms');
+      const isNetworkError = error.message?.includes('Network Error') ||
+                            error.message?.includes('CORS');
+      
+      if (isTimeout) {
+        toast.error(
+          language === 'vi' 
+            ? '⏱️ Phân tích file quá lâu (>3 phút). File có thể quá lớn. Vui lòng thử file nhỏ hơn hoặc nhập thủ công.'
+            : '⏱️ Analysis timed out (>3 min). File may be too large. Try a smaller file or enter manually.'
+        );
+      } else if (isNetworkError) {
+        toast.error(
+          language === 'vi'
+            ? '🌐 Lỗi kết nối mạng. Vui lòng kiểm tra kết nối và thử lại.'
+            : '🌐 Network connection error. Please check connection and try again.'
+        );
+      } else {
+        toast.error(language === 'vi' ? '❌ Lỗi phân tích file. Vui lòng nhập thủ công.' : '❌ Analysis failed. Please enter manually.');
+      }
     } finally {
       setIsAnalyzing(false);
     }
