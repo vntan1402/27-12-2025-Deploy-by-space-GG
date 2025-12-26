@@ -280,8 +280,16 @@ class SurveyReportAnalyzeService:
         analysis_result: Dict,
         total_pages: int
     ) -> Dict[str, Any]:
-        """Process a single PDF (≤15 pages)"""
-        from app.utils.document_ai_helper import analyze_survey_report_with_document_ai
+        """
+        Process a single PDF (≤15 pages) with SMART PATH selection:
+        - FAST PATH: If text layer >= 400 chars, use text layer only (no Document AI)
+        - SLOW PATH: If text layer < 400 chars, use Document AI (OCR)
+        """
+        from app.utils.pdf_text_extractor import (
+            quick_check_text_layer,
+            format_text_layer_summary,
+            TEXT_LAYER_THRESHOLD
+        )
         
         logger.info(f"🔄 Processing single PDF: {filename} ({total_pages} pages)")
         
@@ -291,112 +299,149 @@ class SurveyReportAnalyzeService:
             'chunks_count': 1
         }
         
-        # Step 1: Call Document AI
-        doc_ai_result = await analyze_survey_report_with_document_ai(
-            file_content=file_content,
-            filename=filename,
-            content_type=content_type,
-            document_ai_config=document_ai_config
-        )
+        summary_text = ""
+        processing_path = None
         
-        if not doc_ai_result.get('success'):
-            logger.warning(f"⚠️ Document AI failed: {doc_ai_result.get('message')}")
-            analysis_result['processing_method'] = "document_ai_failed"
-            analysis_result['_summary_text'] = ""
+        # ⭐ SMART PATH SELECTION
+        logger.info(f"⚡ SMART PATH: Checking text layer for {filename}...")
+        text_check = quick_check_text_layer(file_content, filename)
+        char_count = text_check.get("char_count", 0)
+        
+        if text_check.get("has_sufficient_text"):
+            # ✅ FAST PATH - Use text layer only
+            processing_path = "FAST_PATH"
+            logger.info(f"⚡ FAST PATH selected: {char_count} chars >= {TEXT_LAYER_THRESHOLD} threshold")
+            logger.info(f"   ✅ Skipping Document AI call - using text layer only")
+            
+            # Format text layer as summary
+            summary_text = format_text_layer_summary(
+                text_content=text_check["text_content"],
+                filename=filename,
+                page_count=text_check["page_count"],
+                char_count=char_count
+            )
+            
+            logger.info(f"✅ Text layer summary: {len(summary_text)} characters")
+            analysis_result['processing_method'] = "text_layer_fast_path"
+            
         else:
+            # ⚠️ SLOW PATH - Need Document AI
+            processing_path = "SLOW_PATH"
+            logger.info(f"🐢 SLOW PATH selected: {char_count} chars < {TEXT_LAYER_THRESHOLD} threshold")
+            logger.info(f"   📄 PDF appears to be scanned/image - calling Document AI...")
+            
+            from app.utils.document_ai_helper import analyze_survey_report_with_document_ai
+            
+            # Step 1: Call Document AI
+            doc_ai_result = await analyze_survey_report_with_document_ai(
+                file_content=file_content,
+                filename=filename,
+                content_type=content_type,
+                document_ai_config=document_ai_config
+            )
+            
+            if not doc_ai_result.get('success'):
+                logger.warning(f"⚠️ Document AI failed: {doc_ai_result.get('message')}")
+                analysis_result['processing_method'] = "document_ai_failed"
+                analysis_result['_summary_text'] = ""
+                analysis_result['_processing_path'] = processing_path
+                return analysis_result
+            
             summary_text = doc_ai_result.get('data', {}).get('summary', '')
             logger.info(f"✅ Document AI summary: {len(summary_text)} chars")
-            
-            # Step 2: Perform Targeted OCR
-            ocr_metadata = await SurveyReportAnalyzeService._perform_targeted_ocr(
-                file_content,
-                "single_pdf"
-            )
-            analysis_result['_ocr_info'] = ocr_metadata
-            
-            # Step 3: Merge OCR into summary if available
-            enhanced_summary = summary_text
-            
-            if ocr_metadata.get('ocr_success') and ocr_metadata.get('ocr_text_merged'):
-                # Get OCR text from processor
-                try:
-                    from app.utils.targeted_ocr import get_ocr_processor
-                    ocr_processor = get_ocr_processor()
-                    ocr_result = ocr_processor.extract_from_pdf(
-                        file_content, 
-                        page_num=0,
-                        report_no_field='survey_report_no'
-                    )
+            analysis_result['processing_method'] = "document_ai_slow_path"
+        
+        # Add processing path metadata
+        analysis_result['_processing_path'] = processing_path
+        analysis_result['_text_layer_chars'] = char_count
+        
+        # Step 2: Perform Targeted OCR (for both paths)
+        ocr_metadata = await SurveyReportAnalyzeService._perform_targeted_ocr(
+            file_content,
+            "single_pdf"
+        )
+        analysis_result['_ocr_info'] = ocr_metadata
+        
+        # Step 3: Merge OCR into summary if available
+        enhanced_summary = summary_text
+        
+        if ocr_metadata.get('ocr_success') and ocr_metadata.get('ocr_text_merged'):
+            try:
+                from app.utils.targeted_ocr import get_ocr_processor
+                ocr_processor = get_ocr_processor()
+                ocr_result = ocr_processor.extract_from_pdf(
+                    file_content, 
+                    page_num=0,
+                    report_no_field='survey_report_no'
+                )
+                
+                if ocr_result.get('ocr_success'):
+                    header_text = ocr_result.get('header_text', '').strip()
+                    footer_text = ocr_result.get('footer_text', '').strip()
                     
-                    if ocr_result.get('ocr_success'):
-                        header_text = ocr_result.get('header_text', '').strip()
-                        footer_text = ocr_result.get('footer_text', '').strip()
+                    if header_text or footer_text:
+                        ocr_section = "\n\n" + "="*60 + "\n"
+                        ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
+                        ocr_section += "="*60 + "\n\n"
                         
-                        if header_text or footer_text:
-                            ocr_section = "\n\n" + "="*60 + "\n"
-                            ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (OCR Extraction)\n"
-                            ocr_section += "="*60 + "\n\n"
-                            
-                            if header_text:
-                                ocr_section += "=== HEADER TEXT ===\n" + header_text + "\n\n"
-                            if footer_text:
-                                ocr_section += "=== FOOTER TEXT ===\n" + footer_text + "\n\n"
-                            
-                            enhanced_summary = summary_text + ocr_section
-                            logger.info(f"✅ Enhanced summary with OCR: {len(enhanced_summary)} chars")
-                except Exception as ocr_error:
-                    logger.warning(f"⚠️ Failed to merge OCR: {ocr_error}")
-            
-            # Step 4: Extract fields with System AI
-            logger.info("🧠 Extracting fields with System AI...")
-            
-            ai_provider = ai_config_doc.get("provider", "google")
-            ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
-            use_emergent_key = ai_config_doc.get("use_emergent_key", True)
-            
-            extracted_fields = await extract_survey_report_fields_from_summary(
-                enhanced_summary,
-                ai_provider,
-                ai_model,
-                use_emergent_key,
-                filename
-            )
-            
-            if extracted_fields:
-                logger.info("✅ System AI extraction completed")
-                
-                # Normalize issued_by to standard abbreviation
-                if extracted_fields.get('issued_by'):
-                    try:
-                        from app.utils.issued_by_abbreviation import normalize_issued_by
+                        if header_text:
+                            ocr_section += "=== HEADER TEXT ===\n" + header_text + "\n\n"
+                        if footer_text:
+                            ocr_section += "=== FOOTER TEXT ===\n" + footer_text + "\n\n"
                         
-                        original_issued_by = extracted_fields['issued_by']
-                        normalized_issued_by = normalize_issued_by(original_issued_by)
+                        enhanced_summary = summary_text + ocr_section
+                        logger.info(f"✅ Enhanced summary with OCR: {len(enhanced_summary)} chars")
+            except Exception as ocr_error:
+                logger.warning(f"⚠️ Failed to merge OCR: {ocr_error}")
+        
+        # Step 4: Extract fields with System AI
+        logger.info("🧠 Extracting fields with System AI...")
+        
+        ai_provider = ai_config_doc.get("provider", "google")
+        ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
+        use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+        
+        extracted_fields = await extract_survey_report_fields_from_summary(
+            enhanced_summary,
+            ai_provider,
+            ai_model,
+            use_emergent_key,
+            filename
+        )
+        
+        if extracted_fields:
+            logger.info(f"✅ System AI extraction completed ({processing_path})")
+            
+            # Normalize issued_by to standard abbreviation
+            if extracted_fields.get('issued_by'):
+                try:
+                    from app.utils.issued_by_abbreviation import normalize_issued_by
+                    
+                    original_issued_by = extracted_fields['issued_by']
+                    normalized_issued_by = normalize_issued_by(original_issued_by)
+                    
+                    if normalized_issued_by != original_issued_by:
+                        extracted_fields['issued_by'] = normalized_issued_by
+                        logger.info(f"✅ Normalized Issued By: '{original_issued_by}' → '{normalized_issued_by}'")
+                    else:
+                        logger.info(f"ℹ️ Issued By kept as: '{original_issued_by}'")
                         
-                        if normalized_issued_by != original_issued_by:
-                            extracted_fields['issued_by'] = normalized_issued_by
-                            logger.info(f"✅ Normalized Issued By: '{original_issued_by}' → '{normalized_issued_by}'")
-                        else:
-                            logger.info(f"ℹ️ Issued By kept as: '{original_issued_by}'")
-                            
-                    except Exception as norm_error:
-                        logger.error(f"❌ Error normalizing issued_by: {norm_error}")
-                        # Keep original value if normalization fails
-                
-                analysis_result.update(extracted_fields)
-                analysis_result['processing_method'] = "full_analysis"
-            else:
-                logger.warning("⚠️ System AI extraction returned no fields")
-                analysis_result['processing_method'] = "document_ai_only"
+                except Exception as norm_error:
+                    logger.error(f"❌ Error normalizing issued_by: {norm_error}")
             
-            # Try to extract report_form from filename if not found
-            if not analysis_result.get('report_form'):
-                filename_form = extract_report_form_from_filename(filename)
-                if filename_form:
-                    analysis_result['report_form'] = filename_form
-                    logger.info(f"✅ Extracted report_form from filename: '{filename_form}'")
-            
-            analysis_result['_summary_text'] = enhanced_summary
+            analysis_result.update(extracted_fields)
+        else:
+            logger.warning("⚠️ System AI extraction returned no fields")
+            analysis_result['processing_method'] = f"{processing_path.lower()}_no_fields"
+        
+        # Try to extract report_form from filename if not found
+        if not analysis_result.get('report_form'):
+            filename_form = extract_report_form_from_filename(filename)
+            if filename_form:
+                analysis_result['report_form'] = filename_form
+                logger.info(f"✅ Extracted report_form from filename: '{filename_form}'")
+        
+        analysis_result['_summary_text'] = enhanced_summary
         
         return analysis_result
     
