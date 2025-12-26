@@ -170,9 +170,9 @@ export const HTTP_STATUS = {
  */
 export const API_TIMEOUT = {
   DEFAULT: 30000, // 30 seconds
-  FILE_UPLOAD: 180000, // 180 seconds (3 minutes) - For large files
-  AI_ANALYSIS: 180000, // 180 seconds (3 minutes) - For large PDFs (>15 pages)
-  LONG_RUNNING: 180000 // 3 minutes
+  FILE_UPLOAD: 300000, // 300 seconds (5 minutes) - For large files
+  AI_ANALYSIS: 300000, // 300 seconds (5 minutes) - For large PDFs (>35 pages) - Increased due to production network latency
+  LONG_RUNNING: 300000 // 5 minutes
 };
 
 /**
