@@ -406,7 +406,7 @@ class ShipCertificateAnalyzeService:
                             )
                         else:
                             # Correction failed, use original
-                            logger.warning(f"   ⚠️ AI correction failed, using original text")
+                            logger.warning("   ⚠️ AI correction failed, using original text")
                             summary_text = format_text_layer_summary(
                                 text_content=raw_text,
                                 filename=filename,
@@ -415,7 +415,7 @@ class ShipCertificateAnalyzeService:
                             )
                     else:
                         # Text quality is good, use as-is
-                        logger.info(f"   ✅ Text quality good, skipping AI correction")
+                        logger.info("   ✅ Text quality good, skipping AI correction")
                         summary_text = format_text_layer_summary(
                             text_content=raw_text,
                             filename=filename,
@@ -428,7 +428,7 @@ class ShipCertificateAnalyzeService:
                     # ⚠️ SLOW PATH - Need Document AI
                     processing_path = "SLOW_PATH"
                     logger.info(f"🐢 SLOW PATH selected: {char_count} chars < {TEXT_LAYER_THRESHOLD} threshold")
-                    logger.info(f"   📄 PDF appears to be scanned/image - calling Document AI...")
+                    logger.info("   📄 PDF appears to be scanned/image - calling Document AI...")
             else:
                 # Image files always need Document AI
                 processing_path = "SLOW_PATH"
@@ -447,7 +447,7 @@ class ShipCertificateAnalyzeService:
                 }
                 content_type = mime_type_mapping.get(file_ext, 'application/pdf')
                 
-                logger.info(f"🚀 Starting Document AI analysis...")
+                logger.info("🚀 Starting Document AI analysis...")
                 
                 # For PDF, also get text layer for merging
                 if is_pdf:
@@ -528,7 +528,7 @@ class ShipCertificateAnalyzeService:
                                 summary_text = summary_text + ocr_section
                                 logger.info(f"✅ Enhanced with targeted OCR: header={len(header_text)} chars, footer={len(footer_text)} chars")
                         else:
-                            logger.info(f"ℹ️ Targeted OCR skipped or no additional text found")
+                            logger.info("ℹ️ Targeted OCR skipped or no additional text found")
                             
                     except Exception as ocr_error:
                         logger.warning(f"⚠️ Targeted OCR failed: {ocr_error}")
