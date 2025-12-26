@@ -377,7 +377,7 @@ class SurveyReportAnalyzeService:
                     analysis_result['processing_method'] = "text_layer_fast_path_corrected"
                 else:
                     # Correction failed, use original
-                    logger.warning(f"   ⚠️ AI correction failed, using original text")
+                    logger.warning("   ⚠️ AI correction failed, using original text")
                     summary_text = format_text_layer_summary(
                         text_content=raw_text,
                         filename=filename,
@@ -388,7 +388,7 @@ class SurveyReportAnalyzeService:
                     analysis_result['processing_method'] = "text_layer_fast_path"
             else:
                 # Text quality is good, use as-is
-                logger.info(f"   ✅ Text quality good, skipping AI correction")
+                logger.info("   ✅ Text quality good, skipping AI correction")
                 summary_text = format_text_layer_summary(
                     text_content=raw_text,
                     filename=filename,
@@ -402,7 +402,7 @@ class SurveyReportAnalyzeService:
             
         else:
             # ⚠️ SLOW PATH - Need Document AI
-            logger.info(f"   📄 Calling Document AI for OCR processing...")
+            logger.info("   📄 Calling Document AI for OCR processing...")
             
             from app.utils.document_ai_helper import analyze_survey_report_with_document_ai
             
@@ -600,7 +600,7 @@ class SurveyReportAnalyzeService:
                     )
                     analysis_result['processing_method'] = "text_layer_fast_path_large_pdf_corrected"
                 else:
-                    logger.warning(f"   ⚠️ AI correction failed, using original text")
+                    logger.warning("   ⚠️ AI correction failed, using original text")
                     summary_text = format_text_layer_summary(
                         text_content=raw_text,
                         filename=filename,
@@ -611,7 +611,7 @@ class SurveyReportAnalyzeService:
                     analysis_result['processing_method'] = "text_layer_fast_path_large_pdf"
             else:
                 # Text quality is good, use as-is
-                logger.info(f"   ✅ Text quality good, skipping AI correction")
+                logger.info("   ✅ Text quality good, skipping AI correction")
                 summary_text = format_text_layer_summary(
                     text_content=raw_text,
                     filename=filename,
@@ -637,7 +637,7 @@ class SurveyReportAnalyzeService:
             # ⚠️ SLOW PATH - Need Document AI (10 first + 10 last pages)
             processing_path = "SLOW_PATH"
             logger.info(f"🐢 SLOW PATH selected for large PDF: {char_count} chars < {TEXT_LAYER_THRESHOLD} threshold")
-            logger.info(f"   📄 Large scanned PDF - splitting into first 10 + last 10 pages")
+            logger.info("   📄 Large scanned PDF - splitting into first 10 + last 10 pages")
             
             # Split into 2 chunks: first 10 + last 10 pages
             chunks = split_first_and_last(file_content, filename, first_pages=10, last_pages=10)
@@ -725,7 +725,7 @@ class SurveyReportAnalyzeService:
             summary_parts.append("SURVEY REPORT SUMMARY - FIRST/LAST PAGES EXTRACTION")
             summary_parts.append(f"File: {filename}")
             summary_parts.append(f"Total Pages: {total_pages}")
-            summary_parts.append(f"Processing: SLOW PATH (Scanned PDF - Document AI)")
+            summary_parts.append("Processing: SLOW PATH (Scanned PDF - Document AI)")
             summary_parts.append("=" * 80)
             summary_parts.append("")
             
