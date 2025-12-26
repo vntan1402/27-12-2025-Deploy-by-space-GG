@@ -673,11 +673,13 @@ export const AddShipCertificateModal = ({
       const formData = new FormData();
       formData.append('files', originalFile);
       
+      // Use Smart Upload endpoint for retry as well
       const response = await api.post(
-        `/api/certificates/multi-upload?ship_id=${selectedShip.id}`,
+        `/api/certificates/multi-upload-smart?ship_id=${selectedShip.id}`,
         formData,
         {
           headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 120000, // 2 minutes for smart upload
           onUploadProgress: (progressEvent) => {
             const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             setFileProgressMap(prev => ({ ...prev, [failedFileName]: progress }));
@@ -686,8 +688,11 @@ export const AddShipCertificateModal = ({
         }
       );
       
-      if (response.data?.certificates && response.data.certificates.length > 0) {
-        const certData = response.data.certificates[0];
+      // Handle smart upload response
+      const { fast_path_results = [], slow_path_task_id } = response.data || {};
+      
+      if (fast_path_results.length > 0 && (fast_path_results[0].status === 'success' || fast_path_results[0].status === 'completed')) {
+        const certData = fast_path_results[0];
         
         // Success!
         setFileStatusMap(prev => ({ ...prev, [failedFileName]: 'completed' }));
@@ -703,8 +708,8 @@ export const AddShipCertificateModal = ({
           success: true,
           certificateCreated: true,
           fileUploaded: true,
-          certificateName: certData.cert_name || '',
-          certificateNo: certData.cert_no || '',
+          certificateName: certData.extracted_info?.cert_name || '',
+          certificateNo: certData.extracted_info?.cert_no || '',
           error: null
         };
         
