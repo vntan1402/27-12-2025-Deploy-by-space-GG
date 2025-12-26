@@ -535,20 +535,70 @@ class SurveyReportAnalyzeService:
         summary_text = ""
         
         if text_check.get("has_sufficient_text"):
-            # ✅ FAST PATH - Use text layer only (no Document AI, no splitting!)
+            # ✅ FAST PATH - Use text layer with AI correction if needed
             processing_path = "FAST_PATH"
             logger.info(f"⚡ FAST PATH selected for large PDF: {char_count} chars >= {TEXT_LAYER_THRESHOLD} threshold")
-            logger.info(f"   ✅ Skipping Document AI & splitting - using text layer for ALL {total_pages} pages")
             
-            # Format text layer as summary
-            from app.utils.pdf_text_extractor import format_text_layer_summary
-            summary_text = format_text_layer_summary(
-                text_content=text_check["text_content"],
-                filename=filename,
-                page_count=total_pages,
-                char_count=char_count,
-                document_type="survey_report"
+            # ⭐ Check text quality and apply AI correction if needed
+            from app.utils.text_layer_correction import (
+                correct_text_layer_with_ai,
+                detect_ocr_quality
             )
+            from app.utils.pdf_text_extractor import format_text_layer_summary
+            
+            raw_text = text_check["text_content"]
+            quality_info = detect_ocr_quality(raw_text)
+            
+            logger.info(f"   📊 Text quality: {quality_info['quality_score']}%, needs_correction: {quality_info['needs_correction']}")
+            
+            if quality_info["needs_correction"]:
+                # Apply AI correction for low-quality text
+                logger.info(f"   🔧 Applying AI text correction for large PDF (quality issues: {quality_info['issues_detected']})")
+                
+                correction_result = await correct_text_layer_with_ai(
+                    text_content=raw_text,
+                    filename=filename,
+                    ai_config=ai_config_doc
+                )
+                
+                if correction_result["success"] and correction_result["correction_applied"]:
+                    corrected_text = correction_result["corrected_text"]
+                    logger.info(f"   ✅ Text corrected in {correction_result['processing_time']}s")
+                    
+                    summary_text = format_text_layer_summary(
+                        text_content=corrected_text,
+                        filename=filename,
+                        page_count=total_pages,
+                        char_count=len(corrected_text),
+                        document_type="survey_report"
+                    )
+                    
+                    summary_text = summary_text.replace(
+                        "Processing: FAST PATH (Native PDF Text)",
+                        "Processing: FAST PATH (Native PDF Text + AI Correction)"
+                    )
+                    analysis_result['processing_method'] = "text_layer_fast_path_large_pdf_corrected"
+                else:
+                    logger.warning(f"   ⚠️ AI correction failed, using original text")
+                    summary_text = format_text_layer_summary(
+                        text_content=raw_text,
+                        filename=filename,
+                        page_count=total_pages,
+                        char_count=char_count,
+                        document_type="survey_report"
+                    )
+                    analysis_result['processing_method'] = "text_layer_fast_path_large_pdf"
+            else:
+                # Text quality is good, use as-is
+                logger.info(f"   ✅ Text quality good, skipping AI correction")
+                summary_text = format_text_layer_summary(
+                    text_content=raw_text,
+                    filename=filename,
+                    page_count=total_pages,
+                    char_count=char_count,
+                    document_type="survey_report"
+                )
+                analysis_result['processing_method'] = "text_layer_fast_path_large_pdf"
             
             logger.info(f"✅ Text layer summary: {len(summary_text)} characters")
             
