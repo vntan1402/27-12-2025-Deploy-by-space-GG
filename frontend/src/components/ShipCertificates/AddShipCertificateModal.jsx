@@ -317,23 +317,24 @@ export const AddShipCertificateModal = ({
     let slowPathTaskId = null;
 
     try {
-      // ⭐ PARALLEL Upload với 4s stagger (như Audit Certificate)
-      // Mỗi file bắt đầu cách nhau 4s, nhưng chạy song song
-      console.log(`📤 Smart Upload: Processing ${totalFiles} files in PARALLEL (4s stagger)...`);
+      // ⭐ ALL files go to BACKGROUND processing
+      // Response is immediate (~1-2s), polling for results
+      console.log(`📤 Smart Upload: Uploading ${totalFiles} files (background processing)...`);
 
+      // Upload all files - each will return a task_id for polling
       const uploadPromises = fileArray.map(async (file, i) => {
-        // Stagger: File 0 → 0ms, File 1 → 4000ms, File 2 → 8000ms...
-        const startDelay = i * 4000;
+        // Stagger: File 0 → 0ms, File 1 → 2000ms, File 2 → 4000ms...
+        const startDelay = i * 2000; // 2s stagger for upload
         await new Promise(resolve => setTimeout(resolve, startDelay));
         
         try {
-          // Update status to processing
-          setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
-          setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? `Đang xử lý (${i + 1}/${totalFiles})...` : `Processing (${i + 1}/${totalFiles})...` }));
+          // Update status to uploading
+          setFileStatusMap(prev => ({ ...prev, [file.name]: 'uploading' }));
+          setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? `Đang upload (${i + 1}/${totalFiles})...` : `Uploading (${i + 1}/${totalFiles})...` }));
           
           setMultiCertUploads(prev => prev.map((upload, idx) => 
             idx === i 
-              ? { ...upload, status: 'uploading', stage: language === 'vi' ? `Đang upload (${i + 1}/${totalFiles})...` : `Uploading (${i + 1}/${totalFiles})...` }
+              ? { ...upload, status: 'uploading', stage: language === 'vi' ? `Đang upload...` : `Uploading...` }
               : upload
           ));
 
@@ -341,73 +342,38 @@ export const AddShipCertificateModal = ({
           const formData = new FormData();
           formData.append('files', file);
 
-          console.log(`📤 [${i + 1}/${totalFiles}] Starting upload (parallel, +${startDelay/1000}s): ${file.name}`);
+          console.log(`📤 [${i + 1}/${totalFiles}] Uploading (+${startDelay/1000}s): ${file.name}`);
 
-          // Upload single file
+          // Upload single file - returns immediately with task_id
           const response = await api.post(
             `/api/certificates/multi-upload-smart?ship_id=${selectedShip.id}`,
             formData,
             {
               headers: { 'Content-Type': 'multipart/form-data' },
-              timeout: 90000, // 90 seconds per file
+              timeout: 30000, // 30 seconds - just for upload, not processing
               onUploadProgress: (progressEvent) => {
                 const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                setFileProgressMap(prev => ({ ...prev, [file.name]: Math.min(progress, 30) }));
+                setFileProgressMap(prev => ({ ...prev, [file.name]: Math.min(progress, 20) }));
               }
             }
           );
 
-          console.log(`📥 [${i + 1}/${totalFiles}] Response:`, response.data);
+          console.log(`📥 [${i + 1}/${totalFiles}] Response (task created):`, response.data);
 
-          const { fast_path_results = [], slow_path_task_id, summary } = response.data;
+          const { slow_path_task_id } = response.data;
 
-          // Process result for this file
-          if (fast_path_results.length > 0) {
-            const result = fast_path_results[0];
-            
-            if (result.status === 'success' || result.status === 'completed' || result.status === 'success_with_reference_note') {
-              setFileStatusMap(prev => ({ ...prev, [file.name]: 'completed' }));
-              setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
-              setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? '✅ FAST PATH - Hoàn thành' : '✅ FAST PATH - Completed' }));
-              setBatchProgress(prev => ({ ...prev, current: prev.current + 1 }));
-              
-              setMultiCertUploads(prev => prev.map((upload, idx) => 
-                idx === i 
-                  ? { ...upload, status: 'completed', progress: 100, stage: '✅ FAST PATH', extracted_info: result.extracted_info }
-                  : upload
-              ));
-
-              toast.success(`✅ ${file.name} (${i + 1}/${totalFiles})`);
-              return { status: 'success', index: i, filename: file.name, result };
-            } else {
-              setFileStatusMap(prev => ({ ...prev, [file.name]: 'failed' }));
-              setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
-              setFileSubStatusMap(prev => ({ ...prev, [file.name]: result.message || 'Error' }));
-              
-              setMultiCertUploads(prev => prev.map((upload, idx) => 
-                idx === i 
-                  ? { ...upload, status: 'failed', progress: 100, stage: '❌ Failed', error: result.message }
-                  : upload
-              ));
-
-              toast.error(`❌ ${file.name}: ${result.message || 'Error'}`);
-              return { status: 'error', index: i, filename: file.name, error: result.message };
-            }
-          } else if (slow_path_task_id) {
-            // File went to SLOW PATH
-            setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
-            setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? '🔄 SLOW PATH - Đang xử lý background...' : '🔄 SLOW PATH - Background processing...' }));
-            
-            setMultiCertUploads(prev => prev.map((upload, idx) => 
-              idx === i 
-                ? { ...upload, status: 'processing', stage: '🔄 SLOW PATH' }
-                : upload
-            ));
-            
-            return { status: 'slow_path', index: i, filename: file.name, task_id: slow_path_task_id };
-          }
+          // File is now processing in background
+          setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+          setFileProgressMap(prev => ({ ...prev, [file.name]: 30 }));
+          setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? '🔄 Đang xử lý background...' : '🔄 Background processing...' }));
           
-          return { status: 'unknown', index: i, filename: file.name };
+          setMultiCertUploads(prev => prev.map((upload, idx) => 
+            idx === i 
+              ? { ...upload, status: 'processing', progress: 30, stage: '🔄 Processing' }
+              : upload
+          ));
+
+          return { status: 'processing', index: i, filename: file.name, task_id: slow_path_task_id };
 
         } catch (fileError) {
           console.error(`❌ [${i + 1}/${totalFiles}] Upload error for ${file.name}:`, fileError);
@@ -427,24 +393,54 @@ export const AddShipCertificateModal = ({
         }
       });
 
-      // Wait for ALL uploads to complete (they run in parallel)
-      console.log('⏳ Waiting for all parallel uploads to complete...');
+      // Wait for all uploads to complete (just upload, not processing)
+      console.log('⏳ Waiting for all uploads to complete...');
       const uploadResults = await Promise.all(uploadPromises);
       
-      // Count results
-      successCount = uploadResults.filter(r => r.status === 'success').length;
+      // Count immediate results
       failedCount = uploadResults.filter(r => r.status === 'error').length;
-      firstSuccessInfo = uploadResults.find(r => r.status === 'success')?.result?.extracted_info;
       
-      // Handle SLOW PATH polling if any files went to slow path
-      const slowPathFiles = uploadResults.filter(r => r.status === 'slow_path');
-      if (slowPathFiles.length > 0) {
-        slowPathTaskId = slowPathFiles[0].task_id;
-        
+      // Get all task_ids for polling
+      const processingFiles = uploadResults.filter(r => r.status === 'processing');
+      
+      if (processingFiles.length > 0) {
         toast.info(language === 'vi'
-          ? `🔄 ${slowPathFiles.length} file đang xử lý background...`
-          : `🔄 ${slowPathFiles.length} files processing in background...`
+          ? `🔄 ${processingFiles.length} file đang xử lý background...`
+          : `🔄 ${processingFiles.length} files processing in background...`
         );
+
+        // Poll for each task
+        const taskIds = [...new Set(processingFiles.map(f => f.task_id).filter(Boolean))];
+        
+        if (taskIds.length > 0) {
+          // Start polling for each unique task_id
+          for (const taskId of taskIds) {
+            pollTaskStatus(taskId, fileArray, (results) => {
+              // Update counts when task completes
+              let newSuccessCount = 0;
+              let newFailedCount = failedCount;
+              
+              for (const result of results) {
+                if (result.status === 'completed') {
+                  newSuccessCount++;
+                  if (!firstSuccessInfo && result.extracted_info) {
+                    firstSuccessInfo = result.extracted_info;
+                  }
+                } else if (result.status === 'failed') {
+                  newFailedCount++;
+                }
+              }
+              
+              successCount = newSuccessCount;
+              failedCount = newFailedCount;
+              finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
+            });
+          }
+        }
+      } else if (failedCount === totalFiles) {
+        // All failed immediately
+        finalizeBatchResults(fileArray, 0, failedCount, null);
+      }
         
         // Poll for SLOW PATH completion
         const pollSlowPath = async () => {
