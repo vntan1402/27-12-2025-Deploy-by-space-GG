@@ -64,14 +64,16 @@ async def delete_file_background(
         
         @with_retry(max_attempts=3, min_wait=2, max_wait=10)
         async def _delete_with_retry():
-            result = await gdrive_service_class.delete_file(
+            # Create instance of GDriveService since delete_file is an instance method
+            gdrive_service_instance = gdrive_service_class()
+            result = await gdrive_service_instance.delete_file(
                 file_id=file_id,
                 company_id=company_id,
                 permanent_delete=False  # Move to trash by default
             )
-            if not result.get("success"):
-                raise Exception(f"Drive deletion failed: {result.get('message')}")
-            return result
+            if not result:
+                raise Exception(f"Drive deletion failed")
+            return {"success": True}
         
         result = await _delete_with_retry()
         logger.info(f"✅ Successfully deleted {document_type} file in background: {file_id} ({document_name})")
