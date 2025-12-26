@@ -676,6 +676,16 @@ class SurveyReportAnalyzeService:
             analysis_result['_summary_text'] = merged_summary
             analysis_result['processing_method'] = "split_pdf_merge_only"
         
+        # Log total processing time
+        total_process_time = time.time() - process_start_time
+        logger.info(f"⏱️ [TIMING] Large PDF processing completed in {total_process_time:.2f}s")
+        analysis_result['_timing'] = {
+            'total_processing_seconds': round(total_process_time, 2),
+            'chunks_processed': len(chunks_to_process),
+            'chunks_successful': len(successful_chunks),
+            'total_pages': total_pages
+        }
+        
         return analysis_result
     
     @staticmethod
