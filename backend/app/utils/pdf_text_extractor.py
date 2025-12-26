@@ -72,7 +72,7 @@ def quick_check_text_layer(file_bytes: bytes, filename: str) -> Dict[str, Any]:
         }
 
 
-def format_text_layer_summary(text_content: str, filename: str, page_count: int, char_count: int) -> str:
+def format_text_layer_summary(text_content: str, filename: str, page_count: int, char_count: int, document_type: str = "certificate") -> str:
     """
     Format extracted text layer into summary format
     
@@ -81,15 +81,22 @@ def format_text_layer_summary(text_content: str, filename: str, page_count: int,
         filename: Original filename
         page_count: Number of pages
         char_count: Character count
+        document_type: Type of document ("certificate" or "survey_report")
         
     Returns:
         Formatted summary string
     """
     summary_parts = []
     
+    # Determine title based on document type
+    if document_type == "survey_report":
+        title = "SURVEY REPORT SUMMARY - TEXT LAYER EXTRACTION"
+    else:
+        title = "CERTIFICATE SUMMARY - TEXT LAYER EXTRACTION"
+    
     # Header
     summary_parts.append("=" * 80)
-    summary_parts.append("CERTIFICATE SUMMARY - TEXT LAYER EXTRACTION")
+    summary_parts.append(title)
     summary_parts.append(f"File: {filename}")
     summary_parts.append(f"Processing: FAST PATH (Native PDF Text)")
     summary_parts.append("=" * 80)
