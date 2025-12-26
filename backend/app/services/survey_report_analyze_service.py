@@ -402,9 +402,7 @@ class SurveyReportAnalyzeService:
             
         else:
             # ⚠️ SLOW PATH - Need Document AI
-            processing_path = "SLOW_PATH"
-            logger.info(f"🐢 SLOW PATH selected: {char_count} chars < {TEXT_LAYER_THRESHOLD} threshold")
-            logger.info(f"   📄 PDF appears to be scanned/image - calling Document AI...")
+            logger.info(f"   📄 Calling Document AI for OCR processing...")
             
             from app.utils.document_ai_helper import analyze_survey_report_with_document_ai
             
