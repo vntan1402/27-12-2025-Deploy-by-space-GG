@@ -398,7 +398,7 @@ class ShipCertificateAnalyzeService:
                         filename=filename
                     )
                 else:
-                    # Image file - Document AI only
+                    # Image file - Document AI + Targeted OCR for header/footer
                     doc_ai_result = await analyze_document_with_document_ai(
                         file_content=file_bytes,
                         filename=filename,
@@ -407,10 +407,45 @@ class ShipCertificateAnalyzeService:
                         document_type='other'
                     )
                     
+                    summary_text = ""
                     if doc_ai_result and doc_ai_result.get("success"):
                         summary_text = doc_ai_result.get("data", {}).get("summary", "")
-                    else:
-                        summary_text = ""
+                    
+                    # ⭐ Add Targeted OCR for header/footer (especially for Cert No)
+                    try:
+                        from app.utils.targeted_ocr import get_ocr_processor
+                        ocr_processor = get_ocr_processor()
+                        
+                        logger.info(f"🔍 Running targeted OCR for header/footer on image: {filename}")
+                        
+                        # For images, extract from the image directly
+                        ocr_result = ocr_processor.extract_from_image(
+                            file_bytes,
+                            report_no_field='cert_no'
+                        )
+                        
+                        if ocr_result.get('ocr_success'):
+                            header_text = ocr_result.get('header_text', '').strip()
+                            footer_text = ocr_result.get('footer_text', '').strip()
+                            
+                            if header_text or footer_text:
+                                ocr_section = "\n\n" + "="*60 + "\n"
+                                ocr_section += "ADDITIONAL INFORMATION FROM HEADER/FOOTER (Targeted OCR)\n"
+                                ocr_section += "="*60 + "\n\n"
+                                
+                                if header_text:
+                                    ocr_section += "=== HEADER TEXT ===\n" + header_text + "\n\n"
+                                if footer_text:
+                                    ocr_section += "=== FOOTER TEXT ===\n" + footer_text + "\n\n"
+                                
+                                summary_text = summary_text + ocr_section
+                                logger.info(f"✅ Enhanced with targeted OCR: header={len(header_text)} chars, footer={len(footer_text)} chars")
+                        else:
+                            logger.info(f"ℹ️ Targeted OCR skipped or no additional text found")
+                            
+                    except Exception as ocr_error:
+                        logger.warning(f"⚠️ Targeted OCR failed: {ocr_error}")
+                        # Continue without OCR enhancement
                 
                 if doc_ai_result.get("success"):
                     doc_ai_summary = doc_ai_result.get("data", {}).get("summary", "")
