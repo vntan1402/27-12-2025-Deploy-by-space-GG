@@ -493,7 +493,8 @@ class SurveyReportAnalyzeService:
                 text_content=text_check["text_content"],
                 filename=filename,
                 page_count=total_pages,
-                char_count=char_count
+                char_count=char_count,
+                document_type="survey_report"
             )
             
             logger.info(f"✅ Text layer summary: {len(summary_text)} characters")
