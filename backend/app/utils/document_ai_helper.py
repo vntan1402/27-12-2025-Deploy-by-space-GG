@@ -99,62 +99,80 @@ async def analyze_document_with_document_ai(
         
         logger.info(f"📤 Sending request to Apps Script: {apps_script_url}")
         
-        # Call Apps Script with timeout (180s for large PDFs >15 pages)
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                apps_script_url,
-                json=payload,
-                timeout=aiohttp.ClientTimeout(total=180)
-            ) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    
-                    logger.info(f"📦 Apps Script response keys: {list(result.keys())}")
-                    
-                    if result.get("success"):
-                        summary = result.get("data", {}).get("summary", "")
-                        confidence = result.get("data", {}).get("confidence", 0.0)
-                        
-                        logger.info(f"✅ Document AI completed for {document_type}")
-                        logger.info(f"   Summary length: {len(summary)} characters")
-                        logger.info(f"   Confidence: {confidence}")
-                        logger.info(f"   Full response: {result}")
-                        
-                        return {
-                            "success": True,
-                            "data": {
-                                "summary": summary,
-                                "confidence": confidence
-                            }
-                        }
-                    else:
-                        error_msg = result.get("message", "Unknown error")
-                        logger.error(f"❌ Document AI failed for {document_type}: {error_msg}")
-                        return {
-                            "success": False,
-                            "message": error_msg
-                        }
-                else:
-                    error_text = await response.text()
-                    logger.error(f"❌ Apps Script HTTP error: {response.status}")
-                    logger.error(f"   Response: {error_text[:500]}")
-                    return {
-                        "success": False,
-                        "message": f"Apps Script HTTP error: {response.status}"
-                    }
-    
-    except asyncio.TimeoutError:
-        logger.error(f"❌ Document AI timed out for {document_type} after 180 seconds")
+        # Call Apps Script with extended timeout (300s for production stability)
+        # Production environments often have higher latency
+        max_retries = 2
+        retry_count = 0
+        last_error = None
+        
+        while retry_count <= max_retries:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(
+                        apps_script_url,
+                        json=payload,
+                        timeout=aiohttp.ClientTimeout(total=300)  # 5 minutes for production
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            
+                            logger.info(f"📦 Apps Script response keys: {list(result.keys())}")
+                            
+                            if result.get("success"):
+                                summary = result.get("data", {}).get("summary", "")
+                                confidence = result.get("data", {}).get("confidence", 0.0)
+                                
+                                logger.info(f"✅ Document AI completed for {document_type}")
+                                logger.info(f"   Summary length: {len(summary)} characters")
+                                logger.info(f"   Confidence: {confidence}")
+                                logger.info(f"   Full response: {result}")
+                                
+                                return {
+                                    "success": True,
+                                    "data": {
+                                        "summary": summary,
+                                        "confidence": confidence
+                                    }
+                                }
+                            else:
+                                error_msg = result.get("message", "Unknown error")
+                                logger.error(f"❌ Document AI failed for {document_type}: {error_msg}")
+                                return {
+                                    "success": False,
+                                    "message": error_msg
+                                }
+                        else:
+                            error_text = await response.text()
+                            logger.error(f"❌ Apps Script HTTP error: {response.status}")
+                            logger.error(f"   Response: {error_text[:500]}")
+                            last_error = f"Apps Script HTTP error: {response.status}"
+                            retry_count += 1
+                            if retry_count <= max_retries:
+                                logger.info(f"🔄 Retrying... (attempt {retry_count + 1}/{max_retries + 1})")
+                                await asyncio.sleep(2)  # Wait 2 seconds before retry
+                            continue
+                            
+            except asyncio.TimeoutError:
+                last_error = "Document AI request timed out"
+                retry_count += 1
+                if retry_count <= max_retries:
+                    logger.warning(f"⏰ Timeout on attempt {retry_count}, retrying...")
+                    await asyncio.sleep(2)
+                continue
+                
+            except aiohttp.ClientError as e:
+                last_error = f"Network error: {str(e)}"
+                retry_count += 1
+                if retry_count <= max_retries:
+                    logger.warning(f"🌐 Network error on attempt {retry_count}, retrying...")
+                    await asyncio.sleep(2)
+                continue
+        
+        # All retries exhausted
+        logger.error(f"❌ Document AI failed after {max_retries + 1} attempts: {last_error}")
         return {
             "success": False,
-            "message": "Document AI request timed out (>3 minutes)"
-        }
-    
-    except aiohttp.ClientError as e:
-        logger.error(f"❌ Network error for {document_type}: {e}")
-        return {
-            "success": False,
-            "message": f"Network error: {str(e)}"
+            "message": f"{last_error} (after {max_retries + 1} attempts)"
         }
     
     except Exception as e:
