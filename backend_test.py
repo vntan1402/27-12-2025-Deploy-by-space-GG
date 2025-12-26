@@ -90,25 +90,179 @@ def get_test_data(headers):
         "crew": crew
     }
 
-def check_vietnamese_error_message(response):
-    """Check if response contains Vietnamese error message"""
-    if response.status_code != 403:
-        return False, "Not a 403 error"
-    
+def create_test_pdf_with_text():
+    """Create a simple PDF file with text content for testing"""
     try:
-        error_data = response.json()
-        error_detail = error_data.get('detail', '')
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import letter
+        import io
         
-        # Check for Vietnamese characters or specific Vietnamese messages
-        vietnamese_phrases = [
-            'không có quyền', 'bị từ chối', 'Department', 'Manager', 
-            'chỉ', 'mới có quyền', 'không được cấp quyền', 'Truy cập bị từ chối'
-        ]
-        vietnamese_error = any(phrase in error_detail for phrase in vietnamese_phrases)
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer, pagesize=letter)
         
-        return vietnamese_error, error_detail
-    except:
-        return False, response.text
+        # Add substantial text content to trigger FAST PATH
+        text_content = """
+        SURVEY REPORT
+        
+        Ship Name: MV Test Vessel
+        Survey Type: Annual Survey
+        Survey Report No: SR-2024-001
+        Issued Date: 2024-12-25
+        Issued By: Classification Society
+        Status: Valid
+        
+        SURVEY FINDINGS:
+        
+        1. Hull Condition: The hull structure was found to be in good condition with no significant defects observed.
+        
+        2. Machinery: All main engines and auxiliary machinery were inspected and found to be operating within normal parameters.
+        
+        3. Safety Equipment: All safety equipment including life rafts, fire fighting equipment, and navigation equipment were verified to be in good working order.
+        
+        4. Certificates: All statutory certificates were verified to be valid and up to date.
+        
+        5. Recommendations: Continue with regular maintenance schedule as per manufacturer's recommendations.
+        
+        CONCLUSION:
+        The vessel is found to be in satisfactory condition and complies with all applicable regulations.
+        
+        Surveyor: John Smith
+        Date: December 25, 2024
+        Signature: [Signed]
+        
+        This survey report contains sufficient text content to trigger the FAST PATH processing
+        which requires at least 400 characters of text content for immediate processing.
+        """
+        
+        # Write text to PDF
+        y_position = 750
+        for line in text_content.strip().split('\n'):
+            if line.strip():
+                p.drawString(50, y_position, line.strip())
+                y_position -= 20
+                if y_position < 50:
+                    p.showPage()
+                    y_position = 750
+        
+        p.save()
+        buffer.seek(0)
+        return buffer.getvalue()
+        
+    except ImportError:
+        # Fallback: Create a simple text-based PDF using basic PDF structure
+        pdf_content = b"""%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+>>
+endobj
+
+4 0 obj
+<<
+/Length 800
+>>
+stream
+BT
+/F1 12 Tf
+50 750 Td
+(SURVEY REPORT) Tj
+0 -20 Td
+(Ship Name: MV Test Vessel) Tj
+0 -20 Td
+(Survey Type: Annual Survey) Tj
+0 -20 Td
+(Survey Report No: SR-2024-001) Tj
+0 -20 Td
+(Issued Date: 2024-12-25) Tj
+0 -20 Td
+(Issued By: Classification Society) Tj
+0 -20 Td
+(Status: Valid) Tj
+0 -40 Td
+(SURVEY FINDINGS:) Tj
+0 -20 Td
+(1. Hull Condition: Good condition with no defects) Tj
+0 -20 Td
+(2. Machinery: All equipment operating normally) Tj
+0 -20 Td
+(3. Safety Equipment: All equipment verified) Tj
+0 -20 Td
+(4. Certificates: All certificates valid) Tj
+0 -20 Td
+(5. Recommendations: Continue maintenance) Tj
+0 -40 Td
+(CONCLUSION: Vessel in satisfactory condition) Tj
+0 -20 Td
+(Surveyor: John Smith) Tj
+0 -20 Td
+(Date: December 25, 2024) Tj
+ET
+endstream
+endobj
+
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000206 00000 n 
+trailer
+<<
+/Size 5
+/Root 1 0 R
+>>
+startxref
+1058
+%%EOF"""
+        return pdf_content
+
+def test_survey_report_smart_upload(headers, ship_id):
+    """Test POST /api/survey-reports/multi-upload-smart - Smart multi-upload"""
+    # Create test PDF file
+    pdf_content = create_test_pdf_with_text()
+    files = [('files', ('test_survey_report.pdf', pdf_content, 'application/pdf'))]
+    
+    # Remove Content-Type header for multipart upload
+    upload_headers = {k: v for k, v in headers.items() if k != 'Content-Type'}
+    
+    response = requests.post(
+        f"{BACKEND_URL}/survey-reports/multi-upload-smart?ship_id={ship_id}", 
+        files=files, 
+        headers=upload_headers
+    )
+    return response
+
+def test_survey_upload_task_status(headers, task_id):
+    """Test GET /api/survey-reports/upload-task/{task_id} - Poll task status"""
+    response = requests.get(f"{BACKEND_URL}/survey-reports/upload-task/{task_id}", headers=headers)
+    return response
+
+def test_survey_reports_list(headers, ship_id=None):
+    """Test GET /api/survey-reports - Get survey reports list"""
+    url = f"{BACKEND_URL}/survey-reports"
+    if ship_id:
+        url += f"?ship_id={ship_id}"
+    response = requests.get(url, headers=headers)
+    return response
 
 # Test functions based on review request requirements
 
