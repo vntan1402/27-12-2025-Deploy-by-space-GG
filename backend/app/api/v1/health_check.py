@@ -212,7 +212,10 @@ async def _test_ai_config() -> Dict[str, Any]:
             result["message"] = f"AI config found in {elapsed_ms:.0f}ms"
             result["details"]["provider"] = ai_config.get("provider", "unknown")
             result["details"]["model"] = ai_config.get("model", "unknown")
-            result["details"]["document_ai_enabled"] = bool(ai_config.get("document_ai_config", {}).get("project_id"))
+            
+            # Check both possible field names for document_ai
+            doc_ai = ai_config.get("document_ai") or ai_config.get("document_ai_config", {})
+            result["details"]["document_ai_enabled"] = doc_ai.get("enabled", False) if doc_ai else False
         else:
             result["status"] = "unhealthy"
             result["message"] = "AI configuration not found"
