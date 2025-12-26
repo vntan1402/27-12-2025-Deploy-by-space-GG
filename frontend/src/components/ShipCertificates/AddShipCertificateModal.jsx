@@ -355,6 +355,7 @@ export const AddShipCertificateModal = ({
               formData,
               {
                 headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 180000, // 180 seconds (3 minutes) for AI analysis + GDrive upload
                 onUploadProgress: (progressEvent) => {
                   const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                   setFileProgressMap(prev => ({ ...prev, [file.name]: progress }));
