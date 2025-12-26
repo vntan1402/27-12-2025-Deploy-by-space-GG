@@ -433,3 +433,166 @@ async def production_diagnostic(
             results["summary"]["stability_rating"] = "poor"
     
     return results
+
+
+@router.post("/bandwidth-test")
+async def bandwidth_test(
+    current_user: UserResponse = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Test bandwidth to Google Apps Script with various payload sizes.
+    
+    Sends payloads of different sizes and measures upload/download speed.
+    Helps diagnose network performance issues between server and external services.
+    """
+    import base64
+    import string
+    import random
+    
+    results = {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "user": current_user.username,
+        "test_type": "bandwidth_test",
+        "tests": [],
+        "summary": {
+            "total_tests": 0,
+            "successful_tests": 0,
+            "avg_upload_speed_mbps": 0,
+            "avg_download_speed_mbps": 0,
+            "bandwidth_rating": "unknown"
+        },
+        "benchmark": {
+            "100KB": {"expected_seconds": 1.5, "description": "Small payload"},
+            "500KB": {"expected_seconds": 2.5, "description": "Medium payload"},
+            "1MB": {"expected_seconds": 4.0, "description": "Large payload"},
+            "2MB": {"expected_seconds": 7.0, "description": "Very large payload"},
+            "3MB": {"expected_seconds": 10.0, "description": "Maximum test payload"}
+        }
+    }
+    
+    # Get AI config for Apps Script URL
+    ai_config = await get_ai_config()
+    if not ai_config:
+        results["error"] = "AI configuration not found"
+        return results
+    
+    doc_ai_config = ai_config.get("document_ai") or ai_config.get("document_ai_config", {})
+    apps_script_url = doc_ai_config.get("apps_script_url") if doc_ai_config else None
+    
+    if not apps_script_url:
+        results["error"] = "Apps Script URL not configured"
+        return results
+    
+    # Test payload sizes in bytes
+    test_sizes = [
+        ("100KB", 100 * 1024),
+        ("500KB", 500 * 1024),
+        ("1MB", 1 * 1024 * 1024),
+        ("2MB", 2 * 1024 * 1024),
+        ("3MB", 3 * 1024 * 1024)
+    ]
+    
+    upload_speeds = []
+    
+    for size_label, size_bytes in test_sizes:
+        test_result = {
+            "payload_size": size_label,
+            "payload_bytes": size_bytes,
+            "status": "pending",
+            "upload_time_seconds": None,
+            "upload_speed_mbps": None,
+            "rating": "unknown",
+            "vs_benchmark": None
+        }
+        
+        try:
+            # Generate random payload (simulating file content)
+            # Use base64-encoded random bytes to simulate PDF upload
+            random_data = ''.join(random.choices(string.ascii_letters + string.digits, k=size_bytes))
+            
+            # Create payload similar to document upload
+            payload = {
+                "action": "bandwidth_test",
+                "test_data": random_data,
+                "size_label": size_label,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            
+            start_time = time.time()
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    apps_script_url,
+                    json=payload,
+                    timeout=aiohttp.ClientTimeout(total=120)  # 2 minute timeout for large payloads
+                ) as response:
+                    # Read response to measure full round-trip
+                    await response.text()
+                    
+                    elapsed_seconds = time.time() - start_time
+                    
+                    test_result["upload_time_seconds"] = round(elapsed_seconds, 2)
+                    test_result["http_status"] = response.status
+                    
+                    # Calculate upload speed in Mbps (megabits per second)
+                    # size_bytes * 8 = bits, / 1_000_000 = megabits
+                    upload_speed_mbps = (size_bytes * 8 / 1_000_000) / elapsed_seconds
+                    test_result["upload_speed_mbps"] = round(upload_speed_mbps, 2)
+                    
+                    if response.status == 200:
+                        test_result["status"] = "success"
+                        results["summary"]["successful_tests"] += 1
+                        upload_speeds.append(upload_speed_mbps)
+                        
+                        # Compare with benchmark
+                        expected = results["benchmark"][size_label]["expected_seconds"]
+                        ratio = elapsed_seconds / expected
+                        test_result["vs_benchmark"] = f"{ratio:.1f}x"
+                        
+                        if ratio <= 1.5:
+                            test_result["rating"] = "excellent"
+                        elif ratio <= 2.5:
+                            test_result["rating"] = "good"
+                        elif ratio <= 4.0:
+                            test_result["rating"] = "slow"
+                        else:
+                            test_result["rating"] = "very_slow"
+                    else:
+                        test_result["status"] = "error"
+                        test_result["error"] = f"HTTP {response.status}"
+                        
+        except asyncio.TimeoutError:
+            test_result["status"] = "timeout"
+            test_result["error"] = "Request timed out (>120s)"
+            
+        except Exception as e:
+            test_result["status"] = "error"
+            test_result["error"] = str(e)
+        
+        results["tests"].append(test_result)
+        results["summary"]["total_tests"] += 1
+        
+        # Small delay between tests to avoid rate limiting
+        await asyncio.sleep(0.5)
+    
+    # Calculate summary statistics
+    if upload_speeds:
+        results["summary"]["avg_upload_speed_mbps"] = round(sum(upload_speeds) / len(upload_speeds), 2)
+        results["summary"]["min_upload_speed_mbps"] = round(min(upload_speeds), 2)
+        results["summary"]["max_upload_speed_mbps"] = round(max(upload_speeds), 2)
+        
+        # Overall bandwidth rating
+        avg_speed = results["summary"]["avg_upload_speed_mbps"]
+        if avg_speed >= 5.0:
+            results["summary"]["bandwidth_rating"] = "excellent"
+        elif avg_speed >= 2.0:
+            results["summary"]["bandwidth_rating"] = "good"
+        elif avg_speed >= 1.0:
+            results["summary"]["bandwidth_rating"] = "acceptable"
+        elif avg_speed >= 0.5:
+            results["summary"]["bandwidth_rating"] = "slow"
+        else:
+            results["summary"]["bandwidth_rating"] = "very_slow"
+    
+    return results
+
