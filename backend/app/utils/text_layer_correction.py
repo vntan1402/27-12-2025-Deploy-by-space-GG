@@ -9,31 +9,52 @@ from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-# Prompt template for text correction
-TEXT_CORRECTION_PROMPT = """You are an expert document OCR correction assistant. Your task is to correct OCR errors in the following text extracted from a maritime/ship document.
+# Prompt template for text correction - ENHANCED VERSION
+TEXT_CORRECTION_PROMPT = """You are an expert OCR error correction specialist. Your task is to fix ALL OCR/scanning errors in the following maritime document text.
 
-IMPORTANT RULES:
-1. Fix spelling errors and character recognition mistakes (e.g., "MARITTME" → "MARITIME", "rN" → "IN")
-2. Fix common OCR errors like:
-   - "l" confused with "1" or "I"
-   - "0" confused with "O"
-   - ":" or ";" appearing in wrong places
-   - Missing or extra spaces
-   - Garbled characters like "Nnmber" → "Number"
-3. Preserve the original document structure (headers, sections, tables)
-4. Preserve all numbers, dates, and codes exactly as they appear (don't change IMO numbers, certificate numbers, etc.)
-5. Keep abbreviations and technical terms intact
-6. DO NOT add any new information - only correct existing text
-7. DO NOT summarize or remove any content
-8. Output the corrected text directly without any explanation
+CRITICAL RULES - FIX ALL THESE ERROR TYPES:
 
-ORIGINAL TEXT:
+1. CHARACTER SUBSTITUTION ERRORS:
+   - "l" confused with "1", "I", "|"  
+   - "0" confused with "O", "o"
+   - "rN" → "IN", "wITH" → "WITH"
+   - ":" or ";" appearing inside words (e.g., "Authoriz:tion" → "Authorization")
+   - "Nnmber" → "Number", "MARITTME" → "MARITIME"
+   - Random capital letters in middle of words
+
+2. GARBLED TEXT - MUST FIX:
+   - "du[y qiiiti6d aJditot" → "duly qualified auditor"
+   - "I hcre is rcd th" → "I hereby certify that"
+   - "lntcrim" → "Interim"
+   - "Compctcnt" → "Competent"
+   - Any text that doesn't make sense in English
+
+3. COMMON MARITIME TERMS TO CORRECT:
+   - MARITIME, LABOUR, CONVENTION, CERTIFICATE
+   - AUTHORIZATION, VERIFICATION, INSPECTION
+   - SEAFARER, SHIPOWNER, TONNAGE, REGISTRY
+   - COMPLIANCE, REGULATION, AMENDMENT
+
+4. PRESERVE EXACTLY (DO NOT CHANGE):
+   - All numbers (IMO: 9544011, dates, certificate numbers)
+   - Ship names (TRUONG MINH SEA)
+   - Company names
+   - Codes like MLC, SOLAS, ISM, ISPS
+   - Table structure and formatting
+
+5. OUTPUT RULES:
+   - Fix ALL spelling errors aggressively
+   - If a word is garbled beyond recognition, use context to determine correct word
+   - Keep original document structure (headers, sections, tables)
+   - Output ONLY the corrected text, no explanations
+
+ORIGINAL TEXT WITH OCR ERRORS:
 {text}
 
-CORRECTED TEXT:"""
+CORRECTED TEXT (fix ALL errors):"""
 
 # Alternative shorter prompt for smaller texts
-TEXT_CORRECTION_PROMPT_SHORT = """Fix OCR errors in this maritime document text. Keep structure, preserve numbers/codes exactly. Only correct spelling and character recognition errors:
+TEXT_CORRECTION_PROMPT_SHORT = """Fix ALL OCR errors in this maritime document. Be aggressive - fix every misspelled word, garbled text, character substitution error. Preserve numbers/codes exactly. Output only corrected text:
 
 {text}
 
