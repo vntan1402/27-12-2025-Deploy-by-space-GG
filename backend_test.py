@@ -556,14 +556,6 @@ def main():
             test_results.append(("SURVEY SMART UPLOAD", "❌ FAIL - No ship available"))
             return
         
-def test_survey_reports_list(headers, ship_id=None):
-    """Test GET /api/survey-reports - Get survey reports list"""
-    url = f"{BACKEND_URL}/survey-reports"
-    if ship_id:
-        url += f"?ship_id={ship_id}"
-    response = requests.get(url, headers=headers)
-    return response
-
         # Test 3: Survey Report Smart Upload (FAST PATH)
         print("\n" + "=" * 80)
         print("📤 SURVEY REPORT SMART UPLOAD TEST (FAST PATH)")
