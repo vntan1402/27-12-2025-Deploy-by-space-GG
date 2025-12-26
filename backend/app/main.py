@@ -26,13 +26,23 @@ app = FastAPI(
     description="Ship Management System API - V2 Clean Architecture"
 )
 
-# CORS middleware
+# CORS middleware - Enhanced for production
+# Note: When backend times out or errors before responding, CORS headers won't be sent
+# This can cause "CORS blocked" errors even though the real issue is timeout/error
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "*",
+        "https://quanlytau.com",
+        "https://www.quanlytau.com",
+        "https://nautical-records.emergent.host",
+        "http://localhost:3000",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,  # Cache preflight requests for 10 minutes
 )
 
 # Cleanup job function
