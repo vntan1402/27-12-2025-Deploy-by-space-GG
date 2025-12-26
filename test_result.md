@@ -394,3 +394,41 @@ I have completed comprehensive backend API testing for all critical flows before
 - Core functionality working but needs fixes before production
 - Authentication and multi-upload systems are solid
 - Permission system needs tightening for security
+
+---
+
+## ✅ SURVEY REPORT SMART UPLOAD - FLOW MỚI (December 26, 2025)
+
+### 📋 Flow Logic Mới
+
+```
+FILE UPLOAD
+    │
+    ▼
+Kiểm tra số trang PDF
+    │
+    ├── ≤15 trang ──────────────────► SLOW PATH (Document AI toàn bộ)
+    │
+    └── >15 trang ──► Kiểm tra text layer
+                          │
+                          ├── Có (≥400 chars) ─► FAST PATH
+                          │
+                          └── Không ───────────► SLOW PATH (split 10+10)
+```
+
+### 🧪 Test Results
+
+| Test Case | Pages | Text Layer | Expected | Actual | Status |
+|-----------|-------|------------|----------|--------|--------|
+| Test 1 | 10 | Có | SLOW PATH | SLOW PATH | ✅ PASS |
+| Test 2 | 20 | Có | FAST PATH | FAST PATH | ✅ PASS |
+| Test 3 | 20 | Không | SLOW PATH | SLOW PATH | ✅ PASS |
+
+### 📝 Thay đổi code
+- `/app/backend/app/services/survey_report_multi_upload_service.py`:
+  - Thêm function `get_pdf_page_count()`
+  - Cập nhật `quick_check_processing_path()` với logic mới
+  - Thêm constants: `PAGE_THRESHOLD = 15`, `TEXT_LAYER_THRESHOLD = 400`
+
+### ✅ Kết luận
+Flow mới đã được implement và test thành công!
