@@ -94,19 +94,36 @@ async def correct_text_layer_with_ai(
         
         logger.info(f"   🤖 Using {provider}/{model} for text correction")
         
-        # Call Gemini AI using LlmChat
+        # Call Gemini AI using LlmChat (correct pattern)
         from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from app.core.config import settings
         
+        emergent_key = settings.EMERGENT_LLM_KEY or os.getenv("EMERGENT_LLM_KEY")
+        if not emergent_key:
+            raise ValueError("EMERGENT_LLM_KEY not configured")
+        
+        # Initialize LlmChat
         chat = LlmChat(
-            api_key=os.getenv("EMERGENT_LLM_KEY"),
-            model=f"{provider}/{model}"
+            api_key=emergent_key,
+            session_id="text_layer_correction",
+            system_message="You are an expert document OCR correction assistant."
         )
         
-        response = await chat.send_message_async(
-            UserMessage(content=prompt)
-        )
+        # Set provider and model
+        actual_model = model or "gemini-2.0-flash"
+        if "gemini" in actual_model.lower() or provider.lower() in ["google", "gemini"]:
+            chat = chat.with_model("gemini", actual_model)
+        elif provider.lower() == "openai" or "gpt" in actual_model.lower():
+            chat = chat.with_model("openai", actual_model)
+        else:
+            chat = chat.with_model("gemini", actual_model)
         
-        corrected_text = response.strip()
+        # Send message
+        response = await chat.send_message(UserMessage(text=prompt))
+        
+        # Process response
+        corrected_text = response if isinstance(response, str) else ""
+        corrected_text = corrected_text.strip()
         
         # Validate response
         if not corrected_text or len(corrected_text) < len(text_content) * 0.5:
