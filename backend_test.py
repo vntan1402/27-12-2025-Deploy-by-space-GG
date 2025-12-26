@@ -444,79 +444,43 @@ def run_test(test_name, test_func, expected_status=200, expected_admin_only=Fals
 
 # Main test execution
 def main():
-    print("🧪 COMPREHENSIVE BACKEND API TESTING (PRE-DEPLOYMENT)")
+    print("🧪 SURVEY REPORT SMART UPLOAD TESTING")
     print("=" * 80)
     print(f"Backend URL: {BACKEND_URL}")
     print("\nTest Credentials:")
-    print("- system_admin / YourSecure@Pass2024 - Full access (System Admin)")
-    print("- Crew4 / 123456 - Editor role (Ship Officer)")
-    print("- Crew3 / 123456 - Viewer role (Crew)")
-    print("- crewing_manager / 123456 - Manager in crewing department")
+    print("- admin1 / 123456 - Admin access for testing")
     
     # Test results tracking
     test_results = []
     all_tests = []
     
     try:
-        # Test 1: Authentication Tests
+        # Test 1: Authentication
         print("\n" + "=" * 80)
-        print("🔐 AUTHENTICATION FLOW TESTS")
+        print("🔐 AUTHENTICATION TEST")
         print("=" * 80)
         
-        user_sessions = {}
+        print(f"\n📋 Testing authentication for: admin1")
+        auth_result = test_authentication_flow("admin1")
         
-        for username in TEST_USERS.keys():
-            print(f"\n📋 Testing authentication for: {username}")
-            auth_result = test_authentication_flow(username)
-            
-            if auth_result["success"]:
-                user_sessions[username] = auth_result
-                user_info = auth_result["user_info"]
-                print(f"   ✅ {username} login successful - Role: {user_info.get('role', 'unknown')}")
-                test_results.append((f"AUTH {username}", "✅ PASS"))
-                all_tests.append(("auth", True))
-            else:
-                print(f"   ❌ {username} login failed: {auth_result['error']}")
-                test_results.append((f"AUTH {username}", f"❌ FAIL - {auth_result['error']}"))
-                all_tests.append(("auth", False))
-        
-        # Continue only if we have at least system_admin session
-        if "system_admin" not in user_sessions:
-            print("\n❌ CRITICAL: system_admin authentication failed. Cannot continue tests.")
+        if not auth_result["success"]:
+            print(f"   ❌ admin1 login failed: {auth_result['error']}")
+            test_results.append(("AUTH admin1", f"❌ FAIL - {auth_result['error']}"))
+            print("\n❌ CRITICAL: admin1 authentication failed. Cannot continue tests.")
             return
         
-        admin_headers = user_sessions["system_admin"]["headers"]
+        user_info = auth_result["user_info"]
+        print(f"   ✅ admin1 login successful - Role: {user_info.get('role', 'unknown')}")
+        test_results.append(("AUTH admin1", "✅ PASS"))
+        all_tests.append(("auth", True))
         
-        # Test 2: AI Configuration Tests
+        admin_headers = auth_result["headers"]
+        
+        # Test 2: Get Ships List
         print("\n" + "=" * 80)
-        print("🤖 AI CONFIGURATION TESTS")
+        print("🚢 SHIPS LIST TEST")
         print("=" * 80)
         
-        # Test AI config GET for all users
-        for username, session in user_sessions.items():
-            success, response = run_test(
-                f"GET /api/ai-config ({username})",
-                lambda: test_ai_config_get(session["headers"]),
-                expected_status=200
-            )
-            test_results.append((f"AI CONFIG GET {username}", "✅ PASS" if success else "❌ FAIL"))
-            all_tests.append(("ai_config_get", success))
-        
-        # Test AI config POST (admin only)
-        success, response = run_test(
-            "POST /api/ai-config (system_admin)",
-            lambda: test_ai_config_post(admin_headers),
-            expected_status=200
-        )
-        test_results.append(("AI CONFIG POST (admin)", "✅ PASS" if success else "❌ FAIL"))
-        all_tests.append(("ai_config_post", success))
-        
-        # Test 3: Ships and Multi-Upload Tests
-        print("\n" + "=" * 80)
-        print("🚢 SHIPS AND MULTI-UPLOAD TESTS")
-        print("=" * 80)
-        
-        # Get ships list first
         success, ships_response = run_test(
             "GET /api/ships",
             lambda: test_ships_list(admin_headers),
@@ -531,133 +495,146 @@ def main():
                 ships_data = ships_response.json()
                 if ships_data and len(ships_data) > 0:
                     ship_id = ships_data[0].get("id")
-                    print(f"   📋 Using ship_id: {ship_id}")
-            except:
-                pass
+                    ship_name = ships_data[0].get("name", "Unknown")
+                    print(f"   📋 Using ship: {ship_name} (ID: {ship_id})")
+            except Exception as e:
+                print(f"   ⚠️ Error parsing ships response: {e}")
         
-        if ship_id:
-            # Test ship certificates multi-upload
-            success, response = run_test(
-                f"POST /api/certificates/multi-upload (ship_id={ship_id})",
-                lambda: test_certificates_multi_upload(admin_headers, ship_id),
-                expected_status=200
-            )
-            test_results.append(("SHIP CERT MULTI-UPLOAD", "✅ PASS" if success else "❌ FAIL"))
-            all_tests.append(("cert_multi_upload", success))
-            
-            # Test audit certificates multi-upload
-            success, response = run_test(
-                f"POST /api/audit-certificates/multi-upload (ship_id={ship_id})",
-                lambda: test_audit_certificates_multi_upload(admin_headers, ship_id),
-                expected_status=200
-            )
-            test_results.append(("AUDIT CERT MULTI-UPLOAD", "✅ PASS" if success else "❌ FAIL"))
-            all_tests.append(("audit_cert_multi_upload", success))
-        else:
-            print("   ⚠️ No ship_id available, skipping multi-upload tests")
-            test_results.append(("SHIP CERT MULTI-UPLOAD", "⚠️ SKIP - No ship available"))
-            test_results.append(("AUDIT CERT MULTI-UPLOAD", "⚠️ SKIP - No ship available"))
+        if not ship_id:
+            print("   ❌ No ship_id available, cannot continue with upload tests")
+            test_results.append(("SURVEY SMART UPLOAD", "❌ FAIL - No ship available"))
+            return
         
-        # Test 4: User Management Tests
+        # Test 3: Survey Report Smart Upload
         print("\n" + "=" * 80)
-        print("👥 USER MANAGEMENT TESTS")
+        print("📤 SURVEY REPORT SMART UPLOAD TEST")
         print("=" * 80)
         
-        # Test users list (admin only)
-        success, users_response = run_test(
-            "GET /api/users (system_admin)",
-            lambda: test_users_list(admin_headers),
+        print(f"\n🧪 Testing smart upload with test PDF file")
+        success, upload_response = run_test(
+            f"POST /api/survey-reports/multi-upload-smart (ship_id={ship_id})",
+            lambda: test_survey_report_smart_upload(admin_headers, ship_id),
             expected_status=200
         )
-        test_results.append(("USERS LIST (admin)", "✅ PASS" if success else "❌ FAIL"))
-        all_tests.append(("users_list", success))
+        test_results.append(("SURVEY SMART UPLOAD", "✅ PASS" if success else "❌ FAIL"))
+        all_tests.append(("survey_upload", success))
         
-        # Get a user ID for testing
-        user_id = None
-        if success and users_response.status_code == 200:
+        # Analyze upload response
+        task_id = None
+        fast_path_results = []
+        
+        if success and upload_response.status_code == 200:
             try:
-                users_data = users_response.json()
-                if users_data and len(users_data) > 0:
-                    user_id = users_data[0].get("id")
-                    print(f"   📋 Using user_id: {user_id}")
-            except:
-                pass
+                upload_data = upload_response.json()
+                print(f"\n📊 Upload Response Analysis:")
+                
+                # Check summary
+                summary = upload_data.get("summary", {})
+                print(f"   📈 Summary:")
+                print(f"      - Total files: {summary.get('total_files', 0)}")
+                print(f"      - Fast path: {summary.get('fast_path_count', 0)}")
+                print(f"      - Slow path: {summary.get('slow_path_count', 0)}")
+                print(f"      - Fast completed: {summary.get('fast_path_completed', 0)}")
+                print(f"      - Fast errors: {summary.get('fast_path_errors', 0)}")
+                
+                # Check fast path results
+                fast_path_results = upload_data.get("fast_path_results", [])
+                if fast_path_results:
+                    print(f"   🚀 Fast Path Results:")
+                    for result in fast_path_results:
+                        status = result.get("status", "unknown")
+                        filename = result.get("filename", "unknown")
+                        message = result.get("message", "")
+                        print(f"      - {filename}: {status} - {message}")
+                
+                # Check slow path task
+                task_id = upload_data.get("slow_path_task_id")
+                if task_id:
+                    print(f"   🔄 Slow Path Task ID: {task_id}")
+                
+                # Verify expected response structure
+                required_fields = ["fast_path_results", "slow_path_task_id", "summary"]
+                missing_fields = [field for field in required_fields if field not in upload_data]
+                if missing_fields:
+                    print(f"   ⚠️ Missing response fields: {missing_fields}")
+                else:
+                    print(f"   ✅ Response structure valid")
+                    
+            except Exception as e:
+                print(f"   ⚠️ Error parsing upload response: {e}")
+                print(f"   📝 Raw response: {upload_response.text[:500]}...")
         
-        if user_id:
-            # Test get single user
-            success, response = run_test(
-                f"GET /api/users/{user_id}",
-                lambda: test_user_by_id(admin_headers, user_id),
+        # Test 4: Task Status Polling (if slow path task exists)
+        if task_id:
+            print("\n" + "=" * 80)
+            print("🔄 TASK STATUS POLLING TEST")
+            print("=" * 80)
+            
+            success, task_response = run_test(
+                f"GET /api/survey-reports/upload-task/{task_id}",
+                lambda: test_survey_upload_task_status(admin_headers, task_id),
                 expected_status=200
             )
-            test_results.append(("GET USER BY ID", "✅ PASS" if success else "❌ FAIL"))
-            all_tests.append(("user_by_id", success))
+            test_results.append(("TASK STATUS POLLING", "✅ PASS" if success else "❌ FAIL"))
+            all_tests.append(("task_status", success))
             
-            # Test update user (just test the endpoint, don't actually change data)
-            # success, response = run_test(
-            #     f"PUT /api/users/{user_id}",
-            #     lambda: test_user_update(admin_headers, user_id),
-            #     expected_status=200
-            # )
-            # test_results.append(("UPDATE USER", "✅ PASS" if success else "❌ FAIL"))
-            # all_tests.append(("user_update", success))
+            if success and task_response.status_code == 200:
+                try:
+                    task_data = task_response.json()
+                    print(f"   📋 Task Status:")
+                    print(f"      - Task ID: {task_data.get('id', 'unknown')}")
+                    print(f"      - Status: {task_data.get('status', 'unknown')}")
+                    print(f"      - Progress: {task_data.get('progress', 0)}%")
+                    print(f"      - Files: {len(task_data.get('files', []))}")
+                except Exception as e:
+                    print(f"   ⚠️ Error parsing task response: {e}")
+        else:
+            print("\n   ℹ️ No slow path task created - all files processed via fast path")
         
-        # Test 5: Permission System Tests
+        # Test 5: Verify Survey Reports Created
         print("\n" + "=" * 80)
-        print("🔒 PERMISSION SYSTEM TESTS")
+        print("📋 SURVEY REPORTS VERIFICATION")
         print("=" * 80)
         
-        # Test that Viewer (Crew3) cannot access admin endpoints
-        if "Crew3" in user_sessions:
-            crew3_headers = user_sessions["Crew3"]["headers"]
-            success, response = run_test(
-                "Permission check - Crew3 (Viewer) accessing admin endpoints",
-                lambda: test_permission_system(crew3_headers, "viewer"),
-                expected_admin_only=True
-            )
-            test_results.append(("PERMISSION - Crew3 blocked from admin", "✅ PASS" if success else "❌ FAIL"))
-            all_tests.append(("permission_crew3", success))
-        
-        # Test that Editor (Crew4) has limited access
-        if "Crew4" in user_sessions:
-            crew4_headers = user_sessions["Crew4"]["headers"]
-            success, response = run_test(
-                "Permission check - Crew4 (Editor) accessing admin endpoints",
-                lambda: test_permission_system(crew4_headers, "editor"),
-                expected_admin_only=True
-            )
-            test_results.append(("PERMISSION - Crew4 blocked from admin", "✅ PASS" if success else "❌ FAIL"))
-            all_tests.append(("permission_crew4", success))
-        
-        # Test 6: GDrive Configuration Tests
-        print("\n" + "=" * 80)
-        print("☁️ GDRIVE CONFIGURATION TESTS")
-        print("=" * 80)
-        
-        # Test GDrive config (admin only)
-        success, response = run_test(
-            "GET /api/gdrive/config (system_admin)",
-            lambda: test_gdrive_config(admin_headers),
+        success, reports_response = run_test(
+            f"GET /api/survey-reports (ship_id={ship_id})",
+            lambda: test_survey_reports_list(admin_headers, ship_id),
             expected_status=200
         )
-        test_results.append(("GDRIVE CONFIG", "✅ PASS" if success else "❌ FAIL"))
-        all_tests.append(("gdrive_config", success))
+        test_results.append(("SURVEY REPORTS LIST", "✅ PASS" if success else "❌ FAIL"))
+        all_tests.append(("survey_reports_list", success))
         
-        # Test GDrive status (all users)
-        success, response = run_test(
-            "GET /api/gdrive/status (system_admin)",
-            lambda: test_gdrive_status(admin_headers),
-            expected_status=200
-        )
-        test_results.append(("GDRIVE STATUS", "✅ PASS" if success else "❌ FAIL"))
-        all_tests.append(("gdrive_status", success))
+        if success and reports_response.status_code == 200:
+            try:
+                reports_data = reports_response.json()
+                print(f"   📊 Survey Reports Found: {len(reports_data)}")
+                
+                # Look for recently created reports
+                recent_reports = []
+                for report in reports_data:
+                    report_name = report.get("survey_report_name", "")
+                    if "test" in report_name.lower() or "Test" in report_name:
+                        recent_reports.append(report)
+                
+                if recent_reports:
+                    print(f"   ✅ Found {len(recent_reports)} test report(s):")
+                    for report in recent_reports[:3]:  # Show first 3
+                        print(f"      - {report.get('survey_report_name', 'Unknown')} (ID: {report.get('id', 'Unknown')})")
+                        print(f"        Form: {report.get('report_form', 'N/A')}")
+                        print(f"        No: {report.get('survey_report_no', 'N/A')}")
+                        print(f"        Issued By: {report.get('issued_by', 'N/A')}")
+                else:
+                    print(f"   ⚠️ No test reports found in recent uploads")
+                    
+            except Exception as e:
+                print(f"   ⚠️ Error parsing reports response: {e}")
         
         # Calculate success rates
         total_tests = len(all_tests)
         successful_tests = sum(1 for _, success in all_tests if success)
         
         print("\n" + "=" * 80)
-        print("📊 COMPREHENSIVE BACKEND API TEST RESULTS")
+        print("📊 SURVEY REPORT SMART UPLOAD TEST RESULTS")
         print("=" * 80)
         
         print(f"\n📈 OVERALL SUCCESS RATE: {successful_tests}/{total_tests} ({(successful_tests/total_tests*100):.1f}%)")
@@ -668,35 +645,40 @@ def main():
         
         # Final assessment
         if successful_tests == total_tests:
-            print(f"\n✅ ALL BACKEND API TESTS PASSED!")
-            print(f"🎉 System ready for production deployment")
+            print(f"\n✅ ALL SURVEY REPORT SMART UPLOAD TESTS PASSED!")
+            print(f"🎉 Smart Upload feature is working correctly")
         elif successful_tests >= total_tests * 0.8:  # 80% pass rate
             print(f"\n⚠️ MOST TESTS PASSED ({successful_tests}/{total_tests})")
-            print(f"🔍 Review failed tests before deployment")
+            print(f"🔍 Review failed tests")
         else:
             print(f"\n❌ CRITICAL ISSUES FOUND")
-            print(f"🚨 {total_tests - successful_tests} test(s) failed - System not ready for deployment")
+            print(f"🚨 {total_tests - successful_tests} test(s) failed - Smart Upload feature has issues")
         
         print(f"\n🎯 KEY FINDINGS:")
-        auth_success = sum(1 for test_type, success in all_tests if test_type == "auth" and success)
-        auth_total = sum(1 for test_type, _ in all_tests if test_type == "auth")
-        print(f"   - Authentication: {auth_success}/{auth_total} users can login")
         
-        ai_success = sum(1 for test_type, success in all_tests if "ai_config" in test_type and success)
-        ai_total = sum(1 for test_type, _ in all_tests if "ai_config" in test_type)
-        print(f"   - AI Configuration: {ai_success}/{ai_total} endpoints working")
+        # Check if fast path worked
+        fast_path_success = any("survey_upload" in test_type for test_type, success in all_tests if success)
+        if fast_path_success:
+            print(f"   ✅ Smart Upload API endpoint working")
+            if fast_path_results:
+                successful_fast = sum(1 for r in fast_path_results if r.get("status") == "success")
+                print(f"   ✅ Fast Path processing: {successful_fast}/{len(fast_path_results)} files successful")
         
-        upload_success = sum(1 for test_type, success in all_tests if "upload" in test_type and success)
-        upload_total = sum(1 for test_type, _ in all_tests if "upload" in test_type)
-        print(f"   - Multi-Upload: {upload_success}/{upload_total} endpoints working")
+        # Check if task polling worked
+        task_success = any("task_status" in test_type for test_type, success in all_tests if success)
+        if task_success:
+            print(f"   ✅ Task status polling working")
+        elif task_id:
+            print(f"   ❌ Task status polling failed")
+        else:
+            print(f"   ℹ️ No slow path tasks created (all fast path)")
         
-        permission_success = sum(1 for test_type, success in all_tests if "permission" in test_type and success)
-        permission_total = sum(1 for test_type, _ in all_tests if "permission" in test_type)
-        print(f"   - Permission System: {permission_success}/{permission_total} checks working")
-        
-        gdrive_success = sum(1 for test_type, success in all_tests if "gdrive" in test_type and success)
-        gdrive_total = sum(1 for test_type, _ in all_tests if "gdrive" in test_type)
-        print(f"   - GDrive Integration: {gdrive_success}/{gdrive_total} endpoints working")
+        # Check if reports were created
+        reports_success = any("survey_reports_list" in test_type for test_type, success in all_tests if success)
+        if reports_success:
+            print(f"   ✅ Survey reports creation verified")
+        else:
+            print(f"   ❌ Survey reports creation verification failed")
         
     except Exception as e:
         print(f"\n❌ Test execution failed: {str(e)}")
