@@ -303,6 +303,10 @@ class ShipCertificateAnalyzeService:
         - FAST PATH: If text layer >= 400 chars, use text layer only (no Document AI)
         - SLOW PATH: If text layer < 400 chars, use Document AI (OCR)
         """
+        import time
+        timing = {}
+        total_start = time.time()
+        
         try:
             # Determine file type
             file_ext = filename.lower().split('.')[-1] if '.' in filename else 'pdf'
@@ -323,7 +327,10 @@ class ShipCertificateAnalyzeService:
                 logger.info(f"⚡ SMART PATH: Checking text layer for {filename}...")
                 
                 # Quick check text layer (synchronous, fast)
+                step_start = time.time()
                 text_check = quick_check_text_layer(file_bytes, filename)
+                timing['a_quick_check_text'] = round(time.time() - step_start, 2)
+                
                 char_count = text_check.get("char_count", 0)
                 
                 if text_check.get("has_sufficient_text"):
@@ -338,7 +345,9 @@ class ShipCertificateAnalyzeService:
                     )
                     
                     raw_text = text_check["text_content"]
+                    step_start = time.time()
                     quality_info = detect_ocr_quality(raw_text)
+                    timing['b_detect_quality'] = round(time.time() - step_start, 2)
                     
                     logger.info(f"   📊 Text quality: {quality_info['quality_score']}%, needs_correction: {quality_info['needs_correction']}")
                     
@@ -346,11 +355,13 @@ class ShipCertificateAnalyzeService:
                         # Apply AI correction for low-quality text
                         logger.info(f"   🔧 Applying AI text correction (quality issues: {quality_info['issues_detected']})")
                         
+                        step_start = time.time()
                         correction_result = await correct_text_layer_with_ai(
                             text_content=raw_text,
                             filename=filename,
                             ai_config=ai_config_doc
                         )
+                        timing['c_ai_text_correction'] = round(time.time() - step_start, 2)
                         
                         if correction_result["success"] and correction_result["correction_applied"]:
                             corrected_text = correction_result["corrected_text"]
@@ -380,6 +391,7 @@ class ShipCertificateAnalyzeService:
                             )
                     else:
                         # Text quality is good, use as-is
+                        timing['c_ai_text_correction'] = 0  # Skipped
                         logger.info("   ✅ Text quality good, skipping AI correction")
                         summary_text = format_text_layer_summary(
                             text_content=raw_text,
