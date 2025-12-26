@@ -61,6 +61,8 @@ export const API_ENDPOINTS = {
   SURVEY_REPORT_CHECK_DUPLICATE: '/api/survey-reports/check-duplicate',
   SURVEY_REPORT_UPLOAD_FILES: (id) => `/api/survey-reports/${id}/upload-files`,
   SURVEY_REPORT_FILE_LINK: (id) => `/api/survey-reports/${id}/file-link`,
+  SURVEY_REPORT_MULTI_UPLOAD_SMART: '/api/survey-reports/multi-upload-smart',
+  SURVEY_REPORT_UPLOAD_TASK: (taskId) => `/api/survey-reports/upload-task/${taskId}`,
   
   // Test Reports
   TEST_REPORTS: '/api/test-reports',
