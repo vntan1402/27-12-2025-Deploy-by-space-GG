@@ -341,7 +341,8 @@ class CertificateMultiUploadService:
                         ai_config=ai_config,
                         gdrive_config_doc=gdrive_config_doc,
                         current_user=current_user,
-                        db=db
+                        db=db,
+                        background_tasks=background_tasks  # ⭐ Pass for background GDrive upload
                     )
                     total_time = round(time.time() - start_time, 2)
                     logger.info(f"⏱️ FAST PATH TOTAL for {original_file.filename}: {total_time}s")
