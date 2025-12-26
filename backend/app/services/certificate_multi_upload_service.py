@@ -227,24 +227,25 @@ class CertificateMultiUploadService:
         background_tasks: BackgroundTasks
     ) -> Dict[str, Any]:
         """
-        Smart multi-upload with automatic FAST/SLOW path selection
+        Smart multi-upload - ALL files go to SLOW PATH (background processing)
         
-        - FAST PATH: PDF with text layer >= 400 chars → Process immediately
-        - SLOW PATH: Scanned PDF/Image → Create background task, return task_id
+        This ensures:
+        - Immediate response (~1-2 seconds) - NO TIMEOUT
+        - All processing happens in background
+        - Health checks always respond
+        - Frontend polls for completion
         
-        Returns mixed results with immediate results and task_ids for background processing
+        Returns task_id for polling
         """
-        from app.services.ship_certificate_analyze_service import ShipCertificateAnalyzeService
         from app.services.upload_task_service import UploadTaskService
         from app.models.upload_task import TaskStatus, ProcessingType
         import tempfile
         import os as os_module
-        import time
         
         try:
             db = mongo_db.database
             
-            # Step 1: Verify ship and permissions (same as regular upload)
+            # Step 1: Verify ship and permissions (fast - ~100ms)
             ship = await db.ships.find_one({"id": ship_id})
             if not ship:
                 raise HTTPException(status_code=404, detail="Ship not found")
@@ -260,7 +261,7 @@ class CertificateMultiUploadService:
             check_create_permission(current_user, "ship_cert", ship_company_id)
             check_editor_viewer_ship_scope(current_user, ship_id, "create ship certificates")
             
-            # Step 2: Get configurations
+            # Step 2: Get configurations (fast - ~100ms)
             try:
                 ai_config_obj = await AIConfigService.get_ai_config(current_user)
                 ai_config = {
@@ -277,6 +278,82 @@ class CertificateMultiUploadService:
             
             if not gdrive_config_doc:
                 raise HTTPException(status_code=500, detail="Google Drive not configured")
+            
+            # Step 3: Save ALL files to temp storage (fast - ~500ms)
+            # NO PROCESSING HERE - just save files for background task
+            logger.info(f"📊 Queueing {len(files)} files for BACKGROUND processing")
+            
+            temp_files = []
+            for file in files:
+                file_content = await file.read()
+                
+                # Save to temp file
+                temp_dir = tempfile.mkdtemp(prefix="cert_upload_")
+                temp_path = os_module.path.join(temp_dir, file.filename)
+                
+                with open(temp_path, "wb") as f:
+                    f.write(file_content)
+                
+                temp_files.append({
+                    "temp_path": temp_path,
+                    "filename": file.filename,
+                    "content_type": file.content_type,
+                    "path_info": {"path": "BACKGROUND", "reason": "All files processed in background for reliability"}
+                })
+                
+                logger.info(f"📁 {file.filename}: Saved to temp, queued for background processing")
+            
+            # Step 4: Create task in database (fast - ~100ms)
+            task_id = await UploadTaskService.create_task(
+                task_type="certificate",
+                ship_id=ship_id,
+                filenames=[f["filename"] for f in temp_files],
+                current_user=current_user
+            )
+            
+            # Step 5: Schedule background processing (immediate - no blocking)
+            background_tasks.add_task(
+                CertificateMultiUploadService._process_all_files_background,
+                task_id=task_id,
+                temp_files=temp_files,
+                ship_id=ship_id,
+                ship=ship,
+                ai_config=ai_config,
+                gdrive_config_doc=gdrive_config_doc,
+                user_id=current_user.id,
+                company_id=current_user.company
+            )
+            
+            logger.info(f"📋 Created background task {task_id} for {len(files)} files - returning immediately")
+            
+            # Step 6: Return IMMEDIATELY with task_id
+            # Total time: ~1 second (no blocking operations)
+            response = {
+                "fast_path_results": [],  # All files go to background
+                "slow_path_task_id": task_id,
+                "summary": {
+                    "total_files": len(files),
+                    "fast_path_count": 0,
+                    "slow_path_count": len(files),
+                    "fast_path_completed": 0,
+                    "fast_path_errors": 0,
+                    "slow_path_processing": True
+                },
+                "ship": {
+                    "id": ship_id,
+                    "name": ship.get("name", "Unknown Ship")
+                }
+            }
+            
+            return response
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Smart multi-upload error: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
             
             # Step 3: Categorize files into FAST and SLOW paths
             fast_path_files = []
