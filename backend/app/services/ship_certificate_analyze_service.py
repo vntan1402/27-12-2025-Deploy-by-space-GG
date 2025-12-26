@@ -21,9 +21,72 @@ from app.utils.issued_by_abbreviation import normalize_issued_by
 
 logger = logging.getLogger(__name__)
 
+# Constants
+TEXT_LAYER_THRESHOLD = 400  # Minimum chars to use fast path
+
 
 class ShipCertificateAnalyzeService:
     """Service for analyzing ship certificate files with AI"""
+    
+    @staticmethod
+    def quick_check_processing_path(file_bytes: bytes, filename: str) -> Dict[str, Any]:
+        """
+        Quick check to determine if file needs FAST PATH or SLOW PATH (background)
+        This is a synchronous, fast operation (~100ms)
+        
+        Returns:
+            dict: {
+                "path": "FAST_PATH" | "SLOW_PATH",
+                "has_text_layer": bool,
+                "char_count": int,
+                "text_content": str | None (only if FAST_PATH),
+                "reason": str
+            }
+        """
+        from app.utils.pdf_text_extractor import quick_check_text_layer
+        
+        file_ext = filename.lower().split('.')[-1] if '.' in filename else ''
+        
+        # Image files always need SLOW PATH (Document AI)
+        if file_ext in ['jpg', 'jpeg', 'png']:
+            return {
+                "path": "SLOW_PATH",
+                "has_text_layer": False,
+                "char_count": 0,
+                "text_content": None,
+                "reason": f"Image file ({file_ext}) requires Document AI OCR"
+            }
+        
+        # For PDFs, check text layer
+        if file_ext == 'pdf':
+            text_check = quick_check_text_layer(file_bytes, filename)
+            
+            if text_check.get("has_sufficient_text"):
+                return {
+                    "path": "FAST_PATH",
+                    "has_text_layer": True,
+                    "char_count": text_check["char_count"],
+                    "text_content": text_check["text_content"],
+                    "page_count": text_check["page_count"],
+                    "reason": f"Text layer found: {text_check['char_count']} chars >= {TEXT_LAYER_THRESHOLD} threshold"
+                }
+            else:
+                return {
+                    "path": "SLOW_PATH",
+                    "has_text_layer": False,
+                    "char_count": text_check.get("char_count", 0),
+                    "text_content": None,
+                    "reason": f"Insufficient text layer: {text_check.get('char_count', 0)} chars < {TEXT_LAYER_THRESHOLD} threshold (scanned PDF)"
+                }
+        
+        # Unknown file type - try SLOW PATH
+        return {
+            "path": "SLOW_PATH",
+            "has_text_layer": False,
+            "char_count": 0,
+            "text_content": None,
+            "reason": f"Unknown file type: {file_ext}"
+        }
     
     @staticmethod
     async def analyze_file(
