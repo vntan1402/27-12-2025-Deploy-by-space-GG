@@ -517,10 +517,16 @@ class CertificateMultiUploadService:
         current_user: UserResponse,
         db: Any
     ) -> Dict[str, Any]:
-        """Process a single certificate file"""
+        """Process a single certificate file with timing analysis"""
+        import time
+        
+        timing = {}
+        total_start = time.time()
         
         # Read file content
+        step_start = time.time()
         file_content = await file.read()
+        timing['1_read_file'] = round(time.time() - step_start, 2)
         
         # Check file size (50MB limit)
         if len(file_content) > 50 * 1024 * 1024:
@@ -545,6 +551,7 @@ class CertificateMultiUploadService:
                 }
         
         # ⭐ NEW: Analyze document with advanced AI pipeline (Document AI + OCR)
+        step_start = time.time()
         analysis_result = await CertificateMultiUploadService._analyze_document_with_ai(
             file_content, 
             file.filename, 
@@ -553,6 +560,7 @@ class CertificateMultiUploadService:
             ship_id,
             current_user
         )
+        timing['2_ai_analysis'] = round(time.time() - step_start, 2)
         
         # Check if analysis was successful
         if not analysis_result.get("success"):
