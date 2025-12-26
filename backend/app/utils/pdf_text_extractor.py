@@ -210,6 +210,57 @@ async def extract_text_layer_from_pdf(
         }
 
 
+def extract_text_from_pdf_text_layer(file_content: bytes) -> str:
+    """
+    Extract text from PDF text layer (compatibility function)
+    
+    Args:
+        file_content: PDF file bytes
+        
+    Returns:
+        Extracted text string
+    """
+    try:
+        pdf_file = io.BytesIO(file_content)
+        
+        with pdfplumber.open(pdf_file) as pdf:
+            all_text = []
+            
+            for page in pdf.pages:
+                try:
+                    page_text = page.extract_text() or ""
+                    if page_text.strip():
+                        all_text.append(page_text)
+                except Exception:
+                    continue
+            
+            return "\n".join(all_text)
+            
+    except Exception as e:
+        logger.error(f"❌ Failed to extract text layer: {e}")
+        return ""
+
+
+def create_summary_from_text_layer(text_content: str, filename: str) -> str:
+    """
+    Create summary from text layer content (compatibility function)
+    
+    Args:
+        text_content: Extracted text content
+        filename: Original filename
+        
+    Returns:
+        Formatted summary string
+    """
+    return format_text_layer_summary(
+        text_content=text_content,
+        filename=filename,
+        page_count=text_content.count("--- Page"),
+        char_count=len(text_content),
+        document_type="survey_report"
+    )
+
+
 def merge_text_layer_and_document_ai(
     text_layer_result: Dict[str, Any],
     document_ai_result: Dict[str, Any],
