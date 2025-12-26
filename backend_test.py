@@ -50,10 +50,7 @@ except:
 
 # Test users as specified in review request
 TEST_USERS = {
-    "system_admin": {"password": "YourSecure@Pass2024", "role": "system_admin", "ship": None, "actual_user": "system_admin"},
-    "Crew4": {"password": "123456", "role": "editor", "ship": "Ship Officer", "actual_user": "Crew4"},
-    "Crew3": {"password": "123456", "role": "viewer", "ship": "Crew", "actual_user": "Crew3"},
-    "crewing_manager": {"password": "123456", "role": "manager", "ship": "crewing", "actual_user": "crewing_manager"}
+    "admin1": {"password": "123456", "role": "admin", "ship": None, "actual_user": "admin1"}
 }
 
 def login(username, password):
