@@ -556,19 +556,27 @@ def main():
             test_results.append(("SURVEY SMART UPLOAD", "❌ FAIL - No ship available"))
             return
         
-        # Test 3: Survey Report Smart Upload
+def test_survey_reports_list(headers, ship_id=None):
+    """Test GET /api/survey-reports - Get survey reports list"""
+    url = f"{BACKEND_URL}/survey-reports"
+    if ship_id:
+        url += f"?ship_id={ship_id}"
+    response = requests.get(url, headers=headers)
+    return response
+
+        # Test 3: Survey Report Smart Upload (FAST PATH)
         print("\n" + "=" * 80)
-        print("📤 SURVEY REPORT SMART UPLOAD TEST")
+        print("📤 SURVEY REPORT SMART UPLOAD TEST (FAST PATH)")
         print("=" * 80)
         
-        print(f"\n🧪 Testing smart upload with test PDF file")
+        print(f"\n🧪 Testing smart upload with test PDF file (FAST PATH)")
         success, upload_response = run_test(
             f"POST /api/survey-reports/multi-upload-smart (ship_id={ship_id})",
             lambda: test_survey_report_smart_upload(admin_headers, ship_id),
             expected_status=200
         )
-        test_results.append(("SURVEY SMART UPLOAD", "✅ PASS" if success else "❌ FAIL"))
-        all_tests.append(("survey_upload", success))
+        test_results.append(("SURVEY SMART UPLOAD (FAST)", "✅ PASS" if success else "❌ FAIL"))
+        all_tests.append(("survey_upload_fast", success))
         
         # Analyze upload response
         task_id = None
@@ -577,7 +585,7 @@ def main():
         if success and upload_response.status_code == 200:
             try:
                 upload_data = upload_response.json()
-                print(f"\n📊 Upload Response Analysis:")
+                print(f"\n📊 Upload Response Analysis (FAST PATH):")
                 
                 # Check summary
                 summary = upload_data.get("summary", {})
@@ -615,15 +623,54 @@ def main():
                 print(f"   ⚠️ Error parsing upload response: {e}")
                 print(f"   📝 Raw response: {upload_response.text[:500]}...")
         
-        # Test 4: Task Status Polling (if slow path task exists)
-        if task_id:
+        # Test 4: Survey Report Smart Upload (SLOW PATH)
+        print("\n" + "=" * 80)
+        print("📤 SURVEY REPORT SMART UPLOAD TEST (SLOW PATH)")
+        print("=" * 80)
+        
+        print(f"\n🧪 Testing smart upload with scanned PDF file (SLOW PATH)")
+        success_slow, upload_response_slow = run_test(
+            f"POST /api/survey-reports/multi-upload-smart (scanned PDF)",
+            lambda: test_survey_report_smart_upload_slow_path(admin_headers, ship_id),
+            expected_status=200
+        )
+        test_results.append(("SURVEY SMART UPLOAD (SLOW)", "✅ PASS" if success_slow else "❌ FAIL"))
+        all_tests.append(("survey_upload_slow", success_slow))
+        
+        # Analyze slow path response
+        slow_task_id = None
+        if success_slow and upload_response_slow.status_code == 200:
+            try:
+                upload_data_slow = upload_response_slow.json()
+                print(f"\n📊 Upload Response Analysis (SLOW PATH):")
+                
+                # Check summary
+                summary_slow = upload_data_slow.get("summary", {})
+                print(f"   📈 Summary:")
+                print(f"      - Total files: {summary_slow.get('total_files', 0)}")
+                print(f"      - Fast path: {summary_slow.get('fast_path_count', 0)}")
+                print(f"      - Slow path: {summary_slow.get('slow_path_count', 0)}")
+                print(f"      - Slow processing: {summary_slow.get('slow_path_processing', False)}")
+                
+                # Check slow path task
+                slow_task_id = upload_data_slow.get("slow_path_task_id")
+                if slow_task_id:
+                    print(f"   🔄 Slow Path Task ID: {slow_task_id}")
+                else:
+                    print(f"   ⚠️ No slow path task ID returned")
+                    
+            except Exception as e:
+                print(f"   ⚠️ Error parsing slow path response: {e}")
+        
+        # Test 5: Task Status Polling (if slow path task exists)
+        if slow_task_id:
             print("\n" + "=" * 80)
             print("🔄 TASK STATUS POLLING TEST")
             print("=" * 80)
             
             success, task_response = run_test(
-                f"GET /api/survey-reports/upload-task/{task_id}",
-                lambda: test_survey_upload_task_status(admin_headers, task_id),
+                f"GET /api/survey-reports/upload-task/{slow_task_id}",
+                lambda: test_survey_upload_task_status(admin_headers, slow_task_id),
                 expected_status=200
             )
             test_results.append(("TASK STATUS POLLING", "✅ PASS" if success else "❌ FAIL"))
@@ -637,12 +684,30 @@ def main():
                     print(f"      - Status: {task_data.get('status', 'unknown')}")
                     print(f"      - Progress: {task_data.get('progress', 0)}%")
                     print(f"      - Files: {len(task_data.get('files', []))}")
+                    
+                    # Show file details
+                    files_info = task_data.get('files', [])
+                    if files_info:
+                        print(f"   📁 File Details:")
+                        for i, file_info in enumerate(files_info):
+                            print(f"      [{i+1}] {file_info.get('filename', 'unknown')}")
+                            print(f"          Status: {file_info.get('status', 'unknown')}")
+                            print(f"          Progress: {file_info.get('progress', 0)}%")
+                            
                 except Exception as e:
                     print(f"   ⚠️ Error parsing task response: {e}")
         else:
-            print("\n   ℹ️ No slow path task created - all files processed via fast path")
+            print("\n   ℹ️ No slow path task created - testing task polling with fast path task_id")
+            if task_id:
+                success, task_response = run_test(
+                    f"GET /api/survey-reports/upload-task/{task_id}",
+                    lambda: test_survey_upload_task_status(admin_headers, task_id),
+                    expected_status=404  # Should return 404 for non-existent task
+                )
+                test_results.append(("TASK STATUS POLLING (404)", "✅ PASS" if success else "❌ FAIL"))
+                all_tests.append(("task_status_404", success))
         
-        # Test 5: Verify Survey Reports Created
+        # Test 6: Verify Survey Reports Created
         print("\n" + "=" * 80)
         print("📋 SURVEY REPORTS VERIFICATION")
         print("=" * 80)
