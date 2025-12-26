@@ -664,11 +664,12 @@ const ClassAndFlagCert = () => {
       }
     } catch (error) {
       console.error('Next Survey update error:', error);
+      toast.dismiss('update-survey'); // Dismiss loading toast
       const errorMessage = error.response?.data?.detail || error.message;
       toast.error(language === 'vi' 
         ? `❌ Lỗi: ${errorMessage}`
         : `❌ Error: ${errorMessage}`,
-        { id: 'update-survey', duration: 5000 }
+        { duration: 5000 }
       );
     } finally {
       setIsUpdatingSurveyTypes(false);
