@@ -150,4 +150,35 @@ export const surveyReportService = {
     });
     return response;
   },
+
+  /**
+   * Smart multi-upload survey reports with FAST/SLOW path
+   * @param {string} shipId - Ship ID
+   * @param {File[]} files - Array of survey report files
+   * @returns {Promise} Upload result with fast_path_results and slow_path_task_id
+   */
+  multiUploadSmart: async (shipId, files) => {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+    
+    return api.post(
+      `${API_ENDPOINTS.SURVEY_REPORT_MULTI_UPLOAD_SMART}?ship_id=${shipId}`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 120000, // 2 minutes for FAST path files
+      }
+    );
+  },
+
+  /**
+   * Get upload task status for polling
+   * @param {string} taskId - Task ID from slow_path_task_id
+   * @returns {Promise} Task status with file progress
+   */
+  getUploadTaskStatus: async (taskId) => {
+    return api.get(API_ENDPOINTS.SURVEY_REPORT_UPLOAD_TASK(taskId));
+  },
 };
