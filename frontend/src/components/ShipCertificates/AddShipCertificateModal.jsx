@@ -732,6 +732,71 @@ export const AddShipCertificateModal = ({
         setTimeout(() => {
           setShowBatchProcessing(false);
         }, 1500);
+      } else if (slow_path_task_id) {
+        // SLOW PATH - need to poll for results
+        setFileSubStatusMap(prev => ({ ...prev, [failedFileName]: language === 'vi' ? '🔄 Đang xử lý background...' : '🔄 Processing in background...' }));
+        
+        toast.info(
+          language === 'vi'
+            ? `🔄 File đang được xử lý background, vui lòng chờ...`
+            : `🔄 File is being processed in background, please wait...`
+        );
+        
+        // Poll for task completion
+        let pollCount = 0;
+        const maxPolls = 60; // 5 minutes max
+        
+        while (pollCount < maxPolls) {
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5s
+          
+          try {
+            const taskResponse = await api.get(`/api/certificates/upload-task/${slow_path_task_id}`);
+            const task = taskResponse.data;
+            
+            if (task.files && task.files[0]) {
+              const fileTask = task.files[0];
+              setFileProgressMap(prev => ({ ...prev, [failedFileName]: fileTask.progress || 50 }));
+              
+              if (fileTask.status === 'completed') {
+                setFileStatusMap(prev => ({ ...prev, [failedFileName]: 'completed' }));
+                setFileProgressMap(prev => ({ ...prev, [failedFileName]: 100 }));
+                setFileSubStatusMap(prev => ({ ...prev, [failedFileName]: '✅ Hoàn thành' }));
+                
+                const successResult = {
+                  filename: failedFileName,
+                  success: true,
+                  certificateCreated: true,
+                  fileUploaded: true,
+                  certificateName: fileTask.result?.cert_name || '',
+                  certificateNo: fileTask.result?.cert_no || '',
+                  error: null
+                };
+                
+                setBatchResults(prev => 
+                  prev.map(r => r.filename === failedFileName ? successResult : r)
+                );
+                
+                toast.success(language === 'vi' ? `✅ File đã được xử lý thành công!` : `✅ File processed successfully!`);
+                if (onSuccess) onSuccess();
+                break;
+              } else if (fileTask.status === 'failed') {
+                throw new Error(fileTask.error || 'Processing failed');
+              }
+            }
+            
+            if (task.status === 'completed' || task.status === 'failed') {
+              break;
+            }
+          } catch (pollError) {
+            console.error('Poll error:', pollError);
+          }
+          
+          pollCount++;
+        }
+        
+        setTimeout(() => {
+          setShowBatchProcessing(false);
+        }, 1500);
       } else {
         throw new Error('No certificate data returned');
       }
