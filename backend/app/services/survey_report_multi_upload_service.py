@@ -116,7 +116,7 @@ class SurveyReportMultiUploadService:
                     "api_key": os.getenv("EMERGENT_LLM_KEY"),
                     "use_emergent_key": True
                 }
-            except Exception as e:
+            except Exception:
                 raise HTTPException(status_code=500, detail="AI configuration not found")
             
             # Get Document AI config
