@@ -525,11 +525,13 @@ class ShipCertificateAnalyzeService:
             logger.info(f"✅ Final summary ({processing_path}): {len(summary_text)} total characters")
             
             # Extract fields with System AI (Gemini)
+            step_start = time.time()
             extracted_info = await extract_ship_certificate_fields_from_summary(
                 summary_text=summary_text,
                 filename=filename,
                 ai_config=ai_config_doc
             )
+            timing['d_gemini_extract_fields'] = round(time.time() - step_start, 2)
             
             if not extracted_info:
                 raise HTTPException(
@@ -545,13 +547,16 @@ class ShipCertificateAnalyzeService:
                 extracted_info['issued_by'] = normalize_issued_by(extracted_info['issued_by'])
             
             # Validate ship info
+            step_start = time.time()
             validation_warning = await ShipCertificateAnalyzeService.validate_ship_info(
                 extracted_imo=extracted_info.get('imo_number'),
                 extracted_ship_name=extracted_info.get('ship_name'),
                 current_ship=ship
             )
+            timing['e_validate_ship'] = round(time.time() - step_start, 2)
             
             # Check for duplicates
+            step_start = time.time()
             duplicate_warning = await ShipCertificateAnalyzeService.check_duplicate(
                 ship_id=ship["id"],
                 cert_name=extracted_info.get('cert_name'),
@@ -561,6 +566,13 @@ class ShipCertificateAnalyzeService:
                 valid_date=extracted_info.get('valid_date'),
                 last_endorse=extracted_info.get('last_endorse')
             )
+            timing['f_check_duplicate'] = round(time.time() - step_start, 2)
+            
+            # Calculate total and log timing
+            timing['TOTAL_ANALYSIS'] = round(time.time() - total_start, 2)
+            logger.info(f"⏱️ FAST PATH TIMING for {filename}:")
+            for step, duration in timing.items():
+                logger.info(f"   {step}: {duration}s")
             
             return {
                 "success": True,
@@ -568,7 +580,8 @@ class ShipCertificateAnalyzeService:
                 "summary_text": summary_text,
                 "processing_path": processing_path,  # ⭐ Return which path was used
                 "validation_warning": validation_warning,
-                "duplicate_warning": duplicate_warning
+                "duplicate_warning": duplicate_warning,
+                "timing": timing  # ⭐ Return timing for debugging
             }
             
         except HTTPException:
