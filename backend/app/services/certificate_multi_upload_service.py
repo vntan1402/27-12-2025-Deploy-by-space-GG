@@ -593,10 +593,21 @@ class CertificateMultiUploadService:
         ai_config: Dict[str, Any],
         gdrive_config_doc: Dict[str, Any],
         current_user: UserResponse,
-        db: Any
+        db: Any,
+        background_tasks: Any = None  # Optional for background GDrive upload
     ) -> Dict[str, Any]:
-        """Process a single certificate file with timing analysis"""
+        """
+        Process a single certificate file - OPTIMIZED VERSION
+        
+        Flow:
+        1. Extract text from PDF (fast)
+        2. Extract fields with Gemini AI (~4-5s)
+        3. Create DB record immediately → Return to frontend
+        4. Background: Upload PDF + Summary to GDrive in parallel
+        5. Update DB with file URLs when upload completes
+        """
         import time
+        import asyncio
         
         timing = {}
         total_start = time.time()
@@ -628,7 +639,7 @@ class CertificateMultiUploadService:
                     "message": f"Unsupported file type. Supported: PDF, JPG, PNG. Got: {file.content_type}"
                 }
         
-        # ⭐ NEW: Analyze document with advanced AI pipeline (Document AI + OCR)
+        # ⭐ Step 2: Analyze document with AI pipeline
         step_start = time.time()
         analysis_result = await CertificateMultiUploadService._analyze_document_with_ai(
             file_content, 
@@ -649,13 +660,13 @@ class CertificateMultiUploadService:
                 "message": error_msg
             }
         
-        # Extract components from new analysis result
+        # Extract components from analysis result
         extracted_info = analysis_result.get("extracted_info", {})
-        summary_text = analysis_result.get("summary_text", "")  # ⭐ NEW: Document AI text
+        summary_text = analysis_result.get("summary_text", "")
         validation_warning = analysis_result.get("validation_warning")
         duplicate_warning = analysis_result.get("duplicate_warning")
         
-        # ⭐ Add filename to extracted_info for certificate creation
+        # Add filename to extracted_info
         extracted_info["filename"] = file.filename
         
         logger.info(f"✅ AI Analysis successful for {file.filename}")
@@ -681,10 +692,10 @@ class CertificateMultiUploadService:
                 "message": duplicate_warning.get("message"),
                 "duplicate_info": duplicate_warning,
                 "analysis": extracted_info,
-                "summary_text": summary_text  # ⭐ Pass summary for later use
+                "summary_text": summary_text
             }
         
-        # ⭐ NEW: Check if certificate belongs to ISM/ISPS/MLC/CICA categories (BLOCKING)
+        # Check if certificate belongs to ISM/ISPS/MLC/CICA categories (BLOCKING)
         cert_name = extracted_info.get('cert_name', '').strip()
         audit_category = CertificateMultiUploadService._check_if_audit_certificate(cert_name)
         if audit_category:
@@ -701,21 +712,227 @@ class CertificateMultiUploadService:
                 }
             }
         
-        # Extract key fields for further processing
-        extracted_imo = extracted_info.get('imo_number', '').strip()
+        # Prepare validation note
         extracted_ship_name = extracted_info.get('ship_name', '').strip()
-        current_ship_imo = (ship.get('imo') or '').strip()
-        current_ship_name = (ship.get('name') or '').strip()
-        validation_note = None
-        progress_message = None
-        
-        # Prepare validation note (if ship name mismatch warning exists)
         validation_note = None
         progress_message = None
         if validation_warning and not validation_warning.get("is_blocking"):
             validation_note = validation_warning.get("override_note", "Chỉ để tham khảo")
             progress_message = validation_warning.get("message")
             logger.info(f"⚠️ Non-blocking validation warning: {progress_message}")
+        
+        # ⭐ Step 3: Create certificate record IMMEDIATELY (without file URLs)
+        # This allows frontend to refresh UI right away
+        step_start = time.time()
+        ship_name = ship.get("name", "Unknown_Ship")
+        
+        cert_result = await CertificateMultiUploadService._create_certificate_from_analysis(
+            extracted_info, 
+            {"success": True, "file_id": None, "file_url": None, "folder_path": f"{ship_name}/Class & Flag Cert/Certificates"},  # Placeholder
+            current_user, 
+            ship_id, 
+            validation_note, 
+            db,
+            summary_file_id=None,  # Will update later
+            extracted_ship_name=extracted_ship_name,
+            file_pending_upload=True  # Mark as pending upload
+        )
+        timing['3_create_db_record'] = round(time.time() - step_start, 2)
+        
+        cert_id = cert_result.get("id")
+        logger.info(f"✅ Created certificate record {cert_id} (file upload pending)")
+        
+        # ⭐ Step 4: Schedule background upload for GDrive (PDF + Summary in parallel)
+        if background_tasks and cert_id:
+            background_tasks.add_task(
+                CertificateMultiUploadService._upload_files_to_gdrive_background,
+                cert_id=cert_id,
+                file_content=file_content,
+                filename=file.filename,
+                summary_text=summary_text,
+                ship_name=ship_name,
+                gdrive_config_doc=gdrive_config_doc
+            )
+            logger.info(f"📤 Scheduled background GDrive upload for {file.filename}")
+        else:
+            # Fallback: Upload synchronously if no background_tasks
+            logger.info(f"📤 Uploading to GDrive synchronously (no background_tasks)")
+            step_start = time.time()
+            
+            # Upload PDF and Summary in parallel using asyncio.gather
+            upload_tasks = []
+            
+            # Task 1: Upload main PDF
+            upload_tasks.append(
+                CertificateMultiUploadService._upload_to_gdrive_with_parent(
+                    gdrive_config_doc, file_content, file.filename, ship_name,
+                    "Class & Flag Cert", "Certificates"
+                )
+            )
+            
+            # Task 2: Upload Summary (if available)
+            if summary_text and summary_text.strip():
+                base_name = file.filename.rsplit('.', 1)[0] if '.' in file.filename else file.filename
+                summary_filename = f"{base_name}_Summary.txt"
+                summary_bytes = summary_text.encode('utf-8')
+                
+                upload_tasks.append(
+                    CertificateMultiUploadService._upload_to_gdrive_with_parent(
+                        gdrive_config_doc, summary_bytes, summary_filename, ship_name,
+                        "Class & Flag Cert", "Certificates", content_type="text/plain"
+                    )
+                )
+            
+            # Execute uploads in parallel
+            upload_results = await asyncio.gather(*upload_tasks, return_exceptions=True)
+            timing['4_gdrive_upload_parallel'] = round(time.time() - step_start, 2)
+            
+            # Process results
+            pdf_result = upload_results[0] if len(upload_results) > 0 else None
+            summary_result = upload_results[1] if len(upload_results) > 1 else None
+            
+            # Update certificate record with file URLs
+            update_data = {}
+            if pdf_result and not isinstance(pdf_result, Exception) and pdf_result.get("success"):
+                update_data["google_drive_file_id"] = pdf_result.get("file_id")
+                update_data["google_drive_file_url"] = pdf_result.get("file_url")
+                update_data["file_uploaded"] = True
+                update_data["file_pending_upload"] = False
+                logger.info(f"✅ PDF uploaded: {pdf_result.get('file_id')}")
+            
+            if summary_result and not isinstance(summary_result, Exception) and summary_result.get("success"):
+                update_data["summary_file_id"] = summary_result.get("file_id")
+                logger.info(f"✅ Summary uploaded: {summary_result.get('file_id')}")
+            
+            if update_data and cert_id:
+                await db.certificates.update_one(
+                    {"id": cert_id},
+                    {"$set": update_data}
+                )
+        
+        # Calculate total time
+        timing['TOTAL'] = round(time.time() - total_start, 2)
+        
+        # Log timing analysis
+        logger.info(f"⏱️ TIMING for {file.filename}:")
+        for step, duration in timing.items():
+            logger.info(f"   {step}: {duration}s")
+        
+        # Return success - UI can refresh immediately
+        if validation_note and progress_message:
+            return {
+                "filename": file.filename,
+                "status": "success_with_reference_note",
+                "extracted_info": extracted_info,
+                "summary_text": summary_text,
+                "analysis": extracted_info,
+                "certificate": cert_result,
+                "is_marine": True,
+                "progress_message": progress_message,
+                "validation_note": validation_note,
+                "timing": timing
+            }
+        else:
+            return {
+                "filename": file.filename,
+                "status": "success",
+                "extracted_info": extracted_info,
+                "summary_text": summary_text,
+                "analysis": extracted_info,
+                "certificate": cert_result,
+                "is_marine": True,
+                "timing": timing
+            }
+    
+    @staticmethod
+    async def _upload_files_to_gdrive_background(
+        cert_id: str,
+        file_content: bytes,
+        filename: str,
+        summary_text: str,
+        ship_name: str,
+        gdrive_config_doc: Dict[str, Any]
+    ):
+        """
+        Background task to upload PDF and Summary to GDrive in parallel
+        Updates certificate record with file URLs when complete
+        """
+        import asyncio
+        
+        try:
+            logger.info(f"🔄 Background upload starting for cert {cert_id}: {filename}")
+            
+            upload_tasks = []
+            
+            # Task 1: Upload main PDF
+            upload_tasks.append(
+                CertificateMultiUploadService._upload_to_gdrive_with_parent(
+                    gdrive_config_doc, file_content, filename, ship_name,
+                    "Class & Flag Cert", "Certificates"
+                )
+            )
+            
+            # Task 2: Upload Summary (if available)
+            if summary_text and summary_text.strip():
+                base_name = filename.rsplit('.', 1)[0] if '.' in filename else filename
+                summary_filename = f"{base_name}_Summary.txt"
+                summary_bytes = summary_text.encode('utf-8')
+                
+                upload_tasks.append(
+                    CertificateMultiUploadService._upload_to_gdrive_with_parent(
+                        gdrive_config_doc, summary_bytes, summary_filename, ship_name,
+                        "Class & Flag Cert", "Certificates", content_type="text/plain"
+                    )
+                )
+            
+            # Execute uploads in parallel
+            upload_results = await asyncio.gather(*upload_tasks, return_exceptions=True)
+            
+            # Process results
+            pdf_result = upload_results[0] if len(upload_results) > 0 else None
+            summary_result = upload_results[1] if len(upload_results) > 1 else None
+            
+            # Update certificate record with file URLs
+            db = mongo_db.database
+            update_data = {"file_pending_upload": False}
+            
+            if pdf_result and not isinstance(pdf_result, Exception) and pdf_result.get("success"):
+                update_data["google_drive_file_id"] = pdf_result.get("file_id")
+                update_data["google_drive_file_url"] = pdf_result.get("file_url")
+                update_data["file_uploaded"] = True
+                logger.info(f"✅ Background: PDF uploaded for cert {cert_id}")
+            else:
+                logger.error(f"❌ Background: PDF upload failed for cert {cert_id}")
+                update_data["file_upload_error"] = str(pdf_result) if isinstance(pdf_result, Exception) else "Upload failed"
+            
+            if summary_result and not isinstance(summary_result, Exception) and summary_result.get("success"):
+                update_data["summary_file_id"] = summary_result.get("file_id")
+                logger.info(f"✅ Background: Summary uploaded for cert {cert_id}")
+            
+            await db.certificates.update_one(
+                {"id": cert_id},
+                {"$set": update_data}
+            )
+            
+            logger.info(f"✅ Background upload completed for cert {cert_id}")
+            
+        except Exception as e:
+            logger.error(f"❌ Background upload error for cert {cert_id}: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            
+            # Mark upload as failed
+            try:
+                db = mongo_db.database
+                await db.certificates.update_one(
+                    {"id": cert_id},
+                    {"$set": {
+                        "file_pending_upload": False,
+                        "file_upload_error": str(e)
+                    }}
+                )
+            except:
+                pass
         
         # Upload main certificate to Google Drive
         # ⭐ NEW: Use parent_category structure like Audit Certificate
