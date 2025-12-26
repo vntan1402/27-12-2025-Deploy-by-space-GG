@@ -642,11 +642,13 @@ class CertificateMultiUploadService:
         # Upload main certificate to Google Drive
         # ⭐ NEW: Use parent_category structure like Audit Certificate
         ship_name = ship.get("name", "Unknown_Ship")
+        step_start = time.time()
         upload_result = await CertificateMultiUploadService._upload_to_gdrive_with_parent(
             gdrive_config_doc, file_content, file.filename, ship_name, 
             "Class & Flag Cert",  # parent_category
             "Certificates"         # category (subfolder)
         )
+        timing['3_gdrive_upload_main'] = round(time.time() - step_start, 2)
         
         if not upload_result.get("success"):
             return {
