@@ -157,4 +157,86 @@ export const shipCertificateService = {
     });
     return response;
   },
+
+  /**
+   * Smart multi-upload with automatic FAST/SLOW path selection
+   * - FAST PATH: PDF with text layer >= 400 chars → Immediate processing
+   * - SLOW PATH: Scanned PDF/Image → Background processing with task_id
+   * 
+   * @param {string} shipId - Ship ID
+   * @param {File[]} files - Certificate files to upload
+   * @returns {Promise} { fast_path_results, slow_path_task_id, summary }
+   */
+  multiUploadSmart: async (shipId, files) => {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    
+    return api.post(`${API_ENDPOINTS.CERTIFICATES}/multi-upload-smart?ship_id=${shipId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: API_TIMEOUT.FILE_UPLOAD, // Shorter timeout since FAST PATH is quick
+    });
+  },
+
+  /**
+   * Get upload task status for SLOW PATH processing
+   * Poll this endpoint to check progress of background uploads
+   * 
+   * @param {string} taskId - Background task ID
+   * @returns {Promise} Task status with progress and results
+   */
+  getUploadTaskStatus: async (taskId) => {
+    return api.get(`${API_ENDPOINTS.CERTIFICATES}/upload-task/${taskId}`);
+  },
+
+  /**
+   * Poll upload task until completion
+   * Utility function that polls task status with retry logic
+   * 
+   * @param {string} taskId - Background task ID
+   * @param {function} onProgress - Callback for progress updates
+   * @param {number} intervalMs - Polling interval in ms (default: 3000)
+   * @param {number} maxAttempts - Max polling attempts (default: 60 = ~3 minutes)
+   * @returns {Promise} Final task result
+   */
+  pollUploadTask: async (taskId, onProgress = null, intervalMs = 3000, maxAttempts = 60) => {
+    let attempts = 0;
+    
+    return new Promise((resolve, reject) => {
+      const poll = async () => {
+        try {
+          attempts++;
+          const response = await api.get(`${API_ENDPOINTS.CERTIFICATES}/upload-task/${taskId}`);
+          const task = response.data;
+          
+          // Call progress callback if provided
+          if (onProgress) {
+            onProgress(task);
+          }
+          
+          // Check if completed or failed
+          if (task.status === 'completed' || task.status === 'failed') {
+            resolve(task);
+            return;
+          }
+          
+          // Check max attempts
+          if (attempts >= maxAttempts) {
+            reject(new Error('Task polling timeout - max attempts reached'));
+            return;
+          }
+          
+          // Continue polling
+          setTimeout(poll, intervalMs);
+          
+        } catch (error) {
+          reject(error);
+        }
+      };
+      
+      // Start polling
+      poll();
+    });
+  },
 };
