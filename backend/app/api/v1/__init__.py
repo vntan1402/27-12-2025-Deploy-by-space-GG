@@ -4,7 +4,8 @@ from app.api.v1 import (
     survey_reports, test_reports, drawings_manuals, other_documents,
     supply_documents, ai_config, utilities, gdrive, audit_reports,
     audit_certificates, approval_documents, other_audit_documents, system_settings,
-    ships_analysis, sidebar, system, crew_audit_logs, system_announcements, company_certs
+    ships_analysis, sidebar, system, crew_audit_logs, system_announcements, company_certs,
+    health_check
 )
 from app.core.security import get_current_user
 
@@ -24,6 +25,7 @@ api_router.include_router(system.router, prefix="/system", tags=["system"])
 api_router.include_router(system_announcements.router, prefix="/system-announcements", tags=["system-announcements"])
 api_router.include_router(ships_analysis.router, prefix="", tags=["ships-analysis"])
 api_router.include_router(sidebar.router, prefix="", tags=["sidebar"])
+api_router.include_router(health_check.router, prefix="", tags=["health-check"])
 
 # Document type routers
 api_router.include_router(survey_reports.router, prefix="/survey-reports", tags=["survey-reports"])
