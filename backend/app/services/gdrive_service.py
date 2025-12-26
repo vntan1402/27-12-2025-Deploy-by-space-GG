@@ -658,7 +658,7 @@ class GDriveService:
                         async with session.post(
                             apps_script_url,
                             json=payload,
-                            timeout=aiohttp.ClientTimeout(total=300)  # 5 minutes
+                            timeout=aiohttp.ClientTimeout(total=180)  # 3 minutes
                         ) as response:
                             if response.status == 200:
                                 result = await response.json()
