@@ -220,6 +220,334 @@ class CertificateMultiUploadService:
             raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
     
     @staticmethod
+    async def process_multi_upload_smart(
+        ship_id: str,
+        files: List[UploadFile],
+        current_user: UserResponse,
+        background_tasks: BackgroundTasks
+    ) -> Dict[str, Any]:
+        """
+        Smart multi-upload with automatic FAST/SLOW path selection
+        
+        - FAST PATH: PDF with text layer >= 400 chars → Process immediately
+        - SLOW PATH: Scanned PDF/Image → Create background task, return task_id
+        
+        Returns mixed results with immediate results and task_ids for background processing
+        """
+        from app.services.ship_certificate_analyze_service import ShipCertificateAnalyzeService
+        from app.services.upload_task_service import UploadTaskService
+        from app.models.upload_task import TaskStatus, ProcessingType
+        import tempfile
+        import os as os_module
+        
+        try:
+            db = mongo_db.database
+            
+            # Step 1: Verify ship and permissions (same as regular upload)
+            ship = await db.ships.find_one({"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            from app.core.permission_checks import (
+                check_company_access,
+                check_create_permission,
+                check_editor_viewer_ship_scope
+            )
+            
+            ship_company_id = ship.get("company")
+            check_company_access(current_user, ship_company_id, "create ship certificates")
+            check_create_permission(current_user, "ship_cert", ship_company_id)
+            check_editor_viewer_ship_scope(current_user, ship_id, "create ship certificates")
+            
+            # Step 2: Get configurations
+            try:
+                ai_config_obj = await AIConfigService.get_ai_config(current_user)
+                ai_config = {
+                    "provider": ai_config_obj.provider,
+                    "model": ai_config_obj.model,
+                    "api_key": os.getenv("EMERGENT_LLM_KEY"),
+                    "use_emergent_key": True
+                }
+            except Exception as e:
+                raise HTTPException(status_code=500, detail="AI configuration not found")
+            
+            user_company_id = await CertificateMultiUploadService._resolve_company_id(current_user)
+            gdrive_config_doc = await db.company_gdrive_config.find_one({"company_id": user_company_id})
+            
+            if not gdrive_config_doc:
+                raise HTTPException(status_code=500, detail="Google Drive not configured")
+            
+            # Step 3: Categorize files into FAST and SLOW paths
+            fast_path_files = []
+            slow_path_files = []
+            
+            for file in files:
+                file_content = await file.read()
+                await file.seek(0)  # Reset for later use
+                
+                # Quick check processing path
+                path_info = ShipCertificateAnalyzeService.quick_check_processing_path(
+                    file_content, file.filename
+                )
+                
+                logger.info(f"📁 {file.filename}: {path_info['path']} - {path_info['reason']}")
+                
+                if path_info["path"] == "FAST_PATH":
+                    fast_path_files.append({
+                        "file": file,
+                        "content": file_content,
+                        "path_info": path_info
+                    })
+                else:
+                    slow_path_files.append({
+                        "file": file,
+                        "content": file_content,
+                        "path_info": path_info
+                    })
+            
+            logger.info(f"📊 Path distribution: {len(fast_path_files)} FAST, {len(slow_path_files)} SLOW")
+            
+            # Step 4: Process FAST PATH files immediately
+            fast_results = []
+            for file_data in fast_path_files:
+                try:
+                    # Create a mock UploadFile with the content we already read
+                    file = file_data["file"]
+                    file._file.seek(0)  # Reset file position
+                    
+                    result = await CertificateMultiUploadService._process_single_file(
+                        file=file,
+                        ship_id=ship_id,
+                        ship=ship,
+                        ai_config=ai_config,
+                        gdrive_config_doc=gdrive_config_doc,
+                        current_user=current_user,
+                        db=db
+                    )
+                    result["processing_path"] = "FAST_PATH"
+                    fast_results.append(result)
+                    
+                except Exception as e:
+                    logger.error(f"❌ FAST PATH error for {file_data['file'].filename}: {e}")
+                    fast_results.append({
+                        "filename": file_data["file"].filename,
+                        "status": "error",
+                        "message": str(e),
+                        "processing_path": "FAST_PATH"
+                    })
+            
+            # Step 5: Create background task for SLOW PATH files
+            task_id = None
+            if slow_path_files:
+                # Save files to temp storage for background processing
+                temp_files = []
+                for file_data in slow_path_files:
+                    # Save to temp file
+                    temp_dir = tempfile.mkdtemp(prefix="cert_upload_")
+                    temp_path = os_module.path.join(temp_dir, file_data["file"].filename)
+                    
+                    with open(temp_path, "wb") as f:
+                        f.write(file_data["content"])
+                    
+                    temp_files.append({
+                        "temp_path": temp_path,
+                        "filename": file_data["file"].filename,
+                        "content_type": file_data["file"].content_type,
+                        "path_info": file_data["path_info"]
+                    })
+                
+                # Create task in database
+                task_id = await UploadTaskService.create_task(
+                    task_type="certificate",
+                    ship_id=ship_id,
+                    filenames=[f["filename"] for f in temp_files],
+                    current_user=current_user
+                )
+                
+                # Schedule background processing
+                background_tasks.add_task(
+                    CertificateMultiUploadService._process_slow_path_background,
+                    task_id=task_id,
+                    temp_files=temp_files,
+                    ship_id=ship_id,
+                    ship=ship,
+                    ai_config=ai_config,
+                    gdrive_config_doc=gdrive_config_doc,
+                    user_id=current_user.id,
+                    company_id=current_user.company
+                )
+                
+                logger.info(f"📋 Created background task {task_id} for {len(slow_path_files)} SLOW PATH files")
+            
+            # Step 6: Build response
+            response = {
+                "fast_path_results": fast_results,
+                "slow_path_task_id": task_id,
+                "summary": {
+                    "total_files": len(files),
+                    "fast_path_count": len(fast_path_files),
+                    "slow_path_count": len(slow_path_files),
+                    "fast_path_completed": len([r for r in fast_results if r.get("status") == "success"]),
+                    "fast_path_errors": len([r for r in fast_results if r.get("status") == "error"]),
+                    "slow_path_processing": len(slow_path_files) > 0
+                },
+                "ship": {
+                    "id": ship_id,
+                    "name": ship.get("name", "Unknown Ship")
+                }
+            }
+            
+            return response
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Smart multi-upload error: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+    
+    @staticmethod
+    async def _process_slow_path_background(
+        task_id: str,
+        temp_files: List[Dict],
+        ship_id: str,
+        ship: Dict[str, Any],
+        ai_config: Dict[str, Any],
+        gdrive_config_doc: Dict[str, Any],
+        user_id: str,
+        company_id: str
+    ):
+        """
+        Background task to process SLOW PATH files with Document AI
+        This runs asynchronously after returning response to client
+        """
+        from app.services.upload_task_service import UploadTaskService
+        from app.models.upload_task import TaskStatus, ProcessingType
+        from app.models.user import UserResponse
+        import os as os_module
+        
+        logger.info(f"🔄 Starting background processing for task {task_id}")
+        
+        try:
+            # Update task status to processing
+            await UploadTaskService.update_task_status(task_id, TaskStatus.PROCESSING)
+            
+            db = mongo_db.database
+            
+            # Create a minimal user object for permission checks
+            user_doc = await db.users.find_one({"id": user_id})
+            if not user_doc:
+                logger.error(f"❌ User not found: {user_id}")
+                await UploadTaskService.update_task_status(task_id, TaskStatus.FAILED)
+                return
+            
+            # Process each file
+            for i, temp_file in enumerate(temp_files):
+                try:
+                    logger.info(f"🔄 [{i+1}/{len(temp_files)}] Processing: {temp_file['filename']}")
+                    
+                    # Update file status to processing
+                    await UploadTaskService.update_file_status(
+                        task_id, i, TaskStatus.PROCESSING,
+                        progress=10,
+                        processing_type=ProcessingType.DOCUMENT_AI
+                    )
+                    
+                    # Read file from temp storage
+                    with open(temp_file["temp_path"], "rb") as f:
+                        file_content = f.read()
+                    
+                    # Create mock UploadFile
+                    from io import BytesIO
+                    from fastapi import UploadFile as FastAPIUploadFile
+                    
+                    file_obj = BytesIO(file_content)
+                    mock_file = FastAPIUploadFile(
+                        file=file_obj,
+                        filename=temp_file["filename"]
+                    )
+                    mock_file.content_type = temp_file.get("content_type", "application/pdf")
+                    
+                    # Create mock user for the service
+                    from app.models.user import UserResponse, UserRole
+                    mock_user = UserResponse(
+                        id=user_id,
+                        email=user_doc.get("email", ""),
+                        username=user_doc.get("username", ""),
+                        full_name=user_doc.get("full_name", ""),
+                        role=UserRole(user_doc.get("role", "viewer")),
+                        company=company_id,
+                        department=user_doc.get("department"),
+                        ship=user_doc.get("ship"),
+                        is_active=True
+                    )
+                    
+                    # Update progress - starting Document AI
+                    await UploadTaskService.update_file_status(
+                        task_id, i, TaskStatus.PROCESSING,
+                        progress=20
+                    )
+                    
+                    # Process file (this will use SLOW PATH with Document AI)
+                    result = await CertificateMultiUploadService._process_single_file(
+                        file=mock_file,
+                        ship_id=ship_id,
+                        ship=ship,
+                        ai_config=ai_config,
+                        gdrive_config_doc=gdrive_config_doc,
+                        current_user=mock_user,
+                        db=db
+                    )
+                    
+                    # Update file status based on result
+                    if result.get("status") == "success":
+                        await UploadTaskService.update_file_status(
+                            task_id, i, TaskStatus.COMPLETED,
+                            progress=100,
+                            result=result
+                        )
+                        await UploadTaskService.increment_completed(task_id, success=True)
+                        logger.info(f"✅ [{i+1}/{len(temp_files)}] Completed: {temp_file['filename']}")
+                    else:
+                        await UploadTaskService.update_file_status(
+                            task_id, i, TaskStatus.FAILED,
+                            progress=100,
+                            error=result.get("message", "Processing failed")
+                        )
+                        await UploadTaskService.increment_completed(task_id, success=False)
+                        logger.error(f"❌ [{i+1}/{len(temp_files)}] Failed: {temp_file['filename']}")
+                    
+                except Exception as file_error:
+                    logger.error(f"❌ Error processing {temp_file['filename']}: {file_error}")
+                    await UploadTaskService.update_file_status(
+                        task_id, i, TaskStatus.FAILED,
+                        progress=100,
+                        error=str(file_error)
+                    )
+                    await UploadTaskService.increment_completed(task_id, success=False)
+                
+                finally:
+                    # Cleanup temp file
+                    try:
+                        if os_module.path.exists(temp_file["temp_path"]):
+                            os_module.remove(temp_file["temp_path"])
+                            # Also remove temp directory if empty
+                            temp_dir = os_module.path.dirname(temp_file["temp_path"])
+                            if os_module.path.exists(temp_dir) and not os_module.listdir(temp_dir):
+                                os_module.rmdir(temp_dir)
+                    except Exception as cleanup_error:
+                        logger.warning(f"⚠️ Cleanup error: {cleanup_error}")
+            
+            logger.info(f"✅ Background task {task_id} completed")
+            
+        except Exception as e:
+            logger.error(f"❌ Background task {task_id} failed: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            await UploadTaskService.update_task_status(task_id, TaskStatus.FAILED)
+    
+    @staticmethod
     async def _process_single_file(
         file: UploadFile,
         ship_id: str,
