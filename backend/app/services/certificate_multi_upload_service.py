@@ -354,161 +354,183 @@ class CertificateMultiUploadService:
             import traceback
             logger.error(traceback.format_exc())
             raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+    
+    @staticmethod
+    async def _process_all_files_background(
+        task_id: str,
+        temp_files: List[Dict],
+        ship_id: str,
+        ship: Dict[str, Any],
+        ai_config: Dict[str, Any],
+        gdrive_config_doc: Dict[str, Any],
+        user_id: str,
+        company_id: str
+    ):
+        """
+        Background task to process ALL certificate files
+        This runs asynchronously after returning immediate response to client
+        Ensures health checks always respond
+        """
+        from app.services.upload_task_service import UploadTaskService
+        from app.models.upload_task import TaskStatus
+        from app.models.user import UserResponse
+        import os as os_module
+        import asyncio
+        
+        logger.info(f"🔄 Starting background processing for task {task_id} ({len(temp_files)} files)")
+        
+        try:
+            # Update task status to processing
+            await UploadTaskService.update_task_status(task_id, TaskStatus.PROCESSING)
             
-            # Step 3: Categorize files into FAST and SLOW paths
-            fast_path_files = []
-            slow_path_files = []
+            db = mongo_db.database
             
-            for file in files:
-                file_content = await file.read()
-                await file.seek(0)  # Reset for later use
-                
-                # Quick check processing path
-                path_info = ShipCertificateAnalyzeService.quick_check_processing_path(
-                    file_content, file.filename
-                )
-                
-                logger.info(f"📁 {file.filename}: {path_info['path']} - {path_info['reason']}")
-                
-                if path_info["path"] == "FAST_PATH":
-                    fast_path_files.append({
-                        "file": file,
-                        "content": file_content,
-                        "path_info": path_info
-                    })
-                else:
-                    slow_path_files.append({
-                        "file": file,
-                        "content": file_content,
-                        "path_info": path_info
-                    })
+            # Get user info
+            user_doc = await db.users.find_one({"id": user_id})
+            if not user_doc:
+                logger.error(f"❌ User not found: {user_id}")
+                await UploadTaskService.update_task_status(task_id, TaskStatus.FAILED)
+                return
             
-            logger.info(f"📊 Path distribution: {len(fast_path_files)} FAST, {len(slow_path_files)} SLOW")
-            
-            # Step 4: Process FAST PATH files immediately
-            fast_results = []
-            for file_data in fast_path_files:
+            # Process each file
+            for i, temp_file in enumerate(temp_files):
                 try:
-                    # Create a new UploadFile from the content we already read
-                    from io import BytesIO
-                    from starlette.datastructures import UploadFile as StarletteUploadFile, Headers
+                    filename = temp_file["filename"]
+                    logger.info(f"📄 [{i+1}/{len(temp_files)}] Processing: {filename}")
                     
-                    file_content = file_data["content"]
-                    original_file = file_data["file"]
-                    
-                    # Create BytesIO from content
-                    file_obj = BytesIO(file_content)
-                    
-                    # Create headers with content-type
-                    content_type = original_file.content_type or "application/pdf"
-                    headers = Headers({"content-type": content_type})
-                    
-                    # Create new UploadFile with headers
-                    mock_file = StarletteUploadFile(
-                        file=file_obj,
-                        filename=original_file.filename,
-                        headers=headers
+                    # Update file status
+                    await UploadTaskService.update_file_status(
+                        task_id, filename, "processing", progress=10
                     )
                     
-                    start_time = time.time()
-                    result = await CertificateMultiUploadService._process_single_file(
-                        file=mock_file,
-                        ship_id=ship_id,
-                        ship=ship,
-                        ai_config=ai_config,
-                        gdrive_config_doc=gdrive_config_doc,
-                        current_user=current_user,
-                        db=db,
-                        background_tasks=background_tasks  # ⭐ Pass for background GDrive upload
+                    # Read file content
+                    with open(temp_file["temp_path"], "rb") as f:
+                        file_content = f.read()
+                    
+                    # Step 1: Analyze with AI
+                    await UploadTaskService.update_file_status(
+                        task_id, filename, "processing", progress=20,
+                        message="Analyzing document with AI..."
                     )
-                    total_time = round(time.time() - start_time, 2)
-                    logger.info(f"⏱️ FAST PATH TOTAL for {original_file.filename}: {total_time}s")
                     
-                    result["processing_path"] = "FAST_PATH"
-                    result["processing_time"] = total_time
-                    fast_results.append(result)
+                    analysis_result = await CertificateMultiUploadService._analyze_document_with_ai(
+                        file_content, filename, temp_file["content_type"],
+                        ai_config, ship_id, None  # No current_user in background
+                    )
                     
-                except Exception as e:
-                    logger.error(f"❌ FAST PATH error for {file_data['file'].filename}: {e}")
+                    if not analysis_result.get("success"):
+                        raise Exception(analysis_result.get("message", "Analysis failed"))
+                    
+                    extracted_info = analysis_result.get("extracted_info", {})
+                    summary_text = analysis_result.get("summary_text", "")
+                    extracted_info["filename"] = filename
+                    
+                    await UploadTaskService.update_file_status(
+                        task_id, filename, "processing", progress=50,
+                        message="AI analysis complete, uploading to Google Drive..."
+                    )
+                    
+                    # Step 2: Upload PDF and Summary to GDrive in parallel
+                    ship_name = ship.get("name", "Unknown_Ship")
+                    
+                    upload_tasks = [
+                        CertificateMultiUploadService._upload_to_gdrive_with_parent(
+                            gdrive_config_doc, file_content, filename, ship_name,
+                            "Class & Flag Cert", "Certificates"
+                        )
+                    ]
+                    
+                    if summary_text and summary_text.strip():
+                        base_name = filename.rsplit('.', 1)[0] if '.' in filename else filename
+                        summary_filename = f"{base_name}_Summary.txt"
+                        summary_bytes = summary_text.encode('utf-8')
+                        upload_tasks.append(
+                            CertificateMultiUploadService._upload_to_gdrive_with_parent(
+                                gdrive_config_doc, summary_bytes, summary_filename, ship_name,
+                                "Class & Flag Cert", "Certificates", content_type="text/plain"
+                            )
+                        )
+                    
+                    upload_results = await asyncio.gather(*upload_tasks, return_exceptions=True)
+                    
+                    pdf_result = upload_results[0] if len(upload_results) > 0 else None
+                    summary_result = upload_results[1] if len(upload_results) > 1 else None
+                    
+                    await UploadTaskService.update_file_status(
+                        task_id, filename, "processing", progress=80,
+                        message="Creating certificate record..."
+                    )
+                    
+                    # Step 3: Create certificate record
+                    upload_data = {
+                        "success": True,
+                        "file_id": pdf_result.get("file_id") if pdf_result and not isinstance(pdf_result, Exception) else None,
+                        "file_url": pdf_result.get("file_url") if pdf_result and not isinstance(pdf_result, Exception) else None,
+                        "folder_path": f"{ship_name}/Class & Flag Cert/Certificates"
+                    }
+                    
+                    summary_file_id = None
+                    if summary_result and not isinstance(summary_result, Exception) and summary_result.get("success"):
+                        summary_file_id = summary_result.get("file_id")
+                    
+                    # Create minimal user response for certificate creation
+                    from app.models.user import UserRole
+                    mock_user = UserResponse(
+                        id=user_id,
+                        username=user_doc.get("username", "system"),
+                        email=user_doc.get("email", "system@system.com"),
+                        role=UserRole(user_doc.get("role", "admin")),
+                        company=company_id,
+                        department=user_doc.get("department"),
+                        is_active=True
+                    )
+                    
+                    cert_result = await CertificateMultiUploadService._create_certificate_from_analysis(
+                        extracted_info, upload_data, mock_user, ship_id,
+                        None, db, summary_file_id=summary_file_id,
+                        extracted_ship_name=extracted_info.get("ship_name")
+                    )
+                    
+                    # Mark file as completed
+                    await UploadTaskService.update_file_status(
+                        task_id, filename, "completed", progress=100,
+                        result={
+                            "certificate_id": cert_result.get("id"),
+                            "extracted_info": extracted_info,
+                            "file_id": upload_data.get("file_id")
+                        }
+                    )
+                    
+                    logger.info(f"✅ [{i+1}/{len(temp_files)}] Completed: {filename}")
+                    
+                except Exception as file_error:
+                    logger.error(f"❌ [{i+1}/{len(temp_files)}] Error processing {temp_file['filename']}: {file_error}")
                     import traceback
                     logger.error(traceback.format_exc())
-                    fast_results.append({
-                        "filename": file_data["file"].filename,
-                        "status": "error",
-                        "message": str(e),
-                        "processing_path": "FAST_PATH"
-                    })
-            
-            # Step 5: Create background task for SLOW PATH files
-            task_id = None
-            if slow_path_files:
-                # Save files to temp storage for background processing
-                temp_files = []
-                for file_data in slow_path_files:
-                    # Save to temp file
-                    temp_dir = tempfile.mkdtemp(prefix="cert_upload_")
-                    temp_path = os_module.path.join(temp_dir, file_data["file"].filename)
                     
-                    with open(temp_path, "wb") as f:
-                        f.write(file_data["content"])
-                    
-                    temp_files.append({
-                        "temp_path": temp_path,
-                        "filename": file_data["file"].filename,
-                        "content_type": file_data["file"].content_type,
-                        "path_info": file_data["path_info"]
-                    })
+                    await UploadTaskService.update_file_status(
+                        task_id, temp_file["filename"], "failed",
+                        error=str(file_error)
+                    )
                 
-                # Create task in database
-                task_id = await UploadTaskService.create_task(
-                    task_type="certificate",
-                    ship_id=ship_id,
-                    filenames=[f["filename"] for f in temp_files],
-                    current_user=current_user
-                )
-                
-                # Schedule background processing
-                background_tasks.add_task(
-                    CertificateMultiUploadService._process_slow_path_background,
-                    task_id=task_id,
-                    temp_files=temp_files,
-                    ship_id=ship_id,
-                    ship=ship,
-                    ai_config=ai_config,
-                    gdrive_config_doc=gdrive_config_doc,
-                    user_id=current_user.id,
-                    company_id=current_user.company
-                )
-                
-                logger.info(f"📋 Created background task {task_id} for {len(slow_path_files)} SLOW PATH files")
+                finally:
+                    # Clean up temp file
+                    try:
+                        if os_module.path.exists(temp_file["temp_path"]):
+                            os_module.remove(temp_file["temp_path"])
+                            os_module.rmdir(os_module.path.dirname(temp_file["temp_path"]))
+                    except:
+                        pass
             
-            # Step 6: Build response
-            response = {
-                "fast_path_results": fast_results,
-                "slow_path_task_id": task_id,
-                "summary": {
-                    "total_files": len(files),
-                    "fast_path_count": len(fast_path_files),
-                    "slow_path_count": len(slow_path_files),
-                    "fast_path_completed": len([r for r in fast_results if r.get("status") == "success"]),
-                    "fast_path_errors": len([r for r in fast_results if r.get("status") == "error"]),
-                    "slow_path_processing": len(slow_path_files) > 0
-                },
-                "ship": {
-                    "id": ship_id,
-                    "name": ship.get("name", "Unknown Ship")
-                }
-            }
+            # Mark task as completed
+            await UploadTaskService.update_task_status(task_id, TaskStatus.COMPLETED)
+            logger.info(f"✅ Background task {task_id} completed")
             
-            return response
-            
-        except HTTPException:
-            raise
         except Exception as e:
-            logger.error(f"Smart multi-upload error: {e}")
+            logger.error(f"❌ Background task {task_id} failed: {e}")
             import traceback
             logger.error(traceback.format_exc())
-            raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+            await UploadTaskService.update_task_status(task_id, TaskStatus.FAILED)
     
     @staticmethod
     async def _process_slow_path_background(
