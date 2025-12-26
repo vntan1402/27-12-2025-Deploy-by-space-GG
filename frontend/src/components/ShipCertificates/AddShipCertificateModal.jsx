@@ -413,40 +413,12 @@ export const AddShipCertificateModal = ({
         const taskIds = [...new Set(processingFiles.map(f => f.task_id).filter(Boolean))];
         
         if (taskIds.length > 0) {
-          // Start polling for each unique task_id
-          for (const taskId of taskIds) {
-            pollTaskStatus(taskId, fileArray, (results) => {
-              // Update counts when task completes
-              let newSuccessCount = 0;
-              let newFailedCount = failedCount;
-              
-              for (const result of results) {
-                if (result.status === 'completed') {
-                  newSuccessCount++;
-                  if (!firstSuccessInfo && result.extracted_info) {
-                    firstSuccessInfo = result.extracted_info;
-                  }
-                } else if (result.status === 'failed') {
-                  newFailedCount++;
-                }
-              }
-              
-              successCount = newSuccessCount;
-              failedCount = newFailedCount;
-              finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
-            });
-          }
-        }
-      } else if (failedCount === totalFiles) {
-        // All failed immediately
-        finalizeBatchResults(fileArray, 0, failedCount, null);
-      }
-        
-        // Poll for SLOW PATH completion
-        const pollSlowPath = async () => {
+          // Start polling for the task
+          const taskId = taskIds[0]; // Usually just one task
+          
           const pollInterval = setInterval(async () => {
             try {
-              const taskResponse = await api.get(`/api/certificates/upload-task/${slowPathTaskId}`);
+              const taskResponse = await api.get(`/api/certificates/upload-task/${taskId}`);
               const task = taskResponse.data;
               
               console.log('📊 Task status:', task.status, task);
@@ -457,15 +429,20 @@ export const AddShipCertificateModal = ({
                   const filename = fileTask.filename;
                   
                   if (fileTask.status === 'completed') {
-                    successCount++;
-                    setFileStatusMap(prev => ({ ...prev, [filename]: 'completed' }));
+                    setFileStatusMap(prev => {
+                      if (prev[filename] !== 'completed') {
+                        successCount++;
+                        setBatchProgress(p => ({ ...p, current: p.current + 1 }));
+                        toast.success(`✅ ${filename}`);
+                      }
+                      return { ...prev, [filename]: 'completed' };
+                    });
                     setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
-                    setFileSubStatusMap(prev => ({ ...prev, [filename]: language === 'vi' ? '✅ SLOW PATH - Hoàn thành' : '✅ SLOW PATH - Completed' }));
-                    setBatchProgress(prev => ({ ...prev, current: prev.current + 1 }));
+                    setFileSubStatusMap(prev => ({ ...prev, [filename]: language === 'vi' ? '✅ Hoàn thành' : '✅ Completed' }));
                     
                     setMultiCertUploads(prev => prev.map(upload => 
                       upload.filename === filename 
-                        ? { ...upload, status: 'completed', progress: 100, stage: '✅ SLOW PATH', extracted_info: fileTask.result?.extracted_info }
+                        ? { ...upload, status: 'completed', progress: 100, stage: '✅ Completed', extracted_info: fileTask.result?.extracted_info }
                         : upload
                     ));
 
@@ -473,8 +450,13 @@ export const AddShipCertificateModal = ({
                       firstSuccessInfo = fileTask.result.extracted_info;
                     }
                   } else if (fileTask.status === 'failed') {
-                    failedCount++;
-                    setFileStatusMap(prev => ({ ...prev, [filename]: 'failed' }));
+                    setFileStatusMap(prev => {
+                      if (prev[filename] !== 'failed') {
+                        failedCount++;
+                        toast.error(`❌ ${filename}: ${fileTask.error || 'Error'}`);
+                      }
+                      return { ...prev, [filename]: 'failed' };
+                    });
                     setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
                     setFileSubStatusMap(prev => ({ ...prev, [filename]: fileTask.error || 'Error' }));
                     
@@ -484,7 +466,9 @@ export const AddShipCertificateModal = ({
                         : upload
                     ));
                   } else if (fileTask.status === 'processing') {
-                    setFileProgressMap(prev => ({ ...prev, [filename]: fileTask.progress || 50 }));
+                    const progress = fileTask.progress || 50;
+                    setFileProgressMap(prev => ({ ...prev, [filename]: progress }));
+                    setFileSubStatusMap(prev => ({ ...prev, [filename]: fileTask.message || (language === 'vi' ? '🔄 Đang xử lý...' : '🔄 Processing...') }));
                   }
                 });
               }
@@ -508,12 +492,10 @@ export const AddShipCertificateModal = ({
             );
             finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
           }, 300000);
-        };
-
-        pollSlowPath();
-      } else {
-        // No SLOW PATH - finalize immediately
-        finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
+        }
+      } else if (failedCount === totalFiles) {
+        // All failed immediately
+        finalizeBatchResults(fileArray, 0, failedCount, null);
       }
 
     } catch (error) {
