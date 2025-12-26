@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://crew-access-control.preview.emergentagent.com/api"
+API_URL="https://bug-busters-17.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \

@@ -1,594 +1,172 @@
 <analysis>**original_problem_statement:**
-The user's initial goal was to finalize a major permission system overhaul for a Safety Management System application. This session expanded to include several new features and bug fixes.
+The user's initial goal was to fix a broken user signature upload feature. This expanded into a series of bug fixes and UI/UX improvements. In this session, the user reported numerous issues ranging from UI text corrections and feature enhancements to critical deployment-blocking errors in the production environment. The agent worked through these issues, culminating in an investigation of a production-specific timeout problem with a core feature.
 
-PRODUCT REQUIREMENTS:
-- **(Completed)** Resolve a critical, recurring JavaScript error () that was blocking all user testing.
-- **(Completed)** Conduct a comprehensive, system-wide audit of the department-based permission system, find, and fix all remaining security loopholes for all document types (create, update, delete, bulk-delete).
-- **(Completed)** Fix a specific permission bug where a Safety user could incorrectly delete crew member history, an action that should be restricted to the Crewing department.
-- **(Completed)** Add PDF and XLSX export functionality to the Upcoming Survey/Audit Notification modals.
-- **(Completed)** Fix a bug in the Add Company Certificate modal where the Save button was incorrectly disabled for manual entries.
-- **(Completed)** Improve user experience by adding a spinning icon to Upcoming Survey/Audit buttons while data is being fetched.
-- **(IN PROGRESS)** Implement a new feature to allow users to upload a signature image in the Edit User modal. The system must process the image to remove the background, store it as a transparent PNG in a specific Google Drive folder (), and associate it with the user.
+**PRODUCT REQUIREMENTS from this session:**
+- **(Completed)** Verify the My Profile button fix for the Crewing Manager role.
+- **(Completed)** Make the System Settings button visible to all user roles.
+- **(Completed)** Implement audit logging for all user information updates, including Zalo, Gmail, Ship, Crew ID, and electronic signatures.
+- **(Completed)** Correct various UI labels and translations, such as Crew ID to ID and Tàu đăng ký to Tàu Sign On.
+- **(Completed)** Restrict the Calculate Monthly Fee feature to admin-level roles.
+- **(Completed)** Update the monthly fee calculation formula for crew members.
+- **(Completed)** Resolve multiple critical deployment errors, including  misconfigurations, Pydantic validation failures, inconsistent AI configuration fetching logic, deprecated LLM model usage (), and undefined variable errors ().
+- **(Completed)** Unify and correct the duplicate certificate detection logic to be stricter and more consistent.
+- **(Completed)** Guide the user to update their Google Apps Script to align the Google Drive folder structure with the backend's definition.
+- **(Completed)** Correct the AI logic for generating certificate abbreviations (e.g., CSEC → CSSE).
+- **(Completed)** Implement a retry mechanism for critical external API calls to improve production stability.
+- **(Completed)** Create a Connectivity Health Check tool within the admin panel for diagnosing production performance issues.
+- **(In Progress)** Investigate and resolve a production-specific timeout error occurring during Survey Report analysis.
 
 **User's preferred language**: Vietnamese
 
 **what currently exists?**
-The agent successfully completed a massive security and stability push. The critical JavaScript error () has been resolved, unblocking UI interactions. A full-system permission audit was conducted, and vulnerabilities across all 9 document types (including Audit Reports, Survey Reports, Test Reports, and Crew History) have been patched on the backend and verified via API calls.
-
-Additionally, several new features and UX improvements were implemented:
-- PDF/XLSX export functionality was added to the Upcoming Survey/Audit modals.
-- UI labels and export columns in the Upcoming Audit modal were corrected to show Company Name instead of Ship Name.
-- Loading spinners were added to the Upcoming Survey/Audit buttons for better user feedback.
-- A bug preventing the manual creation of Company Certificates was fixed.
-
-The latest feature, user signature upload, is partially implemented. The backend has a new API endpoint, an image processing utility using Otsu's thresholding to remove backgrounds, and updated database models. The frontend  has been updated with the UI for uploading. However, the feature is currently broken.
+The application is largely stable, with a significant number of bugs, deployment blockers, and feature enhancements having been completed in this session. The audit logging system is now comprehensive for user management. Critical production deployment errors have been resolved, and the application's logic for handling external services has been made more resilient with retry mechanisms. A new admin tool for diagnosing network connectivity has been successfully implemented. The logic for duplicate certificate detection and certificate abbreviation has been corrected and unified. The last remaining high-priority task is diagnosing a performance issue in the production environment.
 
 **Last working item**:
--   **Last item agent was working:** The agent was trying to fix a persistent  error that occurs when a user uploads a signature image via the Edit User modal. The root cause appears to be a problem in the backend's interaction with the Google Drive API via an Apps Script, specifically when trying to find or create the  folder and upload the processed PNG file. The agent made multiple attempts to refactor the GDrive service logic, but the error remains.
--   **Status:** IN PROGRESS
--   **Agent Testing Done:** N (Testing fails with a 520 error)
--   **Which testing method agent to use?** Manual testing. The agent needs to:
-    1.  Log in as an admin user.
-    2.  Navigate to System Settings -> User Management.
-    3.  Click Edit on any user.
-    4.  Attempt to upload a signature image.
-    5.  Check the browser's developer console for the  error and immediately check the backend logs (==> /var/log/supervisor/backend.err.log <==
-INFO:     Started reloader process [3664] using WatchFiles
-INFO:     Started server process [3666]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/services/user_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [3666]
-INFO:     Started server process [3761]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/services/user_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [3761]
-INFO:     Started server process [3836]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [3836]
-INFO:     Stopping reloader process [3664]
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [3855] using WatchFiles
-INFO:     Started server process [3857]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-INFO:app.api.v1.system_announcements:✅ Retrieved 2 active announcements
-INFO:app.api.v1.system_announcements:✅ Retrieved 2 active announcements
-INFO:app.services.user_service:🖊️ Processing signature for user: 91495ddc-7bf2-4c2a-b523-a65e77c6b763
-INFO:app.utils.signature_processor:🖼️ Processing signature image with auto threshold...
-INFO:app.utils.signature_processor:📊 Otsu's threshold calculated: 155
-INFO:app.utils.signature_processor:📊 Image analysis: Otsu=155, Adjusted=185, Mean brightness=243.0
-INFO:app.utils.signature_processor:✅ Signature processed successfully. Output size: (1070, 1015)
-INFO:app.services.user_service:📁 Step 1: Finding/creating COMPANY DOCUMENT folder...
-INFO:app.services.user_service:🖊️ Processing signature for user: 91495ddc-7bf2-4c2a-b523-a65e77c6b763
-INFO:app.utils.signature_processor:🖼️ Processing signature image with auto threshold...
-INFO:app.utils.signature_processor:📊 Otsu's threshold calculated: 155
-INFO:app.utils.signature_processor:📊 Image analysis: Otsu=155, Adjusted=185, Mean brightness=243.0
-INFO:app.utils.signature_processor:✅ Signature processed successfully. Output size: (1070, 1015)
-INFO:app.services.user_service:📁 Step 1: Finding/creating COMPANY DOCUMENT folder...
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [29] using WatchFiles
-
-==> /var/log/supervisor/backend.out.log <==
-INFO:     10.64.131.70:42766 - "GET /api/system-settings/base-fee HTTP/1.1" 200 OK
-INFO:     10.64.129.230:39928 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.72:60672 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.72:60672 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.70:42766 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.198:38960 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.130.198:38960 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.198:38960 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.130.200:42682 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.200:42682 - "GET /api/system-settings/base-fee HTTP/1.1" 200 OK
-INFO:     10.64.130.198:38960 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.130.198:38960 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.198:38974 - "GET /api/system-settings/base-fee HTTP/1.1" 200 OK
-INFO:     10.64.130.200:42682 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.130.198:38974 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.200:42682 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.200:42682 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.88:44182 - "GET /api/users HTTP/1.1" 200 OK
-INFO:     10.64.129.224:42360 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.129.224:42376 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.129.230:39558 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.131.70:38094 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.131.73:49074 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.129.224:42376 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.129.230:39558 - "GET /api/ships/cc9185e6-fb78-45d7-b7f4-71e729dda299/certificates HTTP/1.1" 200 OK
-INFO:     10.64.129.225:54212 - "GET /api/gdrive/file/1tOMHRT5amNWYFppkd6XiV3mtV4g5NsHG/view HTTP/1.1" 200 OK
-INFO:     10.64.129.225:54202 - "GET /api/gdrive/file/1MOxLtz1HgW1aGrnGI4-YMOwjTGwsx0K9/view HTTP/1.1" 200 OK
-INFO:     10.64.129.225:54218 - "GET /api/gdrive/file/1WV9TMYHynZJ3Mq5QHFGcVqxOqn_vHTki/view HTTP/1.1" 200 OK
-INFO:     10.64.131.88:37754 - "GET /api/gdrive/file/104iXXUJpYYravWDJ6QGUq4tLuS1neSpu/view HTTP/1.1" 200 OK
-INFO:     10.64.131.70:38094 - "GET /api/gdrive/file/1WVnu3B_i-BtuzN9mGLFnnz-pGr7Xsa2K/view HTTP/1.1" 200 OK
-INFO:     10.64.129.224:35616 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.129.225:45616 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.129.230:58100 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.225:45616 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.203:45988 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.129.224:35616 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.129.225:45616 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.129.225:45616 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.70:38056 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.131.72:57412 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.129.224:35616 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.129.230:58100 - "GET /api/system-settings/base-fee HTTP/1.1" 200 OK
-INFO:     10.64.131.72:57412 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.230:58100 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.73:55854 - "GET /api/system-settings/base-fee HTTP/1.1" 200 OK
-INFO:     10.64.131.88:51774 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.88:51774 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.230:58100 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.203:46218 - "GET /api/users HTTP/1.1" 200 OK
-INFO:     10.64.131.72:55506 - "POST /api/users/91495ddc-7bf2-4c2a-b523-a65e77c6b763/signature HTTP/1.1" 500 Internal Server Error
-INFO:     10.64.129.225:41334 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.129.224:55124 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.129.225:41334 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.129.230:54510 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.129.230:54510 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.129.225:41334 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.70:51578 - "GET /api/company-certs HTTP/1.1" 200 OK
-INFO:     10.64.131.70:51566 - "GET /api/companies/0a6eaf96-0aaf-4793-89be-65d62cb7953c HTTP/1.1" 200 OK
-INFO:     10.64.131.72:54838 - "GET /api/companies/0a6eaf96-0aaf-4793-89be-65d62cb7953c HTTP/1.1" 200 OK
-INFO:     10.64.129.225:41334 - "GET /api/company-certs HTTP/1.1" 200 OK
-INFO:     10.64.131.73:59570 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.88:54552 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.72:44298 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.72:44298 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.129.224:49790 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.70:45584 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.73:59570 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.203:36574 - "GET /api/company-certs HTTP/1.1" 200 OK
-INFO:     10.64.131.73:59570 - "GET /api/company-certs HTTP/1.1" 200 OK
-INFO:     10.64.129.230:57786 - "GET /api/companies/0a6eaf96-0aaf-4793-89be-65d62cb7953c HTTP/1.1" 200 OK
-INFO:     10.64.129.224:49790 - "GET /api/companies/0a6eaf96-0aaf-4793-89be-65d62cb7953c HTTP/1.1" 200 OK
-INFO:     10.64.129.224:49790 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.225:37878 - "GET /api/system-settings/base-fee HTTP/1.1" 200 OK
-INFO:     10.64.131.88:46156 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.129.230:57786 - "GET /api/system-settings/base-fee HTTP/1.1" 200 OK
-INFO:     10.64.129.203:36574 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.70:45584 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.129.230:57786 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.225:37878 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.70:45584 - "GET /api/users HTTP/1.1" 200 OK
-INFO:     10.64.129.230:42772 - "POST /api/users/91495ddc-7bf2-4c2a-b523-a65e77c6b763/signature HTTP/1.1" 200 OK
-INFO:     10.64.131.72:47248 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.129.225:33330 - "GET /api/system-announcements/active HTTP/1.1" 200 OK
-INFO:     10.64.131.88:43910 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.73:46494 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.225:33330 - "GET /api/system-announcements/active HTTP/1.1" 200 OK
-INFO:     10.64.131.88:43910 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.203:42632 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.230:57268 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.88:40176 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.72:46426 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.129.230:37292 - "GET /api/system-settings/base-fee HTTP/1.1" 200 OK
-INFO:     10.64.129.224:35276 - "GET /api/system-settings/base-fee HTTP/1.1" 200 OK
-INFO:     10.64.129.224:35276 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.203:56608 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.129.225:35768 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.225:35768 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.129.230:37292 - "GET /api/users HTTP/1.1" 200 OK
-INFO:     10.64.129.230:55462 - "POST /api/users/91495ddc-7bf2-4c2a-b523-a65e77c6b763/signature HTTP/1.1" 500 Internal Server Error
-INFO:     10.64.129.230:54244 - "POST /api/users/91495ddc-7bf2-4c2a-b523-a65e77c6b763/signature HTTP/1.1" 500 Internal Server Error) for the corresponding server-side exception.
--   **User Testing Done:** Y (User provided console logs showing the error)
+-   **Last item agent was working:** The agent was investigating a production timeout error () that occurs when a user analyzes a Survey Report. After analyzing production logs for the  endpoint, the agent found that the backend processing for a large 35-page PDF was completed successfully in approximately 40 seconds, which is well under the 180-second frontend timeout.
+-   **Status:** USER VERIFICATION PENDING
+-   **Agent Testing Done:** Y (Analyzed production logs which showed successful backend processing).
+-   **Which testing method agent to use?** Manual testing by user. The agent has concluded the backend logic is not the bottleneck and is waiting for the user to provide more details about the timeout (e.g., the specific file causing it, its size/page count, and the frequency of the error) to continue debugging.
+-   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Signature Upload Fails with 520 Error (P0)**
-    -   **Description:** Uploading a user signature in the Edit User modal consistently fails with a  error from the server. This indicates a fatal error in the backend process, likely within the  when communicating with the Google Apps Script.
-    -   **Attempted fixes:**
-        1.  Corrected the logic to fetch GDrive configuration from the  collection instead of the  collection.
-        2.  Refactored GDrive methods to correctly pass the .
-        3.  Rewrote the  service method multiple times to change how it finds/creates the target folder path (). The latest attempt involves finding/creating COMPANY DOCUMENT and then User Signature as a subfolder. None of these attempts have resolved the 520 error.
+-   **Issue 1: Production Timeout on Survey Report Analysis (P0)**
+    -   **Description:** The user reported a 180-second timeout from the frontend when analyzing survey reports in the production environment. This is a critical blocker for a core feature.
+    -   **Attempted fixes:** The agent analyzed production logs and confirmed that the backend processing for a 35-page document is efficient (~40s). The agent has also previously implemented retry logic for external calls.
     -   **Next debug checklist:**
-        1.  Reproduce the error by attempting an upload from the UI.
-        2.  **IMMEDIATELY** inspect the full backend logs (INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/services/user_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [3345]
-INFO:     Started server process [3443]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [3443]
-INFO:     Stopping reloader process [2769]
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [3462] using WatchFiles
-INFO:     Started server process [3464]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-INFO:app.core.permission_checks:🔍 CHECK_COMPANY_ACCESS: user=admin1, role=UserRole.ADMIN, user_company=permission-audit-1, target_company=permission-audit-1, action=view
-INFO:app.core.permission_checks:✅ PASS: Company access granted
-INFO:app.core.permission_checks:🔍 CHECK_COMPANY_ACCESS: user=admin1, role=UserRole.ADMIN, user_company=permission-audit-1, target_company=permission-audit-1, action=view
-INFO:app.core.permission_checks:✅ PASS: Company access granted
-INFO:app.services.company_service:✅ Company Maritime Technology Development Co., Ltd.: 5 ships, 8 crew
-INFO:app.services.company_service:✅ Company Maritime Technology Development Co., Ltd.: 5 ships, 8 crew
-INFO:app.services.user_service:🖊️ Processing signature for user: 91495ddc-7bf2-4c2a-b523-a65e77c6b763
-INFO:app.utils.signature_processor:🖼️ Processing signature image with auto threshold...
-INFO:app.utils.signature_processor:📊 Otsu's threshold calculated: 155
-INFO:app.utils.signature_processor:📊 Image analysis: Otsu=155, Adjusted=185, Mean brightness=243.0
-INFO:app.utils.signature_processor:✅ Signature processed successfully. Output size: (1070, 1015)
-INFO:app.services.gdrive_service:📤 Uploading file to GDrive: safety_DTP 1_signature.png (473329 bytes)
-INFO:app.services.gdrive_service:📁 Folder path: COMPANY DOCUMENT / User Signature / Signatures
-INFO:app.services.gdrive_service:   Apps Script will check/reuse existing folders before creating new ones
-INFO:app.services.gdrive_service:✅ File uploaded successfully
-INFO:app.services.gdrive_service:   File ID: 1tZ7OJpfmsuFASN5Uh7QHUne1EH9W3M_l
-INFO:app.services.gdrive_service:   Path: 
-INFO:app.db.mongodb:Updated document in users
-INFO:app.services.user_service:✅ Signature uploaded successfully for user 91495ddc-7bf2-4c2a-b523-a65e77c6b763: 1tZ7OJpfmsuFASN5Uh7QHUne1EH9W3M_l
-WARNING:  WatchFiles detected changes in 'app/services/user_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [3464]
-INFO:     Started server process [3645]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [3645]
-INFO:     Stopping reloader process [3462]
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [3664] using WatchFiles
-INFO:     Started server process [3666]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/services/user_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [3666]
-INFO:     Started server process [3761]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/services/user_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [3761]
-INFO:     Started server process [3836]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [3836]
-INFO:     Stopping reloader process [3664]
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [3855] using WatchFiles
-INFO:     Started server process [3857]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-INFO:app.api.v1.system_announcements:✅ Retrieved 2 active announcements
-INFO:app.api.v1.system_announcements:✅ Retrieved 2 active announcements
-INFO:app.services.user_service:🖊️ Processing signature for user: 91495ddc-7bf2-4c2a-b523-a65e77c6b763
-INFO:app.utils.signature_processor:🖼️ Processing signature image with auto threshold...
-INFO:app.utils.signature_processor:📊 Otsu's threshold calculated: 155
-INFO:app.utils.signature_processor:📊 Image analysis: Otsu=155, Adjusted=185, Mean brightness=243.0
-INFO:app.utils.signature_processor:✅ Signature processed successfully. Output size: (1070, 1015)
-INFO:app.services.user_service:📁 Step 1: Finding/creating COMPANY DOCUMENT folder...
-INFO:app.services.user_service:🖊️ Processing signature for user: 91495ddc-7bf2-4c2a-b523-a65e77c6b763
-INFO:app.utils.signature_processor:🖼️ Processing signature image with auto threshold...
-INFO:app.utils.signature_processor:📊 Otsu's threshold calculated: 155
-INFO:app.utils.signature_processor:📊 Image analysis: Otsu=155, Adjusted=185, Mean brightness=243.0
-INFO:app.utils.signature_processor:✅ Signature processed successfully. Output size: (1070, 1015)
-INFO:app.services.user_service:📁 Step 1: Finding/creating COMPANY DOCUMENT folder...
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [29] using WatchFiles and ) to identify the specific Python exception that is causing the 520 crash.
-        3.  Focus on the  method in  and the  method in . The error is likely in how these methods call the Apps Script (wrong parameters, wrong action name, or timeout).
-        4.  Verify that the Google Apps Script deployed by the user actually supports the actions being called (, , ).
-    -   **Why fix this issue and what will be achieved with the fix?** This is blocking the completion of the user signature feature.
+        1.  Wait for the user to provide details about the file causing the timeout (size, page count).
+        2.  Ask if the timeout is consistent or intermittent.
+        3.  Inquire if the issue occurs when uploading multiple files at once.
+        4.  Attempt to reproduce the issue with a similarly large file if possible.
+        5.  Consider adding more granular timing logs around file transfer steps (e.g., base64 encoding/decoding) if the issue persists.
+    -   **Why fix this issue and what will be achieved with the fix?** This will restore a critical user workflow in the production environment.
     -   **Status:** IN PROGRESS
     -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** both
--   **Issue 2: Folder Structure Discrepancy on New Ship Creation (P1)**
-    -   **Description:** Incorrect Google Drive folder structure in Production due to an outdated Apps Script.
-    -   **Status:** BLOCKED (waiting for user to deploy ).
--   **Issue 3: Fix Historical Certificate Abbreviations (P2)**
-    -   **Description:** A data correction script  needs to be executed.
-    -   **Status:** NOT STARTED
--   **Issue 4: AI Incorrectly Extracts Certificate Name (P3)**
-    -   **Description:** Recurring issue where AI analysis fails to extract the full certificate name.
+    -   **Should Test frontend/backend/both after fix?** Both (Backend via logs, Frontend via user testing on production).
+    -   **Blocked on other issue:** None.
+-   **Issue 2: AI Incorrectly Extracts Certificate Name (P3)**
+    -   **Description:** A recurring issue where the AI analysis fails to extract the full name from certificate documents.
     -   **Status:** NOT STARTED
     -   **Is recurring issue?** Y
--   **Issue 5: 500 Error on Config Endpoints (P3)**
-    -   **Description:** User console logs show 500/403 errors for  and . This was seen again in this session's logs.
+-   **Issue 3: Frontend Login Form Validation Bug (P3)**
+    -   **Description:** A known, recurring client-side validation error on the login form.
     -   **Status:** NOT STARTED
+    -   **Is recurring issue?** Y
 
 **In progress Task List**:
--   **Task 1: Complete User Signature Upload Feature (P0)**
-    -   **Where to resume:** Blocked by **Issue 1**. After fixing the 520 error, the agent must verify the end-to-end flow: image upload, background removal, successful save to the correct GDrive folder, and the signature URL being saved to the user's document in MongoDB.
-    -   **What will be achieved with this?** A new, user-requested feature for managing user signatures will be fully functional.
-    -   **Status:** BLOCKED
-    -   **Should Test frontend/backend/both after fix?** both
-    -   **Blocked on something:** Issue 1: Signature Upload Fails with 520 Error
+-   None.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
-    -   (P1) Run backend testing agent for a full regression test after all permission and feature work is complete.
+    -   (P1) Run backend testing agent for a full regression test after the production timeout issue is resolved.
     -   (P2) Implement SMS Procedures Page (Phase 2).
     -   (P2) Implement Record Template Page (Phase 3).
     -   (P2) Implement Ship Record Page (Phase 4).
 -   **Future Tasks:**
     -   (P3) Plan and Implement CV Mail Merge Feature.
+    -   (P3) Implement an Export/Import data feature in System Settings as an alternative to direct database access.
 
 **Completed work in this session**
--   **Critical JS Bug Fix:** Resolved the recurring  in  by correctly passing state setter props.
--   **Comprehensive Permission System Overhaul:**
-    -   Patched permission vulnerabilities for / on **Audit Reports**.
-    -   Patched / vulnerabilities for **Survey Reports** and **Test Reports**.
-    -   Patched a vulnerability allowing non-Crewing department users to delete **Crew Assignment History**.
-    -   Conducted a final automated audit confirming all 9 document types are now secure against unauthorized CUD operations.
--   **New Feature: PDF/XLSX Export:**
-    -   Added export buttons and functionality to the Upcoming Survey and Upcoming Audit modals.
-    -   Fixed a bug with PDF generation related to  import and another related to Unicode font support.
--   **UI/UX Enhancements:**
-    -   Corrected the Upcoming Audit modal to display Company Name instead of Ship Name.
-    -   Adjusted PDF export to use the full page width.
-    -   Added loading spinners to the Upcoming Survey/Audit buttons across three different pages for better user feedback.
--   **Bug Fix:** Fixed the Save button in the  being incorrectly disabled during manual entry.
+-   **UI and UX Fixes (DONE):**
+    -   System Settings button is now visible to all roles.
+    -   UI labels in the Audit Log modal and Ship Sign On text have been corrected.
+-   **Audit Logging Enhancements (DONE):**
+    -   Implemented full audit logging for user creation, updates (including Zalo, Gmail, ship assignment), deletion, and signature changes.
+-   **Business Logic and Permissions (DONE):**
+    -   Restricted the Calculate Monthly Fee feature to admin-level roles.
+    -   Updated the crew member fee calculation from 2.5% to 1%.
+    -   Unified and hardened the duplicate certificate detection logic to require a 100% match on 5 key fields.
+    -   Corrected the AI prompt to generate proper certificate abbreviations (CSSE, CSSR).
+-   **Production Deployment Fixes (DONE):**
+    -   Resolved multiple deployment blockers related to , Pydantic validation, inconsistent AI config fetching, deprecated  model, and undefined variables.
+    -   Fixed a GDrive config bug identified by the backend testing agent.
+-   **New Admin Tool (DONE):**
+    -   Created a Connectivity Health Check tool in the UI for admins to diagnose production latency issues.
+-   **Production Resiliency (DONE):**
+    -   Added a retry mechanism (3 attempts) to critical external API calls (Document AI, GDrive) to handle transient network issues.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Rename Utility File:** The file  still needs to be renamed to .
--   **Issue 2: Frontend Login Form Validation Bug:** A known, recurring client-side validation error on the login form has not been addressed.
+-   **Issue 1: AI Incorrectly Extracts Certificate Name (Recurring):** A known recurring issue from previous sessions that has not been tackled yet.
+-   **Issue 2: Frontend Login Form Validation Bug (Recurring):** Another known recurring issue from previous sessions that has not been addressed.
 
 **Known issue recurrence from previous fork**
 -   **AI Incorrectly Extracts Certificate Name:** Recurrence count: 3+, Status: NOT STARTED
 -   **Frontend Login Form Validation Bug:** Recurrence count: 3+, Status: NOT STARTED
--   **:** RESOLVED in this session.
--   **500/403 Errors on Config Endpoints:** This recurred in this session's console logs. Status: NOT STARTED.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Department-Based Access Control (DBAC):** System-wide audit and hardening completed.
--   **React State/Prop Management:** Fixed a critical bug caused by improper prop drilling of state setter functions.
--   **PDF/Excel Generation (Frontend):** Implemented using , , and  libraries.
--   **Image Processing (Backend):** A new utility  uses  and  to perform Otsu's thresholding for automatic, histogram-based background removal from images.
--   **Google Drive API Integration:** Complex and fragile interaction via a Google Apps Script for folder creation and file uploads. This is the source of the current main blocker.
+-   **Production Debugging:** Diagnosing issues that only manifest in the production environment, such as configuration differences (, ), data validation errors, and performance bottlenecks (timeouts).
+-   **Resiliency Patterns:** Implemented a **retry** mechanism for critical network calls to handle transient errors and network latency, making the application more robust in a production setting.
+-   **Centralized Configuration Fetching:** Refactored over 10 files to use a single helper function () with multiple fallback queries. This resolved a major deployment blocker caused by inconsistent data schemas between preview and production databases.
+-   **Asynchronous Staggered Processing:** The survey report analysis uses  and  to process large PDF chunks in parallel but with a slight delay between starting each task, preventing rate-limiting from external APIs.
 
 **key DB schema**
--   :
-    -   :  - Publicly accessible URL for the processed signature image.
-    -   :  - Google Drive file ID for the signature.
+-   **ai_config:** Discovered and handled inconsistencies in how this document is stored. In production, it's created with a random UUID uid=0(root) gid=0(root) groups=0(root) and no  field. The new  now queries for all possible formats to ensure it's always found.
+-   **gdrive_config:** Resolved a production crash by making fields (, )  in the Pydantic model, as production data was missing them. Also fixed the  vs. uid=0(root) gid=0(root) groups=0(root) mapping in the repository layer.
 
 **changes in tech stack**
--   **Frontend:** Added , .
--   **Backend:** Logic now depends on  for image processing.
+-   None.
 
 **All files of reference**
--   **/app/backend/app/services/user_service.py**: Contains the  method which is currently failing.
--   **/app/backend/app/services/gdrive_service.py**: Contains the core GDrive interaction logic () that is the likely source of the 520 error.
--   **/app/frontend/src/components/SystemSettings/UserManagement/EditUserModal.jsx**: Contains the frontend UI and logic for the signature upload feature.
--   **/app/backend/app/utils/signature_processor.py**: The new utility for processing signature images.
--   **/app/frontend/src/utils/exportHelpers.js**: The new utility for PDF/XLSX exports.
--   **/app/backend/app/core/permission_checks.py**: The core file for all permission logic.
+-   **/app/backend/app/services/survey_report_analyze_service.py**: Contains the logic for asynchronous, chunked analysis of large PDF files, which is currently under investigation for production timeouts.
+-   **/app/backend/app/utils/ai_config_helper.py**: A new, critical helper that unifies the logic for fetching the system's AI configuration, resolving a major deployment blocker.
+-   **/app/backend/app/api/v1/health_check.py**: A new API endpoint created for diagnosing production connectivity and latency issues.
+-   **/app/frontend/src/components/SystemSettings/AdminTools/ConnectivityHealthCheck.jsx**: The new frontend component that provides a UI for the health check tool.
+-   **/app/backend/app/services/ship_certificate_analyze_service.py**: Modified to unify the duplicate certificate detection logic.
+-   **/app/backend/app/utils/document_ai_helper.py**: Modified to add retry logic and timing logs for better production stability and debugging.
+-   **/app/backend/app/services/gdrive_service.py**: Modified to add retry logic for Google Drive uploads.
 
 **Areas that need refactoring**:
--   The GDrive integration in  is extremely brittle. It relies on a complex chain of calls to an Apps Script and has repeatedly caused issues. It needs robust error handling and possibly a more direct way of interacting with the GDrive API if possible.
+-   The duplicate check logic was inconsistent between two services and has now been unified. This is a significant improvement.
 
 **key api endpoints**
--   ** (NEW & BROKEN):** Endpoint for uploading a user signature file.
--   ** (FIXED):** Now correctly checks for 'crewing' department permission.
+-   : The endpoint under investigation for production timeouts. It handles large file uploads and long-running, asynchronous analysis.
+-   : A new diagnostic endpoint to check latency to external services like Google Apps Script and Document AI.
+-   : Was failing in production due to a Pydantic validation error, which has been fixed.
+-   : Was failing due to a , which has been fixed.
 
 **Critical Info for New Agent**
--   **Your #1 priority is to fix the  error on the signature upload (Issue 1).** This is a hard backend blocker. Do not attempt frontend changes first. Your first action should be to reproduce the error and immediately examine the backend logs for the specific Python exception. The problem is almost certainly in  or  and how they interact with the Google Apps Script.
--   **Respond in Vietnamese.**
--   The permission system has been heavily fortified, but you should treat any new user report of a permission issue as valid until proven otherwise. The pattern for fixing is well-established: add the appropriate check from  into the vulnerable service method.
--   The GDrive folder logic is the most complex and failure-prone part of the codebase right now. Be extremely careful when modifying .
+-   **You must respond in Vietnamese.**
+-   Your immediate task is to continue investigating the **production timeout on Survey Report analysis**. The backend processing seems fast (~40s for a 35-page PDF), so the issue might be related to network latency, very large files (>50 pages), or Google Apps Script cold starts. You need to get more information from the user about the specific circumstances of the timeout.
+-   The application now has a **Connectivity Health Check** tool in . You should advise the user to run this tool on production to gather real latency data, which will be crucial for debugging.
+-   All identified backend testing failures from the testing agent have been resolved or clarified as working as designed. The backend is considered stable.
 
 **documents and test_reports created in this job**
--   /app/frontend/src/utils/exportHelpers.js
--   /app/backend/app/utils/signature_processor.py
--    (Updated via test scripts)
+-   /app/test_reports/iteration_1.json
 
 **Last 10 User Messages and any pending HUMAN messages**
--   User:  (This is a console log showing the 520 error)
--   Agent: 
--   User: 
--   Agent: 
--   User: 
--   User: 
--   Agent: 
--   User: 
--   User: 
--   User: 
+-   user: Hãy tạo công cụ trong System Setting> Admin Tools để tôi có thể chạy API này
+-   user: Chạy API này bằng cách nào
+-   user: tạo API endpoint kiểm tra kết nối
+-   user: tôi thấy tốc độ kết nối đến server của production quá chậm và không ổn định, làm cách nào để kiểm tra kết nối này
+-   user: giữ nguyên time out 180s , không tăng lên 300s
+-   user: Khi tôi upload file trên bản preview tốc độ nhanh và xử lý thành công nhưng chạy bản production thì tốc độ rất chậm và thường báo lỗi timeout
+-   user: không cần cập nhật các certificate cũ
+-   user: Cargo Ship Safety Radio Certificate đang được viết tắt thành CSRC ( đúng nguyên tắc phải là CSSC) Cargo Ship Safety Equipment Certificate đang được viết tắt thành CSEC ( đúng nguyên tắc phải là CSSE) Hãy kiểm tra lại logic tạo tên viết tắt
+-   user: tôi đã cập nhật lại app script, đã hoạt động tốt
+-   user: Option 2: Cập nhật theo backend code (gộp ISM-ISPS-MLC + thêm SMS, Technical)
 
 **Project Health Check:**
--   **Broken:**
-    -   The Upload Signature feature is non-functional due to a persistent 520 backend error.
+-   **Broken:** A core feature, Survey Report Analysis, is reportedly timing out in the production environment. This is the highest priority issue to investigate.
 -   **Mocked:** None.
 
 **3rd Party Integrations**
--   **Google Drive API:** Central to file storage. Communication is managed via a user-deployed Google Apps Script. This is currently the main source of instability.
--   **OpenAI/Gemini:** Used for AI document analysis via .
--   **Pillow / opencv-python-headless:** Now used on the backend for image processing (signature background removal).
--   **jspdf / jspdf-autotable / xlsx:** Used on the frontend for file exports.
+-   **Google Drive API:** Used for all file and folder storage, accessed via a custom Google Apps Script. Latency to this service is a potential cause of production issues.
+-   **Emergent LLM Key (Gemini):** Uses  for AI document analysis.
+-   **Pillow / opencv-python-headless:** Used on the backend for image processing and OCR.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES (Used once to verify the initial JS fix).
--   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** Multiple ad-hoc  scripts and temporary python test files were used to verify permission fixes and feature implementations.
--   **Known regressions:** The  error on signature upload is a regression from a previously working (or at least, not-yet-implemented) state.
+-   **Testing agent used after significant changes:** YES. The backend testing agent was used. It identified a critical bug in the GDrive config endpoint, which was subsequently fixed.
+-   **Troubleshoot agent used after agent stuck in loop:** NO.
+-   **Test files created:**
+    -   /app/test_reports/iteration_1.json
+-   **Known regressions:** None.
 
 **Credentials to test flow:**
 -   **system_admin** /  (Full access)
--   **safety** /  (Test account for non-crewing permissions, department )
--   **Crewing** /  (Test account for crewing-specific permissions, department )
+-   **crewing_manager** /  (Role: , department: )
+-   **Crew3** /  (Role: )
 
 **What agent forgot to execute**
--   Run the data correction script: .
--   Rename the utility file:  to .
--   Investigate the recurring  error for the  endpoint which appeared in the console logs again.</analysis>
+-   The agent did not address the two recurring issues from the original handoff: AI Incorrectly Extracts Certificate Name and Frontend Login Form Validation Bug. These tasks remain in the backlog.</analysis>
