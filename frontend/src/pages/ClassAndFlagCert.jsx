@@ -625,12 +625,15 @@ const ClassAndFlagCert = () => {
       
       const result = response.data;
       
+      // Dismiss loading toast first
+      toast.dismiss('update-survey');
+      
       if (result.success) {
         // Show detailed success message
         toast.success(language === 'vi' 
           ? `✅ Hoàn thành! Đã cập nhật Next Survey cho ${result.updated_count}/${result.total_certificates} chứng chỉ của tàu ${result.ship_name}`
           : `✅ Complete! Updated Next Survey for ${result.updated_count}/${result.total_certificates} certificates of ship ${result.ship_name}`,
-          { id: 'update-survey', duration: 5000 }
+          { duration: 5000 }
         );
         
         // Show sample changes
