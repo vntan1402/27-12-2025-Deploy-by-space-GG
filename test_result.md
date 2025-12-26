@@ -1,103 +1,45 @@
-# Test Results - Permission System & Standby Crew Restrictions
+# Test Results - Survey Report Smart Upload Feature
 
 ## Current Testing Focus
-1. **Standby Crew Permission Restriction:** Verify that users with `ship=Standby` and `role=viewer/editor` CANNOT view Crew List or Crew Certificates
+1. **Survey Report Smart Upload:** Verify FAST PATH and SLOW PATH processing for survey reports
+2. **AI Text Correction:** Verify text layer correction for low-quality PDFs
 
 ## Test Credentials
-- **Standby User:** Crew3 / standby123 (role: viewer, ship: Standby)
+- **Admin User:** admin1 / 123456 (full access)
 - **System Admin:** system_admin / YourSecure@Pass2024 (full access)
+
+## New Feature: Smart Upload for Survey Reports
+
+### Feature Description
+- **FAST PATH:** PDF with text layer >= 400 chars → Process immediately (~2-5s)
+- **SLOW PATH:** Scanned PDF/Image → Background processing with polling
+
+### API Endpoints
+- `POST /api/survey-reports/multi-upload-smart?ship_id={id}` - Smart multi-upload
+- `GET /api/survey-reports/upload-task/{task_id}` - Poll task status
+
+### Backend Implementation
+- Created `/app/backend/app/services/survey_report_multi_upload_service.py`
+- Added endpoints in `/app/backend/app/api/v1/survey_reports.py`
+
+### Frontend Implementation
+- Updated `ClassSurveyReport.jsx` with new `startBatchProcessing` function using Smart Upload
+- Added `pollSlowPathTask` function for background task polling
+- Updated `surveyReportService.js` with `multiUploadSmart` and `getUploadTaskStatus` methods
 
 ## Test Scenarios
 
-### 1. JavaScript Error Fix Test
-- Login as system_admin / YourSecure@Pass2024
-- Navigate to ISM-ISPS-MLC page
-- Select a ship (e.g., VINASHIP HARMONY)
-- Click on "Audit Report" submenu
-- Right-click on any row in the table
-- **Expected:** Context menu appears WITHOUT any console errors
-- **Check:** No `ReferenceError: setSelectedReports is not defined`
+### Test 1: Smart Upload API Endpoint
+- Login as admin1 / 123456
+- Upload multiple PDF files to survey report
+- **Expected:** FAST PATH files processed immediately, SLOW PATH files return task_id
 
-### 2. Permission Denial Test for Crewing
-- Login as Crewing / Crewing123
-- Navigate to ISM-ISPS-MLC page
-- Select a ship (e.g., VINASHIP HARMONY)  
-- Click on "Audit Report" submenu
-- Try to delete a report via right-click menu
-- **Expected:** Vietnamese error message displayed: "Department của bạn không có quyền quản lý loại tài liệu này"
+### Test 2: Background Task Polling
+- Upload scanned PDF files
+- Poll task status endpoint
+- **Expected:** Task status updates with progress, completes with results
 
-## Backend API Test Results (Already Verified)
-- ✅ DELETE /api/audit-reports/{id} - Returns 403 with Vietnamese message
-- ✅ POST /api/audit-reports/bulk-delete - Returns 403 with Vietnamese message
-
-## Frontend UI Test Results (Testing Agent - December 17, 2025)
-
-### ✅ TEST 1: JavaScript Error Fix - PASSED
-**Status:** SUCCESSFUL
-**Tested by:** Testing Agent using Playwright automation
-**Date:** December 17, 2025
-
-**Test Steps Performed:**
-1. ✅ Successfully logged in as system_admin / YourSecure@Pass2024
-2. ✅ Navigated to ISM-ISPS-MLC page via sidebar menu
-3. ✅ Selected ship "VINASHIP HARMONY" from ship grid
-4. ✅ Clicked on "Audit Report" submenu tab
-5. ✅ Performed right-click operation on audit report table row
-6. ✅ Monitored console logs during right-click operation
-
-**Results:**
-- ✅ **NO JavaScript errors detected** during right-click operation
-- ✅ **NO `setSelectedReports is not defined` error** found in console logs
-- ✅ Right-click functionality working without throwing errors
-- ✅ Audit Report table loaded successfully with "ISPS Code Audit Plan" entry
-- ✅ JavaScript fix appears to be working correctly
-
-**Console Log Analysis:**
-- Only standard React DevTools and application logs detected
-- No error-level console messages during right-click test
-- No references to `setSelectedReports` function errors
-
-### ⚠️ TEST 2: Permission Denial Test - NEEDS INVESTIGATION
-**Status:** INCONCLUSIVE - Permission system may need frontend implementation
-**Tested by:** Testing Agent using Playwright automation
-**Date:** December 17, 2025
-
-**Test Steps Performed:**
-1. ✅ Successfully logged in as Crewing / Crewing123
-2. ✅ Navigated to ISM-ISPS-MLC page via sidebar menu  
-3. ✅ Selected ship "VINASHIP HARMONY" from ship grid
-4. ✅ Clicked on "Audit Report" submenu tab
-5. ✅ Audit Report page loaded with same data as system_admin
-6. ⚠️ Right-clicked on audit report table row
-7. ❌ No context menu appeared or Delete option was not visible
-8. ❌ No Vietnamese permission error message displayed
-
-**Findings:**
-- ✅ Crewing user can access ISM-ISPS-MLC page and view audit reports
-- ✅ Backend API returns 403 errors (already verified)
-- ❌ Frontend context menu may not be implemented or visible for Crewing user
-- ❌ Vietnamese permission error message not displayed in UI
-- ⚠️ Console shows 403 errors for AI config (expected for Crewing user)
-
-**Possible Issues:**
-1. Context menu may not appear for users without permissions (by design)
-2. Permission error message may only show when actual delete API is called
-3. Frontend may need additional implementation to show permission errors
-4. Delete functionality may be hidden/disabled for unauthorized users
-
-## Notes
-- Crewing user credentials: username=Crewing, password=Crewing123
-- Crewing department: ['ship_crew', 'crewing'] - does NOT have access to ISM-ISPS-MLC
-- Test on ship: VINASHIP HARMONY (company matches Crewing)
-- Backend permission system working correctly (403 responses verified)
-- Frontend JavaScript fix successful - no setSelectedReports errors
-
----
-
-## ✅ TEST 3: Standby Crew Permission Restriction Feature
-**Status:** PASSED
-**Tested by:** Testing Agent using Backend API Tests
-**Date:** December 19, 2025
+## Previous Tests (Preserved)
 
 ### Test Objective
 Verify that users with `ship=Standby` CANNOT view:
