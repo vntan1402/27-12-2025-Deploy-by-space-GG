@@ -396,14 +396,18 @@ class CertificateMultiUploadService:
             
             # Create mock user for background processing
             from app.models.user import UserRole
+            from datetime import datetime, timezone
             mock_user = UserResponse(
                 id=user_id,
                 username=user_doc.get("username", "system"),
                 email=user_doc.get("email", "system@system.com"),
+                full_name=user_doc.get("full_name", user_doc.get("username", "System User")),
                 role=UserRole(user_doc.get("role", "admin")),
                 company=company_id,
-                department=user_doc.get("department"),
-                is_active=True
+                department=user_doc.get("department", []),
+                is_active=True,
+                created_at=user_doc.get("created_at", datetime.now(timezone.utc)),
+                permissions=user_doc.get("permissions", {})
             )
             logger.info(f"🔄 Task {task_id}: Created mock user with company={company_id}")
             
