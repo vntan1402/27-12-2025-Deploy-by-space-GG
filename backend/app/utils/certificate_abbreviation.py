@@ -128,6 +128,9 @@ STANDARD_CERTIFICATE_ABBREVIATIONS = {
     "SOLID BULK CARGOES": "IMSBC",
     "IMSBC": "IMSBC",
     "CARRIAGE OF SOLID BULK CARGOES": "IMSBC",
+    # Dangerous Goods certificates
+    "CARRYING DANGEROUS GOODS": "DG",
+    "DANGEROUS GOODS": "DG",
     # Add more standard mappings here as needed
 }
 
