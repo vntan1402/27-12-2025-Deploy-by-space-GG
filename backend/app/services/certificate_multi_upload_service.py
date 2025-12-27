@@ -484,7 +484,7 @@ class CertificateMultiUploadService:
                     pdf_result = upload_results[0] if len(upload_results) > 0 else None
                     summary_result = upload_results[1] if len(upload_results) > 1 else None
                     
-                    await UploadTaskService.update_file_status(
+                    await UploadTaskService.update_file_status_by_name(
                         task_id, filename, "processing", progress=80,
                         message="Creating certificate record..."
                     )
