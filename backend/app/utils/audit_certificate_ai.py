@@ -525,6 +525,16 @@ def create_audit_certificate_extraction_prompt(summary_text: str, filename: str 
         prompt = f"""You are an AI specialized in maritime audit certificate information extraction.
 
 **INPUT**: Below is the Document AI text extraction from an audit certificate file.
+The document contains TWO SECTIONS:
+1. **TEXT LAYER CONTENT** - Extracted directly from PDF (may have OCR errors like duplicate characters)
+2. **DOCUMENT AI OCR CONTENT** - More accurate OCR from Google Document AI
+
+**⚠️ IMPORTANT - DATA QUALITY PRIORITY**:
+When extracting fields, ALWAYS compare both sections and choose the MOST ACCURATE value:
+- If Text Layer has duplicate/repeated characters (e.g., "PPaannaammaa MMaarriittiimmee" instead of "Panama Maritime"), USE the Document AI OCR version instead
+- Document AI OCR content is generally MORE RELIABLE for: issued_by, cert_name, organization names
+- Text Layer may be more complete for: dates, certificate numbers, ship details
+- **READ THE ENTIRE DOCUMENT** before selecting values - don't just pick from the first occurrence
 
 **FILENAME**: {filename}
 (Filename often contains hints about certificate type)
@@ -541,8 +551,8 @@ def create_audit_certificate_extraction_prompt(summary_text: str, filename: str 
     "last_endorse": "Last endorsement date in FULL TEXT format (if any)",
     "next_survey": "Next survey date in FULL TEXT format (if any)",
     "next_survey_type": "Type of next survey - one of: 'Initial', 'Intermediate', 'Renewal', 'Annual', 'Other'",
-    "issued_by": "**IMPORTANT** - Full organization name that issued the certificate (e.g., 'Bureau Veritas', 'Lloyd\\'s Register', 'Det Norske Veritas')",
-    "issued_by_abbreviation": "Organization abbreviation (e.g., 'BV', 'LR', 'DNV')",
+    "issued_by": "**CRITICAL** - Full organization name that issued the certificate. MUST use CLEAN text from Document AI OCR section (e.g., 'Panama Maritime Documentation Services, Inc.', NOT 'PPaannaammaa MMaarriittiimmee...')",
+    "issued_by_abbreviation": "Organization abbreviation (e.g., 'BV', 'LR', 'DNV', 'PMDS')",
     "ship_name": "Name of the ship",
     "imo_number": "IMO number - 7 digits ONLY (e.g., '1234567')",
     "confidence_score": "Your confidence in the extraction accuracy (0.0 - 1.0)"
@@ -603,7 +613,7 @@ This certificate MUST belong to one of these categories:
 
 **SPECIAL NOTES**:
 - Look carefully for CREW ACCOMMODATION text (may appear in cert name or document body)
-- Issued_by should be the full organization name (e.g., "Bureau Veritas", not just "BV")
+- **issued_by**: ALWAYS prefer the clean text from Document AI OCR section over Text Layer (avoid duplicate characters like "PPaannaammaa")
 - Next survey type: usually "Initial", "Intermediate", or "Renewal"
 - If a field is not found, return empty string "" or null, but DO NOT skip the field
 
