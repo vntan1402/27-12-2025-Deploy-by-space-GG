@@ -251,12 +251,17 @@ def generate_abbreviation_sync(cert_name: str) -> str:
         cert_name: Full certificate name
         
     Returns:
-        Abbreviated certificate name (e.g., "FT DOC", "ST DOC", "Int DOC")
+        Abbreviated certificate name (e.g., "FT DOC", "ST DOC", "Int DOC", "IMSBC")
     """
     if not cert_name:
         return ""
     
-    # Special handling for Document of Compliance (DOC)
+    # Priority 1: Check for standard maritime abbreviations
+    standard_abbr = get_standard_abbreviation(cert_name)
+    if standard_abbr:
+        return standard_abbr
+    
+    # Priority 2: Special handling for Document of Compliance (DOC)
     cert_name_upper = cert_name.upper().strip()
     if 'DOCUMENT OF COMPLIANCE' in cert_name_upper or cert_name_upper == 'DOC':
         # Check for specific DOC types
