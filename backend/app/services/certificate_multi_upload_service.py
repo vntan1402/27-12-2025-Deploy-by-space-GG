@@ -530,9 +530,8 @@ class CertificateMultiUploadService:
                     except:
                         pass
             
-            # Mark task as completed
-            await UploadTaskService.update_task_status(task_id, TaskStatus.COMPLETED)
-            logger.info(f"✅ Background task {task_id} completed")
+            # Task status is automatically updated by increment_completed
+            logger.info(f"✅ Background task {task_id} processing finished")
             
         except Exception as e:
             logger.error(f"❌ Background task {task_id} failed: {e}")
