@@ -122,16 +122,51 @@ def generate_doc_abbreviation(doc_type: Optional[str], cert_name: str) -> str:
         return "FT DOC"
 
 
+# Standard maritime certificate abbreviations (hardcoded mappings)
+STANDARD_CERTIFICATE_ABBREVIATIONS = {
+    # IMSBC Code related certificates
+    "SOLID BULK CARGOES": "IMSBC",
+    "IMSBC": "IMSBC",
+    "CARRIAGE OF SOLID BULK CARGOES": "IMSBC",
+    # Add more standard mappings here as needed
+}
+
+
+def get_standard_abbreviation(cert_name: str) -> Optional[str]:
+    """
+    Check for standard maritime certificate abbreviations
+    These are internationally recognized abbreviations that should be consistent
+    
+    Args:
+        cert_name: Certificate name to check
+        
+    Returns:
+        Standard abbreviation if found, None otherwise
+    """
+    if not cert_name:
+        return None
+    
+    cert_name_upper = cert_name.upper().strip()
+    
+    # Check each standard mapping
+    for keyword, abbreviation in STANDARD_CERTIFICATE_ABBREVIATIONS.items():
+        if keyword in cert_name_upper:
+            logger.info(f"✅ Standard abbreviation match: '{cert_name}' contains '{keyword}' → '{abbreviation}'")
+            return abbreviation
+    
+    return None
+
+
 async def generate_certificate_abbreviation(cert_name: str, doc_type: Optional[str] = None) -> str:
     """
     Generate certificate abbreviation from certificate name
-    Priority: User-defined mappings → Special DOC handling → Auto-generation algorithm
+    Priority: User-defined mappings → Standard mappings → Special DOC handling → Auto-generation algorithm
     
     Args:
         cert_name: Full certificate name
         
     Returns:
-        Abbreviated certificate name (e.g., "CSSC", "IOPP", "FT DOC", "ST DOC")
+        Abbreviated certificate name (e.g., "CSSC", "IOPP", "FT DOC", "ST DOC", "IMSBC")
         
     Examples:
         "Cargo Ship Safety Construction Certificate" → "CSSC"
@@ -140,6 +175,7 @@ async def generate_certificate_abbreviation(cert_name: str, doc_type: Optional[s
         "Full Term Document of Compliance" → "FT DOC"
         "Short Term Document of Compliance" → "ST DOC"
         "Interim Document of Compliance" → "Int DOC"
+        "Carriage of Solid Bulk Cargoes Certificate" → "IMSBC"
     """
     if not cert_name:
         return ""
@@ -150,7 +186,12 @@ async def generate_certificate_abbreviation(cert_name: str, doc_type: Optional[s
         logger.info(f"✅ Using user-defined abbreviation: '{cert_name}' → '{user_abbreviation}'")
         return user_abbreviation
     
-    # Priority 2: Special handling for Document of Compliance (DOC)
+    # Priority 2: Check for standard maritime abbreviations
+    standard_abbr = get_standard_abbreviation(cert_name)
+    if standard_abbr:
+        return standard_abbr
+    
+    # Priority 3: Special handling for Document of Compliance (DOC)
     doc_abbr = generate_doc_abbreviation(doc_type, cert_name)
     if doc_abbr:
         return doc_abbr
