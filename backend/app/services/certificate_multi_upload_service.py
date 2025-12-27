@@ -488,18 +488,7 @@ class CertificateMultiUploadService:
                     if summary_result and not isinstance(summary_result, Exception) and summary_result.get("success"):
                         summary_file_id = summary_result.get("file_id")
                     
-                    # Create minimal user response for certificate creation
-                    from app.models.user import UserRole
-                    mock_user = UserResponse(
-                        id=user_id,
-                        username=user_doc.get("username", "system"),
-                        email=user_doc.get("email", "system@system.com"),
-                        role=UserRole(user_doc.get("role", "admin")),
-                        company=company_id,
-                        department=user_doc.get("department"),
-                        is_active=True
-                    )
-                    
+                    # Use mock_user created earlier (no need to create again)
                     cert_result = await CertificateMultiUploadService._create_certificate_from_analysis(
                         extracted_info, upload_data, mock_user, ship_id,
                         None, db, summary_file_id=summary_file_id,
