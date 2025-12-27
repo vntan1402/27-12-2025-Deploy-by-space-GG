@@ -350,7 +350,7 @@ export const AddShipCertificateModal = ({
             formData,
             {
               headers: { 'Content-Type': 'multipart/form-data' },
-              timeout: 30000, // 30 seconds - just for upload, not processing
+              timeout: 60000, // 60 seconds - for file upload only (processing is async)
               onUploadProgress: (progressEvent) => {
                 const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                 setFileProgressMap(prev => ({ ...prev, [file.name]: Math.min(progress, 20) }));
