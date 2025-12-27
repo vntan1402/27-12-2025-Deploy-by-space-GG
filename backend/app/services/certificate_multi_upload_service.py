@@ -494,7 +494,7 @@ class CertificateMultiUploadService:
                     )
                     
                     # Mark file as completed
-                    await UploadTaskService.update_file_status(
+                    await UploadTaskService.update_file_status_by_name(
                         task_id, filename, "completed", progress=100,
                         result={
                             "certificate_id": cert_result.get("id"),
@@ -503,6 +503,9 @@ class CertificateMultiUploadService:
                         }
                     )
                     
+                    # Increment completed count
+                    await UploadTaskService.increment_completed(task_id, success=True)
+                    
                     logger.info(f"✅ [{i+1}/{len(temp_files)}] Completed: {filename}")
                     
                 except Exception as file_error:
@@ -510,10 +513,13 @@ class CertificateMultiUploadService:
                     import traceback
                     logger.error(traceback.format_exc())
                     
-                    await UploadTaskService.update_file_status(
+                    await UploadTaskService.update_file_status_by_name(
                         task_id, temp_file["filename"], "failed",
                         error=str(file_error)
                     )
+                    
+                    # Increment failed count
+                    await UploadTaskService.increment_completed(task_id, success=False)
                 
                 finally:
                     # Clean up temp file
