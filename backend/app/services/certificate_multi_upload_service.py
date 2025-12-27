@@ -501,9 +501,9 @@ class CertificateMultiUploadService:
                     if summary_result and not isinstance(summary_result, Exception) and summary_result.get("success"):
                         summary_file_id = summary_result.get("file_id")
                     
-                    # Use mock_user created earlier (no need to create again)
+                    # Use real user from database
                     cert_result = await CertificateMultiUploadService._create_certificate_from_analysis(
-                        extracted_info, upload_data, mock_user, ship_id,
+                        extracted_info, upload_data, current_user, ship_id,
                         None, db, summary_file_id=summary_file_id,
                         extracted_ship_name=extracted_info.get("ship_name")
                     )
