@@ -390,7 +390,7 @@ export const AddShipCertificateModal = ({
       console.log(`📤 Smart Upload: Uploading ${totalFiles} files (max 3 concurrent, background processing)...`);
 
       const MAX_CONCURRENT = 3; // Maximum 3 files uploading at the same time
-      const DELAY_BETWEEN_UPLOADS = 3000; // 3s delay before starting next upload
+      const DELAY_BETWEEN_UPLOADS = 5000; // 5s delay before starting next upload
       
       const uploadResults = [];
       let currentIndex = 0;
