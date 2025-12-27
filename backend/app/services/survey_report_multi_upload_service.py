@@ -567,8 +567,7 @@ Processing: Text Layer Extraction + AI Correction
                     # Update progress
                     await UploadTaskService.update_file_status(
                         task_id, i, TaskStatus.PROCESSING,
-                        progress=70,
-                        message="Creating record..."
+                        progress=70
                     )
                     
                     if analysis_result.get("success"):
