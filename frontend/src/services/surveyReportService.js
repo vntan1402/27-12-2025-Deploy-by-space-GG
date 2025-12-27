@@ -174,6 +174,26 @@ export const surveyReportService = {
   },
 
   /**
+   * Smart upload SINGLE survey report file (for staggered upload)
+   * @param {string} shipId - Ship ID
+   * @param {File} file - Single survey report file
+   * @returns {Promise} Upload result with task_id for polling
+   */
+  multiUploadSmartSingle: async (shipId, file) => {
+    const formData = new FormData();
+    formData.append('files', file);
+    
+    return api.post(
+      `${API_ENDPOINTS.SURVEY_REPORT_MULTI_UPLOAD_SMART}?ship_id=${shipId}`,
+      formData,
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 60000, // 60 seconds for single file upload
+      }
+    );
+  },
+
+  /**
    * Get upload task status for polling
    * @param {string} taskId - Task ID from slow_path_task_id
    * @returns {Promise} Task status with file progress
