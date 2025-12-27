@@ -394,6 +394,19 @@ class CertificateMultiUploadService:
                 await UploadTaskService.update_task_status(task_id, TaskStatus.FAILED)
                 return
             
+            # Create mock user for background processing
+            from app.models.user import UserRole
+            mock_user = UserResponse(
+                id=user_id,
+                username=user_doc.get("username", "system"),
+                email=user_doc.get("email", "system@system.com"),
+                role=UserRole(user_doc.get("role", "admin")),
+                company=company_id,
+                department=user_doc.get("department"),
+                is_active=True
+            )
+            logger.info(f"🔄 Task {task_id}: Created mock user with company={company_id}")
+            
             # Process each file
             for i, temp_file in enumerate(temp_files):
                 try:
