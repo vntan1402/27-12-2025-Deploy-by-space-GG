@@ -567,13 +567,14 @@ Processing: Text Layer Extraction + AI Correction
                     # Update progress
                     await UploadTaskService.update_file_status(
                         task_id, i, TaskStatus.PROCESSING,
-                        progress=70
+                        progress=70,
+                        message="Creating record..."
                     )
                     
                     if analysis_result.get("success"):
                         analysis = analysis_result.get("analysis", {})
                         
-                        # Create survey report record
+                        # ⚡ OPTIMIZED: Create survey report record FIRST (without file_id)
                         report_data = {
                             "ship_id": ship_id,
                             "survey_report_name": analysis.get("survey_report_name", temp_file["filename"]),
@@ -589,21 +590,9 @@ Processing: Text Layer Extraction + AI Correction
                         report_create = SurveyReportCreate(**report_data)
                         created_report = await SurveyReportService.create_survey_report(report_create, real_user)
                         
-                        # Upload files to Google Drive
-                        if analysis.get("_file_content"):
-                            try:
-                                await SurveyReportService.upload_files(
-                                    report_id=created_report.id,
-                                    file_content=analysis["_file_content"],
-                                    filename=analysis.get("_filename", temp_file["filename"]),
-                                    content_type=analysis.get("_content_type", "application/pdf"),
-                                    summary_text=analysis.get("_summary_text", ""),
-                                    current_user=real_user
-                                )
-                            except Exception as upload_error:
-                                logger.warning(f"⚠️ File upload failed: {upload_error}")
+                        logger.info(f"✅ [{i+1}/{len(temp_files)}] Record created: {created_report.id} (GDrive upload pending)")
                         
-                        # Update file status - completed
+                        # Update file status - completed IMMEDIATELY (user sees success faster)
                         await UploadTaskService.update_file_status(
                             task_id, i, TaskStatus.COMPLETED,
                             progress=100,
@@ -611,11 +600,35 @@ Processing: Text Layer Extraction + AI Correction
                                 "report_id": created_report.id,
                                 "survey_report_name": report_data["survey_report_name"],
                                 "report_form": report_data["report_form"],
-                                "status": "success"
+                                "survey_report_no": report_data["survey_report_no"],
+                                "status": "success",
+                                "extracted_info": {
+                                    "survey_report_name": report_data["survey_report_name"],
+                                    "report_form": report_data["report_form"],
+                                    "survey_report_no": report_data["survey_report_no"],
+                                    "issued_by": report_data["issued_by"]
+                                },
+                                "gdrive_pending": True
                             }
                         )
                         await UploadTaskService.increment_completed(task_id, success=True)
-                        logger.info(f"✅ [{i+1}/{len(temp_files)}] Completed: {temp_file['filename']}")
+                        
+                        logger.info(f"✅ [{i+1}/{len(temp_files)}] Completed (record created): {temp_file['filename']}")
+                        
+                        # ⚡ Upload files to Google Drive in DEFERRED background (non-blocking)
+                        if analysis.get("_file_content"):
+                            import asyncio
+                            asyncio.create_task(
+                                SurveyReportMultiUploadService._deferred_gdrive_upload(
+                                    report_id=created_report.id,
+                                    file_content=analysis["_file_content"],
+                                    filename=analysis.get("_filename", temp_file["filename"]),
+                                    content_type=analysis.get("_content_type", "application/pdf"),
+                                    summary_text=analysis.get("_summary_text", ""),
+                                    user_id=user_id,
+                                    company_id=company_id
+                                )
+                            )
                     else:
                         # Analysis failed
                         error_msg = analysis_result.get("message", "Analysis failed")
