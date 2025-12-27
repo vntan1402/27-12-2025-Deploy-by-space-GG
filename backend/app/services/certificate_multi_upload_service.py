@@ -394,22 +394,31 @@ class CertificateMultiUploadService:
                 await UploadTaskService.update_task_status(task_id, TaskStatus.FAILED)
                 return
             
-            # Create mock user for background processing
+            # Convert user document to UserResponse (same logic as UserService)
             from app.models.user import UserRole
             from datetime import datetime, timezone
-            mock_user = UserResponse(
-                id=user_id,
-                username=user_doc.get("username", "system"),
-                email=user_doc.get("email", "system@system.com"),
-                full_name=user_doc.get("full_name", user_doc.get("username", "System User")),
-                role=UserRole(user_doc.get("role", "admin")),
-                company=company_id,
-                department=user_doc.get("department", []),
-                is_active=True,
-                created_at=user_doc.get("created_at", datetime.now(timezone.utc)),
-                permissions=user_doc.get("permissions", {})
-            )
-            logger.info(f"🔄 Task {task_id}: Created mock user with company={company_id}")
+            
+            # Clean up user doc
+            user_doc.pop("password_hash", None)
+            user_doc.pop("_id", None)
+            
+            # Ensure department is a list
+            if user_doc.get('department') is None:
+                user_doc['department'] = []
+            elif not isinstance(user_doc.get('department'), list):
+                user_doc['department'] = [user_doc['department']] if user_doc['department'] else []
+            
+            # Ensure other required fields
+            if 'created_at' not in user_doc:
+                user_doc['created_at'] = datetime.now(timezone.utc)
+            if 'permissions' not in user_doc:
+                user_doc['permissions'] = {}
+            if 'full_name' not in user_doc or not user_doc['full_name']:
+                user_doc['full_name'] = user_doc.get('username', 'System User')
+            
+            # Create UserResponse from actual user data
+            current_user = UserResponse(**user_doc)
+            logger.info(f"🔄 Task {task_id}: Using user {current_user.username} (company={current_user.company})")
             
             # Process each file
             for i, temp_file in enumerate(temp_files):
