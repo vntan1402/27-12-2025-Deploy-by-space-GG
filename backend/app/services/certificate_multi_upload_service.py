@@ -401,7 +401,7 @@ class CertificateMultiUploadService:
                     logger.info(f"📄 [{i+1}/{len(temp_files)}] Processing: {filename}")
                     
                     # Update file status
-                    await UploadTaskService.update_file_status(
+                    await UploadTaskService.update_file_status_by_name(
                         task_id, filename, "processing", progress=10
                     )
                     
@@ -410,7 +410,7 @@ class CertificateMultiUploadService:
                         file_content = f.read()
                     
                     # Step 1: Analyze with AI
-                    await UploadTaskService.update_file_status(
+                    await UploadTaskService.update_file_status_by_name(
                         task_id, filename, "processing", progress=20,
                         message="Analyzing document with AI..."
                     )
