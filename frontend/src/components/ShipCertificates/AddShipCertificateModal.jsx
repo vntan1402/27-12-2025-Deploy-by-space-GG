@@ -323,8 +323,8 @@ export const AddShipCertificateModal = ({
 
       // Upload all files - each will return a task_id for polling
       const uploadPromises = fileArray.map(async (file, i) => {
-        // Stagger: File 0 → 0ms, File 1 → 5000ms, File 2 → 10000ms...
-        const startDelay = i * 5000; // 5s stagger for upload
+        // Progressive delay: File 1 → 0s, File 2 → 5s, File 3 → 6s, File 4 → 7s...
+        const startDelay = i === 0 ? 0 : (4 + i) * 1000; // Increasing delay: 0, 5s, 6s, 7s...
         await new Promise(resolve => setTimeout(resolve, startDelay));
         
         try {
