@@ -310,7 +310,7 @@ const ClassSurveyReport = () => {
     let failedCount = 0;
     let firstSuccessInfo = null;
     
-    const POLLING_INTERVAL = 4567; // 4.567s per poll
+    const POLLING_INTERVAL = 8567; // 8.567s per poll
     const MAX_POLL_TIME = 300000; // 5 minutes timeout
     const completedFiles = new Set();
     const failedFiles = new Set();
