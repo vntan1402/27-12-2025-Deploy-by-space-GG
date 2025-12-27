@@ -453,75 +453,61 @@ class CertificateMultiUploadService:
                     summary_text = analysis_result.get("summary_text", "")
                     extracted_info["filename"] = filename
                     
+                    # ⚡ OPTIMIZED: Create DB record FIRST (without file_id)
+                    # This allows faster response - GDrive upload happens after
                     await UploadTaskService.update_file_status_by_name(
-                        task_id, filename, "processing", progress=50,
-                        message="AI analysis complete, uploading to Google Drive..."
-                    )
-                    
-                    # Step 2: Upload PDF and Summary to GDrive in parallel
-                    ship_name = ship.get("name", "Unknown_Ship")
-                    
-                    upload_tasks = [
-                        CertificateMultiUploadService._upload_to_gdrive_with_parent(
-                            gdrive_config_doc, file_content, filename, ship_name,
-                            "Class & Flag Cert", "Certificates"
-                        )
-                    ]
-                    
-                    if summary_text and summary_text.strip():
-                        base_name = filename.rsplit('.', 1)[0] if '.' in filename else filename
-                        summary_filename = f"{base_name}_Summary.txt"
-                        summary_bytes = summary_text.encode('utf-8')
-                        upload_tasks.append(
-                            CertificateMultiUploadService._upload_to_gdrive_with_parent(
-                                gdrive_config_doc, summary_bytes, summary_filename, ship_name,
-                                "Class & Flag Cert", "Certificates", content_type="text/plain"
-                            )
-                        )
-                    
-                    upload_results = await asyncio.gather(*upload_tasks, return_exceptions=True)
-                    
-                    pdf_result = upload_results[0] if len(upload_results) > 0 else None
-                    summary_result = upload_results[1] if len(upload_results) > 1 else None
-                    
-                    await UploadTaskService.update_file_status_by_name(
-                        task_id, filename, "processing", progress=80,
+                        task_id, filename, "processing", progress=60,
                         message="Creating certificate record..."
                     )
                     
-                    # Step 3: Create certificate record
+                    ship_name = ship.get("name", "Unknown_Ship")
+                    
+                    # Step 2: Create certificate record IMMEDIATELY (no file_id yet)
                     upload_data = {
                         "success": True,
-                        "file_id": pdf_result.get("file_id") if pdf_result and not isinstance(pdf_result, Exception) else None,
-                        "file_url": pdf_result.get("file_url") if pdf_result and not isinstance(pdf_result, Exception) else None,
+                        "file_id": None,  # Will be updated after GDrive upload
+                        "file_url": None,
                         "folder_path": f"{ship_name}/Class & Flag Cert/Certificates"
                     }
                     
-                    summary_file_id = None
-                    if summary_result and not isinstance(summary_result, Exception) and summary_result.get("success"):
-                        summary_file_id = summary_result.get("file_id")
-                    
-                    # Use real user from database
                     cert_result = await CertificateMultiUploadService._create_certificate_from_analysis(
                         extracted_info, upload_data, current_user, ship_id,
-                        None, db, summary_file_id=summary_file_id,
-                        extracted_ship_name=extracted_info.get("ship_name")
+                        None, db, summary_file_id=None,
+                        extracted_ship_name=extracted_info.get("ship_name"),
+                        file_pending_upload=True  # Mark as pending upload
                     )
                     
-                    # Mark file as completed
+                    cert_id = cert_result.get("id")
+                    logger.info(f"✅ [{i+1}/{len(temp_files)}] Record created: {cert_id} (GDrive upload pending)")
+                    
+                    # Mark file as completed IMMEDIATELY (user sees success faster)
                     await UploadTaskService.update_file_status_by_name(
                         task_id, filename, "completed", progress=100,
                         result={
-                            "certificate_id": cert_result.get("id"),
+                            "certificate_id": cert_id,
                             "extracted_info": extracted_info,
-                            "file_id": upload_data.get("file_id")
+                            "file_id": None,  # Will be updated later
+                            "gdrive_pending": True
                         }
                     )
                     
                     # Increment completed count
                     await UploadTaskService.increment_completed(task_id, success=True)
                     
-                    logger.info(f"✅ [{i+1}/{len(temp_files)}] Completed: {filename}")
+                    logger.info(f"✅ [{i+1}/{len(temp_files)}] Completed (record created): {filename}")
+                    
+                    # Step 3: Upload to GDrive in DEFERRED background (non-blocking)
+                    # This happens AFTER user sees success - much faster perceived response
+                    asyncio.create_task(
+                        CertificateMultiUploadService._deferred_gdrive_upload(
+                            cert_id=cert_id,
+                            file_content=file_content,
+                            filename=filename,
+                            summary_text=summary_text,
+                            ship_name=ship_name,
+                            gdrive_config_doc=gdrive_config_doc
+                        )
+                    )
                     
                 except Exception as file_error:
                     logger.error(f"❌ [{i+1}/{len(temp_files)}] Error processing {temp_file['filename']}: {file_error}")
