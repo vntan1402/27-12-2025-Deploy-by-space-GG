@@ -409,73 +409,101 @@ export const AddShipCertificateModal = ({
           : `🔄 ${processingFiles.length} files processing in background...`
         );
 
-        // Poll for each task
+        // Poll for ALL tasks (each file has its own task_id)
         const taskIds = [...new Set(processingFiles.map(f => f.task_id).filter(Boolean))];
         
         if (taskIds.length > 0) {
-          // Start polling for the task
-          const taskId = taskIds[0]; // Usually just one task
+          console.log(`📊 Polling ${taskIds.length} tasks:`, taskIds);
+          
+          // Track completion status for each task
+          const taskCompletionStatus = {};
+          taskIds.forEach(id => taskCompletionStatus[id] = false);
           
           const pollInterval = setInterval(async () => {
             try {
-              const taskResponse = await api.get(`/api/certificates/upload-task/${taskId}`);
-              const task = taskResponse.data;
+              // Poll ALL tasks in parallel
+              const pollPromises = taskIds.map(taskId => 
+                api.get(`/api/certificates/upload-task/${taskId}`).catch(err => ({ error: err, taskId }))
+              );
               
-              console.log('📊 Task status:', task.status, task);
+              const taskResponses = await Promise.all(pollPromises);
+              
+              let allTasksComplete = true;
+              
+              for (const response of taskResponses) {
+                if (response.error) {
+                  console.error('❌ Polling error for task:', response.taskId, response.error);
+                  continue;
+                }
+                
+                const task = response.data;
+                console.log('📊 Task status:', task.task_id, task.status);
 
-              // Update progress for each file
-              if (task.files) {
-                task.files.forEach((fileTask) => {
-                  const filename = fileTask.filename;
-                  
-                  if (fileTask.status === 'completed') {
-                    setFileStatusMap(prev => {
-                      if (prev[filename] !== 'completed') {
-                        successCount++;
-                        setBatchProgress(p => ({ ...p, current: p.current + 1 }));
-                        toast.success(`✅ ${filename}`);
-                      }
-                      return { ...prev, [filename]: 'completed' };
-                    });
-                    setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
-                    setFileSubStatusMap(prev => ({ ...prev, [filename]: language === 'vi' ? '✅ Hoàn thành' : '✅ Completed' }));
+                // Update progress for each file in this task
+                if (task.files) {
+                  task.files.forEach((fileTask) => {
+                    const filename = fileTask.filename;
                     
-                    setMultiCertUploads(prev => prev.map(upload => 
-                      upload.filename === filename 
-                        ? { ...upload, status: 'completed', progress: 100, stage: '✅ Completed', extracted_info: fileTask.result?.extracted_info }
-                        : upload
-                    ));
+                    if (fileTask.status === 'completed') {
+                      setFileStatusMap(prev => {
+                        if (prev[filename] !== 'completed') {
+                          successCount++;
+                          setBatchProgress(p => ({ ...p, current: p.current + 1 }));
+                          toast.success(`✅ ${filename}`);
+                        }
+                        return { ...prev, [filename]: 'completed' };
+                      });
+                      setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
+                      setFileSubStatusMap(prev => ({ ...prev, [filename]: language === 'vi' ? '✅ Hoàn thành' : '✅ Completed' }));
+                      
+                      setMultiCertUploads(prev => prev.map(upload => 
+                        upload.filename === filename 
+                          ? { ...upload, status: 'completed', progress: 100, stage: '✅ Completed', extracted_info: fileTask.result?.extracted_info }
+                          : upload
+                      ));
 
-                    if (!firstSuccessInfo && fileTask.result?.extracted_info) {
-                      firstSuccessInfo = fileTask.result.extracted_info;
+                      if (!firstSuccessInfo && fileTask.result?.extracted_info) {
+                        firstSuccessInfo = fileTask.result.extracted_info;
+                      }
+                    } else if (fileTask.status === 'failed') {
+                      setFileStatusMap(prev => {
+                        if (prev[filename] !== 'failed') {
+                          failedCount++;
+                          toast.error(`❌ ${filename}: ${fileTask.error || 'Error'}`);
+                        }
+                        return { ...prev, [filename]: 'failed' };
+                      });
+                      setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
+                      setFileSubStatusMap(prev => ({ ...prev, [filename]: fileTask.error || 'Error' }));
+                      
+                      setMultiCertUploads(prev => prev.map(upload => 
+                        upload.filename === filename 
+                          ? { ...upload, status: 'failed', progress: 100, stage: '❌ Failed', error: fileTask.error }
+                          : upload
+                      ));
+                    } else if (fileTask.status === 'processing') {
+                      const progress = fileTask.progress || 50;
+                      setFileProgressMap(prev => ({ ...prev, [filename]: progress }));
+                      setFileSubStatusMap(prev => ({ ...prev, [filename]: fileTask.message || (language === 'vi' ? '🔄 Đang xử lý...' : '🔄 Processing...') }));
                     }
-                  } else if (fileTask.status === 'failed') {
-                    setFileStatusMap(prev => {
-                      if (prev[filename] !== 'failed') {
-                        failedCount++;
-                        toast.error(`❌ ${filename}: ${fileTask.error || 'Error'}`);
-                      }
-                      return { ...prev, [filename]: 'failed' };
-                    });
-                    setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
-                    setFileSubStatusMap(prev => ({ ...prev, [filename]: fileTask.error || 'Error' }));
-                    
-                    setMultiCertUploads(prev => prev.map(upload => 
-                      upload.filename === filename 
-                        ? { ...upload, status: 'failed', progress: 100, stage: '❌ Failed', error: fileTask.error }
-                        : upload
-                    ));
-                  } else if (fileTask.status === 'processing') {
-                    const progress = fileTask.progress || 50;
-                    setFileProgressMap(prev => ({ ...prev, [filename]: progress }));
-                    setFileSubStatusMap(prev => ({ ...prev, [filename]: fileTask.message || (language === 'vi' ? '🔄 Đang xử lý...' : '🔄 Processing...') }));
-                  }
-                });
-              }
+                  });
+                }
 
-              // Check if task is complete
-              if (task.status === 'completed' || task.status === 'failed') {
+                // Track task completion
+                if (task.status === 'completed' || task.status === 'failed') {
+                  taskCompletionStatus[task.task_id] = true;
+                } else {
+                  allTasksComplete = false;
+                }
+              }
+              
+              // Check if ALL tasks are complete
+              const completedCount = Object.values(taskCompletionStatus).filter(v => v).length;
+              console.log(`📊 Tasks completed: ${completedCount}/${taskIds.length}`);
+              
+              if (allTasksComplete || completedCount === taskIds.length) {
                 clearInterval(pollInterval);
+                console.log('✅ All tasks completed, finalizing results');
                 finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
               }
             } catch (pollError) {
