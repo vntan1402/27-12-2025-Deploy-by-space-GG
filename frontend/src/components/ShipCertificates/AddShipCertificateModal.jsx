@@ -508,40 +508,42 @@ export const AddShipCertificateModal = ({
       const allResults = [];
       
       // Function to start uploading and polling next file if slot available
-      const startNextFile = () => {
-        while (currentIndex < fileArray.length && activeProcesses.size < MAX_CONCURRENT) {
-          const index = currentIndex;
-          const file = fileArray[index];
-          currentIndex++;
-          
-          activeProcesses.add(index);
-          console.log(`🚀 Starting file ${index + 1}/${totalFiles} (${activeProcesses.size}/${MAX_CONCURRENT} active): ${file.name}`);
-          
-          // Start upload + polling (don't await here - let it run concurrently)
-          uploadAndPollFile(file, index).then(result => {
-            allResults[index] = result;
-            activeProcesses.delete(index);
-            console.log(`✅ Process slot freed (${activeProcesses.size}/${MAX_CONCURRENT} active)`);
-            
-            // Check if all files are done
-            const totalDone = completedFiles.size + failedFiles.size;
-            if (totalDone === totalFiles) {
-              console.log('✅ All files completed, finalizing results');
-              finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
-            } else {
-              // Start next file if available
-              startNextFile();
-            }
-          });
+      const startNextFile = async () => {
+        if (currentIndex >= fileArray.length || activeProcesses.size >= MAX_CONCURRENT) {
+          return; // No more files or no available slots
         }
+        
+        const index = currentIndex;
+        const file = fileArray[index];
+        currentIndex++;
+        
+        activeProcesses.add(index);
+        console.log(`🚀 Starting file ${index + 1}/${totalFiles} (${activeProcesses.size}/${MAX_CONCURRENT} active): ${file.name}`);
+        
+        // Start upload + polling (don't await here - let it run concurrently)
+        uploadAndPollFile(file, index).then(result => {
+          allResults[index] = result;
+          activeProcesses.delete(index);
+          console.log(`✅ Process slot freed (${activeProcesses.size}/${MAX_CONCURRENT} active)`);
+          
+          // Check if all files are done
+          const totalDone = completedFiles.size + failedFiles.size;
+          if (totalDone === totalFiles) {
+            console.log('✅ All files completed, finalizing results');
+            finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
+          } else if (currentIndex < fileArray.length) {
+            // Start next file with delay
+            setTimeout(() => startNextFile(), DELAY_BETWEEN_UPLOADS);
+          }
+        });
       };
 
-      // Start initial files (up to MAX_CONCURRENT) with delay between them
+      // Start initial files one by one with delay between them
       for (let i = 0; i < Math.min(MAX_CONCURRENT, fileArray.length); i++) {
         if (i > 0) {
           await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_UPLOADS));
         }
-        startNextFile();
+        await startNextFile();
       }
 
     } catch (error) {
