@@ -670,3 +670,86 @@ Processing: Text Layer Extraction + AI Correction
             import traceback
             logger.error(traceback.format_exc())
             await UploadTaskService.update_task_status(task_id, TaskStatus.FAILED)
+
+    @staticmethod
+    async def _deferred_gdrive_upload(
+        report_id: str,
+        file_content: str,  # base64 encoded
+        filename: str,
+        content_type: str,
+        summary_text: str,
+        user_id: str,
+        company_id: str
+    ):
+        """
+        Deferred GDrive upload - runs AFTER record is created and user sees success
+        This is called via asyncio.create_task() so it doesn't block the main flow
+        """
+        from app.services.survey_report_service import SurveyReportService
+        
+        try:
+            logger.info(f"🔄 Deferred GDrive upload starting for report {report_id}: {filename}")
+            
+            db = mongo_db.database
+            
+            # Get user from database
+            user_doc = await db.users.find_one({"id": user_id})
+            if not user_doc:
+                logger.error(f"❌ Deferred upload: User not found: {user_id}")
+                return
+            
+            # Build UserResponse
+            real_user = UserResponse(
+                id=user_doc["id"],
+                email=user_doc.get("email") or "",
+                username=user_doc["username"],
+                full_name=user_doc.get("full_name", ""),
+                role=UserRole(user_doc.get("role", "viewer")),
+                company=user_doc.get("company") or company_id,
+                department=user_doc.get("department") or [],
+                ship=user_doc.get("ship"),
+                zalo=user_doc.get("zalo"),
+                gmail=user_doc.get("gmail"),
+                is_active=user_doc.get("is_active", True),
+                signature_file_id=user_doc.get("signature_file_id"),
+                signature_url=user_doc.get("signature_url"),
+                crew_id=user_doc.get("crew_id"),
+                created_at=user_doc.get("created_at") or datetime.now(timezone.utc),
+                permissions=user_doc.get("permissions") or {}
+            )
+            
+            # Upload files to Google Drive
+            await SurveyReportService.upload_files(
+                report_id=report_id,
+                file_content=file_content,
+                filename=filename,
+                content_type=content_type,
+                summary_text=summary_text,
+                current_user=real_user
+            )
+            
+            # Update record to mark upload complete
+            await db.survey_reports.update_one(
+                {"id": report_id},
+                {"$set": {"file_pending_upload": False, "file_uploaded": True}}
+            )
+            
+            logger.info(f"✅ Deferred GDrive upload completed for report {report_id}")
+            
+        except Exception as e:
+            logger.error(f"❌ Deferred GDrive upload error for report {report_id}: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            
+            # Mark upload as failed
+            try:
+                db = mongo_db.database
+                await db.survey_reports.update_one(
+                    {"id": report_id},
+                    {"$set": {
+                        "file_pending_upload": False,
+                        "file_upload_error": str(e)
+                    }}
+                )
+            except:
+                pass
