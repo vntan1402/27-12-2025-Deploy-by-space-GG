@@ -165,7 +165,7 @@ class UploadTaskService:
         error: Optional[str] = None
     ):
         """
-        Update individual file status
+        Update individual file status by index
         """
         update_data = {
             f"files.{file_index}.status": status.value if isinstance(status, TaskStatus) else status,
@@ -199,6 +199,52 @@ class UploadTaskService:
         await mongo_db.database[COLLECTION_NAME].update_one(
             {"task_id": task_id},
             {"$set": update_data}
+        )
+    
+    @staticmethod
+    async def update_file_status_by_name(
+        task_id: str,
+        filename: str,
+        status: str,
+        progress: int = 0,
+        message: Optional[str] = None,
+        result: Optional[Dict[str, Any]] = None,
+        error: Optional[str] = None
+    ):
+        """
+        Update individual file status by filename
+        """
+        update_data = {
+            "updated_at": datetime.now(timezone.utc)
+        }
+        
+        # Build array filter update
+        array_filters = [{"elem.filename": filename}]
+        
+        set_data = {
+            "files.$[elem].status": status,
+            "files.$[elem].progress": progress,
+        }
+        
+        if message:
+            set_data["files.$[elem].message"] = message
+        
+        if result:
+            set_data["files.$[elem].result"] = result
+        
+        if error:
+            set_data["files.$[elem].error"] = error
+        
+        if status == "processing":
+            set_data["files.$[elem].started_at"] = datetime.now(timezone.utc)
+        
+        if status in ["completed", "failed"]:
+            set_data["files.$[elem].completed_at"] = datetime.now(timezone.utc)
+        
+        await mongo_db.database[COLLECTION_NAME].update_one(
+            {"task_id": task_id},
+            {"$set": {**update_data, **set_data}},
+            array_filters=array_filters
         )
     
     @staticmethod
