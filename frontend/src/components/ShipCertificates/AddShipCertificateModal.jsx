@@ -315,9 +315,110 @@ export const AddShipCertificateModal = ({
     let failedCount = 0;
     let firstSuccessInfo = null;
     let slowPathTaskId = null;
+    
+    // Tracking for per-file polling
+    const POLLING_INTERVAL = 4567; // 4567ms per poll
+    const MAX_POLL_TIME = 300000; // 5 minutes timeout
+    const completedFiles = new Set();
+    const failedFiles = new Set();
 
-    // Helper function to upload a single file
-    const uploadSingleFile = async (file, index) => {
+    // Helper function to poll a single task until completion
+    const pollSingleTask = async (taskId, filename, index) => {
+      console.log(`📊 [${index + 1}/${totalFiles}] Starting polling for ${filename} (task: ${taskId})`);
+      
+      const startTime = Date.now();
+      
+      while (Date.now() - startTime < MAX_POLL_TIME) {
+        try {
+          const response = await api.get(`/api/certificates/upload-task/${taskId}`);
+          const task = response.data;
+          
+          console.log(`📊 [${filename}] Task status: ${task.status}`);
+          
+          // Find this file in task.files
+          const fileTask = task.files?.find(f => f.filename === filename) || task.files?.[0];
+          
+          if (fileTask) {
+            if (fileTask.status === 'completed') {
+              console.log(`✅ [${filename}] Completed!`);
+              
+              setFileStatusMap(prev => ({ ...prev, [filename]: 'completed' }));
+              setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
+              setFileSubStatusMap(prev => ({ ...prev, [filename]: language === 'vi' ? '✅ Hoàn thành' : '✅ Completed' }));
+              
+              setMultiCertUploads(prev => prev.map(upload => 
+                upload.filename === filename 
+                  ? { ...upload, status: 'completed', progress: 100, stage: '✅ Completed', extracted_info: fileTask.result?.extracted_info }
+                  : upload
+              ));
+              
+              completedFiles.add(filename);
+              successCount++;
+              setBatchProgress(p => ({ ...p, current: completedFiles.size + failedFiles.size }));
+              toast.success(`✅ ${filename}`);
+              
+              // Store first success info for auto-fill
+              if (!firstSuccessInfo && fileTask.result?.extracted_info) {
+                firstSuccessInfo = fileTask.result.extracted_info;
+              }
+              
+              return { status: 'completed', filename, result: fileTask.result };
+              
+            } else if (fileTask.status === 'failed') {
+              console.log(`❌ [${filename}] Failed: ${fileTask.error}`);
+              
+              setFileStatusMap(prev => ({ ...prev, [filename]: 'failed' }));
+              setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
+              setFileSubStatusMap(prev => ({ ...prev, [filename]: fileTask.error || 'Error' }));
+              
+              setMultiCertUploads(prev => prev.map(upload => 
+                upload.filename === filename 
+                  ? { ...upload, status: 'failed', progress: 100, stage: '❌ Failed', error: fileTask.error }
+                  : upload
+              ));
+              
+              failedFiles.add(filename);
+              failedCount++;
+              setBatchProgress(p => ({ ...p, current: completedFiles.size + failedFiles.size }));
+              toast.error(`❌ ${filename}: ${fileTask.error || 'Error'}`);
+              
+              return { status: 'failed', filename, error: fileTask.error };
+              
+            } else {
+              // Still processing - update progress
+              const progress = fileTask.progress || 50;
+              setFileProgressMap(prev => ({ ...prev, [filename]: progress }));
+              setFileSubStatusMap(prev => ({ ...prev, [filename]: fileTask.message || (language === 'vi' ? '🔄 Đang xử lý...' : '🔄 Processing...') }));
+            }
+          }
+          
+          // Check overall task status
+          if (task.status === 'completed' || task.status === 'failed') {
+            break;
+          }
+          
+          // Wait before next poll
+          await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL));
+          
+        } catch (pollError) {
+          console.error(`❌ [${filename}] Polling error:`, pollError);
+          await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL));
+        }
+      }
+      
+      // Timeout
+      console.log(`⏱️ [${filename}] Polling timeout`);
+      setFileStatusMap(prev => ({ ...prev, [filename]: 'failed' }));
+      setFileSubStatusMap(prev => ({ ...prev, [filename]: 'Timeout' }));
+      failedFiles.add(filename);
+      failedCount++;
+      setBatchProgress(p => ({ ...p, current: completedFiles.size + failedFiles.size }));
+      
+      return { status: 'timeout', filename };
+    };
+
+    // Helper function to upload a single file and start polling immediately
+    const uploadAndPollFile = async (file, index) => {
       try {
         // Update status to uploading
         setFileStatusMap(prev => ({ ...prev, [file.name]: 'uploading' }));
@@ -364,6 +465,12 @@ export const AddShipCertificateModal = ({
             : upload
         ));
 
+        // ⭐ START POLLING IMMEDIATELY for this file (don't wait for others)
+        if (slow_path_task_id) {
+          console.log(`🔄 [${index + 1}/${totalFiles}] Starting immediate polling for ${file.name}`);
+          return await pollSingleTask(slow_path_task_id, file.name, index);
+        }
+        
         return { status: 'processing', index, filename: file.name, task_id: slow_path_task_id };
 
       } catch (fileError) {
@@ -379,189 +486,62 @@ export const AddShipCertificateModal = ({
             : upload
         ));
 
+        failedFiles.add(file.name);
+        failedCount++;
+        setBatchProgress(p => ({ ...p, current: completedFiles.size + failedFiles.size }));
         toast.error(`❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`);
+        
         return { status: 'error', index, filename: file.name, error: fileError.message };
       }
     };
 
     try {
       // ⭐ CONCURRENT UPLOAD with max 3 files at a time
-      // When one file finishes uploading, start uploading the next one
-      console.log(`📤 Smart Upload: Uploading ${totalFiles} files (max 3 concurrent, background processing)...`);
+      // Each file starts polling IMMEDIATELY after upload (don't wait for others)
+      console.log(`📤 Smart Upload: Uploading ${totalFiles} files (max 3 concurrent, immediate polling per file)...`);
 
-      const MAX_CONCURRENT = 3; // Maximum 3 files uploading at the same time
+      const MAX_CONCURRENT = 3; // Maximum 3 files uploading/polling at the same time
       const DELAY_BETWEEN_UPLOADS = 5000; // 5s delay before starting next upload
       
-      const uploadResults = [];
       let currentIndex = 0;
-      const activeUploads = new Set();
+      const activeProcesses = new Set();
+      const allResults = [];
       
-      // Function to start uploading next file if slot available
-      const startNextUpload = async () => {
-        while (currentIndex < fileArray.length && activeUploads.size < MAX_CONCURRENT) {
+      // Function to start uploading and polling next file if slot available
+      const startNextFile = () => {
+        while (currentIndex < fileArray.length && activeProcesses.size < MAX_CONCURRENT) {
           const index = currentIndex;
           const file = fileArray[index];
           currentIndex++;
           
-          activeUploads.add(index);
-          console.log(`🚀 Starting upload ${index + 1}/${totalFiles} (${activeUploads.size}/${MAX_CONCURRENT} active): ${file.name}`);
+          activeProcesses.add(index);
+          console.log(`🚀 Starting file ${index + 1}/${totalFiles} (${activeProcesses.size}/${MAX_CONCURRENT} active): ${file.name}`);
           
-          // Start upload (don't await here - let it run concurrently)
-          uploadSingleFile(file, index).then(result => {
-            uploadResults[index] = result;
-            activeUploads.delete(index);
-            console.log(`✅ Upload slot freed (${activeUploads.size}/${MAX_CONCURRENT} active)`);
+          // Start upload + polling (don't await here - let it run concurrently)
+          uploadAndPollFile(file, index).then(result => {
+            allResults[index] = result;
+            activeProcesses.delete(index);
+            console.log(`✅ Process slot freed (${activeProcesses.size}/${MAX_CONCURRENT} active)`);
+            
+            // Check if all files are done
+            const totalDone = completedFiles.size + failedFiles.size;
+            if (totalDone === totalFiles) {
+              console.log('✅ All files completed, finalizing results');
+              finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
+            } else {
+              // Start next file if available
+              startNextFile();
+            }
           });
-          
-          // Small delay before starting next concurrent upload
-          if (currentIndex < fileArray.length && activeUploads.size < MAX_CONCURRENT) {
-            await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_UPLOADS));
-          }
         }
       };
 
-      // Start initial uploads (up to MAX_CONCURRENT)
-      await startNextUpload();
-      
-      // Wait for all uploads to complete by polling
-      while (uploadResults.filter(r => r).length < totalFiles) {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Check every 1s
-        
-        // Start more uploads if slots are available
-        if (activeUploads.size < MAX_CONCURRENT && currentIndex < fileArray.length) {
-          await startNextUpload();
+      // Start initial files (up to MAX_CONCURRENT) with delay between them
+      for (let i = 0; i < Math.min(MAX_CONCURRENT, fileArray.length); i++) {
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_UPLOADS));
         }
-      }
-      
-      console.log('⏳ All uploads completed, results:', uploadResults);
-      
-      // Count immediate results
-      failedCount = uploadResults.filter(r => r.status === 'error').length;
-      
-      // Get all task_ids for polling
-      const processingFiles = uploadResults.filter(r => r.status === 'processing');
-      
-      if (processingFiles.length > 0) {
-        toast.info(language === 'vi'
-          ? `🔄 ${processingFiles.length} file đang xử lý background...`
-          : `🔄 ${processingFiles.length} files processing in background...`
-        );
-
-        // Poll for ALL tasks (each file has its own task_id)
-        const taskIds = [...new Set(processingFiles.map(f => f.task_id).filter(Boolean))];
-        
-        if (taskIds.length > 0) {
-          console.log(`📊 Polling ${taskIds.length} tasks:`, taskIds);
-          
-          // Track completion status for each task
-          const taskCompletionStatus = {};
-          taskIds.forEach(id => taskCompletionStatus[id] = false);
-          
-          const pollInterval = setInterval(async () => {
-            try {
-              // Poll ALL tasks in parallel
-              const pollPromises = taskIds.map(taskId => 
-                api.get(`/api/certificates/upload-task/${taskId}`).catch(err => ({ error: err, taskId }))
-              );
-              
-              const taskResponses = await Promise.all(pollPromises);
-              
-              let allTasksComplete = true;
-              
-              for (const response of taskResponses) {
-                if (response.error) {
-                  console.error('❌ Polling error for task:', response.taskId, response.error);
-                  continue;
-                }
-                
-                const task = response.data;
-                console.log('📊 Task status:', task.task_id, task.status);
-
-                // Update progress for each file in this task
-                if (task.files) {
-                  task.files.forEach((fileTask) => {
-                    const filename = fileTask.filename;
-                    
-                    if (fileTask.status === 'completed') {
-                      setFileStatusMap(prev => {
-                        if (prev[filename] !== 'completed') {
-                          successCount++;
-                          setBatchProgress(p => ({ ...p, current: p.current + 1 }));
-                          toast.success(`✅ ${filename}`);
-                        }
-                        return { ...prev, [filename]: 'completed' };
-                      });
-                      setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
-                      setFileSubStatusMap(prev => ({ ...prev, [filename]: language === 'vi' ? '✅ Hoàn thành' : '✅ Completed' }));
-                      
-                      setMultiCertUploads(prev => prev.map(upload => 
-                        upload.filename === filename 
-                          ? { ...upload, status: 'completed', progress: 100, stage: '✅ Completed', extracted_info: fileTask.result?.extracted_info }
-                          : upload
-                      ));
-
-                      if (!firstSuccessInfo && fileTask.result?.extracted_info) {
-                        firstSuccessInfo = fileTask.result.extracted_info;
-                      }
-                    } else if (fileTask.status === 'failed') {
-                      setFileStatusMap(prev => {
-                        if (prev[filename] !== 'failed') {
-                          failedCount++;
-                          toast.error(`❌ ${filename}: ${fileTask.error || 'Error'}`);
-                        }
-                        return { ...prev, [filename]: 'failed' };
-                      });
-                      setFileProgressMap(prev => ({ ...prev, [filename]: 100 }));
-                      setFileSubStatusMap(prev => ({ ...prev, [filename]: fileTask.error || 'Error' }));
-                      
-                      setMultiCertUploads(prev => prev.map(upload => 
-                        upload.filename === filename 
-                          ? { ...upload, status: 'failed', progress: 100, stage: '❌ Failed', error: fileTask.error }
-                          : upload
-                      ));
-                    } else if (fileTask.status === 'processing') {
-                      const progress = fileTask.progress || 50;
-                      setFileProgressMap(prev => ({ ...prev, [filename]: progress }));
-                      setFileSubStatusMap(prev => ({ ...prev, [filename]: fileTask.message || (language === 'vi' ? '🔄 Đang xử lý...' : '🔄 Processing...') }));
-                    }
-                  });
-                }
-
-                // Track task completion
-                if (task.status === 'completed' || task.status === 'failed') {
-                  taskCompletionStatus[task.task_id] = true;
-                } else {
-                  allTasksComplete = false;
-                }
-              }
-              
-              // Check if ALL tasks are complete
-              const completedCount = Object.values(taskCompletionStatus).filter(v => v).length;
-              console.log(`📊 Tasks completed: ${completedCount}/${taskIds.length}`);
-              
-              if (allTasksComplete || completedCount === taskIds.length) {
-                clearInterval(pollInterval);
-                console.log('✅ All tasks completed, finalizing results');
-                finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
-              }
-            } catch (pollError) {
-              console.error('❌ Polling error:', pollError);
-            }
-          }, 10000); // Poll every 10 seconds
-
-          // Timeout after 5 minutes
-          setTimeout(() => {
-            clearInterval(pollInterval);
-            toast.warning(language === 'vi'
-              ? '⚠️ Background processing timeout.'
-              : '⚠️ Background processing timeout.'
-            );
-            finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
-          }, 300000);
-        }
-      } else if (failedCount === totalFiles) {
-        // All failed immediately
-        finalizeBatchResults(fileArray, 0, failedCount, null);
+        startNextFile();
       }
 
     } catch (error) {
