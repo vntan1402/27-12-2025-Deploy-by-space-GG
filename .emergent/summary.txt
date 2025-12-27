@@ -1,570 +1,160 @@
 <analysis>**original_problem_statement:**
-The user's initial goal was to fix a broken user signature upload feature. This expanded into a series of bug fixes and UI/UX improvements. The core problem addressed in this session was a critical production-specific timeout error during Survey Report and Certificate uploads. The agent diagnosed that these timeouts were caused by long-running synchronous calls to external AI services (Google Document AI), which worked on the preview environment but failed on production due to stricter proxy timeouts.
+The user's primary goal was to fix a critical  error occurring on the production environment during certificate uploads. This error was a symptom of a backend request timeout (~100-120s) caused by long-running synchronous file processing (AI analysis, Google Drive uploads).
 
-To solve this, the Smart Upload feature was introduced, which uses a FAST PATH for quick synchronous processing of files with text layers and a SLOW PATH for asynchronous background processing of scanned files.
+The agent's initial attempts to increase frontend timeouts were unsuccessful. Through detailed performance analysis with timing logs, the agent identified that the main bottlenecks were multiple synchronous Google Drive uploads and calls to the Gemini API for each file in a batch.
 
-During this session, the user requested to change the logic for the Survey Report's smart upload and also reported a recurring  error during certificate uploads on the production environment.
+The solution evolved to completely re-architect the feature, adopting a fully asynchronous, background-processing model inspired by the existing Audit Certificate functionality. This involved changing the frontend to send each file in a separate, staggered request and modifying the backend to immediately return a  while handling all heavy processing in a background worker. During this refactoring, the user reported several new bugs related to the background task implementation, which the agent debugged and fixed.
 
 **PRODUCT REQUIREMENTS from this session:**
-- **(In Progress)** Fix the production /timeout error for certificate uploads.
-- **(Completed)** Refactor the frontend for Class Survey Report to use the new Smart Upload asynchronous flow.
-- **(Completed)** Modify the backend logic for Survey Report uploads based on new user requirements (differentiating processing paths based on page count).
-- **(Completed)** Verify that the improved AI Text Correction feature works as expected.
+- **(In Progress)** Fix the production /timeout error for certificate uploads by making the process asynchronous.
+- **(In Progress)** Ensure the multi-file upload UI correctly tracks the status of all uploaded files.
 
 **User's preferred language**: Vietnamese
 
 **what currently exists?**
-The Smart Upload feature is now implemented for both Certificates and Survey Reports, but with different logic.
-- **Certificate Upload:**
-    - The backend uses a FAST PATH for PDFs with a text layer (>= 400 characters) and a SLOW PATH for scanned PDFs/images.
-    - The frontend () uses this smart flow, including a  function that now correctly calls the smart endpoint.
-    - A production CORS error, identified as a backend timeout (HTTP 520), was reported. The agent increased the frontend request timeout to 120s as a mitigation attempt, but the user's last message was the error log, indicating the issue likely persists.
-- **Survey Report Upload:**
-    - The frontend () and backend () have been fully refactored to support a new smart upload logic requested by the user.
-    - **New Logic:** Files with ≤15 pages go to the SLOW PATH. Files with >15 pages go to the FAST PATH if they have a text layer, otherwise they go to the SLOW PATH. This has been tested and is working.
-- **AI Text Correction:**
-    - The improved prompt for the Gemini-based text correction was tested and confirmed by the user to be working well.
+The Ship Certificate upload feature has been completely refactored to an asynchronous, background-processing flow to prevent server timeouts.
+
+-   **Frontend ():**
+    -   When a user uploads multiple files, the frontend sends each file as a *separate API request* with a 2-second delay between them (staggered requests).
+    -   Each API call immediately returns a unique .
+    -   The agent identified and fixed a bug where the frontend was only tracking the status of the first file. The new logic is intended to poll all s in parallel to get the status for every file. This fix is pending user verification.
+
+-   **Backend ( & ):**
+    -   The  endpoint now receives a single file, creates a task in the  collection with a  status, and immediately returns the .
+    -   A background worker () is scheduled to handle the entire processing pipeline for that file: AI analysis, parallel upload of the PDF and summary file to Google Drive, and creation of the final record in the  collection.
+    -   The logic correctly uses  for scanned PDFs/images (SLOW_PATH) and only the text layer for digital PDFs (FAST_PATH) within the background task.
+    -   Several critical bugs in the background task were fixed, including issues with incorrect function arguments, Pydantic model validation, and passing the correct user context.
 
 **Last working item**:
--   **Last item agent was working:** Investigating and fixing a  error reported by the user on the production environment during certificate uploads. The agent correctly identified this as a symptom of a backend timeout (HTTP 520 error from Cloudflare proxy), likely because the combined processing time for multiple files exceeded the proxy's limit (e.g., 100 seconds).
--   **Status:** IN PROGRESS
--   **Agent Testing Done:** N (The issue is on production, agent applied fixes but cannot verify directly)
--   **Which testing method agent to use?** User verification is required on the production environment. The next agent should ask the user to test the upload again. If it fails, the agent must debug the backend performance.
--   **User Testing Done:** N (User reported the error, agent made changes, but the user has not confirmed if the fix works).
+-   **Last item agent was working:** Fixing a frontend bug where, after uploading multiple files, the UI only tracked the progress of the first file. The root cause was that the polling logic only monitored the first  received. The agent implemented a fix to collect all s from the staggered uploads and poll them concurrently using .
+-   **Status:** USER VERIFICATION PENDING
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** Manual testing by the user is required. The agent should ask the user to upload multiple files and provide the browser's developer console logs to confirm that polling requests are being made for all unique task IDs.
+-   **User Testing Done:** N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Production CORS/Timeout Error on Certificate Upload (P0)**
-    -   **Description:** When uploading multiple certificates on the production environment, the request fails with a CORS error. This is a symptom of an underlying HTTP 520 error, meaning the backend server process is crashing or timing out before it can send a response with the correct CORS headers.
-    -   **Attempted fixes:**
-        1.  The  function in  was fixed to call the new  endpoint instead of the old, synchronous .
-        2.  The frontend Axios request timeout in  was increased from 60s to 120s.
+-   **Issue 1: Multi-file upload UI only tracks the first file (P0)**
+    -   **Description:** When multiple files are uploaded, the frontend receives a unique  for each file but only polls the first one. This makes it seem like only the first file is being processed, while the rest are ignored by the UI.
+    -   **Attempted fixes:** The agent modified  to gather all s into an array and use  to run the  function for every ID, ensuring all files are tracked.
     -   **Next debug checklist:**
-        1.  Ask the user to try uploading certificates on production again to see if the timeout increase and retry-fix were sufficient.
-        2.  If the error persists, check the production backend logs (==> /var/log/supervisor/backend.err.log <==
-INFO:app.db.mongodb:Updated document in survey_reports
-INFO:app.services.survey_report_service:✅ Survey report record updated with file IDs
-INFO:app.services.survey_report_analyze_service:📋 Starting survey report analysis for ship_id: ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2
-INFO:app.services.survey_report_analyze_service:📄 Processing survey report file: 4.RECORD GMDSS, SSAS, EPIRB, AIS,,SURVEY CHECK LIST GMDSS.pdf (4669817 bytes)
-INFO:app.services.survey_report_analyze_service:📊 PDF Analysis: 26 pages, Split needed: True
-INFO:app.services.survey_report_analyze_service:🤖 Analyzing survey report with AI...
-INFO:app.services.survey_report_analyze_service:🔪 Splitting PDF (26 pages) into chunks...
-INFO:app.services.survey_report_analyze_service:⏱️ [TIMING] Starting large PDF processing: 4.RECORD GMDSS, SSAS, EPIRB, AIS,,SURVEY CHECK LIST GMDSS.pdf (26 pages)
-INFO:app.services.survey_report_analyze_service:⚡ SMART PATH: Checking text layer for large PDF (26 pages)...
-INFO:app.utils.pdf_text_extractor:⚡ Quick text layer check for: 4.RECORD GMDSS, SSAS, EPIRB, AIS,,SURVEY CHECK LIST GMDSS.pdf
-INFO:app.utils.pdf_text_extractor:   📊 Pages: 26, Characters: 50836, Sufficient: True
-INFO:app.services.survey_report_analyze_service:⚡ FAST PATH selected for large PDF: 50836 chars >= 400 threshold
-INFO:app.services.survey_report_analyze_service:   📊 Text quality: 82%, needs_correction: True
-INFO:app.services.survey_report_analyze_service:   🔧 Applying AI text correction for large PDF (quality issues: ['Many OCR error patterns detected: 352'])
-INFO:app.utils.text_layer_correction:🔧 Starting text layer correction for: 4.RECORD GMDSS, SSAS, EPIRB, AIS,,SURVEY CHECK LIST GMDSS.pdf
-INFO:app.utils.text_layer_correction:   📊 Original text length: 50837 characters
-INFO:app.utils.text_layer_correction:   🤖 Using google/gemini-2.0-flash for text correction
-[92m13:45:59 - LiteLLM:INFO[0m: utils.py:3384 - 
-LiteLLM completion() model= gemini/gemini-2.0-flash; provider = openai
-INFO:LiteLLM:
-LiteLLM completion() model= gemini/gemini-2.0-flash; provider = openai
-[92m13:46:53 - LiteLLM:INFO[0m: utils.py:1277 - Wrapper: Completed Call, calling success_handler
-INFO:LiteLLM:Wrapper: Completed Call, calling success_handler
-INFO:app.utils.text_layer_correction:   ✅ Correction complete: 7785 → 4099 words
-INFO:app.utils.text_layer_correction:⏱️ Text correction completed in 54.00s
-INFO:app.services.survey_report_analyze_service:   ✅ Text corrected in 54.0s
-INFO:app.services.survey_report_analyze_service:✅ Text layer summary: 27196 characters
-INFO:app.services.survey_report_analyze_service:🔍 Running targeted OCR for Report Form...
-INFO:app.services.survey_report_analyze_service:✅ OCR processor available - extracting from large_pdf_first_page...
-INFO:app.utils.targeted_ocr:🔍 Starting targeted OCR extraction for page 0
-ERROR:app.utils.targeted_ocr:❌ Targeted OCR failed: Unable to get page count. Is poppler installed and in PATH?
-WARNING:app.services.survey_report_analyze_service:⚠️ OCR extraction returned no results
-INFO:app.services.survey_report_analyze_service:🧠 Extracting fields from summary...
-INFO:app.utils.survey_report_ai:🔄 Using Gemini model: gemini-2.0-flash (provider: google)
-[92m13:46:53 - LiteLLM:INFO[0m: utils.py:3384 - 
-LiteLLM completion() model= gemini/gemini-2.0-flash; provider = openai
-INFO:LiteLLM:
-LiteLLM completion() model= gemini/gemini-2.0-flash; provider = openai
-[92m13:46:55 - LiteLLM:INFO[0m: utils.py:1277 - Wrapper: Completed Call, calling success_handler
-INFO:LiteLLM:Wrapper: Completed Call, calling success_handler
-INFO:app.utils.survey_report_ai:✅ Survey report fields extracted successfully
-INFO:app.services.survey_report_analyze_service:✅ Field extraction completed (FAST_PATH)
-INFO:app.services.survey_report_analyze_service:✅ Normalized Issued By: 'Lloyd's Register' → 'LR'
-INFO:app.services.survey_report_analyze_service:⏱️ [TIMING] Large PDF processing completed in 57.31s (FAST_PATH)
-INFO:app.services.survey_report_analyze_service:🔍 Ship name similarity: 100.00% - 'TRUONG MINH SEA' vs 'TRUONG MINH SEA'
-INFO:app.services.survey_report_analyze_service:🔍 IMO match: True - '9544011' vs '9544011'
-INFO:app.services.survey_report_analyze_service:✅ Ship validation passed (similarity: 100.00%)
-INFO:app.services.survey_report_analyze_service:✅ Survey report analysis completed successfully
-INFO:app.core.permission_checks:🔐 CHECK_CREATE_PERMISSION: user=admin1, doc_type=survey_report, target_company=smart-upload-2
-INFO:app.core.permission_checks:🔍 CHECK_COMPANY_ACCESS: user=admin1, role=UserRole.ADMIN, user_company=smart-upload-2, target_company=smart-upload-2, action=create
-INFO:app.core.permission_checks:✅ PASS: Company access granted
-INFO:app.core.permission_checks:🔍 CHECK_MANAGER_DEPT: user=admin1, role=UserRole.ADMIN, document_type=survey_report, action=create
-INFO:app.core.permission_checks:✅ SKIP: Role UserRole.ADMIN not subject to department restrictions
-INFO:app.core.permission_checks:✅ CREATE PERMISSION GRANTED for admin1
-INFO:app.db.mongodb:Created document in survey_reports: 694e91d84c67de50d02009dd
-INFO:app.services.survey_report_service:✅ Survey Report created: GMDSS Radio Installation
-INFO:app.services.survey_report_service:📤 Starting file upload for survey report: 7727d417-746d-4824-b7c9-ed991adfb304
-INFO:app.services.survey_report_service:✅ Decoded file content: 4669817 bytes
-INFO:app.services.survey_report_service:📄 Uploading original file to: TRUONG MINH SEA/Class & Flag Cert/Class Survey Report/4.RECORD GMDSS, SSAS, EPIRB, AIS,,SURVEY CHECK LIST GMDSS.pdf
-INFO:app.services.gdrive_service:📤 Uploading file to GDrive: 4.RECORD GMDSS, SSAS, EPIRB, AIS,,SURVEY CHECK LIST GMDSS.pdf (4669817 bytes)
-INFO:app.services.gdrive_service:📁 Folder path: TRUONG MINH SEA / Class & Flag Cert / Class Survey Report
-INFO:app.services.gdrive_service:   Apps Script will check/reuse existing folders before creating new ones
-INFO:app.services.gdrive_service:⏱️ [TIMING] Starting GDrive upload (attempt 1)...
-INFO:app.services.gdrive_service:⏱️ [TIMING] GDrive upload response in 9.51s (status: 200)
-INFO:app.services.gdrive_service:✅ File uploaded successfully
-INFO:app.services.gdrive_service:   File ID: 1voRMRwTCxADnbizGYw9yEyTYsWaiWQ9N
-INFO:app.services.gdrive_service:   Path: 
-INFO:app.services.survey_report_service:✅ Original file uploaded: 1voRMRwTCxADnbizGYw9yEyTYsWaiWQ9N
-INFO:app.services.survey_report_service:📋 Uploading summary file to: TRUONG MINH SEA/Class & Flag Cert/Class Survey Report/4.RECORD GMDSS, SSAS, EPIRB, AIS,,SURVEY CHECK LIST GMDSS_Summary.txt
-INFO:app.services.gdrive_service:📤 Uploading file to GDrive: 4.RECORD GMDSS, SSAS, EPIRB, AIS,,SURVEY CHECK LIST GMDSS_Summary.txt (27196 bytes)
-INFO:app.services.gdrive_service:📁 Folder path: TRUONG MINH SEA / Class & Flag Cert / Class Survey Report
-INFO:app.services.gdrive_service:   Apps Script will check/reuse existing folders before creating new ones
-INFO:app.services.gdrive_service:⏱️ [TIMING] Starting GDrive upload (attempt 1)...
-INFO:app.services.gdrive_service:⏱️ [TIMING] GDrive upload response in 2.57s (status: 200)
-INFO:app.services.gdrive_service:✅ File uploaded successfully
-INFO:app.services.gdrive_service:   File ID: 1wkLBiXo-QEgBWC58RD-_hruK1U9Pg6TL
-INFO:app.services.gdrive_service:   Path: 
-INFO:app.services.survey_report_service:✅ Summary file uploaded: 1wkLBiXo-QEgBWC58RD-_hruK1U9Pg6TL
-INFO:app.db.mongodb:Updated document in survey_reports
-INFO:app.services.survey_report_service:✅ Survey report record updated with file IDs
-INFO:app.api.v1.system_announcements:✅ Retrieved 1 active announcements
-INFO:app.api.v1.system_announcements:✅ Retrieved 1 active announcements
-WARNING:  WatchFiles detected changes in 'app/services/ship_certificate_analyze_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:     Application shutdown complete.
-INFO:     Finished server process [4556]
-INFO:     Started server process [5307]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/services/ship_certificate_analyze_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [5307]
-INFO:     Started server process [5380]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [5380]
-INFO:     Stopping reloader process [4554]
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [5407] using WatchFiles
-INFO:     Started server process [5409]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-WARNING:  WatchFiles detected changes in 'app/services/ship_certificate_analyze_service.py'. Reloading...
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [5409]
-INFO:     Started server process [5483]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:app.main:✅ Scheduler shut down
-INFO:app.db.mongodb:Disconnected from MongoDB
-INFO:app.main:✅ Database disconnected
-INFO:apscheduler.scheduler:Scheduler has been shut down
-INFO:     Application shutdown complete.
-INFO:     Finished server process [5483]
-INFO:     Stopping reloader process [5407]
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [5502] using WatchFiles
-INFO:     Started server process [5504]
-INFO:     Waiting for application startup.
-INFO:app.main:🚀 Starting Ship Management System API V2...
-INFO:app.db.mongodb:Database indexes created successfully
-INFO:app.db.mongodb:Successfully connected to MongoDB: ship_management
-INFO:app.main:✅ Database connected
-INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
-INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
-INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
-INFO:apscheduler.scheduler:Scheduler started
-INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
-INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
-INFO:     Application startup complete.
-INFO:     Will watch for changes in these directories: ['/app/backend']
-INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
-INFO:     Started reloader process [48] using WatchFiles
-
-==> /var/log/supervisor/backend.out.log <==
-INFO:     10.64.128.210:38152 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.128.213:52608 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.128.225:56496 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.128.213:52608 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.128.214:45490 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.128.225:56496 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.128.210:38152 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.128.214:45490 - "GET /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/certificates HTTP/1.1" 200 OK
-INFO:     10.64.128.225:56496 - "GET /api/gdrive/file/1rbSxvpzf9stzjUMbKOAGLqF210XfBqOM/view HTTP/1.1" 200 OK
-INFO:     10.64.128.210:38152 - "GET /api/gdrive/file/1C4tYdAomYOG9SpSwNHIQc9du6f5M5QrJ/view HTTP/1.1" 200 OK
-INFO:     10.64.128.214:34552 - "POST /api/certificates/multi-upload-smart?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.128.214:34552 - "GET /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/certificates HTTP/1.1" 200 OK
-INFO:     10.64.128.210:58896 - "GET /api/gdrive/file/16QpMQEuVr2y931q-mzG-F16Nn1Be4e71/view HTTP/1.1" 200 OK
-INFO:     10.64.128.210:58904 - "GET /api/gdrive/file/1k29HLShon8-_9ADsvAx2NCf5usmkL1bW/view HTTP/1.1" 200 OK
-INFO:     10.64.128.213:52688 - "GET /api/gdrive/file/1aP79CQZjucMRgHENaLza9In21Z4L-m3t/view HTTP/1.1" 200 OK
-INFO:     10.64.128.210:58902 - "GET /api/gdrive/file/1p0cTEZk4T7iSZn7zGiGHJEVGPXs5cYu6/view HTTP/1.1" 200 OK
-INFO:     10.64.128.225:39588 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.128.214:36550 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.128.225:39588 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.128.210:33342 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.128.210:33342 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.128.213:39200 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.128.213:39186 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.128.210:33342 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.128.213:39186 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.128.214:36550 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.128.214:36550 - "GET /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/certificates HTTP/1.1" 200 OK
-INFO:     10.64.128.225:39588 - "GET /api/gdrive/file/1p0cTEZk4T7iSZn7zGiGHJEVGPXs5cYu6/view HTTP/1.1" 200 OK
-INFO:     10.64.128.214:36550 - "GET /api/gdrive/file/1rbSxvpzf9stzjUMbKOAGLqF210XfBqOM/view HTTP/1.1" 200 OK
-INFO:     10.64.128.213:39186 - "GET /api/gdrive/file/1C4tYdAomYOG9SpSwNHIQc9du6f5M5QrJ/view HTTP/1.1" 200 OK
-INFO:     10.64.128.210:33342 - "GET /api/gdrive/file/16QpMQEuVr2y931q-mzG-F16Nn1Be4e71/view HTTP/1.1" 200 OK
-INFO:     10.64.128.214:36560 - "GET /api/gdrive/file/1k29HLShon8-_9ADsvAx2NCf5usmkL1bW/view HTTP/1.1" 200 OK
-INFO:     10.64.128.214:36560 - "GET /api/gdrive/file/1aP79CQZjucMRgHENaLza9In21Z4L-m3t/view HTTP/1.1" 200 OK
-INFO:     10.64.130.23:47802 - "POST /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/calculate-special-survey-cycle HTTP/1.1" 200 OK
-INFO:     10.64.130.21:52834 - "POST /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/calculate-anniversary-date HTTP/1.1" 200 OK
-INFO:     10.64.130.23:47802 - "POST /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/calculate-next-docking HTTP/1.1" 200 OK
-INFO:     10.64.130.21:52834 - "POST /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/update-next-survey HTTP/1.1" 200 OK
-INFO:     10.64.130.21:52834 - "GET /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/certificates HTTP/1.1" 200 OK
-INFO:     10.64.128.210:56226 - "POST /api/certificates/343b5456-f3f2-459e-84f0-ea2389eb9e68/auto-rename-file HTTP/1.1" 200 OK
-INFO:     10.64.128.214:39484 - "POST /api/certificates/c024b4b4-e4ba-4cc9-bacd-f5b800fd07e7/auto-rename-file HTTP/1.1" 200 OK
-INFO:     10.64.131.112:46292 - "POST /api/login HTTP/1.1" 200 OK
-INFO:     10.64.128.214:39498 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.112:46292 - "POST /api/survey-reports/multi-upload-smart?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.128.214:39484 - "POST /api/certificates/574131f7-ab19-4a21-9487-b76f9c070b94/auto-rename-file HTTP/1.1" 200 OK
-INFO:     10.64.128.210:34668 - "POST /api/certificates/666cf2ae-7b63-4569-afbf-55e5da2db19c/auto-rename-file HTTP/1.1" 200 OK
-INFO:     10.64.128.210:34668 - "POST /api/certificates/eac94498-7435-429b-9158-b1008ba2859b/auto-rename-file HTTP/1.1" 200 OK
-INFO:     10.64.128.214:54262 - "POST /api/certificates/079cf7b0-a718-4d5c-bb55-a65177181a44/auto-rename-file HTTP/1.1" 200 OK
-INFO:     10.64.128.225:44746 - "GET /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/certificates HTTP/1.1" 200 OK
-INFO:     10.64.128.214:39498 - "POST /api/survey-reports/multi-upload-smart?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.128.214:39498 - "POST /api/survey-reports/multi-upload-smart?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.113:59362 - "GET /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/certificates HTTP/1.1" 200 OK
-INFO:     10.64.131.102:42060 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.102:42060 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.112:39710 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.112:39710 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.102:42060 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.113:59362 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.102:42060 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.112:39710 - "GET /api/certificates?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.113:59362 - "GET /api/certificates?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.87:54802 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.87:44266 - "POST /api/survey-reports/analyze-file HTTP/1.1" 200 OK
-INFO:     10.64.131.102:59920 - "POST /api/survey-reports HTTP/1.1" 200 OK
-INFO:     10.64.131.113:55262 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.112:54610 - "POST /api/survey-reports/ce37420d-669c-40f3-9470-5b41c679d1a7/upload-files HTTP/1.1" 200 OK
-INFO:     10.64.131.102:56978 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.112:54610 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.113:39450 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.87:58758 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.102:57696 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.112:51292 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.112:51292 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.102:57696 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.113:39450 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.87:58758 - "GET /api/certificates?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.113:39450 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.102:57696 - "GET /api/certificates?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.87:58758 - "POST /api/survey-reports/bulk-delete HTTP/1.1" 200 OK
-INFO:     10.64.131.87:58758 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.112:57880 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.113:34966 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.113:34980 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.102:54902 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.87:54678 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.113:34980 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.112:57880 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.112:57880 - "GET /api/certificates?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.87:54678 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.113:34980 - "GET /api/certificates?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.112:60908 - "POST /api/survey-reports/analyze-file HTTP/1.1" 200 OK
-INFO:     10.64.131.102:60648 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.112:35150 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.113:37164 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.128.225:52586 - "GET /api/system-announcements/active HTTP/1.1" 200 OK
-INFO:     10.64.131.113:37164 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.128.213:57626 - "GET /api/system-announcements/active HTTP/1.1" 200 OK
-INFO:     10.64.131.102:60648 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.87:53902 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.102:60648 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.112:35150 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.131.112:35162 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.131.113:37164 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.87:53902 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.131.112:35162 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.131.87:53902 - "GET /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/certificates HTTP/1.1" 200 OK
-INFO:     10.64.131.113:37164 - "GET /api/gdrive/file/1C4tYdAomYOG9SpSwNHIQc9du6f5M5QrJ/view HTTP/1.1" 200 OK
-INFO:     10.64.131.87:35484 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.102:48204 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.102:48220 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.87:35484 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.112:47608 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.102:48220 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.113:46852 - "GET /api/certificates?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.87:35484 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.102:48220 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.102:48220 - "GET /api/certificates?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.112:49682 - "POST /api/survey-reports/analyze-file HTTP/1.1" 200 OK
-INFO:     10.64.131.113:59598 - "POST /api/survey-reports HTTP/1.1" 200 OK
-INFO:     10.64.131.113:59598 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.112:57426 - "POST /api/survey-reports/b56a6cfc-3b56-4277-bdcf-f08fe0d999b1/upload-files HTTP/1.1" 200 OK
-INFO:     10.64.131.102:46660 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.112:34560 - "POST /api/login HTTP/1.1" 200 OK
-INFO:     10.64.130.21:33386 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.87:44614 - "POST /api/survey-reports/analyze-file?ship_id=smart-upload-2&bypass_validation=true HTTP/1.1" 422 Unprocessable Entity
-INFO:     10.64.128.214:46398 - "POST /api/login HTTP/1.1" 200 OK
-INFO:     10.64.128.210:59856 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.128.210:59856 - "POST /api/survey-reports/analyze-file HTTP/1.1" 200 OK
-INFO:     10.64.130.23:41264 - "POST /api/login HTTP/1.1" 200 OK
-INFO:     10.64.128.214:48404 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.131.87:46412 - "POST /api/survey-reports/analyze-file HTTP/1.1" 200 OK
-INFO:     10.64.130.21:45644 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.131.87:52948 - "GET /api/system-announcements/active HTTP/1.1" 200 OK
-INFO:     10.64.130.21:45644 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.130.23:34124 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.131.113:47250 - "GET /api/system-announcements/active HTTP/1.1" 200 OK
-INFO:     10.64.130.23:34124 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.21:45644 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.23:34124 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.23:34124 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.130.23:34124 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.130.21:45644 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.130.21:45644 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.130.21:45644 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.130.23:34124 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.130.23:34124 - "GET /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/certificates HTTP/1.1" 200 OK
-INFO:     10.64.130.21:45644 - "GET /api/gdrive/file/1p0cTEZk4T7iSZn7zGiGHJEVGPXs5cYu6/view HTTP/1.1" 200 OK
-INFO:     10.64.130.21:45656 - "GET /api/gdrive/file/1C4tYdAomYOG9SpSwNHIQc9du6f5M5QrJ/view HTTP/1.1" 200 OK
-INFO:     10.64.130.23:34124 - "GET /api/gdrive/file/1rbSxvpzf9stzjUMbKOAGLqF210XfBqOM/view HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/crew HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/crew HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/crew?ship_name=TRUONG+MINH+SEA HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/crew HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/crew HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/ai-config HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/company HTTP/1.1" 200 OK
-INFO:     10.64.130.23:48208 - "GET /api/ships/ea64096c-a3dd-49e7-a35f-86e9dfa3f5b2/certificates HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37558 - "GET /api/gdrive/file/1C4tYdAomYOG9SpSwNHIQc9du6f5M5QrJ/view HTTP/1.1" 200 OK
-INFO:     10.64.130.23:36430 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.130.23:36430 - "GET /api/verify-token HTTP/1.1" 200 OK
-INFO:     10.64.130.21:42756 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.21:42756 - "GET /api/companies HTTP/1.1" 200 OK
-INFO:     10.64.130.23:36430 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.130.21:42756 - "GET /api/ships HTTP/1.1" 200 OK
-INFO:     10.64.130.23:36430 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.130.23:36430 - "GET /api/certificates?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.130.21:42756 - "GET /api/certificates?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.130.21:42756 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.130.23:36434 - "POST /api/survey-reports/bulk-delete HTTP/1.1" 200 OK
-INFO:     10.64.130.21:37854 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.130.23:43480 - "POST /api/survey-reports/analyze-file HTTP/1.1" 200 OK
-INFO:     10.64.130.23:43480 - "POST /api/survey-reports HTTP/1.1" 200 OK
-INFO:     10.64.130.23:43480 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.130.23:43480 - "POST /api/survey-reports/e03a0c5a-5955-428f-8443-8ba4ce3fd155/upload-files HTTP/1.1" 200 OK
-INFO:     10.64.130.21:46748 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.112:38630 - "POST /api/survey-reports/analyze-file HTTP/1.1" 200 OK
-INFO:     10.64.131.112:58276 - "POST /api/survey-reports HTTP/1.1" 200 OK
-INFO:     10.64.131.113:49700 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.87:54308 - "POST /api/survey-reports/7727d417-746d-4824-b7c9-ed991adfb304/upload-files HTTP/1.1" 200 OK
-INFO:     10.64.131.112:45244 - "GET /api/survey-reports?ship_id=smart-upload-2 HTTP/1.1" 200 OK
-INFO:     10.64.131.87:59220 - "GET /api/system-announcements/active HTTP/1.1" 200 OK
-INFO:     10.64.131.102:41422 - "GET /api/system-announcements/active HTTP/1.1" 200 OK) immediately after the user's failed attempt to find the specific timeout or crash reason.
-        3.  The root cause is likely that even with FAST_PATH, processing multiple files at once (e.g., each involving an AI call for text correction) takes longer than the proxy's timeout limit.
-        4.  Consider further optimizing the  to reduce synchronous processing time, for example by moving files that need AI text correction to the SLOW_PATH.
-    -   **Why fix this issue and what will be achieved with the fix?** This is a critical production bug blocking a core feature of the application. Fixing it will restore the certificate upload functionality for users.
-    -   **Status:** IN PROGRESS
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** Backend performance analysis and User verification on production.
-    -   **Blocked on other issue:** None.
-
--   **Issue 2: Result modal shows failure while toast shows success for SLOW PATH (P1)**
-    -   **Description:** A UI bug from the previous session where, for a file processed via the SLOW PATH, the final results modal incorrectly shows a failure while the toast notification correctly reports success.
-    -   **Attempted fixes:** None in this session. The previous agent suspected it might have been related to a backend crash that was fixed.
-    -   **Next debug checklist:**
-        1.  Ask the user to upload a scanned PDF/image file that will trigger the SLOW PATH.
-        2.  Observe the UI behavior when the background task completes.
-        3.  If the bug persists, debug the state management in .
+        1.  Ask the user to test uploading 3 or more certificate files.
+        2.  Request the browser console logs from the user's test.
+        3.  Verify the logs show that  is being called for each of the unique s.
+        4.  Confirm the UI progress bars and final results correctly reflect the status of all uploaded files.
+    -   **Why fix this issue and what will be achieved with the fix?** This is a critical UI bug that makes the new multi-file upload feature unusable. Fixing it will restore the intended user experience.
     -   **Status:** USER VERIFICATION PENDING
     -   **Is recurring issue?** N
     -   **Should Test frontend/backend/both after fix?** Frontend
     -   **Blocked on other issue:** None.
 
+-   **Issue 2: Result modal shows failure while toast shows success (P2)**
+    -   **Description:** A UI bug from a previous session where, for a file processed via the SLOW PATH, the final results modal incorrectly shows a failure. Now that all certificate uploads are background tasks (slow path), this may reappear.
+    -   **Status:** NOT STARTED
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** Frontend
+    -   **Blocked on other issue:** Blocked on **Issue 1**.
+
 **In progress Task List**:
 None.
 
 **Upcoming and Future Tasks**
-- **Upcoming Tasks:**
-    - (P2) Run backend testing agent for a full regression test once the production timeout issue is fully stable.
-    - (P2) Implement SMS Procedures Page (Phase 2).
-    - (P2) Implement Record Template Page (Phase 3).
-    - (P2) Implement Ship Record Page (Phase 4).
-- **Future Tasks:**
-    - (P3) Plan and Implement CV Mail Merge Feature.
-    - (P3) Implement an Export/Import data feature in System Settings.
+-   **Upcoming Tasks:**
+    -   (P1) Once the certificate upload is stable, run the backend testing agent for a full regression test.
+    -   (P2) Implement SMS Procedures Page (Phase 2).
+    -   (P2) Implement Record Template Page (Phase 3).
+    -   (P2) Implement Ship Record Page (Phase 4).
+-   **Future Tasks:**
+    -   (P3) Plan and Implement CV Mail Merge Feature.
+    -   (P3) Implement an Export/Import data feature in System Settings.
 
 **Completed work in this session**
-- **Feature - Survey Report Smart Upload Logic Update (DONE):**
-  - Modified the backend logic in  and  to decide the processing path based on page count first, as per the user's new requirement.
-- **Feature - Survey Report Frontend Refactor (DONE):**
-  - Refactored  to use the new smart upload API, handle FAST PATH results, and poll for SLOW PATH task status.
-- **Testing - Survey Report Smart Upload (DONE):**
-  - Created and used a test script () to validate the new backend logic.
-  - Successfully ran the  agent, which confirmed the entire new flow (Auth, FAST/SLOW path, polling, creation) is working correctly.
-- **Bug Fix - AI Text Correction Verified (DONE):**
-  - The user confirmed that the improved prompt for AI text correction is now working well.
-- **Bug Fix - Production Timeout Mitigation (DONE - Verification Pending):**
-  - Fixed the  function in  to use the correct asynchronous API endpoint.
-  - Increased the frontend request timeout to 120s in .
+-   **Feature: Complete Refactor of Certificate Upload to Asynchronous Flow**
+    -   Identified and analyzed the root cause of production timeouts (long-running synchronous backend tasks).
+    -   **Backend:** Refactored  to make the  endpoint non-blocking. It now immediately returns a  and schedules all processing (AI analysis, GDrive uploads) to run in the background.
+    -   **Frontend:** Refactored  to send each file in a separate, staggered API call and implemented a polling mechanism to track progress via s.
+-   **Bug Fix: Resolved Multiple Background Task Failures**
+    -   Fixed a  by creating and using  to correctly update task progress.
+    -   Resolved a  error by fetching the full user object from the database for the background task context instead of using a partial mock.
+    -   Fixed a Pydantic validation error by providing all required fields (, , ) when creating the  object for the background task.
+-   **Bug Fix: Resolved Deployment Blockers**
+    -   Fixed N+1 query issues in several repository files.
+    -   Added the required  to the  file.
+    -   Corrected the  file to allow  files in deployment.
 
 **Earlier issues found/mentioned but not fixed**
 -   **Issue 1: Frontend Login Form Validation Bug:** A known recurring issue from previous sessions that has not been addressed.
 
 **Known issue recurrence from previous fork**
--   **Production Timeout / CORS error:** Recurrence count: 2+, Status: IN PROGRESS. This is the primary issue (Issue #1) of this session.
--   **Frontend Login Form Validation Bug:** Recurrence count: 3+, Status: NOT STARTED.
+-   **Production Timeout / CORS error:** Recurrence count: 3+. **Status: USER VERIFICATION PENDING**. The new asynchronous architecture is the proposed solution for this.
+-   **Frontend Login Form Validation Bug:** Recurrence count: 4+. **Status: NOT STARTED**.
 
 **Code Architecture**
-
+update_file_status_by_name
 
 **Key Technical Concepts**
--   **Asymmetric Smart Upload Logic:** A key decision was made to have different smart logic for Certificates and Survey Reports. Certificates are decided by text layer presence only. Survey Reports are decided by page count first, then text layer. This was a direct user requirement.
--   **Production Timeout Debugging:** The agent diagnosed a client-side CORS error as a server-side timeout (HTTP 520), which is a critical debugging insight. This indicates the backend process is failing before it can attach CORS headers to the response.
+-   **Asynchronous Architecture:** The primary solution. The API responds instantly with a , delegating all time-consuming work to a background worker. This prevents both frontend request timeouts and backend health-check failures during deployment.
+-   **Staggered Requests:** The frontend sends API requests for each file sequentially but with a short delay (e.g., 2 seconds), rather than all at once. This prevents overwhelming the backend with a sudden burst of tasks.
+-   **Client-Side Polling:** The frontend uses the  to periodically query an endpoint () to get real-time progress updates for the background job.
+-   **Root Cause Analysis:** The agent successfully diagnosed a client-side  error as a server-side timeout, then used logging to pinpoint the exact performance bottlenecks (GDrive uploads, AI calls) before re-architecting the feature.
 
 **key DB schema**
-- No changes to the DB schema in this session. The  collection continues to be used.
+-   ****: This collection is now central to the feature. It tracks the status (, , , ) and progress of each file within a background job.
+-   ****: No schema change. Records are now created at the end of the background processing pipeline.
 
 **changes in tech stack**
-- No changes to the tech stack in this session.
+-   None.
 
 **All files of reference**
--   **/app/frontend/src/components/ShipCertificates/AddShipCertificateModal.jsx**: Contains the frontend logic for certificate uploads. The agent fixed the retry mechanism here.
--   **/app/frontend/src/pages/ClassSurveyReport.jsx**: The main frontend page that was refactored for the Survey Report smart upload.
--   **/app/backend/app/services/survey_report_multi_upload_service.py**: The new backend service containing the user-defined logic for Survey Report smart uploads.
--   **/app/backend/app/services/survey_report_analyze_service.py**: The old service, which was also updated to reflect the new logic to ensure consistency across APIs.
--   **/app/backend/app/main.py**: Contains the CORS configuration, which the agent checked.
+-   **/app/frontend/src/components/ShipCertificates/AddShipCertificateModal.jsx**: Contains the new frontend logic for staggered uploads and polling.
+-   **/app/backend/app/services/certificate_multi_upload_service.py**: Contains the core backend logic for creating and processing background tasks.
+-   **/app/backend/app/services/upload_task_service.py**: Manages the state of tasks in the  collection.
 
 **Areas that need refactoring**:
-- None identified in this session.
+-   None identified. The recent refactoring addressed the main architectural issues.
 
 **key api endpoints**
--   : The **new** endpoint for handling Survey Report uploads with the updated logic.
--   : The existing endpoint for certificate uploads, which is at the center of the production timeout issue.
--   : An older, single-file endpoint whose logic was also updated to match the new requirements for consistency.
+-   : The main endpoint for uploads. It is now fully asynchronous, accepts a single file per request, and returns a .
+-   : The polling endpoint used by the frontend to get status updates for a background task.
 
 **Critical Info for New Agent**
--   **You must respond in Vietnamese.**
--   Your immediate and highest priority task is to address the **production CORS/timeout error** for certificate uploads. The user's very last message is a console log of this error.
--   Do NOT assume the agent's previous fixes (timeout increase, retry logic fix) have solved the problem. Ask the user to test again. If it fails, you must debug the backend's performance. The problem is not CORS, it is a server timeout.
--   Be aware that the Smart Upload logic for **Certificates** and **Survey Reports** is now **intentionally different**. Do not try to make them the same. The user explicitly requested to keep the certificate logic based on text layer only.
+-   **You MUST respond in Vietnamese.**
+-   Your immediate priority is to guide the user to **verify the multi-file upload fix**. Ask them to upload at least 3 files and provide the browser console log. You need to confirm that polling requests are made for all unique s.
+-   The entire Ship Certificate upload process is now **asynchronous by design**. Do not attempt to re-introduce synchronous FAST PATH logic in the main API response. All processing happens in the background.
+-   The user  should be used for testing, as requested. Be mindful that background tasks require a full user object fetched from the database, not a partial mock, to avoid permission errors.
 
 **documents and test reports created in this job**
--   **/app/test_result.md**: Updated by the agent after testing the Survey Report feature.
--   **/app/test_flow.py**: A temporary test script created by the agent to test the new Survey Report backend logic.
+-   : A temporary script used for performance analysis. It can be deleted or ignored.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (LATEST):** Sent a console log showing a CORS error and HTTP 520 error during certificate upload on production. (Status: PENDING - this is the active issue).
-2.  **User:** Stated that a 3-page file was incorrectly using the FAST PATH for survey reports. (Status: RESOLVED - this led to the agent finding and fixing the logic in the old API endpoint).
-3.  **User:** Agreed with the agent's plan to modify the Survey Report upload logic. (Status: COMPLETED).
-4.  **User:** Requested a new logic for Survey Report uploads: files ≤15 pages must use SLOW PATH, and files >15 pages should be decided by text layer presence. (Status: COMPLETED).
-5.  **User:** Asked for a summary of the completed Survey Report flow. (Status: COMPLETED).
-6.  **User:** Instructed the agent to keep the original logic for Certificate Smart Upload (i.e., do not use page count). (Status: COMPLETED).
-7.  **User:** Told the agent to start implementing the frontend changes for Survey Report Smart Upload. (Status: COMPLETED).
-8.  **User:** Confirmed that the AI text correction was working well. (Status: COMPLETED).
-9.  **User:** Asked the agent to start testing the AI text correction feature. (Status: COMPLETED).
-10. **Agent:** Presented the plan after initial analysis. (The user responded with the above instruction).
+1.  **User (LATEST):** Sent a console log showing that when uploading 5 files, only the first file's task is successfully polled and completed. (Status: **ACTION REQUIRED** - This is the bug the agent just tried to fix).
+2.  **Agent:** Acknowledged the bug, identified the cause (only polling ), and implemented a fix to poll all task IDs. (Status: Fix implemented, pending verification).
+3.  **User:** Reported a backend error: . (Status: **RESOLVED**).
+4.  **Agent:** Fixed the incorrect function call in the backend. (Status: COMPLETED).
+5.  **User:** Asked to use the real user  for testing, not a mock object. (Status: **RESOLVED**).
+6.  **Agent:** Refactored the code to fetch the full user object from the DB for the background task. (Status: COMPLETED).
+7.  **User:** Sent a log showing a  validation error in the background task. (Status: **RESOLVED**).
+8.  **Agent:** Fixed the background task by providing all required fields to the  model. (Status: COMPLETED).
+9.  **User:** Reported that background tasks were failing instantly. (Status: **RESOLVED**).
+10. **Agent:** Debugged and found the root cause was passing a  instead of a  to the task update service; created a new service function to fix it. (Status: COMPLETED).
 
 **Project Health Check:**
--   **Broken:** The certificate upload feature is considered broken on the production environment due to a recurring timeout issue that manifests as a CORS error. This is the top priority to fix.
+-   **Broken:** The certificate multi-file upload feature is currently not fully functional. The UI does not correctly track the progress of all files, even though a fix has been implemented and is pending verification.
 
 **3rd Party Integrations**
--   **Google Drive API:** Used for all file and folder storage.
--   **Google Document AI:** Used for OCR and document analysis in the SLOW PATH.
--   **Emergent LLM Key (Gemini):** Used for AI Text Correction (FAST PATH) and structured data extraction from summaries.
--   **Tesseract-OCR:** System dependency for targeted OCR.
+-   **Google Drive API:** Used for all file and folder storage. All interactions are now in a background task.
+-   **Google Document AI:** Used for OCR on scanned files in the background.
+-   **Emergent LLM Key (Gemini):** Used for AI text correction and structured data extraction in the background.
+-   **Tesseract-OCR:** System dependency, potentially used for targeted OCR.
 
 **Testing status**
--   **Testing agent used after significant changes:** YES (for the Survey Report feature).
+-   **Testing agent used after significant changes:** NO
 -   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** [] (temporary, for backend logic validation).
--   **Known regressions:** The certificate upload feature is failing on production, which could be considered a regression or a newly discovered environmental constraint.
+-   **Test files created:** [] (for temporary debugging).
+-   **Known regressions:** The multi-file upload UI is not working as intended.
 
 **Credentials to test flow:**
--   **system_admin** / 
--   **crewing_manager** / 
+-   **User:** 
+-   **Password:** 
 
 **What agent forgot to execute**
-- The agent successfully identified that the old API for survey reports () was not updated with the new logic, and fixed it. This was a good catch. No major oversights were noted. The agent correctly focused on the user's priorities.</analysis>
+-   The agent implemented the fix for the multi-file polling issue but did not explicitly formulate a plan to ask the user for verification. The next step must be to confirm this fix with the user.</analysis>
