@@ -307,15 +307,26 @@ class SurveyReportAnalyzeService:
         processing_path = None
         char_count = 0  # Initialize char_count
         text_check = None  # Initialize text_check
+        text_layer_content = ""  # Store text layer content for merging
         
         # ⭐ NEW SMART PATH SELECTION LOGIC
         logger.info(f"⚡ SMART PATH: Checking file {filename} ({total_pages} pages)...")
         
         # Step 1: Check page count first
         if total_pages <= PAGE_THRESHOLD:
-            # ≤15 trang → Luôn dùng SLOW PATH (Document AI toàn bộ)
-            processing_path = "SLOW_PATH"
-            logger.info(f"🐢 SLOW PATH selected: File có {total_pages} trang (≤{PAGE_THRESHOLD}) - dùng Document AI toàn bộ")
+            # ≤15 trang → Check text layer để quyết định có gộp hay không
+            text_check = quick_check_text_layer(file_content, filename)
+            char_count = text_check.get("char_count", 0)
+            
+            if text_check.get("has_sufficient_text"):
+                # ≤15 trang + có text layer → HYBRID PATH (Document AI + Text Layer song song)
+                processing_path = "HYBRID_PATH"
+                text_layer_content = text_check.get("text_content", "")
+                logger.info(f"🔀 HYBRID PATH selected: File có {total_pages} trang (≤{PAGE_THRESHOLD}) + text layer ({char_count} chars) - gộp Document AI và Text Layer")
+            else:
+                # ≤15 trang + không có text layer → SLOW PATH (Document AI only)
+                processing_path = "SLOW_PATH"
+                logger.info(f"🐢 SLOW PATH selected: File có {total_pages} trang (≤{PAGE_THRESHOLD}) không có text layer - dùng Document AI toàn bộ")
             
         else:
             # >15 trang → Kiểm tra text layer
@@ -332,7 +343,90 @@ class SurveyReportAnalyzeService:
                 logger.info(f"🐢 SLOW PATH selected: File {total_pages} trang (>{PAGE_THRESHOLD}) không có text layer ({char_count} chars)")
         
         # ⭐ Process based on selected path
-        if processing_path == "FAST_PATH":
+        if processing_path == "HYBRID_PATH":
+            # HYBRID PATH - Run Document AI và Text Layer SONG SONG, sau đó gộp
+            import asyncio
+            
+            logger.info("🔀 HYBRID PATH: Running Document AI and Text Layer extraction in PARALLEL...")
+            
+            # Task 1: Document AI OCR
+            async def run_document_ai():
+                from app.utils.document_ai_helper import analyze_survey_report_with_document_ai
+                return await analyze_survey_report_with_document_ai(
+                    file_content=file_content,
+                    filename=filename,
+                    content_type=content_type,
+                    document_ai_config=document_ai_config
+                )
+            
+            # Task 2: Text Layer Correction (if needed)
+            async def run_text_layer_correction():
+                from app.utils.text_layer_correction import (
+                    correct_text_layer_with_ai,
+                    detect_ocr_quality
+                )
+                
+                raw_text = text_layer_content
+                quality_info = detect_ocr_quality(raw_text)
+                
+                if quality_info["needs_correction"]:
+                    correction_result = await correct_text_layer_with_ai(
+                        text_content=raw_text,
+                        filename=filename,
+                        ai_config=ai_config_doc
+                    )
+                    if correction_result["success"] and correction_result["correction_applied"]:
+                        return {
+                            "success": True,
+                            "text": correction_result["corrected_text"],
+                            "corrected": True
+                        }
+                
+                return {"success": True, "text": raw_text, "corrected": False}
+            
+            # Run both tasks in parallel
+            doc_ai_task = asyncio.create_task(run_document_ai())
+            text_layer_task = asyncio.create_task(run_text_layer_correction())
+            
+            doc_ai_result, text_layer_result = await asyncio.gather(doc_ai_task, text_layer_task)
+            
+            # Merge results
+            doc_ai_summary = ""
+            if doc_ai_result.get('success'):
+                doc_ai_summary = doc_ai_result.get('data', {}).get('summary', '')
+                logger.info(f"   ✅ Document AI: {len(doc_ai_summary)} chars")
+            else:
+                logger.warning(f"   ⚠️ Document AI failed: {doc_ai_result.get('message')}")
+            
+            text_layer_text = text_layer_result.get("text", "")
+            text_corrected = text_layer_result.get("corrected", False)
+            logger.info(f"   ✅ Text Layer: {len(text_layer_text)} chars (corrected: {text_corrected})")
+            
+            # Create merged summary
+            summary_parts = []
+            summary_parts.append(f"=== SURVEY REPORT ANALYSIS ===")
+            summary_parts.append(f"File: {filename}")
+            summary_parts.append(f"Pages: {total_pages}")
+            summary_parts.append(f"Processing: HYBRID PATH (Document AI + Text Layer merged)")
+            summary_parts.append("")
+            
+            if doc_ai_summary:
+                summary_parts.append("--- DOCUMENT AI OCR ---")
+                summary_parts.append(doc_ai_summary)
+                summary_parts.append("")
+            
+            if text_layer_text:
+                summary_parts.append("--- TEXT LAYER CONTENT ---")
+                if text_corrected:
+                    summary_parts.append("(AI corrected)")
+                summary_parts.append(text_layer_text)
+            
+            summary_text = "\n".join(summary_parts)
+            logger.info(f"✅ HYBRID merged summary: {len(summary_text)} chars")
+            
+            analysis_result['processing_method'] = "hybrid_path_merged"
+            
+        elif processing_path == "FAST_PATH":
             # FAST PATH - Use text layer with AI correction if needed
             text_check = quick_check_text_layer(file_content, filename)
             char_count = text_check.get("char_count", 0)
