@@ -509,7 +509,7 @@ export const AddShipCertificateModal = ({
             } catch (pollError) {
               console.error('❌ Polling error:', pollError);
             }
-          }, 3000);
+          }, 5000); // Poll every 5 seconds
 
           // Timeout after 5 minutes
           setTimeout(() => {
