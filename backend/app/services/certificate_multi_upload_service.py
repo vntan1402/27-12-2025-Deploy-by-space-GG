@@ -953,6 +953,29 @@ class CertificateMultiUploadService:
             }
     
     @staticmethod
+    async def _deferred_gdrive_upload(
+        cert_id: str,
+        file_content: bytes,
+        filename: str,
+        summary_text: str,
+        ship_name: str,
+        gdrive_config_doc: Dict[str, Any]
+    ):
+        """
+        Deferred GDrive upload - runs AFTER record is created and user sees success
+        This is called via asyncio.create_task() so it doesn't block the main flow
+        """
+        # Delegate to existing background upload function
+        await CertificateMultiUploadService._upload_files_to_gdrive_background(
+            cert_id=cert_id,
+            file_content=file_content,
+            filename=filename,
+            summary_text=summary_text,
+            ship_name=ship_name,
+            gdrive_config_doc=gdrive_config_doc
+        )
+    
+    @staticmethod
     async def _upload_files_to_gdrive_background(
         cert_id: str,
         file_content: bytes,
