@@ -427,7 +427,7 @@ class CertificateMultiUploadService:
                     summary_text = analysis_result.get("summary_text", "")
                     extracted_info["filename"] = filename
                     
-                    await UploadTaskService.update_file_status(
+                    await UploadTaskService.update_file_status_by_name(
                         task_id, filename, "processing", progress=50,
                         message="AI analysis complete, uploading to Google Drive..."
                     )
