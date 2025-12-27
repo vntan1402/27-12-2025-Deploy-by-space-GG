@@ -564,7 +564,7 @@ const ClassSurveyReport = () => {
   // Helper function to finalize batch results
   const finalizeBatchResults = (results) => {
     const successCount = results.filter(r => r.success).length;
-    const failCount = results.length - failedCount;
+    const failCount = results.length - successCount;
     
     // Update batch results
     setBatchResults(results);
@@ -577,8 +577,8 @@ const ClassSurveyReport = () => {
     // Summary toast
     toast.success(
       language === 'vi'
-        ? `✅ Đã xử lý ${results.length} files: ${successCount} thành công, ${results.length - successCount} thất bại`
-        : `✅ Processed ${results.length} files: ${successCount} success, ${results.length - successCount} failed`
+        ? `✅ Đã xử lý ${results.length} files: ${successCount} thành công, ${failCount} thất bại`
+        : `✅ Processed ${results.length} files: ${successCount} success, ${failCount} failed`
     );
   };
 
