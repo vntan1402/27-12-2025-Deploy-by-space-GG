@@ -316,86 +316,124 @@ export const AddShipCertificateModal = ({
     let firstSuccessInfo = null;
     let slowPathTaskId = null;
 
-    try {
-      // ⭐ ALL files go to BACKGROUND processing
-      // Response is immediate (~1-2s), polling for results
-      console.log(`📤 Smart Upload: Uploading ${totalFiles} files (background processing)...`);
-
-      // Upload all files - each will return a task_id for polling
-      const uploadPromises = fileArray.map(async (file, i) => {
-        // Progressive delay: File 1 → 0s, File 2 → 5s, File 3 → 6s, File 4 → 7s...
-        const startDelay = i === 0 ? 0 : (4 + i) * 1000; // Increasing delay: 0, 5s, 6s, 7s...
-        await new Promise(resolve => setTimeout(resolve, startDelay));
+    // Helper function to upload a single file
+    const uploadSingleFile = async (file, index) => {
+      try {
+        // Update status to uploading
+        setFileStatusMap(prev => ({ ...prev, [file.name]: 'uploading' }));
+        setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? `Đang upload (${index + 1}/${totalFiles})...` : `Uploading (${index + 1}/${totalFiles})...` }));
         
-        try {
-          // Update status to uploading
-          setFileStatusMap(prev => ({ ...prev, [file.name]: 'uploading' }));
-          setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? `Đang upload (${i + 1}/${totalFiles})...` : `Uploading (${i + 1}/${totalFiles})...` }));
-          
-          setMultiCertUploads(prev => prev.map((upload, idx) => 
-            idx === i 
-              ? { ...upload, status: 'uploading', stage: language === 'vi' ? `Đang upload...` : `Uploading...` }
-              : upload
-          ));
+        setMultiCertUploads(prev => prev.map((upload, idx) => 
+          idx === index 
+            ? { ...upload, status: 'uploading', stage: language === 'vi' ? `Đang upload...` : `Uploading...` }
+            : upload
+        ));
 
-          // Create FormData for SINGLE file
-          const formData = new FormData();
-          formData.append('files', file);
+        // Create FormData for SINGLE file
+        const formData = new FormData();
+        formData.append('files', file);
 
-          console.log(`📤 [${i + 1}/${totalFiles}] Uploading (+${startDelay/1000}s): ${file.name}`);
+        console.log(`📤 [${index + 1}/${totalFiles}] Uploading: ${file.name}`);
 
-          // Upload single file - returns immediately with task_id
-          const response = await api.post(
-            `/api/certificates/multi-upload-smart?ship_id=${selectedShip.id}`,
-            formData,
-            {
-              headers: { 'Content-Type': 'multipart/form-data' },
-              timeout: 60000, // 60 seconds - for file upload only (processing is async)
-              onUploadProgress: (progressEvent) => {
-                const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                setFileProgressMap(prev => ({ ...prev, [file.name]: Math.min(progress, 20) }));
-              }
+        // Upload single file - returns immediately with task_id
+        const response = await api.post(
+          `/api/certificates/multi-upload-smart?ship_id=${selectedShip.id}`,
+          formData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 60000, // 60 seconds - for file upload only (processing is async)
+            onUploadProgress: (progressEvent) => {
+              const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              setFileProgressMap(prev => ({ ...prev, [file.name]: Math.min(progress, 20) }));
             }
-          );
+          }
+        );
 
-          console.log(`📥 [${i + 1}/${totalFiles}] Response (task created):`, response.data);
+        console.log(`📥 [${index + 1}/${totalFiles}] Response (task created):`, response.data);
 
-          const { slow_path_task_id } = response.data;
+        const { slow_path_task_id } = response.data;
 
-          // File is now processing in background
-          setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
-          setFileProgressMap(prev => ({ ...prev, [file.name]: 30 }));
-          setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? '🔄 Đang xử lý background...' : '🔄 Background processing...' }));
+        // File is now processing in background
+        setFileStatusMap(prev => ({ ...prev, [file.name]: 'processing' }));
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 30 }));
+        setFileSubStatusMap(prev => ({ ...prev, [file.name]: language === 'vi' ? '🔄 Đang xử lý background...' : '🔄 Background processing...' }));
+        
+        setMultiCertUploads(prev => prev.map((upload, idx) => 
+          idx === index 
+            ? { ...upload, status: 'processing', progress: 30, stage: '🔄 Processing' }
+            : upload
+        ));
+
+        return { status: 'processing', index, filename: file.name, task_id: slow_path_task_id };
+
+      } catch (fileError) {
+        console.error(`❌ [${index + 1}/${totalFiles}] Upload error for ${file.name}:`, fileError);
+        
+        setFileStatusMap(prev => ({ ...prev, [file.name]: 'failed' }));
+        setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
+        setFileSubStatusMap(prev => ({ ...prev, [file.name]: fileError.response?.data?.detail || fileError.message }));
+        
+        setMultiCertUploads(prev => prev.map((upload, idx) => 
+          idx === index 
+            ? { ...upload, status: 'failed', progress: 100, stage: '❌ Error', error: fileError.message }
+            : upload
+        ));
+
+        toast.error(`❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`);
+        return { status: 'error', index, filename: file.name, error: fileError.message };
+      }
+    };
+
+    try {
+      // ⭐ CONCURRENT UPLOAD with max 3 files at a time
+      // When one file finishes uploading, start uploading the next one
+      console.log(`📤 Smart Upload: Uploading ${totalFiles} files (max 3 concurrent, background processing)...`);
+
+      const MAX_CONCURRENT = 3; // Maximum 3 files uploading at the same time
+      const DELAY_BETWEEN_UPLOADS = 3000; // 3s delay before starting next upload
+      
+      const uploadResults = [];
+      let currentIndex = 0;
+      const activeUploads = new Set();
+      
+      // Function to start uploading next file if slot available
+      const startNextUpload = async () => {
+        while (currentIndex < fileArray.length && activeUploads.size < MAX_CONCURRENT) {
+          const index = currentIndex;
+          const file = fileArray[index];
+          currentIndex++;
           
-          setMultiCertUploads(prev => prev.map((upload, idx) => 
-            idx === i 
-              ? { ...upload, status: 'processing', progress: 30, stage: '🔄 Processing' }
-              : upload
-          ));
-
-          return { status: 'processing', index: i, filename: file.name, task_id: slow_path_task_id };
-
-        } catch (fileError) {
-          console.error(`❌ [${i + 1}/${totalFiles}] Upload error for ${file.name}:`, fileError);
+          activeUploads.add(index);
+          console.log(`🚀 Starting upload ${index + 1}/${totalFiles} (${activeUploads.size}/${MAX_CONCURRENT} active): ${file.name}`);
           
-          setFileStatusMap(prev => ({ ...prev, [file.name]: 'failed' }));
-          setFileProgressMap(prev => ({ ...prev, [file.name]: 100 }));
-          setFileSubStatusMap(prev => ({ ...prev, [file.name]: fileError.response?.data?.detail || fileError.message }));
+          // Start upload (don't await here - let it run concurrently)
+          uploadSingleFile(file, index).then(result => {
+            uploadResults[index] = result;
+            activeUploads.delete(index);
+            console.log(`✅ Upload slot freed (${activeUploads.size}/${MAX_CONCURRENT} active)`);
+          });
           
-          setMultiCertUploads(prev => prev.map((upload, idx) => 
-            idx === i 
-              ? { ...upload, status: 'failed', progress: 100, stage: '❌ Error', error: fileError.message }
-              : upload
-          ));
-
-          toast.error(`❌ ${file.name}: ${fileError.response?.data?.detail || fileError.message}`);
-          return { status: 'error', index: i, filename: file.name, error: fileError.message };
+          // Small delay before starting next concurrent upload
+          if (currentIndex < fileArray.length && activeUploads.size < MAX_CONCURRENT) {
+            await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_UPLOADS));
+          }
         }
-      });
+      };
 
-      // Wait for all uploads to complete (just upload, not processing)
-      console.log('⏳ Waiting for all uploads to complete...');
-      const uploadResults = await Promise.all(uploadPromises);
+      // Start initial uploads (up to MAX_CONCURRENT)
+      await startNextUpload();
+      
+      // Wait for all uploads to complete by polling
+      while (uploadResults.filter(r => r).length < totalFiles) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Check every 1s
+        
+        // Start more uploads if slots are available
+        if (activeUploads.size < MAX_CONCURRENT && currentIndex < fileArray.length) {
+          await startNextUpload();
+        }
+      }
+      
+      console.log('⏳ All uploads completed, results:', uploadResults);
       
       // Count immediate results
       failedCount = uploadResults.filter(r => r.status === 'error').length;
