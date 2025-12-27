@@ -381,14 +381,16 @@ class CertificateMultiUploadService:
         
         try:
             # Update task status to processing
+            logger.info(f"🔄 Task {task_id}: Updating status to PROCESSING")
             await UploadTaskService.update_task_status(task_id, TaskStatus.PROCESSING)
             
             db = mongo_db.database
             
             # Get user info
+            logger.info(f"🔄 Task {task_id}: Finding user {user_id}")
             user_doc = await db.users.find_one({"id": user_id})
             if not user_doc:
-                logger.error(f"❌ User not found: {user_id}")
+                logger.error(f"❌ Task {task_id}: User not found: {user_id}")
                 await UploadTaskService.update_task_status(task_id, TaskStatus.FAILED)
                 return
             
