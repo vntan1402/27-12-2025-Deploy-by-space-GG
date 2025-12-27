@@ -443,7 +443,7 @@ class CertificateMultiUploadService:
                     
                     analysis_result = await CertificateMultiUploadService._analyze_document_with_ai(
                         file_content, filename, temp_file["content_type"],
-                        ai_config, ship_id, mock_user  # Pass mock_user for background processing
+                        ai_config, ship_id, current_user  # Pass real user for background processing
                     )
                     
                     if not analysis_result.get("success"):
