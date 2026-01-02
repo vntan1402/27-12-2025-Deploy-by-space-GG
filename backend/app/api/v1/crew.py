@@ -750,11 +750,11 @@ Return ONLY the JSON output with extracted fields. Do not include any explanatio
         
         logger.info(f"🤖 Extracting passport fields using {provider} {model}...")
         
-        # Initialize LLM
+        # Initialize LLM with ai_config for proper API key selection
         from app.utils.llm_wrapper import LlmChat, UserMessage
         
         llm_chat = LlmChat(
-            api_key=emergent_key,
+            ai_config=ai_config_for_llm,  # Pass config for proper API key selection
             session_id="passport_analysis",
             system_message="You are an AI assistant that extracts passport information from OCR text."
         )
