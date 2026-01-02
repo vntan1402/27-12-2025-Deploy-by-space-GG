@@ -624,35 +624,33 @@ class CertificateService:
             logger.info("🤖 Calling AI for certificate analysis...")
             
             try:
-                # Get EMERGENT_LLM_KEY
-                emergent_key = os.getenv("EMERGENT_LLM_KEY", "sk-emergent-eEe35Fb1b449940199")
-                
-                if not emergent_key:
-                    raise HTTPException(status_code=500, detail="AI key not configured")
-                
-                # Import emergentintegrations
+                # Import LlmChat wrapper
                 from app.utils.llm_wrapper import LlmChat, UserMessage
+                
+                # Build ai_config dict for LlmChat
+                ai_config_dict = {
+                    'provider': provider,
+                    'model': model,
+                    'use_emergent_key': ai_config.use_emergent_key if ai_config else True,
+                    'custom_api_key': ai_config.custom_api_key if ai_config else None,
+                }
+                
+                logger.info(f"🔑 AI Config: use_emergent_key={ai_config_dict['use_emergent_key']}, has_custom_key={bool(ai_config_dict['custom_api_key'])}")
                 
                 # Create prompt
                 prompt = AIHelper.create_certificate_analysis_prompt(text, ship_id)
                 
-                # Initialize LLM chat
+                # Initialize LLM chat with ai_config (handles API key selection automatically)
                 llm_chat = LlmChat(
-                    api_key=emergent_key,
+                    ai_config=ai_config_dict,  # Pass config for proper API key selection
                     session_id="cert_analysis",
                     system_message="You are an AI assistant that analyzes maritime certificates."
                 )
                 
                 # Set provider and model correctly
-                # Map provider to emergentintegrations format
-                
                 # Check if model is Gemini (regardless of provider value)
                 if "gemini" in model.lower() or provider.lower() in ["google", "gemini", "emergent"]:
-                    # For Gemini models with Emergent key
-                    # Use the model name as-is from AI config (backend-v1 behavior)
-                    # emergentintegrations will handle the model name validation
                     actual_model = model
-                    
                     llm_chat = llm_chat.with_model("gemini", actual_model)
                     logger.info(f"🔄 Using Gemini model: {actual_model} (provider: {provider})")
                 elif provider.lower() == "openai" or "gpt" in model.lower():
