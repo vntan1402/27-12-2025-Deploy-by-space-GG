@@ -278,12 +278,15 @@ class ApprovalDocumentAnalyzeService:
                     ai_model = ai_config.get("model", "gemini-2.0-flash-exp")
                     use_emergent_key = ai_config.get("use_emergent_key", True)
                     
+                    logger.info(f"🔑 AI Config: use_emergent_key={use_emergent_key}, has_custom_key={bool(ai_config.get('custom_api_key'))}")
+                    
                     try:
                         extracted_fields = await extract_approval_document_fields_from_summary(
                             summary_text,
                             ai_provider,
                             ai_model,
-                            use_emergent_key
+                            use_emergent_key,
+                            ai_config=ai_config  # Pass full config for custom API key support
                         )
                         
                         if extracted_fields:
