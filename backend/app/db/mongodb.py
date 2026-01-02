@@ -21,9 +21,14 @@ class MongoDatabase:
             if not mongo_url:
                 raise Exception("MONGO_URL environment variable not set")
             
-            self.client = AsyncIOMotorClient(mongo_url)
+            self.client = AsyncIOMotorClient(
+                mongo_url,
+                serverSelectionTimeoutMS=10000,  # 10 seconds timeout
+                connectTimeoutMS=10000,
+                socketTimeoutMS=10000
+            )
             
-            # Test connection
+            # Test connection with timeout
             await self.client.admin.command('ismaster')
             
             db_name = os.getenv('DB_NAME', 'ship_management')
