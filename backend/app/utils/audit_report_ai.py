@@ -62,22 +62,14 @@ async def extract_audit_report_fields_from_summary(
             logger.error("Failed to create audit report extraction prompt")
             return {}
         
-        # Use System AI for extraction
-        if use_emergent_key and ai_provider in ["google", "emergent"]:
-            try:
-                from app.utils.llm_wrapper import LlmChat, UserMessage
-                from app.core.config import settings
-                
-                # Get Emergent LLM key
-                emergent_key = settings.EMERGENT_LLM_KEY
-                if not emergent_key:
-                    logger.error("Emergent LLM key not configured")
-                    return {}
-                
-                chat = LlmChat(
-                    api_key=emergent_key,
-                    session_id=f"audit_extraction_{int(time.time())}",
-                    system_message="You are a maritime audit report analysis expert."
+        # Use AI for extraction - llm_wrapper handles API key selection automatically
+        try:
+            from app.utils.llm_wrapper import LlmChat, UserMessage
+            
+            chat = LlmChat(
+                ai_config=ai_config,  # Pass full config for API key selection
+                session_id=f"audit_extraction_{int(time.time())}",
+                system_message="You are a maritime audit report analysis expert."
                 ).with_model("gemini", ai_model)
                 
                 logger.info(f"📤 Sending extraction prompt to {ai_model}...")
