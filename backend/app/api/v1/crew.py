@@ -659,12 +659,23 @@ async def analyze_passport_file(
             ai_config = await AIConfigService.get_ai_config(current_user)
             provider = ai_config.provider
             model = ai_config.model
+            use_emergent_key = ai_config.use_emergent_key
+            custom_api_key = ai_config.custom_api_key
         except:
             provider = ai_config_doc.get("provider", "google")
             model = ai_config_doc.get("model", "gemini-2.0-flash")
+            use_emergent_key = ai_config_doc.get("use_emergent_key", True)
+            custom_api_key = ai_config_doc.get("custom_api_key")
         
-        import os
-        emergent_key = os.getenv("EMERGENT_LLM_KEY", "sk-emergent-eEe35Fb1b449940199")
+        # Build ai_config dict for LlmChat
+        ai_config_for_llm = {
+            'provider': provider,
+            'model': model,
+            'use_emergent_key': use_emergent_key,
+            'custom_api_key': custom_api_key,
+        }
+        
+        logger.info(f"🔑 AI Config: use_emergent_key={use_emergent_key}, has_custom_key={bool(custom_api_key)}")
         
         # Create AI prompt for passport field extraction from Document AI summary (V1 format)
         prompt = f"""You are an AI specialized in structured information extraction from maritime and identity documents.
