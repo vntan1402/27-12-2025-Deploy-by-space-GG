@@ -71,36 +71,36 @@ async def extract_survey_report_fields_from_summary(
         if response:
             # LlmChat returns content directly
             content = response if isinstance(response, str) else str(response)
-                
-                if content:
-                    # Parse JSON response
-                    try:
-                        # Extract JSON from markdown code blocks if present
-                        json_match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL)
-                        if json_match:
-                            content = json_match.group(1)
-                        
-                        extracted_data = json.loads(content)
-                        logger.info("✅ Survey report fields extracted successfully")
-                        
-                        # Try to extract report_form from filename if not found
-                        if not extracted_data.get('report_form') and filename:
-                            filename_form = extract_report_form_from_filename(filename)
-                            if filename_form:
-                                extracted_data['report_form'] = filename_form
-                                logger.info(f"✅ Extracted report_form from filename: '{filename_form}'")
-                        
-                        return extracted_data
-                        
-                    except json.JSONDecodeError as e:
-                        logger.error(f"Failed to parse survey report extraction JSON: {e}")
-                        logger.debug(f"AI Response: {content}")
-                        return {}
-                else:
-                    logger.error("No content in survey report AI extraction response")
+            
+            if content:
+                # Parse JSON response
+                try:
+                    # Extract JSON from markdown code blocks if present
+                    json_match = re.search(r'```json\s*(.*?)\s*```', content, re.DOTALL)
+                    if json_match:
+                        content = json_match.group(1)
+                    
+                    extracted_data = json.loads(content)
+                    logger.info("✅ Survey report fields extracted successfully")
+                    
+                    # Try to extract report_form from filename if not found
+                    if not extracted_data.get('report_form') and filename:
+                        filename_form = extract_report_form_from_filename(filename)
+                        if filename_form:
+                            extracted_data['report_form'] = filename_form
+                            logger.info(f"✅ Extracted report_form from filename: '{filename_form}'")
+                    
+                    return extracted_data
+                    
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse survey report extraction JSON: {e}")
+                    logger.debug(f"AI Response: {content}")
                     return {}
+            else:
+                logger.error("No content in survey report AI extraction response")
+                return {}
         else:
-            logger.warning(f"AI provider '{ai_provider}' not yet supported for survey reports")
+            logger.warning("Empty AI response for survey report extraction")
             return {}
             
     except Exception as e:
