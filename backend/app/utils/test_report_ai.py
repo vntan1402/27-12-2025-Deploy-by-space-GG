@@ -290,17 +290,14 @@ async def extract_test_report_fields_from_summary(
                         logger.error(f"Failed to parse AI response as JSON: {json_error}")
                         logger.error(f"AI response: {content[:500]}...")
                         return {}
-                else:
-                    logger.warning("AI response is empty")
-                    return {}
-                    
-            except Exception as ai_error:
-                logger.error(f"System AI extraction failed: {ai_error}")
-                import traceback
-                logger.error(f"Traceback: {traceback.format_exc()}")
+            else:
+                logger.warning("AI response is empty")
                 return {}
-        else:
-            logger.warning(f"Unsupported AI provider or configuration: {ai_provider}")
+                
+        except Exception as ai_error:
+            logger.error(f"AI extraction failed: {ai_error}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return {}
             
     except Exception as e:
