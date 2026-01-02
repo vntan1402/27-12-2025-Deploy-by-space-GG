@@ -13,16 +13,14 @@ class AIConfigService:
     
     @staticmethod
     async def get_ai_config(current_user: UserResponse) -> AIConfigResponse:
-        """Get AI configuration for current user's company"""
+        """Get AI configuration (system-wide)"""
         try:
-            if not current_user.company:
-                raise HTTPException(status_code=400, detail="User has no company assigned")
-            
-            config = await AIConfigRepository.get_by_company(current_user.company)
+            # Use "system" as placeholder since AI config is system-wide
+            config = await AIConfigRepository.get_by_company("system")
             
             # If no config exists, create default
             if not config:
-                logger.info(f"No AI config found for company {current_user.company}, creating default")
+                logger.info("No AI config found, creating default system-wide config")
                 default_config = AIConfigCreate(
                     provider="google",
                     model="gemini-2.0-flash",
@@ -32,7 +30,7 @@ class AIConfigService:
                 )
                 config = await AIConfigRepository.create(
                     default_config,
-                    current_user.company,
+                    "system",  # System-wide
                     current_user.id
                 )
             
@@ -48,22 +46,15 @@ class AIConfigService:
         config_data: AIConfigUpdate,
         current_user: UserResponse
     ) -> AIConfigResponse:
-        """Update AI configuration"""
+        """Update AI configuration (system-wide)"""
         try:
-            if not current_user.company:
-                raise HTTPException(status_code=400, detail="User has no company assigned")
-            
-            # Note: Provider validation removed for flexibility
-            # Backend-v1 accepts any provider value
-            # Common providers: openai, google, anthropic, but others may be added
-            
             # Check if config exists
-            existing_config = await AIConfigRepository.get_by_company(current_user.company)
+            existing_config = await AIConfigRepository.get_by_company("system")
             
             if existing_config:
                 # Update existing config
                 updated_config = await AIConfigRepository.update(
-                    current_user.company,
+                    "system",  # System-wide
                     config_data,
                     current_user.id
                 )
@@ -81,7 +72,7 @@ class AIConfigService:
                 )
                 updated_config = await AIConfigRepository.create(
                     create_data,
-                    current_user.company,
+                    "system",  # System-wide
                     current_user.id
                 )
             
