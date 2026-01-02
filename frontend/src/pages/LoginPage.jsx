@@ -65,7 +65,8 @@ const LoginPage = () => {
       }
       
       toast.success(language === 'vi' ? 'Đăng nhập thành công!' : 'Login successful!');
-      navigate('/');
+      // Navigation is handled by useEffect watching user state
+      // This ensures navigation happens AFTER React state is updated
     } catch (error) {
       console.error('Login error:', error);
       const errorMessage = error.response?.data?.detail || 
