@@ -122,9 +122,16 @@ async def shutdown_event():
     except Exception as e:
         logger.error(f"❌ Shutdown error: {e}")
 
-# Mount uploads folder (shared with backend-v1)
-uploads_path = Path("/app/uploads")
-uploads_path.mkdir(exist_ok=True)
+# Mount uploads folder (use relative path for cloud deployment)
+import os
+# Use /tmp for Cloud Run (writable) or fallback to local path
+if os.path.exists("/workspace"):
+    # Running on Cloud Run
+    uploads_path = Path("/tmp/uploads")
+else:
+    # Running locally
+    uploads_path = Path("/app/uploads")
+uploads_path.mkdir(parents=True, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=str(uploads_path)), name="uploads")
 
 # Include API router
