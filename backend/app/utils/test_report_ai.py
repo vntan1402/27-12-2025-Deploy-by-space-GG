@@ -236,7 +236,7 @@ async def extract_test_report_fields_from_summary(
         # Use System AI for extraction
         if use_emergent_key and ai_provider in ["google", "emergent"]:
             try:
-                from app.utils.llm_wrapper import LlmChat, UserMessage
+                from emergentintegrations.llm.chat import LlmChat, UserMessage
                 import os
                 
                 emergent_key = os.getenv("EMERGENT_LLM_KEY")

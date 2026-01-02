@@ -121,7 +121,7 @@ async def extract_audit_certificate_fields_from_summary(
         # Use System AI for extraction
         if use_emergent_key and ai_provider in ["google", "emergent"]:
             try:
-                from app.utils.llm_wrapper import LlmChat, UserMessage
+                from emergentintegrations.llm.chat import LlmChat, UserMessage
                 from app.core.config import settings
                 
                 # Get Emergent LLM key

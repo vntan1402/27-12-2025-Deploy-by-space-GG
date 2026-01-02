@@ -631,7 +631,7 @@ class CertificateService:
                     raise HTTPException(status_code=500, detail="AI key not configured")
                 
                 # Import emergentintegrations
-                from app.utils.llm_wrapper import LlmChat, UserMessage
+                from emergentintegrations.llm.chat import LlmChat, UserMessage
                 
                 # Create prompt
                 prompt = AIHelper.create_certificate_analysis_prompt(text, ship_id)

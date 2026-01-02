@@ -1119,7 +1119,7 @@ Return ONLY the JSON object with extracted fields. No additional text."""
             logger.info("🤖 Calling LLM AI to extract certificate fields...")
             
             # Use emergentintegrations to call LLM (match crew passport pattern)
-            from app.utils.llm_wrapper import LlmChat, UserMessage
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
             
             llm_chat = LlmChat(
                 api_key=emergent_key,
