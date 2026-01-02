@@ -260,32 +260,32 @@ RESPOND WITH VALID JSON ONLY:"""
             else:
                 logger.error("Empty AI response")
                 return {}
-                
-            except Exception as e:
-                logger.error(f"❌ AI extraction error: {e}")
-                return {}
-        
-        # Clean JSON response
-        if result_text.startswith('```json'):
-            result_text = result_text.split('```json')[1].split('```')[0].strip()
-        elif result_text.startswith('```'):
-            result_text = result_text.split('```')[1].split('```')[0].strip()
-        
-        extracted_data = json.loads(result_text)
-        
-        logger.info(f"✅ AI extracted fields: {list(extracted_data.keys())}")
-        logger.info(f"   📋 Cert Name: '{extracted_data.get('cert_name', '')}'")
-        logger.info(f"   🔢 Cert No: '{extracted_data.get('cert_no', '')}'")
-        logger.info(f"   🏢 Company Name: '{extracted_data.get('company_name', '')}'")
-        logger.info(f"   📑 DOC Type: '{extracted_data.get('doc_type', '')}'")
-        logger.info(f"   📅 Issue Date: '{extracted_data.get('issue_date', '')}'")
-        logger.info(f"   📅 Valid Date: '{extracted_data.get('valid_date', '')}'")
-        logger.info(f"   📝 Last Endorse: '{extracted_data.get('last_endorse', '')}'")
-        logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by', '')}'")
-        return extracted_data
+            
+            # Clean JSON response
+            if result_text.startswith('```json'):
+                result_text = result_text.split('```json')[1].split('```')[0].strip()
+            elif result_text.startswith('```'):
+                result_text = result_text.split('```')[1].split('```')[0].strip()
+            
+            extracted_data = json.loads(result_text)
+            
+            logger.info(f"✅ AI extracted fields: {list(extracted_data.keys())}")
+            logger.info(f"   📋 Cert Name: '{extracted_data.get('cert_name', '')}'")
+            logger.info(f"   🔢 Cert No: '{extracted_data.get('cert_no', '')}'")
+            logger.info(f"   🏢 Company Name: '{extracted_data.get('company_name', '')}'")
+            logger.info(f"   📑 DOC Type: '{extracted_data.get('doc_type', '')}'")
+            logger.info(f"   📅 Issue Date: '{extracted_data.get('issue_date', '')}'")
+            logger.info(f"   📅 Valid Date: '{extracted_data.get('valid_date', '')}'")
+            logger.info(f"   📝 Last Endorse: '{extracted_data.get('last_endorse', '')}'")
+            logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by', '')}'")
+            return extracted_data
+            
+        except Exception as e:
+            logger.error(f"❌ AI extraction error: {e}")
+            return {}
         
     except Exception as e:
-        logger.error(f"❌ AI extraction error: {e}")
+        logger.error(f"❌ Outer AI extraction error: {e}")
         return {
             "cert_name": "",
             "cert_no": "",
