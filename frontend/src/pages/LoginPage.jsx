@@ -98,7 +98,7 @@ const LoginPage = () => {
         <button
           onClick={toggleLanguage}
           className="bg-white hover:bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-2 flex items-center gap-2 shadow-md transition-all duration-200 transform hover:scale-105"
-          disabled={loading}
+          disabled={isSubmitting}
         >
           <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
@@ -273,7 +273,7 @@ const LoginPage = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder={language === 'vi' ? 'Nhập tên đăng nhập' : 'Enter username'}
-                disabled={loading}
+                disabled={isSubmitting}
                 autoComplete="username"
               />
             </div>
@@ -297,14 +297,14 @@ const LoginPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-10 pr-12 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder={language === 'vi' ? 'Nhập mật khẩu' : 'Enter password'}
-                disabled={loading}
+                disabled={isSubmitting}
                 autoComplete="current-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                disabled={loading}
+                disabled={isSubmitting}
               >
                 {showPassword ? (
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,7 +329,7 @@ const LoginPage = () => {
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
-                disabled={loading}
+                disabled={isSubmitting}
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer">
                 {language === 'vi' ? 'Ghi nhớ đăng nhập' : 'Remember me'}
@@ -339,7 +339,7 @@ const LoginPage = () => {
             <button
               type="button"
               className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-              disabled={loading}
+              disabled={isSubmitting}
             >
               {language === 'vi' ? 'Quên mật khẩu?' : 'Forgot password?'}
             </button>
@@ -348,7 +348,7 @@ const LoginPage = () => {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={isSubmitting}
             className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all flex items-center justify-center ${
               loading
                 ? 'bg-gray-400 cursor-not-allowed'
