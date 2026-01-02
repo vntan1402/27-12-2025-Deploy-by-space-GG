@@ -14,7 +14,8 @@ async def extract_approval_document_fields_from_summary(
     summary_text: str,
     ai_provider: str,
     ai_model: str,
-    use_emergent_key: bool
+    use_emergent_key: bool,
+    ai_config: Dict = None
 ) -> Dict:
     """
     Extract approval document fields from Document AI summary using System AI
@@ -31,12 +32,21 @@ async def extract_approval_document_fields_from_summary(
         ai_provider: AI provider (google, emergent)
         ai_model: AI model name (e.g., gemini-2.0-flash-exp)
         use_emergent_key: Whether to use Emergent LLM key
+        ai_config: Full AI configuration dict (optional, for custom API key)
     
     Returns:
         dict: Extracted fields or empty dict on failure
     """
     try:
         logger.info("🤖 Extracting approval document fields from summary")
+        
+        # Build ai_config if not provided
+        if ai_config is None:
+            ai_config = {
+                'provider': ai_provider,
+                'model': ai_model,
+                'use_emergent_key': use_emergent_key
+            }
         
         # Create extraction prompt
         prompt = create_approval_document_extraction_prompt(summary_text)
