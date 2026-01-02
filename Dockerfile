@@ -22,7 +22,7 @@ ENV DISABLE_ESLINT_PLUGIN=true
 RUN yarn build
 
 # Stage 2: Serve
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
