@@ -238,36 +238,28 @@ EXAMPLE OUTPUT 3 (Interim):
 
 RESPOND WITH VALID JSON ONLY:"""
 
-        # Use Emergent LLM integration
-        if use_emergent_key and ai_provider in ["google", "emergent"]:
-            try:
-                from app.utils.llm_wrapper import LlmChat, UserMessage
-                from app.core.config import settings
-                
-                # Get Emergent LLM key
-                emergent_key = settings.EMERGENT_LLM_KEY
-                if not emergent_key:
-                    logger.error("Emergent LLM key not configured")
-                    return {}
-                
-                chat = LlmChat(
-                    api_key=emergent_key,
-                    session_id=f"company_cert_extraction_{int(time.time())}",
-                    system_message="You are a maritime document analysis expert."
-                ).with_model("gemini", ai_model)
-                
-                logger.info(f"📤 Sending extraction prompt to {ai_model}...")
-                
-                # Send extraction request
-                user_message = UserMessage(text=prompt)
-                ai_response = await chat.send_message(user_message)
-                
-                if ai_response and ai_response.strip():
-                    result_text = ai_response.strip()
-                    logger.info("🤖 Company Cert AI response received")
-                else:
-                    logger.error("Empty AI response")
-                    return {}
+        # Use AI for extraction - llm_wrapper handles API key selection automatically
+        try:
+            from app.utils.llm_wrapper import LlmChat, UserMessage
+            
+            chat = LlmChat(
+                ai_config=ai_config,  # Pass full config for API key selection
+                session_id=f"company_cert_extraction_{int(time.time())}",
+                system_message="You are a maritime document analysis expert."
+            ).with_model("gemini", ai_model)
+            
+            logger.info(f"📤 Sending extraction prompt to {ai_model}...")
+            
+            # Send extraction request
+            user_message = UserMessage(text=prompt)
+            ai_response = await chat.send_message(user_message)
+            
+            if ai_response and ai_response.strip():
+                result_text = ai_response.strip()
+                logger.info("🤖 Company Cert AI response received")
+            else:
+                logger.error("Empty AI response")
+                return {}
                 
             except Exception as e:
                 logger.error(f"❌ Emergent LLM error: {e}")
