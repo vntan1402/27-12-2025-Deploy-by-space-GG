@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     
     # AI
     EMERGENT_LLM_KEY: Optional[str] = os.getenv('EMERGENT_LLM_KEY')
+    GOOGLE_AI_API_KEY: Optional[str] = os.getenv('GOOGLE_AI_API_KEY')  # For direct Google API on Cloud Run
     
     # Admin Initialization (Auto-create admin on first startup)
     INIT_ADMIN_USERNAME: str = os.getenv('INIT_ADMIN_USERNAME', 'system_admin')
