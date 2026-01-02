@@ -378,12 +378,15 @@ Processing: Text Layer Extraction + AI Correction
             ai_model = ai_config_doc.get("model", "gemini-2.0-flash-exp")
             use_emergent_key = ai_config_doc.get("use_emergent_key", True)
             
+            logger.info(f"🔑 AI Config: use_emergent_key={use_emergent_key}, has_custom_key={bool(ai_config_doc.get('custom_api_key'))}")
+            
             extracted_fields = await extract_survey_report_fields_from_summary(
                 summary_text,
                 ai_provider,
                 ai_model,
                 use_emergent_key,
-                filename
+                filename,
+                ai_config=ai_config_doc  # Pass full config for custom API key support
             )
             
             # Normalize issued_by
