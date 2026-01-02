@@ -978,19 +978,22 @@ class CrewCertificateService:
             logger.info(f"✅ Document AI extracted {len(document_summary)} characters")
             
             # Step 2: Use LLM AI to extract certificate fields from summary
+            from app.services.ai_config_service import AIConfigService
+            
+            ai_config_doc = None
             try:
                 ai_config = await AIConfigService.get_ai_config(current_user)
                 provider = ai_config.provider
                 model = ai_config.model
+                use_emergent_key = ai_config.use_emergent_key
+                custom_api_key = ai_config.custom_api_key
             except:
                 from app.utils.ai_config_helper import get_ai_config as get_ai_config_helper
                 ai_config_doc = await get_ai_config_helper()
                 provider = ai_config_doc.get("provider", "google") if ai_config_doc else "google"
                 model = ai_config_doc.get("model", "gemini-2.0-flash") if ai_config_doc else "gemini-2.0-flash"
-            
-            emergent_key = os.getenv("EMERGENT_LLM_KEY", "sk-emergent-eEe35Fb1b449940199")
-            use_emergent_key = ai_config_doc.get("use_emergent_key", True) if ai_config_doc else True
-            custom_api_key = ai_config_doc.get("custom_api_key") if ai_config_doc else None
+                use_emergent_key = ai_config_doc.get("use_emergent_key", True) if ai_config_doc else True
+                custom_api_key = ai_config_doc.get("custom_api_key") if ai_config_doc else None
             
             # Build ai_config dict for LlmChat
             ai_config_for_llm = {
