@@ -166,27 +166,27 @@ async def extract_ship_certificate_fields_from_summary(
             if ai_response and ai_response.strip():
                 content = ai_response.strip()
                 logger.info("🤖 Ship Certificate AI response received")
+                
+                # Parse JSON response
+                try:
+                    clean_content = content.replace('```json', '').replace('```', '').strip()
+                    extracted_data = json.loads(clean_content)
                     
-                    # Parse JSON response
-                    try:
-                        clean_content = content.replace('```json', '').replace('```', '').strip()
-                        extracted_data = json.loads(clean_content)
-                        
-                        logger.info(f"✅ Parsed extracted data: {list(extracted_data.keys())}")
-                        
-                        # Post-process extracted data
-                        processed_data = post_process_extracted_data(extracted_data)
-                        
-                        return processed_data
-                        
-                    except json.JSONDecodeError as e:
-                        logger.error(f"❌ JSON parse error: {e}")
-                        logger.error(f"Response content: {content[:500]}")
-                        return {}
-                else:
-                    logger.error("Empty AI response")
+                    logger.info(f"✅ Parsed extracted data: {list(extracted_data.keys())}")
+                    
+                    # Post-process extracted data
+                    processed_data = post_process_extracted_data(extracted_data)
+                    
+                    return processed_data
+                    
+                except json.JSONDecodeError as e:
+                    logger.error(f"❌ JSON parse error: {e}")
+                    logger.error(f"Response content: {content[:500]}")
                     return {}
-                    
+            else:
+                logger.error("Empty AI response")
+                return {}
+                
         except Exception as e:
             logger.error(f"❌ AI extraction error: {e}")
             import traceback
