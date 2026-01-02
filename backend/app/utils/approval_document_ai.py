@@ -75,18 +75,18 @@ async def extract_approval_document_fields_from_summary(
                             from dateutil import parser
                             parsed_date = parser.parse(extracted_data['approved_date'])
                             extracted_data['approved_date'] = parsed_date.strftime('%Y-%m-%d')
-                            except Exception as date_error:
-                                logger.warning(f"Failed to parse approved_date: {date_error}")
-                        
-                        logger.info("✅ Successfully extracted approval document fields")
-                        return extracted_data
-                        
-                    except json.JSONDecodeError as json_error:
-                        logger.error(f"Failed to parse AI response as JSON: {json_error}")
-                        return {}
-                else:
-                    logger.error("Empty AI response")
+                        except Exception as date_error:
+                            logger.warning(f"Failed to parse approved_date: {date_error}")
+                    
+                    logger.info("✅ Successfully extracted approval document fields")
+                    return extracted_data
+                    
+                except json.JSONDecodeError as json_error:
+                    logger.error(f"Failed to parse AI response as JSON: {json_error}")
                     return {}
+            else:
+                logger.error("Empty AI response")
+                return {}
                 
         except Exception as e:
             logger.error(f"❌ AI extraction error: {e}")
