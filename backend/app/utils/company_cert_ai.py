@@ -262,11 +262,8 @@ RESPOND WITH VALID JSON ONLY:"""
                 return {}
                 
             except Exception as e:
-                logger.error(f"❌ Emergent LLM error: {e}")
+                logger.error(f"❌ AI extraction error: {e}")
                 return {}
-        else:
-            logger.error(f"Unsupported AI provider: {ai_provider}")
-            return {}
         
         # Clean JSON response
         if result_text.startswith('```json'):
