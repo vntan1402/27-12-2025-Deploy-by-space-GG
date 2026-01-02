@@ -10,7 +10,14 @@ import AnnouncementBanner from '../components/Login/AnnouncementBanner';
 
 const LoginPage = () => {
   const navigate = useNavigate();
-  const { login, language, toggleLanguage } = useAuth();
+  const { login, language, toggleLanguage, user, loading } = useAuth();
+  
+  // Redirect to home if user is already logged in or just logged in
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/', { replace: true });
+    }
+  }, [user, loading, navigate]);
   
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
