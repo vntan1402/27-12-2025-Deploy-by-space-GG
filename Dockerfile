@@ -1,6 +1,4 @@
 # Frontend Dockerfile for Google Cloud Run
-# This file is at root level for Cloud Build compatibility
-
 # Stage 1: Build
 FROM node:18-alpine as build
 
@@ -9,7 +7,7 @@ WORKDIR /app
 # Copy package files from frontend folder
 COPY frontend/package.json frontend/yarn.lock ./
 
-# Install dependencies
+# Install dependencies  
 RUN yarn install --frozen-lockfile
 
 # Copy source code from frontend folder
@@ -23,20 +21,19 @@ ENV DISABLE_ESLINT_PLUGIN=true
 # Build the app
 RUN yarn build
 
-# Stage 2: Serve with lightweight server
+# Stage 2: Serve
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Install serve globally
+# Install serve
 RUN npm install -g serve
 
-# Copy built files from build stage
+# Copy built files
 COPY --from=build /app/build ./build
 
-# Cloud Run uses PORT environment variable
+# Cloud Run PORT
 ENV PORT=8080
 EXPOSE 8080
 
-# Start serve on the PORT
 CMD ["sh", "-c", "serve -s build -l $PORT"]
