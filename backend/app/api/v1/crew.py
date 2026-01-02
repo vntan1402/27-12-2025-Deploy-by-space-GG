@@ -740,7 +740,7 @@ Return ONLY the JSON output with extracted fields. Do not include any explanatio
         logger.info(f"🤖 Extracting passport fields using {provider} {model}...")
         
         # Initialize LLM
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from app.utils.llm_wrapper import LlmChat, UserMessage
         
         llm_chat = LlmChat(
             api_key=emergent_key,

@@ -40,7 +40,7 @@ async def extract_survey_report_fields_from_summary(
         
         # Call AI based on provider
         if ai_provider in ["google", "emergent"]:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            from app.utils.llm_wrapper import LlmChat, UserMessage
             from app.core.config import settings
             
             # Get Emergent LLM key
