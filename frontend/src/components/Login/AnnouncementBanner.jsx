@@ -13,10 +13,12 @@ const AnnouncementBanner = ({ language }) => {
   const loadAnnouncements = async () => {
     try {
       const data = await systemAnnouncementService.getActiveAnnouncements();
-      setAnnouncements(data);
+      // Ensure data is an array
+      setAnnouncements(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error loading announcements:', error);
       // Fail silently - don't block login page if announcements fail to load
+      setAnnouncements([]);
     }
   };
 
