@@ -115,17 +115,12 @@ async def correct_text_layer_with_ai(
         
         logger.info(f"   🤖 Using {provider}/{model} for text correction")
         
-        # Call Gemini AI using LlmChat (correct pattern)
+        # Call AI using LlmChat - it handles API key selection automatically
         from app.utils.llm_wrapper import LlmChat, UserMessage
-        from app.core.config import settings
         
-        emergent_key = settings.EMERGENT_LLM_KEY or os.getenv("EMERGENT_LLM_KEY")
-        if not emergent_key:
-            raise ValueError("EMERGENT_LLM_KEY not configured")
-        
-        # Initialize LlmChat
+        # Initialize LlmChat with ai_config for proper API key selection
         chat = LlmChat(
-            api_key=emergent_key,
+            ai_config=ai_config,  # Pass config for API key selection
             session_id="text_layer_correction",
             system_message="You are an expert document OCR correction assistant."
         )
