@@ -187,13 +187,10 @@ async def extract_ship_certificate_fields_from_summary(
                     logger.error("Empty AI response")
                     return {}
                     
-            except Exception as e:
-                logger.error(f"❌ AI extraction error: {e}")
-                import traceback
-                logger.error(traceback.format_exc())
-                return {}
-        else:
-            logger.error(f"Unsupported AI provider: {ai_provider}")
+        except Exception as e:
+            logger.error(f"❌ AI extraction error: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             return {}
             
     except Exception as e:
