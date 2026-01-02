@@ -1,3 +1,65 @@
+# Test Results - Ship Management System
+
+## 🔧 LOGIN REDIRECTION BUG FIX (January 2, 2026)
+**Status:** FIX APPLIED - TESTING IN PROGRESS
+
+### Issue Description
+After successful login (toast shows "Login successful"), the page did NOT redirect to the home page - it stayed on the login page. This was a critical bug blocking users from accessing the application after deployment on Google Cloud Run.
+
+### Root Cause Analysis
+1. **LoginPage.jsx** called `navigate('/')` immediately after `await login()` returned
+2. However, React's `setUser(userData)` state update in AuthContext is async/batched
+3. By the time `navigate('/')` executed and `ProtectedRoute` checked `user` state, the state might still be `null`
+4. Result: `user` was null → `ProtectedRoute` redirected back to `/login`
+
+### Fix Applied
+**File:** `/app/frontend/src/pages/LoginPage.jsx`
+
+**Changes:**
+1. Added `user` and `loading` (as `authLoading`) from `useAuth()` hook
+2. Added `useEffect` that watches `user` and `authLoading` states
+3. When `!authLoading && user` is truthy, navigate to `/` with `replace: true`
+4. Removed direct `navigate('/')` call from `handleSubmit` function
+5. Renamed local `loading` state to `isSubmitting` to avoid conflict
+
+### Code Diff Summary
+```jsx
+// Before: Navigate immediately after login
+await login(trimmedUsername, trimmedPassword);
+navigate('/');
+
+// After: Let useEffect handle navigation after state updates
+const { login, language, toggleLanguage, user, loading: authLoading } = useAuth();
+
+useEffect(() => {
+  if (!authLoading && user) {
+    navigate('/', { replace: true });
+  }
+}, [user, authLoading, navigate]);
+
+// In handleSubmit:
+await login(trimmedUsername, trimmedPassword);
+toast.success('Login successful!');
+// Navigation is handled by useEffect watching user state
+```
+
+### Local Testing Results
+- ✅ Login page renders correctly
+- ✅ Login with `admin1 / 123456` - SUCCESS
+- ✅ Toast "Đăng nhập thành công!" displayed
+- ✅ URL changed from `/login` to `/`
+- ✅ HomePage rendered with sidebar and categories
+
+### Deployment Instructions
+After fix verification, push code to GitHub to trigger rebuild on Google Cloud Run:
+```bash
+git add .
+git commit -m "fix: login redirect issue - use useEffect for navigation after auth state update"
+git push origin main
+```
+
+---
+
 # Test Results - Survey Report Smart Upload Feature
 
 ## ✅ SURVEY REPORT SMART UPLOAD TESTING COMPLETED
