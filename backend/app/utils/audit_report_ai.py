@@ -70,38 +70,38 @@ async def extract_audit_report_fields_from_summary(
                 ai_config=ai_config,  # Pass full config for API key selection
                 session_id=f"audit_extraction_{int(time.time())}",
                 system_message="You are a maritime audit report analysis expert."
-                ).with_model("gemini", ai_model)
+            ).with_model("gemini", ai_model)
+            
+            logger.info(f"📤 Sending extraction prompt to {ai_model}...")
+            
+            user_message = UserMessage(text=prompt)
+            ai_response = await chat.send_message(user_message)
+            
+            if ai_response and ai_response.strip():
+                content = ai_response.strip()
+                logger.info("🤖 Audit Report AI response received")
                 
-                logger.info(f"📤 Sending extraction prompt to {ai_model}...")
-                
-                user_message = UserMessage(text=prompt)
-                ai_response = await chat.send_message(user_message)
-                
-                if ai_response and ai_response.strip():
-                    content = ai_response.strip()
-                    logger.info("🤖 Audit Report AI response received")
+                # Parse JSON response
+                try:
+                    clean_content = content.replace('```json', '').replace('```', '').strip()
+                    extracted_data = json.loads(clean_content)
                     
-                    # Parse JSON response
-                    try:
-                        clean_content = content.replace('```json', '').replace('```', '').strip()
-                        extracted_data = json.loads(clean_content)
-                        
-                        # POST-PROCESSING (from Backend V1 lines 7078-7273)
-                        extracted_data = _post_process_extracted_data(extracted_data, filename)
-                        
-                        logger.info("✅ Audit report field extraction successful")
-                        logger.info(f"   📋 Audit Name: '{extracted_data.get('audit_report_name', '')}'")
-                        logger.info(f"   📝 Audit Type: '{extracted_data.get('audit_type', '')}'")
-                        logger.info(f"   📄 Report Form: '{extracted_data.get('report_form', '')}'")
-                        logger.info(f"   🔢 Audit No: '{extracted_data.get('audit_report_no', '')}'")
-                        logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by', '')}'")
-                        
-                        return extracted_data
-                        
-                    except json.JSONDecodeError as json_error:
-                        logger.error(f"Failed to parse AI response as JSON: {json_error}")
-                        logger.error(f"AI response: {content[:500]}")
-                        return {}
+                    # POST-PROCESSING (from Backend V1 lines 7078-7273)
+                    extracted_data = _post_process_extracted_data(extracted_data, filename)
+                    
+                    logger.info("✅ Audit report field extraction successful")
+                    logger.info(f"   📋 Audit Name: '{extracted_data.get('audit_report_name', '')}'")
+                    logger.info(f"   📝 Audit Type: '{extracted_data.get('audit_type', '')}'")
+                    logger.info(f"   📄 Report Form: '{extracted_data.get('report_form', '')}'")
+                    logger.info(f"   🔢 Audit No: '{extracted_data.get('audit_report_no', '')}'")
+                    logger.info(f"   🏛️ Issued By: '{extracted_data.get('issued_by', '')}'")
+                    
+                    return extracted_data
+                    
+                except json.JSONDecodeError as json_error:
+                    logger.error(f"Failed to parse AI response as JSON: {json_error}")
+                    logger.error(f"AI response: {content[:500]}")
+                    return {}
             else:
                 logger.error("Empty AI response")
                 return {}
