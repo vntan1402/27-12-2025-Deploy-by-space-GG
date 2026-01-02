@@ -129,7 +129,7 @@ async def extract_drawings_manuals_fields_from_summary(
         # Use System AI for extraction
         if use_emergent_key and ai_provider in ["google", "emergent"]:
             try:
-                from emergentintegrations.llm.chat import LlmChat, UserMessage
+                from app.utils.llm_wrapper import LlmChat, UserMessage
                 import os
                 
                 emergent_key = os.getenv("EMERGENT_LLM_KEY")

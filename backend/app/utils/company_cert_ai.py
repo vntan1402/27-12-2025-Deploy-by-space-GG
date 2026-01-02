@@ -241,7 +241,7 @@ RESPOND WITH VALID JSON ONLY:"""
         # Use Emergent LLM integration
         if use_emergent_key and ai_provider in ["google", "emergent"]:
             try:
-                from emergentintegrations.llm.chat import LlmChat, UserMessage
+                from app.utils.llm_wrapper import LlmChat, UserMessage
                 from app.core.config import settings
                 
                 # Get Emergent LLM key

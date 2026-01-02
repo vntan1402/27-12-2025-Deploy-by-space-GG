@@ -116,7 +116,7 @@ async def correct_text_layer_with_ai(
         logger.info(f"   🤖 Using {provider}/{model} for text correction")
         
         # Call Gemini AI using LlmChat (correct pattern)
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        from app.utils.llm_wrapper import LlmChat, UserMessage
         from app.core.config import settings
         
         emergent_key = settings.EMERGENT_LLM_KEY or os.getenv("EMERGENT_LLM_KEY")
