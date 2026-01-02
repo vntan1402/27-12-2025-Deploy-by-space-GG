@@ -52,7 +52,7 @@ const LoginPage = () => {
       return;
     }
 
-    setLoading(true);
+    setIsSubmitting(true);
     
     try {
       await login(trimmedUsername, trimmedPassword);
@@ -76,7 +76,7 @@ const LoginPage = () => {
       toast.error(errorMessage);
       triggerShake();
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
