@@ -163,11 +163,8 @@ async def extract_audit_certificate_fields_from_summary(
                     logger.error("Empty AI response")
                     return {}
                     
-            except Exception as ai_error:
-                logger.error(f"❌ System AI extraction error: {ai_error}")
-                return {}
-        else:
-            logger.error(f"Unsupported AI provider: {ai_provider}")
+        except Exception as ai_error:
+            logger.error(f"❌ AI extraction error: {ai_error}")
             return {}
             
     except Exception as e:
