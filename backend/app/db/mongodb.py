@@ -21,10 +21,13 @@ class MongoDatabase:
             if not mongo_url:
                 raise Exception("MONGO_URL environment variable not set")
             
+            # Check if running on Cloud Run
+            is_cloud_run = os.path.exists("/workspace")
+            
             self.client = AsyncIOMotorClient(
                 mongo_url,
-                serverSelectionTimeoutMS=10000,  # 10 seconds timeout
-                connectTimeoutMS=10000,
+                serverSelectionTimeoutMS=5000 if is_cloud_run else 10000,
+                connectTimeoutMS=5000 if is_cloud_run else 10000,
                 socketTimeoutMS=10000
             )
             
@@ -34,8 +37,9 @@ class MongoDatabase:
             db_name = os.getenv('DB_NAME', 'ship_management')
             self.database = self.client[db_name]
             
-            # Create indexes for better performance
-            await self.create_indexes()
+            # Skip indexes on Cloud Run for faster startup
+            if not is_cloud_run:
+                await self.create_indexes()
             
             self.connected = True
             logger.info(f"Successfully connected to MongoDB: {db_name}")
