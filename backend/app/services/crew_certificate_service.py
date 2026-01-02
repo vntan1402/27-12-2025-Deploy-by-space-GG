@@ -989,6 +989,18 @@ class CrewCertificateService:
                 model = ai_config_doc.get("model", "gemini-2.0-flash") if ai_config_doc else "gemini-2.0-flash"
             
             emergent_key = os.getenv("EMERGENT_LLM_KEY", "sk-emergent-eEe35Fb1b449940199")
+            use_emergent_key = ai_config_doc.get("use_emergent_key", True) if ai_config_doc else True
+            custom_api_key = ai_config_doc.get("custom_api_key") if ai_config_doc else None
+            
+            # Build ai_config dict for LlmChat
+            ai_config_for_llm = {
+                'provider': provider,
+                'model': model,
+                'use_emergent_key': use_emergent_key,
+                'custom_api_key': custom_api_key,
+            }
+            
+            logger.info(f"🔑 AI Config: use_emergent_key={use_emergent_key}, has_custom_key={bool(custom_api_key)}")
             
             # Define standard certificate names (must match frontend dropdown)
             STANDARD_CERT_NAMES = [
