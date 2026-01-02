@@ -14,7 +14,7 @@ RUN yarn install
 COPY frontend/ .
 
 # Build arguments for environment variables
-ARG REACT_APP_BACKEND_URL
+ARG REACT_APP_BACKEND_URL=https://quanlytau-test-810039010312.asia-east1.run.app
 ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
 ENV DISABLE_ESLINT_PLUGIN=true
 
