@@ -52,13 +52,14 @@ const AnnouncementBanner = ({ language }) => {
     }
   };
 
-  // Filter out dismissed announcements
-  const visibleAnnouncements = announcements.filter(
+  // Filter out dismissed announcements (ensure announcements is array)
+  const announcementList = Array.isArray(announcements) ? announcements : [];
+  const visibleAnnouncements = announcementList.filter(
     announcement => !dismissedIds.includes(announcement.id)
   );
 
   // Count dismissed announcements
-  const dismissedCount = announcements.length - visibleAnnouncements.length;
+  const dismissedCount = announcementList.length - visibleAnnouncements.length;
 
   // Show toggle button if there are dismissed announcements
   if (visibleAnnouncements.length === 0 && dismissedCount === 0) {
