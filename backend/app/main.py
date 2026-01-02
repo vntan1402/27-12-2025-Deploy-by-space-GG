@@ -94,15 +94,15 @@ async def startup_event():
         
         # Setup scheduled jobs (skip on cloud for faster startup)
         if not is_cloud_run:
-        scheduler.add_job(
-            scheduled_cleanup_job,
-            CronTrigger(hour=2, minute=0),
-            id="cleanup_job",
-            name="Daily Cleanup Report",
-            replace_existing=True
-        )
-        scheduler.start()
-        logger.info("✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily")
+            scheduler.add_job(
+                scheduled_cleanup_job,
+                CronTrigger(hour=2, minute=0),
+                id="cleanup_job",
+                name="Daily Cleanup Report",
+                replace_existing=True
+            )
+            scheduler.start()
+            logger.info("✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily")
         
         logger.info(f"✅ {settings.PROJECT_NAME} v{settings.VERSION} is ready!")
     except Exception as e:
