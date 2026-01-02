@@ -97,3 +97,55 @@ async def test_document_ai_connection(
     except Exception as e:
         logger.error(f"❌ Document AI test error: {e}")
         raise HTTPException(status_code=500, detail="Failed to test Document AI connection")
+
+
+@router.post("/test-ai-connection")
+async def test_ai_connection(
+    current_user: UserResponse = Depends(check_admin_permission)
+):
+    """
+    Test AI connection with current configuration (Admin+ role required)
+    """
+    try:
+        from app.utils.llm_wrapper import LlmChat, UserMessage
+        
+        # Get current AI config
+        ai_config_response = await AIConfigService.get_ai_config(current_user)
+        ai_config = {
+            'provider': ai_config_response.provider,
+            'model': ai_config_response.model,
+            'use_emergent_key': ai_config_response.use_emergent_key,
+            'custom_api_key': ai_config_response.custom_api_key,
+            'temperature': ai_config_response.temperature,
+        }
+        
+        logger.info(f"🧪 Testing AI connection with config: use_emergent_key={ai_config['use_emergent_key']}, has_custom_key={bool(ai_config['custom_api_key'])}")
+        
+        # Create LlmChat and test
+        chat = LlmChat(ai_config=ai_config).with_model("gemini", ai_config['model'] or "gemini-2.0-flash")
+        
+        # Simple test
+        response = await chat.send_message(UserMessage(text="Say 'Connection successful' in exactly those two words."))
+        
+        return {
+            "success": True,
+            "message": "AI connection test successful",
+            "response": str(response).strip()[:100],
+            "config": {
+                "provider": ai_config['provider'],
+                "model": ai_config['model'],
+                "use_emergent_key": ai_config['use_emergent_key'],
+                "has_custom_api_key": bool(ai_config['custom_api_key'])
+            }
+        }
+            
+    except Exception as e:
+        logger.error(f"❌ AI connection test error: {e}")
+        return {
+            "success": False,
+            "message": f"AI connection test failed: {str(e)}",
+            "config": {
+                "use_emergent_key": ai_config.get('use_emergent_key') if 'ai_config' in dir() else None,
+                "has_custom_api_key": bool(ai_config.get('custom_api_key')) if 'ai_config' in dir() else None
+            }
+        }
