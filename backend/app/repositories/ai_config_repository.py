@@ -41,9 +41,11 @@ class AIConfigRepository:
                 "updated_by": user_id
             }
             
-            # Don't store custom_api_key if using emergent key
-            if config_dict.get("use_emergent_key"):
+            # Clear custom_api_key only if using emergent key
+            if config_dict.get("use_emergent_key") == True:
                 config_dict["custom_api_key"] = None
+            elif config_dict.get("custom_api_key"):
+                logger.info(f"💾 Creating config with custom_api_key (length: {len(config_dict['custom_api_key'])})")
             
             await mongo_db.create(
                 AIConfigRepository.collection_name,
