@@ -413,7 +413,8 @@ class ApprovalDocumentAnalyzeService:
                             summary_text,
                             ai_provider,
                             ai_model,
-                            use_emergent_key
+                            use_emergent_key,
+                            ai_config=ai_config  # Pass full config for custom API key support
                         )
                         
                         chunk_results.append({
