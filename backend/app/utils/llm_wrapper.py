@@ -3,18 +3,31 @@
 
 import os
 import logging
-from typing import Optional, List
+from typing import Optional, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-def get_ai_api_key() -> str:
-    """Get the appropriate AI API key based on environment.
+def get_ai_api_key(ai_config: Optional[Dict[str, Any]] = None) -> str:
+    """Get the appropriate AI API key based on configuration.
     
     Priority:
-    1. GOOGLE_AI_API_KEY - Direct Google API key (for Cloud Run)
-    2. EMERGENT_LLM_KEY - Emergent platform key (for Emergent deployment)
+    1. custom_api_key from ai_config (if use_emergent_key is False)
+    2. GOOGLE_AI_API_KEY environment variable (for Cloud Run)
+    3. EMERGENT_LLM_KEY environment variable (for Emergent platform)
+    
+    Args:
+        ai_config: Optional AI configuration dict with 'use_emergent_key' and 'custom_api_key'
     """
-    # First try Google AI API key (for cloud deployment)
+    # Check if using custom API key from AI Config
+    if ai_config:
+        use_emergent_key = ai_config.get('use_emergent_key', True)
+        custom_api_key = ai_config.get('custom_api_key')
+        
+        if not use_emergent_key and custom_api_key:
+            logger.info("🔑 Using custom_api_key from AI Configuration")
+            return custom_api_key
+    
+    # Try Google AI API key (for cloud deployment)
     google_key = os.getenv('GOOGLE_AI_API_KEY')
     if google_key:
         logger.info("🔑 Using GOOGLE_AI_API_KEY for AI requests")
@@ -26,7 +39,8 @@ def get_ai_api_key() -> str:
         logger.info("🔑 Using EMERGENT_LLM_KEY for AI requests")
         return emergent_key
     
-    raise ValueError("No AI API key configured. Set GOOGLE_AI_API_KEY or EMERGENT_LLM_KEY")
+    raise ValueError("No AI API key configured. Set custom API key in AI Configuration, or set GOOGLE_AI_API_KEY/EMERGENT_LLM_KEY environment variable")
+
 
 class UserMessage:
     """User message wrapper - compatible with emergentintegrations"""
@@ -35,6 +49,7 @@ class UserMessage:
         self.content = content or text or ""
         self.text = self.content  # Alias for compatibility
         self.role = "user"
+
 
 class LlmChat:
     """LLM Chat wrapper that uses Google Generative AI directly
@@ -48,20 +63,40 @@ class LlmChat:
         provider: str = "gemini", 
         model: Optional[str] = None,
         session_id: Optional[str] = None,  # Accept but ignore for compatibility
-        system_message: Optional[str] = None  # Store for use in prompts
+        system_message: Optional[str] = None,  # Store for use in prompts
+        ai_config: Optional[Dict[str, Any]] = None  # AI configuration from database
     ):
-        # If no api_key provided, try to get from environment
+        self.ai_config = ai_config
+        
+        # Determine API key
         if api_key is None:
-            self.api_key = get_ai_api_key()
+            # No key provided, try to get from config or environment
+            self.api_key = get_ai_api_key(ai_config)
         else:
-            # Check if the provided key is Emergent key and we have Google key available
-            google_key = os.getenv('GOOGLE_AI_API_KEY')
-            if google_key:
-                # Prefer Google key for direct API calls
-                self.api_key = google_key
-                logger.info("🔑 Overriding with GOOGLE_AI_API_KEY for direct API access")
+            # Key provided, but check if we should override with custom key or Google key
+            if ai_config:
+                use_emergent_key = ai_config.get('use_emergent_key', True)
+                custom_api_key = ai_config.get('custom_api_key')
+                
+                if not use_emergent_key and custom_api_key:
+                    self.api_key = custom_api_key
+                    logger.info("🔑 Using custom_api_key from AI Configuration")
+                else:
+                    # Check for Google key override
+                    google_key = os.getenv('GOOGLE_AI_API_KEY')
+                    if google_key:
+                        self.api_key = google_key
+                        logger.info("🔑 Using GOOGLE_AI_API_KEY for direct API access")
+                    else:
+                        self.api_key = api_key
             else:
-                self.api_key = api_key
+                # No ai_config, check for Google key override
+                google_key = os.getenv('GOOGLE_AI_API_KEY')
+                if google_key:
+                    self.api_key = google_key
+                    logger.info("🔑 Using GOOGLE_AI_API_KEY for direct API access")
+                else:
+                    self.api_key = api_key
                 
         self.provider = provider.lower()
         self.model = model
@@ -73,6 +108,26 @@ class LlmChat:
         """Fluent method to set provider and model - returns self for chaining"""
         self.provider = provider.lower()
         self.model = model
+        return self
+    
+    def with_ai_config(self, ai_config: Dict[str, Any]) -> "LlmChat":
+        """Set AI configuration and update API key if needed"""
+        self.ai_config = ai_config
+        
+        # Update API key based on new config
+        use_emergent_key = ai_config.get('use_emergent_key', True)
+        custom_api_key = ai_config.get('custom_api_key')
+        
+        if not use_emergent_key and custom_api_key:
+            self.api_key = custom_api_key
+            logger.info("🔑 Updated to use custom_api_key from AI Configuration")
+        
+        # Update model if specified in config
+        if ai_config.get('model'):
+            self.model = ai_config.get('model')
+        if ai_config.get('provider'):
+            self.provider = ai_config.get('provider').lower()
+            
         return self
         
     def _get_client(self):
@@ -86,9 +141,14 @@ class LlmChat:
                 genai.configure(api_key=self.api_key)
                 model_name = self.model or "gemini-1.5-flash"
                 
+                # Get temperature from ai_config if available
+                temperature = 0.2
+                if self.ai_config and 'temperature' in self.ai_config:
+                    temperature = self.ai_config.get('temperature', 0.2)
+                
                 # Configure generation settings
                 generation_config = {
-                    "temperature": 0.2,
+                    "temperature": temperature,
                     "top_p": 0.95,
                     "top_k": 40,
                     "max_output_tokens": 8192,
