@@ -15,7 +15,8 @@ async def extract_survey_report_fields_from_summary(
     ai_provider: str,
     ai_model: str,
     use_emergent_key: bool,
-    filename: str = ""
+    filename: str = "",
+    ai_config: Dict[str, Any] = None
 ) -> Dict[str, Any]:
     """
     Extract survey report fields from Document AI summary using System AI
@@ -24,62 +25,52 @@ async def extract_survey_report_fields_from_summary(
         summary_text: Enhanced summary text (with OCR)
         ai_provider: "google" or "openai"
         ai_model: Model name (e.g., "gemini-2.0-flash")
-        use_emergent_key: Whether to use Emergent LLM key
+        use_emergent_key: Whether to use Emergent LLM key (legacy, now handled by llm_wrapper)
         filename: Original filename (helps identify report form)
+        ai_config: Optional AI configuration dict with custom_api_key
     
     Returns:
         Dict with extracted fields
     """
     try:
-        if not use_emergent_key:
-            logger.warning("AI extraction requires Emergent key configuration")
-            return {}
-        
         # Build extraction prompt
         prompt = create_survey_report_extraction_prompt(summary_text, filename)
         
-        # Call AI based on provider
-        if ai_provider in ["google", "emergent"]:
-            from app.utils.llm_wrapper import LlmChat, UserMessage
-            from app.core.config import settings
-            
-            # Get Emergent LLM key
-            emergent_key = settings.EMERGENT_LLM_KEY
-            if not emergent_key:
-                logger.error("EMERGENT_LLM_KEY not configured")
-                return {}
-            
-            # Use LlmChat with correct initialization pattern
-            chat = LlmChat(
-                api_key=emergent_key,
-                session_id="survey_report_analysis",
-                system_message="You are an AI assistant specialized in maritime survey report information extraction."
-            )
-            
-            # Set provider and model correctly
-            actual_model = ai_model or "gemini-2.0-flash-exp"
-            
-            # Check if model is Gemini (regardless of provider value)
-            if "gemini" in actual_model.lower() or ai_provider.lower() in ["google", "gemini", "emergent"]:
-                # For Gemini models with Emergent key
-                chat = chat.with_model("gemini", actual_model)
-                logger.info(f"🔄 Using Gemini model: {actual_model} (provider: {ai_provider})")
-            elif ai_provider.lower() == "openai" or "gpt" in actual_model.lower():
-                chat = chat.with_model("openai", actual_model)
-                logger.info(f"🔄 Using OpenAI model: {actual_model}")
-            elif ai_provider.lower() == "anthropic" or "claude" in actual_model.lower():
-                chat = chat.with_model("anthropic", actual_model)
-                logger.info(f"🔄 Using Anthropic model: {actual_model}")
-            else:
-                # Default: try Gemini
-                chat = chat.with_model("gemini", actual_model)
-                logger.warning(f"⚠️ Unknown provider: {ai_provider}, defaulting to Gemini with model: {actual_model}")
-            
-            response = await chat.send_message(UserMessage(text=prompt))
-            
-            if response:
-                # LlmChat returns content directly
-                content = response if isinstance(response, str) else ''
+        # Call AI - llm_wrapper handles API key selection automatically
+        from app.utils.llm_wrapper import LlmChat, UserMessage
+        
+        # Use LlmChat - it will automatically select the right API key
+        # Priority: custom_api_key from ai_config > GOOGLE_AI_API_KEY > EMERGENT_LLM_KEY
+        chat = LlmChat(
+            ai_config=ai_config,
+            session_id="survey_report_analysis",
+            system_message="You are an AI assistant specialized in maritime survey report information extraction."
+        )
+        
+        # Set provider and model correctly
+        actual_model = ai_model or "gemini-2.0-flash-exp"
+        
+        # Check if model is Gemini (regardless of provider value)
+        if "gemini" in actual_model.lower() or ai_provider.lower() in ["google", "gemini", "emergent"]:
+            # For Gemini models
+            chat = chat.with_model("gemini", actual_model)
+            logger.info(f"🔄 Using Gemini model: {actual_model} (provider: {ai_provider})")
+        elif ai_provider.lower() == "openai" or "gpt" in actual_model.lower():
+            chat = chat.with_model("openai", actual_model)
+            logger.info(f"🔄 Using OpenAI model: {actual_model}")
+        elif ai_provider.lower() == "anthropic" or "claude" in actual_model.lower():
+            chat = chat.with_model("anthropic", actual_model)
+            logger.info(f"🔄 Using Anthropic model: {actual_model}")
+        else:
+            # Default: try Gemini
+            chat = chat.with_model("gemini", actual_model)
+            logger.warning(f"⚠️ Unknown provider: {ai_provider}, defaulting to Gemini with model: {actual_model}")
+        
+        response = await chat.send_message(UserMessage(text=prompt))
+        
+        if response:
+            # LlmChat returns content directly
+            content = response if isinstance(response, str) else str(response)
                 
                 if content:
                     # Parse JSON response
