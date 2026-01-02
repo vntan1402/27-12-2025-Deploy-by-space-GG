@@ -136,33 +136,33 @@ async def extract_audit_certificate_fields_from_summary(
             if ai_response and ai_response.strip():
                 content = ai_response.strip()
                 logger.info("🤖 Audit Certificate AI response received")
+                
+                # Parse JSON response
+                try:
+                    clean_content = content.replace('```json', '').replace('```', '').strip()
+                    extracted_data = json.loads(clean_content)
                     
-                    # Parse JSON response
-                    try:
-                        clean_content = content.replace('```json', '').replace('```', '').strip()
-                        extracted_data = json.loads(clean_content)
-                        
-                        # POST-PROCESSING
-                        # Pass raw_pdf_text for header checking (cert_type, DMLC detection)
-                        # Pass full_document_text for content checking (ISPS valid_date calculation)
-                        extracted_data = _post_process_extracted_data(
-                            extracted_data, 
-                            filename, 
-                            raw_pdf_text or summary_text,
-                            full_document_text or summary_text
-                        )
-                        
-                        logger.info("✅ Audit certificate field extraction successful")
-                        return extracted_data
-                        
-                    except json.JSONDecodeError as je:
-                        logger.error(f"❌ JSON parse error: {je}")
-                        logger.error(f"AI response content: {content[:500]}")
-                        return {}
-                else:
-                    logger.error("Empty AI response")
+                    # POST-PROCESSING
+                    # Pass raw_pdf_text for header checking (cert_type, DMLC detection)
+                    # Pass full_document_text for content checking (ISPS valid_date calculation)
+                    extracted_data = _post_process_extracted_data(
+                        extracted_data, 
+                        filename, 
+                        raw_pdf_text or summary_text,
+                        full_document_text or summary_text
+                    )
+                    
+                    logger.info("✅ Audit certificate field extraction successful")
+                    return extracted_data
+                    
+                except json.JSONDecodeError as je:
+                    logger.error(f"❌ JSON parse error: {je}")
+                    logger.error(f"AI response content: {content[:500]}")
                     return {}
-                    
+            else:
+                logger.error("Empty AI response")
+                return {}
+                
         except Exception as ai_error:
             logger.error(f"❌ AI extraction error: {ai_error}")
             return {}
