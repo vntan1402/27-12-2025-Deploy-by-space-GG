@@ -66,13 +66,29 @@ async def startup_event():
     try:
         logger.info("🚀 Starting Ship Management System API V2...")
         
-        # Connect to database
-        await mongo_db.connect()
-        logger.info("✅ Database connected")
+        # Connect to database with retry
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                await mongo_db.connect()
+                logger.info("✅ Database connected")
+                break
+            except Exception as db_error:
+                logger.warning(f"⚠️ Database connection attempt {attempt + 1}/{max_retries} failed: {db_error}")
+                if attempt == max_retries - 1:
+                    logger.error("❌ Could not connect to database after all retries")
+                    # Continue without database - some endpoints might still work
+                else:
+                    import asyncio
+                    await asyncio.sleep(2)  # Wait before retry
         
         # Initialize admin if needed (auto-create from .env)
-        from app.utils.init_admin import init_admin_if_needed
-        await init_admin_if_needed()
+        if mongo_db.connected:
+            try:
+                from app.utils.init_admin import init_admin_if_needed
+                await init_admin_if_needed()
+            except Exception as admin_error:
+                logger.warning(f"⚠️ Admin initialization skipped: {admin_error}")
         
         # Setup scheduled jobs
         # Run cleanup job daily at 2:00 AM
@@ -88,8 +104,8 @@ async def startup_event():
         
         logger.info(f"✅ {settings.PROJECT_NAME} v{settings.VERSION} is ready!")
     except Exception as e:
-        logger.error(f"❌ Startup failed: {e}")
-        raise
+        logger.error(f"❌ Startup error: {e}")
+        # Don't raise - let the app start anyway for health checks
 
 # Shutdown event
 @app.on_event("shutdown")
