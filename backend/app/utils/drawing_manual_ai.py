@@ -98,7 +98,8 @@ async def extract_drawings_manuals_fields_from_summary(
     ai_provider: str,
     ai_model: str,
     use_emergent_key: bool,
-    filename: str = ""
+    filename: str = "",
+    ai_config: Dict = None
 ) -> Dict:
     """
     Extract drawings & manuals fields from Document AI summary using System AI
@@ -112,12 +113,21 @@ async def extract_drawings_manuals_fields_from_summary(
         ai_model: Model name ("gemini-2.0-flash-exp", etc.)
         use_emergent_key: Whether to use Emergent LLM key
         filename: Original filename (optional, for logging)
+        ai_config: Full AI configuration dict (optional, for custom API key)
     
     Returns:
         Extracted fields dictionary
     """
     try:
         logger.info(f"🤖 Extracting drawings & manuals fields from summary for: {filename}")
+        
+        # Build ai_config if not provided
+        if ai_config is None:
+            ai_config = {
+                'provider': ai_provider,
+                'model': ai_model,
+                'use_emergent_key': use_emergent_key
+            }
         
         # Create extraction prompt
         prompt = create_drawings_manuals_extraction_prompt(summary_text)
@@ -126,27 +136,20 @@ async def extract_drawings_manuals_fields_from_summary(
             logger.error("Failed to create drawings & manuals extraction prompt")
             return {}
         
-        # Use System AI for extraction
-        if use_emergent_key and ai_provider in ["google", "emergent"]:
-            try:
-                from app.utils.llm_wrapper import LlmChat, UserMessage
-                import os
-                
-                emergent_key = os.getenv("EMERGENT_LLM_KEY")
-                if not emergent_key:
-                    logger.error("EMERGENT_LLM_KEY not found in environment")
-                    return {}
-                
-                chat = LlmChat(
-                    api_key=emergent_key,
-                    session_id=f"drawings_manuals_extraction_{int(time.time())}",
-                    system_message="You are a maritime technical documentation analysis expert."
-                ).with_model("gemini", ai_model)
-                
-                logger.info(f"📤 Sending extraction prompt to {ai_model}...")
-                
-                user_message = UserMessage(text=prompt)
-                ai_response = await chat.send_message(user_message)
+        # Use AI for extraction - llm_wrapper handles API key selection
+        try:
+            from app.utils.llm_wrapper import LlmChat, UserMessage
+            
+            chat = LlmChat(
+                ai_config=ai_config,  # Pass config for API key selection
+                session_id=f"drawings_manuals_extraction_{int(time.time())}",
+                system_message="You are a maritime technical documentation analysis expert."
+            ).with_model("gemini", ai_model)
+            
+            logger.info(f"📤 Sending extraction prompt to {ai_model}...")
+            
+            user_message = UserMessage(text=prompt)
+            ai_response = await chat.send_message(user_message)
                 
                 if ai_response and ai_response.strip():
                     content = ai_response.strip()
