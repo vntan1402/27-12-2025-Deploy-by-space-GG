@@ -1,4 +1,4 @@
-# Frontend Dockerfile - React with Nginx
+# Frontend Dockerfile for Google Cloud Run
 # Stage 1: Build
 FROM node:18-alpine as build
 
@@ -16,25 +16,25 @@ COPY . .
 # Build arguments for environment variables
 ARG REACT_APP_BACKEND_URL
 ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+ENV DISABLE_ESLINT_PLUGIN=true
 
 # Build the app
 RUN yarn build
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
+# Stage 2: Serve with lightweight server
+FROM node:18-alpine
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+WORKDIR /app
 
-# Copy built files
-COPY --from=build /app/build /usr/share/nginx/html
+# Install serve globally
+RUN npm install -g serve
 
-# Expose port
-EXPOSE 80
+# Copy built files from build stage
+COPY --from=build /app/build ./build
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:80 || exit 1
+# Cloud Run uses PORT environment variable
+ENV PORT=8080
+EXPOSE 8080
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start serve on the PORT
+CMD ["sh", "-c", "serve -s build -l $PORT"]
