@@ -27,7 +27,7 @@ class ShipCertificateAuditLogsTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up test environment"""
-        cls.BACKEND_URL = "https://bat-dau-preview.preview.emergentagent.com/api"
+        cls.BACKEND_URL = "https://shipmanage-deploy.preview.emergentagent.com/api"
         cls.USERNAME = "admin1"
         cls.PASSWORD = "123456"
         
