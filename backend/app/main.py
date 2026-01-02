@@ -63,11 +63,14 @@ async def scheduled_cleanup_job():
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup"""
+    import os
+    is_cloud_run = os.path.exists("/workspace")
+    
     try:
         logger.info("🚀 Starting Ship Management System API V2...")
         
-        # Connect to database with retry
-        max_retries = 3
+        # Connect to database with retry (reduced retries for cloud)
+        max_retries = 2 if is_cloud_run else 3
         for attempt in range(max_retries):
             try:
                 await mongo_db.connect()
@@ -77,21 +80,20 @@ async def startup_event():
                 logger.warning(f"⚠️ Database connection attempt {attempt + 1}/{max_retries} failed: {db_error}")
                 if attempt == max_retries - 1:
                     logger.error("❌ Could not connect to database after all retries")
-                    # Continue without database - some endpoints might still work
                 else:
                     import asyncio
-                    await asyncio.sleep(2)  # Wait before retry
+                    await asyncio.sleep(1)  # Shorter wait
         
-        # Initialize admin if needed (auto-create from .env)
-        if mongo_db.connected:
+        # Initialize admin if needed (skip on cloud for faster startup)
+        if mongo_db.connected and not is_cloud_run:
             try:
                 from app.utils.init_admin import init_admin_if_needed
                 await init_admin_if_needed()
             except Exception as admin_error:
                 logger.warning(f"⚠️ Admin initialization skipped: {admin_error}")
         
-        # Setup scheduled jobs
-        # Run cleanup job daily at 2:00 AM
+        # Setup scheduled jobs (skip on cloud for faster startup)
+        if not is_cloud_run:
         scheduler.add_job(
             scheduled_cleanup_job,
             CronTrigger(hour=2, minute=0),
