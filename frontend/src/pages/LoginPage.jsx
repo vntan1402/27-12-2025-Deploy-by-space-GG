@@ -350,7 +350,7 @@ const LoginPage = () => {
             type="submit"
             disabled={isSubmitting}
             className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-all flex items-center justify-center ${
-              loading
+              isSubmitting
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
             }`}
