@@ -147,32 +147,25 @@ async def extract_ship_certificate_fields_from_summary(
             logger.error("Failed to create ship certificate extraction prompt")
             return {}
         
-        # Use System AI for extraction
-        if use_emergent_key and ai_provider in ["google", "emergent"]:
-            try:
-                from app.utils.llm_wrapper import LlmChat, UserMessage
-                from app.core.config import settings
-                
-                # Get Emergent LLM key
-                emergent_key = settings.EMERGENT_LLM_KEY
-                if not emergent_key:
-                    logger.error("Emergent LLM key not configured")
-                    return {}
-                
-                chat = LlmChat(
-                    api_key=emergent_key,
-                    session_id=f"ship_cert_extraction_{int(time.time())}",
-                    system_message="You are a maritime certificate analysis expert."
-                ).with_model("gemini", ai_model)
-                
-                logger.info(f"📤 Sending extraction prompt to {ai_model}...")
-                
-                user_message = UserMessage(text=prompt)
-                ai_response = await chat.send_message(user_message)
-                
-                if ai_response and ai_response.strip():
-                    content = ai_response.strip()
-                    logger.info("🤖 Ship Certificate AI response received")
+        # Use AI for extraction (supports both Emergent key and custom API key)
+        try:
+            from app.utils.llm_wrapper import LlmChat, UserMessage
+            
+            # Create LlmChat with ai_config - it will automatically select the right API key
+            chat = LlmChat(
+                ai_config=ai_config,  # Pass full config for API key selection
+                session_id=f"ship_cert_extraction_{int(time.time())}",
+                system_message="You are a maritime certificate analysis expert."
+            ).with_model("gemini", ai_model)
+            
+            logger.info(f"📤 Sending extraction prompt to {ai_model}...")
+            
+            user_message = UserMessage(text=prompt)
+            ai_response = await chat.send_message(user_message)
+            
+            if ai_response and ai_response.strip():
+                content = ai_response.strip()
+                logger.info("🤖 Ship Certificate AI response received")
                     
                     # Parse JSON response
                     try:
