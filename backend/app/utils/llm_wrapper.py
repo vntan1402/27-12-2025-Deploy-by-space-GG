@@ -18,6 +18,10 @@ def get_ai_api_key(ai_config: Optional[Dict[str, Any]] = None) -> str:
     Args:
         ai_config: Optional AI configuration dict with 'use_emergent_key' and 'custom_api_key'
     """
+    # Log the ai_config for debugging
+    if ai_config:
+        logger.info(f"🔍 AI Config received - use_emergent_key: {ai_config.get('use_emergent_key')}, has_custom_key: {bool(ai_config.get('custom_api_key'))}")
+    
     # Check if using custom API key from AI Config
     if ai_config:
         use_emergent_key = ai_config.get('use_emergent_key', True)
@@ -26,6 +30,8 @@ def get_ai_api_key(ai_config: Optional[Dict[str, Any]] = None) -> str:
         if not use_emergent_key and custom_api_key:
             logger.info("🔑 Using custom_api_key from AI Configuration")
             return custom_api_key
+        elif not use_emergent_key and not custom_api_key:
+            logger.warning("⚠️ use_emergent_key is False but custom_api_key is empty, falling back to environment variables")
     
     # Try Google AI API key (for cloud deployment)
     google_key = os.getenv('GOOGLE_AI_API_KEY')
@@ -39,7 +45,9 @@ def get_ai_api_key(ai_config: Optional[Dict[str, Any]] = None) -> str:
         logger.info("🔑 Using EMERGENT_LLM_KEY for AI requests")
         return emergent_key
     
-    raise ValueError("No AI API key configured. Set custom API key in AI Configuration, or set GOOGLE_AI_API_KEY/EMERGENT_LLM_KEY environment variable")
+    error_msg = "No AI API key configured. Options: 1) Set custom API key in AI Configuration with use_emergent_key=False, 2) Set GOOGLE_AI_API_KEY env var, 3) Set EMERGENT_LLM_KEY env var"
+    logger.error(f"❌ {error_msg}")
+    raise ValueError(error_msg)
 
 
 class UserMessage:
