@@ -59,11 +59,15 @@ class AIConfigRepository:
     async def update(company: str, config_data: AIConfigUpdate, user_id: str) -> Optional[dict]:
         """Update AI configuration (system-wide, company param ignored)"""
         try:
-            update_dict = {k: v for k, v in config_data.dict(exclude_unset=True).items() if v is not None}
+            update_dict = {k: v for k, v in config_data.dict(exclude_unset=True).items()}
             
-            # Don't store custom_api_key if using emergent key
-            if update_dict.get("use_emergent_key"):
+            # Handle custom_api_key based on use_emergent_key setting
+            if update_dict.get("use_emergent_key") == True:
+                # Clear custom_api_key when using emergent key
                 update_dict["custom_api_key"] = None
+            elif "custom_api_key" in update_dict and update_dict["custom_api_key"]:
+                # Keep custom_api_key if provided and not using emergent key
+                logger.info(f"💾 Saving custom_api_key (length: {len(update_dict['custom_api_key'])})")
             
             update_dict["updated_at"] = datetime.utcnow()
             update_dict["updated_by"] = user_id
