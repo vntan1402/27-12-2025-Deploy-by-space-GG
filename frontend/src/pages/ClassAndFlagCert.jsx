@@ -454,8 +454,30 @@ const ClassAndFlagCert = () => {
           return 0;
         }
 
+        // Handle next_survey sorting - use next_survey_display which has format "DD/MM/YYYY (±3M)"
+        if (certificateSort.column === 'next_survey') {
+          const aNextSurvey = a.next_survey_display || a.next_survey;
+          const bNextSurvey = b.next_survey_display || b.next_survey;
+          return compareDates(aNextSurvey, bNextSurvey) * (certificateSort.direction === 'asc' ? 1 : -1);
+        }
+
+        // Handle next_survey_type sorting - alphabetical with special handling for null/empty
+        if (certificateSort.column === 'next_survey_type') {
+          const aType = (a.next_survey_type || '').toLowerCase();
+          const bType = (b.next_survey_type || '').toLowerCase();
+          
+          // Handle empty/null values - sort them to the end
+          if (!aType && !bType) return 0;
+          if (!aType) return 1;
+          if (!bType) return -1;
+          
+          if (aType < bType) return certificateSort.direction === 'asc' ? -1 : 1;
+          if (aType > bType) return certificateSort.direction === 'asc' ? 1 : -1;
+          return 0;
+        }
+
         // Handle date sorting
-        if (['issue_date', 'valid_date', 'last_endorse', 'next_survey'].includes(certificateSort.column)) {
+        if (['issue_date', 'valid_date', 'last_endorse'].includes(certificateSort.column)) {
           return compareDates(aVal, bVal) * (certificateSort.direction === 'asc' ? 1 : -1);
         }
 
