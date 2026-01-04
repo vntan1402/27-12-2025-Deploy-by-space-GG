@@ -31,7 +31,8 @@ export const EditShipCertificateModal = ({
     issued_by: '',
     issued_by_abbreviation: '',
     notes: '',
-    exclude_from_auto_update: false
+    exclude_from_auto_update: false,
+    has_annual_survey: true  // ⭐ NEW: Endorsement Required flag
   });
 
   // Load certificate data when modal opens
