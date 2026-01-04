@@ -334,6 +334,66 @@ This certificate should belong to one of these categories:
 - IMO number: Look for "IMO NO", "IMO NUMBER", format like "IMO 9573945"
 - If a field is not found, return empty string "" or null, but DO NOT skip the field
 
+**⚠️ HAS_ANNUAL_SURVEY DETECTION RULES (VERY IMPORTANT)**:
+
+The keyword "Annual Survey" alone is NOT sufficient to determine if a certificate requires annual endorsements.
+You must look for a **STRUCTURED ENDORSEMENT SECTION** with the following characteristics:
+
+**✅ SET has_annual_survey = TRUE if document has ALL of these:**
+1. A dedicated section titled one of:
+   - "Annual surveys"
+   - "Endorsement for annual and intermediate surveys"
+   - "Endorsement for annual survey"
+2. Multiple numbered entries like:
+   - "1st Annual survey", "2nd Annual survey", "3rd Annual survey", "4th Annual survey"
+   - OR "Annual survey" repeated multiple times
+3. Each entry has a STRUCTURED FORMAT with:
+   - "Signed:" or "Signature" field
+   - "Place of survey:" or "Place:" field
+   - "Date:" field
+   - These fields may be empty (waiting to be filled) or filled with actual values
+
+**Example of VALID Annual Survey Section (has_annual_survey = TRUE):**
+```
+Annual surveys
+This is to certify that, at a survey, the ship was found to comply...
+
+1st Annual survey
+Signed: [signature or empty]
+Place of survey: Vung Tau
+Date: 30 August 2024
+
+2nd Annual survey  
+Signed: [signature or empty]
+Place of survey: Vung Tau
+Date: 16 July 2025
+
+3rd Annual survey
+Signed:
+Place of survey:
+Date:
+```
+
+**❌ SET has_annual_survey = FALSE if:**
+1. Document has NO "Annual surveys" section
+2. Document only has "Endorsement to extend the certificate" sections (these are extensions, NOT annual surveys)
+3. The phrase "Annual Survey" appears only in general text (e.g., "subject to annual survey") but NOT in a structured endorsement section
+4. Document is an insurance certificate, tonnage certificate, registry certificate, etc.
+
+**Example of INVALID (has_annual_survey = FALSE):**
+```
+Endorsement to extend the certificate if valid for less than 5 years...
+Signed:
+Place of survey:
+Date:
+
+Endorsement where the renewal survey has been completed...
+Signed:
+Place of survey:
+Date:
+```
+(This is extension endorsement, NOT annual survey endorsement)
+
 **LAST_ENDORSE & NEXT_SURVEY EXTRACTION RULES (CRITICAL - READ CAREFULLY)**:
 
 ⚠️ **STEP 1: SCAN ENTIRE DOCUMENT FROM PAGE 1 TO LAST PAGE**
@@ -342,11 +402,8 @@ This certificate should belong to one of these categories:
 - DO NOT stop reading after finding issue_date and valid_date on page 1
 
 ⚠️ **STEP 2: CHECK IF DOCUMENT HAS "Annual Survey Endorsement" SECTIONS**
-- Search the ENTIRE document for these section titles:
-  * "Annual surveys"
-  * "Endorsement for annual and intermediate surveys"
-  * "1st Annual survey", "2nd Annual survey", "3rd Annual survey", "4th Annual survey"
-  * "Intermediate survey"
+- Search the ENTIRE document for structured Annual Survey sections as described above
+- Look for the PATTERN: numbered entries (1st, 2nd, 3rd, 4th) with Signed/Place/Date fields
 
 ⚠️ **STEP 3: DETERMINE EXTRACTION BASED ON WHAT YOU FOUND**
 
