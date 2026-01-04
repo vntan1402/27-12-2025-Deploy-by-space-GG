@@ -45,6 +45,11 @@ export const EditShipCertificateModal = ({
       const excludeValue = Boolean(certificate.exclude_from_auto_update);
       console.log('✅ Final exclude_from_auto_update value:', excludeValue);
       
+      // ⭐ Handle has_annual_survey: default to true if not set (null/undefined)
+      const hasAnnualSurveyValue = certificate.has_annual_survey !== false; // true if null, undefined, or true
+      console.log('🔍 has_annual_survey raw value:', certificate.has_annual_survey);
+      console.log('✅ Final has_annual_survey value:', hasAnnualSurveyValue);
+      
       setEditData({
         cert_name: certificate.cert_name || '',
         cert_abbreviation: certificate.cert_abbreviation || '',
@@ -58,7 +63,8 @@ export const EditShipCertificateModal = ({
         issued_by: certificate.issued_by || '',
         issued_by_abbreviation: certificate.issued_by_abbreviation || '',
         notes: certificate.notes || '',
-        exclude_from_auto_update: excludeValue
+        exclude_from_auto_update: excludeValue,
+        has_annual_survey: hasAnnualSurveyValue
       });
     }
   }, [certificate]);
