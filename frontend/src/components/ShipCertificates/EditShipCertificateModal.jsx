@@ -300,6 +300,23 @@ export const EditShipCertificateModal = ({
                   onChange={(e) => setEditData({ ...editData, last_endorse: e.target.value })}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+                
+                {/* ⭐ NEW: Checkbox - Endorsement Required (has_annual_survey) */}
+                <div className="mt-2">
+                  <label className="flex items-start space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={editData.has_annual_survey}
+                      onChange={(e) => setEditData({ ...editData, has_annual_survey: e.target.checked })}
+                      className="mt-0.5 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <span className="text-xs text-gray-700 leading-tight">
+                      {language === 'vi' 
+                        ? 'Yêu cầu xác nhận hàng năm'
+                        : 'Endorsement Required'}
+                    </span>
+                  </label>
+                </div>
               </div>
               
               <div>
