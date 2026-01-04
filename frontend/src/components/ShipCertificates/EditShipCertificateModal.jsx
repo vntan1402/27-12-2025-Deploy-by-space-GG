@@ -124,7 +124,8 @@ export const EditShipCertificateModal = ({
         issued_by: editData.issued_by || null,
         issued_by_abbreviation: editData.issued_by_abbreviation || null,
         notes: editData.notes || null,
-        exclude_from_auto_update: editData.exclude_from_auto_update || false
+        exclude_from_auto_update: editData.exclude_from_auto_update || false,
+        has_annual_survey: editData.has_annual_survey  // ⭐ NEW: Send has_annual_survey flag
       };
 
       await api.put(`/api/certificates/${certificate.id}`, updatePayload);
