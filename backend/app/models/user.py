@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
@@ -39,6 +39,14 @@ class UserBase(BaseModel):
     signature_file_id: Optional[str] = None  # Google Drive file ID
     signature_url: Optional[str] = None  # URL to view signature image
     crew_id: Optional[str] = None  # Link to crew record for role=viewer (Crew)
+    
+    @field_validator('email', mode='before')
+    @classmethod
+    def empty_string_to_none(cls, v):
+        """Convert empty string to None for email field"""
+        if v == '' or v is None:
+            return None
+        return v
 
 class UserCreate(UserBase):
     password: str
