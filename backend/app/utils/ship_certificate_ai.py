@@ -407,7 +407,7 @@ Date:
 
 ⚠️ **STEP 3: DETERMINE EXTRACTION BASED ON WHAT YOU FOUND**
 
-**CASE A - Document HAS "Annual Survey" sections with dates:**
+**CASE A - Document HAS structured "Annual Survey" endorsement section:**
 - Set has_annual_survey = true
 - Extract ALL dates from Annual/Intermediate survey entries
 - Look for: "Date XX Month YYYY", "Credited by... on XX Month YYYY"
@@ -415,7 +415,7 @@ Date:
 - Set last_endorse = MOST RECENT (latest) date found
 - Set next_survey_type = "Annual" or "Intermediate" based on next due
 
-**CASE B - Document has NO "Annual Survey" sections:**
+**CASE B - Document has NO structured "Annual Survey" endorsement section:**
 - Set has_annual_survey = false
 - The document only has extension endorsements (e.g., "Endorsement to extend the certificate...")
 - These extension sections are NOT annual surveys
@@ -425,29 +425,70 @@ Date:
 
 ⚠️ **STEP 4: EXAMPLES**
 
-**Example 1 - IAPP Certificate (HAS Annual surveys on page 2):**
-- Found section: "Endorsement for annual and intermediate surveys"
-- Found: "1st Annual survey - Credited... 30 August 2024"
-- Found: "2nd Annual survey - Date 16 July 2025"
-→ has_annual_survey = true
-→ last_endorse = "16 July 2025" (most recent)
+**Example 1 - IAPP Certificate (has_annual_survey = TRUE):**
+Document contains structured section:
+```
+Endorsement for annual and intermediate surveys
+...
+1st Annual survey
+Signed: [signature]
+Place of survey: Vung Tau
+Date: 30 August 2024
+
+2nd Annual survey
+Signed: [signature]
+Place of survey: Vung Tau  
+Date: 16 July 2025
+```
+→ has_annual_survey = true (structured section with numbered entries + Signed/Place/Date)
+→ last_endorse = "16 July 2025" (most recent date)
 → next_survey_type = "Annual"
 
-**Example 2 - DG Certificate (HAS Annual surveys on page 6):**
-- Found section: "Annual surveys"
-- Found: "1st Annual survey - Credited... 30 August 2024"
-- Found: "2nd Annual survey - Date 16 July 2025"
+**Example 2 - DG/IMSBC Certificate (has_annual_survey = TRUE):**
+Document page 6 contains:
+```
+Annual surveys
+This is to certify that, at a survey, the ship was found to comply...
+
+1st Annual survey
+Credited by the Losing Society on 30 August 2024
+Signed:
+Place of survey:
+Date:
+
+2nd Annual survey
+Signed: Hoai Nguyen Van
+Place of survey: Vung Tau (VN)
+Date: 16 July 2025
+```
 → has_annual_survey = true
 → last_endorse = "16 July 2025"
 → next_survey_type = "Annual"
 
-**Example 3 - ISPP Certificate (NO Annual surveys):**
-- Searched entire document - NO "Annual surveys" section found
-- Page 2 only has "Endorsement to extend the certificate" (this is NOT annual survey)
-- valid_date = "28 June 2028"
+**Example 3 - ISPP Certificate (has_annual_survey = FALSE):**
+Document does NOT have "Annual surveys" section.
+Page 2 only contains:
+```
+Endorsement to extend the certificate if valid for less than 5 years...
+Signed:
+Place of survey:
+Date:
+
+Endorsement where the renewal survey has been completed...
+Signed:
+Place of survey:
+Date:
+```
+→ has_annual_survey = false (these are extension endorsements, NOT annual survey endorsements)
+→ last_endorse = ""
+→ next_survey = "28 June 2028" (same as valid_date)
+→ next_survey_type = "Renewal"
+
+**Example 4 - Insurance/P&I Certificate (has_annual_survey = FALSE):**
+Document has no endorsement section at all, or only general terms.
 → has_annual_survey = false
 → last_endorse = ""
-→ next_survey = "28 June 2028"
+→ next_survey_type = "Renewal"
 → next_survey_type = "Renewal"
 
 **OUTPUT FORMAT**: Return ONLY valid JSON, no extra text or explanations.
