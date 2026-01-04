@@ -339,6 +339,17 @@ const ClassAndFlagCert = () => {
     return Array.from(types).sort();
   };
 
+  // Get unique Issued By values for filter dropdown
+  const getUniqueIssuedBy = () => {
+    const issuers = new Set();
+    certificates.forEach(cert => {
+      // Use abbreviation if available, otherwise use full issued_by
+      const issuer = cert.issued_by_abbreviation || cert.issued_by;
+      if (issuer && issuer.trim()) issuers.add(issuer);
+    });
+    return Array.from(issuers).sort();
+  };
+
   // Helper function to parse dd/mm/yyyy format
   const parseDateDDMMYYYY = (dateStr) => {
     if (!dateStr) return null;
