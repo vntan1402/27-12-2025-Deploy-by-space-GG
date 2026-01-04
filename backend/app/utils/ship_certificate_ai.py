@@ -356,6 +356,7 @@ First, identify the certificate type and check if it has Annual/Intermediate sur
 
 **CERTIFICATES WITH ANNUAL SURVEYS** (look for endorsement sections):
 - IOPP, IAPP (Oil & Air Pollution Prevention)
+- BWMC (Ballast Water Management)
 - CSSC, CSSE, CSSR (Safety Certificates)  
 - LLC (Load Line)
 - CC (Class Certificate)
@@ -366,7 +367,6 @@ First, identify the certificate type and check if it has Annual/Intermediate sur
 
 **CERTIFICATES WITHOUT ANNUAL SURVEYS** (only Renewal):
 - ISPP (Sewage Pollution Prevention)
-- BWMC (Ballast Water Management)
 - AFSC (Anti-Fouling System)
 - Tonnage Certificate
 - MSMC (Minimum Safe Manning)
