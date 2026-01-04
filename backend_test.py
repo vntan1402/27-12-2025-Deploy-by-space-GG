@@ -53,10 +53,10 @@ try:
 except:
     BACKEND_URL = "https://marinesystem.preview.emergentagent.com/api"
 
-# Test credentials as specified in review request
+# Test credentials - using working system_admin credentials
 TEST_CREDENTIALS = {
-    "username": "admin",
-    "password": "Admin@123456"
+    "username": "system_admin",
+    "password": "YourSecure@Pass2024"
 }
 
 def login(username, password):
