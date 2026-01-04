@@ -537,7 +537,7 @@ When extracting fields, ALWAYS compare both sections and choose the MOST ACCURAT
     "cert_type": "Certificate type - MUST be one of: 'Full Term', 'Interim', 'Provisional', 'Short term', 'Conditional', 'Statement', 'Other'",
     "issue_date": "Issue date in FULL TEXT format (e.g., '15 November 2024' or 'November 15, 2024') - NOT numeric format",
     "valid_date": "Valid until / Expiry date in FULL TEXT format",
-    "last_endorse": "Last endorsement date in FULL TEXT format (if any)",
+    "last_endorse": "**IMPORTANT**: Last endorsement date - MUST be the MOST RECENT (latest) date among ALL Annual/Intermediate survey endorsements. Look for 'Annual audit', 'Intermediate audit', 'Verification' sections and extract the LAST/MOST RECENT date. Return in FULL TEXT format.",
     "next_survey": "Next survey date in FULL TEXT format (if any)",
     "next_survey_type": "Type of next survey - one of: 'Initial', 'Intermediate', 'Renewal', 'Annual', 'Other'",
     "issued_by": "**CRITICAL** - Full organization name that issued the certificate. MUST use CLEAN text from Document AI OCR section (e.g., 'Panama Maritime Documentation Services, Inc.', NOT 'PPaannaammaa MMaarriittiimmee...')",
