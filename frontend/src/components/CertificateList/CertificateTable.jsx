@@ -235,8 +235,8 @@ export const CertificateTable = ({
         
         const diffDays = Math.ceil((windowClose - today) / (1000 * 60 * 60 * 24));
         
-        // ⭐ Class & Flag: "Due Soon" maps to "Over Due"
-        if (diffDays <= dueSoonDays) return 'Over Due';
+        // ⭐ Class & Flag: Use "Due Soon" status
+        if (diffDays <= dueSoonDays) return 'Due Soon';
         return 'Valid';
       }
     }
@@ -271,8 +271,8 @@ export const CertificateTable = ({
     
     const diffDays = Math.ceil((validDate - today) / (1000 * 60 * 60 * 24));
     
-    // ⭐ Class & Flag: "Due Soon" maps to "Over Due"
-    if (diffDays <= dueSoonDays) return 'Over Due';
+    // ⭐ Class & Flag: Use "Due Soon" status
+    if (diffDays <= dueSoonDays) return 'Due Soon';
     return 'Valid';
   };
 
