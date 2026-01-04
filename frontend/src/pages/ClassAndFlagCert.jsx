@@ -463,7 +463,7 @@ const ClassAndFlagCert = () => {
 
         // Handle status sorting - status is computed, not a field
         if (certificateSort.column === 'status') {
-          const statusOrder = { 'Expired': 0, 'Over Due': 1, 'Valid': 2 };
+          const statusOrder = { 'Expired': 0, 'Due Soon': 1, 'Valid': 2 };
           const aStatus = getCertificateStatus(a);
           const bStatus = getCertificateStatus(b);
           aVal = statusOrder[aStatus] ?? 3;
