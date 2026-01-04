@@ -321,6 +321,17 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                 'window_months': 0
             }
         
+        # ⭐ Rule 3.5: Interim certificates = Valid Date (-3M), Type = "Initial"
+        if 'INTERIM' in cert_type:
+            logger.info(f"⭐ Certificate '{cert_name}' ({cert_abbreviation}) is Interim - Next Survey = Valid Date (-3M), Type = Initial")
+            return {
+                'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
+                'next_survey_type': 'Initial',
+                'reasoning': 'Interim certificate: Next Survey = Valid Date - 3 months, Type = Initial',
+                'raw_date': valid_dt.strftime('%d/%m/%Y'),
+                'window_months': -3
+            }
+        
         # ⭐ Rule 4: Check has_annual_survey flag from AI analysis (PRIORITY)
         # If AI analyzed the document and determined it has no annual survey sections
         if has_annual_survey is False:
