@@ -287,46 +287,31 @@ This certificate should belong to one of these categories:
    - Anti-Fouling System Certificate (AFSC)
    - Keywords: "POLLUTION", "IOPP", "IAPP", "MARPOL", "BALLAST WATER"
 
-5. **Tonnage & Registry** - NO annual surveys
+5. **Tonnage & Registry**
    - Tonnage Certificate, Certificate of Registry
    - Keywords: "TONNAGE", "REGISTRY"
 
-6. **Other Certificates** - Generally NO annual surveys
+6. **Other Certificates**
    - Minimum Safe Manning Certificate (MSMC)
    - Certificate of Fitness
    - Civil Liability Certificate
    - Continuous Synopsis Record (CSR)
 
-7. **Dangerous Goods & Bulk Cargo Certificates (REQUIRE ANNUAL SURVEYS)**
+7. **Dangerous Goods & Bulk Cargo Certificates**
    - Document of Compliance - Special Requirements for Ships Carrying Dangerous Goods (DG)
    - Document of Compliance for the Carriage of Solid Bulk Cargoes (IMSBC)
    - Keywords: "DANGEROUS GOODS", "IMDG", "IMSBC", "BULK CARGOES"
-   - ⚠️ **IMPORTANT**: These certificates often have "Annual surveys" section at the END of document (last pages)
-   - You MUST read ALL pages to find the Annual surveys endorsement section
 
-**⚠️ SURVEY REQUIREMENTS BY CERTIFICATE TYPE**:
-
-**CERTIFICATES WITH ANNUAL/INTERMEDIATE SURVEYS** (check for endorsement sections):
-- IOPP, IAPP (Pollution Prevention - Oil & Air)
-- CSSC, CSSE, CSSR, PSSC (Safety Certificates)
-- LLC (Load Line Certificate)
-- CC (Class Certificate)
-- DG, IMSBC (Dangerous Goods, Bulk Cargoes)
-→ These have "Annual survey" or "Intermediate survey" endorsement sections
-→ Extract last_endorse from these sections
-
-**CERTIFICATES WITH ONLY RENEWAL SURVEY** (NO annual endorsements):
-- ISPP (Sewage Pollution Prevention)
-- BWMC (Ballast Water Management)
-- AFSC (Anti-Fouling System)
-- Tonnage Certificate
-- Certificate of Registry
-- MSMC (Minimum Safe Manning)
-- CSR (Continuous Synopsis Record)
-→ These do NOT have Annual survey sections
-→ last_endorse should be empty ""
-→ next_survey = valid_date
-→ next_survey_type = "Renewal"
+**⚠️ HOW TO DETERMINE IF CERTIFICATE REQUIRES ANNUAL SURVEYS**:
+- DO NOT assume based on certificate type
+- Instead, SCAN THE ENTIRE DOCUMENT SUMMARY to find "Annual Survey Endorsement" sections
+- Look for section titles like:
+  * "Annual surveys"
+  * "Endorsement for annual and intermediate surveys"
+  * "1st Annual survey", "2nd Annual survey", "3rd Annual survey", "4th Annual survey"
+  * "Intermediate survey"
+- If such sections EXIST with dates → Certificate requires annual surveys
+- If NO such sections exist → Certificate only requires Renewal survey
 
 **CERT_NAME EXTRACTION RULES**:
 - Extract the EXACT certificate name from the document header
