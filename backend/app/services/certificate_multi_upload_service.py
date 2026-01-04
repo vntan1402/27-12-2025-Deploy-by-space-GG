@@ -1614,7 +1614,7 @@ IMPORTANT DATE EXAMPLES:
                 "valid_date": valid_date_iso,
                 "last_endorse": last_endorse_iso,
                 "next_survey": next_survey_iso,
-                "next_survey_type": analysis_result.get("next_survey_type"),
+                "next_survey_type": next_survey_type_final,
                 "has_annual_survey": analysis_result.get("has_annual_survey", None),  # ⭐ NEW: Flag from AI analysis
                 "issued_by": analysis_result.get("issued_by"),
                 "notes": validation_note if validation_note else analysis_result.get("notes"),
