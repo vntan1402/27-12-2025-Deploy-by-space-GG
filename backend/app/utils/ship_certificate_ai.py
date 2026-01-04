@@ -342,11 +342,14 @@ You must look for a **STRUCTURED ENDORSEMENT SECTION** with the following charac
 **✅ SET has_annual_survey = TRUE if document has ALL of these:**
 1. A dedicated section titled one of:
    - "Annual surveys"
+   - "Periodical surveys" or "Periodical survey" (equivalent to Annual surveys)
    - "Endorsement for annual and intermediate surveys"
    - "Endorsement for annual survey"
+   - "Endorsement for periodical surveys"
 2. Multiple numbered entries like:
    - "1st Annual survey", "2nd Annual survey", "3rd Annual survey", "4th Annual survey"
-   - OR "Annual survey" repeated multiple times
+   - "1st Periodical survey", "2nd Periodical survey", "3rd Periodical survey", "4th Periodical survey"
+   - OR "Annual survey" / "Periodical survey" repeated multiple times
 3. Each entry has a STRUCTURED FORMAT with:
    - "Signed:" or "Signature" field
    - "Place of survey:" or "Place:" field
@@ -374,10 +377,26 @@ Place of survey:
 Date:
 ```
 
+**Example of VALID Periodical Survey Section (has_annual_survey = TRUE):**
+```
+Periodical surveys
+This is to certify that, at a periodical survey...
+
+1st Periodical survey
+Signed: [signature]
+Place of survey: Singapore
+Date: 15 March 2024
+
+2nd Periodical survey
+Signed:
+Place of survey:
+Date:
+```
+
 **❌ SET has_annual_survey = FALSE if:**
-1. Document has NO "Annual surveys" section
+1. Document has NO "Annual surveys" or "Periodical surveys" section
 2. Document only has "Endorsement to extend the certificate" sections (these are extensions, NOT annual surveys)
-3. The phrase "Annual Survey" appears only in general text (e.g., "subject to annual survey") but NOT in a structured endorsement section
+3. The phrase "Annual Survey" or "Periodical Survey" appears only in general text (e.g., "subject to annual survey") but NOT in a structured endorsement section
 4. Document is an insurance certificate, tonnage certificate, registry certificate, etc.
 
 **Example of INVALID (has_annual_survey = FALSE):**
