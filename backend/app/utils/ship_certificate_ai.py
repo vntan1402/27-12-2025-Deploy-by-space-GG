@@ -351,6 +351,7 @@ This certificate should belong to one of these categories:
 ⚠️ **STEP 3: DETERMINE EXTRACTION BASED ON WHAT YOU FOUND**
 
 **CASE A - Document HAS "Annual Survey" sections with dates:**
+- Set has_annual_survey = true
 - Extract ALL dates from Annual/Intermediate survey entries
 - Look for: "Date XX Month YYYY", "Credited by... on XX Month YYYY"
 - IGNORE entries with empty Date fields or no signature
@@ -358,6 +359,7 @@ This certificate should belong to one of these categories:
 - Set next_survey_type = "Annual" or "Intermediate" based on next due
 
 **CASE B - Document has NO "Annual Survey" sections:**
+- Set has_annual_survey = false
 - The document only has extension endorsements (e.g., "Endorsement to extend the certificate...")
 - These extension sections are NOT annual surveys
 - Set last_endorse = "" (empty string)
@@ -370,6 +372,7 @@ This certificate should belong to one of these categories:
 - Found section: "Endorsement for annual and intermediate surveys"
 - Found: "1st Annual survey - Credited... 30 August 2024"
 - Found: "2nd Annual survey - Date 16 July 2025"
+→ has_annual_survey = true
 → last_endorse = "16 July 2025" (most recent)
 → next_survey_type = "Annual"
 
@@ -377,6 +380,7 @@ This certificate should belong to one of these categories:
 - Found section: "Annual surveys"
 - Found: "1st Annual survey - Credited... 30 August 2024"
 - Found: "2nd Annual survey - Date 16 July 2025"
+→ has_annual_survey = true
 → last_endorse = "16 July 2025"
 → next_survey_type = "Annual"
 
@@ -384,6 +388,7 @@ This certificate should belong to one of these categories:
 - Searched entire document - NO "Annual surveys" section found
 - Page 2 only has "Endorsement to extend the certificate" (this is NOT annual survey)
 - valid_date = "28 June 2028"
+→ has_annual_survey = false
 → last_endorse = ""
 → next_survey = "28 June 2028"
 → next_survey_type = "Renewal"
