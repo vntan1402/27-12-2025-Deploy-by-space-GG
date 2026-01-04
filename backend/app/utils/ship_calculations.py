@@ -272,26 +272,24 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                 'window_months': 0
             }
         
-        # ⭐ NEW RULE: Certificates WITHOUT annual surveys (only Renewal)
+        # ⭐ RULE: Certificates WITHOUT annual surveys (only Renewal)
         # These certificates don't have annual survey endorsement sections
-        # List: ISPP (Sewage), AFSC (Anti-Fouling), Tonnage, MSMC, CSR, Registry
+        # ONLY these specific certificate types are renewal-only
         renewal_only_certs = [
-            'ISPP', 'SEWAGE',
+            'ISPP', 'SEWAGE', 'INTERNATIONAL SEWAGE',
             'AFSC', 'ANTI-FOULING', 'ANTI FOULING',
             'TONNAGE',
-            'MSMC', 'MINIMUM SAFE MANNING',
             'CSR', 'CONTINUOUS SYNOPSIS',
             'REGISTRY', 'CERTIFICATE OF REGISTRY'
         ]
         
-        # Check if certificate is renewal-only type OR if AI determined it's Renewal
+        # Check if certificate is renewal-only type based on cert_name or cert_abbreviation ONLY
+        # DO NOT use ai_next_survey_type from database as it may contain stale data
         is_renewal_only = any(keyword in cert_name or keyword in cert_abbreviation for keyword in renewal_only_certs)
-        ai_says_renewal = ai_next_survey_type and ai_next_survey_type.upper() == 'RENEWAL'
-        has_no_last_endorse = not last_endorse or last_endorse == '' or last_endorse == '-'
         
-        # If AI extracted next_survey_type = "Renewal" AND no last_endorse, trust AI
-        if (is_renewal_only or ai_says_renewal) and has_no_last_endorse:
-            logger.info(f"⭐ Certificate '{cert_name}' is renewal-only type (no annual surveys)")
+        # Only apply renewal logic if certificate is in the renewal-only list
+        if is_renewal_only:
+            logger.info(f"⭐ Certificate '{cert_name}' ({cert_abbreviation}) is renewal-only type (no annual surveys)")
             return {
                 'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',  # Renewal survey window is 3 months before expiry
                 'next_survey_type': 'Renewal',
