@@ -1701,6 +1701,7 @@ const ClassAndFlagCert = () => {
               filters={certificateFilters}
               onFilterChange={setCertificateFilters}
               certificateTypes={getUniqueCertificateTypes()}
+              issuedByOptions={getUniqueIssuedBy()}
               totalCount={certificates.length}
               filteredCount={getFilteredCertificates().length}
               language={language}
