@@ -312,6 +312,15 @@ This certificate should belong to one of these categories:
 - IMO number: Look for "IMO NO", "IMO NUMBER", format like "IMO 9573945"
 - If a field is not found, return empty string "" or null, but DO NOT skip the field
 
+**LAST_ENDORSE EXTRACTION RULES (CRITICAL)**:
+- The document may contain MULTIPLE endorsement dates for Annual/Intermediate surveys
+- You MUST scan the ENTIRE document, especially "Endorsement for annual and intermediate surveys" section
+- Look for ALL dates in "Annual survey" entries (e.g., "Date 30 August 2024", "Date 16 July 2025")
+- Also check "Credited by" dates (e.g., "Credited by the Losing Society on 30 August 2024")
+- **ALWAYS return the MOST RECENT (latest) date** as last_endorse
+- Example: If document has "Credited... 30 August 2024" AND "Date 16 July 2025", return "16 July 2025"
+- Ignore empty/unsigned endorsement sections
+
 **OUTPUT FORMAT**: Return ONLY valid JSON, no extra text or explanations.
 
 **DOCUMENT TEXT:**
