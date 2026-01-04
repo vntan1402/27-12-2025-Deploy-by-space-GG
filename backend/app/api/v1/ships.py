@@ -297,9 +297,16 @@ async def update_ship_next_survey(
             # Update certificate if there are changes
             current_next_survey = cert.get('next_survey')
             current_next_survey_type = cert.get('next_survey_type')
+            current_next_survey_display = cert.get('next_survey_display')
             
-            if (update_data.get('next_survey') != current_next_survey or 
-                update_data.get('next_survey_type') != current_next_survey_type):
+            # Check if any field has changed
+            has_changes = (
+                update_data.get('next_survey') != current_next_survey or 
+                update_data.get('next_survey_type') != current_next_survey_type or
+                update_data.get('next_survey_display') != current_next_survey_display
+            )
+            
+            if has_changes:
                 
                 await mongo_db.database.certificates.update_one(
                     {"id": cert['id']},
