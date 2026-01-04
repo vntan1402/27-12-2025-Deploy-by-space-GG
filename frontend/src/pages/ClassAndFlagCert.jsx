@@ -46,6 +46,7 @@ const ClassAndFlagCert = () => {
   const [certificateFilters, setCertificateFilters] = useState({
     certificateType: 'all',
     status: 'all',
+    issuedBy: 'all',
     search: '',
   });
   
