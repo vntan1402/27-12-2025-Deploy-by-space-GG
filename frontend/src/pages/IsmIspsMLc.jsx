@@ -523,6 +523,19 @@ const IsmIspsMLc = () => {
 
     // Sort
     filtered.sort((a, b) => {
+      // Handle status sorting - status is computed, not a field
+      if (certificateSort.column === 'status') {
+        const statusOrder = { 'Expired': 0, 'Due Soon': 1, 'Valid': 2 };
+        const aStatus = getCertificateStatus(a);
+        const bStatus = getCertificateStatus(b);
+        const aVal = statusOrder[aStatus] ?? 3;
+        const bVal = statusOrder[bStatus] ?? 3;
+        
+        if (aVal === bVal) return 0;
+        const comparison = aVal > bVal ? 1 : -1;
+        return certificateSort.direction === 'asc' ? comparison : -comparison;
+      }
+      
       const aVal = a[certificateSort.column];
       const bVal = b[certificateSort.column];
       
