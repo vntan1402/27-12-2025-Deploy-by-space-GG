@@ -119,8 +119,8 @@ def test_ship_certificates(headers, ship_id):
     return response
 
 def test_ship_audit_certificates(headers, ship_id):
-    """Test GET /api/ships/{ship_id}/audit-certificates - get Audit certificates"""
-    response = requests.get(f"{BACKEND_URL}/ships/{ship_id}/audit-certificates", headers=headers)
+    """Test GET /api/audit-certificates?ship_id={ship_id} - get Audit certificates"""
+    response = requests.get(f"{BACKEND_URL}/audit-certificates?ship_id={ship_id}", headers=headers)
     return response
 
 def analyze_certificate_status_fields(certificates, cert_type="Class & Flag"):
