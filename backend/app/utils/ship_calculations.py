@@ -281,7 +281,15 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
             'TONNAGE',
             'CSR', 'CONTINUOUS SYNOPSIS',
             'REGISTRY', 'CERTIFICATE OF REGISTRY',
-            'P&I', 'P & I', 'PROTECTION AND INDEMNITY', 'PROTECTION & INDEMNITY'
+            # Insurance certificates - no annual surveys
+            'P&I', 'P & I', 'PROTECTION AND INDEMNITY', 'PROTECTION & INDEMNITY',
+            'INSURANCE', 'CIVIL LIABILITY', 'CLC',
+            'BUNKER', 'BUNKERING',
+            'WRECK REMOVAL', 'WRECK',
+            'WAR RISK', 'WAR',
+            'HULL', 'H&M', 'HULL & MACHINERY', 'HULL AND MACHINERY',
+            'LIABILITY', 'INDEMNITY',
+            'BLUE CARD', 'BLUE-CARD'
         ]
         
         # Check if certificate is renewal-only type based on cert_name or cert_abbreviation ONLY
