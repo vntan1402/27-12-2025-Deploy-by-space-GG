@@ -347,6 +347,7 @@ def main():
     print("=" * 80)
     print(f"Backend URL: {BACKEND_URL}")
     print(f"Test Credentials: {TEST_CREDENTIALS['username']} / {TEST_CREDENTIALS['password']}")
+    print("Note: Using system_admin credentials as admin/Admin@123456 was not found")
     
     # Test results tracking
     test_results = []
