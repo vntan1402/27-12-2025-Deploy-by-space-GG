@@ -563,7 +563,7 @@ export const CertificateTable = ({
                     className={`px-2 py-1 rounded text-xs font-medium cursor-help ${
                       getCertificateStatus(cert) === 'Valid' ? 'bg-green-100 text-green-800' :
                       getCertificateStatus(cert) === 'Expired' ? 'bg-red-100 text-red-800' :
-                      getCertificateStatus(cert) === 'Due Soon' ? 'bg-orange-100 text-orange-800' :
+                      getCertificateStatus(cert) === 'Over Due' ? 'bg-orange-100 text-orange-800' :
                       'bg-gray-100 text-gray-800'
                     }`}
                     onMouseEnter={(e) => handleStatusMouseEnter(e, cert)}
@@ -573,8 +573,8 @@ export const CertificateTable = ({
                       ? (language === 'vi' ? 'Còn hiệu lực' : 'Valid')
                       : getCertificateStatus(cert) === 'Expired' 
                       ? (language === 'vi' ? 'Hết hiệu lực' : 'Expired')
-                      : getCertificateStatus(cert) === 'Due Soon'
-                      ? (language === 'vi' ? 'Sắp hết hạn' : 'Due Soon')
+                      : getCertificateStatus(cert) === 'Over Due'
+                      ? (language === 'vi' ? 'Quá hạn' : 'Over Due')
                       : (language === 'vi' ? 'Không rõ' : 'Unknown')
                     }
                   </span>
