@@ -221,6 +221,12 @@ The document contains TWO SECTIONS:
 1. **TEXT LAYER CONTENT** - Extracted directly from PDF (may have OCR errors like duplicate characters)
 2. **DOCUMENT AI OCR CONTENT** - More accurate OCR from Google Document AI
 
+**⚠️ CRITICAL - YOU MUST READ THE ENTIRE DOCUMENT FROM FIRST PAGE TO LAST PAGE**:
+- Many certificates have endorsement sections at the END (last pages)
+- For example: DG certificates often have "Annual surveys" on page 6 of 6
+- DO NOT stop reading after page 1 - you will miss important endorsement dates!
+- After reading ALL pages, then extract the required fields
+
 **⚠️ IMPORTANT - DATA QUALITY PRIORITY**:
 When extracting fields, ALWAYS compare both sections and choose the MOST ACCURATE value:
 - If Text Layer has duplicate/repeated characters (e.g., "PPaannaammaa MMaarriittiimmee" instead of "Panama Maritime"), USE the Document AI OCR version instead
@@ -240,7 +246,7 @@ When extracting fields, ALWAYS compare both sections and choose the MOST ACCURAT
     "cert_type": "Certificate type - MUST be one of: 'Full Term', 'Interim', 'Provisional', 'Short term', 'Conditional', 'Other'",
     "issue_date": "Issue date in FULL TEXT format (e.g., '15 November 2024' or 'November 15, 2024') - NOT numeric format",
     "valid_date": "Valid until / Expiry date in FULL TEXT format",
-    "last_endorse": "**IMPORTANT**: Last endorsement date - MUST be the MOST RECENT (latest) date among ALL Annual/Intermediate survey endorsements. Look for 'Annual survey' sections and extract the LAST/MOST RECENT date. Example: if document shows Annual survey on '30 August 2024' AND another Annual survey on '16 July 2025', return '16 July 2025'. Return in FULL TEXT format.",
+    "last_endorse": "**CRITICAL - SCAN ALL PAGES**: Find 'Annual surveys' or 'Endorsement' sections (often on LAST pages). Extract the MOST RECENT date from all Annual/Intermediate survey entries. Return in FULL TEXT format.",
     "next_survey": "Next survey date in FULL TEXT format (if any)",
     "next_survey_type": "Type of next survey - one of: 'Initial', 'Intermediate', 'Renewal', 'Annual', 'Special', 'Other'",
     "issued_by": "**CRITICAL** - Full organization name that issued the certificate. MUST use CLEAN text from Document AI OCR section (e.g., 'Panama Maritime Documentation Services, Inc.', NOT 'PPaannaammaa MMaarriittiimmee...')",
