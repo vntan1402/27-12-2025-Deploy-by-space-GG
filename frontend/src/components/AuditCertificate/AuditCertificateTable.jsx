@@ -203,59 +203,79 @@ export const AuditCertificateTable = ({
   };
 
   // Get certificate status based on window_close
+  // ⭐ Audit Certificates (ISM/ISPS/MLC): dueSoonDays = 90, status = "Due Soon"
   const getCertificateStatus = (cert) => {
-    // Parse next_survey to get window_close
-    const nextSurvey = cert.next_survey_display || cert.next_survey;
-    
-    if (!nextSurvey) {
-      // Fallback to valid_date if no next_survey
-      if (!cert.valid_date) return 'Unknown';
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const validDate = new Date(cert.valid_date);
-      validDate.setHours(0, 0, 0, 0);
-      
-      if (validDate < today) return 'Expired';
-      
-      const diffTime = validDate.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays <= 90) return 'Due Soon';  // ⭐ Changed from 30 to 90 days
-      return 'Valid';
-    }
-    
-    // Parse Next Survey date and annotation
-    const match = nextSurvey.match(/(\d{2}\/\d{2}\/\d{4})/);
-    if (!match) return 'Unknown';
-    
-    const [day, month, year] = match[1].split('/');
-    const nextSurveyDate = new Date(year, month - 1, day);
-    nextSurveyDate.setHours(0, 0, 0, 0);
-    
-    // Calculate window_close based on annotation
-    let windowClose = new Date(nextSurveyDate);
-    
-    if (nextSurvey.includes('(±6M)') || nextSurvey.includes('(+-6M)')) {
-      // ±6M: window_close = next_survey_date + 6 months
-      windowClose.setMonth(windowClose.getMonth() + 6);
-    } else if (nextSurvey.includes('(±3M)') || nextSurvey.includes('(+-3M)')) {
-      // ±3M: window_close = next_survey_date + 3 months
-      windowClose.setMonth(windowClose.getMonth() + 3);
-    }
-    // For (-3M) or (-6M): window_close = next_survey_date (no change needed)
-    
+    const dueSoonDays = 90; // Audit certificates use 90 days
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Compare with window_close
-    if (today > windowClose) return 'Expired';
+    // ========== PRIORITY 1: CHECK NEXT_SURVEY ==========
+    const nextSurvey = cert.next_survey_display || cert.next_survey;
     
-    const diffTime = windowClose.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    // Treat "N/A" as no next_survey (common for special documents)
+    const hasValidNextSurvey = nextSurvey && nextSurvey !== 'N/A' && nextSurvey !== 'n/a';
     
-    if (diffDays <= 90) return 'Due Soon';  // ⭐ Changed from 30 to 90 days
+    if (hasValidNextSurvey) {
+      // Parse Next Survey date and annotation
+      const match = nextSurvey.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      
+      if (match) {
+        const day = parseInt(match[1], 10);
+        const month = parseInt(match[2], 10) - 1;
+        const year = parseInt(match[3], 10);
+        const nextSurveyDate = new Date(year, month, day);
+        nextSurveyDate.setHours(0, 0, 0, 0);
+        
+        // Calculate window_close based on annotation
+        let windowClose = new Date(nextSurveyDate);
+        
+        if (nextSurvey.includes('(±6M)') || nextSurvey.includes('(+-6M)')) {
+          // ±6M: window_close = next_survey_date + 6 months
+          windowClose.setMonth(windowClose.getMonth() + 6);
+        } else if (nextSurvey.includes('(±3M)') || nextSurvey.includes('(+-3M)')) {
+          // ±3M: window_close = next_survey_date + 3 months
+          windowClose.setMonth(windowClose.getMonth() + 3);
+        }
+        // For (-3M) or (-6M): window_close = next_survey_date (no adjustment)
+        
+        // Compare with window_close
+        if (today > windowClose) return 'Expired';
+        
+        const diffDays = Math.ceil((windowClose - today) / (1000 * 60 * 60 * 24));
+        
+        if (diffDays <= dueSoonDays) return 'Due Soon';
+        return 'Valid';
+      }
+    }
+    
+    // ========== PRIORITY 2: CHECK VALID_DATE ==========
+    if (!cert.valid_date) return 'Valid'; // No valid_date = default Valid
+    
+    // Parse valid_date (handle both DD/MM/YYYY and ISO formats)
+    let validDate = null;
+    const validDateStr = cert.valid_date;
+    
+    // Try DD/MM/YYYY format first
+    const ddmmyyyyMatch = validDateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (ddmmyyyyMatch) {
+      const day = parseInt(ddmmyyyyMatch[1], 10);
+      const month = parseInt(ddmmyyyyMatch[2], 10) - 1;
+      const year = parseInt(ddmmyyyyMatch[3], 10);
+      validDate = new Date(year, month, day, 0, 0, 0, 0);
+    } else {
+      // Try ISO format
+      validDate = new Date(validDateStr);
+    }
+    
+    if (!validDate || isNaN(validDate.getTime())) return 'Valid'; // Can't parse = treat as Valid
+    
+    validDate.setHours(0, 0, 0, 0);
+    
+    if (validDate < today) return 'Expired';
+    
+    const diffDays = Math.ceil((validDate - today) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= dueSoonDays) return 'Due Soon';
     return 'Valid';
   };
 
