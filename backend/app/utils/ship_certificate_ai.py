@@ -280,18 +280,18 @@ This certificate should belong to one of these categories:
    - Keywords: "LOAD LINE", "LLC"
 
 4. **Pollution Prevention Certificates**
-   - International Oil Pollution Prevention Certificate (IOPP)
-   - International Air Pollution Prevention Certificate (IAPP)
-   - International Sewage Pollution Prevention Certificate (ISPP)
-   - Ballast Water Management Certificate (BWMC)
-   - Anti-Fouling System Certificate (AFSC)
+   - International Oil Pollution Prevention Certificate (IOPP) - HAS Annual/Intermediate surveys
+   - International Air Pollution Prevention Certificate (IAPP) - HAS Annual/Intermediate surveys
+   - International Sewage Pollution Prevention Certificate (ISPP) - NO annual surveys, ONLY Renewal
+   - Ballast Water Management Certificate (BWMC) - NO annual surveys, ONLY Renewal
+   - Anti-Fouling System Certificate (AFSC) - NO annual surveys, ONLY Renewal
    - Keywords: "POLLUTION", "IOPP", "IAPP", "MARPOL"
 
-5. **Tonnage & Registry**
+5. **Tonnage & Registry** - NO annual surveys
    - Tonnage Certificate, Certificate of Registry
    - Keywords: "TONNAGE", "REGISTRY"
 
-6. **Other Certificates**
+6. **Other Certificates** - Generally NO annual surveys
    - Minimum Safe Manning Certificate (MSMC)
    - Certificate of Fitness
    - Civil Liability Certificate
@@ -303,6 +303,30 @@ This certificate should belong to one of these categories:
    - Keywords: "DANGEROUS GOODS", "IMDG", "IMSBC", "BULK CARGOES"
    - ⚠️ **IMPORTANT**: These certificates often have "Annual surveys" section at the END of document (last pages)
    - You MUST read ALL pages to find the Annual surveys endorsement section
+
+**⚠️ SURVEY REQUIREMENTS BY CERTIFICATE TYPE**:
+
+**CERTIFICATES WITH ANNUAL/INTERMEDIATE SURVEYS** (check for endorsement sections):
+- IOPP, IAPP (Pollution Prevention - Oil & Air)
+- CSSC, CSSE, CSSR, PSSC (Safety Certificates)
+- LLC (Load Line Certificate)
+- CC (Class Certificate)
+- DG, IMSBC (Dangerous Goods, Bulk Cargoes)
+→ These have "Annual survey" or "Intermediate survey" endorsement sections
+→ Extract last_endorse from these sections
+
+**CERTIFICATES WITH ONLY RENEWAL SURVEY** (NO annual endorsements):
+- ISPP (Sewage Pollution Prevention)
+- BWMC (Ballast Water Management)
+- AFSC (Anti-Fouling System)
+- Tonnage Certificate
+- Certificate of Registry
+- MSMC (Minimum Safe Manning)
+- CSR (Continuous Synopsis Record)
+→ These do NOT have Annual survey sections
+→ last_endorse should be empty ""
+→ next_survey = valid_date
+→ next_survey_type = "Renewal"
 
 **CERT_NAME EXTRACTION RULES**:
 - Extract the EXACT certificate name from the document header
