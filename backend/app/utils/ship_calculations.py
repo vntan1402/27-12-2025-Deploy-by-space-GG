@@ -14,41 +14,90 @@ logger = logging.getLogger(__name__)
 
 async def calculate_anniversary_date_from_certificates(ship_id: str) -> Optional[AnniversaryDate]:
     """
-    Calculate anniversary date from Full Term Class/Statutory certificates
-    Follows IMO maritime standards
+    Calculate anniversary date from Class and Statutory certificates.
+    
+    Logic:
+    1. Filter certificates: Class, CSSC (SC), CSSE (SE), IOPP, IAPP, LLC (Loadline), CSSR (SR)
+    2. Get all valid_dates from these certificates
+    3. Find the day/month combination that appears most frequently
+    4. Use that as the Anniversary Date
     """
     try:
         # Get all certificates for the ship
         certificates = await CertificateRepository.find_all(ship_id=ship_id)
         
-        # Filter Full Term certificates with valid dates
-        full_term_certs = [
-            cert for cert in certificates
-            if cert.get('cert_type') == 'Full Term' and cert.get('valid_date')
+        # Keywords to identify Class and Statutory certificates
+        statutory_keywords = [
+            'CLASS', 'CLASSIFICATION',
+            'CSSC', 'SC', 'SAFETY CONSTRUCTION',
+            'CSSE', 'SE', 'SAFETY EQUIPMENT', 
+            'CSSR', 'SR', 'SAFETY RADIO',
+            'IOPP', 'OIL POLLUTION',
+            'IAPP', 'AIR POLLUTION',
+            'LLC', 'LOAD LINE', 'LOADLINE'
         ]
         
-        if not full_term_certs:
-            logger.info(f"No Full Term certificates found for ship {ship_id}")
+        # Filter Full Term Class/Statutory certificates with valid dates
+        relevant_certs = []
+        for cert in certificates:
+            if cert.get('cert_type') != 'Full Term' or not cert.get('valid_date'):
+                continue
+            
+            cert_name = (cert.get('cert_name') or '').upper()
+            cert_abbr = (cert.get('cert_abbreviation') or '').upper()
+            
+            # Check if certificate matches any keyword
+            is_relevant = any(
+                keyword in cert_name or keyword in cert_abbr 
+                for keyword in statutory_keywords
+            )
+            
+            if is_relevant:
+                relevant_certs.append(cert)
+        
+        if not relevant_certs:
+            logger.info(f"No Class/Statutory certificates found for ship {ship_id}")
             return None
         
-        # Sort by valid_date to get the certificate with latest expiry
-        full_term_certs.sort(key=lambda x: x.get('valid_date'), reverse=True)
-        source_cert = full_term_certs[0]
+        # Count occurrences of each day/month combination
+        date_counts = {}
+        for cert in relevant_certs:
+            valid_date = cert.get('valid_date')
+            if isinstance(valid_date, str):
+                try:
+                    valid_date = datetime.fromisoformat(valid_date.replace('Z', '+00:00'))
+                except:
+                    continue
+            
+            if valid_date:
+                key = (valid_date.day, valid_date.month)
+                if key not in date_counts:
+                    date_counts[key] = {
+                        'count': 0,
+                        'certs': []
+                    }
+                date_counts[key]['count'] += 1
+                date_counts[key]['certs'].append(cert.get('cert_abbreviation') or cert.get('cert_name'))
         
-        # Extract day and month from valid_date
-        valid_date = source_cert.get('valid_date')
-        if isinstance(valid_date, str):
-            valid_date = datetime.fromisoformat(valid_date.replace('Z', '+00:00'))
+        if not date_counts:
+            logger.info(f"No valid dates found in Class/Statutory certificates for ship {ship_id}")
+            return None
+        
+        # Find the most common day/month combination
+        most_common = max(date_counts.items(), key=lambda x: x[1]['count'])
+        anniversary_day, anniversary_month = most_common[0]
+        count = most_common[1]['count']
+        source_certs = most_common[1]['certs']
         
         anniversary = AnniversaryDate(
-            day=valid_date.day,
-            month=valid_date.month,
+            day=anniversary_day,
+            month=anniversary_month,
             auto_calculated=True,
-            source_certificate_type=source_cert.get('cert_name', 'Unknown'),
+            source_certificate_type=f"Most common ({count} certs): {', '.join(source_certs[:3])}{'...' if len(source_certs) > 3 else ''}",
             manual_override=False
         )
         
-        logger.info(f"✅ Calculated anniversary date for ship {ship_id}: {anniversary.day}/{anniversary.month}")
+        logger.info(f"✅ Calculated anniversary date for ship {ship_id}: {anniversary_day}/{anniversary_month} (from {count} certificates)")
         return anniversary
         
     except Exception as e:
