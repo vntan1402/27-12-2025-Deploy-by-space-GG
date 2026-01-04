@@ -75,7 +75,11 @@ class ShipUpdate(BaseModel):
     last_special_survey: Optional[datetime] = None
     last_intermediate_survey: Optional[datetime] = None
     special_survey_cycle: Optional[SpecialSurveyCycle] = None
+    special_survey_from_date: Optional[datetime] = None  # For frontend convenience
+    special_survey_to_date: Optional[datetime] = None    # For frontend convenience
     anniversary_date: Optional[AnniversaryDate] = None
+    anniversary_date_day: Optional[int] = None    # ⭐ NEW: For frontend convenience
+    anniversary_date_month: Optional[int] = None  # ⭐ NEW: For frontend convenience
     ship_owner: Optional[str] = None
     ship_photo_url: Optional[str] = None
     company: Optional[str] = None
