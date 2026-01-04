@@ -638,8 +638,8 @@ def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
         # Rule: No valid date = no Next Survey
         if not valid_dt:
             return {
-                'next_survey': None,
-                'next_survey_type': None,
+                'next_survey': '-',
+                'next_survey_type': '-',
                 'reasoning': 'No valid date available'
             }
         
@@ -656,16 +656,16 @@ def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
         special_docs = ['DMLC I', 'DMLC II', 'DMLC PART I', 'DMLC PART II', 'SSP', 'SHIP SECURITY PLAN']
         if any(doc in cert_name for doc in special_docs):
             return {
-                'next_survey': None,
-                'next_survey_type': None,
+                'next_survey': '-',
+                'next_survey_type': '-',
                 'reasoning': f'{cert_name} does not require Next Survey calculation'
             }
         
         # Rule 2: Short Term = N/A
         if 'SHORT' in cert_type or 'SHORT TERM' in cert_type:
             return {
-                'next_survey': None,
-                'next_survey_type': None,
+                'next_survey': '-',
+                'next_survey_type': '-',
                 'reasoning': 'Short Term certificates do not require Next Survey'
             }
         
@@ -709,16 +709,16 @@ def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
         
         # Default: Cannot determine
         return {
-            'next_survey': None,
-            'next_survey_type': None,
+            'next_survey': '-',
+            'next_survey_type': '-',
             'reasoning': f'Cannot determine Next Survey for cert_type: {cert_type}'
         }
         
     except Exception as e:
         logger.error(f"Error calculating audit certificate next survey: {e}")
         return {
-            'next_survey': None,
-            'next_survey_type': None,
+            'next_survey': '-',
+            'next_survey_type': '-',
             'reasoning': f'Error in calculation: {str(e)}'
         }
 
