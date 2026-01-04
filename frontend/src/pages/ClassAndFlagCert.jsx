@@ -437,6 +437,14 @@ const ClassAndFlagCert = () => {
       filtered = filtered.filter(cert => getCertificateStatus(cert) === certificateFilters.status);
     }
 
+    // Apply Issued By filter
+    if (certificateFilters.issuedBy && certificateFilters.issuedBy !== 'all') {
+      filtered = filtered.filter(cert => {
+        const issuer = cert.issued_by_abbreviation || cert.issued_by;
+        return issuer === certificateFilters.issuedBy;
+      });
+    }
+
     // Apply search filter
     if (certificateFilters.search) {
       const searchLower = certificateFilters.search.toLowerCase();
