@@ -155,9 +155,16 @@ export const parseDateSafely = (dateStr) => {
   if (!dateStr) return null;
   
   try {
+    // Handle string with annotations like "28/06/2026 (±3M)" - extract date part only
+    let cleanDateStr = dateStr;
+    if (typeof dateStr === 'string') {
+      // Remove annotations like (±3M), (-3M), etc.
+      cleanDateStr = dateStr.replace(/\s*\([^)]*\)\s*/g, '').trim();
+    }
+    
     // Handle DD/MM/YYYY format
     const ddmmyyyyPattern = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-    const ddmmMatch = ddmmyyyyPattern.exec(dateStr);
+    const ddmmMatch = ddmmyyyyPattern.exec(cleanDateStr);
     if (ddmmMatch) {
       const day = parseInt(ddmmMatch[1], 10);
       const month = parseInt(ddmmMatch[2], 10) - 1; // Month is 0-indexed
@@ -167,7 +174,7 @@ export const parseDateSafely = (dateStr) => {
     
     // Handle YYYY-MM-DD format
     const yyyymmddPattern = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
-    const yyyymmMatch = yyyymmddPattern.exec(dateStr);
+    const yyyymmMatch = yyyymmddPattern.exec(cleanDateStr);
     if (yyyymmMatch) {
       const year = parseInt(yyyymmMatch[1], 10);
       const month = parseInt(yyyymmMatch[2], 10) - 1;
@@ -176,7 +183,7 @@ export const parseDateSafely = (dateStr) => {
     }
     
     // Handle ISO datetime
-    const date = new Date(dateStr);
+    const date = new Date(cleanDateStr);
     return isNaN(date.getTime()) ? null : date;
   } catch (e) {
     console.warn('Date parsing error:', e);
