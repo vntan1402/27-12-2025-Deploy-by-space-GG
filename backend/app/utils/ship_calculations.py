@@ -293,11 +293,11 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
         if (is_renewal_only or ai_says_renewal) and has_no_last_endorse:
             logger.info(f"⭐ Certificate '{cert_name}' is renewal-only type (no annual surveys)")
             return {
-                'next_survey': valid_dt.strftime('%d/%m/%Y'),
+                'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',  # Renewal survey window is 3 months before expiry
                 'next_survey_type': 'Renewal',
-                'reasoning': 'Certificate does not require annual surveys - next survey is renewal at valid date',
+                'reasoning': 'Certificate does not require annual surveys - renewal survey within 3 months before expiry',
                 'raw_date': valid_dt.strftime('%d/%m/%Y'),
-                'window_months': 0
+                'window_months': -3  # Window is 3 months BEFORE expiry date
             }
         
         # Get ship anniversary date and special survey cycle
