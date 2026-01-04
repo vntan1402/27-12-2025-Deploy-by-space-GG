@@ -606,6 +606,15 @@ This certificate MUST belong to one of these categories:
 - Next survey type: usually "Initial", "Intermediate", or "Renewal"
 - If a field is not found, return empty string "" or null, but DO NOT skip the field
 
+**LAST_ENDORSE EXTRACTION RULES (CRITICAL)**:
+- The document may contain MULTIPLE endorsement dates for Annual/Intermediate audits
+- You MUST scan the ENTIRE document for ALL audit/verification dates
+- Look for dates in: "Annual audit", "Intermediate audit", "Verification" sections
+- Also check for "Endorsed on", "Date of audit", "Completion date" entries
+- **ALWAYS return the MOST RECENT (latest) date** as last_endorse
+- Example: If document shows audits on "30 August 2024" AND "16 July 2025", return "16 July 2025"
+- Ignore empty/unsigned endorsement sections
+
 **OUTPUT FORMAT**: Return ONLY valid JSON, no extra text or explanations.
 
 **DOCUMENT TEXT:**
