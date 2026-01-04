@@ -357,23 +357,57 @@ const ClassAndFlagCert = () => {
   };
 
   // Get certificate status
+  // ⭐ Class & Flag Certificates: dueSoonDays = 30, returns "Over Due" instead of "Due Soon"
   const getCertificateStatus = (cert) => {
-    if (!cert.valid_date) return 'Unknown';
-    
+    const dueSoonDays = 30; // Class & Flag uses 30 days
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
+    // ========== PRIORITY 1: CHECK NEXT_SURVEY ==========
+    const nextSurvey = cert.next_survey_display || cert.next_survey;
+    const hasValidNextSurvey = nextSurvey && nextSurvey !== 'N/A' && nextSurvey !== 'n/a';
+    
+    if (hasValidNextSurvey) {
+      // Extract date from "DD/MM/YYYY (±XM)" format
+      const match = nextSurvey.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      
+      if (match) {
+        const day = parseInt(match[1], 10);
+        const month = parseInt(match[2], 10) - 1;
+        const year = parseInt(match[3], 10);
+        const nextSurveyDate = new Date(year, month, day);
+        nextSurveyDate.setHours(0, 0, 0, 0);
+        
+        // Calculate window_close based on annotation
+        let windowClose = new Date(nextSurveyDate);
+        
+        if (nextSurvey.includes('(±6M)') || nextSurvey.includes('(+-6M)')) {
+          windowClose.setMonth(windowClose.getMonth() + 6);
+        } else if (nextSurvey.includes('(±3M)') || nextSurvey.includes('(+-3M)')) {
+          windowClose.setMonth(windowClose.getMonth() + 3);
+        }
+        // For (-3M) or (-6M): windowClose = nextSurveyDate (no adjustment)
+        
+        if (today > windowClose) return 'Expired';
+        
+        const diffDays = Math.ceil((windowClose - today) / (1000 * 60 * 60 * 24));
+        if (diffDays <= dueSoonDays) return 'Over Due';
+        return 'Valid';
+      }
+    }
+    
+    // ========== PRIORITY 2: CHECK VALID_DATE ==========
+    if (!cert.valid_date) return 'Valid';  // No valid_date = always Valid
+    
     const validDate = parseDateDDMMYYYY(cert.valid_date);
-    if (!validDate) return 'Unknown';
+    if (!validDate) return 'Valid';  // Can't parse = treat as Valid
     
     validDate.setHours(0, 0, 0, 0);
     
     if (validDate < today) return 'Expired';
     
-    const diffTime = validDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays <= 30) return 'Over Due';
+    const diffDays = Math.ceil((validDate - today) / (1000 * 60 * 60 * 24));
+    if (diffDays <= dueSoonDays) return 'Over Due';
     return 'Valid';
   };
 
