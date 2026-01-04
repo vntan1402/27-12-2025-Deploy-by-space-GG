@@ -291,6 +291,13 @@ This certificate should belong to one of these categories:
    - Civil Liability Certificate
    - Continuous Synopsis Record (CSR)
 
+7. **Dangerous Goods & Bulk Cargo Certificates (REQUIRE ANNUAL SURVEYS)**
+   - Document of Compliance - Special Requirements for Ships Carrying Dangerous Goods (DG)
+   - Document of Compliance for the Carriage of Solid Bulk Cargoes (IMSBC)
+   - Keywords: "DANGEROUS GOODS", "IMDG", "IMSBC", "BULK CARGOES"
+   - ⚠️ **IMPORTANT**: These certificates often have "Annual surveys" section at the END of document (last pages)
+   - You MUST read ALL pages to find the Annual surveys endorsement section
+
 **CERT_NAME EXTRACTION RULES**:
 - Extract the EXACT certificate name from the document header
 - Include full official name (e.g., "Cargo Ship Safety Construction Certificate" not just "Safety Certificate")
@@ -312,14 +319,38 @@ This certificate should belong to one of these categories:
 - IMO number: Look for "IMO NO", "IMO NUMBER", format like "IMO 9573945"
 - If a field is not found, return empty string "" or null, but DO NOT skip the field
 
-**LAST_ENDORSE EXTRACTION RULES (CRITICAL)**:
-- The document may contain MULTIPLE endorsement dates for Annual/Intermediate surveys
-- You MUST scan the ENTIRE document, especially "Endorsement for annual and intermediate surveys" section
-- Look for ALL dates in "Annual survey" entries (e.g., "Date 30 August 2024", "Date 16 July 2025")
-- Also check "Credited by" dates (e.g., "Credited by the Losing Society on 30 August 2024")
-- **ALWAYS return the MOST RECENT (latest) date** as last_endorse
-- Example: If document has "Credited... 30 August 2024" AND "Date 16 July 2025", return "16 July 2025"
-- Ignore empty/unsigned endorsement sections
+**LAST_ENDORSE EXTRACTION RULES (CRITICAL - READ CAREFULLY)**:
+
+⚠️ **STEP 1: SCAN ENTIRE DOCUMENT FROM PAGE 1 TO LAST PAGE**
+- You MUST read ALL pages, including the LAST pages
+- Many certificates have endorsement sections at the END of the document (e.g., page 6 of 6)
+- DO NOT stop reading after finding issue_date and valid_date on page 1
+
+⚠️ **STEP 2: LOOK FOR "Annual surveys" OR "Endorsement" SECTIONS**
+- Section titles to look for:
+  * "Annual surveys"
+  * "Endorsement for annual and intermediate surveys"
+  * "1st Annual survey", "2nd Annual survey", "3rd Annual survey", "4th Annual survey"
+  * "Intermediate survey"
+- These sections are commonly found in:
+  * Pollution Prevention Certificates (IOPP, IAPP, ISPP, BWMC)
+  * Safety Certificates (CSSC, CSSE, CSSR)
+  * **Dangerous Goods Certificates (DG, IMSBC)** - often on last page
+  * Load Line Certificates
+
+⚠️ **STEP 3: EXTRACT ALL DATES FROM ENDORSEMENT ENTRIES**
+- Look for dates in each Annual/Intermediate survey entry:
+  * "Date XX Month YYYY"
+  * "Credited by... on XX Month YYYY"
+  * Dates next to "Place of survey"
+- IGNORE entries that have empty Date fields or no signature
+
+⚠️ **STEP 4: RETURN THE MOST RECENT (LATEST) DATE**
+- Compare all found dates and return the LATEST one
+- Example from DG certificate:
+  * Page 6 shows: "1st Annual survey - Credited... 30 August 2024"
+  * Page 6 shows: "2nd Annual survey - Date 16 July 2025"
+  * → Return "16 July 2025" as last_endorse (NOT "30 August 2024")
 
 **OUTPUT FORMAT**: Return ONLY valid JSON, no extra text or explanations.
 
