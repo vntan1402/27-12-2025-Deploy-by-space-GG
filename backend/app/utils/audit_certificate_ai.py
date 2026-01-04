@@ -295,11 +295,9 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
             else:
                 logger.info(f"ℹ️ No definitive cert_type indicators found, keeping: {extracted_data.get('cert_type')}")
             
-            # Priority 3: Check for DMLC Part I/II → override cert_name
-            full_text = summary_text.upper()
-            
+            # Priority 5: Check for DMLC Part I/II → override cert_name
             # Check for DMLC Part II (higher priority than Part I)
-            if any(indicator in full_text for indicator in [
+            if any(indicator in full_text_upper for indicator in [
                 'DMLC PART II',
                 'DMLC PART 2',
                 'DMLC-II',
@@ -309,7 +307,7 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
                 logger.info("✅ Detected 'DMLC Part II' → cert_name forced to 'DMLC II'")
             
             # Check for DMLC Part I
-            elif any(indicator in full_text for indicator in [
+            elif any(indicator in full_text_upper for indicator in [
                 'DMLC PART I',
                 'DMLC PART 1',
                 'DMLC-I',
