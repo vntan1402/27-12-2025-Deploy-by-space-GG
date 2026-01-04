@@ -297,8 +297,8 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
         # Rule 1: No valid date = no Next Survey
         if not valid_dt:
             return {
-                'next_survey': None,
-                'next_survey_type': None,
+                'next_survey': '-',
+                'next_survey_type': '-',
                 'reasoning': 'No valid date available'
             }
         
@@ -397,8 +397,8 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                 anniversary_month = valid_dt.month
             else:
                 return {
-                    'next_survey': None,
-                    'next_survey_type': None,
+                    'next_survey': '-',
+                    'next_survey_type': '-',
                     'reasoning': 'Cannot determine anniversary date'
                 }
         
@@ -451,8 +451,8 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
         
         if not cycle_start or not cycle_end:
             return {
-                'next_survey': None,
-                'next_survey_type': None,
+                'next_survey': '-',
+                'next_survey_type': '-',
                 'reasoning': 'Cannot determine survey cycle'
             }
         
@@ -606,8 +606,8 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
     except Exception as e:
         logger.error(f"Error calculating next survey info: {e}")
         return {
-            'next_survey': None,
-            'next_survey_type': None,
+            'next_survey': '-',
+            'next_survey_type': '-',
             'reasoning': f'Error in calculation: {str(e)}'
         }
 
