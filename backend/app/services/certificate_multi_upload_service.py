@@ -267,8 +267,8 @@ class CertificateMultiUploadService:
                 ai_config = {
                     "provider": ai_config_obj.provider,
                     "model": ai_config_obj.model,
-                    "api_key": os.getenv("EMERGENT_LLM_KEY"),
-                    "use_emergent_key": True
+                    "use_emergent_key": ai_config_obj.use_emergent_key,
+                    "custom_api_key": ai_config_obj.custom_api_key
                 }
             except Exception as e:
                 raise HTTPException(status_code=500, detail="AI configuration not found")
