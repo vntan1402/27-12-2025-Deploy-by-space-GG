@@ -364,23 +364,59 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
             'number': 5
         })
         
-        # Find next survey in the future
-        future_surveys = [survey for survey in annual_surveys if survey['date'] > current_date]
+        # ⭐ NEW LOGIC: Use last_endorse to determine which surveys are completed
+        last_endorse = certificate_data.get('last_endorse')
+        last_endorse_dt = parse_date(last_endorse)
         
-        if not future_surveys:
-            # If no future surveys in current cycle, start next cycle
+        # Determine which surveys are completed based on last_endorse
+        incomplete_surveys = []
+        for survey in annual_surveys:
+            survey_date = survey['date']
+            survey_completed = False
+            
+            if last_endorse_dt:
+                # Calculate survey window
+                if survey['type'] == 'Special Survey':
+                    # Special Survey only has -3M window
+                    window_open = survey_date - relativedelta(months=window_months)
+                    window_close = survey_date
+                else:
+                    # Annual Survey has ±3M window
+                    window_open = survey_date - relativedelta(months=window_months)
+                    window_close = survey_date + relativedelta(months=window_months)
+                
+                # Survey is completed if:
+                # 1. Last Endorse is within survey window, OR
+                # 2. Last Endorse is after the survey date (survey already done)
+                if window_open <= last_endorse_dt <= window_close:
+                    survey_completed = True
+                    logger.info(f"✅ {survey['type']} ({survey_date.strftime('%d/%m/%Y')}): COMPLETED (Last Endorse {last_endorse_dt.strftime('%d/%m/%Y')} within window)")
+                elif last_endorse_dt > survey_date:
+                    survey_completed = True
+                    logger.info(f"✅ {survey['type']} ({survey_date.strftime('%d/%m/%Y')}): COMPLETED (Last Endorse {last_endorse_dt.strftime('%d/%m/%Y')} after survey date)")
+            
+            if not survey_completed:
+                incomplete_surveys.append(survey)
+        
+        # Filter to only future incomplete surveys
+        future_incomplete_surveys = [survey for survey in incomplete_surveys if survey['date'] > current_date]
+        
+        if not future_incomplete_surveys:
+            # If no future incomplete surveys in current cycle, start next cycle
             next_cycle_start = cycle_end
             next_annual_date = datetime(next_cycle_start.year + 1, anniversary_month, anniversary_day)
-            future_surveys = [{
+            future_incomplete_surveys = [{
                 'date': next_annual_date,
                 'type': '1st Annual Survey',
                 'number': 1
             }]
         
-        # Get the nearest future survey
-        next_survey_info = min(future_surveys, key=lambda x: x['date'])
+        # Get the nearest future incomplete survey
+        next_survey_info = min(future_incomplete_surveys, key=lambda x: x['date'])
         next_survey_date = next_survey_info['date']
         next_survey_type = next_survey_info['type']
+        
+        logger.info(f"⭐ Next Survey: {next_survey_type} on {next_survey_date.strftime('%d/%m/%Y')}")
         
         # Check for Intermediate Survey considerations
         if next_survey_info['number'] in [2, 3]:  # 2nd or 3rd Annual Survey
