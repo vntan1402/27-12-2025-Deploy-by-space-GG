@@ -344,43 +344,76 @@ This certificate should belong to one of these categories:
 **SPECIAL NOTES**:
 - Issued_by could be a Classification Society (LR, DNV, ABS, BV, etc.) or a Flag State Authority
 - **issued_by**: ALWAYS prefer the clean text from Document AI OCR section over Text Layer (avoid duplicate characters)
-- Next survey type: Look for "Intermediate", "Annual", "Special Survey", "Renewal"
 - Ship name: Look for "NAME OF SHIP", "VESSEL NAME", "M.V.", "M/V"
 - IMO number: Look for "IMO NO", "IMO NUMBER", format like "IMO 9573945"
 - If a field is not found, return empty string "" or null, but DO NOT skip the field
 
-**LAST_ENDORSE EXTRACTION RULES (CRITICAL - READ CAREFULLY)**:
+**LAST_ENDORSE & NEXT_SURVEY EXTRACTION RULES (CRITICAL - READ CAREFULLY)**:
 
-⚠️ **STEP 1: SCAN ENTIRE DOCUMENT FROM PAGE 1 TO LAST PAGE**
+⚠️ **STEP 1: DETERMINE IF CERTIFICATE REQUIRES ANNUAL SURVEYS**
+
+First, identify the certificate type and check if it has Annual/Intermediate survey sections in the document:
+
+**CERTIFICATES WITH ANNUAL SURVEYS** (look for endorsement sections):
+- IOPP, IAPP (Oil & Air Pollution Prevention)
+- CSSC, CSSE, CSSR (Safety Certificates)  
+- LLC (Load Line)
+- CC (Class Certificate)
+- DG, IMSBC (Dangerous Goods, Bulk Cargoes)
+→ If document has "Annual survey" or "Intermediate survey" sections with dates:
+  - Extract last_endorse = MOST RECENT endorsement date
+  - next_survey_type = "Annual" or "Intermediate" (based on schedule)
+
+**CERTIFICATES WITHOUT ANNUAL SURVEYS** (only Renewal):
+- ISPP (Sewage Pollution Prevention)
+- BWMC (Ballast Water Management)
+- AFSC (Anti-Fouling System)
+- Tonnage Certificate
+- MSMC (Minimum Safe Manning)
+- CSR (Continuous Synopsis Record)
+→ If document has NO "Annual survey" sections (only extension endorsements):
+  - last_endorse = "" (empty)
+  - next_survey = valid_date
+  - next_survey_type = "Renewal"
+
+⚠️ **STEP 2: SCAN ENTIRE DOCUMENT FROM PAGE 1 TO LAST PAGE**
 - You MUST read ALL pages, including the LAST pages
 - Many certificates have endorsement sections at the END of the document (e.g., page 6 of 6)
 - DO NOT stop reading after finding issue_date and valid_date on page 1
 
-⚠️ **STEP 2: LOOK FOR "Annual surveys" OR "Endorsement" SECTIONS**
+⚠️ **STEP 3: CHECK IF "Annual surveys" OR "Endorsement for annual/intermediate surveys" SECTION EXISTS**
 - Section titles to look for:
   * "Annual surveys"
   * "Endorsement for annual and intermediate surveys"
   * "1st Annual survey", "2nd Annual survey", "3rd Annual survey", "4th Annual survey"
   * "Intermediate survey"
-- These sections are commonly found in:
-  * Pollution Prevention Certificates (IOPP, IAPP, ISPP, BWMC)
-  * Safety Certificates (CSSC, CSSE, CSSR)
-  * **Dangerous Goods Certificates (DG, IMSBC)** - often on last page
-  * Load Line Certificates
-
-⚠️ **STEP 3: EXTRACT ALL DATES FROM ENDORSEMENT ENTRIES**
-- Look for dates in each Annual/Intermediate survey entry:
-  * "Date XX Month YYYY"
-  * "Credited by... on XX Month YYYY"
-  * Dates next to "Place of survey"
+  
+**IF FOUND (certificate requires annual surveys)**:
+- Extract ALL dates from endorsement entries
+- Look for: "Date XX Month YYYY", "Credited by... on XX Month YYYY"
 - IGNORE entries that have empty Date fields or no signature
+- Return the MOST RECENT (latest) date as last_endorse
 
-⚠️ **STEP 4: RETURN THE MOST RECENT (LATEST) DATE**
-- Compare all found dates and return the LATEST one
-- Example from DG certificate:
-  * Page 6 shows: "1st Annual survey - Credited... 30 August 2024"
-  * Page 6 shows: "2nd Annual survey - Date 16 July 2025"
-  * → Return "16 July 2025" as last_endorse (NOT "30 August 2024")
+**IF NOT FOUND (certificate only requires renewal)**:
+- The document only has extension endorsements (e.g., "Endorsement to extend the certificate...")
+- These are NOT annual surveys
+- Set: last_endorse = "", next_survey = valid_date, next_survey_type = "Renewal"
+
+⚠️ **STEP 4: EXAMPLES**
+
+**Example 1 - DG Certificate (HAS Annual surveys on page 6)**:
+- Page 6 shows: "1st Annual survey - Credited... 30 August 2024"
+- Page 6 shows: "2nd Annual survey - Date 16 July 2025"
+→ last_endorse = "16 July 2025"
+→ next_survey_type = "Annual"
+
+**Example 2 - ISPP Certificate (NO Annual surveys)**:
+- Document has NO "Annual surveys" section
+- Page 2 only has "Endorsement to extend the certificate" (extension, not annual)
+- valid_date = "28 June 2028"
+→ last_endorse = ""
+→ next_survey = "28 June 2028"
+→ next_survey_type = "Renewal"
 
 **OUTPUT FORMAT**: Return ONLY valid JSON, no extra text or explanations.
 
