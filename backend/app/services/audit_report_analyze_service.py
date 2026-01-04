@@ -174,7 +174,8 @@ class AuditReportAnalyzeService:
             ai_config = {
                 "provider": ai_config_doc.get("provider", "google"),
                 "model": ai_config_doc.get("model", "gemini-2.0-flash"),
-                "use_emergent_key": ai_config_doc.get("use_emergent_key", True)
+                "use_emergent_key": ai_config_doc.get("use_emergent_key", True),
+                "custom_api_key": ai_config_doc.get("custom_api_key")
             }
             
             # Process PDF based on size
