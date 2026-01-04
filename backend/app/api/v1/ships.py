@@ -265,18 +265,7 @@ async def update_ship_next_survey(
                 logger.info(f"⏭️ Skipping Interim certificate {cert.get('id')} - Interim certs don't have next survey")
                 continue
             
-            # BUSINESS RULE: Skip Renewal-only certificates (ISPP, AFSC, Tonnage, etc.)
-            # These certificates don't have annual surveys, so next_survey = valid_date
-            cert_name_upper = (cert.get('cert_name') or '').upper()
-            cert_abbr_upper = (cert.get('cert_abbreviation') or '').upper()
-            renewal_only_keywords = ['ISPP', 'SEWAGE', 'AFSC', 'ANTI-FOULING', 'TONNAGE', 'MSMC', 'CSR', 'REGISTRY']
-            
-            is_renewal_only = any(kw in cert_name_upper or kw in cert_abbr_upper for kw in renewal_only_keywords)
-            if is_renewal_only and cert.get('next_survey_type') == 'Renewal':
-                logger.info(f"⏭️ Skipping renewal-only certificate {cert.get('id')} ({cert.get('cert_abbreviation')}) - no annual surveys")
-                continue
-            
-            # Calculate next survey info
+            # Calculate next survey info (handles all certificate types including renewal-only)
             survey_info = calculate_next_survey_info(cert, ship_data)
             
             # Prepare update data
