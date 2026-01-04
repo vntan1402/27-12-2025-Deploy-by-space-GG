@@ -1,283 +1,306 @@
-# Tổng Hợp Logic Xác Định Last Endorse / Next Survey / Next Survey Type
+# Logic Xác Định Last Endorse / Next Survey / Next Survey Type
 
-## 1. TỔNG QUAN
+## Tổng quan
 
-Hệ thống sử dụng các field sau để quản lý chu kỳ kiểm tra:
-- **Last Endorse (last_endorse)**: Ngày xác nhận/endorsement gần nhất
-- **Next Survey (next_survey)**: Ngày kiểm tra tiếp theo
-- **Next Survey Type (next_survey_type)**: Loại kiểm tra tiếp theo
+Hệ thống tự động tính toán **Last Endorse**, **Next Survey**, và **Next Survey Type** cho các chứng chỉ tàu dựa trên quy định IMO và chu kỳ kiểm tra 5 năm.
 
 ---
 
-## 2. LAST ENDORSE
+## 1. LAST ENDORSE (Ngày Endorse Cuối)
 
-### 2.1 Nguồn dữ liệu
-- Được **AI extraction** từ document PDF
-- Các pattern tìm kiếm trong document:
-  - "Last Endorse"
-  - "Last Endorsed"
-  - "Endorsement date"
-  - "Last endorsed on"
-  - "Endorsed"
+### 1.1 Nguồn dữ liệu
+- Được trích xuất từ file PDF certificate bằng AI
+- Lấy từ các section "Endorsement", "Annual surveys", "Verification"
 
-### 2.2 Ý nghĩa theo loại certificate
+### 1.2 Logic trích xuất AI
 
-| Loại Certificate | Ý nghĩa Last Endorse |
-|-----------------|---------------------|
-| **Full Term DOC** | Ngày Annual Audit gần nhất được hoàn thành |
-| **Short Term DOC** | Không áp dụng |
-| **Interim DOC** | Không áp dụng |
-| **Ship Certificate** | Ngày xác nhận định kỳ gần nhất |
-| **Audit Certificate** | Ngày audit gần nhất |
+#### Format chuẩn (IAPP, IOPP, Load Line, etc.)
+```
+Endorsement for annual and intermediate surveys
+Annual survey
+Signed:
+Place of survey: Vung Tau (VN)
+Date: 16 July 2025    ← LAST ENDORSE
+```
 
-### 2.3 Format
-- Input: Nhiều format text ("15 November 2024", "November 15, 2024", "15/11/2024")
-- Output: `YYYY-MM-DD` (normalized)
+#### Format DG (Dangerous Goods)
+```
+Annual surveys
+1st Annual survey
+Credited by the Loosing Society on 30 August 2024  ← IGNORE (không phải endorsement thực)
+...
+2nd Annual survey
+Signed:
+Place of survey Vung Tau (VN) Hoai Nguyen Van
+Date 16 July 2025    ← LAST ENDORSE (survey gần nhất có "Place of survey" và "Date")
+3rd Annual survey
+Signed:
+Place of survey      ← Trống = chưa hoàn thành
+Date
+```
+
+### 1.3 Quy tắc quan trọng
+
+| Quy tắc | Mô tả |
+|---------|-------|
+| **Lấy ngày MỚI NHẤT** | Nếu có nhiều endorsements, luôn lấy ngày gần nhất |
+| **Bỏ qua "Credited by"** | "Credited by the Losing/Loosing Society" KHÔNG phải endorsement thực |
+| **Kiểm tra completion** | Chỉ lấy từ survey đã hoàn thành (có "Place of survey" và "Date" được điền) |
+
+### 1.4 File xử lý
+- `/app/backend/app/utils/ship_certificate_ai.py` - Class & Flag certificates
+- `/app/backend/app/utils/audit_certificate_ai.py` - ISM/ISPS/MLC certificates
+- `/app/backend/app/utils/company_cert_ai.py` - DOC certificates
 
 ---
 
-## 3. NEXT SURVEY DATE & TYPE
+## 2. NEXT SURVEY (Ngày Kiểm Tra Tiếp Theo)
 
-### 3.1 Logic theo DOC Type (Company Certificate)
+### 2.1 Điều kiện tiên quyết
 
-File: `/app/backend/app/utils/doc_next_survey_calculator.py`
-
-#### A. SHORT TERM DOC
-```
-Next Survey: NULL
-Next Survey Type: NULL
-→ Không yêu cầu audit
-```
-
-#### B. INTERIM DOC
-```
-Next Survey: valid_date (ngày hết hạn)
-Next Survey Type: "Initial"
-→ Phải audit trước khi hết hạn interim
-```
-
-#### C. FULL TERM DOC (5-Year Cycle)
-
-**Chu kỳ audit:**
-```
-Năm 1: 1st Annual Audit (Anniversary ±3 tháng)
-Năm 2: 2nd Annual Audit (Anniversary ±3 tháng)
-Năm 3: 3rd Annual Audit (Anniversary ±3 tháng)
-Năm 4: 4th Annual Audit (Anniversary ±3 tháng)
-Năm 5: Renewal Audit (Valid date -3 tháng)
+Certificate **CẦN** Annual Survey endorsement:
+```python
+INCLUDED_KEYWORDS = [
+    'CLASS', 'CLASSIFICATION',
+    'SAFETY CONSTRUCTION', 'SAFETY EQUIPMENT', 'SAFETY RADIO',
+    'CARGO SHIP SAFETY', 'PASSENGER SHIP SAFETY',
+    'LOAD LINE', 'LOADLINE',
+    'IOPP', 'OIL POLLUTION',
+    'IAPP', 'AIR POLLUTION',
+    'ISPP',  # Sewage (with annual)
+    'IEE', 'ENERGY EFFICIENCY',
+    'BALLAST WATER', 'BWM'
+]
 ```
 
-**Anniversary Date:**
-- Lấy ngày/tháng từ `valid_date`
-- Ví dụ: valid_date = 15/06/2029 → Anniversary = 15/06 mỗi năm
-
-**5-Year Cycle:**
-```
-cycle_start_year = valid_date.year - 5
-cycle_end_year = valid_date.year
-
-Ví dụ: valid_date = 15/06/2029
-→ Cycle: 2024 - 2029
-→ Audits:
-   - 15/06/2025: 1st Annual
-   - 15/06/2026: 2nd Annual
-   - 15/06/2027: 3rd Annual
-   - 15/06/2028: 4th Annual
-   - 15/06/2029: Renewal
+Certificate **KHÔNG CẦN** Annual Survey:
+```python
+EXCLUDED_KEYWORDS = [
+    'IMSBC', 'MSMC', 'REGISTRY', 'STATION LICENSE',
+    'MINIMUM SAFE MANNING', 'CONTINUOUS SYNOPSIS',
+    'TONNAGE', 'SEWAGE' (no annual), 'ANTI-FOULING',
+    'CLC', 'BUNKER', 'WRECK REMOVAL',
+    'FINANCIAL SECURITY', 'INSURANCE'
+]
 ```
 
-**Logic xác định Next Survey:**
-1. Nếu có `last_endorse` → dùng làm reference date
-2. Nếu không có `last_endorse` → fallback về `issue_date`
-3. So sánh reference_date với các audit window:
-   - Annual audit: reference_date nằm trong [audit_date - 3M, audit_date + 3M]
-   - Renewal audit: reference_date nằm trong [audit_date - 3M, audit_date]
-4. Tìm audit gần nhất đã hoàn thành
-5. Next Survey = audit kế tiếp
+#### Trường hợp đặc biệt: DG (Dangerous Goods)
+- Kiểm tra nội dung certificate để xác định
+- Nếu có: `'ANNUAL SURVEY'`, `'ANNUAL SURVEYS'`, `'1ST ANNUAL SURVEY'`, `'2ND ANNUAL SURVEY'` → CẦN Annual Survey
+- Nếu không có các từ khóa trên → KHÔNG tính Next Survey
 
-**Ví dụ:**
-```
-valid_date = 15/06/2029
-last_endorse = 20/06/2026
+### 2.2 Công thức tính
 
-→ Check: 20/06/2026 nằm trong window của 2nd Annual (15/03/2026 - 15/09/2026)
-→ 2nd Annual đã hoàn thành
-→ Next Survey = 15/06/2027
-→ Next Survey Type = "3rd Annual"
+#### Bước 1: Xác định Anniversary Date
 ```
+Anniversary Date = Ngày/Tháng từ Valid Date của certificate
+Ví dụ: Valid Date = 28/06/2028 → Anniversary = 28/06
+```
+
+#### Bước 2: Xác định chu kỳ 5 năm
+```
+Cycle Start = Valid Date - 5 năm
+Cycle End = Valid Date
+
+Ví dụ:
+Valid Date = 28/06/2028
+→ Cycle Start = 28/06/2023
+→ Cycle End = 28/06/2028
+```
+
+#### Bước 3: Tạo danh sách Annual Surveys
+```
+1st Annual Survey: 28/06/2024 (window: 28/03/2024 - 28/09/2024)
+2nd Annual Survey: 28/06/2025 (window: 28/03/2025 - 28/09/2025)
+3rd Annual Survey: 28/06/2026 (window: 28/03/2026 - 28/09/2026)
+4th Annual Survey: 28/06/2027 (window: 28/03/2027 - 28/09/2027)
+Special Survey:    28/06/2028 (window: 28/03/2028 - 28/06/2028) ← chỉ -3M
+```
+
+#### Bước 4: Xác định Next Survey dựa trên Last Endorse
+
+```python
+for survey in annual_surveys:
+    survey_completed = False
+    
+    if last_endorse_dt:
+        # Survey hoàn thành nếu:
+        # 1. Last Endorse nằm TRONG window của survey, HOẶC
+        # 2. Last Endorse SAU ngày survey (đã làm survey rồi)
+        
+        if window_open <= last_endorse_dt <= window_close:
+            survey_completed = True  # Case 1
+        elif last_endorse_dt > survey_date:
+            survey_completed = True  # Case 2
+    
+    if not survey_completed:
+        next_survey = survey
+        break
+```
+
+### 2.3 Ví dụ thực tế
+
+```
+Certificate: IAPP
+Valid Date: 28/06/2028
+Last Endorse: 16/07/2025
+Ngày hôm nay: 29/12/2025
+
+Kiểm tra:
+├── 1st Annual (28/06/2024): Last Endorse (16/07/2025) > 28/06/2024 → ✅ Completed
+├── 2nd Annual (28/06/2025): Last Endorse (16/07/2025) > 28/06/2025 → ✅ Completed
+└── 3rd Annual (28/06/2026): Last Endorse (16/07/2025) < 28/06/2026 → ⭐ NEXT SURVEY
+
+Kết quả: Next Survey = 28/06/2026 (±3M)
+```
+
+### 2.4 Trường hợp đặc biệt
+
+| Trường hợp | Xử lý |
+|------------|-------|
+| **Certificate hết hạn** | Next Survey = "-" |
+| **Interim certificate** | Next Survey = "N/A" (không tính) |
+| **Condition certificate** | Next Survey = Valid Date |
+| **Next Survey > Valid Date** | Next Survey = Valid Date |
+| **Không có Valid Date** | Next Survey = null |
 
 ---
 
-### 3.2 Logic cho Ship Certificate
+## 3. NEXT SURVEY TYPE (Loại Kiểm Tra Tiếp Theo)
 
-File: `/app/backend/app/utils/ship_certificate_ai.py`
+### 3.1 Các loại survey
 
-**Next Survey Type options:**
-- Initial
-- Intermediate
-- Renewal
-- Annual
-- Special
-- Other
+| Type | Mô tả |
+|------|-------|
+| **1st Annual Survey** | Kiểm tra hàng năm lần 1 |
+| **2nd Annual Survey/Intermediate Survey** | Kiểm tra hàng năm lần 2 (có thể kết hợp Intermediate) |
+| **3rd Annual Survey** hoặc **Intermediate Survey** | Tùy thuộc vào Last Intermediate Survey |
+| **4th Annual Survey** | Kiểm tra hàng năm lần 4 |
+| **Special Survey** | Kiểm tra đặc biệt cuối chu kỳ 5 năm |
 
-**Logic:**
-- AI extraction trực tiếp từ document
-- Post-processing normalize:
-  - Validate cert_type phải là giá trị hợp lệ
-  - Normalize date formats
+### 3.2 Logic xác định Intermediate Survey
 
----
+```python
+if survey_number == 2:
+    next_survey_type = "2nd Annual Survey/Intermediate Survey"
 
-### 3.3 Logic cho Audit Certificate
-
-File: `/app/backend/app/utils/audit_certificate_ai.py`
-
-**Next Survey Type options:**
-- Initial
-- Intermediate
-- Renewal
-- Annual
-- Other
-
-**Special Cases:**
-
-1. **ISPS Interim Certificate:**
-   - Nếu document chứa "until the initial ISPS audit is conducted"
-   - → `valid_date = issue_date + 6 tháng - 1 ngày`
-
-2. **Statement of Facts:**
-   - Nếu document header chứa "STATEMENT OF FACTS"
-   - → `cert_type = "Statement"`
-
-3. **DMLC Detection:**
-   - "DMLC Part II" / "DMLC-II" → `cert_name = "DMLC II"`
-   - "DMLC Part I" / "DMLC-I" → `cert_name = "DMLC I"`
-
----
-
-## 4. AUDIT WINDOW
-
-### Window Types:
-
-| Audit Type | Window |
-|-----------|--------|
-| Annual (1st-4th) | ±3 tháng từ anniversary date |
-| Renewal | -3 tháng từ valid_date |
-| Initial | Trước valid_date |
-
-### Ví dụ Window Calculation:
-```
-Anniversary Date: 15/06/2027 (3rd Annual)
-
-Window Start: 15/03/2027 (anniversary - 3 tháng)
-Window End: 15/09/2027 (anniversary + 3 tháng)
-
-→ Audit hợp lệ nếu thực hiện trong khoảng 15/03 - 15/09/2027
-```
-
----
-
-## 5. CODE FLOW
-
-### 5.1 Company Certificate (DOC)
-```
-Upload PDF
-    ↓
-Document AI (extract text)
-    ↓
-AI Extraction (company_cert_ai.py)
-    - Extract: cert_name, cert_no, doc_type, issue_date, valid_date, last_endorse, issued_by
-    ↓
-Calculate Next Survey (doc_next_survey_calculator.py)
-    - Input: doc_type, valid_date, issue_date, last_endorse
-    - Output: next_survey, next_survey_type
-    ↓
-Save to Database
-```
-
-### 5.2 Ship Certificate
-```
-Upload PDF
-    ↓
-Document AI (extract text)
-    ↓
-AI Extraction (ship_certificate_ai.py)
-    - Extract: cert_name, cert_no, cert_type, issue_date, valid_date, last_endorse, 
-               next_survey, next_survey_type, imo_number, ship_name, flag, issued_by
-    ↓
-Post-processing (normalize dates, validate types)
-    ↓
-Save to Database
-```
-
-### 5.3 Audit Certificate
-```
-Upload PDF
-    ↓
-Document AI (extract text)
-    ↓
-AI Extraction (audit_certificate_ai.py)
-    - Extract: cert_name, cert_no, cert_type, issue_date, valid_date, last_endorse,
-               next_survey, next_survey_type, imo_number, ship_name, issued_by
-    ↓
-Post-processing:
-    - Normalize dates
-    - Check ISPS interim → auto-calculate valid_date
-    - Check Statement of Facts → force cert_type
-    - Check DMLC → force cert_name
-    ↓
-Save to Database
+elif survey_number == 3:
+    if ship.last_intermediate_survey:
+        if last_intermediate < next_survey_date:
+            next_survey_type = "3rd Annual Survey"
+        else:
+            next_survey_type = "Intermediate Survey"
+    else:
+        next_survey_type = "Intermediate Survey"
 ```
 
 ---
 
-## 6. FILES LIÊN QUAN
+## 4. SURVEY WINDOW (Cửa sổ kiểm tra)
 
-| File | Mục đích |
-|------|----------|
-| `/app/backend/app/utils/doc_next_survey_calculator.py` | Tính Next Survey cho Company DOC |
-| `/app/backend/app/utils/company_cert_ai.py` | AI extraction cho Company Certificate |
-| `/app/backend/app/utils/ship_certificate_ai.py` | AI extraction cho Ship Certificate |
-| `/app/backend/app/utils/audit_certificate_ai.py` | AI extraction cho Audit Certificate |
-| `/app/backend/app/utils/survey_report_ai.py` | AI extraction cho Survey Report |
+### 4.1 Quy tắc
 
----
+| Loại Survey | Window |
+|-------------|--------|
+| Annual Survey | ±3 tháng (trước và sau ngày anniversary) |
+| Special Survey | -3 tháng (chỉ trước ngày anniversary) |
 
-## 7. VALID VALUES
+### 4.2 Hiển thị
 
-### 7.1 DOC Type (Company Certificate)
-- `full_term`: DOC đầy đủ 5 năm
-- `short_term`: DOC ngắn hạn
-- `interim`: DOC tạm thời
-
-### 7.2 Certificate Type (Ship/Audit)
-- `Full Term`: Chứng chỉ đầy đủ
-- `Short Term`: Chứng chỉ ngắn hạn
-- `Interim`: Chứng chỉ tạm thời
-- `Statement`: Bản khai (Statement of Facts)
-
-### 7.3 Next Survey Type
-- `Initial`: Kiểm tra ban đầu
-- `1st Annual` / `2nd Annual` / `3rd Annual` / `4th Annual`: Kiểm tra hàng năm
-- `Intermediate`: Kiểm tra giữa kỳ
-- `Renewal`: Kiểm tra gia hạn
-- `Special`: Kiểm tra đặc biệt
-- `Other`: Khác
+```
+28/06/2026 (±3M)  → Annual Survey có window ±3 tháng
+28/06/2028 (-3M)  → Special Survey chỉ có window -3 tháng
+```
 
 ---
 
-## 8. LƯU Ý
+## 5. AUTO-RECALCULATE
 
-1. **Date Format:**
-   - Input: Nhiều format (text, DD/MM/YYYY, MM/DD/YYYY, etc.)
-   - Output (database): `YYYY-MM-DD`
+### 5.1 Khi nào tự động tính lại?
 
-2. **Priority khi thiếu dữ liệu:**
-   - Có `last_endorse` → dùng `last_endorse`
-   - Không có `last_endorse` → fallback về `issue_date`
-   - Không có cả hai → tính từ thời điểm hiện tại
+1. **Khi cập nhật Last Endorse**: Hệ thống tự động tính lại Next Survey
+2. **Khi click "Cập nhật loại Survey"**: Tính lại tất cả certificates của tàu
 
-3. **Special handling:**
-   - ISPS Interim: Auto-calculate valid_date
-   - DMLC: Auto-detect Part I/II từ nội dung
-   - Statement of Facts: Auto-detect từ header
+### 5.2 File xử lý
+- `/app/backend/app/services/certificate_service.py` - Auto-recalculate khi update
+- `/app/backend/app/api/v1/ships.py` - Endpoint `/ships/{ship_id}/update-next-survey`
+
+---
+
+## 6. SƠ ĐỒ TỔNG QUAN
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CERTIFICATE UPLOAD FLOW                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                           ┌──────────────┐
+                           │  Upload PDF  │
+                           └──────┬───────┘
+                                  │
+                                  ▼
+                    ┌─────────────────────────────┐
+                    │   AI Extract from Summary   │
+                    │  - cert_name, cert_no       │
+                    │  - issue_date, valid_date   │
+                    │  - last_endorse  ⭐         │
+                    │  - issued_by                │
+                    └─────────────┬───────────────┘
+                                  │
+                                  ▼
+               ┌──────────────────────────────────────┐
+               │  is_certificate_requires_annual()?   │
+               └──────────────┬───────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              │                               │
+              ▼                               ▼
+        ┌───────────┐                   ┌───────────┐
+        │   TRUE    │                   │   FALSE   │
+        │ (Class,   │                   │ (IMSBC,   │
+        │  IAPP,    │                   │  Tonnage, │
+        │  IOPP...) │                   │  CLC...)  │
+        └─────┬─────┘                   └─────┬─────┘
+              │                               │
+              ▼                               ▼
+    ┌─────────────────────┐           ┌─────────────────┐
+    │ calculate_next_     │           │ next_survey = - │
+    │ survey_info()       │           │ (không tính)    │
+    │                     │           └─────────────────┘
+    │ 1. Get Anniversary  │
+    │ 2. Build 5-year     │
+    │    cycle surveys    │
+    │ 3. Check Last       │
+    │    Endorse vs       │
+    │    each survey      │
+    │ 4. Find first       │
+    │    incomplete       │
+    └─────────┬───────────┘
+              │
+              ▼
+    ┌─────────────────────────────────────┐
+    │         NEXT SURVEY RESULT          │
+    │  - next_survey: "28/06/2026"        │
+    │  - next_survey_display: "28/06/2026 │
+    │    (±3M)"                           │
+    │  - next_survey_type: "3rd Annual    │
+    │    Survey"                          │
+    └─────────────────────────────────────┘
+```
+
+---
+
+## 7. FILES LIÊN QUAN
+
+| File | Chức năng |
+|------|-----------|
+| `/app/backend/app/utils/ship_calculations.py` | Logic chính tính Next Survey |
+| `/app/backend/app/utils/ship_certificate_ai.py` | AI prompt cho Class & Flag certs |
+| `/app/backend/app/utils/audit_certificate_ai.py` | AI prompt cho ISM/ISPS/MLC certs |
+| `/app/backend/app/utils/company_cert_ai.py` | AI prompt cho DOC certs |
+| `/app/backend/app/services/certificate_service.py` | Auto-recalculate on update |
+| `/app/backend/app/api/v1/ships.py` | API endpoints |
+
+---
+
+*Cập nhật lần cuối: 02/01/2026*
