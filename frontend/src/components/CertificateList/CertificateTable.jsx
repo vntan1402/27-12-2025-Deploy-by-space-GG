@@ -546,7 +546,6 @@ export const CertificateTable = ({
                     e.stopPropagation();
                     onSurveyTypeRightClick(e, cert.id, cert.next_survey_type);
                   }}
-                  title={language === 'vi' ? 'Right-click để thay đổi nhanh loại kiểm tra' : 'Right-click to quick edit survey type'}
                 >
                   <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getSurveyTypeCssClass(cert.next_survey_type)}`}>
                     {formatSurveyTypeForDisplay(cert.next_survey_type)}
