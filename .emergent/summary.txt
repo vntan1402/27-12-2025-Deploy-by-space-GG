@@ -1,160 +1,148 @@
 <analysis>**original_problem_statement:**
-The user's initial request was to set up a complete preview environment for an existing Ship Management System project. After successfully setting up the local environment, the user's primary goal shifted to deploying the entire application to Google Cloud.
+The user's initial goal was to deploy an existing Ship Management System project to Google Cloud. After successfully deploying the frontend and backend, the focus shifted to fixing bugs on the deployed application. The main requirements have been:
 
 PRODUCT REQUIREMENTS:
-1.  Set up a local preview environment for the Ship Management System. (COMPLETED)
-2.  Provide a detailed, step-by-step guide to deploy the application (Frontend and Backend) to Google Cloud Run. (COMPLETED)
-3.  Create all necessary configuration files (Dockerfiles, deployment scripts, etc.) for the Google Cloud deployment. (COMPLETED)
-4.  Debug and resolve any issues that arise during the deployment process. (IN PROGRESS)
-5.  Ensure the final deployed application is fully functional, including user login. (IN PROGRESS)
+1.  Set up a local preview environment. (COMPLETED)
+2.  Deploy the application to Google Cloud Run. (COMPLETED)
+3.  Debug and resolve any issues that arise during deployment. (IN PROGRESS)
+4.  Implement a feature to use a custom Google Gemini API key, configurable from the UI, for all AI-related tasks. (IN PROGRESS)
+5.  Fix a login redirection bug on the frontend. (COMPLETED)
+6.  Update the logic for calculating Next Survey date based on user-provided specifications. (COMPLETED)
+7.  Document the logic for Next Survey and Certificate Status calculations. (COMPLETED)
 
 **User's preferred language**:
 The user's primary language is **Vietnamese**. The next agent MUST respond in Vietnamese only.
 
 **what currently exists?**
-A full-stack Ship Management System with a React frontend and a FastAPI backend. The local preview environment is fully functional. Both the backend and frontend services have been successfully built and deployed to Google Cloud Run. The backend is confirmed to be working correctly and connected to a production MongoDB Atlas database. The frontend is deployed but has a critical bug preventing users from accessing the application after a successful login.
+A full-stack Ship Management System with a React frontend and a FastAPI backend, deployed on separate Google Cloud Run services.
+-   **Local Environment**: Fully functional. AI features work correctly using a custom Google Gemini API key.
+-   **Production (Google Cloud Run)**:
+    -   The backend service is running and connected to a MongoDB Atlas database.
+    -   The frontend service is running and correctly configured to communicate with the backend service.
+    -   User authentication and basic navigation are functional.
+    -   **CRITICAL BUG**: All AI-related features (e.g., analyzing uploaded documents) are failing with an API key not valid error, even though the latest code with all fixes has reportedly been deployed.
 
 **Last working item**:
--   **Last item agent was working:** The agent was investigating a frontend bug where the user sees a Login successful notification but is not redirected to the application's home page, remaining stuck on the login page. The agent had identified  as the starting point and was about to inspect  to debug the navigation and state management logic post-login.
+-   **Last item agent was working:** The agent documented the logic for calculating Ship Certificate Status and Next Survey as requested by the user. However, the most critical **unresolved task** is debugging the persistent API key not valid error for AI features on the production Google Cloud Run environment. Local tests confirm the code for using the custom API key works, but it fails in the deployed environment.
 -   **Status:** IN PROGRESS
--   **Agent Testing Done:** N
--   **Which testing method agent to use?** Frontend testing agent
--   **User Testing Done:** N
+-   **Agent Testing Done:** Y (Local testing was successful; API key is correctly used).
+-   **Which testing method agent to use?** Manual verification of production logs. The issue is environmental or a configuration mismatch on Google Cloud Run, not a simple code bug reproducible locally.
+-   **User Testing Done:** Y (User confirmed the error still occurs on the deployed application and provided logs).
 
 **All Pending/In progress Issue list**:
--   **Issue 1 (P0):** Frontend does not redirect to the dashboard after successful login.
+-   **Issue 1 (P0):** AI analysis fails on Google Cloud Run with API key not valid.
 
     **Issues Detail:**
     -   **Issue 1:**
-        -   **Description:** On the deployed Google Cloud Run frontend, after entering correct credentials and receiving a login successful toast message, the application does not navigate away from the login page.
-        -   **Attempted fixes:** None yet. The agent was in the process of analyzing the relevant code.
+        -   **Description:** Despite extensive backend refactoring to use a custom Google Gemini API key stored in the database, the deployed application on Google Cloud Run still fails with a  error. The user has confirmed the latest code is pushed and provided logs showing the error.
+        -   **Attempted fixes:**
+            1.  The  was created to handle API key logic, selecting between a database-stored custom key and environment variables.
+            2.  The AI Configuration feature was implemented and fixed to correctly save the  to the MongoDB database.
+            3.  All backend services and utility files (, , , etc.) were systematically refactored to fetch the AI configuration from the database and pass it to the  wrapper.
+            4.  Local testing confirmed that the entire flow works as expected: the custom key is fetched from the DB and used for successful API calls.
         -   **Next debug checklist:**
-            1.  **Examine :** Check the  function. Ensure it correctly updates the user/authentication state upon a successful API response.
-            2.  **Examine :** Verify that the  call is being executed correctly within the login handler.
-            3.  **Examine  (or main router file):** Review the logic that handles protected routes. Check how the application determines whether to show the  or the main application layout based on the authentication state from . The issue likely lies in the state not updating correctly or the router not re-rendering upon state change.
-        -   **Why fix this issue and what will be achieved with the fix?** This is a critical, blocking issue. Fixing it will allow users to access the application's core functionality, completing the deployment goal.
+            1.  **Add More Logging:** Modify . In the   method, add detailed logging to explicitly print which API key is being used right before the  call. Log the source of the key (database, environment variable) and a snippet of the key (e.g., first 4 and last 4 characters) to be certain what's happening in the production environment.
+            2.  **Verify Deployment:** Ask the user to confirm the exact commit hash that is currently deployed on their Google Cloud Run service to ensure it matches the latest commit with all fixes.
+            3.  **Check  in Production DB:** After adding logging, if the logs show no key or the wrong key is being used, the next step is to investigate if the  document in the production MongoDB Atlas database actually contains the correct, valid API key. The issue might be that the key was saved in the local DB but not the production one.
+        -   **Why fix this issue and what will be achieved with the fix?** This is the final and most critical blocker preventing the application's core AI features from being usable in production. Fixing it will complete the user's primary goal.
         -   **Status:** IN PROGRESS
-        -   **Is recurring issue?** N
-        -   **Should Test frontend/backend/both after fix?** Frontend
-        -   **Blocked on other issue:** None
+        -   **Is recurring issue?** Y
+        -   **Should Test frontend/backend/both after fix?** Backend (by observing production logs after deployment).
+        -   **Blocked on other issue:** None. This is the main blocker.
 
 **In progress Task List**:
--   **Task 1 (P0):** Finalize the Google Cloud Deployment.
-
-    **Task Detail:**
-    -   **Task 1:**
-        -   **Where to resume:** Resume by fixing the critical frontend login redirection bug (Issue 1).
-        -   **What will be achieved with this?** A fully functional, end-to-end deployed application on Google Cloud as requested by the user.
-        -   **Status:** IN PROGRESS
-        -   **Should Test frontend/backend/both after fix?** Both (a final end-to-end test on the deployed URLs is required).
-        -   **Blocked on something:** Issue 1: Frontend login redirection failure.
+-   **Task 1 (P0):** Finalize Google Cloud Deployment Functionality.
+    -   **Where to resume:** Resume by debugging the API key not valid error (Issue 1).
+    -   **What will be achieved with this?** A fully functional, end-to-end deployed application on Google Cloud where all features, including AI analysis, work correctly.
+    -   **Status:** IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?** Both. A final end-to-end test on the deployed URLs is required.
+    -   **Blocked on something:** Issue 1.
 
 **Upcoming and Future Tasks**
-There are no other upcoming or future tasks requested by the user. The sole focus is to complete the current deployment task by fixing the login bug.
+There are no other upcoming or future tasks requested by the user.
 
 **Completed work in this session**
-- **Local Environment Setup:**
-  - Installed all backend and frontend dependencies, resolving a  version conflict in .
-  - Fixed a backend startup failure () by creating an entry point file .
-  - Created a test user () to verify local login functionality.
-- **Google Cloud Deployment Preparation & Execution:**
-  - Provided user with deployment options (Emergent vs. Google Cloud) and detailed guides (, ).
-  - Created Dockerfiles for both frontend () and backend (), along with a deployment script ([0;34m============================================[0m
-[0;34m  Ship Management System - Deploy Script[0m
-[0;34m============================================[0m
-
-[0;31m❌ Google Cloud SDK chưa được cài đặt![0m
-Vui lòng cài đặt tại: https://cloud.google.com/sdk/docs/install).
-- **Backend Deployment Debugging (Google Cloud Run):**
-  - **Solved Buildpack Failures:**
-    - Added  and  to fix the missing entrypoint error.
-    - Replaced the private  library with a custom wrapper () to resolve installation failure.
-  - **Solved Container Startup Failures:**
-    - Fixed  by making the path conditional ( on cloud).
-    - Fixed worker timeouts by switching to , increasing timeout, and optimizing startup logic (skipping index creation, scheduler, and admin init on cloud).
-  - **Solved Database Issues:**
-    - Verified user's MongoDB Atlas connection string.
-    - Corrected a database name mismatch ( vs. ) and created the admin user in the correct production database.
-- **Frontend Deployment Debugging (Google Cloud Run):**
-  - **Solved Build Failures:**
-    - Resolved  conflicts by removing  and regenerating .
-    - Switched from Buildpacks to a Dockerfile-based build to control the environment.
-    - Updated the Dockerfile to use  to fix a Node.js version incompatibility with .
-  - **Solved Runtime Errors:**
-    - Fixed a JavaScript  in  by adding a defensive check for arrays.
+-   **Login Flow Fix:** Resolved a frontend bug where the page wouldn't redirect after a successful login by implementing a  hook in .
+-   **Production URL Fix:** Fixed an issue where the deployed frontend showed login successful for incorrect passwords by creating a  file to ensure the frontend calls the correct Google Cloud Run backend URL.
+-   **Custom API Key Implementation:**
+    -   Refactored the entire backend to support using a custom Google Gemini API key stored in the database.
+    -   Updated all AI-related services and utilities to pass the  object, ensuring the custom key is used.
+    -   Fixed the AI Configuration UI and backend logic to correctly save the .
+-   **Next Survey Logic Update:** Modified the backend logic in  to calculate the Next Survey date based on the Last Endorse date, as per new user specifications.
+-   **Documentation:** Created detailed markdown documents explaining the business logic for Next Survey Calculation () and Certificate Status ().
+-   **Minor UI Change:** Removed specified text from the  component.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Frontend:** React, TailwindCSS, , , .
--   **Backend:** FastAPI, MongoDB (using ), , , JWT authentication.
--   **Database:** MongoDB Atlas for the production environment.
--   **Deployment:** Docker, Google Cloud Run using a source-based deployment connected to a GitHub repository.
+-   **Frontend:** React, TailwindCSS, , Context API.
+-   **Backend:** FastAPI, MongoDB (), Pydantic.
+-   **Deployment:** Docker, Google Cloud Run, GitHub (for CI/CD).
+-   **AI Integration:** Google Gemini,  SDK.
 
 **key DB schema**
--   **users:** 
+-   **ai_configs:** 
 
 **All files of reference**
--   **Created/Heavily Modified for Deployment:**
-    -   : Main Dockerfile for building the **frontend**. It uses a multi-stage build with .
-    -   : Dockerfile for building the **backend**.
-    -   : Defines the command for  to run the FastAPI app, used by Google Cloud Buildpacks.
-    -   : Updated with conditional logic for the cloud environment (paths, startup tasks).
-    -   : Updated with connection timeouts for robustness.
-    -   : Created to replace the private  package for cloud deployment.
-    -   : The component where the user logs in. The next agent should inspect its interaction with .
-    -   : The most likely place to find the root cause of the redirection issue.
--   **Supporting Docs:**
+-   **Core Logic Files for Current Bug:**
+    -   : Central place for API key selection logic. **This is the most important file to add logging to.**
+    -   : The service where the user's log shows the error originates.
+    -   : Handles database interaction for AI configuration.
+-   **Recently Created/Modified Files:**
+    -   : Sets production backend URL for frontend builds.
+    -   : Updated with new Next Survey logic.
+    -   All files in  and  ending in  or  were modified to pass the  object.
+-   **New Documentation:**
     -   
     -   
 
 **key api endpoints**
--   :  - Authenticates a user and returns a JWT.
--   :  - Backend health check endpoint.
+-   : / - Manages AI provider settings, including the custom API key.
+-   :  - A test endpoint added to verify if the configured AI key is working.
 
 **Critical Info for New Agent**
--   The primary goal is now to **fix the frontend login redirection bug** to finalize the Google Cloud deployment.
--   The project is configured for **Google Cloud deployment**. Do not revert to the local/Emergent configuration unless the user asks. This means continuing to use the  and not .
--   The backend is stable and deployed. The frontend is deployed but buggy. The focus should be entirely on the frontend code.
--   After applying a fix, instruct the user to push the code to GitHub. This will automatically trigger a new build and deployment on Google Cloud Run for the frontend service.
+-   The main task is to solve the **production-only API key not valid error**.
+-   Do not assume the code is wrong. Local tests using the exact same logic and a valid API key work perfectly. The issue is specific to the Google Cloud Run environment.
+-   Your first action should be to **add more detailed logging** to  to see what API key (if any) is being used in the production environment. This will provide the crucial information needed to understand why it's failing.
+-   After modifying the code for logging, instruct the user to push the changes to GitHub to trigger a new deployment, and then ask them to trigger the failing AI feature and provide the new logs from Google Cloud Run.
 
 **documents and test reports created in this job**
--   /app/GOOGLE_CLOUD_DEPLOYMENT_GUIDE.md
--   /app/MONGODB_ATLAS_SETUP_GUIDE.md
--   /app/deploy-to-gcloud.sh
+-   /app/NEXT_SURVEY_LOGIC_SUMMARY.md
+-   /app/CERTIFICATE_STATUS_LOGIC.md
+-   /app/test_reports/iteration_1.json (From the successful frontend login test).
 
 **Last 10 User Messages and any pending HUMAN messages**
-10. **User:** Reports frontend build failed on Google Cloud due to . (Log provided)
-9.  **Agent:** Identified the issue, regenerated , and tested the build locally. Instructed the user to push and redeploy.
-8.  **User:** Asks for step-by-step instructions to deploy the frontend to Cloud Run.
-7.  **Agent:** Provides a detailed guide for frontend deployment.
-6.  **User:** Asks for the password for the  on the production deployment.
-5.  **Agent:** Provides the credentials: **Username:** , **Password:** .
-4.  **User:** Reports the frontend has deployed successfully but has a JavaScript error in . (Image provided)
-3.  **Agent:** Identified and fixed the  error on a non-array. Instructed the user to push the fix to GitHub.
-2.  **User:** Reports that login is successful (toast shows), but the page does not redirect to the home page; it stays on the login page. (Image provided)
-1.  **Agent:** Acknowledged the redirection issue and started the investigation by planning to look at  and .
+10. **User:** Asks for  logic to be updated. (Completed)
+9.  **Agent:** Implements the logic update.
+8.  **User:** Asks for documentation on the Ship Certificate Status logic. (Completed)
+7.  **Agent:** Provides the documentation.
+6.  **User:** Provides an updated specification for the Certificate Status logic. (Completed)
+5.  **Agent:** Updates the documentation file with the new spec.
+4.  **User:** Reports a new error on production: Class Survey Report fields are not extracted, provides logs. (Completed)
+3.  **Agent:** Identifies and fixes multiple service files () that were not passing the  object correctly.
+2.  **User:** Asks for a summary of the logic for Last Endorse / Next Survey. (Completed)
+1.  **Agent:** Creates and provides the requested  documentation.
 
 **Project Health Check:**
 -   **Broken:**
-    -   Frontend user session handling: User cannot navigate to the main application after logging in on the deployed site.
+    -   All AI-powered document analysis features on the production Google Cloud Run deployment.
 -   **Mocked:**
-    -   The  dependency is replaced by a custom  for the Google Cloud environment.
+    -   The  library is replaced by a custom  for cloud deployment.
 
 **3rd Party Integrations**
--   **Google Gemini** (via ): Used for AI features in the application, configured via the . Requires a User LLM Key (set as  environment variable).
--   **MongoDB Atlas:** Cloud-hosted database for the production environment. Requires a User API Key (the full connection string).
+-   **Google Gemini**: Used for AI features. The core of the current problem revolves around correctly configuring its API key in the production environment. Requires a User-provided key.
+-   **MongoDB Atlas**: Cloud-hosted database for the production environment.
 
 **Testing status**
--   **Testing agent used after significant changes:** NO
+-   **Testing agent used after significant changes:** YES (For the initial frontend login fix).
 -   **Troubleshoot agent used after agent stuck in loop:** NO
 -   **Test files created:** []
--   **Known regressions:** The login-to-dashboard redirection flow, which worked locally, is broken on the deployed version.
+-   **Known regressions:** None. The AI features never worked correctly on the production deployment.
 
 **Credentials to test flow:**
--   **Username:** 
--   **Password:** 
+-   **Production User:**  / 
+-   **Last known valid Google Gemini API Key:**  (User provided this, confirming it works).
 
 **What agent forgot to execute**
-The agent has been diligent in addressing user requests and debugging deployment issues. Nothing critical appears to have been forgotten. The current task is the final step of a long debugging chain.</analysis>
+The agent has been thorough in refactoring all known code paths to use the  object. The process was iterative, fixing layers of files as errors were discovered. The agent did not forget any specific execution step, but the root cause of the production-only failure remains undiscovered, pointing towards an environmental or configuration discrepancy rather than a simple code error.</analysis>
