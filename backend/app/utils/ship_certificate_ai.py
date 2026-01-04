@@ -282,10 +282,10 @@ This certificate should belong to one of these categories:
 4. **Pollution Prevention Certificates**
    - International Oil Pollution Prevention Certificate (IOPP) - HAS Annual/Intermediate surveys
    - International Air Pollution Prevention Certificate (IAPP) - HAS Annual/Intermediate surveys
+   - Ballast Water Management Certificate (BWMC) - HAS Annual/Intermediate surveys
    - International Sewage Pollution Prevention Certificate (ISPP) - NO annual surveys, ONLY Renewal
-   - Ballast Water Management Certificate (BWMC) - NO annual surveys, ONLY Renewal
    - Anti-Fouling System Certificate (AFSC) - NO annual surveys, ONLY Renewal
-   - Keywords: "POLLUTION", "IOPP", "IAPP", "MARPOL"
+   - Keywords: "POLLUTION", "IOPP", "IAPP", "MARPOL", "BALLAST WATER"
 
 5. **Tonnage & Registry** - NO annual surveys
    - Tonnage Certificate, Certificate of Registry
