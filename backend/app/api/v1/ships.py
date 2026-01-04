@@ -384,7 +384,16 @@ async def update_ship_audit_certificates_next_survey(
             # Prepare update data
             update_data = {}
             
-            if survey_info['next_survey']:
+            # ⭐ RULE: When next_survey is "-" or None, next_survey_type must also be "-" or None
+            next_survey_value = survey_info['next_survey']
+            next_survey_type_value = survey_info['next_survey_type']
+            
+            # If next_survey is "-" or empty, force next_survey_type to also be "-"
+            if not next_survey_value or next_survey_value == '-':
+                update_data['next_survey'] = None
+                update_data['next_survey_display'] = '-' if next_survey_value == '-' else None
+                update_data['next_survey_type'] = '-' if next_survey_value == '-' else None
+            else:
                 if survey_info.get('raw_date'):
                     try:
                         parsed_date = datetime.strptime(survey_info['raw_date'], '%d/%m/%Y')
@@ -395,15 +404,8 @@ async def update_ship_audit_certificates_next_survey(
                 else:
                     update_data['next_survey'] = None
                     
-                update_data['next_survey_display'] = survey_info['next_survey']
-            else:
-                update_data['next_survey'] = None
-                update_data['next_survey_display'] = None
-                
-            if survey_info['next_survey_type']:
-                update_data['next_survey_type'] = survey_info['next_survey_type']
-            else:
-                update_data['next_survey_type'] = None
+                update_data['next_survey_display'] = next_survey_value
+                update_data['next_survey_type'] = next_survey_type_value if next_survey_type_value else None
             
             # Update certificate if there are changes
             if update_data:
