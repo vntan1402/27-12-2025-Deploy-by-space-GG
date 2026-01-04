@@ -1,32 +1,39 @@
 #!/usr/bin/env python3
 """
-🧪 SURVEY REPORT SMART UPLOAD TESTING
+🧪 CERTIFICATE STATUS CALCULATION TESTING
 
-Testing the new Survey Report Smart Upload feature for Ship Management System:
+Testing the Certificate Status calculation logic after the update:
 
 ## Test Objective
-Test the new Survey Report Smart Upload feature:
-1. Authentication with admin1/123456
-2. Smart Upload API endpoint (FAST/SLOW path)
-3. Task Status polling for SLOW PATH
-4. Survey Report creation verification
+Test the updated getCertificateStatus function in frontend files:
+1. Authentication with admin/Admin@123456
+2. Verify ships exist in the system
+3. Test certificate retrieval and check for next_survey_display field
+4. Verify certificate status calculation logic matches documentation
 
 ## Test Credentials
-- **admin1** / `123456` (Admin access for testing)
+- **admin** / `Admin@123456` (Admin access for testing)
 
-## New API Endpoints to Test
-- POST /api/survey-reports/multi-upload-smart?ship_id={ship_id} - Smart multi-upload with FAST/SLOW path
-- GET /api/survey-reports/upload-task/{task_id} - Poll task status for SLOW PATH
+## Updated Logic to Test
+1. **Class & Flag Certificates** (CertificateTable.jsx, ClassAndFlagCert.jsx):
+   - Uses 30 days as dueSoonDays threshold
+   - Returns "Over Due" instead of "Due Soon"
+   - Uses next_survey_display as priority, fallback to valid_date
+   - Handles (±6M), (±3M), (-3M), (-6M) annotations
+
+2. **Audit Certificates** (AuditCertificateTable.jsx, IsmIspsMLc.jsx):
+   - Uses 90 days as dueSoonDays threshold
+   - Returns "Due Soon" status
+   - Uses next_survey_display as priority, fallback to valid_date
+   - Handles (±6M), (±3M), (-3M), (-6M) annotations
 
 ## Test Scenarios
 1. Login and get auth token
-2. Get a ship_id from /api/ships endpoint
-3. Create a simple test PDF file with text content
-4. Upload the PDF to smart upload endpoint
-5. Verify response contains fast_path_results or slow_path_task_id
-6. Verify summary object contains file counts
-7. Test task status endpoint if slow_path_task_id returned
-8. Verify survey report was created in /api/survey-reports
+2. Get ships from /api/ships endpoint
+3. Test certificate retrieval from /api/ships/{ship_id}/certificates
+4. Test audit certificate retrieval from /api/ships/{ship_id}/audit-certificates
+5. Verify certificates have next_survey_display field
+6. Test status calculation logic with various date scenarios
 """
 
 import requests
