@@ -403,7 +403,7 @@ const ClassAndFlagCert = () => {
         if (today > windowClose) return 'Expired';
         
         const diffDays = Math.ceil((windowClose - today) / (1000 * 60 * 60 * 24));
-        if (diffDays <= dueSoonDays) return 'Over Due';
+        if (diffDays <= dueSoonDays) return 'Due Soon';
         return 'Valid';
       }
     }
@@ -419,7 +419,7 @@ const ClassAndFlagCert = () => {
     if (validDate < today) return 'Expired';
     
     const diffDays = Math.ceil((validDate - today) / (1000 * 60 * 60 * 24));
-    if (diffDays <= dueSoonDays) return 'Over Due';
+    if (diffDays <= dueSoonDays) return 'Due Soon';
     return 'Valid';
   };
 
