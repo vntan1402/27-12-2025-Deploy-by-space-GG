@@ -441,6 +441,19 @@ const ClassAndFlagCert = () => {
         let aVal = a[certificateSort.column];
         let bVal = b[certificateSort.column];
 
+        // Handle status sorting - status is computed, not a field
+        if (certificateSort.column === 'status') {
+          const statusOrder = { 'Expired': 0, 'Over Due': 1, 'Valid': 2 };
+          const aStatus = getCertificateStatus(a);
+          const bStatus = getCertificateStatus(b);
+          aVal = statusOrder[aStatus] ?? 3;
+          bVal = statusOrder[bStatus] ?? 3;
+          
+          if (aVal < bVal) return certificateSort.direction === 'asc' ? -1 : 1;
+          if (aVal > bVal) return certificateSort.direction === 'asc' ? 1 : -1;
+          return 0;
+        }
+
         // Handle date sorting
         if (['issue_date', 'valid_date', 'last_endorse', 'next_survey'].includes(certificateSort.column)) {
           return compareDates(aVal, bVal) * (certificateSort.direction === 'asc' ? 1 : -1);
