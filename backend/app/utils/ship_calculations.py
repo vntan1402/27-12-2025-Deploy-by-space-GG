@@ -280,7 +280,8 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
             'AFSC', 'ANTI-FOULING', 'ANTI FOULING',
             'TONNAGE',
             'CSR', 'CONTINUOUS SYNOPSIS',
-            'REGISTRY', 'CERTIFICATE OF REGISTRY'
+            'REGISTRY', 'CERTIFICATE OF REGISTRY',
+            'P&I', 'P & I', 'PROTECTION AND INDEMNITY', 'PROTECTION & INDEMNITY'
         ]
         
         # Check if certificate is renewal-only type based on cert_name or cert_abbreviation ONLY
