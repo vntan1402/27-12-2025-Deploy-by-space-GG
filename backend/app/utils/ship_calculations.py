@@ -236,7 +236,10 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
         # Extract certificate information
         cert_name = (certificate_data.get('cert_name') or '').upper()
         cert_type = (certificate_data.get('cert_type') or '').upper()
+        cert_abbreviation = (certificate_data.get('cert_abbreviation') or '').upper()
         valid_date = certificate_data.get('valid_date')
+        last_endorse = certificate_data.get('last_endorse')
+        ai_next_survey_type = certificate_data.get('next_survey_type', '')  # Get AI-extracted next_survey_type
         current_date = datetime.now()
         
         # Parse valid date
@@ -265,6 +268,34 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                 'next_survey': valid_dt.strftime('%d/%m/%Y'),
                 'next_survey_type': 'Condition Certificate Expiry',
                 'reasoning': 'Condition certificate uses valid date as next survey',
+                'raw_date': valid_dt.strftime('%d/%m/%Y'),
+                'window_months': 0
+            }
+        
+        # ⭐ NEW RULE: Certificates WITHOUT annual surveys (only Renewal)
+        # These certificates don't have annual survey endorsement sections
+        # List: ISPP (Sewage), AFSC (Anti-Fouling), Tonnage, MSMC, CSR, Registry
+        renewal_only_certs = [
+            'ISPP', 'SEWAGE',
+            'AFSC', 'ANTI-FOULING', 'ANTI FOULING',
+            'TONNAGE',
+            'MSMC', 'MINIMUM SAFE MANNING',
+            'CSR', 'CONTINUOUS SYNOPSIS',
+            'REGISTRY', 'CERTIFICATE OF REGISTRY'
+        ]
+        
+        # Check if certificate is renewal-only type OR if AI determined it's Renewal
+        is_renewal_only = any(keyword in cert_name or keyword in cert_abbreviation for keyword in renewal_only_certs)
+        ai_says_renewal = ai_next_survey_type and ai_next_survey_type.upper() == 'RENEWAL'
+        has_no_last_endorse = not last_endorse or last_endorse == '' or last_endorse == '-'
+        
+        # If AI extracted next_survey_type = "Renewal" AND no last_endorse, trust AI
+        if (is_renewal_only or ai_says_renewal) and has_no_last_endorse:
+            logger.info(f"⭐ Certificate '{cert_name}' is renewal-only type (no annual surveys)")
+            return {
+                'next_survey': valid_dt.strftime('%d/%m/%Y'),
+                'next_survey_type': 'Renewal',
+                'reasoning': 'Certificate does not require annual surveys - next survey is renewal at valid date',
                 'raw_date': valid_dt.strftime('%d/%m/%Y'),
                 'window_months': 0
             }
