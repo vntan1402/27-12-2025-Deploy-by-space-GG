@@ -138,6 +138,36 @@ class ShipService:
         # Prepare update data
         update_data = ship_data.dict(exclude_unset=True)
         
+        # ⭐ Handle anniversary_date_day and anniversary_date_month
+        anniversary_day = update_data.pop('anniversary_date_day', None)
+        anniversary_month = update_data.pop('anniversary_date_month', None)
+        
+        if anniversary_day is not None or anniversary_month is not None:
+            # Get existing anniversary_date or create new one
+            existing_anniversary = existing_ship.get('anniversary_date', {}) or {}
+            
+            update_data['anniversary_date'] = {
+                'day': anniversary_day if anniversary_day is not None else existing_anniversary.get('day'),
+                'month': anniversary_month if anniversary_month is not None else existing_anniversary.get('month'),
+                'auto_calculated': False,  # Manual edit
+                'manual_override': True,
+                'source_certificate_type': 'Manual edit'
+            }
+            logger.info(f"✅ Anniversary date updated manually: day={anniversary_day}, month={anniversary_month}")
+        
+        # ⭐ Handle special_survey_from_date and special_survey_to_date
+        special_from = update_data.pop('special_survey_from_date', None)
+        special_to = update_data.pop('special_survey_to_date', None)
+        
+        if special_from is not None or special_to is not None:
+            existing_cycle = existing_ship.get('special_survey_cycle', {}) or {}
+            update_data['special_survey_cycle'] = {
+                'from_date': special_from.isoformat() if special_from else existing_cycle.get('from_date'),
+                'to_date': special_to.isoformat() if special_to else existing_cycle.get('to_date'),
+                'intermediate_required': existing_cycle.get('intermediate_required', False),
+                'cycle_type': existing_cycle.get('cycle_type')
+            }
+        
         if update_data:
             await ShipRepository.update(ship_id, update_data)
         
