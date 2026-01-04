@@ -120,7 +120,7 @@ class TestReportAnalyzeService:
                     detail="AI configuration not found. Please configure AI in System Settings."
                 )
             
-            document_ai_config = ai_config_doc.get("document_ai", {})
+            document_ai_config = ai_config_doc.get("document_ai") or {}
             
             if not document_ai_config.get("enabled", False):
                 raise HTTPException(
