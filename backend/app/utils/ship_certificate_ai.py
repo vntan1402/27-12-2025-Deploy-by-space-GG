@@ -247,7 +247,7 @@ When extracting fields, ALWAYS compare both sections and choose the MOST ACCURAT
     "issue_date": "Issue date in FULL TEXT format (e.g., '15 November 2024' or 'November 15, 2024') - NOT numeric format",
     "valid_date": "Valid until / Expiry date in FULL TEXT format",
     "last_endorse": "**CRITICAL - SCAN ALL PAGES**: Find 'Annual surveys' or 'Endorsement' sections (often on LAST pages). Extract the MOST RECENT date from all Annual/Intermediate survey entries. Return in FULL TEXT format.",
-    "has_annual_survey": "**CRITICAL** - Boolean (true/false). Set to TRUE if document contains 'Annual survey' or 'Endorsement for annual and intermediate surveys' sections. Set to FALSE if document only has extension/renewal endorsement sections or no endorsement sections at all.",
+    "has_annual_survey": "**CRITICAL** - Boolean (true/false). See detailed instructions below in 'HAS_ANNUAL_SURVEY DETECTION RULES' section.",
     "next_survey": "Next survey date in FULL TEXT format (if any)",
     "next_survey_type": "Type of next survey - one of: 'Initial', 'Intermediate', 'Renewal', 'Annual', 'Special', 'Other'",
     "issued_by": "**CRITICAL** - Full organization name that issued the certificate. MUST use CLEAN text from Document AI OCR section (e.g., 'Panama Maritime Documentation Services, Inc.', NOT 'PPaannaammaa MMaarriittiimmee...')",
