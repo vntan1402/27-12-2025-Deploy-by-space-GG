@@ -17,7 +17,7 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile, langu
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80]">
-      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-2xl p-8 max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="mb-6">
           <h3 className="text-2xl font-bold text-gray-800 mb-2">
             {language === 'vi' ? '📊 Kết quả xử lý Ship Certificates' : '📊 Ship Certificate Processing Results'}
@@ -31,19 +31,19 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile, langu
 
         {/* Results Table */}
         <div className="overflow-x-auto mb-6">
-          <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+          <table className="w-full bg-white border border-gray-200 rounded-lg table-auto">
             <thead className="bg-gray-50">
               <tr>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">
+                <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold" style={{width: '35%'}}>
                   {language === 'vi' ? 'Tên file' : 'Filename'}
                 </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">
+                <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold" style={{width: '25%'}}>
                   {language === 'vi' ? 'Tên chứng chỉ' : 'Certificate Name'}
                 </th>
-                <th className="border border-gray-300 px-4 py-2 text-left text-sm font-semibold">
+                <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold whitespace-nowrap" style={{width: '12%'}}>
                   {language === 'vi' ? 'Số chứng chỉ' : 'Cert No.'}
                 </th>
-                <th className="border border-gray-300 px-4 py-2 text-center text-sm font-semibold">
+                <th className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold" style={{width: '28%'}}>
                   {language === 'vi' ? 'Trạng thái' : 'Status'}
                 </th>
               </tr>
@@ -51,43 +51,45 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile, langu
             <tbody>
               {results.map((result, index) => (
                 <tr key={index} className={result.success ? 'bg-green-50' : 'bg-red-50'}>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                  <td className="border border-gray-300 px-3 py-2 text-sm break-all">
                     {result.filename}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm">
+                  <td className="border border-gray-300 px-3 py-2 text-sm">
                     {result.certName || '-'}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-sm font-mono">
+                  <td className="border border-gray-300 px-3 py-2 text-sm font-mono whitespace-nowrap">
                     {result.certNo || '-'}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 text-center">
+                  <td className="border border-gray-300 px-3 py-2">
                     {result.success ? (
-                      <div className="flex flex-col items-center gap-1">
-                        <span className="text-green-600 font-semibold">
+                      <div className="flex items-center justify-center gap-2 flex-wrap">
+                        <span className="text-green-600 font-semibold text-sm whitespace-nowrap">
                           ✅ {language === 'vi' ? 'Thành công' : 'Success'}
                         </span>
-                        {result.certificateCreated && (
-                          <span className="text-xs text-green-600">
-                            {language === 'vi' ? '📋 Đã tạo record' : '📋 Record created'}
-                          </span>
-                        )}
-                        {result.fileUploaded && (
-                          <span className="text-xs text-green-600">
-                            {language === 'vi' ? '☁️ Đã upload Drive' : '☁️ Uploaded to Drive'}
-                          </span>
-                        )}
-                        {result.summaryGenerated && (
-                          <span className="text-xs text-blue-600">
-                            {language === 'vi' ? '📝 Đã tạo summary' : '📝 Summary generated'}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1 flex-wrap justify-center">
+                          {result.certificateCreated && (
+                            <span className="text-xs text-green-600 whitespace-nowrap" title={language === 'vi' ? 'Đã tạo record' : 'Record created'}>
+                              📋
+                            </span>
+                          )}
+                          {result.fileUploaded && (
+                            <span className="text-xs text-green-600 whitespace-nowrap" title={language === 'vi' ? 'Đã upload Drive' : 'Uploaded to Drive'}>
+                              ☁️
+                            </span>
+                          )}
+                          {result.summaryGenerated && (
+                            <span className="text-xs text-blue-600 whitespace-nowrap" title={language === 'vi' ? 'Đã tạo summary' : 'Summary generated'}>
+                              📝
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center gap-2">
-                        <span className="text-red-600 font-semibold">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-red-600 font-semibold text-sm whitespace-nowrap">
                           ❌ {language === 'vi' ? 'Thất bại' : 'Failed'}
                         </span>
-                        <span className="text-xs text-red-600 max-w-xs break-words whitespace-pre-line">
+                        <span className="text-xs text-red-600 max-w-[200px] break-words text-center">
                           {result.error === 'DUPLICATE' 
                             ? (language === 'vi' ? '⚠️ Đã tồn tại' : '⚠️ Duplicate')
                             : result.error === 'IMO_MISMATCH'
@@ -99,7 +101,7 @@ export const BatchResultsModal = ({ isOpen, onClose, results, onRetryFile, langu
                         {onRetryFile && (
                           <button
                             onClick={() => onRetryFile(result.filename)}
-                            className="mt-1 px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors"
+                            className="px-2 py-0.5 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded transition-colors"
                           >
                             🔄 {language === 'vi' ? 'Thử lại' : 'Retry'}
                           </button>
