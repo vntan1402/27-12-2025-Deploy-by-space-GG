@@ -115,10 +115,10 @@ class CertificateMultiUploadService:
                 ai_config = {
                     "provider": ai_config_obj.provider,
                     "model": ai_config_obj.model,
-                    "api_key": os.getenv("EMERGENT_LLM_KEY"),
-                    "use_emergent_key": True
+                    "use_emergent_key": ai_config_obj.use_emergent_key,
+                    "custom_api_key": ai_config_obj.custom_api_key
                 }
-                logger.info(f"🤖 Using AI: {ai_config['provider']} / {ai_config['model']}")
+                logger.info(f"🤖 Using AI: {ai_config['provider']} / {ai_config['model']} (use_emergent_key: {ai_config['use_emergent_key']})")
             except Exception as e:
                 logger.error(f"AI configuration not found: {e}")
                 raise HTTPException(
