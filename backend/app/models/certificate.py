@@ -45,6 +45,7 @@ class CertificateUpdate(BaseModel):
     sensitivity_level: Optional[str] = None
     notes: Optional[str] = None
     exclude_from_auto_update: Optional[bool] = None
+    has_annual_survey: Optional[bool] = None  # ⭐ NEW: Endorsement Required flag
 
 class CertificateResponse(BaseModel):
     id: str
