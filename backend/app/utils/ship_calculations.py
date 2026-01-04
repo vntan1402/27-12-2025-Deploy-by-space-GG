@@ -239,13 +239,13 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
         cert_abbreviation = (certificate_data.get('cert_abbreviation') or '').upper()
         valid_date = certificate_data.get('valid_date')
         last_endorse = certificate_data.get('last_endorse')
-        ai_next_survey_type = certificate_data.get('next_survey_type', '')  # Get AI-extracted next_survey_type
+        has_annual_survey = certificate_data.get('has_annual_survey')  # ⭐ NEW: Get flag from AI analysis
         current_date = datetime.now()
         
         # Parse valid date
         valid_dt = parse_date(valid_date)
         
-        # Rule 4: No valid date = no Next Survey
+        # Rule 1: No valid date = no Next Survey
         if not valid_dt:
             return {
                 'next_survey': None,
@@ -253,7 +253,7 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                 'reasoning': 'No valid date available'
             }
         
-        # ⭐ NEW RULE: If certificate is expired, no Next Survey
+        # Rule 2: If certificate is expired, no Next Survey
         today = datetime.now()
         if valid_dt < today:
             return {
@@ -262,7 +262,7 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                 'reasoning': 'Certificate expired - no next survey scheduled'
             }
         
-        # Rule 2: Condition certificates = valid_date
+        # Rule 3: Condition certificates = valid_date
         if 'CONDITION' in cert_type:
             return {
                 'next_survey': valid_dt.strftime('%d/%m/%Y'),
@@ -272,9 +272,21 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                 'window_months': 0
             }
         
-        # ⭐ RULE: Certificates WITHOUT annual surveys (only Renewal)
-        # These certificates don't have annual survey endorsement sections
-        # ONLY these specific certificate types are renewal-only
+        # ⭐ Rule 4: Check has_annual_survey flag from AI analysis (PRIORITY)
+        # If AI analyzed the document and determined it has no annual survey sections
+        if has_annual_survey is False:
+            logger.info(f"⭐ Certificate '{cert_name}' ({cert_abbreviation}) has no annual survey (AI flag: has_annual_survey=false)")
+            return {
+                'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
+                'next_survey_type': 'Renewal',
+                'reasoning': 'AI analysis: Certificate does not have annual survey endorsement sections',
+                'raw_date': valid_dt.strftime('%d/%m/%Y'),
+                'window_months': -3
+            }
+        
+        # ⭐ Rule 5: Fallback - Certificates WITHOUT annual surveys (only Renewal)
+        # For certificates that don't have has_annual_survey flag set (legacy data)
+        # Use hardcoded list as fallback
         renewal_only_certs = [
             'ISPP', 'SEWAGE', 'INTERNATIONAL SEWAGE',
             'AFSC', 'ANTI-FOULING', 'ANTI FOULING',
@@ -292,19 +304,18 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
             'BLUE CARD', 'BLUE-CARD'
         ]
         
-        # Check if certificate is renewal-only type based on cert_name or cert_abbreviation ONLY
-        # DO NOT use ai_next_survey_type from database as it may contain stale data
+        # Check if certificate is renewal-only type based on cert_name or cert_abbreviation
+        # Only apply if has_annual_survey is None (not set by AI)
         is_renewal_only = any(keyword in cert_name or keyword in cert_abbreviation for keyword in renewal_only_certs)
         
-        # Only apply renewal logic if certificate is in the renewal-only list
-        if is_renewal_only:
-            logger.info(f"⭐ Certificate '{cert_name}' ({cert_abbreviation}) is renewal-only type (no annual surveys)")
+        if has_annual_survey is None and is_renewal_only:
+            logger.info(f"⭐ Certificate '{cert_name}' ({cert_abbreviation}) is renewal-only type (fallback list)")
             return {
-                'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',  # Renewal survey window is 3 months before expiry
+                'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
                 'next_survey_type': 'Renewal',
-                'reasoning': 'Certificate does not require annual surveys - renewal survey within 3 months before expiry',
+                'reasoning': 'Certificate type in renewal-only list - no annual survey required',
                 'raw_date': valid_dt.strftime('%d/%m/%Y'),
-                'window_months': -3  # Window is 3 months BEFORE expiry date
+                'window_months': -3
             }
         
         # Get ship anniversary date and special survey cycle
