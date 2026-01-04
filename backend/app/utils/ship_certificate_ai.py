@@ -280,11 +280,11 @@ This certificate should belong to one of these categories:
    - Keywords: "LOAD LINE", "LLC"
 
 4. **Pollution Prevention Certificates**
-   - International Oil Pollution Prevention Certificate (IOPP) - HAS Annual/Intermediate surveys
-   - International Air Pollution Prevention Certificate (IAPP) - HAS Annual/Intermediate surveys
-   - Ballast Water Management Certificate (BWMC) - HAS Annual/Intermediate surveys
-   - International Sewage Pollution Prevention Certificate (ISPP) - NO annual surveys, ONLY Renewal
-   - Anti-Fouling System Certificate (AFSC) - NO annual surveys, ONLY Renewal
+   - International Oil Pollution Prevention Certificate (IOPP)
+   - International Air Pollution Prevention Certificate (IAPP)
+   - Ballast Water Management Certificate (BWMC)
+   - International Sewage Pollution Prevention Certificate (ISPP)
+   - Anti-Fouling System Certificate (AFSC)
    - Keywords: "POLLUTION", "IOPP", "IAPP", "MARPOL", "BALLAST WATER"
 
 5. **Tonnage & Registry** - NO annual surveys
