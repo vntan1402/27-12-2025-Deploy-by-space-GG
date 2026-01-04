@@ -1,6 +1,6 @@
 /**
  * Certificate Filters Component
- * Filter controls for certificate list (type, status, search)
+ * Filter controls for certificate list (type, status, issuedBy, search)
  * Extracted from Frontend V1 App.js (lines 13629-13727)
  */
 import React from 'react';
@@ -9,6 +9,7 @@ export const CertificateFilters = ({
   filters,
   onFilterChange,
   certificateTypes,
+  issuedByOptions = [],
   totalCount,
   filteredCount,
   language,
@@ -48,9 +49,28 @@ export const CertificateFilters = ({
             <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
             <option value="Valid">{language === 'vi' ? 'Còn hiệu lực' : 'Valid'}</option>
             <option value="Expired">{language === 'vi' ? 'Hết hiệu lực' : 'Expired'}</option>
-            <option value="Over Due">{language === 'vi' ? 'Quá hạn' : 'Over Due'}</option>
+            <option value="Due Soon">{language === 'vi' ? 'Sắp hết hạn' : 'Due Soon'}</option>
           </select>
         </div>
+        
+        {/* Issued By Filter */}
+        {issuedByOptions.length > 0 && (
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              {language === 'vi' ? 'Cấp bởi:' : 'Issued By:'}
+            </label>
+            <select
+              value={filters.issuedBy || 'all'}
+              onChange={(e) => onFilterChange({ ...filters, issuedBy: e.target.value })}
+              className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">{language === 'vi' ? 'Tất cả' : 'All'}</option>
+              {issuedByOptions.map(issuer => (
+                <option key={issuer} value={issuer}>{issuer}</option>
+              ))}
+            </select>
+          </div>
+        )}
         
         {/* Search Filter */}
         <div className="flex items-center gap-2">
