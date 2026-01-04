@@ -233,28 +233,67 @@ def _post_process_extracted_data(extracted_data: Dict[str, Any], filename: str, 
                 extracted_data['cert_type'] = normalized_type
                 logger.info(f"✅ Normalized cert_type: '{normalized_type}'")
         
-        # 3. ⭐ Check document header for cert_type indicators
+        # 3. ⭐ Check document content for cert_type indicators
+        # IMPORTANT: Read ENTIRE document before deciding, not just header
         if summary_text:
-            # Get first 1000 characters to check document header
+            # Use full summary text for analysis, not just header
+            full_text_upper = summary_text.upper()
             header_text = summary_text[:1000].upper()
-            logger.info(f"🔍 Checking header text (first 200 chars): {header_text[:200]}")
+            logger.info(f"🔍 Checking document content for cert_type indicators...")
+            
+            # Check for Full Term and Interim indicators in ENTIRE document
+            has_full_term = any(indicator in full_text_upper for indicator in [
+                'FULL TERM CERTIFICATE NO',
+                'FULL TERM CERTIFICATE NUMBER',
+                'FULL-TERM CERTIFICATE NO',
+                'FULL-TERM CERTIFICATE NUMBER',
+                'FULL TERM CERT NO',
+                'THIS FULL TERM CERTIFICATE',
+                'FULL TERM CERTIFICATE VALID'
+            ])
+            
+            has_interim = any(indicator in full_text_upper for indicator in [
+                'INTERIM CERTIFICATE NO',
+                'INTERIM CERTIFICATE NUMBER',
+                'INTERIM CERT NO',
+                'INTERIM CERT NUMBER',
+                'THIS INTERIM CERTIFICATE'
+            ])
+            
+            # Check for "replacing Interim" pattern (Full Term replacing Interim)
+            has_replacing_interim = any(indicator in full_text_upper for indicator in [
+                'REPLACING INTERIM CERTIFICATE',
+                'REPLACING INTERIM CERT',
+                'REPLACES INTERIM CERTIFICATE',
+                'REPLACES THE INTERIM'
+            ])
+            
+            logger.info(f"🔍 has_full_term: {has_full_term}, has_interim: {has_interim}, has_replacing_interim: {has_replacing_interim}")
             
             # Priority 1: Check for "STATEMENT OF FACTS" → force cert_type = "Statement"
             if 'STATEMENT OF FACTS' in header_text:
                 extracted_data['cert_type'] = 'Statement'
                 logger.info("✅ Detected 'STATEMENT OF FACTS' → cert_type forced to 'Statement'")
             
-            # Priority 2: Check for "Interim Certificate" indicators in header
-            elif any(indicator in header_text for indicator in [
-                'INTERIM CERTIFICATE NO',
-                'INTERIM CERTIFICATE NUMBER',
-                'INTERIM CERT NO',
-                'INTERIM CERT NUMBER'
-            ]):
+            # Priority 2: If document has "Full Term Certificate No." → Full Term
+            # This includes cases like "Full Term Certificate No. XXX, replacing Interim Certificate No. YYY"
+            elif has_full_term:
+                extracted_data['cert_type'] = 'Full Term'
+                logger.info("✅ Detected 'Full Term Certificate' → cert_type forced to 'Full Term'")
+            
+            # Priority 3: If document has "replacing Interim" pattern → Full Term
+            # Because this means a Full Term is replacing an Interim
+            elif has_replacing_interim:
+                extracted_data['cert_type'] = 'Full Term'
+                logger.info("✅ Detected 'replacing Interim Certificate' pattern → cert_type forced to 'Full Term'")
+            
+            # Priority 4: Only if ONLY Interim indicators found (and no Full Term) → Interim
+            elif has_interim and not has_full_term:
                 extracted_data['cert_type'] = 'Interim'
-                logger.info("✅ Detected 'Interim Certificate' in header → cert_type forced to 'Interim'")
+                logger.info("✅ Detected ONLY 'Interim Certificate' (no Full Term) → cert_type forced to 'Interim'")
+            
             else:
-                logger.info(f"ℹ️ No header indicators found, keeping cert_type: {extracted_data.get('cert_type')}")
+                logger.info(f"ℹ️ No definitive cert_type indicators found, keeping: {extracted_data.get('cert_type')}")
             
             # Priority 3: Check for DMLC Part I/II → override cert_name
             full_text = summary_text.upper()
