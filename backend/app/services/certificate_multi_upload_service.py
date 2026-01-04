@@ -1570,6 +1570,16 @@ IMPORTANT DATE EXAMPLES:
                 analysis_result.get("next_survey")
             )
             
+            # ⭐ RULE: When next_survey is "-" or None, next_survey_type must also be "-" or None
+            next_survey_value = analysis_result.get("next_survey")
+            next_survey_type_value = analysis_result.get("next_survey_type")
+            
+            if not next_survey_value or next_survey_value == '-' or not next_survey_iso:
+                # If next_survey is empty/dash, force next_survey_type to also be dash
+                next_survey_type_final = '-' if (next_survey_value == '-') else None
+            else:
+                next_survey_type_final = next_survey_type_value
+            
             # Get cert_abbreviation with priority: User mappings → AI → Auto-generation
             from app.utils.certificate_abbreviation import generate_certificate_abbreviation, validate_certificate_type
             cert_name = analysis_result.get("cert_name", "Unknown Certificate")
