@@ -193,12 +193,13 @@ IMPORTANT INSTRUCTIONS:
 5. Look for dates with keywords:
    - issue_date: "Date of issue", "Issued", "Issue date"
    - valid_date: "Valid until", "Expiry", "This Document is valid until", "Date of expiry"
-   - last_endorse: "Last endorsement", "Endorsed", "Last endorsed on", "Endorsement date"
+   - last_endorse: **IMPORTANT** - Must be the MOST RECENT (latest) date among ALL endorsement dates. Look for "Last endorsement", "Endorsed", "Last endorsed on", "Endorsement date", "Annual survey" sections. If multiple dates exist, always return the LATEST one.
 6. If issue_date is "NOVEMBER 18, 2024", convert it to "18/11/2024"
 7. If valid_date is "OCTOBER 7, 2029", convert it to "07/10/2029"
 8. If last_endorse is "MARCH 15, 2023", convert it to "15/03/2023"
-9. If a field cannot be found, use empty string ""
-10. Return ONLY valid JSON, no markdown, no explanation
+9. **LAST_ENDORSE CRITICAL RULE**: If document contains MULTIPLE Annual/Intermediate survey dates (e.g., "30 August 2024" AND "16 July 2025"), you MUST extract the MOST RECENT date (e.g., "16/07/2025"). Scan the ENTIRE document for ALL endorsement dates before selecting.
+10. If a field cannot be found, use empty string ""
+11. Return ONLY valid JSON, no markdown, no explanation
 
 EXAMPLE OUTPUT 1 (Full Term):
 {{
