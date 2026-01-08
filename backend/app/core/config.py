@@ -4,9 +4,10 @@ from typing import Optional
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables from .env file
+# override=False ensures Cloud Run/system env vars take priority over .env file
 ROOT_DIR = Path(__file__).parent.parent.parent
-load_dotenv(ROOT_DIR / '.env')
+load_dotenv(ROOT_DIR / '.env', override=False)
 
 class Settings(BaseSettings):
     # Project
