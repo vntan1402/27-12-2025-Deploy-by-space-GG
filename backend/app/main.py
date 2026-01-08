@@ -69,6 +69,19 @@ async def startup_event():
     try:
         logger.info("🚀 Starting Ship Management System API V2...")
         
+        # Debug: Log environment info
+        mongo_url = os.environ.get('MONGO_URL', 'NOT SET')
+        if mongo_url != 'NOT SET' and '@' in mongo_url:
+            # Mask password for logging
+            parts = mongo_url.split('@')
+            host_part = parts[1] if len(parts) > 1 else 'unknown'
+            logger.info(f"🔗 MONGO_URL host: {host_part[:50]}...")
+        else:
+            logger.warning(f"⚠️ MONGO_URL status: {mongo_url[:20] if mongo_url else 'NOT SET'}...")
+        
+        logger.info(f"🌐 Is Cloud Run: {is_cloud_run}")
+        logger.info(f"📁 /workspace exists: {os.path.exists('/workspace')}")
+        
         # Connect to database with retry (reduced retries for cloud)
         max_retries = 2 if is_cloud_run else 3
         for attempt in range(max_retries):
