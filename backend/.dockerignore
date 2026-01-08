@@ -25,6 +25,7 @@ coverage.xml
 dist
 build
 *.egg
+.env
 .env.local
 .env.development
 .env.test
