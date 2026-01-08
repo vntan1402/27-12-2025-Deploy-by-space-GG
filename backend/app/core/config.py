@@ -4,17 +4,27 @@ from typing import Optional
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
+# Detect if running on Cloud Run
+# Cloud Run sets K_SERVICE, K_REVISION, K_CONFIGURATION environment variables
+IS_CLOUD_RUN = bool(os.environ.get('K_SERVICE') or os.environ.get('K_REVISION') or os.path.exists("/workspace"))
+
 # Load environment variables from .env file ONLY for local development
 # Cloud Run sets environment variables directly, so we skip .env loading there
 ROOT_DIR = Path(__file__).parent.parent.parent
-IS_CLOUD_RUN = os.path.exists("/workspace")
 
 if not IS_CLOUD_RUN:
     # Local development: load .env file
-    load_dotenv(ROOT_DIR / '.env', override=False)
+    env_path = ROOT_DIR / '.env'
+    if env_path.exists():
+        load_dotenv(env_path, override=False)
+        print(f"📁 Loaded .env file from {env_path}")
+    else:
+        print(f"⚠️ No .env file found at {env_path}")
 else:
     # Cloud Run: use environment variables directly, do NOT load .env
     print("🌐 Running on Cloud Run - using environment variables directly (not loading .env file)")
+    print(f"   K_SERVICE: {os.environ.get('K_SERVICE', 'not set')}")
+    print(f"   K_REVISION: {os.environ.get('K_REVISION', 'not set')}")
 
 class Settings(BaseSettings):
     # Project
