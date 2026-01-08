@@ -17,12 +17,25 @@ class MongoDatabase:
     async def connect(self):
         """Connect to MongoDB Atlas"""
         try:
-            mongo_url = os.getenv('MONGO_URL')
-            if not mongo_url:
+            # Get MONGO_URL directly from environment (Cloud Run sets this)
+            mongo_url = os.environ.get('MONGO_URL')
+            
+            # Log for debugging (mask password)
+            if mongo_url:
+                # Mask password in log
+                if '@' in mongo_url:
+                    parts = mongo_url.split('@')
+                    masked_url = parts[0][:20] + '***@' + parts[1][:30] + '...'
+                else:
+                    masked_url = mongo_url[:30] + '...'
+                logger.info(f"🔗 MONGO_URL from environment: {masked_url}")
+            else:
+                logger.error("❌ MONGO_URL not found in os.environ")
                 raise Exception("MONGO_URL environment variable not set")
             
             # Check if running on Cloud Run
             is_cloud_run = os.path.exists("/workspace")
+            logger.info(f"🌐 Running on Cloud Run: {is_cloud_run}")
             
             self.client = AsyncIOMotorClient(
                 mongo_url,
