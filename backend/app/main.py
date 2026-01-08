@@ -64,12 +64,18 @@ async def scheduled_cleanup_job():
 async def startup_event():
     """Initialize services on startup"""
     import os
-    is_cloud_run = os.path.exists("/workspace")
+    
+    # Check if running on Cloud Run (K_SERVICE is set by Cloud Run)
+    is_cloud_run = bool(os.environ.get('K_SERVICE') or os.environ.get('K_REVISION') or os.path.exists("/workspace"))
     
     try:
         logger.info("🚀 Starting Ship Management System API V2...")
         
         # Debug: Log environment info
+        logger.info(f"🌐 Is Cloud Run: {is_cloud_run}")
+        logger.info(f"   K_SERVICE: {os.environ.get('K_SERVICE', 'not set')}")
+        logger.info(f"   K_REVISION: {os.environ.get('K_REVISION', 'not set')}")
+        
         mongo_url = os.environ.get('MONGO_URL', 'NOT SET')
         if mongo_url != 'NOT SET' and '@' in mongo_url:
             # Mask password for logging
@@ -78,9 +84,6 @@ async def startup_event():
             logger.info(f"🔗 MONGO_URL host: {host_part[:50]}...")
         else:
             logger.warning(f"⚠️ MONGO_URL status: {mongo_url[:20] if mongo_url else 'NOT SET'}...")
-        
-        logger.info(f"🌐 Is Cloud Run: {is_cloud_run}")
-        logger.info(f"📁 /workspace exists: {os.path.exists('/workspace')}")
         
         # Connect to database with retry (reduced retries for cloud)
         max_retries = 2 if is_cloud_run else 3
