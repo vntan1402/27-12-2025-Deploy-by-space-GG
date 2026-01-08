@@ -4,10 +4,17 @@ from typing import Optional
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-# override=False ensures Cloud Run/system env vars take priority over .env file
+# Load environment variables from .env file ONLY for local development
+# Cloud Run sets environment variables directly, so we skip .env loading there
 ROOT_DIR = Path(__file__).parent.parent.parent
-load_dotenv(ROOT_DIR / '.env', override=False)
+IS_CLOUD_RUN = os.path.exists("/workspace")
+
+if not IS_CLOUD_RUN:
+    # Local development: load .env file
+    load_dotenv(ROOT_DIR / '.env', override=False)
+else:
+    # Cloud Run: use environment variables directly, do NOT load .env
+    print("🌐 Running on Cloud Run - using environment variables directly (not loading .env file)")
 
 class Settings(BaseSettings):
     # Project
