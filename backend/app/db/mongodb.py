@@ -25,7 +25,7 @@ class MongoDatabase:
                 # Mask password in log
                 if '@' in mongo_url:
                     parts = mongo_url.split('@')
-                    masked_url = parts[0][:20] + '***@' + parts[1][:30] + '...'
+                    masked_url = parts[0][:20] + '***@' + parts[1][:50] + '...'
                 else:
                     masked_url = mongo_url[:30] + '...'
                 logger.info(f"🔗 MONGO_URL from environment: {masked_url}")
@@ -33,8 +33,8 @@ class MongoDatabase:
                 logger.error("❌ MONGO_URL not found in os.environ")
                 raise Exception("MONGO_URL environment variable not set")
             
-            # Check if running on Cloud Run
-            is_cloud_run = os.path.exists("/workspace")
+            # Check if running on Cloud Run (K_SERVICE is set by Cloud Run)
+            is_cloud_run = bool(os.environ.get('K_SERVICE') or os.environ.get('K_REVISION') or os.path.exists("/workspace"))
             logger.info(f"🌐 Running on Cloud Run: {is_cloud_run}")
             
             self.client = AsyncIOMotorClient(
