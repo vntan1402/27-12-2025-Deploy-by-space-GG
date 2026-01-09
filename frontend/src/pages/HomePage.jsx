@@ -159,12 +159,12 @@ const HomePage = () => {
                 }
               } else if (companyLogo.startsWith('/uploads/')) {
                 // Convert /uploads/folder/file to /api/files/folder/file
-                logoUrl = `${process.env.REACT_APP_BACKEND_URL}/api/files${companyLogo.substring(8)}`;
+                logoUrl = `${env.BACKEND_URL}/api/files${companyLogo.substring(8)}`;
               } else {
-                logoUrl = `${process.env.REACT_APP_BACKEND_URL}${companyLogo}`;
+                logoUrl = `${env.BACKEND_URL}${companyLogo}`;
               }
               console.log('🖼️ Final Logo URL:', logoUrl);
-              console.log('🔗 Backend URL:', process.env.REACT_APP_BACKEND_URL);
+              console.log('🔗 Backend URL:', env.BACKEND_URL);
               console.log('📁 Company Logo Path:', companyLogo);
               return logoUrl;
             })()}
