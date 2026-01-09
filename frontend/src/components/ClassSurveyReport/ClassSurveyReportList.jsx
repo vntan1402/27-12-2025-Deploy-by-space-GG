@@ -1,3 +1,4 @@
+import env from '../../config/env';
 /**
  * Class Survey Report List Component
  * Full-featured survey report management with table, filters, CRUD operations
@@ -345,7 +346,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     try {
       // Use backend endpoint to get proper view URL (handles company/system gdrive config)
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
+        `${env.BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -384,7 +385,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     try {
       // Use backend endpoint to get proper view URL
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
+        `${env.BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -555,7 +556,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
         
         try {
           const response = await fetch(
-            `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
+            `${env.BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
             { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }}
           );
 
@@ -662,7 +663,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
       for (const report of reportsWithFiles) {
         try {
           const response = await fetch(
-            `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
+            `${env.BACKEND_URL}/api/gdrive/file/${report.survey_report_file_id}/view`,
             { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }}
           );
 

@@ -1,3 +1,4 @@
+import env from '../../config/env';
 /**
  * Drawings & Manuals Table Component
  * Full-featured table with all V1 functionality
@@ -541,7 +542,7 @@ export const DrawingsManualsTable = ({ selectedShip }) => {
       formData.append('ship_id', selectedShip.id);
       formData.append('bypass_validation', 'true');
 
-      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const BACKEND_URL = env.BACKEND_URL || '';
       const analyzeResponse = await fetch(`${BACKEND_URL}/api/drawings-manuals/analyze-file`, {
         method: 'POST',
         headers: {

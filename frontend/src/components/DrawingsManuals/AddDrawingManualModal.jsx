@@ -1,3 +1,4 @@
+import env from '../../config/env';
 /**
  * Add Drawing Manual Modal
  * Features:
@@ -207,7 +208,7 @@ export const AddDrawingManualModal = ({
       formDataAPI.append('bypass_validation', 'false');
 
       // Call backend API
-      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const BACKEND_URL = env.BACKEND_URL || '';
       const response = await fetch(`${BACKEND_URL}/api/drawings-manuals/analyze-file`, {
         method: 'POST',
         headers: {
@@ -321,7 +322,7 @@ export const AddDrawingManualModal = ({
         note: formData.note?.trim() || null
       };
 
-      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const BACKEND_URL = env.BACKEND_URL || '';
       const createResponse = await fetch(`${BACKEND_URL}/api/drawings-manuals`, {
         method: 'POST',
         headers: {

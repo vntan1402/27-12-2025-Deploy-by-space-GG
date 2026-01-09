@@ -1,3 +1,4 @@
+import env from '../../config/env';
 /**
  * Edit Drawing Manual Modal
  * Simple edit form for document metadata
@@ -60,7 +61,7 @@ export const EditDrawingManualModal = ({ isOpen, onClose, document, onDocumentUp
         note: formData.note?.trim() || null
       };
 
-      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const BACKEND_URL = env.BACKEND_URL || '';
       const response = await fetch(`${BACKEND_URL}/api/drawings-manuals/${document.id}`, {
         method: 'PUT',
         headers: {

@@ -1,3 +1,4 @@
+import env from '../../config/env';
 /**
  * Class Audit Report List Component
  * Full-featured audit report management with table, filters, CRUD operations
@@ -281,7 +282,7 @@ export const AuditReportList = ({
     try {
       // Use backend endpoint to get proper view URL
       const response = await fetch(
-        `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.audit_report_file_id}/view`,
+        `${env.BACKEND_URL}/api/gdrive/file/${report.audit_report_file_id}/view`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -468,7 +469,7 @@ export const AuditReportList = ({
         
         try {
           const response = await fetch(
-            `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.audit_report_file_id}/view`,
+            `${env.BACKEND_URL}/api/gdrive/file/${report.audit_report_file_id}/view`,
             { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }}
           );
 
@@ -575,7 +576,7 @@ export const AuditReportList = ({
       for (const report of reportsWithFiles) {
         try {
           const response = await fetch(
-            `${process.env.REACT_APP_BACKEND_URL}/api/gdrive/file/${report.audit_report_file_id}/view`,
+            `${env.BACKEND_URL}/api/gdrive/file/${report.audit_report_file_id}/view`,
             { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }}
           );
 

@@ -1,3 +1,4 @@
+import env from '../../config/env';
 /**
  * Add Test Report Modal
  * Features:
@@ -217,7 +218,7 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
       formData.append('bypass_validation', 'false');
 
       // Call backend API
-      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const BACKEND_URL = env.BACKEND_URL || '';
       const response = await fetch(`${BACKEND_URL}/api/test-reports/analyze-file`, {
         method: 'POST',
         headers: {
