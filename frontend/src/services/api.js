@@ -1,10 +1,12 @@
 import axios from 'axios';
+import env from '../config/env';
 
 /**
  * Base API configuration
+ * Uses runtime environment configuration for backend URL
  */
 const api = axios.create({
-  baseURL: process.env.REACT_APP_BACKEND_URL,
+  baseURL: env.BACKEND_URL,
   timeout: 180000, // 180 seconds (3 minutes) default - increased for production stability
   headers: {
     'Content-Type': 'application/json',
