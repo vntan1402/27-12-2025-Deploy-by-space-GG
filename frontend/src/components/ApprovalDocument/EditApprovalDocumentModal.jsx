@@ -61,7 +61,7 @@ export const EditApprovalDocumentModal = ({ isOpen, onClose, document, onDocumen
         note: formData.note?.trim() || null
       };
 
-      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const BACKEND_URL = env.BACKEND_URL;
       const response = await fetch(`${BACKEND_URL}/api/approval-documents/${document.id}`, {
         method: 'PUT',
         headers: {
