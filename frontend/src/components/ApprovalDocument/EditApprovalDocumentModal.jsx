@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { toast } from 'sonner';
 import { formatDateForInput } from '../../utils/dateHelpers';
+import env from '../../config/env';
 
 export const EditApprovalDocumentModal = ({ isOpen, onClose, document, onDocumentUpdated }) => {
   const { language } = useAuth();
