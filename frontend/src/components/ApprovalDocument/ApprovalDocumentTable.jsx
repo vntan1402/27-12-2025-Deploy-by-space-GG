@@ -17,6 +17,7 @@ import { EditApprovalDocumentModal } from './EditApprovalDocumentModal';
 import { ApprovalDocumentNotesModal } from './ApprovalDocumentNotesModal';
 import { BatchProcessingModal } from './BatchProcessingModal';
 import { BatchResultsModal } from './BatchResultsModal';
+import env from '../../config/env';
 
 export const ApprovalDocumentTable = ({ selectedShip }) => {
   const { language, user } = useAuth();
