@@ -4,10 +4,12 @@
  * Centralized API endpoint definitions
  */
 
+import env from '../config/env';
+
 /**
- * Base API URL (from environment)
+ * Base API URL (from runtime environment config)
  */
-export const BASE_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+export const BASE_URL = env.BACKEND_URL;
 
 /**
  * API Endpoints
