@@ -14,6 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useUploadGuard } from '../../hooks/useUploadGuard';
 import { toast } from 'sonner';
 import { formatDateForInput } from '../../utils/dateHelpers';
+import env from '../../config/env';
 
 export const AddApprovalDocumentModal = ({ 
   isOpen, 
