@@ -65,7 +65,7 @@ const AddUserModal = ({
         try {
           const token = localStorage.getItem('token');
           const response = await axios.get(
-            `${process.env.REACT_APP_BACKEND_URL}/api/crew/by-ship/${encodeURIComponent(userData.ship)}`,
+            `${env.BACKEND_URL}/api/crew/by-ship/${encodeURIComponent(userData.ship)}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
           setCrewList(response.data || []);
