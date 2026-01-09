@@ -116,7 +116,6 @@ async def startup_event():
         
         # Setup scheduled jobs (skip on cloud for faster startup)
         if not is_cloud_run:
-        if not is_cloud_run:
             scheduler.add_job(
                 scheduled_cleanup_job,
                 CronTrigger(hour=2, minute=0),
