@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
+import env from '../../../config/env';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${env.BACKEND_URL}/api`;
 
 const AIConfigModal = ({ config: initialConfig, onClose, onSave }) => {
   const [config, setConfig] = useState(initialConfig);
