@@ -315,7 +315,7 @@ export const AddApprovalDocumentModal = ({
         note: formData.note?.trim() || null
       };
 
-      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const BACKEND_URL = env.BACKEND_URL;
       const createResponse = await fetch(`${BACKEND_URL}/api/approval-documents`, {
         method: 'POST',
         headers: {
