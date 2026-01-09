@@ -5,6 +5,7 @@ import { MainLayout, Sidebar } from '../components/Layout';
 import AddShipModal from '../components/Ships/AddShipModal';
 import { companyService } from '../services';
 import { toast } from 'sonner';
+import env from '../config/env';
 
 const HomePage = () => {
   const { language, user } = useAuth();
