@@ -1,6 +1,7 @@
-// This file will be overwritten at container startup with actual environment variables
-// Default values for local development
+// Runtime environment configuration
+// This file can be replaced at container startup to inject environment variables
+// For Cloud Run: set REACT_APP_BACKEND_URL environment variable
 window._env_ = {
-  REACT_APP_BACKEND_URL: "http://localhost:8001",
+  REACT_APP_BACKEND_URL: "https://sms-gg-cloud-mainnet-backend-666414239652.asia-southeast1.run.app",
   REACT_APP_VERSION: "2.0.0"
 };
