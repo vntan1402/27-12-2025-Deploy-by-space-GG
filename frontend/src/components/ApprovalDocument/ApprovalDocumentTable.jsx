@@ -597,7 +597,7 @@ export const ApprovalDocumentTable = ({ selectedShip }) => {
       formData.append('ship_id', selectedShip.id);
       formData.append('bypass_validation', 'true');
 
-      const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+      const BACKEND_URL = env.BACKEND_URL;
       const analyzeResponse = await fetch(`${BACKEND_URL}/api/approval-documents/analyze-file`, {
         method: 'POST',
         headers: {
