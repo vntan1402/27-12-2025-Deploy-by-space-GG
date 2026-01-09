@@ -5,6 +5,7 @@
  */
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import env from '../config/env';
 
 export const CompanyInfoPanel = ({ companyData, onClose }) => {
   const { language } = useAuth();
@@ -26,9 +27,9 @@ export const CompanyInfoPanel = ({ companyData, onClose }) => {
       return logoUrl;
     } else if (logoUrl.startsWith('/uploads/')) {
       // Convert /uploads/folder/file to /api/files/folder/file
-      return `${process.env.REACT_APP_BACKEND_URL}/api/files${logoUrl.substring(8)}`;
+      return `${env.BACKEND_URL}/api/files${logoUrl.substring(8)}`;
     } else {
-      return `${process.env.REACT_APP_BACKEND_URL}${logoUrl}`;
+      return `${env.BACKEND_URL}${logoUrl}`;
     }
   };
   
