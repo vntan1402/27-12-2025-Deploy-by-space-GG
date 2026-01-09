@@ -100,15 +100,22 @@ async def startup_event():
                     import asyncio
                     await asyncio.sleep(1)  # Shorter wait
         
-        # Initialize admin if needed (skip on cloud for faster startup)
-        if mongo_db.connected and not is_cloud_run:
-            try:
-                from app.utils.init_admin import init_admin_if_needed
-                await init_admin_if_needed()
-            except Exception as admin_error:
-                logger.warning(f"⚠️ Admin initialization skipped: {admin_error}")
+        # Initialize admin if needed
+        # On Cloud Run: only run if INIT_ADMIN_PASSWORD is set (explicit opt-in)
+        # On local: always run
+        if mongo_db.connected:
+            should_init_admin = not is_cloud_run or os.environ.get('INIT_ADMIN_PASSWORD')
+            if should_init_admin:
+                try:
+                    from app.utils.init_admin import init_admin_if_needed
+                    await init_admin_if_needed()
+                except Exception as admin_error:
+                    logger.warning(f"⚠️ Admin initialization skipped: {admin_error}")
+            else:
+                logger.info("ℹ️ Admin init skipped on Cloud Run (set INIT_ADMIN_PASSWORD to enable)")
         
         # Setup scheduled jobs (skip on cloud for faster startup)
+        if not is_cloud_run:
         if not is_cloud_run:
             scheduler.add_job(
                 scheduled_cleanup_job,
