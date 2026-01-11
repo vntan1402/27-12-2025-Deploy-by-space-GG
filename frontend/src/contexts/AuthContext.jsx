@@ -20,11 +20,64 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token) {
-      verifyToken();
+      // First, try to restore user from localStorage for instant UI
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          console.log('✅ [AuthContext] Restored user from localStorage:', parsedUser.username);
+          
+          // Fetch company expiry in background
+          if (parsedUser.company) {
+            fetchCompanyExpiry(parsedUser.company);
+          }
+          
+          // Set loading to false immediately for faster page render
+          setLoading(false);
+          
+          // Verify token in background (non-blocking)
+          verifyTokenBackground();
+        } catch (e) {
+          console.error('❌ [AuthContext] Failed to parse stored user:', e);
+          verifyToken();
+        }
+      } else {
+        // No stored user, must verify token
+        verifyToken();
+      }
     } else {
       setLoading(false);
     }
   }, [token]);
+
+  // Background token verification (non-blocking)
+  const verifyTokenBackground = async () => {
+    try {
+      const response = await authService.verifyToken();
+      const userData = response.data?.user || response.data;
+      
+      // Update user if data changed
+      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (JSON.stringify(userData) !== JSON.stringify(storedUser)) {
+        console.log('🔄 [AuthContext] User data updated from server');
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+      
+      // Refresh company expiry
+      if (userData?.company) {
+        await fetchCompanyExpiry(userData.company);
+      }
+    } catch (error) {
+      console.warn('⚠️ [AuthContext] Background token verification failed:', error.message);
+      // Token might be invalid - logout only if 401
+      if (error.response?.status === 401) {
+        console.log('🔐 [AuthContext] Token expired, logging out');
+        logout();
+      }
+    }
+  };
 
   const fetchCompanyExpiry = async (companyIdOrName) => {
     try {
