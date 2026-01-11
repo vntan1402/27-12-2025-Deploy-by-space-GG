@@ -252,44 +252,44 @@ async def extract_test_report_fields_from_summary(
                 session_id=f"test_report_extraction_{int(time.time())}",
                 system_message="You are a maritime test report analysis expert."
             ).with_model("gemini", ai_model)
+            
+            logger.info(f"📤 Sending extraction prompt to {ai_model}...")
+            
+            user_message = UserMessage(text=prompt)
+            ai_response = await chat.send_message(user_message)
+            
+            if ai_response and ai_response.strip():
+                content = ai_response.strip()
+                logger.info(f"📥 Test Report AI response received ({len(content)} chars)")
                 
-                logger.info(f"📤 Sending extraction prompt to {ai_model}...")
-                
-                user_message = UserMessage(text=prompt)
-                ai_response = await chat.send_message(user_message)
-                
-                if ai_response and ai_response.strip():
-                    content = ai_response.strip()
-                    logger.info(f"📥 Test Report AI response received ({len(content)} chars)")
+                # Parse JSON response
+                try:
+                    # Clean markdown code blocks if present
+                    clean_content = content.replace('```json', '').replace('```', '').strip()
+                    extracted_data = json.loads(clean_content)
                     
-                    # Parse JSON response
-                    try:
-                        # Clean markdown code blocks if present
-                        clean_content = content.replace('```json', '').replace('```', '').strip()
-                        extracted_data = json.loads(clean_content)
-                        
-                        # Standardize date formats
-                        for date_field in ['issued_date', 'valid_date']:
-                            if extracted_data.get(date_field):
-                                try:
-                                    from dateutil import parser
-                                    parsed_date = parser.parse(extracted_data[date_field])
-                                    extracted_data[date_field] = parsed_date.strftime('%Y-%m-%d')
-                                except Exception as date_error:
-                                    logger.warning(f"Failed to parse {date_field}: {date_error}")
-                        
-                        logger.info(f"✅ Successfully extracted test report fields")
-                        
-                        # Log extracted fields for debugging
-                        fields_found = [k for k, v in extracted_data.items() if v]
-                        logger.info(f"📊 Fields extracted: {', '.join(fields_found)}")
-                        
-                        return extracted_data
-                        
-                    except json.JSONDecodeError as json_error:
-                        logger.error(f"Failed to parse AI response as JSON: {json_error}")
-                        logger.error(f"AI response: {content[:500]}...")
-                        return {}
+                    # Standardize date formats
+                    for date_field in ['issued_date', 'valid_date']:
+                        if extracted_data.get(date_field):
+                            try:
+                                from dateutil import parser
+                                parsed_date = parser.parse(extracted_data[date_field])
+                                extracted_data[date_field] = parsed_date.strftime('%Y-%m-%d')
+                            except Exception as date_error:
+                                logger.warning(f"Failed to parse {date_field}: {date_error}")
+                    
+                    logger.info(f"✅ Successfully extracted test report fields")
+                    
+                    # Log extracted fields for debugging
+                    fields_found = [k for k, v in extracted_data.items() if v]
+                    logger.info(f"📊 Fields extracted: {', '.join(fields_found)}")
+                    
+                    return extracted_data
+                    
+                except json.JSONDecodeError as json_error:
+                    logger.error(f"Failed to parse AI response as JSON: {json_error}")
+                    logger.error(f"AI response: {content[:500]}...")
+                    return {}
             else:
                 logger.warning("AI response is empty")
                 return {}
