@@ -170,7 +170,7 @@ export const AuditUpcomingSurveyModal = ({
                   </td>
                 </tr>
               ) : (
-                surveys.map((survey, index) => (
+                filteredSurveys.map((survey, index) => (
                   <tr 
                     key={index} 
                     className={`hover:bg-gray-50 ${
