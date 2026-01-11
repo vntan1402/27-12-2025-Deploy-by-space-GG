@@ -181,9 +181,6 @@ export const AuditUpcomingSurveyModal = ({
                     <td className="px-4 py-3 text-sm text-gray-900 border-b">
                       {survey.next_survey_type || '-'}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 border-b">
-                      {formatDateDisplay(survey.last_endorse)}
-                    </td>
                     <td className="px-4 py-3 text-sm border-b">
                       {survey.is_overdue ? (
                         <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
