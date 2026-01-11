@@ -202,9 +202,9 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
         let bValue = b[sort.column] || '';
 
         // Handle date sorting
-        if (sort.column === 'issued_date') {
-          aValue = a.issued_date ? new Date(a.issued_date).getTime() : 0;
-          bValue = b.issued_date ? new Date(b.issued_date).getTime() : 0;
+        if (sort.column === 'issued_date' || sort.column === 'expiry_date') {
+          aValue = a[sort.column] ? new Date(a[sort.column]).getTime() : 0;
+          bValue = b[sort.column] ? new Date(b[sort.column]).getTime() : 0;
         } else {
           // String comparison
           aValue = String(aValue).toLowerCase();
