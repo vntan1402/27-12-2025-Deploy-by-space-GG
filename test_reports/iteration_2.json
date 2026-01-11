@@ -1,0 +1,81 @@
+{
+  "summary": "Completed testing of Class Survey Report refactoring. Backend correctly calculates expiry_date and status on create/update. Frontend displays status badges correctly (Valid/Expired/Due Soon) without fetching certificates API.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/tests/test_survey_report_expiry.py",
+    "/app/test_reports/pytest/survey_report_expiry_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend expiry calculation logic in calculate_survey_report_expiry() is well-implemented with proper fallback handling",
+    "Frontend correctly uses report.status directly from API response instead of calculating locally",
+    "Status badge styling correctly maps: Valid=green, Expired=red, Due Soon=orange"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "100%"
+  },
+  "test_credentials": {
+    "username": "admin1",
+    "password": "123456"
+  },
+  "seed_data_creation": "Used existing test data: TSR-2025-001 (Expired), TSR-2025-002 (Valid)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Survey Report expiry calculation refactoring is complete. Backend calculates expiry_date and status on create/update. Frontend displays status badges correctly. All 8 backend tests pass. Frontend verified: table columns correct, status badges display with correct colors, no certificate API calls made.",
+  "features_tested": {
+    "backend": [
+      "expiry_date calculated on survey report create",
+      "status calculated on survey report create (Valid/Expired/Due Soon)",
+      "expiry_date recalculated on survey report update",
+      "status recalculated on survey report update",
+      "issued_by normalization (DNV GL -> DNV)"
+    ],
+    "frontend": [
+      "Class Survey Report page loads correctly",
+      "Table displays all required columns (Name, Report Form, Report No, Issued Date, Issued By, Status, Note)",
+      "Status badges display with correct colors (green=Valid, red=Expired)",
+      "Vietnamese translations work (Còn hiệu lực, Hết hiệu lực, Sắp hết hạn)",
+      "No API calls to /api/certificates when loading survey reports"
+    ]
+  },
+  "test_results": {
+    "backend_tests": {
+      "total": 8,
+      "passed": 8,
+      "failed": 0,
+      "tests": [
+        "test_01_get_existing_survey_reports_with_status - PASSED",
+        "test_02_verify_expired_status_calculation - PASSED",
+        "test_03_verify_valid_status_calculation - PASSED",
+        "test_04_create_survey_report_calculates_expiry - PASSED",
+        "test_05_create_survey_report_with_old_date_gets_expired_status - PASSED",
+        "test_06_update_survey_report_recalculates_expiry - PASSED",
+        "test_07_issued_by_normalization - PASSED",
+        "test_survey_reports_api_returns_complete_data - PASSED"
+      ]
+    },
+    "frontend_tests": {
+      "total": 6,
+      "passed": 6,
+      "failed": 0,
+      "tests": [
+        "Login and navigation - PASSED",
+        "Class Survey Report tab accessible - PASSED",
+        "Ship selection works - PASSED",
+        "Table displays with correct columns - PASSED",
+        "Status badges display correctly - PASSED",
+        "No certificate API calls - PASSED"
+      ]
+    }
+  }
+}
