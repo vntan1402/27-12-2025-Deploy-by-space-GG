@@ -65,8 +65,11 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
   // Fetch survey reports and certificates when ship is selected
   useEffect(() => {
     if (selectedShip) {
-      fetchSurveyReports();
-      fetchCertificates();
+      // Fetch both in parallel for better performance
+      Promise.all([
+        fetchSurveyReports(),
+        fetchCertificates()
+      ]);
     } else {
       setSurveyReports([]);
       setCertificates([]);
