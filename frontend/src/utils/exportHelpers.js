@@ -280,11 +280,6 @@ export const exportUpcomingSurveysToXLSX = (surveys, options = {}) => {
       excelWidth: 20
     },
     { 
-      header: language === 'vi' ? 'Last Endorse' : 'Last Endorse', 
-      accessor: (row) => formatDateDisplay(row.last_endorse),
-      excelWidth: 15
-    },
-    { 
       header: language === 'vi' ? 'Còn lại (ngày)' : 'Days Remaining', 
       accessor: (row) => row.days_until_window_close,
       excelWidth: 15
