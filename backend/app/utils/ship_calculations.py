@@ -812,10 +812,17 @@ def calculate_survey_report_expiry(issued_date, ship_data: dict) -> dict:
     """
     Calculate expiry date and status for Survey Report.
     
-    Logic:
-    1. Calculate Next Survey based on Anniversary Date and Special Survey Cycle
-    2. expiry_date = MIN(issued_date + 18 months, next_survey_window_close)
-    3. Status based on expiry_date vs today
+    Logic (UPDATED):
+    1. Find the Anniversary Date of the year when the report was issued
+    2. If issued_date > Anniversary of that year → Survey completed → Next survey is next year's Anniversary
+    3. If issued_date <= Anniversary of that year → Next survey is that year's Anniversary
+    4. expiry_date = MIN(issued_date + 18 months, next_survey_anniversary + 3 months)
+    5. Status based on expiry_date vs today
+    
+    Example:
+    - Report issued: 29/12/2025, Anniversary: 20 Dec
+    - 29/12/2025 > 20/12/2025 → 2025 survey completed
+    - Next survey: 20/12/2026 + 3M = 20/03/2027
     
     Args:
         issued_date: Survey Report issued date (str or datetime)
@@ -841,9 +848,8 @@ def calculate_survey_report_expiry(issued_date, ship_data: dict) -> dict:
         issued_plus_18_months = issued_dt + relativedelta(months=18)
         logger.info(f"Survey Report issued: {issued_dt.strftime('%d/%m/%Y')}, +18 months = {issued_plus_18_months.strftime('%d/%m/%Y')}")
         
-        # Get ship anniversary date and special survey cycle
+        # Get ship anniversary date
         ship_anniversary = ship_data.get('anniversary_date', {})
-        special_survey_cycle = ship_data.get('special_survey_cycle', {})
         
         # Determine anniversary day/month
         anniversary_day = None
@@ -859,75 +865,38 @@ def calculate_survey_report_expiry(issued_date, ship_data: dict) -> dict:
             anniversary_month = issued_dt.month
             logger.info(f"No ship anniversary date, using issued_date: {anniversary_day}/{anniversary_month}")
         
-        # Get special survey cycle dates
-        cycle_start = None
-        cycle_end = None
+        # Calculate the Anniversary Date of the year when report was issued
+        try:
+            anniversary_of_issued_year = datetime(issued_dt.year, anniversary_month, anniversary_day)
+        except ValueError:
+            # Handle invalid date (e.g., Feb 30)
+            anniversary_of_issued_year = datetime(issued_dt.year, anniversary_month, min(anniversary_day, 28))
         
-        if isinstance(special_survey_cycle, dict):
-            cycle_from = special_survey_cycle.get('from_date')
-            cycle_to = special_survey_cycle.get('to_date')
-            
-            if cycle_from and cycle_to:
-                cycle_start = parse_date(cycle_from)
-                cycle_end = parse_date(cycle_to)
-                logger.info(f"Special Survey Cycle: {cycle_start.strftime('%d/%m/%Y') if cycle_start else 'None'} to {cycle_end.strftime('%d/%m/%Y') if cycle_end else 'None'}")
+        logger.info(f"Anniversary of issued year: {anniversary_of_issued_year.strftime('%d/%m/%Y')}")
         
-        # If no cycle from ship data, derive from issued_date
-        if not cycle_start or not cycle_end:
-            # Assume issued_date is within current 5-year cycle
-            years_from_issued = (current_date.year - issued_dt.year)
-            try:
-                cycle_start = datetime(
-                    issued_dt.year - (years_from_issued % 5),
-                    anniversary_month, 
-                    anniversary_day
-                )
-                cycle_end = datetime(
-                    cycle_start.year + 5, 
-                    anniversary_month, 
-                    anniversary_day
-                )
-            except ValueError:
-                # Handle invalid date (e.g., Feb 30)
-                cycle_start = datetime(issued_dt.year, anniversary_month, min(anniversary_day, 28))
-                cycle_end = datetime(cycle_start.year + 5, anniversary_month, min(anniversary_day, 28))
-            
-            logger.info(f"Derived cycle from issued_date: {cycle_start.strftime('%d/%m/%Y')} to {cycle_end.strftime('%d/%m/%Y')}")
+        # Determine which survey cycle the report belongs to
+        # If issued_date > Anniversary of that year → Survey for that year is COMPLETED
+        # Next survey is the following year's Anniversary
+        if issued_dt > anniversary_of_issued_year:
+            # Survey for issued_year is completed, next survey is next year
+            next_survey_year = issued_dt.year + 1
+            logger.info(f"issued_date ({issued_dt.strftime('%d/%m/%Y')}) > Anniversary ({anniversary_of_issued_year.strftime('%d/%m/%Y')}) → Survey {issued_dt.year} completed")
+        else:
+            # Survey for issued_year is not yet done, next survey is this year
+            next_survey_year = issued_dt.year
+            logger.info(f"issued_date ({issued_dt.strftime('%d/%m/%Y')}) <= Anniversary ({anniversary_of_issued_year.strftime('%d/%m/%Y')}) → Next survey is {issued_dt.year}")
         
-        # Calculate next annual survey dates
+        # Calculate next survey date
+        try:
+            next_survey_date = datetime(next_survey_year, anniversary_month, anniversary_day)
+        except ValueError:
+            next_survey_date = datetime(next_survey_year, anniversary_month, min(anniversary_day, 28))
+        
+        # Add 3 months window
         window_months = 3
-        next_survey_window_close = None
+        next_survey_window_close = next_survey_date + relativedelta(months=window_months)
         
-        # Generate Annual Survey dates for the 5-year cycle
-        for i in range(1, 6):  # 1st to 4th Annual + Special Survey
-            try:
-                if i < 5:
-                    survey_date = datetime(cycle_start.year + i, anniversary_month, anniversary_day)
-                else:
-                    survey_date = cycle_end
-            except ValueError:
-                survey_date = datetime(cycle_start.year + i, anniversary_month, min(anniversary_day, 28))
-            
-            # Calculate window_close
-            if i == 5:  # Special Survey
-                window_close = survey_date  # No +3M for Special Survey
-            else:
-                window_close = survey_date + relativedelta(months=window_months)
-            
-            # Find the next applicable survey (window_close > today)
-            if window_close > current_date:
-                next_survey_window_close = window_close
-                logger.info(f"Next Survey: Year {i} Survey on {survey_date.strftime('%d/%m/%Y')}, window_close = {window_close.strftime('%d/%m/%Y')}")
-                break
-        
-        # If no survey found in current cycle, use next cycle's 1st Annual
-        if not next_survey_window_close:
-            try:
-                next_annual = datetime(cycle_end.year + 1, anniversary_month, anniversary_day)
-            except ValueError:
-                next_annual = datetime(cycle_end.year + 1, anniversary_month, min(anniversary_day, 28))
-            next_survey_window_close = next_annual + relativedelta(months=window_months)
-            logger.info(f"Using next cycle's 1st Annual Survey: {next_annual.strftime('%d/%m/%Y')}, window_close = {next_survey_window_close.strftime('%d/%m/%Y')}")
+        logger.info(f"Next Survey: {next_survey_date.strftime('%d/%m/%Y')}, window_close (+3M) = {next_survey_window_close.strftime('%d/%m/%Y')}")
         
         # Calculate expiry_date = MIN(issued + 18 months, next_survey_window_close)
         expiry_date = min(issued_plus_18_months, next_survey_window_close)
@@ -949,7 +918,7 @@ def calculate_survey_report_expiry(issued_date, ship_data: dict) -> dict:
         return {
             'expiry_date': expiry_date.strftime('%Y-%m-%d'),
             'status': status,
-            'reasoning': f'MIN(issued+18M={issued_plus_18_months.strftime("%d/%m/%Y")}, next_survey_window={next_survey_window_close.strftime("%d/%m/%Y")})',
+            'reasoning': f'MIN(issued+18M={issued_plus_18_months.strftime("%d/%m/%Y")}, next_survey={next_survey_date.strftime("%d/%m/%Y")}+3M={next_survey_window_close.strftime("%d/%m/%Y")})',
             'days_until_expiry': days_until_expiry
         }
         
