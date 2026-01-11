@@ -804,3 +804,4 @@ def calculate_next_docking_enhanced(
             'calculation_method': None,
             'reasoning': f'Error: {str(e)}'
         }
+
