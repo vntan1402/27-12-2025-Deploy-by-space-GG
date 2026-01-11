@@ -184,6 +184,7 @@ class SurveyReportService:
     async def update_survey_report(report_id: str, report_data: SurveyReportUpdate, current_user: UserResponse) -> SurveyReportResponse:
         """Update survey report"""
         from app.core.permission_checks import check_edit_permission
+        from app.utils.ship_calculations import calculate_survey_report_expiry
         
         report = await mongo_db.find_one(SurveyReportService.collection_name, {"id": report_id})
         if not report:
@@ -207,6 +208,17 @@ class SurveyReportService:
                     logger.info(f"✅ Normalized Issued By: '{original_issued_by}' → '{normalized_issued_by}'")
             except Exception as e:
                 logger.warning(f"⚠️ Could not normalize issued_by: {e}")
+        
+        # ⭐ Recalculate expiry_date if issued_date is updated
+        issued_date = update_data.get("issued_date") or report.get("issued_date")
+        if issued_date and ship:
+            try:
+                expiry_result = calculate_survey_report_expiry(issued_date, ship)
+                update_data["expiry_date"] = expiry_result.get("expiry_date")
+                update_data["status"] = expiry_result.get("status", "Valid")
+                logger.info(f"✅ Recalculated expiry for Survey Report: {expiry_result}")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not recalculate expiry: {e}")
         
         if update_data:
             await mongo_db.update(SurveyReportService.collection_name, {"id": report_id}, update_data)
