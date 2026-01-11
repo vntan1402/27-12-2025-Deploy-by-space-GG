@@ -117,6 +117,7 @@ class SurveyReportService:
     async def create_survey_report(report_data: SurveyReportCreate, current_user: UserResponse) -> SurveyReportResponse:
         """Create new survey report"""
         from app.core.permission_checks import check_create_permission
+        from app.utils.ship_calculations import calculate_survey_report_expiry
         
         # ⭐ Permission check: Get ship's company and verify department permission
         ship = await mongo_db.find_one("ships", {"id": report_data.ship_id})
@@ -140,6 +141,17 @@ class SurveyReportService:
                     logger.info(f"✅ Normalized Issued By: '{original_issued_by}' → '{normalized_issued_by}'")
             except Exception as e:
                 logger.warning(f"⚠️ Could not normalize issued_by: {e}")
+        
+        # ⭐ Calculate expiry_date and status based on ship data
+        if report_dict.get("issued_date"):
+            try:
+                expiry_result = calculate_survey_report_expiry(report_dict["issued_date"], ship)
+                report_dict["expiry_date"] = expiry_result.get("expiry_date")
+                report_dict["status"] = expiry_result.get("status", "Valid")
+                logger.info(f"✅ Calculated expiry for Survey Report: {expiry_result}")
+            except Exception as e:
+                logger.warning(f"⚠️ Could not calculate expiry: {e}")
+                report_dict["status"] = "Valid"
         
         await mongo_db.create(SurveyReportService.collection_name, report_dict)
         
