@@ -13,12 +13,10 @@ RUN yarn install --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Build arguments for environment variables
-ARG REACT_APP_BACKEND_URL
-ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+# Disable ESLint for build
 ENV DISABLE_ESLINT_PLUGIN=true
 
-# Build the app
+# Build the app (env-config.js will be generated at runtime)
 RUN yarn build
 
 # Stage 2: Serve with lightweight server
@@ -32,9 +30,13 @@ RUN npm install -g serve
 # Copy built files from build stage
 COPY --from=build /app/build ./build
 
+# Copy startup script
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 # Cloud Run uses PORT environment variable
 ENV PORT=8080
 EXPOSE 8080
 
-# Start serve on the PORT
-CMD ["sh", "-c", "serve -s build -l $PORT"]
+# Use startup script to generate env-config.js from environment variables
+CMD ["./start.sh"]
