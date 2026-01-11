@@ -2,10 +2,13 @@ import env from '../../config/env';
 /**
  * Class Survey Report List Component
  * Full-featured survey report management with table, filters, CRUD operations
+ * 
+ * REFACTORED: expiry_date and status are now calculated on the backend
+ * No need to fetch certificates for status calculation
  */
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { surveyReportService, shipCertificateService } from '../../services';
+import { surveyReportService } from '../../services';
 import { toast } from 'sonner';
 import { AddSurveyReportModal } from './AddSurveyReportModal';
 import { EditSurveyReportModal } from './EditSurveyReportModal';
