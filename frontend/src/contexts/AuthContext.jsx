@@ -76,9 +76,17 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token]);
 
-  // Background token verification (non-blocking)
+  // Background token verification (non-blocking) - runs only ONCE per session
   const verifyTokenBackground = async () => {
+    if (isVerifying.current) {
+      console.log('⏳ [AuthContext] Already verifying - skipping');
+      return;
+    }
+    
+    isVerifying.current = true;
+    
     try {
+      console.log('🔐 [AuthContext] Starting background token verification...');
       const response = await authService.verifyToken();
       const userData = response.data?.user || response.data;
       
@@ -90,17 +98,22 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user', JSON.stringify(userData));
       }
       
-      // Refresh company expiry
+      // Refresh company expiry only if needed
       if (userData?.company) {
         await fetchCompanyExpiry(userData.company);
       }
+      
+      console.log('✅ [AuthContext] Background verification completed');
     } catch (error) {
       console.warn('⚠️ [AuthContext] Background token verification failed:', error.message);
       // Token might be invalid - logout only if 401
       if (error.response?.status === 401) {
         console.log('🔐 [AuthContext] Token expired, logging out');
+        sessionStorage.removeItem('token_verified');
         logout();
       }
+    } finally {
+      isVerifying.current = false;
     }
   };
 
