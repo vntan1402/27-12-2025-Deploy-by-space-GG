@@ -812,17 +812,24 @@ def calculate_survey_report_expiry(issued_date, ship_data: dict) -> dict:
     """
     Calculate expiry date and status for Survey Report.
     
-    Logic (UPDATED):
-    1. Find the Anniversary Date of the year when the report was issued
-    2. If issued_date > Anniversary of that year → Survey completed → Next survey is next year's Anniversary
-    3. If issued_date <= Anniversary of that year → Next survey is that year's Anniversary
-    4. expiry_date = MIN(issued_date + 18 months, next_survey_anniversary + 3 months)
-    5. Status based on expiry_date vs today
+    Logic (UPDATED v2):
+    1. Find the Anniversary Date window for the issued year
+       - Window Open = Anniversary - 3 months
+       - Window Close = Anniversary + 3 months
     
-    Example:
-    - Report issued: 29/12/2025, Anniversary: 20 Dec
-    - 29/12/2025 > 20/12/2025 → 2025 survey completed
-    - Next survey: 20/12/2026 + 3M = 20/03/2027
+    2. If issued_date is WITHIN the window (Anniversary ± 3 months):
+       - Survey for that year is COMPLETED
+       - Next survey = Anniversary of NEXT year + 3 months
+    
+    3. If issued_date is BEFORE window_open (< Anniversary - 3 months):
+       - This survey belongs to PREVIOUS year's cycle
+       - Survey for current year is NOT yet completed  
+       - Next survey = Anniversary of CURRENT year + 3 months
+    
+    Example (Anniversary = 20 Dec):
+    - Window 2025: 20/09/2025 → 20/03/2026
+    - issued = 29/12/2025 (in window) → Survey 2025 done → Next = 20/12/2026 + 3M = 20/03/2027
+    - issued = 01/06/2025 (before window) → Survey 2024 → Next = 20/12/2025 + 3M = 20/03/2026
     
     Args:
         issued_date: Survey Report issued date (str or datetime)
@@ -859,32 +866,57 @@ def calculate_survey_report_expiry(issued_date, ship_data: dict) -> dict:
             anniversary_day = ship_anniversary.get('day')
             anniversary_month = ship_anniversary.get('month')
         
-        # If no ship anniversary, use issued_date as fallback
+        # If no ship anniversary, use issued_date + 12 months as fallback
         if not anniversary_day or not anniversary_month:
-            anniversary_day = issued_dt.day
-            anniversary_month = issued_dt.month
-            logger.info(f"No ship anniversary date, using issued_date: {anniversary_day}/{anniversary_month}")
+            # Fallback: expiry = issued_date + 18 months
+            logger.info(f"No ship anniversary date, using issued_date + 18 months as expiry")
+            expiry_date = issued_plus_18_months
+            
+            days_until_expiry = (expiry_date - current_date).days
+            if days_until_expiry < 0:
+                status = 'Expired'
+            elif days_until_expiry <= 30:
+                status = 'Due Soon'
+            else:
+                status = 'Valid'
+            
+            return {
+                'expiry_date': expiry_date.strftime('%Y-%m-%d'),
+                'status': status,
+                'reasoning': f'No anniversary date - using issued+18M={expiry_date.strftime("%d/%m/%Y")}',
+                'days_until_expiry': days_until_expiry
+            }
         
-        # Calculate the Anniversary Date of the year when report was issued
+        # Calculate the Anniversary Date of the issued year
         try:
             anniversary_of_issued_year = datetime(issued_dt.year, anniversary_month, anniversary_day)
         except ValueError:
             # Handle invalid date (e.g., Feb 30)
             anniversary_of_issued_year = datetime(issued_dt.year, anniversary_month, min(anniversary_day, 28))
         
-        logger.info(f"Anniversary of issued year: {anniversary_of_issued_year.strftime('%d/%m/%Y')}")
+        # Calculate window boundaries for the issued year
+        # Window Open = Anniversary - 3 months
+        # Window Close = Anniversary + 3 months
+        window_open = anniversary_of_issued_year - relativedelta(months=3)
+        window_close = anniversary_of_issued_year + relativedelta(months=3)
         
-        # Determine which survey cycle the report belongs to
-        # If issued_date > Anniversary of that year → Survey for that year is COMPLETED
-        # Next survey is the following year's Anniversary
-        if issued_dt > anniversary_of_issued_year:
-            # Survey for issued_year is completed, next survey is next year
+        logger.info(f"Anniversary {issued_dt.year}: {anniversary_of_issued_year.strftime('%d/%m/%Y')}")
+        logger.info(f"Window: {window_open.strftime('%d/%m/%Y')} → {window_close.strftime('%d/%m/%Y')}")
+        
+        # Determine which survey cycle this report belongs to
+        if issued_dt >= window_open:
+            # issued_date is WITHIN or AFTER the window
+            # Survey for issued_year is COMPLETED
+            # Next survey = Anniversary of NEXT year
             next_survey_year = issued_dt.year + 1
-            logger.info(f"issued_date ({issued_dt.strftime('%d/%m/%Y')}) > Anniversary ({anniversary_of_issued_year.strftime('%d/%m/%Y')}) → Survey {issued_dt.year} completed")
+            logger.info(f"issued_date ({issued_dt.strftime('%d/%m/%Y')}) >= window_open ({window_open.strftime('%d/%m/%Y')}) → Survey {issued_dt.year} COMPLETED")
         else:
-            # Survey for issued_year is not yet done, next survey is this year
+            # issued_date is BEFORE window_open
+            # This survey belongs to PREVIOUS year's cycle
+            # Survey for issued_year is NOT yet completed
+            # Next survey = Anniversary of issued_year
             next_survey_year = issued_dt.year
-            logger.info(f"issued_date ({issued_dt.strftime('%d/%m/%Y')}) <= Anniversary ({anniversary_of_issued_year.strftime('%d/%m/%Y')}) → Next survey is {issued_dt.year}")
+            logger.info(f"issued_date ({issued_dt.strftime('%d/%m/%Y')}) < window_open ({window_open.strftime('%d/%m/%Y')}) → Survey {issued_dt.year} NOT YET, next survey is {issued_dt.year}")
         
         # Calculate next survey date
         try:
