@@ -1015,6 +1015,11 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                     {report.issued_date ? formatDateDisplay(report.issued_date) : '-'}
                   </td>
 
+                  {/* Expiry Date */}
+                  <td className="border border-gray-300 px-4 py-2">
+                    {report.expiry_date ? formatDateDisplay(report.expiry_date) : '-'}
+                  </td>
+
                   {/* Issued By (Already normalized by backend) */}
                   <td 
                     className="border border-gray-300 px-4 py-2 text-sm font-semibold text-blue-700" 
