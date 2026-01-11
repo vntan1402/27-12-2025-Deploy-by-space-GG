@@ -4,6 +4,7 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import DuplicateKeyError
+from urllib.parse import urlparse
 import json
 
 logger = logging.getLogger(__name__)
@@ -13,6 +14,20 @@ class MongoDatabase:
         self.client: Optional[AsyncIOMotorClient] = None
         self.database = None
         self.connected = False
+        
+    def _extract_db_name_from_url(self, mongo_url: str) -> Optional[str]:
+        """Extract database name from MongoDB URL if present"""
+        try:
+            parsed = urlparse(mongo_url)
+            path = parsed.path
+            if path and path != '/':
+                # Remove leading slash and any query params
+                db_name = path.lstrip('/').split('?')[0]
+                if db_name:
+                    return db_name
+        except Exception as e:
+            logger.warning(f"Could not parse DB name from URL: {e}")
+        return None
         
     async def connect(self):
         """Connect to MongoDB Atlas"""
@@ -47,7 +62,21 @@ class MongoDatabase:
             # Test connection with timeout
             await self.client.admin.command('ismaster')
             
-            db_name = os.getenv('DB_NAME', 'ship_management')
+            # Priority: 1. DB name from MONGO_URL, 2. DB_NAME env var, 3. default
+            db_name_from_url = self._extract_db_name_from_url(mongo_url)
+            db_name_from_env = os.environ.get('DB_NAME')
+            
+            # Use URL db name first, then env var, then default
+            if db_name_from_url:
+                db_name = db_name_from_url
+                logger.info(f"📌 Using DB name from MONGO_URL: {db_name}")
+            elif db_name_from_env:
+                db_name = db_name_from_env
+                logger.info(f"📌 Using DB name from DB_NAME env: {db_name}")
+            else:
+                db_name = 'ship_management'
+                logger.info(f"📌 Using default DB name: {db_name}")
+            
             self.database = self.client[db_name]
             
             # Skip indexes on Cloud Run for faster startup
@@ -55,7 +84,7 @@ class MongoDatabase:
                 await self.create_indexes()
             
             self.connected = True
-            logger.info(f"Successfully connected to MongoDB: {db_name}")
+            logger.info(f"✅ Successfully connected to MongoDB: {db_name}")
             
         except Exception as e:
             logger.error(f"Failed to connect to MongoDB: {e}")
