@@ -983,6 +983,14 @@ const OtherDocumentsTable = ({ selectedShip }) => {
           if (uploadProgress.status === 'completed') {
             fetchDocuments(); // Refresh table when closing after success
           }
+          // Reset upload progress state when closing
+          setUploadProgress({
+            totalFiles: 0,
+            completedFiles: 0,
+            currentFile: '',
+            status: 'uploading',
+            errorMessage: ''
+          });
         }}
         uploadStatus={uploadProgress}
       />
