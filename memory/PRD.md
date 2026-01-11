@@ -47,6 +47,21 @@ Hệ thống quản lý tàu biển (Ship Management System) - ứng dụng full
 - Backend: 8/8 tests PASSED
 - Frontend: 6/6 tests PASSED
 
+### 2025-01-11: Performance Optimization - AuthContext Token Verification
+**Status**: COMPLETED ✅
+
+**Problem**: Trang "Class Survey Report" load chậm (3.62s) do `verify-token` API block UI render.
+
+**Solution**: Optimize AuthContext để render UI ngay lập tức:
+1. **Instant UI render**: Load user từ localStorage trước → UI hiển thị ngay
+2. **Background token verification**: Verify token trong background, không block UI
+3. **Non-blocking flow**: Set `loading=false` ngay sau khi restore user từ localStorage
+
+**Files Changed**:
+- `/app/frontend/src/contexts/AuthContext.jsx` - Refactor useEffect và thêm `verifyTokenBackground()`
+
+**Result**: UI render nhanh hơn đáng kể, verify-token chạy trong background.
+
 ### 2025-01-11: Fix Expiry Date Calculation Logic (v2)
 **Status**: COMPLETED ✅
 
