@@ -191,7 +191,7 @@ export const EditSurveyReportModal = ({ isOpen, onClose, report, onReportUpdated
               </div>
             </div>
 
-            {/* Row 3: Issued By + Status */}
+            {/* Row 3: Issued By + Expiry Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Issued By */}
               <div>
@@ -208,6 +208,38 @@ export const EditSurveyReportModal = ({ isOpen, onClose, report, onReportUpdated
                 />
               </div>
 
+              {/* Expiry Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Ngày hết hạn' : 'Expiry Date'}
+                </label>
+                <input
+                  type="date"
+                  name="expiry_date"
+                  value={formData.expiry_date}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Row 4: Surveyor Name + Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Surveyor Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {language === 'vi' ? 'Tên Surveyor' : 'Surveyor Name'}
+                </label>
+                <input
+                  type="text"
+                  name="surveyor_name"
+                  value={formData.surveyor_name}
+                  onChange={handleChange}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder={language === 'vi' ? 'Nhập tên surveyor...' : 'Enter surveyor name...'}
+                />
+              </div>
+
               {/* Status */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -221,25 +253,10 @@ export const EditSurveyReportModal = ({ isOpen, onClose, report, onReportUpdated
                 >
                   <option value="Valid">Valid</option>
                   <option value="Expired">Expired</option>
+                  <option value="Due Soon">Due Soon</option>
                   <option value="Pending">Pending</option>
-                  <option value="Unknown">Unknown</option>
                 </select>
               </div>
-            </div>
-
-            {/* Row 4: Surveyor Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {language === 'vi' ? 'Tên Surveyor' : 'Surveyor Name'}
-              </label>
-              <input
-                type="text"
-                name="surveyor_name"
-                value={formData.surveyor_name}
-                onChange={handleChange}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                placeholder={language === 'vi' ? 'Nhập tên surveyor...' : 'Enter surveyor name...'}
-              />
             </div>
 
             {/* Row 5: Note */}
