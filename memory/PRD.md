@@ -47,6 +47,26 @@ Hệ thống quản lý tàu biển (Ship Management System) - ứng dụng full
 - Backend: 8/8 tests PASSED
 - Frontend: 6/6 tests PASSED
 
+### 2025-01-11: Fix Expiry Date Calculation Logic
+**Status**: COMPLETED ✅
+
+**Problem**: Logic tính expiry_date bị sai khi issued_date nằm sau Anniversary Date của năm đó.
+- Ví dụ: Report cấp 29/12/2025, Anniversary = 20 Dec
+- Expiry sai: 20/03/2026 (chưa tính đúng)
+- Expiry đúng: 20/03/2027 (Anniversary 2026 + 3 tháng)
+
+**Solution**: Cập nhật logic trong `calculate_survey_report_expiry()`:
+- Nếu `issued_date > Anniversary của năm đó` → Survey năm đó đã hoàn thành → Next survey là Anniversary năm sau
+- Nếu `issued_date <= Anniversary của năm đó` → Next survey vẫn là Anniversary năm đó
+- `expiry_date = MIN(issued_date + 18 tháng, next_survey_anniversary + 3 tháng)`
+
+**Files Changed**:
+- `/app/backend/app/utils/ship_calculations.py` - Function `calculate_survey_report_expiry()`
+
+**Test Results**:
+- Test Case 1: issued=29/12/2025 (AFTER Anniversary) → expiry=20/03/2027 ✅
+- Test Case 2: issued=15/12/2025 (BEFORE Anniversary) → expiry=20/03/2026 ✅
+
 ### 2025-01-11: UI Enhancement - Expiry Date Column & Edit Modal Layout
 **Status**: COMPLETED ✅
 
