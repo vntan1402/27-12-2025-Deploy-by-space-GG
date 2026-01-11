@@ -72,6 +72,7 @@ export const EditSurveyReportModal = ({ isOpen, onClose, report, onReportUpdated
         survey_report_no: formData.survey_report_no.trim() || null,
         issued_date: formData.issued_date || null,
         issued_by: formData.issued_by.trim() || null,
+        expiry_date: formData.expiry_date || null,
         status: formData.status || 'Valid',
         note: formData.note.trim() || null,
         surveyor_name: formData.surveyor_name.trim() || null
