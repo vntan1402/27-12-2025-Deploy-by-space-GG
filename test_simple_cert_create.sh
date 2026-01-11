@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://shipmanage-6.preview.emergentagent.com/api"
+API_URL="https://vessel-manager-5.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
