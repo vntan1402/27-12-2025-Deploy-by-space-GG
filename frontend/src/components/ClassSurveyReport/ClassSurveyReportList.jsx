@@ -64,17 +64,13 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     content: ''
   });
 
-  // Fetch survey reports and certificates when ship is selected
+  // Fetch survey reports when ship is selected
+  // REFACTORED: No need to fetch certificates - expiry_date is now in survey report data
   useEffect(() => {
     if (selectedShip) {
-      // Fetch both in parallel for better performance
-      Promise.all([
-        fetchSurveyReports(),
-        fetchCertificates()
-      ]);
+      fetchSurveyReports();
     } else {
       setSurveyReports([]);
-      setCertificates([]);
     }
   }, [selectedShip]);
 
