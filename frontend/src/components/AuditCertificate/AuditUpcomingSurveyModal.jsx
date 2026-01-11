@@ -118,9 +118,6 @@ export const AuditUpcomingSurveyModal = ({
                   {language === 'vi' ? 'Loại Audit' : 'Next Audit Type'}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
-                  {language === 'vi' ? 'Last Endorse' : 'Last Endorse'}
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
                   {language === 'vi' ? 'Tình trạng' : 'Status'}
                 </th>
               </tr>
@@ -128,7 +125,7 @@ export const AuditUpcomingSurveyModal = ({
             <tbody className="bg-white divide-y divide-gray-200">
               {surveys.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
                     {language === 'vi' 
                       ? '✅ Không có certificate nào (Audit hoặc Company) cần đánh giá trong những ngày tới'
                       : '✅ No certificates (Audit or Company) require review in the coming days'}
