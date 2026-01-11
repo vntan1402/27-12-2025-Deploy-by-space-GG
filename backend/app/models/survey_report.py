@@ -11,6 +11,7 @@ class SurveyReportBase(BaseModel):
     issued_date: Optional[Union[str, datetime]] = None
     issued_by: Optional[str] = None
     status: Optional[str] = "Valid"
+    expiry_date: Optional[Union[str, datetime]] = None  # NEW: Calculated expiry date
     note: Optional[str] = None
     surveyor_name: Optional[str] = None
 
@@ -24,6 +25,7 @@ class SurveyReportUpdate(BaseModel):
     issued_date: Optional[Union[str, datetime]] = None
     issued_by: Optional[str] = None
     status: Optional[str] = None
+    expiry_date: Optional[Union[str, datetime]] = None  # NEW: Calculated expiry date
     note: Optional[str] = None
     surveyor_name: Optional[str] = None
 
@@ -36,6 +38,7 @@ class SurveyReportResponse(BaseModel):
     issued_date: Optional[Union[str, datetime]] = None
     issued_by: Optional[str] = None
     status: Optional[str] = "Valid"
+    expiry_date: Optional[Union[str, datetime]] = None  # NEW: Calculated expiry date
     note: Optional[str] = None
     surveyor_name: Optional[str] = None
     survey_report_file_id: Optional[str] = None  # Fixed: match DB field name
