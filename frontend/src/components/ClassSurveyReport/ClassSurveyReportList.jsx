@@ -891,6 +891,17 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                 </div>
               </th>
 
+              {/* Expiry Date */}
+              <th 
+                className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('expiry_date')}
+              >
+                <div className="flex items-center justify-between">
+                  <span>{language === 'vi' ? 'Ngày hết hạn' : 'Expiry Date'}</span>
+                  {getSortIcon('expiry_date')}
+                </div>
+              </th>
+
               {/* Issued By */}
               <th 
                 className="border border-gray-300 px-4 py-2 text-left cursor-pointer hover:bg-gray-100"
