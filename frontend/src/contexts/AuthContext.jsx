@@ -230,6 +230,8 @@ export const AuthProvider = ({ children }) => {
     setIsSoftwareExpired(false);
     localStorage.removeItem('software_expiry');
     localStorage.removeItem('is_software_expired');
+    sessionStorage.removeItem('token_verified');
+    hasVerifiedToken.current = false;
   };
 
   const toggleLanguage = () => {
