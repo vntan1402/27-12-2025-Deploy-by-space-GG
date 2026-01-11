@@ -24,13 +24,13 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install serve
+# Install serve globally
 RUN npm install -g serve
 
 # Copy built files
 COPY --from=build /app/build ./build
 
-# Copy startup script
+# Copy startup script and make executable
 COPY frontend/start.sh ./start.sh
 RUN chmod +x ./start.sh
 
@@ -39,4 +39,4 @@ ENV PORT=8080
 EXPOSE 8080
 
 # Use startup script to generate env-config.js from environment variables
-CMD ["./start.sh"]
+CMD ["/bin/sh", "./start.sh"]
