@@ -5,7 +5,7 @@ import env from '../../config/env';
  */
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { surveyReportService } from '../../services';
+import { surveyReportService, shipCertificateService } from '../../services';
 import { toast } from 'sonner';
 import { AddSurveyReportModal } from './AddSurveyReportModal';
 import { EditSurveyReportModal } from './EditSurveyReportModal';
