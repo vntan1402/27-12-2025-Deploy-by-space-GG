@@ -207,11 +207,6 @@ export const exportUpcomingSurveysToPDF = (surveys, options = {}) => {
       width: 22
     },
     { 
-      header: language === 'vi' ? 'Last Endorse' : 'Last Endorse', 
-      accessor: (row) => formatDateDisplay(row.last_endorse),
-      width: 22
-    },
-    { 
       header: language === 'vi' ? 'Tình trạng' : 'Status', 
       accessor: (row) => {
         if (row.is_overdue) return language === 'vi' ? 'Quá hạn' : 'Overdue';
