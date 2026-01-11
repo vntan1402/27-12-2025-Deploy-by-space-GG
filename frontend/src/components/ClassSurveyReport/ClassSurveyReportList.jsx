@@ -112,96 +112,30 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     }
   };
 
-  // Fetch certificates for calculating survey report expiry
-  const fetchCertificates = async () => {
-    if (!selectedShip) return;
-
-    try {
-      const response = await shipCertificateService.getAll(selectedShip.id);
-      const data = response.data || response || [];
-      setCertificates(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Failed to fetch certificates:', error);
-      // Don't show error toast - certificates are optional for status calculation
-      setCertificates([]);
-    }
-  };
-
-  // Calculate survey report expiry date based on most common next_survey in certificates
-  const calculateSurveyReportExpiry = (report) => {
-    if (certificates.length === 0) return null;
-
-    try {
-      // Use issued_date if available, otherwise fallback to created_at
-      const referenceDate = report.issued_date || report.created_at;
-      if (!referenceDate) return null;
-
-      // 1. Find most common next_survey value from certificates
-      const nextSurveyValues = certificates
-        .map(cert => cert.next_survey_display || cert.next_survey)
-        .filter(ns => ns && ns !== 'N/A' && ns !== 'n/a');
-
-      if (nextSurveyValues.length === 0) return null;
-
-      // Count frequency of each next_survey value
-      const frequency = {};
-      nextSurveyValues.forEach(value => {
-        frequency[value] = (frequency[value] || 0) + 1;
-      });
-
-      // Find most common value
-      const mostCommonNextSurvey = Object.keys(frequency).reduce((a, b) => 
-        frequency[a] > frequency[b] ? a : b
-      );
-
-      // 2. Parse next_survey date and calculate window_close
-      const match = mostCommonNextSurvey.match(/(\d{2}\/\d{2}\/\d{4})/);
-      if (!match) return null;
-
-      const [day, month, year] = match[1].split('/');
-      const nextSurveyDate = new Date(year, month - 1, day);
-
-      // Calculate window_close based on annotation
-      let windowClose = new Date(nextSurveyDate);
-      if (mostCommonNextSurvey.includes('(±3M)') || mostCommonNextSurvey.includes('(+-3M)')) {
-        windowClose.setMonth(windowClose.getMonth() + 3);
-      }
-
-      // 3. Calculate max expiry (reference_date + 18 months)
-      const reference = new Date(referenceDate);
-      const maxExpiry = new Date(reference);
-      maxExpiry.setMonth(maxExpiry.getMonth() + 18);
-
-      // 4. Return the earlier date (window_close or max 18 months)
-      return windowClose < maxExpiry ? windowClose : maxExpiry;
-
-    } catch (error) {
-      console.error('Error calculating survey report expiry:', error);
-      return null;
-    }
-  };
-
-  // Calculate survey report status based on expiry
+  // Get survey report status from backend-calculated fields
+  // REFACTORED: Status and expiry_date are now calculated on backend
   const getSurveyReportStatus = (report) => {
-    // Try to calculate dynamic expiry (uses issued_date or created_at)
-    const expiryDate = calculateSurveyReportExpiry(report);
-
-    if (!expiryDate) {
-      // Fallback to static status from backend
-      return report.status || 'Valid';
+    // Use status directly from backend if available
+    if (report.status) {
+      return report.status;
     }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    expiryDate.setHours(0, 0, 0, 0);
-
-    if (today > expiryDate) return 'Expired';
-
-    const diffTime = expiryDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays <= 30) return 'Due Soon';
+    
+    // Fallback for legacy data without status
+    if (report.expiry_date) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const expiryDate = new Date(report.expiry_date);
+      expiryDate.setHours(0, 0, 0, 0);
+      
+      if (today > expiryDate) return 'Expired';
+      
+      const diffTime = expiryDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays <= 30) return 'Due Soon';
+    }
+    
     return 'Valid';
   };
 
