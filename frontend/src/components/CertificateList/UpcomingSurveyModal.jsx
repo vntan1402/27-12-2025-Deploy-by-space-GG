@@ -3,7 +3,7 @@
  * Shows certificates with upcoming survey dates
  * Based on V1 Upcoming Survey Notification (lines 22608-22717)
  */
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { FileText, FileSpreadsheet } from 'lucide-react';
 import { formatDateDisplay } from '../../utils/dateHelpers';
 import { exportUpcomingSurveysToPDF, exportUpcomingSurveysToXLSX } from '../../utils/exportHelpers';
@@ -19,18 +19,32 @@ export const UpcomingSurveyModal = ({
   checkDate = '',
   language
 }) => {
+  const [shipFilter, setShipFilter] = useState('');
+  
   if (!isOpen) return null;
 
   // Use company name if available, fallback to company ID
   const displayCompany = companyName || company;
 
+  // Get unique ship names for filter dropdown
+  const shipNames = useMemo(() => {
+    const names = [...new Set(surveys.map(s => s.ship_name).filter(Boolean))];
+    return names.sort();
+  }, [surveys]);
+
+  // Filter surveys by ship name
+  const filteredSurveys = useMemo(() => {
+    if (!shipFilter) return surveys;
+    return surveys.filter(s => s.ship_name === shipFilter);
+  }, [surveys, shipFilter]);
+
   // Export handlers
   const handleExportPDF = () => {
     try {
-      exportUpcomingSurveysToPDF(surveys, {
+      exportUpcomingSurveysToPDF(filteredSurveys, {
         language,
         companyName: displayCompany,
-        totalCount
+        totalCount: filteredSurveys.length
       });
       toast.success(language === 'vi' ? 'Xuất PDF thành công!' : 'PDF exported successfully!');
     } catch (error) {
@@ -41,10 +55,10 @@ export const UpcomingSurveyModal = ({
 
   const handleExportXLSX = () => {
     try {
-      exportUpcomingSurveysToXLSX(surveys, {
+      exportUpcomingSurveysToXLSX(filteredSurveys, {
         language,
         companyName: displayCompany,
-        totalCount
+        totalCount: filteredSurveys.length
       });
       toast.success(language === 'vi' ? 'Xuất Excel thành công!' : 'Excel exported successfully!');
     } catch (error) {
