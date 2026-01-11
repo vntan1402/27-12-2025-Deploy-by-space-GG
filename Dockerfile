@@ -13,12 +13,10 @@ RUN yarn install
 # Copy source code from frontend folder
 COPY frontend/ .
 
-# Build arguments for environment variables
-ARG REACT_APP_BACKEND_URL=https://quanlytau-test-810039010312.asia-east1.run.app
-ENV REACT_APP_BACKEND_URL=$REACT_APP_BACKEND_URL
+# Disable ESLint for build
 ENV DISABLE_ESLINT_PLUGIN=true
 
-# Build the app
+# Build the app (env-config.js will be generated at runtime)
 RUN yarn build
 
 # Stage 2: Serve
@@ -32,8 +30,13 @@ RUN npm install -g serve
 # Copy built files
 COPY --from=build /app/build ./build
 
+# Copy startup script
+COPY frontend/start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 # Cloud Run PORT
 ENV PORT=8080
 EXPOSE 8080
 
-CMD ["sh", "-c", "serve -s build -l $PORT"]
+# Use startup script to generate env-config.js from environment variables
+CMD ["./start.sh"]
