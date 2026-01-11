@@ -120,9 +120,6 @@ export const UpcomingSurveyModal = ({
                   {language === 'vi' ? 'Loại Survey' : 'Next Survey Type'}
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
-                  {language === 'vi' ? 'Last Endorse' : 'Last Endorse'}
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">
                   {language === 'vi' ? 'Tình trạng' : 'Status'}
                 </th>
               </tr>
@@ -130,7 +127,7 @@ export const UpcomingSurveyModal = ({
             <tbody className="bg-white divide-y divide-gray-200">
               {surveys.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-4 py-8 text-center text-gray-500">
+                  <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
                     {language === 'vi' 
                       ? '✅ Không có survey sắp đến hạn'
                       : '✅ No upcoming surveys'}
