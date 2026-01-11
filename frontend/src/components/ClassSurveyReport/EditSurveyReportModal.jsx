@@ -17,6 +17,7 @@ export const EditSurveyReportModal = ({ isOpen, onClose, report, onReportUpdated
     survey_report_no: '',
     issued_date: '',
     issued_by: '',
+    expiry_date: '',
     status: 'Valid',
     note: '',
     surveyor_name: ''
@@ -31,6 +32,7 @@ export const EditSurveyReportModal = ({ isOpen, onClose, report, onReportUpdated
         survey_report_no: report.survey_report_no || '',
         issued_date: report.issued_date ? report.issued_date.split('T')[0] : '',
         issued_by: report.issued_by || '',
+        expiry_date: report.expiry_date ? report.expiry_date.split('T')[0] : '',
         status: report.status || 'Valid',
         note: report.note || '',
         surveyor_name: report.surveyor_name || ''
