@@ -112,6 +112,30 @@ export const AuditUpcomingSurveyModal = ({
               {new Date(checkDate).toLocaleDateString()}
             </div>
           )}
+          
+          {/* Ship Name Filter */}
+          {shipNames.length > 1 && (
+            <div className="mt-4 flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">
+                {language === 'vi' ? 'Lọc theo tàu:' : 'Filter by Ship:'}
+              </label>
+              <select
+                value={shipFilter}
+                onChange={(e) => setShipFilter(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">{language === 'vi' ? '-- Tất cả tàu --' : '-- All Ships --'}</option>
+                {shipNames.map(name => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+              {shipFilter && (
+                <span className="text-sm text-gray-500">
+                  ({filteredSurveys.length} {language === 'vi' ? 'kết quả' : 'results'})
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Certificates Table */}
@@ -137,7 +161,7 @@ export const AuditUpcomingSurveyModal = ({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {surveys.length === 0 ? (
+              {filteredSurveys.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="px-4 py-8 text-center text-gray-500">
                     {language === 'vi' 
