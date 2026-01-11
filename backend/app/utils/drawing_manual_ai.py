@@ -150,38 +150,38 @@ async def extract_drawings_manuals_fields_from_summary(
             
             user_message = UserMessage(text=prompt)
             ai_response = await chat.send_message(user_message)
+            
+            if ai_response and ai_response.strip():
+                content = ai_response.strip()
+                logger.info(f"📥 Drawings & Manuals AI response received ({len(content)} chars)")
                 
-                if ai_response and ai_response.strip():
-                    content = ai_response.strip()
-                    logger.info(f"📥 Drawings & Manuals AI response received ({len(content)} chars)")
+                # Parse JSON response
+                try:
+                    # Clean markdown code blocks if present
+                    clean_content = content.replace('```json', '').replace('```', '').strip()
+                    extracted_data = json.loads(clean_content)
                     
-                    # Parse JSON response
-                    try:
-                        # Clean markdown code blocks if present
-                        clean_content = content.replace('```json', '').replace('```', '').strip()
-                        extracted_data = json.loads(clean_content)
-                        
-                        # Standardize date formats
-                        if extracted_data.get('approved_date'):
-                            try:
-                                from dateutil import parser
-                                parsed_date = parser.parse(extracted_data['approved_date'])
-                                extracted_data['approved_date'] = parsed_date.strftime('%Y-%m-%d')
-                            except Exception as date_error:
-                                logger.warning(f"Failed to parse approved_date: {date_error}")
-                        
-                        logger.info(f"✅ Successfully extracted drawings & manuals fields")
-                        
-                        # Log extracted fields for debugging
-                        fields_found = [k for k, v in extracted_data.items() if v]
-                        logger.info(f"📊 Fields extracted: {', '.join(fields_found)}")
-                        
-                        return extracted_data
-                        
-                    except json.JSONDecodeError as json_error:
-                        logger.error(f"Failed to parse AI response as JSON: {json_error}")
-                        logger.error(f"AI response: {content[:500]}...")
-                        return {}
+                    # Standardize date formats
+                    if extracted_data.get('approved_date'):
+                        try:
+                            from dateutil import parser
+                            parsed_date = parser.parse(extracted_data['approved_date'])
+                            extracted_data['approved_date'] = parsed_date.strftime('%Y-%m-%d')
+                        except Exception as date_error:
+                            logger.warning(f"Failed to parse approved_date: {date_error}")
+                    
+                    logger.info(f"✅ Successfully extracted drawings & manuals fields")
+                    
+                    # Log extracted fields for debugging
+                    fields_found = [k for k, v in extracted_data.items() if v]
+                    logger.info(f"📊 Fields extracted: {', '.join(fields_found)}")
+                    
+                    return extracted_data
+                    
+                except json.JSONDecodeError as json_error:
+                    logger.error(f"Failed to parse AI response as JSON: {json_error}")
+                    logger.error(f"AI response: {content[:500]}...")
+                    return {}
             else:
                 logger.warning("AI response is empty")
                 return {}
