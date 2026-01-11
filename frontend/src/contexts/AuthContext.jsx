@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { authService } from '../services/authService';
 import api from '../services/api';
 
@@ -17,8 +17,19 @@ export const AuthProvider = ({ children }) => {
   const [isSoftwareExpired, setIsSoftwareExpired] = useState(
     localStorage.getItem('is_software_expired') === 'true'
   );
+  
+  // Flag to ensure verify-token only runs ONCE per session
+  const hasVerifiedToken = useRef(false);
+  const isVerifying = useRef(false);
 
   useEffect(() => {
+    // Skip if already verified or currently verifying
+    if (hasVerifiedToken.current || isVerifying.current) {
+      console.log('🔄 [AuthContext] Skipping - already verified or verifying');
+      if (loading) setLoading(false);
+      return;
+    }
+    
     if (token) {
       // First, try to restore user from localStorage for instant UI
       const storedUser = localStorage.getItem('user');
@@ -28,16 +39,30 @@ export const AuthProvider = ({ children }) => {
           setUser(parsedUser);
           console.log('✅ [AuthContext] Restored user from localStorage:', parsedUser.username);
           
-          // Fetch company expiry in background
-          if (parsedUser.company) {
-            fetchCompanyExpiry(parsedUser.company);
+          // Restore company expiry from localStorage (instant)
+          const storedExpiry = localStorage.getItem('software_expiry');
+          const storedIsExpired = localStorage.getItem('is_software_expired');
+          if (storedExpiry) {
+            setSoftwareExpiry(storedExpiry);
+            setIsSoftwareExpired(storedIsExpired === 'true');
           }
           
           // Set loading to false immediately for faster page render
           setLoading(false);
           
-          // Verify token in background (non-blocking)
-          verifyTokenBackground();
+          // Mark as verified - NO need to call API again
+          hasVerifiedToken.current = true;
+          
+          // Only verify token in background on FIRST app load (not on navigation)
+          // Check if this is a fresh page load by checking sessionStorage
+          const sessionVerified = sessionStorage.getItem('token_verified');
+          if (!sessionVerified) {
+            console.log('🔐 [AuthContext] First load - verifying token in background');
+            sessionStorage.setItem('token_verified', 'true');
+            verifyTokenBackground();
+          } else {
+            console.log('✅ [AuthContext] Already verified this session - skipping API call');
+          }
         } catch (e) {
           console.error('❌ [AuthContext] Failed to parse stored user:', e);
           verifyToken();
