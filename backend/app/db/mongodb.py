@@ -62,13 +62,23 @@ class MongoDatabase:
             # Test connection with timeout
             await self.client.admin.command('ismaster')
             
-            # Priority: 1. DB_NAME env var, 2. DB name from MONGO_URL, 3. default
+            # Debug: Log all DB-related env vars
             db_name_from_env = os.environ.get('DB_NAME')
-            db_name_from_url = self._extract_db_name_from_url(mongo_url)
+            logger.info(f"🔍 DEBUG - DB_NAME env var value: '{db_name_from_env}'")
+            logger.info(f"🔍 DEBUG - DB_NAME type: {type(db_name_from_env)}")
             
+            # Also check for common variations
+            db_name_alt1 = os.environ.get('DATABASE_NAME')
+            db_name_alt2 = os.environ.get('MONGODB_DATABASE')
+            logger.info(f"🔍 DEBUG - DATABASE_NAME: '{db_name_alt1}', MONGODB_DATABASE: '{db_name_alt2}'")
+            
+            db_name_from_url = self._extract_db_name_from_url(mongo_url)
+            logger.info(f"🔍 DEBUG - DB name from URL: '{db_name_from_url}'")
+            
+            # Priority: 1. DB_NAME env var, 2. DB name from MONGO_URL, 3. default
             # Use env var first, then URL, then default
-            if db_name_from_env:
-                db_name = db_name_from_env
+            if db_name_from_env and db_name_from_env.strip():
+                db_name = db_name_from_env.strip()
                 logger.info(f"📌 Using DB name from DB_NAME env: {db_name}")
             elif db_name_from_url:
                 db_name = db_name_from_url
