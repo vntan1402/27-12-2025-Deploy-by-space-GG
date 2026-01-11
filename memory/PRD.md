@@ -47,6 +47,19 @@ Hệ thống quản lý tàu biển (Ship Management System) - ứng dụng full
 - Backend: 8/8 tests PASSED
 - Frontend: 6/6 tests PASSED
 
+### 2025-01-11: UI Enhancement - Expiry Date Column & Edit Modal Layout
+**Status**: COMPLETED ✅
+
+**Changes**:
+1. **Bảng Class Survey Report**: Thêm cột "Ngày hết hạn" (Expiry Date) vào giữa cột "Ngày cấp" và "Cấp bởi"
+2. **Edit Survey Report Modal**: Bố trí lại layout:
+   - Row 3: Cấp bởi | **Ngày hết hạn** (mới)
+   - Row 4: Tên Surveyor | **Tình trạng** (chuyển xuống cùng dòng)
+
+**Files Changed**:
+- `/app/frontend/src/components/ClassSurveyReport/ClassSurveyReportList.jsx` - Thêm cột Expiry Date trong table header và body
+- `/app/frontend/src/components/ClassSurveyReport/EditSurveyReportModal.jsx` - Thêm field expiry_date, bố trí lại layout
+
 ### Previous Completed Work (Session trước)
 1. **Critical Deployment Fix** - Sửa lỗi REACT_APP_BACKEND_URL hardcoded at build-time
 2. **UI Bug Fix (Other Docs)** - Sửa toast "Upload Failed" cho successful uploads
