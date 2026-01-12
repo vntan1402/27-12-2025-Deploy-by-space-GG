@@ -926,7 +926,8 @@ class OtherAuditDocumentService:
             new_folder_link = upload_result.get('folder_link')
             
             # Update document's file_ids and folder_link
-            current_file_ids = document.get("file_ids", [])
+            # Handle case where file_ids is None or doesn't exist
+            current_file_ids = document.get("file_ids") or []
             current_file_ids.append(file_id)
             
             update_data = {"file_ids": current_file_ids}
