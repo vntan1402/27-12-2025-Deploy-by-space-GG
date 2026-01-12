@@ -10,10 +10,12 @@ logger = logging.getLogger(__name__)
 def get_ai_api_key(ai_config: Optional[Dict[str, Any]] = None) -> str:
     """Get the appropriate AI API key based on configuration.
     
-    Priority:
-    1. custom_api_key from ai_config (when use_emergent_key is False and custom_api_key is provided)
-    2. GOOGLE_AI_API_KEY environment variable (for Google Cloud deployment)
-    3. EMERGENT_LLM_KEY environment variable (only for Emergent platform)
+    Priority for Production (Google Cloud Run):
+    1. custom_api_key from ai_config (always preferred when available)
+    2. GOOGLE_AI_API_KEY environment variable
+    
+    Priority for Emergent Platform:
+    3. EMERGENT_LLM_KEY environment variable (only when on Emergent platform)
     
     Args:
         ai_config: Optional AI configuration dict with 'use_emergent_key' and 'custom_api_key'
@@ -22,31 +24,27 @@ def get_ai_api_key(ai_config: Optional[Dict[str, Any]] = None) -> str:
     if ai_config:
         logger.info(f"🔍 AI Config received - use_emergent_key: {ai_config.get('use_emergent_key')}, has_custom_key: {bool(ai_config.get('custom_api_key'))}")
     
-    # Check if using custom API key from AI Config
+    # PRIORITY 1: Always check custom_api_key first (works on both Production and Emergent)
     if ai_config:
-        use_emergent_key = ai_config.get('use_emergent_key', True)
         custom_api_key = ai_config.get('custom_api_key')
-        
-        # If not using emergent key and has custom key, use it
-        if not use_emergent_key and custom_api_key:
+        if custom_api_key:
             logger.info("🔑 Using custom_api_key from AI Configuration")
             return custom_api_key
-        elif not use_emergent_key and not custom_api_key:
-            logger.warning("⚠️ use_emergent_key is False but custom_api_key is empty, falling back to GOOGLE_AI_API_KEY")
     
-    # Try Google AI API key (for Google Cloud deployment - PRIMARY)
+    # PRIORITY 2: Try Google AI API key (for Google Cloud deployment)
     google_key = os.getenv('GOOGLE_AI_API_KEY')
     if google_key:
         logger.info("🔑 Using GOOGLE_AI_API_KEY for AI requests")
         return google_key
     
-    # Fallback to Emergent key (only works on Emergent platform)
+    # PRIORITY 3: Fallback to Emergent key (only works on Emergent platform)
+    # This will only be used in development on Emergent platform
     emergent_key = os.getenv('EMERGENT_LLM_KEY')
     if emergent_key:
         logger.info("🔑 Using EMERGENT_LLM_KEY for AI requests (Emergent platform only)")
         return emergent_key
     
-    error_msg = "No AI API key configured. Options: 1) Set custom API key in AI Configuration with use_emergent_key=False, 2) Set GOOGLE_AI_API_KEY env var"
+    error_msg = "No AI API key configured. Please set custom API key in AI Configuration or set GOOGLE_AI_API_KEY environment variable"
     logger.error(f"❌ {error_msg}")
     raise ValueError(error_msg)
 
