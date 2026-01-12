@@ -175,19 +175,27 @@ const otherAuditDocumentService = {
    * Upload folder with multiple files - CHUNKED UPLOAD
    * Uploads files one by one to avoid 413 Content Too Large error
    * With real-time progress callback for UI tracking
+   * Supports cancellation via AbortController signal
    */
-  uploadFolder: async (shipId, files, folderName, metadata, progressCallback = null) => {
+  uploadFolder: async (shipId, files, folderName, metadata, progressCallback = null, cancelSignal = null) => {
     const results = {
       success: true,
       folder_link: null,
       total_files: files.length,
       uploaded_files: 0,
+      successful_files: 0,
       failed_files: [],
-      document_id: null
+      document_id: null,
+      cancelled: false
     };
     
     // Step 1: Create the document record first (without files)
     try {
+      // Check if cancelled before starting
+      if (cancelSignal?.aborted) {
+        return { success: false, cancelled: true, message: 'Upload cancelled' };
+      }
+      
       const createResponse = await api.post('/api/other-audit-documents', {
         ship_id: shipId,
         document_name: folderName,  // API expects 'document_name' not 'name'
@@ -208,6 +216,15 @@ const otherAuditDocumentService = {
     
     // Step 2: Upload files one by one (chunked)
     for (let i = 0; i < files.length; i++) {
+      // Check if cancelled
+      if (cancelSignal?.aborted) {
+        console.log('🛑 Upload cancelled by user');
+        results.cancelled = true;
+        results.success = results.uploaded_files > 0;
+        results.message = `Upload cancelled. ${results.uploaded_files}/${files.length} files uploaded.`;
+        break;
+      }
+      
       const file = files[i];
       
       // Update progress
