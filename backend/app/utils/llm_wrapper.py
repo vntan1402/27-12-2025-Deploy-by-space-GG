@@ -106,13 +106,13 @@ class LlmChat:
         """Set AI configuration and update API key if needed"""
         self.ai_config = ai_config
         
-        # Update API key based on new config
-        use_emergent_key = ai_config.get('use_emergent_key', True)
-        custom_api_key = ai_config.get('custom_api_key')
-        
-        if not use_emergent_key and custom_api_key:
-            self.api_key = custom_api_key
-            logger.info("🔑 Updated to use custom_api_key from AI Configuration")
+        # Update API key using the standard priority logic
+        try:
+            self.api_key = get_ai_api_key(ai_config)
+            logger.info("🔑 Updated API key from AI Configuration")
+        except ValueError:
+            # Keep existing api_key if no new key available
+            logger.warning("⚠️ Could not update API key from AI Configuration, keeping existing key")
         
         # Update model if specified in config
         if ai_config.get('model'):
