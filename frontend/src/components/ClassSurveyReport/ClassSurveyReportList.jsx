@@ -1444,6 +1444,68 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
         </div>
       )}
 
+      {/* Bulk Edit Note Modal */}
+      {showBulkNoteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full mx-4">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              {language === 'vi' 
+                ? `Sửa ghi chú (${selectedReports.size} báo cáo)` 
+                : `Edit Note (${selectedReports.size} reports)`}
+            </h3>
+            
+            <p className="text-sm text-gray-600 mb-4">
+              {language === 'vi' 
+                ? 'Nhập ghi chú mới cho tất cả các báo cáo đã chọn (để trống để xóa ghi chú):' 
+                : 'Enter a new note for all selected reports (leave empty to clear notes):'}
+            </p>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'vi' ? 'Ghi chú mới' : 'New Note'}
+              </label>
+              <textarea
+                value={bulkNote}
+                onChange={(e) => setBulkNote(e.target.value)}
+                rows={4}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
+                placeholder={language === 'vi' ? 'Nhập ghi chú...' : 'Enter note...'}
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowBulkNoteModal(false);
+                  setBulkNote('');
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                disabled={isBulkUpdating}
+              >
+                {language === 'vi' ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                onClick={handleBulkNoteSubmit}
+                disabled={isBulkUpdating}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {isBulkUpdating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {language === 'vi' ? 'Đang cập nhật...' : 'Updating...'}
+                  </>
+                ) : (
+                  language === 'vi' ? 'Cập nhật' : 'Update'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Loading Overlay */}
       {isDeleting && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[200]">
