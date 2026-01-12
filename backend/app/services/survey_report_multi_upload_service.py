@@ -575,6 +575,11 @@ Processing: Text Layer Extraction + AI Correction
                     content_type = temp_file.get("content_type", "application/pdf")
                     headers = Headers({"content-type": content_type})
                     
+                    # MEMORY OPTIMIZATION: Free file_content after BytesIO is created
+                    del file_content
+                    import gc
+                    gc.collect()
+                    
                     mock_file = StarletteUploadFile(
                         file=file_obj,
                         filename=temp_file["filename"],
