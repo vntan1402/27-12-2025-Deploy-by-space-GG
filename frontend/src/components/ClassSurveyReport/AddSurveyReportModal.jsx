@@ -287,6 +287,18 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
   // Handle validation modal confirmation
   const handleValidationConfirm = async () => {
     setShowValidationModal(false);
+    
+    // IMPROVED: Use existing analysis data instead of re-analyzing
+    // Form is already auto-filled, just confirm and close modal
+    if (validationData?.analysisData) {
+      toast.success(language === 'vi' 
+        ? '✅ Đã xác nhận. Vui lòng kiểm tra dữ liệu và nhấn Thêm để lưu.'
+        : '✅ Confirmed. Please review the data and click Add to save.');
+      setValidationData(null);
+      return;
+    }
+    
+    // Fallback: If no analysis data, re-analyze with bypass (legacy behavior)
     setIsAnalyzing(true);
     
     try {
