@@ -172,81 +172,114 @@ const otherAuditDocumentService = {
   },
 
   /**
-   * Upload folder with multiple files
-   * With optional progress callback for UI tracking
+   * Upload folder with multiple files - CHUNKED UPLOAD
+   * Uploads files one by one to avoid 413 Content Too Large error
+   * With real-time progress callback for UI tracking
    */
   uploadFolder: async (shipId, files, folderName, metadata, progressCallback = null) => {
-    const formData = new FormData();
+    const results = {
+      success: true,
+      folder_link: null,
+      total_files: files.length,
+      uploaded_files: 0,
+      failed_files: [],
+      document_id: null
+    };
     
-    // Append all files
-    files.forEach(file => {
-      formData.append('files', file);
-    });
-    
-    formData.append('ship_id', shipId);
-    formData.append('folder_name', folderName);
-    
-    if (metadata.date) formData.append('date', metadata.date);
-    if (metadata.status) formData.append('status', metadata.status);
-    if (metadata.note) formData.append('note', metadata.note);
-    
-    // Simulate progress updates (since backend uploads in parallel, we estimate)
-    if (progressCallback) {
-      // Estimate: each file takes ~1.5s with staggered delay
-      const estimatedTotalTime = files.length * 1500; // 1.5s per file
-      const intervalTime = 500; // Update every 500ms
-      const totalUpdates = Math.ceil(estimatedTotalTime / intervalTime);
-      let currentUpdate = 0;
-      
-      const progressInterval = setInterval(() => {
-        currentUpdate++;
-        const estimatedCompleted = Math.floor((currentUpdate / totalUpdates) * files.length);
-        const fileIndex = Math.min(estimatedCompleted, files.length - 1);
-        
-        progressCallback({
-          completedFiles: estimatedCompleted,
-          currentFile: files[fileIndex]?.name || '',
-          totalFiles: files.length
-        });
-        
-        if (currentUpdate >= totalUpdates) {
-          clearInterval(progressInterval);
-        }
-      }, intervalTime);
-      
-      try {
-        const response = await api.post('/api/other-audit-documents/upload-folder', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          timeout: 300000, // 5 minutes timeout for folder upload
-        });
-        
-        clearInterval(progressInterval);
-        
-        // Final progress update
-        progressCallback({
-          completedFiles: files.length,
-          currentFile: '',
-          totalFiles: files.length
-        });
-        
-        return response.data;
-      } catch (error) {
-        clearInterval(progressInterval);
-        throw error;
-      }
-    } else {
-      // No progress callback - simple upload
-      const response = await api.post('/api/other-audit-documents/upload-folder', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 300000, // 5 minutes timeout for folder upload
+    // Step 1: Create the document record first (without files)
+    try {
+      const createResponse = await api.post('/api/other-audit-documents', {
+        ship_id: shipId,
+        name: folderName,
+        date: metadata.date || null,
+        status: metadata.status || 'Valid',
+        note: metadata.note || ''
       });
       
-      return response.data;
+      results.document_id = createResponse.data.id;
+      console.log(`📁 Created document record: ${results.document_id}`);
+    } catch (error) {
+      console.error('❌ Failed to create document record:', error);
+      return {
+        success: false,
+        error: 'Failed to create document record: ' + (error.response?.data?.detail || error.message)
+      };
     }
+    
+    // Step 2: Upload files one by one (chunked)
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      
+      // Update progress
+      if (progressCallback) {
+        progressCallback({
+          completedFiles: i,
+          currentFile: file.name,
+          totalFiles: files.length
+        });
+      }
+      
+      // Skip system files
+      if (file.name === 'desktop.ini' || file.name === '.DS_Store' || file.name === 'Thumbs.db') {
+        console.log(`⏭️ Skipping system file: ${file.name}`);
+        results.uploaded_files++;
+        continue;
+      }
+      
+      try {
+        // Upload single file to the document
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const uploadResponse = await api.post(
+          `/api/other-audit-documents/${results.document_id}/upload-single-file`,
+          formData,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 60000 // 1 minute per file
+          }
+        );
+        
+        results.uploaded_files++;
+        
+        // Get folder_link from first successful upload
+        if (!results.folder_link && uploadResponse.data?.folder_link) {
+          results.folder_link = uploadResponse.data.folder_link;
+        }
+        
+        console.log(`✅ [${i + 1}/${files.length}] Uploaded: ${file.name}`);
+        
+      } catch (error) {
+        console.error(`❌ [${i + 1}/${files.length}] Failed: ${file.name}`, error.message);
+        results.failed_files.push({
+          name: file.name,
+          error: error.response?.data?.detail || error.message
+        });
+        
+        // Continue with next file instead of stopping
+      }
+    }
+    
+    // Final progress update
+    if (progressCallback) {
+      progressCallback({
+        completedFiles: files.length,
+        currentFile: '',
+        totalFiles: files.length
+      });
+    }
+    
+    // Determine overall success
+    results.success = results.uploaded_files > 0;
+    results.message = results.success
+      ? `Uploaded ${results.uploaded_files}/${files.length} files`
+      : 'Failed to upload any files';
+    
+    if (results.failed_files.length > 0) {
+      results.message += ` (${results.failed_files.length} failed)`;
+    }
+    
+    return results;
   },
 
   /**
