@@ -262,7 +262,7 @@ class ApprovalDocumentService:
         files_scheduled = 0
         background_deletion = False
         
-        if background_tasks and company_id:
+        if background_tasks and ship_company_id:
             files_to_delete = []
             
             if file_id:
@@ -278,7 +278,7 @@ class ApprovalDocumentService:
                     background_tasks.add_task(
                         delete_file_background,
                         file_id_val,
-                        company_id,
+                        ship_company_id,
                         "approval_document",
                         f"{document_name} ({file_type})",
                         GDriveService
