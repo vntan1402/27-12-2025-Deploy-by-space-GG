@@ -602,12 +602,25 @@ const AddOtherAuditDocumentModal = ({
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-3 mt-4">
+            {/* Cancel Upload Button - Only show when uploading */}
+            {cancelController && (
+              <button
+                onClick={handleCancelUpload}
+                className="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all font-medium flex items-center gap-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
+                </svg>
+                {language === 'vi' ? 'Dừng Upload' : 'Stop Upload'}
+              </button>
+            )}
+            
             <button
               onClick={onClose}
               disabled={isProcessing}
               className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all disabled:opacity-50"
             >
-              {language === 'vi' ? 'Hủy' : 'Cancel'}
+              {language === 'vi' ? 'Đóng' : 'Close'}
             </button>
             <button
               onClick={handleSubmit}
