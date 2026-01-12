@@ -3,12 +3,31 @@
 
 import os
 import logging
-from typing import Optional, Dict, Any
+import time
+from typing import Optional, Dict, Any, Tuple
 
 logger = logging.getLogger(__name__)
 
-def get_ai_api_key(ai_config: Optional[Dict[str, Any]] = None) -> str:
+# ============================================================================
+# API KEY CACHING - Cache API key for session to avoid repeated lookups
+# ============================================================================
+_api_key_cache: Dict[str, Tuple[str, float, str]] = {}  # {cache_key: (api_key, timestamp, source)}
+_CACHE_TTL_SECONDS = 300  # Cache for 5 minutes (covers typical upload session)
+
+
+def _get_cache_key(ai_config: Optional[Dict[str, Any]]) -> str:
+    """Generate a cache key based on ai_config"""
+    if ai_config:
+        # Use custom_api_key presence as part of cache key
+        has_custom = bool(ai_config.get('custom_api_key'))
+        return f"config_{has_custom}"
+    return "no_config"
+
+
+def get_ai_api_key(ai_config: Optional[Dict[str, Any]] = None, use_cache: bool = True) -> str:
     """Get the appropriate AI API key based on configuration.
+    
+    Uses caching to avoid repeated lookups during a session (e.g., multi-file upload).
     
     Priority for Production (Google Cloud Run):
     1. custom_api_key from ai_config (always preferred when available)
@@ -19,34 +38,60 @@ def get_ai_api_key(ai_config: Optional[Dict[str, Any]] = None) -> str:
     
     Args:
         ai_config: Optional AI configuration dict with 'use_emergent_key' and 'custom_api_key'
+        use_cache: Whether to use cached key (default True). Set False to force refresh.
     """
-    # Log the ai_config for debugging
+    global _api_key_cache
+    
+    cache_key = _get_cache_key(ai_config)
+    current_time = time.time()
+    
+    # Check cache first (if enabled)
+    if use_cache and cache_key in _api_key_cache:
+        cached_key, cached_time, source = _api_key_cache[cache_key]
+        if current_time - cached_time < _CACHE_TTL_SECONDS:
+            logger.debug(f"🔑 Using cached API key (source: {source})")
+            return cached_key
+        else:
+            # Cache expired, remove it
+            del _api_key_cache[cache_key]
+            logger.debug("🔄 API key cache expired, refreshing...")
+    
+    # Log only on first lookup (not from cache)
     if ai_config:
-        logger.info(f"🔍 AI Config received - use_emergent_key: {ai_config.get('use_emergent_key')}, has_custom_key: {bool(ai_config.get('custom_api_key'))}")
+        logger.info(f"🔍 AI Config lookup - use_emergent_key: {ai_config.get('use_emergent_key')}, has_custom_key: {bool(ai_config.get('custom_api_key'))}")
     
     # PRIORITY 1: Always check custom_api_key first (works on both Production and Emergent)
     if ai_config:
         custom_api_key = ai_config.get('custom_api_key')
         if custom_api_key:
-            logger.info("🔑 Using custom_api_key from AI Configuration")
+            logger.info("🔑 Using custom_api_key from AI Configuration (caching for session)")
+            _api_key_cache[cache_key] = (custom_api_key, current_time, "custom_api_key")
             return custom_api_key
     
     # PRIORITY 2: Try Google AI API key (for Google Cloud deployment)
     google_key = os.getenv('GOOGLE_AI_API_KEY')
     if google_key:
-        logger.info("🔑 Using GOOGLE_AI_API_KEY for AI requests")
+        logger.info("🔑 Using GOOGLE_AI_API_KEY for AI requests (caching for session)")
+        _api_key_cache[cache_key] = (google_key, current_time, "GOOGLE_AI_API_KEY")
         return google_key
     
     # PRIORITY 3: Fallback to Emergent key (only works on Emergent platform)
-    # This will only be used in development on Emergent platform
     emergent_key = os.getenv('EMERGENT_LLM_KEY')
     if emergent_key:
-        logger.info("🔑 Using EMERGENT_LLM_KEY for AI requests (Emergent platform only)")
+        logger.info("🔑 Using EMERGENT_LLM_KEY for AI requests (caching for session)")
+        _api_key_cache[cache_key] = (emergent_key, current_time, "EMERGENT_LLM_KEY")
         return emergent_key
     
     error_msg = "No AI API key configured. Please set custom API key in AI Configuration or set GOOGLE_AI_API_KEY environment variable"
     logger.error(f"❌ {error_msg}")
     raise ValueError(error_msg)
+
+
+def clear_api_key_cache():
+    """Clear the API key cache. Call this when AI configuration is updated."""
+    global _api_key_cache
+    _api_key_cache.clear()
+    logger.info("🗑️ API key cache cleared")
 
 
 class UserMessage:
