@@ -477,6 +477,52 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     }
   };
 
+  // Bulk Edit Expiry Date
+  const handleBulkEditExpiry = () => {
+    if (selectedReports.size === 0) return;
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+    setBulkExpiryDate('');
+    setShowBulkExpiryModal(true);
+  };
+
+  const handleBulkExpirySubmit = async () => {
+    if (!bulkExpiryDate) {
+      toast.error(language === 'vi' ? 'Vui lòng chọn ngày hết hạn' : 'Please select an expiry date');
+      return;
+    }
+
+    setIsBulkUpdating(true);
+
+    try {
+      const reportIds = Array.from(selectedReports);
+      
+      // Call bulk update API
+      const response = await surveyReportService.bulkUpdateExpiry(reportIds, bulkExpiryDate);
+      const result = response.data;
+      
+      toast.success(
+        language === 'vi' 
+          ? `✅ Đã cập nhật ngày hết hạn cho ${result.updated_count || reportIds.length} báo cáo` 
+          : `✅ Updated expiry date for ${result.updated_count || reportIds.length} report(s)`
+      );
+      
+      setShowBulkExpiryModal(false);
+      setBulkExpiryDate('');
+      setSelectedReports(new Set());
+      await fetchSurveyReports();
+    } catch (error) {
+      console.error('Failed to bulk update expiry:', error);
+      const errorMsg = error.response?.data?.detail || 'Failed to update expiry dates';
+      toast.error(
+        language === 'vi' 
+          ? `❌ Không thể cập nhật: ${errorMsg}` 
+          : `❌ ${errorMsg}`
+      );
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
   // Bulk view files - open multiple files in new tabs
   const handleBulkView = async () => {
     const selectedReportsList = surveyReports.filter(r => selectedReports.has(r.id));
