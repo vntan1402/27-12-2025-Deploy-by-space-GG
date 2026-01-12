@@ -600,6 +600,11 @@ Processing: Text Layer Extraction + AI Correction
                         current_user=real_user
                     )
                     
+                    # MEMORY OPTIMIZATION: Free mock_file and BytesIO after analysis
+                    del mock_file
+                    del file_obj
+                    gc.collect()
+                    
                     # Update progress
                     await UploadTaskService.update_file_status(
                         task_id, i, TaskStatus.PROCESSING,
