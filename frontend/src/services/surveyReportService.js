@@ -188,7 +188,7 @@ export const surveyReportService = {
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 60000, // 60 seconds for single file upload
+        timeout: API_TIMEOUT.FILE_UPLOAD, // 5 minutes for large file upload
       }
     );
   },
