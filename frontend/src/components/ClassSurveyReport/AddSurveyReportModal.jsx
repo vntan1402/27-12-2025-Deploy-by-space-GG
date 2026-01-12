@@ -169,13 +169,22 @@ export const AddSurveyReportModal = ({ isOpen, onClose, selectedShip, onReportAd
       
       // Check for validation error (ship mismatch)
       if (data.validation_error) {
-        // Show custom validation modal instead of window.confirm
+        // IMPROVED: Autofill form with analysis data even when ship mismatch
+        if (data.analysis) {
+          processAnalysisSuccess(data.analysis, file);
+          toast.warning(language === 'vi' 
+            ? '⚠️ Dữ liệu đã được điền tự động. Tên tàu/IMO không khớp - vui lòng xác nhận.'
+            : '⚠️ Form auto-filled. Ship name/IMO mismatch - please confirm.');
+        }
+        
+        // Show custom validation modal
         setValidationData({
           extracted_ship_name: data.extracted_ship_name,
           extracted_ship_imo: data.extracted_ship_imo,
           expected_ship_name: data.expected_ship_name,
           expected_ship_imo: data.expected_ship_imo,
-          file: file
+          file: file,
+          analysisData: data.analysis  // Store analysis data for later use
         });
         setShowValidationModal(true);
         setIsAnalyzing(false);
