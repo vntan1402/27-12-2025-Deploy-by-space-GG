@@ -1438,9 +1438,22 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                 : 'Select a new expiry date for all selected reports:'}
             </p>
 
+            {bulkExpiryHasDifferentValues && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-700 flex items-center">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  {language === 'vi' 
+                    ? 'Các báo cáo đã chọn có ngày hết hạn khác nhau. Chọn ngày mới để ghi đè tất cả.' 
+                    : 'Selected reports have different expiry dates. Select a new date to overwrite all.'}
+                </p>
+              </div>
+            )}
+
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Ngày hết hạn mới' : 'New Expiry Date'}
+                {language === 'vi' ? 'Ngày hết hạn' : 'Expiry Date'}
               </label>
               <input
                 type="date"
@@ -1448,6 +1461,11 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                 onChange={(e) => setBulkExpiryDate(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
+              {bulkExpiryHasDifferentValues && !bulkExpiryDate && (
+                <p className="mt-1 text-sm text-gray-500 italic">
+                  {language === 'vi' ? '(Nhiều giá trị khác nhau)' : '(Multiple different values)'}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-end space-x-3">
@@ -1455,6 +1473,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                 onClick={() => {
                   setShowBulkExpiryModal(false);
                   setBulkExpiryDate('');
+                  setBulkExpiryHasDifferentValues(false);
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 disabled={isBulkUpdating}
