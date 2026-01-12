@@ -113,13 +113,12 @@ async def bulk_update_expiry(
     """Bulk update expiry date for multiple Survey Reports (Editor+ role required)"""
     try:
         report_ids = request.get("report_ids", [])
-        expiry_date = request.get("expiry_date")
+        expiry_date = request.get("expiry_date")  # Can be None or empty string
         
         if not report_ids:
             raise HTTPException(status_code=400, detail="No report IDs provided")
-        if not expiry_date:
-            raise HTTPException(status_code=400, detail="No expiry date provided")
         
+        # Allow empty expiry_date
         return await SurveyReportService.bulk_update_expiry(report_ids, expiry_date, current_user)
     except HTTPException:
         raise
