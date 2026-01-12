@@ -189,12 +189,17 @@ export const surveyReportService = {
       formData.append('files', file);
     });
     
+    // Calculate total file size for dynamic timeout
+    const totalSizeMB = files.reduce((acc, f) => acc + f.size, 0) / (1024 * 1024);
+    const timeout = Math.min(Math.max(60000 + (totalSizeMB * 60000), 120000), 600000); // Min 2min, max 10min
+    console.log(`📊 [MultiUpload] Total: ${totalSizeMB.toFixed(2)}MB, Timeout: ${(timeout/1000).toFixed(0)}s`);
+    
     return api.post(
       `${API_ENDPOINTS.SURVEY_REPORT_MULTI_UPLOAD_SMART}?ship_id=${shipId}`,
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 120000, // 2 minutes for FAST path files
+        timeout: timeout, // Dynamic timeout based on total file size
       }
     );
   },
