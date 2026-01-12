@@ -526,7 +526,22 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
   const handleBulkEditNote = () => {
     if (selectedReports.size === 0) return;
     setContextMenu({ show: false, x: 0, y: 0, report: null });
-    setBulkNote('');
+    
+    // Get notes from selected reports
+    const selectedReportsList = surveyReports.filter(r => selectedReports.has(r.id));
+    const notes = selectedReportsList.map(r => r.note || '');
+    
+    // Check if all notes are the same
+    const allSameNote = notes.every(n => n === notes[0]);
+    
+    if (allSameNote) {
+      // All selected reports have same note - show it
+      setBulkNote(notes[0] || '');
+    } else {
+      // Different notes - show empty with indicator
+      setBulkNote('');
+    }
+    
     setShowBulkNoteModal(true);
   };
 
