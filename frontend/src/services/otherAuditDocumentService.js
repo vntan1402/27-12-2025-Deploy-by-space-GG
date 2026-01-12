@@ -277,10 +277,10 @@ const otherAuditDocumentService = {
       }
     }
     
-    // Final progress update
-    if (progressCallback) {
+    // Final progress update (only if not cancelled)
+    if (progressCallback && !results.cancelled) {
       progressCallback({
-        completedFiles: files.length,
+        completedFiles: results.uploaded_files,
         currentFile: '',
         totalFiles: files.length
       });
@@ -288,12 +288,18 @@ const otherAuditDocumentService = {
     
     // Determine overall success
     results.success = results.uploaded_files > 0;
-    results.message = results.success
-      ? `Uploaded ${results.uploaded_files}/${files.length} files`
-      : 'Failed to upload any files';
+    results.successful_files = results.uploaded_files;
     
-    if (results.failed_files.length > 0) {
-      results.message += ` (${results.failed_files.length} failed)`;
+    if (results.cancelled) {
+      results.message = `Upload cancelled. ${results.uploaded_files}/${files.length} files uploaded.`;
+    } else {
+      results.message = results.success
+        ? `Uploaded ${results.uploaded_files}/${files.length} files`
+        : 'Failed to upload any files';
+      
+      if (results.failed_files.length > 0) {
+        results.message += ` (${results.failed_files.length} failed)`;
+      }
     }
     
     return results;
