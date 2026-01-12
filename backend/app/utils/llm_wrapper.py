@@ -75,35 +75,20 @@ class LlmChat:
     ):
         self.ai_config = ai_config
         
-        # Determine API key
-        if api_key is None:
-            # No key provided, try to get from config or environment
+        # Always use get_ai_api_key which follows the correct priority:
+        # 1. custom_api_key (from ai_config)
+        # 2. GOOGLE_AI_API_KEY (for Production)
+        # 3. EMERGENT_LLM_KEY (for Emergent platform only)
+        # 4. Fallback to provided api_key if none of the above
+        try:
             self.api_key = get_ai_api_key(ai_config)
-        else:
-            # Key provided, but check if we should override with custom key or Google key
-            if ai_config:
-                use_emergent_key = ai_config.get('use_emergent_key', True)
-                custom_api_key = ai_config.get('custom_api_key')
-                
-                if not use_emergent_key and custom_api_key:
-                    self.api_key = custom_api_key
-                    logger.info("🔑 Using custom_api_key from AI Configuration")
-                else:
-                    # Check for Google key override
-                    google_key = os.getenv('GOOGLE_AI_API_KEY')
-                    if google_key:
-                        self.api_key = google_key
-                        logger.info("🔑 Using GOOGLE_AI_API_KEY for direct API access")
-                    else:
-                        self.api_key = api_key
+        except ValueError:
+            # If no key from config/env, use the provided api_key as last resort
+            if api_key:
+                self.api_key = api_key
+                logger.info("🔑 Using provided api_key as fallback")
             else:
-                # No ai_config, check for Google key override
-                google_key = os.getenv('GOOGLE_AI_API_KEY')
-                if google_key:
-                    self.api_key = google_key
-                    logger.info("🔑 Using GOOGLE_AI_API_KEY for direct API access")
-                else:
-                    self.api_key = api_key
+                raise
                 
         self.provider = provider.lower()
         self.model = model
