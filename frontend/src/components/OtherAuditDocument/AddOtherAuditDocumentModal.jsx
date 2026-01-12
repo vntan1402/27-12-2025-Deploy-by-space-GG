@@ -59,6 +59,16 @@ const AddOtherAuditDocumentModal = ({
   // Cancel upload state
   const [cancelController, setCancelController] = useState(null);
 
+  // Update parent ref with cancel function when controller changes
+  useEffect(() => {
+    if (onCancelUploadRef) {
+      onCancelUploadRef.current = cancelController ? () => {
+        console.log('🛑 Cancel requested from FloatingProgress');
+        cancelController.abort();
+      } : null;
+    }
+  }, [cancelController, onCancelUploadRef]);
+
   // Note: Floating progress state is now lifted to parent component
   // so it persists when modal closes
 
