@@ -7,7 +7,7 @@ import env from '../config/env';
  */
 const api = axios.create({
   baseURL: env.BACKEND_URL,
-  timeout: 180000, // 180 seconds (3 minutes) default - increased for production stability
+  timeout: 300000, // 300 seconds (5 minutes) default - increased for large file uploads
   headers: {
     'Content-Type': 'application/json',
   },
