@@ -53,6 +53,9 @@ const AddOtherAuditDocumentModal = ({
 
   // Processing state
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Cancel upload state
+  const [cancelController, setCancelController] = useState(null);
 
   // Note: Floating progress state is now lifted to parent component
   // so it persists when modal closes
