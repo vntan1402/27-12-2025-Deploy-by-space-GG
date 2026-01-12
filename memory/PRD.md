@@ -123,7 +123,7 @@ Hệ thống quản lý tàu biển (Ship Management System) - ứng dụng full
 ## Test Credentials
 
 ### Preview Environment
-- **URL**: https://vessel-manager-5.preview.emergentagent.com
+- **URL**: https://marineapp.preview.emergentagent.com
 - **Username**: admin1
 - **Password**: 123456
 
