@@ -165,6 +165,19 @@ export const surveyReportService = {
   },
 
   /**
+   * Bulk update note for multiple survey reports
+   * @param {string[]} reportIds - Array of report IDs
+   * @param {string} note - New note (can be null/empty to clear)
+   * @returns {Promise} Update result with updated_count
+   */
+  bulkUpdateNote: async (reportIds, note) => {
+    return api.post('/api/survey-reports/bulk-update-note', {
+      report_ids: reportIds,
+      note: note
+    });
+  },
+
+  /**
    * Smart multi-upload survey reports with FAST/SLOW path
    * @param {string} shipId - Ship ID
    * @param {File[]} files - Array of survey report files
