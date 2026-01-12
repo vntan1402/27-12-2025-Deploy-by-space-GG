@@ -64,6 +64,11 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     content: ''
   });
 
+  // Bulk Edit Expiry Modal
+  const [showBulkExpiryModal, setShowBulkExpiryModal] = useState(false);
+  const [bulkExpiryDate, setBulkExpiryDate] = useState('');
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+
   // Fetch survey reports when ship is selected
   // REFACTORED: No need to fetch certificates - expiry_date is now in survey report data
   useEffect(() => {
