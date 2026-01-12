@@ -995,6 +995,8 @@ const OtherAuditDocumentsTable = ({ selectedShip }) => {
           setIsProgressMinimized={setIsProgressMinimized}
           uploadProgress={uploadProgress}
           setUploadProgress={setUploadProgress}
+          // Cancel upload ref
+          onCancelUploadRef={cancelUploadRef}
         />
       )}
       
