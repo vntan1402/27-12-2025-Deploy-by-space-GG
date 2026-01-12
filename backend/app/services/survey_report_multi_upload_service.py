@@ -448,7 +448,14 @@ Processing: Text Layer Extraction + AI Correction
             logger.info(f"✅ Created survey report: {created_report.id}")
             
             # Step 6: Upload files to Google Drive
+            # MEMORY OPTIMIZATION: Encode to base64 then immediately free original bytes
             file_content_b64 = base64.b64encode(file_content).decode('utf-8')
+            
+            # Free original bytes immediately after encoding (saves ~2.8MB per file)
+            del file_content
+            import gc
+            gc.collect()
+            logger.debug(f"🗑️ Released original file bytes for {filename}")
             
             try:
                 await SurveyReportService.upload_files(
@@ -462,6 +469,10 @@ Processing: Text Layer Extraction + AI Correction
                 logger.info(f"✅ Uploaded files for report {created_report.id}")
             except Exception as upload_error:
                 logger.warning(f"⚠️ File upload failed: {upload_error}")
+            
+            # Free base64 string after upload
+            del file_content_b64
+            gc.collect()
             
             return {
                 "filename": filename,
