@@ -497,6 +497,67 @@ class SurveyReportService:
         }
     
     @staticmethod
+    async def bulk_update_note(
+        report_ids: list, 
+        note: str,
+        current_user: UserResponse
+    ) -> dict:
+        """Bulk update note for multiple survey reports"""
+        from datetime import datetime
+        from app.core.permission_checks import check_edit_permission, check_editor_viewer_ship_scope
+        
+        updated_count = 0
+        errors = []
+        
+        # Handle empty note - set to None
+        note_str = note if note else None
+        
+        for report_id in report_ids:
+            try:
+                # Get report
+                report = await mongo_db.find_one(SurveyReportService.collection_name, {"id": report_id})
+                if not report:
+                    errors.append(f"Report {report_id} not found")
+                    continue
+                
+                # Check permission
+                ship = await mongo_db.find_one("ships", {"id": report.get("ship_id")})
+                if ship:
+                    ship_company_id = ship.get("company")
+                    try:
+                        check_edit_permission(current_user, "survey_report", ship_company_id)
+                        check_editor_viewer_ship_scope(current_user, report.get("ship_id"), "edit")
+                    except HTTPException as perm_error:
+                        errors.append(f"Permission denied for {report_id}: {perm_error.detail}")
+                        continue
+                
+                # Update note
+                await mongo_db.update(
+                    SurveyReportService.collection_name,
+                    {"id": report_id},
+                    {
+                        "note": note_str,
+                        "updated_at": datetime.now().isoformat()
+                    }
+                )
+                updated_count += 1
+                
+            except Exception as e:
+                errors.append(f"Failed to update {report_id}: {str(e)}")
+                logger.error(f"Error updating note for report {report_id}: {e}")
+                continue
+        
+        logger.info(f"✅ Bulk updated note for {updated_count}/{len(report_ids)} survey reports")
+        
+        return {
+            "success": updated_count > 0,
+            "message": f"Updated note for {updated_count} report(s)",
+            "updated_count": updated_count,
+            "note": note_str,
+            "errors": errors if errors else None
+        }
+    
+    @staticmethod
     async def check_duplicate(ship_id: str, survey_report_name: str, survey_report_no: Optional[str], current_user: UserResponse) -> dict:
         """Check if survey report is duplicate"""
         filters = {
