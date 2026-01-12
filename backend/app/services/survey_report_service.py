@@ -426,23 +426,28 @@ class SurveyReportService:
         updated_count = 0
         errors = []
         
-        # Parse expiry date
-        try:
-            parsed_date = datetime.strptime(expiry_date, "%Y-%m-%d")
-            expiry_date_str = parsed_date.strftime("%Y-%m-%d")
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
-        
-        # Calculate status based on expiry date
-        today = datetime.now()
-        days_until_expiry = (parsed_date - today).days
-        
-        if days_until_expiry < 0:
-            status = "Expired"
-        elif days_until_expiry <= 30:
-            status = "Due Soon"
+        # Handle empty expiry date - set to None and status to Valid
+        if not expiry_date:
+            expiry_date_str = None
+            status = "Valid"  # Default status when no expiry date
         else:
-            status = "Valid"
+            # Parse expiry date
+            try:
+                parsed_date = datetime.strptime(expiry_date, "%Y-%m-%d")
+                expiry_date_str = parsed_date.strftime("%Y-%m-%d")
+                
+                # Calculate status based on expiry date
+                today = datetime.now()
+                days_until_expiry = (parsed_date - today).days
+                
+                if days_until_expiry < 0:
+                    status = "Expired"
+                elif days_until_expiry <= 30:
+                    status = "Due Soon"
+                else:
+                    status = "Valid"
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
         
         for report_id in report_ids:
             try:
@@ -480,7 +485,7 @@ class SurveyReportService:
                 logger.error(f"Error updating expiry for report {report_id}: {e}")
                 continue
         
-        logger.info(f"✅ Bulk updated expiry for {updated_count}/{len(report_ids)} survey reports")
+        logger.info(f"✅ Bulk updated expiry for {updated_count}/{len(report_ids)} survey reports (expiry_date: {expiry_date_str})")
         
         return {
             "success": updated_count > 0,
