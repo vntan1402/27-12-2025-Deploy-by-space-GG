@@ -264,9 +264,9 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
 
   // Handle validation modal confirmation
   const handleValidationConfirm = async () => {
-    // CRITICAL: Check expiry again before retry (user might have delayed)
+    // CRITICAL: Check expiry again before proceeding (user might have delayed)
     if (!checkAndWarn()) {
-      console.log('🚫 [AddAuditReport] Software expired - retry blocked');
+      console.log('🚫 [AddAuditReport] Software expired - action blocked');
       setShowValidationModal(false);
       setUploadedFile(null);
       setIsAnalyzing(false);
@@ -274,6 +274,18 @@ export const AddAuditReportModal = ({ isOpen, onClose, selectedShip, onReportAdd
     }
     
     setShowValidationModal(false);
+    
+    // IMPROVED: Use existing analysis data instead of re-analyzing
+    // Form is already auto-filled, just confirm and close modal
+    if (validationData?.analysisData) {
+      toast.success(language === 'vi' 
+        ? '✅ Đã xác nhận. Vui lòng kiểm tra dữ liệu và nhấn Thêm để lưu.'
+        : '✅ Confirmed. Please review the data and click Add to save.');
+      setValidationData(null);
+      return;
+    }
+    
+    // Fallback: If no analysis data, re-analyze with bypass (legacy behavior)
     setIsAnalyzing(true);
     
     try {
