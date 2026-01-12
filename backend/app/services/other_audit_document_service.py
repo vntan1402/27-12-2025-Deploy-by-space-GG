@@ -847,3 +847,144 @@ class OtherAuditDocumentService:
         except Exception as e:
             logger.error(f"❌ Error uploading audit file for document: {e}")
             raise HTTPException(status_code=500, detail=str(e))
+
+    @staticmethod
+    async def upload_single_file_to_folder(
+        document_id: str,
+        file_content: bytes,
+        filename: str,
+        content_type: str,
+        current_user: UserResponse
+    ) -> dict:
+        """
+        Upload a single file to document's folder on GDrive.
+        Creates folder if it doesn't exist, then uploads file to that folder.
+        Used for chunked folder upload to avoid 413 errors.
+        """
+        import base64
+        
+        try:
+            logger.info(f"📤 [Chunked] Uploading {filename} to document {document_id}")
+            
+            # Get document
+            document = await mongo_db.find_one(OtherAuditDocumentService.collection_name, {"id": document_id})
+            if not document:
+                raise HTTPException(status_code=404, detail="Other Audit Document not found")
+            
+            # Get ship info
+            ship_id = document.get("ship_id")
+            ship = await mongo_db.find_one("ships", {"id": ship_id})
+            if not ship:
+                raise HTTPException(status_code=404, detail="Ship not found")
+            
+            ship_name = ship.get("name", "Unknown Ship")
+            folder_name = document.get("name", "Unnamed Folder")
+            
+            # Get GDrive config
+            company_uuid = current_user.company
+            if not company_uuid:
+                raise HTTPException(status_code=400, detail="User has no company assigned")
+            
+            from app.repositories.gdrive_config_repository import GDriveConfigRepository
+            gdrive_config = await GDriveConfigRepository.get_by_company(company_uuid)
+            if not gdrive_config:
+                raise HTTPException(status_code=500, detail="Google Drive not configured")
+            
+            # Check if folder already exists (from previous uploads)
+            folder_link = document.get("folder_link")
+            folder_id = None
+            
+            if folder_link:
+                # Extract folder_id from link
+                # Format: https://drive.google.com/drive/folders/FOLDER_ID
+                import re
+                match = re.search(r'/folders/([a-zA-Z0-9_-]+)', folder_link)
+                if match:
+                    folder_id = match.group(1)
+                    logger.info(f"   📁 Using existing folder: {folder_id}")
+            
+            # If no folder yet, create one
+            if not folder_id:
+                from app.services.gdrive_service import GDriveService
+                
+                # Get parent folder for "Other Audit Document" category
+                gdrive_service = GDriveService(gdrive_config)
+                
+                # Find or create the category folder structure
+                parent_folder_id = await gdrive_service.get_or_create_category_folder(
+                    ship_name=ship_name,
+                    parent_category="ISM - ISPS - MLC",
+                    category="Other Audit Document"
+                )
+                
+                # Create subfolder for this document
+                folder_result = await gdrive_service.create_folder(
+                    folder_name=folder_name,
+                    parent_id=parent_folder_id
+                )
+                
+                if not folder_result.get('success'):
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Failed to create folder: {folder_result.get('error')}"
+                    )
+                
+                folder_id = folder_result.get('folder_id')
+                folder_link = f"https://drive.google.com/drive/folders/{folder_id}"
+                
+                # Update document with folder_link
+                await mongo_db.update(
+                    OtherAuditDocumentService.collection_name,
+                    {"id": document_id},
+                    {"folder_link": folder_link}
+                )
+                
+                logger.info(f"   📁 Created new folder: {folder_id}")
+            
+            # Upload file to the folder
+            from app.services.gdrive_service import GDriveService
+            gdrive_service = GDriveService(gdrive_config)
+            
+            file_content_b64 = base64.b64encode(file_content).decode('utf-8')
+            
+            upload_result = await gdrive_service.upload_file(
+                file_content=file_content_b64,
+                filename=filename,
+                mime_type=content_type,
+                parent_id=folder_id
+            )
+            
+            if not upload_result.get('success'):
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to upload file: {upload_result.get('error')}"
+                )
+            
+            file_id = upload_result.get('file_id')
+            
+            # Update document's file_ids
+            current_file_ids = document.get("file_ids", [])
+            current_file_ids.append(file_id)
+            
+            await mongo_db.update(
+                OtherAuditDocumentService.collection_name,
+                {"id": document_id},
+                {"file_ids": current_file_ids}
+            )
+            
+            logger.info(f"   ✅ Uploaded {filename} -> {file_id}")
+            
+            return {
+                "success": True,
+                "file_id": file_id,
+                "filename": filename,
+                "folder_link": folder_link
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"❌ Error uploading single file to folder: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            raise HTTPException(status_code=500, detail=str(e))
