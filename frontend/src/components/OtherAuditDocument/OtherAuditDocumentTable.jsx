@@ -43,6 +43,9 @@ const OtherAuditDocumentsTable = ({ selectedShip }) => {
     errorMessage: ''
   });
   
+  // Cancel upload ref (allows FloatingProgress to cancel upload from modal)
+  const cancelUploadRef = React.useRef(null);
+  
   // Sorting
   const [sortConfig, setSortConfig] = useState({
     column: null,
