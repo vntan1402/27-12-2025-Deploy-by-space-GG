@@ -237,7 +237,7 @@ const OtherDocuments = () => {
       'certificates': '/certificates',
       'class_survey': '/class-survey-report',
       'test_report': '/test-report',
-      'drawings_manuals': '/drawings-manuals'
+      'drawings': '/drawings-manuals'
     };
     
     if (routes[submenuKey] && routes[submenuKey] !== '/other-documents') {
