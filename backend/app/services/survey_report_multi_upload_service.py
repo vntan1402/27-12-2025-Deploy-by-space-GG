@@ -217,6 +217,9 @@ class SurveyReportMultiUploadService:
             fast_results = []
             for file_data in fast_path_files:
                 try:
+                    # Pass cached_text_content to avoid re-parsing PDF
+                    cached_text = file_data["path_info"].get("cached_text_content")
+                    
                     result = await SurveyReportMultiUploadService._process_single_file_fast(
                         file_content=file_data["content"],
                         filename=file_data["file"].filename,
@@ -227,7 +230,8 @@ class SurveyReportMultiUploadService:
                         ai_config_doc=ai_config_doc,
                         gdrive_config_doc=gdrive_config_doc,
                         current_user=current_user,
-                        db=db
+                        db=db,
+                        cached_text_content=cached_text  # NEW: Use cached text
                     )
                     result["processing_path"] = "FAST_PATH"
                     fast_results.append(result)
