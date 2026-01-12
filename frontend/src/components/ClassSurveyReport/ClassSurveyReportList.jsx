@@ -67,6 +67,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
   // Bulk Edit Expiry Modal
   const [showBulkExpiryModal, setShowBulkExpiryModal] = useState(false);
   const [bulkExpiryDate, setBulkExpiryDate] = useState('');
+  const [bulkExpiryHasDifferentValues, setBulkExpiryHasDifferentValues] = useState(false);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   // Bulk Edit Note Modal
