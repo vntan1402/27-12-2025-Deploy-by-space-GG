@@ -113,11 +113,21 @@ const ClassSurveyReport = () => {
         setShips([]);
       } else {
         setShips(data);
+        // Cache ships data for faster subsequent loads
+        try {
+          localStorage.setItem('cachedShips', JSON.stringify(data));
+          console.log('✅ [ClassSurveyReport] Cached ships:', data.length);
+        } catch (e) {
+          console.warn('Failed to cache ships:', e);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch ships:', error);
       toast.error(language === 'vi' ? 'Không thể tải danh sách tàu' : 'Failed to load ships');
-      setShips([]);
+      // Don't clear ships if we have cached data
+      if (ships.length === 0) {
+        setShips([]);
+      }
     } finally {
       console.log('Setting loading to false');
       setLoading(false);
