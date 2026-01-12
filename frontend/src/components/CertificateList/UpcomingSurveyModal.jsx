@@ -20,23 +20,28 @@ export const UpcomingSurveyModal = ({
   language
 }) => {
   const [shipFilter, setShipFilter] = useState('');
-  
-  if (!isOpen) return null;
 
   // Use company name if available, fallback to company ID
   const displayCompany = companyName || company;
 
   // Get unique ship names for filter dropdown
+  // Must be called before any conditional return to follow React hooks rules
   const shipNames = useMemo(() => {
+    if (!surveys || surveys.length === 0) return [];
     const names = [...new Set(surveys.map(s => s.ship_name).filter(Boolean))];
     return names.sort();
   }, [surveys]);
 
   // Filter surveys by ship name
+  // Must be called before any conditional return to follow React hooks rules
   const filteredSurveys = useMemo(() => {
+    if (!surveys || surveys.length === 0) return [];
     if (!shipFilter) return surveys;
     return surveys.filter(s => s.ship_name === shipFilter);
   }, [surveys, shipFilter]);
+
+  // Early return AFTER all hooks are called
+  if (!isOpen) return null;
 
   // Export handlers
   const handleExportPDF = () => {
