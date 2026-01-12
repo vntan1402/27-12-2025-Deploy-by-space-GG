@@ -486,18 +486,13 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
   };
 
   const handleBulkExpirySubmit = async () => {
-    if (!bulkExpiryDate) {
-      toast.error(language === 'vi' ? 'Vui lòng chọn ngày hết hạn' : 'Please select an expiry date');
-      return;
-    }
-
     setIsBulkUpdating(true);
 
     try {
       const reportIds = Array.from(selectedReports);
       
-      // Call bulk update API
-      const response = await surveyReportService.bulkUpdateExpiry(reportIds, bulkExpiryDate);
+      // Call bulk update API - allow empty expiry date
+      const response = await surveyReportService.bulkUpdateExpiry(reportIds, bulkExpiryDate || null);
       const result = response.data;
       
       toast.success(
