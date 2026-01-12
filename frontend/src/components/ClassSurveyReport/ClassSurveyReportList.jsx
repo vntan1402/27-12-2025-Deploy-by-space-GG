@@ -522,6 +522,47 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     }
   };
 
+  // Bulk Edit Note
+  const handleBulkEditNote = () => {
+    if (selectedReports.size === 0) return;
+    setContextMenu({ show: false, x: 0, y: 0, report: null });
+    setBulkNote('');
+    setShowBulkNoteModal(true);
+  };
+
+  const handleBulkNoteSubmit = async () => {
+    setIsBulkUpdating(true);
+
+    try {
+      const reportIds = Array.from(selectedReports);
+      
+      // Call bulk update API - allow empty note
+      const response = await surveyReportService.bulkUpdateNote(reportIds, bulkNote || null);
+      const result = response.data;
+      
+      toast.success(
+        language === 'vi' 
+          ? `✅ Đã cập nhật ghi chú cho ${result.updated_count || reportIds.length} báo cáo` 
+          : `✅ Updated note for ${result.updated_count || reportIds.length} report(s)`
+      );
+      
+      setShowBulkNoteModal(false);
+      setBulkNote('');
+      setSelectedReports(new Set());
+      await fetchSurveyReports();
+    } catch (error) {
+      console.error('Failed to bulk update note:', error);
+      const errorMsg = error.response?.data?.detail || 'Failed to update notes';
+      toast.error(
+        language === 'vi' 
+          ? `❌ Không thể cập nhật: ${errorMsg}` 
+          : `❌ ${errorMsg}`
+      );
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
   // Bulk view files - open multiple files in new tabs
   const handleBulkView = async () => {
     const selectedReportsList = surveyReports.filter(r => selectedReports.has(r.id));
