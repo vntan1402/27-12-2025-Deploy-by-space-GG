@@ -487,7 +487,24 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
   const handleBulkEditExpiry = () => {
     if (selectedReports.size === 0) return;
     setContextMenu({ show: false, x: 0, y: 0, report: null });
-    setBulkExpiryDate('');
+    
+    // Get expiry dates from selected reports
+    const selectedReportsList = surveyReports.filter(r => selectedReports.has(r.id));
+    const expiryDates = selectedReportsList.map(r => r.expiry_date ? r.expiry_date.split('T')[0] : '');
+    
+    // Check if all expiry dates are the same
+    const allSameExpiry = expiryDates.every(d => d === expiryDates[0]);
+    
+    if (allSameExpiry) {
+      // All selected reports have same expiry date - show it
+      setBulkExpiryDate(expiryDates[0] || '');
+      setBulkExpiryHasDifferentValues(false);
+    } else {
+      // Different expiry dates - show empty with indicator
+      setBulkExpiryDate('');
+      setBulkExpiryHasDifferentValues(true);
+    }
+    
     setShowBulkExpiryModal(true);
   };
 
