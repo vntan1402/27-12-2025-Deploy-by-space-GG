@@ -111,6 +111,21 @@ const ClassAndFlagCert = () => {
 
   // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
+    // Try to restore ships from localStorage first for instant UI
+    const cachedShips = localStorage.getItem('cachedShips');
+    if (cachedShips) {
+      try {
+        const parsed = JSON.parse(cachedShips);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          console.log('✅ [ClassAndFlagCert] Restored ships from cache:', parsed.length);
+          setShips(parsed);
+        }
+      } catch (e) {
+        console.error('Failed to parse cached ships:', e);
+      }
+    }
+    
+    // Then fetch fresh data in background
     fetchShips();
     fetchAiConfig();
     fetchCompanyData();
