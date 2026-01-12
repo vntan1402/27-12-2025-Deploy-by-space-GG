@@ -51,14 +51,18 @@ class SurveyReportMultiUploadService:
     @staticmethod
     def quick_check_processing_path(file_content: bytes, filename: str) -> Dict[str, Any]:
         """
-        Determine whether file should use FAST or SLOW path
+        Determine whether file should use FAST or SLOW path.
+        OPTIMIZED: Parse PDF only ONCE and cache results.
         
-        Logic mới:
+        Logic:
         - File ≤15 trang → SLOW PATH (Document AI xử lý toàn bộ)
         - File >15 trang + có text layer (≥400 chars) → FAST PATH
         - File >15 trang + không có text layer → SLOW PATH (split 10 đầu + 10 cuối)
+        
+        Returns:
+            Dict with path info AND cached text_content (to avoid re-parsing)
         """
-        from app.utils.pdf_text_extractor import extract_text_from_pdf_text_layer
+        from app.utils.pdf_text_extractor import parse_pdf_once
         
         result = {
             "path": "SLOW_PATH",
@@ -67,7 +71,8 @@ class SurveyReportMultiUploadService:
             "text_char_count": 0,
             "page_count": 0,
             "is_image": False,
-            "needs_split": False
+            "needs_split": False,
+            "cached_text_content": None  # NEW: Cache text để không parse lại
         }
         
         # Check if image file - always SLOW PATH
@@ -81,41 +86,41 @@ class SurveyReportMultiUploadService:
             result["reason"] = f"Unknown file type: {filename}"
             return result
         
-        # Step 1: Get page count
-        page_count = SurveyReportMultiUploadService.get_pdf_page_count(file_content)
+        # ========== OPTIMIZED: Parse PDF only ONCE ==========
+        pdf_info = parse_pdf_once(file_content, filename)
+        
+        if not pdf_info["success"]:
+            result["reason"] = f"PDF parse failed: {pdf_info.get('error', 'Unknown error')}"
+            return result
+        
+        page_count = pdf_info["page_count"]
+        char_count = pdf_info["char_count"]
+        text_content = pdf_info["text_content"]
+        has_text_layer = pdf_info["has_text_layer"]
+        
         result["page_count"] = page_count
+        result["text_char_count"] = char_count
+        result["has_text_layer"] = has_text_layer
+        result["cached_text_content"] = text_content  # Cache for later use
         
-        logger.info(f"📄 {filename}: {page_count} trang")
+        logger.info(f"📄 {filename}: {page_count} trang, {char_count} chars (parsed once)")
         
-        # Step 2: If ≤15 pages → SLOW PATH (Document AI processes entire file)
+        # Step 1: If ≤15 pages → SLOW PATH (Document AI processes entire file)
         if page_count <= PAGE_THRESHOLD:
             result["path"] = "SLOW_PATH"
             result["reason"] = f"File có {page_count} trang (≤{PAGE_THRESHOLD}) - dùng Document AI toàn bộ"
             return result
         
-        # Step 3: File >15 pages → Check text layer
-        try:
-            text_content = extract_text_from_pdf_text_layer(file_content)
-            char_count = len(text_content.strip()) if text_content else 0
-            
-            result["text_char_count"] = char_count
-            result["has_text_layer"] = char_count >= TEXT_LAYER_THRESHOLD
-            
-            if char_count >= TEXT_LAYER_THRESHOLD:
-                # >15 pages + has text layer → FAST PATH
-                result["path"] = "FAST_PATH"
-                result["reason"] = f"File {page_count} trang (>{PAGE_THRESHOLD}) có text layer ({char_count} chars) - dùng FAST PATH"
-            else:
-                # >15 pages + no text layer → SLOW PATH with split
-                result["path"] = "SLOW_PATH"
-                result["needs_split"] = True
-                result["reason"] = f"File {page_count} trang (>{PAGE_THRESHOLD}) không có text layer - split 10 đầu + 10 cuối, dùng Document AI"
-                
-        except Exception as e:
-            logger.warning(f"Text extraction failed for {filename}: {e}")
+        # Step 2: File >15 pages → Check text layer (already extracted)
+        if has_text_layer:
+            # >15 pages + has text layer → FAST PATH
+            result["path"] = "FAST_PATH"
+            result["reason"] = f"File {page_count} trang (>{PAGE_THRESHOLD}) có text layer ({char_count} chars) - dùng FAST PATH"
+        else:
+            # >15 pages + no text layer → SLOW PATH with split
             result["path"] = "SLOW_PATH"
-            result["needs_split"] = page_count > PAGE_THRESHOLD
-            result["reason"] = "Text extraction failed - dùng Document AI"
+            result["needs_split"] = True
+            result["reason"] = f"File {page_count} trang (>{PAGE_THRESHOLD}) không có text layer - split 10 đầu + 10 cuối, dùng Document AI"
         
         return result
     
