@@ -538,9 +538,11 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
     if (allSameNote) {
       // All selected reports have same note - show it
       setBulkNote(notes[0] || '');
+      setBulkNoteHasDifferentValues(false);
     } else {
       // Different notes - show empty with indicator
       setBulkNote('');
+      setBulkNoteHasDifferentValues(true);
     }
     
     setShowBulkNoteModal(true);
