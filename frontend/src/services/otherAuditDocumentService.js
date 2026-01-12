@@ -190,7 +190,7 @@ const otherAuditDocumentService = {
     try {
       const createResponse = await api.post('/api/other-audit-documents', {
         ship_id: shipId,
-        name: folderName,
+        document_name: folderName,  // API expects 'document_name' not 'name'
         date: metadata.date || null,
         status: metadata.status || 'Valid',
         note: metadata.note || ''
