@@ -105,6 +105,28 @@ async def bulk_delete_survey_reports(
         logger.error(f"❌ Error bulk deleting Survey Reports: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk delete Survey Reports")
 
+@router.post("/bulk-update-expiry")
+async def bulk_update_expiry(
+    request: dict = Body(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """Bulk update expiry date for multiple Survey Reports (Editor+ role required)"""
+    try:
+        report_ids = request.get("report_ids", [])
+        expiry_date = request.get("expiry_date")
+        
+        if not report_ids:
+            raise HTTPException(status_code=400, detail="No report IDs provided")
+        if not expiry_date:
+            raise HTTPException(status_code=400, detail="No expiry date provided")
+        
+        return await SurveyReportService.bulk_update_expiry(report_ids, expiry_date, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error bulk updating expiry: {e}")
+        raise HTTPException(status_code=500, detail="Failed to bulk update expiry dates")
+
 @router.post("/check-duplicate")
 async def check_duplicate_survey_report(
     ship_id: str,
