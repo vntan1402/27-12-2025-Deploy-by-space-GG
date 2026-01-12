@@ -1481,16 +1481,31 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                 : 'Enter a new note for all selected reports (leave empty to clear notes):'}
             </p>
 
+            {bulkNoteHasDifferentValues && (
+              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-700 flex items-center">
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  {language === 'vi' 
+                    ? 'Các báo cáo đã chọn có ghi chú khác nhau. Nhập giá trị mới để ghi đè tất cả.' 
+                    : 'Selected reports have different notes. Enter a new value to overwrite all.'}
+                </p>
+              </div>
+            )}
+
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Ghi chú mới' : 'New Note'}
+                {language === 'vi' ? 'Ghi chú' : 'Note'}
               </label>
               <textarea
                 value={bulkNote}
                 onChange={(e) => setBulkNote(e.target.value)}
                 rows={4}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
-                placeholder={language === 'vi' ? 'Nhập ghi chú...' : 'Enter note...'}
+                placeholder={bulkNoteHasDifferentValues 
+                  ? (language === 'vi' ? '(Nhiều giá trị khác nhau)' : '(Multiple different values)')
+                  : (language === 'vi' ? 'Nhập ghi chú...' : 'Enter note...')}
               />
             </div>
 
@@ -1499,6 +1514,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
                 onClick={() => {
                   setShowBulkNoteModal(false);
                   setBulkNote('');
+                  setBulkNoteHasDifferentValues(false);
                 }}
                 className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                 disabled={isBulkUpdating}
