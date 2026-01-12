@@ -152,6 +152,19 @@ export const surveyReportService = {
   },
 
   /**
+   * Bulk update expiry date for multiple survey reports
+   * @param {string[]} reportIds - Array of report IDs
+   * @param {string} expiryDate - New expiry date (YYYY-MM-DD format)
+   * @returns {Promise} Update result with updated_count
+   */
+  bulkUpdateExpiry: async (reportIds, expiryDate) => {
+    return api.post('/api/survey-reports/bulk-update-expiry', {
+      report_ids: reportIds,
+      expiry_date: expiryDate
+    });
+  },
+
+  /**
    * Smart multi-upload survey reports with FAST/SLOW path
    * @param {string} shipId - Ship ID
    * @param {File[]} files - Array of survey report files
