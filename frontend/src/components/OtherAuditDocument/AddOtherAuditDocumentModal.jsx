@@ -162,6 +162,10 @@ const AddOtherAuditDocumentModal = ({
 
   // Upload folder with progress tracking
   const uploadFolderWithProgress = async (folderName, filesToUpload) => {
+    // Create AbortController for cancellation
+    const controller = new AbortController();
+    setCancelController(controller);
+    
     try {
       console.log('📁 Starting folder upload with progress tracking...');
       console.log(`   Folder: ${folderName}, Files: ${filesToUpload.length}`);
@@ -185,12 +189,37 @@ const AddOtherAuditDocumentModal = ({
             status: 'uploading',
             errorMessage: ''
           });
-        }
+        },
+        // Cancel signal
+        controller.signal
       );
 
       console.log('✅ Folder upload result:', result);
 
-      if (result.success) {
+      if (result.cancelled) {
+        // Upload was cancelled
+        setUploadProgress({
+          totalFiles: filesToUpload.length,
+          completedFiles: result.uploaded_files || 0,
+          currentFile: '',
+          status: 'cancelled',
+          errorMessage: result.message
+        });
+        
+        toast.warning(language === 'vi'
+          ? `⚠️ Upload đã bị huỷ. Đã upload ${result.uploaded_files || 0}/${filesToUpload.length} files.`
+          : `⚠️ Upload cancelled. ${result.uploaded_files || 0}/${filesToUpload.length} files uploaded.`
+        );
+
+        // Auto-close floating progress after 3 seconds
+        setTimeout(() => {
+          setShowFloatingProgress(false);
+          if (result.uploaded_files > 0) {
+            onSuccess(); // Refresh table if any files were uploaded
+          }
+        }, 3000);
+        
+      } else if (result.success) {
         // Update to completed status
         setUploadProgress({
           totalFiles: filesToUpload.length,
@@ -229,6 +258,8 @@ const AddOtherAuditDocumentModal = ({
         ? `❌ Lỗi upload folder: ${error.message}`
         : `❌ Folder upload failed: ${error.message}`
       );
+    } finally {
+      setCancelController(null);
     }
   };
 
