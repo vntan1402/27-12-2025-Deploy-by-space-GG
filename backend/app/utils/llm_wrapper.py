@@ -286,4 +286,4 @@ class AwaitableResult:
 
 
 # For compatibility with existing imports
-__all__ = ["LlmChat", "UserMessage", "get_ai_api_key"]
+__all__ = ["LlmChat", "UserMessage", "get_ai_api_key", "clear_api_key_cache"]
