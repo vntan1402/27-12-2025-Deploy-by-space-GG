@@ -246,6 +246,14 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
       if (data.validation_error) {
         const { extracted_ship_name, extracted_ship_imo, expected_ship_name, expected_ship_imo } = data;
         
+        // IMPROVED: Autofill form with analysis data even when ship mismatch
+        if (data.analysis) {
+          processAnalysisSuccess(data.analysis, file);
+          toast.warning(language === 'vi' 
+            ? '⚠️ Dữ liệu đã được điền tự động. Tên tàu/IMO không khớp.'
+            : '⚠️ Form auto-filled. Ship name/IMO mismatch detected.');
+        }
+        
         const warningMsg = language === 'vi'
           ? `⚠️ CẢNH BÁO: Thông tin tàu không khớp!\n\n` +
             `Thông tin trong file PDF:\n` +
@@ -254,7 +262,7 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
             `Tàu bạn đã chọn:\n` +
             `  - Tên tàu: ${expected_ship_name}\n` +
             `  - IMO: ${expected_ship_imo || 'N/A'}\n\n` +
-            `Bạn có muốn tiếp tục với tàu "${expected_ship_name}" không?`
+            `Dữ liệu đã được điền tự động. Nhấn OK để tiếp tục hoặc Cancel để hủy.`
           : `⚠️ WARNING: Ship information mismatch!\n\n` +
             `Information in PDF file:\n` +
             `  - Ship name: ${extracted_ship_name || 'N/A'}\n` +
@@ -262,37 +270,34 @@ export const AddTestReportModal = ({ isOpen, onClose, selectedShip, onReportAdde
             `Your selected ship:\n` +
             `  - Ship name: ${expected_ship_name}\n` +
             `  - IMO: ${expected_ship_imo || 'N/A'}\n\n` +
-            `Do you want to continue with ship "${expected_ship_name}"?`;
+            `Form has been auto-filled. Click OK to continue or Cancel to abort.`;
         
         if (!window.confirm(warningMsg)) {
           setIsAnalyzing(false);
           setUploadedFile(null);
+          // Reset form if cancelled
+          setFormData({
+            test_report_name: '',
+            test_type: '',
+            report_form: '',
+            test_report_no: '',
+            test_date: '',
+            issued_by: '',
+            status: 'Valid',
+            note: '',
+            tester_name: ''
+          });
+          setAnalyzedData(null);
           return;
         }
         
-        // User confirmed - retry with bypass
-        toast.info(language === 'vi' ? '🔄 Phân tích lại với xác nhận...' : '🔄 Re-analyzing with confirmation...');
-        formData.set('bypass_validation', 'true');
+        // User confirmed - no need to re-analyze, form already filled
+        toast.success(language === 'vi' 
+          ? '✅ Đã xác nhận. Vui lòng kiểm tra và nhấn Thêm để lưu.'
+          : '✅ Confirmed. Please review and click Add to save.');
+        setIsAnalyzing(false);
+        return;
         
-        const retryResponse = await fetch(`${BACKEND_URL}/api/test-reports/analyze-file`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: formData
-        });
-
-        if (!retryResponse.ok) {
-          throw new Error('Re-analysis failed');
-        }
-
-        const retryData = await retryResponse.json();
-        // Extract analysis from wrapped response
-        if (retryData.success && retryData.analysis) {
-          processAnalysisSuccess(retryData.analysis, file);
-        } else {
-          throw new Error('Invalid retry response structure');
-        }
       } else if (data.success && data.analysis) {
         // Success - extract analysis from wrapped response
         processAnalysisSuccess(data.analysis, file);
