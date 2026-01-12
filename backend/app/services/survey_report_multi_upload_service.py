@@ -329,11 +329,14 @@ class SurveyReportMultiUploadService:
         ai_config_doc: Dict[str, Any],
         gdrive_config_doc: Dict[str, Any],
         current_user: UserResponse,
-        db
+        db,
+        cached_text_content: str = None  # NEW: Accept cached text to avoid re-parsing
     ) -> Dict[str, Any]:
         """
         Process single survey report file via FAST PATH (text layer)
         Uses AI Text Correction for better quality
+        
+        OPTIMIZED: Uses cached_text_content if provided to avoid re-parsing PDF
         """
         from app.utils.pdf_text_extractor import extract_text_from_pdf_text_layer, create_summary_from_text_layer
         from app.utils.text_layer_correction import correct_text_layer_with_ai, detect_ocr_quality
@@ -343,8 +346,13 @@ class SurveyReportMultiUploadService:
         logger.info(f"🚀 FAST PATH processing: {filename}")
         
         try:
-            # Step 1: Extract text layer
-            text_content = extract_text_from_pdf_text_layer(file_content)
+            # Step 1: Use cached text or extract (only if not cached)
+            if cached_text_content:
+                text_content = cached_text_content
+                logger.info(f"   ♻️ Using cached text content ({len(text_content)} chars)")
+            else:
+                logger.info(f"   📄 Extracting text layer (no cache)")
+                text_content = extract_text_from_pdf_text_layer(file_content)
             
             if not text_content or len(text_content.strip()) < TEXT_LAYER_THRESHOLD:
                 return {
