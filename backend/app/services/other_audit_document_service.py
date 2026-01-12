@@ -861,8 +861,6 @@ class OtherAuditDocumentService:
         Creates folder if it doesn't exist, then uploads file to that folder.
         Used for chunked folder upload to avoid 413 errors.
         """
-        import base64
-        
         try:
             logger.info(f"📤 [Chunked] Uploading {filename} to document {document_id}")
             
@@ -903,55 +901,19 @@ class OtherAuditDocumentService:
                     folder_id = match.group(1)
                     logger.info(f"   📁 Using existing folder: {folder_id}")
             
-            # If no folder yet, create one
-            if not folder_id:
-                from app.services.gdrive_service import GDriveService
-                
-                # Get parent folder for "Other Audit Document" category
-                gdrive_service = GDriveService(gdrive_config)
-                
-                # Find or create the category folder structure
-                parent_folder_id = await gdrive_service.get_or_create_category_folder(
-                    ship_name=ship_name,
-                    parent_category="ISM - ISPS - MLC",
-                    category="Other Audit Document"
-                )
-                
-                # Create subfolder for this document
-                folder_result = await gdrive_service.create_folder(
-                    folder_name=folder_name,
-                    parent_id=parent_folder_id
-                )
-                
-                if not folder_result.get('success'):
-                    raise HTTPException(
-                        status_code=500,
-                        detail=f"Failed to create folder: {folder_result.get('error')}"
-                    )
-                
-                folder_id = folder_result.get('folder_id')
-                folder_link = f"https://drive.google.com/drive/folders/{folder_id}"
-                
-                # Update document with folder_link
-                await mongo_db.update(
-                    OtherAuditDocumentService.collection_name,
-                    {"id": document_id},
-                    {"folder_link": folder_link}
-                )
-                
-                logger.info(f"   📁 Created new folder: {folder_id}")
+            # Upload file using helper function with folder creation
+            from app.utils.gdrive_helper import upload_file_to_subfolder
             
-            # Upload file to the folder
-            from app.services.gdrive_service import GDriveService
-            gdrive_service = GDriveService(gdrive_config)
-            
-            file_content_b64 = base64.b64encode(file_content).decode('utf-8')
-            
-            upload_result = await gdrive_service.upload_file(
-                file_content=file_content_b64,
+            upload_result = await upload_file_to_subfolder(
+                gdrive_config=gdrive_config,
+                file_content=file_content,
                 filename=filename,
-                mime_type=content_type,
-                parent_id=folder_id
+                content_type=content_type,
+                ship_name=ship_name,
+                parent_category="ISM - ISPS - MLC",
+                category="Other Audit Document",
+                subfolder_name=folder_name,
+                existing_folder_id=folder_id
             )
             
             if not upload_result.get('success'):
@@ -961,15 +923,23 @@ class OtherAuditDocumentService:
                 )
             
             file_id = upload_result.get('file_id')
+            new_folder_link = upload_result.get('folder_link')
             
-            # Update document's file_ids
+            # Update document's file_ids and folder_link
             current_file_ids = document.get("file_ids", [])
             current_file_ids.append(file_id)
+            
+            update_data = {"file_ids": current_file_ids}
+            
+            # Update folder_link if we got a new one
+            if new_folder_link and not folder_link:
+                update_data["folder_link"] = new_folder_link
+                folder_link = new_folder_link
             
             await mongo_db.update(
                 OtherAuditDocumentService.collection_name,
                 {"id": document_id},
-                {"file_ids": current_file_ids}
+                update_data
             )
             
             logger.info(f"   ✅ Uploaded {filename} -> {file_id}")
