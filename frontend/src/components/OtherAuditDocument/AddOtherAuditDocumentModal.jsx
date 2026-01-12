@@ -263,6 +263,17 @@ const AddOtherAuditDocumentModal = ({
     }
   };
 
+  // Handle cancel upload
+  const handleCancelUpload = () => {
+    if (cancelController) {
+      console.log('🛑 User requested upload cancellation');
+      cancelController.abort();
+      toast.info(language === 'vi' 
+        ? '⏹️ Đang dừng upload...' 
+        : '⏹️ Stopping upload...');
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async () => {
     // Validate: must have document name OR files
