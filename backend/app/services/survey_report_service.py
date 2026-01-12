@@ -414,6 +414,84 @@ class SurveyReportService:
         }
     
     @staticmethod
+    async def bulk_update_expiry(
+        report_ids: list, 
+        expiry_date: str,
+        current_user: UserResponse
+    ) -> dict:
+        """Bulk update expiry date for multiple survey reports"""
+        from datetime import datetime
+        from app.core.permission_checks import check_edit_permission, check_editor_viewer_ship_scope
+        
+        updated_count = 0
+        errors = []
+        
+        # Parse expiry date
+        try:
+            parsed_date = datetime.strptime(expiry_date, "%Y-%m-%d")
+            expiry_date_str = parsed_date.strftime("%Y-%m-%d")
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD")
+        
+        # Calculate status based on expiry date
+        today = datetime.now()
+        days_until_expiry = (parsed_date - today).days
+        
+        if days_until_expiry < 0:
+            status = "Expired"
+        elif days_until_expiry <= 30:
+            status = "Due Soon"
+        else:
+            status = "Valid"
+        
+        for report_id in report_ids:
+            try:
+                # Get report
+                report = await mongo_db.find_one(SurveyReportService.collection_name, {"id": report_id})
+                if not report:
+                    errors.append(f"Report {report_id} not found")
+                    continue
+                
+                # Check permission
+                ship = await mongo_db.find_one("ships", {"id": report.get("ship_id")})
+                if ship:
+                    ship_company_id = ship.get("company")
+                    try:
+                        check_edit_permission(current_user, "survey_report", ship_company_id)
+                        check_editor_viewer_ship_scope(current_user, report.get("ship_id"), "edit")
+                    except HTTPException as perm_error:
+                        errors.append(f"Permission denied for {report_id}: {perm_error.detail}")
+                        continue
+                
+                # Update expiry_date and status
+                await mongo_db.update(
+                    SurveyReportService.collection_name,
+                    {"id": report_id},
+                    {
+                        "expiry_date": expiry_date_str,
+                        "status": status,
+                        "updated_at": datetime.now().isoformat()
+                    }
+                )
+                updated_count += 1
+                
+            except Exception as e:
+                errors.append(f"Failed to update {report_id}: {str(e)}")
+                logger.error(f"Error updating expiry for report {report_id}: {e}")
+                continue
+        
+        logger.info(f"✅ Bulk updated expiry for {updated_count}/{len(report_ids)} survey reports")
+        
+        return {
+            "success": updated_count > 0,
+            "message": f"Updated expiry date for {updated_count} report(s)",
+            "updated_count": updated_count,
+            "expiry_date": expiry_date_str,
+            "status": status,
+            "errors": errors if errors else None
+        }
+    
+    @staticmethod
     async def check_duplicate(ship_id: str, survey_report_name: str, survey_report_no: Optional[str], current_user: UserResponse) -> dict:
         """Check if survey report is duplicate"""
         filters = {
