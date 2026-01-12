@@ -239,6 +239,8 @@ class AuditReportAnalyzeService:
                     
                     if not validation_result.get('overall_match'):
                         logger.warning("❌ Ship information does NOT match")
+                        # IMPROVED: Return analysis data along with validation error
+                        # This allows frontend to autofill form even when ship mismatch
                         return {
                             "success": False,
                             "validation_error": True,
@@ -246,7 +248,8 @@ class AuditReportAnalyzeService:
                             "extracted_ship_imo": extracted_ship_imo,
                             "expected_ship_name": ship_name,
                             "expected_ship_imo": ship_imo,
-                            "message": "Ship name/IMO mismatch detected. Please verify the document belongs to the selected ship."
+                            "message": "Ship name/IMO mismatch detected. Please verify the document belongs to the selected ship.",
+                            "analysis": analysis_result  # Include analysis data for autofill
                         }
             
             logger.info("✅ Audit report analysis completed successfully")
