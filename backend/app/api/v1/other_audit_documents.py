@@ -277,3 +277,40 @@ async def upload_file_for_document(
         import traceback
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{doc_id}/upload-single-file")
+async def upload_single_file_to_folder(
+    doc_id: str,
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Upload a single file to an existing document's folder on GDrive.
+    Used for chunked folder upload to avoid 413 Content Too Large errors.
+    """
+    try:
+        logger.info(f"📤 [Chunked] Uploading single file to doc {doc_id}: {file.filename}")
+        
+        # Read file content
+        file_content = await file.read()
+        logger.info(f"   📦 File size: {len(file_content)} bytes")
+        
+        # Call service
+        result = await OtherAuditDocumentService.upload_single_file_to_folder(
+            document_id=doc_id,
+            file_content=file_content,
+            filename=file.filename,
+            content_type=file.content_type or 'application/octet-stream',
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading single file to folder: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
