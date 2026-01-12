@@ -174,6 +174,31 @@ export const surveyReportService = {
   },
 
   /**
+   * Calculate dynamic timeout based on file size
+   * @param {File} file - File to upload
+   * @returns {number} Timeout in milliseconds
+   */
+  calculateUploadTimeout: (file) => {
+    const fileSizeMB = file.size / (1024 * 1024);
+    
+    // Base timeout: 30 seconds
+    // Additional: 30 seconds per MB
+    // Minimum: 60 seconds
+    // Maximum: 5 minutes (300 seconds)
+    const baseTimeout = 30000; // 30s
+    const perMBTimeout = 30000; // 30s per MB
+    const minTimeout = 60000; // 60s minimum
+    const maxTimeout = 300000; // 5 minutes max
+    
+    const calculatedTimeout = baseTimeout + (fileSizeMB * perMBTimeout);
+    const finalTimeout = Math.min(Math.max(calculatedTimeout, minTimeout), maxTimeout);
+    
+    console.log(`📊 [Upload] File: ${file.name}, Size: ${fileSizeMB.toFixed(2)}MB, Timeout: ${(finalTimeout/1000).toFixed(0)}s`);
+    
+    return finalTimeout;
+  },
+
+  /**
    * Smart upload SINGLE survey report file (for staggered upload)
    * @param {string} shipId - Ship ID
    * @param {File} file - Single survey report file
@@ -183,12 +208,15 @@ export const surveyReportService = {
     const formData = new FormData();
     formData.append('files', file);
     
+    // Calculate dynamic timeout based on file size
+    const timeout = surveyReportService.calculateUploadTimeout(file);
+    
     return api.post(
       `${API_ENDPOINTS.SURVEY_REPORT_MULTI_UPLOAD_SMART}?ship_id=${shipId}`,
       formData,
       {
         headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: API_TIMEOUT.FILE_UPLOAD, // 5 minutes for large file upload
+        timeout: timeout, // Dynamic timeout based on file size
       }
     );
   },
