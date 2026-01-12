@@ -120,8 +120,8 @@ export const UpcomingSurveyModal = ({
             </div>
           )}
           
-          {/* Ship Name Filter */}
-          {shipNames.length > 1 && (
+          {/* Ship Name Filter - Always show if there are ships */}
+          {shipNames.length > 0 && (
             <div className="mt-4 flex items-center gap-2">
               <label className="text-sm font-medium text-gray-700">
                 {language === 'vi' ? 'Lọc theo tàu:' : 'Filter by Ship:'}
