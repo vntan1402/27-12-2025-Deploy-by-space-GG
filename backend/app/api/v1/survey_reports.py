@@ -126,6 +126,27 @@ async def bulk_update_expiry(
         logger.error(f"❌ Error bulk updating expiry: {e}")
         raise HTTPException(status_code=500, detail="Failed to bulk update expiry dates")
 
+@router.post("/bulk-update-note")
+async def bulk_update_note(
+    request: dict = Body(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """Bulk update note for multiple Survey Reports (Editor+ role required)"""
+    try:
+        report_ids = request.get("report_ids", [])
+        note = request.get("note")  # Can be None or empty string
+        
+        if not report_ids:
+            raise HTTPException(status_code=400, detail="No report IDs provided")
+        
+        # Allow empty note
+        return await SurveyReportService.bulk_update_note(report_ids, note, current_user)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error bulk updating note: {e}")
+        raise HTTPException(status_code=500, detail="Failed to bulk update notes")
+
 @router.post("/check-duplicate")
 async def check_duplicate_survey_report(
     ship_id: str,
