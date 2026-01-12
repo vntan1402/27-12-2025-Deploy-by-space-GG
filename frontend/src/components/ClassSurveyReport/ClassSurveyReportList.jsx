@@ -1330,6 +1330,67 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
         language={language}
       />
 
+      {/* Bulk Edit Expiry Date Modal */}
+      {showBulkExpiryModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              {language === 'vi' 
+                ? `Sửa ngày hết hạn (${selectedReports.size} báo cáo)` 
+                : `Edit Expiry Date (${selectedReports.size} reports)`}
+            </h3>
+            
+            <p className="text-sm text-gray-600 mb-4">
+              {language === 'vi' 
+                ? 'Chọn ngày hết hạn mới cho tất cả các báo cáo đã chọn:' 
+                : 'Select a new expiry date for all selected reports:'}
+            </p>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'vi' ? 'Ngày hết hạn mới' : 'New Expiry Date'}
+              </label>
+              <input
+                type="date"
+                value={bulkExpiryDate}
+                onChange={(e) => setBulkExpiryDate(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowBulkExpiryModal(false);
+                  setBulkExpiryDate('');
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                disabled={isBulkUpdating}
+              >
+                {language === 'vi' ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                onClick={handleBulkExpirySubmit}
+                disabled={!bulkExpiryDate || isBulkUpdating}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                {isBulkUpdating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    {language === 'vi' ? 'Đang cập nhật...' : 'Updating...'}
+                  </>
+                ) : (
+                  language === 'vi' ? 'Cập nhật' : 'Update'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Loading Overlay */}
       {isDeleting && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[200]">
