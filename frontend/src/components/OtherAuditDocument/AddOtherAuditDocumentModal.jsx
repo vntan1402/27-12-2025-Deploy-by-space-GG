@@ -28,7 +28,9 @@ const AddOtherAuditDocumentModal = ({
   isProgressMinimized,
   setIsProgressMinimized,
   uploadProgress,
-  setUploadProgress
+  setUploadProgress,
+  // Cancel upload callback (lifted to parent for FloatingProgress)
+  onCancelUploadRef
 }) => {
   const { language } = useAuth();
 
