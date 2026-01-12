@@ -182,11 +182,11 @@ export const surveyReportService = {
     const fileSizeMB = file.size / (1024 * 1024);
     
     // Base timeout: 30 seconds
-    // Additional: 30 seconds per MB
+    // Additional: 60 seconds per MB
     // Minimum: 60 seconds
     // Maximum: 5 minutes (300 seconds)
     const baseTimeout = 30000; // 30s
-    const perMBTimeout = 30000; // 30s per MB
+    const perMBTimeout = 60000; // 60s per MB
     const minTimeout = 60000; // 60s minimum
     const maxTimeout = 300000; // 5 minutes max
     
