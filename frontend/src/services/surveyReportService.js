@@ -212,14 +212,14 @@ export const surveyReportService = {
   calculateUploadTimeout: (file) => {
     const fileSizeMB = file.size / (1024 * 1024);
     
-    // Base timeout: 30 seconds
+    // Base timeout: 60 seconds
     // Additional: 60 seconds per MB
-    // Minimum: 60 seconds
-    // Maximum: 5 minutes (300 seconds)
-    const baseTimeout = 30000; // 30s
+    // Minimum: 120 seconds (2 minutes)
+    // Maximum: 10 minutes (600 seconds) - for very large files on slow networks
+    const baseTimeout = 60000; // 60s
     const perMBTimeout = 60000; // 60s per MB
-    const minTimeout = 60000; // 60s minimum
-    const maxTimeout = 300000; // 5 minutes max
+    const minTimeout = 120000; // 2 minutes minimum
+    const maxTimeout = 600000; // 10 minutes max
     
     const calculatedTimeout = baseTimeout + (fileSizeMB * perMBTimeout);
     const finalTimeout = Math.min(Math.max(calculatedTimeout, minTimeout), maxTimeout);
