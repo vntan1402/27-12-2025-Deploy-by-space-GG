@@ -72,6 +72,7 @@ export const ClassSurveyReportList = ({ selectedShip, onStartBatchProcessing }) 
   // Bulk Edit Note Modal
   const [showBulkNoteModal, setShowBulkNoteModal] = useState(false);
   const [bulkNote, setBulkNote] = useState('');
+  const [bulkNoteHasDifferentValues, setBulkNoteHasDifferentValues] = useState(false);
 
   // Fetch survey reports when ship is selected
   // REFACTORED: No need to fetch certificates - expiry_date is now in survey report data
