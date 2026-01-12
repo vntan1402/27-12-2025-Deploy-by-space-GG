@@ -223,6 +223,8 @@ class SurveyReportAnalyzeService:
                             f"Found '{extracted_ship_name}' (IMO: {extracted_ship_imo})"
                         )
                         
+                        # IMPROVED: Return analysis data along with validation error
+                        # This allows frontend to autofill form even when ship mismatch
                         return {
                             "success": False,
                             "validation_error": True,
@@ -231,7 +233,8 @@ class SurveyReportAnalyzeService:
                             "expected_ship_name": ship_name,
                             "expected_ship_imo": ship_imo,
                             "similarity_score": similarity_score,
-                            "message": f"Ship name mismatch (similarity: {similarity_score:.0%}). Please confirm or select correct ship."
+                            "message": f"Ship name mismatch (similarity: {similarity_score:.0%}). Please confirm or select correct ship.",
+                            "analysis": analysis_result  # Include analysis data for autofill
                         }
                     elif ship_name_match:
                         logger.info(f"✅ Ship validation passed (similarity: {similarity_score:.2%})")
