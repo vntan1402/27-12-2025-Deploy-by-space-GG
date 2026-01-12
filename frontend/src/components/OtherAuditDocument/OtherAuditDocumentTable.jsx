@@ -1012,6 +1012,11 @@ const OtherAuditDocumentsTable = ({ selectedShip }) => {
             fetchDocuments(); // Refresh table when closing after success
           }
         }}
+        onCancel={() => {
+          if (cancelUploadRef.current) {
+            cancelUploadRef.current();
+          }
+        }}
         uploadStatus={uploadProgress}
       />
 
