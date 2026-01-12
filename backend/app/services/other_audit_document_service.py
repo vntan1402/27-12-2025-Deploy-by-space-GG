@@ -876,7 +876,7 @@ class OtherAuditDocumentService:
                 raise HTTPException(status_code=404, detail="Ship not found")
             
             ship_name = ship.get("name", "Unknown Ship")
-            folder_name = document.get("name", "Unnamed Folder")
+            folder_name = document.get("document_name") or document.get("name", "Unnamed Folder")
             
             # Get GDrive config
             company_uuid = current_user.company
