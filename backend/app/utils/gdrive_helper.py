@@ -216,7 +216,7 @@ async def upload_file_to_subfolder(
         parent_category: e.g., "ISM - ISPS - MLC"
         category: e.g., "Other Audit Document"
         subfolder_name: e.g., "Picture"
-        existing_folder_id: If subfolder already exists, use this ID
+        existing_folder_id: If subfolder already exists, use this ID (not used in current implementation)
     
     Returns:
         dict: Upload result with file_id and folder_link
@@ -230,22 +230,23 @@ async def upload_file_to_subfolder(
         if not parent_folder_id:
             raise Exception("Parent folder ID not configured")
         
-        # Prepare payload for Apps Script
-        # Use action that creates subfolder hierarchy
+        # Use existing upload_file_with_folder_creation action
+        # Treat subfolder_name as part of the category path
+        # Path: ShipName / parent_category / category/subfolder_name / file
+        extended_category = f"{category}/{subfolder_name}"
+        
         payload = {
-            "action": "upload_file_to_subfolder",
+            "action": "upload_file_with_folder_creation",
             "parent_folder_id": parent_folder_id,
             "ship_name": ship_name,
             "parent_category": parent_category,
-            "category": category,
-            "subfolder_name": subfolder_name,
-            "existing_folder_id": existing_folder_id,  # Reuse if exists
+            "category": extended_category,  # e.g., "Other Audit Document/Picture"
             "filename": filename,
             "file_content": base64.b64encode(file_content).decode('utf-8'),
             "content_type": content_type
         }
         
-        logger.info(f"📤 Uploading {filename} to {ship_name}/{parent_category}/{category}/{subfolder_name}")
+        logger.info(f"📤 Uploading {filename} to {ship_name}/{parent_category}/{extended_category}")
         
         async with aiohttp.ClientSession() as session:
             async with session.post(
@@ -256,14 +257,17 @@ async def upload_file_to_subfolder(
                 result = await response.json()
         
         if result.get("success"):
-            folder_id = result.get("folder_id")
-            folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if folder_id else None
+            # Extract folder_id from file_path if available
+            # file_path format: "ShipName/parent_category/category/subfolder/filename"
+            folder_link = None
+            if result.get("folder_id"):
+                folder_link = f"https://drive.google.com/drive/folders/{result.get('folder_id')}"
             
             logger.info(f"✅ Uploaded {filename}")
             return {
                 "success": True,
                 "file_id": result.get("file_id"),
-                "folder_id": folder_id,
+                "folder_id": result.get("folder_id"),
                 "folder_link": folder_link
             }
         else:
