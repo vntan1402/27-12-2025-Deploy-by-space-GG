@@ -4,13 +4,77 @@ Extracts native text layer from PDF files (non-OCR)
 """
 import logging
 import io
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Optional
 import pdfplumber
 
 logger = logging.getLogger(__name__)
 
 # Constants
 TEXT_LAYER_THRESHOLD = 400  # Minimum characters to consider text layer valid
+
+
+def parse_pdf_once(file_bytes: bytes, filename: str = "unknown.pdf") -> Dict[str, Any]:
+    """
+    Parse PDF một lần duy nhất và trả về tất cả thông tin cần thiết.
+    Tối ưu memory bằng cách chỉ mở file 1 lần.
+    
+    Args:
+        file_bytes: PDF file bytes
+        filename: Original filename for logging
+        
+    Returns:
+        Dict with:
+        - page_count: int
+        - text_content: str (full extracted text)
+        - char_count: int
+        - has_text_layer: bool (>= TEXT_LAYER_THRESHOLD chars)
+        - success: bool
+        - error: str (if failed)
+    """
+    result = {
+        "page_count": 0,
+        "text_content": "",
+        "char_count": 0,
+        "has_text_layer": False,
+        "success": False,
+        "error": None
+    }
+    
+    try:
+        logger.info(f"📄 Parsing PDF once: {filename}")
+        
+        pdf_file = io.BytesIO(file_bytes)
+        
+        with pdfplumber.open(pdf_file) as pdf:
+            page_count = len(pdf.pages)
+            result["page_count"] = page_count
+            
+            all_text = []
+            
+            for i, page in enumerate(pdf.pages, start=1):
+                try:
+                    page_text = page.extract_text() or ""
+                    if page_text.strip():
+                        all_text.append(f"--- Page {i} ---\n{page_text}\n")
+                except Exception as e:
+                    logger.warning(f"⚠️ Error reading page {i}: {e}")
+                    continue
+            
+            full_text = "\n".join(all_text)
+            char_count = len(full_text.strip())
+            
+            result["text_content"] = full_text
+            result["char_count"] = char_count
+            result["has_text_layer"] = char_count >= TEXT_LAYER_THRESHOLD
+            result["success"] = True
+            
+            logger.info(f"   ✅ Parsed: {page_count} pages, {char_count} chars, has_text_layer={result['has_text_layer']}")
+            
+    except Exception as e:
+        logger.error(f"❌ PDF parse failed for {filename}: {e}")
+        result["error"] = str(e)
+    
+    return result
 
 
 def quick_check_text_layer(file_bytes: bytes, filename: str) -> Dict[str, Any]:
