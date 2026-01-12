@@ -42,6 +42,10 @@ async def update_ai_config(
     Update AI configuration (Admin+ role required)
     """
     try:
+        # Clear API key cache when config is updated
+        from app.utils.llm_wrapper import clear_api_key_cache
+        clear_api_key_cache()
+        
         return await AIConfigService.update_ai_config(config_data, current_user)
     except HTTPException:
         raise
@@ -58,6 +62,10 @@ async def create_or_update_ai_config(
     Create or update AI configuration (Admin+ role required) - Frontend compatibility
     """
     try:
+        # Clear API key cache when config is updated
+        from app.utils.llm_wrapper import clear_api_key_cache
+        clear_api_key_cache()
+        
         return await AIConfigService.update_ai_config(config_data, current_user)
     except HTTPException:
         raise
