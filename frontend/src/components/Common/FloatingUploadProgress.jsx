@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Minimize2, Maximize2, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { X, Minimize2, Maximize2, CheckCircle, AlertCircle, Loader, StopCircle } from 'lucide-react';
 
 /**
  * Floating Upload Progress Component
@@ -11,6 +11,7 @@ const FloatingUploadProgress = ({
   onMinimize, 
   onMaximize, 
   onClose,
+  onCancel,  // NEW: Cancel callback
   uploadStatus 
 }) => {
   if (!isVisible) return null;
@@ -19,11 +20,12 @@ const FloatingUploadProgress = ({
     totalFiles = 0, 
     completedFiles = 0, 
     currentFile = '', 
-    status = 'uploading', // 'uploading', 'completed', 'error'
+    status = 'uploading', // 'uploading', 'completed', 'error', 'cancelled'
     errorMessage = ''
   } = uploadStatus;
 
   const progress = totalFiles > 0 ? Math.round((completedFiles / totalFiles) * 100) : 0;
+  const canCancel = status === 'uploading' && onCancel;
 
   // Minimized view - small box at bottom-right
   if (isMinimized) {
@@ -38,10 +40,12 @@ const FloatingUploadProgress = ({
             {status === 'uploading' && <Loader className="w-4 h-4 text-blue-500 animate-spin" />}
             {status === 'completed' && <CheckCircle className="w-4 h-4 text-green-500" />}
             {status === 'error' && <AlertCircle className="w-4 h-4 text-red-500" />}
+            {status === 'cancelled' && <StopCircle className="w-4 h-4 text-orange-500" />}
             <span className="text-sm font-medium text-gray-700">
               {status === 'uploading' && `Uploading ${completedFiles}/${totalFiles}`}
               {status === 'completed' && 'Upload Complete'}
               {status === 'error' && 'Upload Failed'}
+              {status === 'cancelled' && 'Upload Cancelled'}
             </span>
           </div>
           <button
@@ -61,6 +65,7 @@ const FloatingUploadProgress = ({
             className={`h-1.5 rounded-full transition-all duration-300 ${
               status === 'completed' ? 'bg-green-500' : 
               status === 'error' ? 'bg-red-500' : 
+              status === 'cancelled' ? 'bg-orange-500' :
               'bg-blue-500'
             }`}
             style={{ width: `${progress}%` }}
@@ -82,6 +87,7 @@ const FloatingUploadProgress = ({
           {status === 'uploading' && '📤 Uploading Folder'}
           {status === 'completed' && '✅ Upload Complete'}
           {status === 'error' && '❌ Upload Failed'}
+          {status === 'cancelled' && '⏹️ Upload Cancelled'}
         </h3>
         <div className="flex items-center space-x-2">
           <button
@@ -116,6 +122,7 @@ const FloatingUploadProgress = ({
               className={`h-2.5 rounded-full transition-all duration-300 ${
                 status === 'completed' ? 'bg-green-500' : 
                 status === 'error' ? 'bg-red-500' : 
+                status === 'cancelled' ? 'bg-orange-500' :
                 'bg-blue-500'
               }`}
               style={{ width: `${progress}%` }}
@@ -157,6 +164,23 @@ const FloatingUploadProgress = ({
           </div>
         )}
 
+        {/* Cancelled message */}
+        {status === 'cancelled' && (
+          <div className="mb-3 p-3 bg-orange-50 rounded-lg border border-orange-100">
+            <div className="flex items-center space-x-2">
+              <StopCircle className="w-5 h-5 text-orange-500 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-orange-800">
+                  Upload cancelled
+                </p>
+                <p className="text-xs text-orange-600 mt-0.5">
+                  {completedFiles} of {totalFiles} files were uploaded before cancellation
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Error message */}
         {status === 'error' && errorMessage && (
           <div className="mb-3 p-3 bg-red-50 rounded-lg border border-red-100">
@@ -170,15 +194,33 @@ const FloatingUploadProgress = ({
           </div>
         )}
 
-        {/* Action button */}
-        {status === 'completed' && (
-          <button
-            onClick={onClose}
-            className="w-full py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm font-medium"
-          >
-            Done
-          </button>
-        )}
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          {/* Cancel button - only show when uploading */}
+          {canCancel && (
+            <button
+              onClick={onCancel}
+              className="flex-1 py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+            >
+              <StopCircle className="w-4 h-4" />
+              Cancel Upload
+            </button>
+          )}
+          
+          {/* Done button - show when completed, cancelled, or error */}
+          {(status === 'completed' || status === 'cancelled' || status === 'error') && (
+            <button
+              onClick={onClose}
+              className={`flex-1 py-2 px-4 text-white rounded-lg transition-colors text-sm font-medium ${
+                status === 'completed' ? 'bg-green-500 hover:bg-green-600' :
+                status === 'cancelled' ? 'bg-orange-500 hover:bg-orange-600' :
+                'bg-gray-500 hover:bg-gray-600'
+              }`}
+            >
+              Done
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
