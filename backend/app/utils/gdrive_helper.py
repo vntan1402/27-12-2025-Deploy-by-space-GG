@@ -189,6 +189,93 @@ async def upload_file_with_parent_category(
         return {"success": False, "error": str(e)}
 
 
+async def upload_file_to_subfolder(
+    gdrive_config: Dict[str, Any],
+    file_content: bytes,
+    filename: str,
+    content_type: str,
+    ship_name: str,
+    parent_category: str,
+    category: str,
+    subfolder_name: str,
+    existing_folder_id: str = None
+) -> Dict[str, Any]:
+    """
+    Upload file to a subfolder inside category folder.
+    Path: ShipName > parent_category > category > subfolder_name > file
+    Example: TRUONG MINH SEA > ISM - ISPS - MLC > Other Audit Document > Picture > IMG_001.jpg
+    
+    Used for chunked folder upload - uploads one file at a time.
+    
+    Args:
+        gdrive_config: Google Drive configuration
+        file_content: File content as bytes
+        filename: Name of the file
+        content_type: MIME type
+        ship_name: Ship name
+        parent_category: e.g., "ISM - ISPS - MLC"
+        category: e.g., "Other Audit Document"
+        subfolder_name: e.g., "Picture"
+        existing_folder_id: If subfolder already exists, use this ID
+    
+    Returns:
+        dict: Upload result with file_id and folder_link
+    """
+    try:
+        script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+        if not script_url:
+            raise Exception("Apps Script URL not configured")
+        
+        parent_folder_id = gdrive_config.get("folder_id")
+        if not parent_folder_id:
+            raise Exception("Parent folder ID not configured")
+        
+        # Prepare payload for Apps Script
+        # Use action that creates subfolder hierarchy
+        payload = {
+            "action": "upload_file_to_subfolder",
+            "parent_folder_id": parent_folder_id,
+            "ship_name": ship_name,
+            "parent_category": parent_category,
+            "category": category,
+            "subfolder_name": subfolder_name,
+            "existing_folder_id": existing_folder_id,  # Reuse if exists
+            "filename": filename,
+            "file_content": base64.b64encode(file_content).decode('utf-8'),
+            "content_type": content_type
+        }
+        
+        logger.info(f"📤 Uploading {filename} to {ship_name}/{parent_category}/{category}/{subfolder_name}")
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                script_url,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=120)
+            ) as response:
+                result = await response.json()
+        
+        if result.get("success"):
+            folder_id = result.get("folder_id")
+            folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if folder_id else None
+            
+            logger.info(f"✅ Uploaded {filename}")
+            return {
+                "success": True,
+                "file_id": result.get("file_id"),
+                "folder_id": folder_id,
+                "folder_link": folder_link
+            }
+        else:
+            error_msg = result.get("message", "Unknown error")
+            logger.error(f"❌ Upload failed: {error_msg}")
+            return {"success": False, "error": error_msg}
+            
+    except Exception as e:
+        logger.error(f"❌ Error uploading to subfolder: {e}")
+        return {"success": False, "error": str(e)}
+
+
 async def upload_files_to_folder(
     gdrive_config: Dict[str, Any],
     files: List[Tuple[bytes, str]],  # List of (file_content, filename) tuples
