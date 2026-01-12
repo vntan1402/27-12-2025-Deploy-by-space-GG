@@ -338,15 +338,12 @@ def merge_analysis_results(
             'report_no': len(all_report_nos),
             'issued_by': len(all_issued_by),
             'date': len(all_dates),
-            'surveyor': len(all_surveyors),
+            'additional_fields': len(all_additional_data),
             'notes': len(all_notes)
         }
     }
     
     logger.info(f"✅ Merge complete!")
-    
-    # Add success flag
-    merged['success'] = True
     
     return merged
 
