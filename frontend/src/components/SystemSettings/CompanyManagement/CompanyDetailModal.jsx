@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../contexts/AuthContext';
 import api from '../../../services/api';
+import { shipCacheService } from '../../../services/shipCacheService';
 import { convertGoogleDriveUrl } from '../../../utils/googleDriveHelpers';
 
 const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
