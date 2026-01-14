@@ -15,6 +15,10 @@ export * from './authService';
 export * from './shipService';
 export * from './companyService';
 
+// Cache Services
+export { shipCacheService } from './shipCacheService';
+export { companyCacheService } from './companyCacheService';
+
 // Crew
 export * from './crewService';
 
