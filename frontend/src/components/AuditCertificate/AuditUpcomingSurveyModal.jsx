@@ -18,23 +18,24 @@ export const AuditUpcomingSurveyModal = ({
   language
 }) => {
   const [shipFilter, setShipFilter] = useState('');
-  
-  if (!isOpen) return null;
 
   // Use company name if available
   const displayCompany = companyName;
 
-  // Get unique ship names for filter dropdown
+  // Get unique ship names for filter dropdown - MUST be called before early return
   const shipNames = useMemo(() => {
     const names = [...new Set(surveys.map(s => s.ship_name).filter(Boolean))];
     return names.sort();
   }, [surveys]);
 
-  // Filter surveys by ship name
+  // Filter surveys by ship name - MUST be called before early return
   const filteredSurveys = useMemo(() => {
     if (!shipFilter) return surveys;
     return surveys.filter(s => s.ship_name === shipFilter);
   }, [surveys, shipFilter]);
+
+  // Early return AFTER all hooks
+  if (!isOpen) return null;
 
   // Export handlers
   const handleExportPDF = () => {
