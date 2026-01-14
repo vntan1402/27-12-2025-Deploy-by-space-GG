@@ -1,6 +1,6 @@
 #!/bin/bash
 
-API_URL="https://marineapp.preview.emergentagent.com/api"
+API_URL="https://file-fix-pro.preview.emergentagent.com/api"
 
 # Login
 TOKEN=$(curl -s -X POST "${API_URL}/auth/login" \
