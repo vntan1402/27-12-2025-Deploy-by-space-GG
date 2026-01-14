@@ -237,8 +237,8 @@ const ClassAndFlagCert = () => {
   // Fetch company data
   const fetchCompanyData = async () => {
     try {
-      const response = await companyService.getCompanyInfo();
-      setCompanyData(response.data);
+      const data = await companyCacheService.getCompanyInfo();
+      setCompanyData(data);
     } catch (error) {
       console.error('Failed to fetch company data:', error);
     }
