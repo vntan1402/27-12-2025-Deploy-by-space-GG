@@ -100,13 +100,13 @@ const ClassSurveyReport = () => {
     }
   }, [location.state]);
 
-  const fetchShips = async () => {
+  const fetchShips = async (forceRefresh = false) => {
     try {
       console.log('Fetching ships...');
       setLoading(true);
-      const response = await shipService.getAllShips();
-      console.log('Ships fetched successfully:', response);
-      const data = response.data || response || [];
+      
+      // Use ship cache service instead of direct API call
+      const data = await shipCacheService.getShips(forceRefresh);
       
       // Ensure data is array
       if (!Array.isArray(data)) {
@@ -114,13 +114,7 @@ const ClassSurveyReport = () => {
         setShips([]);
       } else {
         setShips(data);
-        // Cache ships data for faster subsequent loads
-        try {
-          localStorage.setItem('cachedShips', JSON.stringify(data));
-          console.log('✅ [ClassSurveyReport] Cached ships:', data.length);
-        } catch (e) {
-          console.warn('Failed to cache ships:', e);
-        }
+        console.log('✅ [ClassSurveyReport] Ships loaded:', data.length);
       }
     } catch (error) {
       console.error('Failed to fetch ships:', error);
@@ -155,8 +149,9 @@ const ClassSurveyReport = () => {
     console.log('Ship created callback triggered:', shipId, shipName);
     // Close modal
     setShowAddShipModal(false);
-    // Refresh ship list to show new ship
-    await fetchShips();
+    // Invalidate cache and refresh ship list
+    shipCacheService.invalidateCache();
+    await fetchShips(true);
     console.log('Ship list refreshed after creation');
   };
 
