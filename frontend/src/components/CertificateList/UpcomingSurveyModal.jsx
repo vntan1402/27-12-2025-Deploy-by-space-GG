@@ -20,6 +20,7 @@ export const UpcomingSurveyModal = ({
   language
 }) => {
   const [shipFilter, setShipFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   // Use company name if available, fallback to company ID
   const displayCompany = companyName || company;
@@ -32,13 +33,33 @@ export const UpcomingSurveyModal = ({
     return names.sort();
   }, [surveys]);
 
-  // Filter surveys by ship name
+  // Helper function to get status of a survey
+  const getStatus = (survey) => {
+    if (survey.is_overdue) return 'overdue';
+    if (survey.is_critical) return 'critical';
+    if (survey.is_due_soon) return 'due_soon';
+    return 'in_window';
+  };
+
+  // Filter surveys by ship name and status
   // Must be called before any conditional return to follow React hooks rules
   const filteredSurveys = useMemo(() => {
     if (!surveys || surveys.length === 0) return [];
-    if (!shipFilter) return surveys;
-    return surveys.filter(s => s.ship_name === shipFilter);
-  }, [surveys, shipFilter]);
+    
+    let result = surveys;
+    
+    // Filter by ship name
+    if (shipFilter) {
+      result = result.filter(s => s.ship_name === shipFilter);
+    }
+    
+    // Filter by status
+    if (statusFilter) {
+      result = result.filter(s => getStatus(s) === statusFilter);
+    }
+    
+    return result;
+  }, [surveys, shipFilter, statusFilter]);
 
   // Early return AFTER all hooks are called
   if (!isOpen) return null;
