@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { MainLayout, Sidebar } from '../components/Layout';
 import AddShipModal from '../components/Ships/AddShipModal';
-import { companyService } from '../services';
+import { companyCacheService } from '../services/companyCacheService';
+import { shipCacheService } from '../services/shipCacheService';
 import { toast } from 'sonner';
 import env from '../config/env';
 
