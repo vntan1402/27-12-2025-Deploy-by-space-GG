@@ -180,11 +180,11 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
     try {
       console.log('🔍 Fetching company statistics for:', company);
       
-      // Fetch ships
-      const shipsResponse = await api.get('/api/ships');
-      console.log('📊 All ships:', shipsResponse.data?.length);
+      // Use ship cache service for faster loading
+      const allShips = await shipCacheService.getShips();
+      console.log('📊 All ships:', allShips?.length);
       
-      const companyShips = shipsResponse.data.filter(ship => 
+      const companyShips = allShips.filter(ship => 
         ship.company === company.id || 
         ship.company === company.name_en || 
         ship.company === company.name_vn
