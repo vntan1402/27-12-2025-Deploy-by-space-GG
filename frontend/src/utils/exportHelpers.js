@@ -182,29 +182,39 @@ export const exportUpcomingSurveysToPDF = (surveys, options = {}) => {
         }
         return row.ship_name;
       },
-      width: 40
+      width: 38
     },
     { 
       header: language === 'vi' ? 'Loại' : 'Type', 
       accessor: (row) => row.certificate_type === 'company' 
         ? (language === 'vi' ? 'Công ty' : 'Company') 
         : (language === 'vi' ? 'Tàu' : 'Ship'),
-      width: 15
+      width: 14
     },
     { 
       header: language === 'vi' ? 'Tên Certificate' : 'Certificate Name', 
       accessor: (row) => row.cert_name_display || row.cert_name,
-      width: 40
+      width: 38
     },
     { 
       header: language === 'vi' ? 'Next Survey' : 'Next Survey', 
       accessor: (row) => formatDateDisplay(row.next_survey_date),
-      width: 22
+      width: 20
     },
     { 
       header: language === 'vi' ? 'Loại Survey' : 'Survey Type', 
       accessor: (row) => row.next_survey_type || '-',
-      width: 22
+      width: 18
+    },
+    { 
+      header: language === 'vi' ? 'Còn lại' : 'Days Left', 
+      accessor: (row) => {
+        const days = row.days_until_window_close;
+        if (days === null || days === undefined) return '-';
+        if (days < 0) return `${Math.abs(days)} (quá)`;
+        return `${days} ngày`;
+      },
+      width: 16
     },
     { 
       header: language === 'vi' ? 'Tình trạng' : 'Status', 
@@ -214,7 +224,7 @@ export const exportUpcomingSurveysToPDF = (surveys, options = {}) => {
         if (row.is_due_soon) return language === 'vi' ? 'Sắp đến hạn' : 'Due Soon';
         return language === 'vi' ? 'Trong Window' : 'In Window';
       },
-      width: 25
+      width: 18
     }
   ];
 
