@@ -140,9 +140,10 @@ export const AuditUpcomingSurveyModal = ({
             </div>
           )}
           
-          {/* Ship Name Filter */}
-          {shipNames.length > 1 && (
-            <div className="mt-4 flex items-center gap-2">
+          {/* Filters Row */}
+          <div className="mt-4 flex flex-wrap items-center gap-4">
+            {/* Ship Name Filter */}
+            <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-gray-700">
                 {language === 'vi' ? 'Lọc theo tàu:' : 'Filter by Ship:'}
               </label>
@@ -157,24 +158,24 @@ export const AuditUpcomingSurveyModal = ({
                 ))}
               </select>
             </div>
-          )}
           
-          {/* Status Filter */}
-          <div className="mt-3 flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">
-              {language === 'vi' ? 'Lọc theo trạng thái:' : 'Filter by Status:'}
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">{language === 'vi' ? '-- Tất cả --' : '-- All --'}</option>
-              <option value="overdue">{language === 'vi' ? 'Quá hạn' : 'Overdue'}</option>
-              <option value="critical">{language === 'vi' ? 'Khẩn cấp' : 'Critical'}</option>
-              <option value="due_soon">{language === 'vi' ? 'Sắp đến hạn' : 'Due Soon'}</option>
-              <option value="in_window">{language === 'vi' ? 'Trong Window' : 'In Window'}</option>
-            </select>
+            {/* Status Filter */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">
+                {language === 'vi' ? 'Lọc theo trạng thái:' : 'Filter by Status:'}
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">{language === 'vi' ? '-- Tất cả --' : '-- All --'}</option>
+                <option value="overdue">{language === 'vi' ? 'Quá hạn' : 'Overdue'}</option>
+                <option value="critical">{language === 'vi' ? 'Khẩn cấp' : 'Critical'}</option>
+                <option value="due_soon">{language === 'vi' ? 'Sắp đến hạn' : 'Due Soon'}</option>
+                <option value="in_window">{language === 'vi' ? 'Trong Window' : 'In Window'}</option>
+              </select>
+            </div>
             
             {/* Show filtered count */}
             {(shipFilter || statusFilter) && (
