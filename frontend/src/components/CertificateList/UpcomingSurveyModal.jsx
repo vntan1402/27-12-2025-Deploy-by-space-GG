@@ -152,18 +152,51 @@ export const UpcomingSurveyModal = ({
                 onChange={(e) => setShipFilter(e.target.value)}
                 className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">{language === 'vi' ? '-- Tất cả tàu --' : '-- All Ships --'}</option>
+                <option value="">{language === 'vi' ? '-- Tất cả --' : '-- All --'}</option>
                 {shipNames.map(name => (
                   <option key={name} value={name}>{name}</option>
                 ))}
               </select>
-              {shipFilter && (
-                <span className="text-sm text-gray-500">
-                  ({filteredSurveys.length} {language === 'vi' ? 'kết quả' : 'results'})
-                </span>
-              )}
             </div>
           )}
+          
+          {/* Status Filter */}
+          <div className="mt-3 flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">
+              {language === 'vi' ? 'Lọc theo trạng thái:' : 'Filter by Status:'}
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <option value="">{language === 'vi' ? '-- Tất cả --' : '-- All --'}</option>
+              <option value="overdue">{language === 'vi' ? 'Quá hạn' : 'Overdue'}</option>
+              <option value="critical">{language === 'vi' ? 'Khẩn cấp' : 'Critical'}</option>
+              <option value="due_soon">{language === 'vi' ? 'Sắp đến hạn' : 'Due Soon'}</option>
+              <option value="in_window">{language === 'vi' ? 'Trong Window' : 'In Window'}</option>
+            </select>
+            
+            {/* Show filtered count */}
+            {(shipFilter || statusFilter) && (
+              <span className="text-sm text-blue-600 font-medium">
+                ({filteredSurveys.length} / {surveys.length} {language === 'vi' ? 'kết quả' : 'results'})
+              </span>
+            )}
+            
+            {/* Clear filters button */}
+            {(shipFilter || statusFilter) && (
+              <button
+                onClick={() => {
+                  setShipFilter('');
+                  setStatusFilter('');
+                }}
+                className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+              >
+                {language === 'vi' ? 'Xóa bộ lọc' : 'Clear filters'}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Certificates Table */}
