@@ -879,40 +879,63 @@ class AuditCertificateService:
                     # Get Next Audit field (format: "07/10/2025" with potential annotation in next_audit_type)
                     next_audit = cert.get('next_audit')
                     next_audit_type = cert.get('next_audit_type', '')
+                    valid_date = cert.get('valid_date')
                     
-                    if not next_audit:
-                        continue
-                    
-                    # Parse Next Audit date
-                    next_audit_str = str(next_audit)
-                    
-                    # Try to extract date
+                    # Parse Next Audit date (primary) or Valid Date (fallback)
                     next_audit_date = None
-                    if '/' in next_audit_str:
-                        # Format: DD/MM/YYYY
-                        try:
-                            next_audit_date = datetime.strptime(next_audit_str.split()[0], '%d/%m/%Y').date()
-                        except:
-                            continue
-                    else:
-                        # ISO format or datetime object
-                        try:
-                            if isinstance(next_audit, datetime):
-                                next_audit_date = next_audit.date()
-                            else:
-                                next_audit_date = datetime.fromisoformat(next_audit_str).date()
-                        except:
-                            continue
+                    reference_field = 'next_audit'  # Track which field we're using
+                    
+                    # Try next_audit first
+                    if next_audit:
+                        next_audit_str = str(next_audit)
+                        if '/' in next_audit_str:
+                            # Format: DD/MM/YYYY
+                            try:
+                                next_audit_date = datetime.strptime(next_audit_str.split()[0], '%d/%m/%Y').date()
+                            except:
+                                pass
+                        else:
+                            # ISO format or datetime object
+                            try:
+                                if isinstance(next_audit, datetime):
+                                    next_audit_date = next_audit.date()
+                                else:
+                                    next_audit_date = datetime.fromisoformat(next_audit_str).date()
+                            except:
+                                pass
+                    
+                    # Fallback to valid_date if next_audit not available
+                    if not next_audit_date and valid_date:
+                        reference_field = 'valid_date'
+                        valid_date_str = str(valid_date)
+                        if '/' in valid_date_str:
+                            try:
+                                next_audit_date = datetime.strptime(valid_date_str.split()[0], '%d/%m/%Y').date()
+                            except:
+                                pass
+                        else:
+                            try:
+                                if isinstance(valid_date, datetime):
+                                    next_audit_date = valid_date.date()
+                                else:
+                                    next_audit_date = datetime.fromisoformat(valid_date_str).date()
+                            except:
+                                pass
                     
                     if not next_audit_date:
                         continue
                     
-                    # Determine window based on next_audit_type
+                    # Determine window based on next_audit_type and reference_field
                     window_open = None
                     window_close = None
                     window_type = ''
                     
-                    if next_audit_type and 'Annual' in next_audit_type:
+                    if reference_field == 'valid_date':
+                        # Using valid_date as fallback: window is 90 days before valid_date
+                        window_open = next_audit_date - relativedelta(months=3)
+                        window_close = next_audit_date
+                        window_type = '-3M (valid_date)'
+                    elif next_audit_type and 'Annual' in next_audit_type:
                         # Annual audits: ±3M window
                         window_open = next_audit_date - relativedelta(months=3)
                         window_close = next_audit_date + relativedelta(months=3)
