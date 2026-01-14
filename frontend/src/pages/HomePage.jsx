@@ -26,8 +26,8 @@ const HomePage = () => {
 
   const fetchUserCompanyData = async () => {
     try {
-      const response = await companyService.getAll();
-      const companies = response.data || response || []; // Handle different response formats
+      // Use company cache service instead of direct API call
+      const companies = await companyCacheService.getCompaniesList();
       
       // Ensure companies is an array
       if (!Array.isArray(companies)) {
