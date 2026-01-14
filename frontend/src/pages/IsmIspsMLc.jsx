@@ -23,6 +23,8 @@ import { BatchProcessingModal, BatchResultsModal } from '../components/ClassSurv
 import { ApprovalDocumentTable } from '../components/ApprovalDocument';
 import { OtherAuditDocumentTable } from '../components/OtherAuditDocument';
 import { shipService, companyService, auditCertificateService, auditReportService } from '../services';
+import { shipCacheService } from '../services/shipCacheService';
+import { companyCacheService } from '../services/companyCacheService';
 import api from '../services/api';
 import { toast } from 'sonner';
 import { RateLimiter } from '../utils/retryHelper';
