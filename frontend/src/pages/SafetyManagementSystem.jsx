@@ -631,6 +631,7 @@ const SafetyManagementSystem = () => {
       filtered = filtered.filter(cert =>
         cert.cert_name?.toLowerCase().includes(query) ||
         cert.cert_no?.toLowerCase().includes(query) ||
+        cert.company_name?.toLowerCase().includes(query) ||
         cert.issued_by?.toLowerCase().includes(query)
       );
     }
