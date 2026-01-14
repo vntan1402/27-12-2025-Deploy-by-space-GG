@@ -665,7 +665,7 @@ class AuditCertificateService:
 
     
     @staticmethod
-    async def get_upcoming_audit_surveys(current_user: UserResponse, days: int = 30) -> dict:
+    async def get_upcoming_audit_surveys(current_user: UserResponse, days: int = 30, override_company: str = None) -> dict:
         """
         Get upcoming audit surveys based on window logic
         
@@ -681,6 +681,7 @@ class AuditCertificateService:
         Args:
             current_user: Current user making the request
             days: Number of days to look ahead (not used with new window logic)
+            override_company: Optional company ID to use instead of user's company (for System Admin)
             
         Returns:
             dict with upcoming_surveys list and metadata
@@ -692,7 +693,17 @@ class AuditCertificateService:
             
             # Get current date
             current_date = datetime.now(timezone.utc).date()
-            user_company = current_user.company
+            
+            # Determine which company to use
+            # System Admin can specify a company, otherwise use user's company
+            from app.models.user import UserRole
+            is_system_admin = current_user.role in [UserRole.SYSTEM_ADMIN, UserRole.SUPER_ADMIN]
+            
+            if override_company and is_system_admin:
+                user_company = override_company
+                logger.info(f"🔍 System Admin using override company: {user_company}")
+            else:
+                user_company = current_user.company
             
             logger.info(f"🔍 Checking upcoming surveys for company: {user_company} (Audit + Company Certificates)")
             
