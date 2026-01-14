@@ -18,21 +18,47 @@ export const AuditUpcomingSurveyModal = ({
   language
 }) => {
   const [shipFilter, setShipFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
 
   // Use company name if available
   const displayCompany = companyName;
 
-  // Get unique ship names for filter dropdown - MUST be called before early return
+  // Get unique ship/company names for filter dropdown - MUST be called before early return
   const shipNames = useMemo(() => {
-    const names = [...new Set(surveys.map(s => s.ship_name).filter(Boolean))];
+    const names = [...new Set(surveys.map(s => {
+      // For company certificates, use company_name; for ship certificates, use ship_name
+      return s.certificate_type === 'company' ? (s.company_name || s.ship_name) : s.ship_name;
+    }).filter(Boolean))];
     return names.sort();
   }, [surveys]);
 
-  // Filter surveys by ship name - MUST be called before early return
+  // Helper function to get status of a survey
+  const getStatus = (survey) => {
+    if (survey.is_overdue) return 'overdue';
+    if (survey.is_critical) return 'critical';
+    if (survey.is_due_soon) return 'due_soon';
+    return 'in_window';
+  };
+
+  // Filter surveys by ship name and status - MUST be called before early return
   const filteredSurveys = useMemo(() => {
-    if (!shipFilter) return surveys;
-    return surveys.filter(s => s.ship_name === shipFilter);
-  }, [surveys, shipFilter]);
+    let result = surveys;
+    
+    // Filter by ship/company name
+    if (shipFilter) {
+      result = result.filter(s => {
+        const name = s.certificate_type === 'company' ? (s.company_name || s.ship_name) : s.ship_name;
+        return name === shipFilter;
+      });
+    }
+    
+    // Filter by status
+    if (statusFilter) {
+      result = result.filter(s => getStatus(s) === statusFilter);
+    }
+    
+    return result;
+  }, [surveys, shipFilter, statusFilter]);
 
   // Early return AFTER all hooks
   if (!isOpen) return null;
