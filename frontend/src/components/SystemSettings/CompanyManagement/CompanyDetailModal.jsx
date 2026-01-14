@@ -52,9 +52,9 @@ const CompanyDetailModal = ({ company, onClose, language = 'en' }) => {
   const fetchShipsList = async () => {
     setLoadingDetails(true);
     try {
-      // Fetch ships
-      const shipsResponse = await api.get('/api/ships');
-      const companyShips = shipsResponse.data.filter(ship => 
+      // Use ship cache service for faster loading
+      const allShips = await shipCacheService.getShips();
+      const companyShips = allShips.filter(ship => 
         ship.company === company.id || 
         ship.company === company.name_en || 
         ship.company === company.name_vn
