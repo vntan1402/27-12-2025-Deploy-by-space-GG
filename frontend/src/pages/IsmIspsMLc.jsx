@@ -209,11 +209,13 @@ const IsmIspsMLc = () => {
 
 
 
-  const fetchShips = async () => {
+  const fetchShips = async (forceRefresh = false) => {
     try {
       setLoading(true);
-      const response = await shipService.getAll();
-      setShips(response.data || response || []);
+      // Use ship cache service instead of direct API call
+      const data = await shipCacheService.getShips(forceRefresh);
+      setShips(data || []);
+      console.log('✅ [IsmIspsMLc] Ships loaded:', data?.length || 0);
     } catch (error) {
       console.error('Failed to fetch ships:', error);
       toast.error(language === 'vi' ? 'Không thể tải danh sách tàu' : 'Failed to load ships');
