@@ -1422,7 +1422,8 @@ const ClassAndFlagCert = () => {
         );
       }
 
-      // Refresh ships list
+      // Remove from cache and refresh ships list
+      shipCacheService.removeFromCache(shipId);
       await fetchShips();
 
       // Close modals and reset states
