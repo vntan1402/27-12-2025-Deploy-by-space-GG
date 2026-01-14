@@ -85,6 +85,9 @@ const HomePage = () => {
     // Ensure modal is closed before navigation
     setShowAddShipModal(false);
     
+    // Invalidate ship cache so new ship is fetched
+    shipCacheService.invalidateCache();
+    
     // Navigate to certificates page where ship list is displayed
     navigate('/certificates', { 
       state: { 
