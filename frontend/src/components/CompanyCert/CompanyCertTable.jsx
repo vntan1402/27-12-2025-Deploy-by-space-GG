@@ -435,6 +435,13 @@ export const CompanyCertTable = ({
             </th>
             <th 
               className="px-2 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
+              onClick={() => onSort('next_audit_type')}
+            >
+              {language === 'vi' ? 'Loại kiểm tra' : 'Audit Type'}
+              {getSortIcon('next_audit_type')}
+            </th>
+            <th 
+              className="px-2 py-3 border-b border-r text-left cursor-pointer hover:bg-gray-100"
               onClick={() => onSort('issued_by')}
             >
               {language === 'vi' ? 'Cơ quan cấp' : 'Issued By'}
