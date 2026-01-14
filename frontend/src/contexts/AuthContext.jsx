@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { authService } from '../services/authService';
 import api from '../services/api';
+import { companyCacheService } from '../services/companyCacheService';
 
 const AuthContext = createContext(null);
 
