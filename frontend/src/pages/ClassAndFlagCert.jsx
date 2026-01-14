@@ -201,13 +201,13 @@ const ClassAndFlagCert = () => {
     }
   }, [location.state]);
 
-  const fetchShips = async () => {
+  const fetchShips = async (forceRefresh = false) => {
     try {
       console.log('Fetching ships...');
       setLoading(true);
-      const response = await shipService.getAllShips();
-      console.log('Ships fetched successfully:', response);
-      const data = response.data || response || []; // Handle different response formats
+      
+      // Use ship cache service instead of direct API call
+      const data = await shipCacheService.getShips(forceRefresh);
       
       // Ensure data is array
       if (!Array.isArray(data)) {
@@ -215,13 +215,7 @@ const ClassAndFlagCert = () => {
         setShips([]);
       } else {
         setShips(data);
-        // Cache ships data for faster subsequent loads
-        try {
-          localStorage.setItem('cachedShips', JSON.stringify(data));
-          console.log('✅ [ClassAndFlagCert] Cached ships:', data.length);
-        } catch (e) {
-          console.warn('Failed to cache ships:', e);
-        }
+        console.log('✅ [ClassAndFlagCert] Ships loaded:', data.length);
       }
       
       // Don't auto-select, let user choose via Ship Select button
