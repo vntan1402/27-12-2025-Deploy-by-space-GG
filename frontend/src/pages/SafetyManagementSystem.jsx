@@ -645,8 +645,24 @@ const SafetyManagementSystem = () => {
     
     // Sort
     filtered.sort((a, b) => {
-      const aVal = a[sortConfig.column];
-      const bVal = b[sortConfig.column];
+      let aVal, bVal;
+      
+      // Special handling for status column (computed field)
+      if (sortConfig.column === 'status') {
+        // Define status priority order: Critical (highest urgency) -> Expired -> Due Soon -> Valid -> Unknown
+        const statusPriority = {
+          'Critical': 1,
+          'Expired': 2,
+          'Due Soon': 3,
+          'Valid': 4,
+          'Unknown': 5
+        };
+        aVal = statusPriority[getCertificateStatus(a)] || 5;
+        bVal = statusPriority[getCertificateStatus(b)] || 5;
+      } else {
+        aVal = a[sortConfig.column];
+        bVal = b[sortConfig.column];
+      }
       
       if (aVal === bVal) return 0;
       if (aVal === null || aVal === undefined) return 1;
