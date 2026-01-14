@@ -40,6 +40,7 @@ async def get_audit_certificates(
 @router.get("/upcoming-surveys")
 async def get_upcoming_audit_surveys(
     days: int = Query(30, description="Number of days to look ahead (legacy parameter, not used with window logic)"),
+    company: Optional[str] = Query(None, description="Company ID to filter by (for System Admin)"),
     current_user: UserResponse = Depends(get_current_user)
 ):
     """
@@ -62,7 +63,7 @@ async def get_upcoming_audit_surveys(
     - is_due_soon: More than 30 days but within window
     """
     try:
-        return await AuditCertificateService.get_upcoming_audit_surveys(current_user, days)
+        return await AuditCertificateService.get_upcoming_audit_surveys(current_user, days, company)
     except HTTPException:
         raise
     except Exception as e:
