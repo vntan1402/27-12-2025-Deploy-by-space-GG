@@ -128,9 +128,8 @@ export const AuthProvider = ({ children }) => {
       
       console.log('🔍 [AuthContext] Fetching company expiry for:', companyIdOrName);
       
-      // Fetch companies to get software_expiry
-      const response = await api.get('/api/companies');
-      const companies = response.data;
+      // Use company cache service instead of direct API call
+      const companies = await companyCacheService.getCompaniesList();
       
       console.log('📦 [AuthContext] Total companies fetched:', companies.length);
       
