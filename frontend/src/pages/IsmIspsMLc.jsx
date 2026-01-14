@@ -224,8 +224,8 @@ const IsmIspsMLc = () => {
 
   const fetchCompanyData = async () => {
     try {
-      const response = await companyService.getCompanyInfo();
-      setCompanyData(response.data);
+      const data = await companyCacheService.getCompanyInfo();
+      setCompanyData(data);
     } catch (error) {
       console.error('Failed to fetch company data:', error);
     }
@@ -237,7 +237,8 @@ const IsmIspsMLc = () => {
 
   const handleShipCreated = (shipId, shipName) => {
     setShowAddShipModal(false);
-    fetchShips();
+    shipCacheService.invalidateCache();
+    fetchShips(true);
     toast.success(language === 'vi' ? `Tàu ${shipName} đã được tạo` : `Ship ${shipName} created successfully`);
   };
 
