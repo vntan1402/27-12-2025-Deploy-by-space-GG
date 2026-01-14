@@ -543,6 +543,9 @@ export const CompanyCertTable = ({
                 >
                   {formatNextAuditWithWindow(cert.next_audit, cert.next_audit_type)}
                 </td>
+                <td className="px-2 py-2 border-b border-r text-sm">
+                  {cert.next_audit_type || '-'}
+                </td>
                 <td 
                   className="px-2 py-2 border-b border-r text-sm font-semibold text-blue-700" 
                   title={cert.issued_by}
