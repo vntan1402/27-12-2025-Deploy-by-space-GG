@@ -1331,8 +1331,9 @@ const ClassAndFlagCert = () => {
     console.log('Ship created callback triggered:', shipId, shipName);
     // Close modal
     setShowAddShipModal(false);
-    // Refresh ship list to show new ship
-    await fetchShips();
+    // Invalidate cache and refresh ship list
+    shipCacheService.invalidateCache();
+    await fetchShips(true); // Force refresh from API
     console.log('Ship list refreshed after creation');
     // Don't need to navigate - already on this page!
   };
@@ -1346,8 +1347,8 @@ const ClassAndFlagCert = () => {
     setShips(ships.map(s => s.id === updatedShip.id ? updatedShip : s));
     // Update selected ship
     updateSelectedShip(updatedShip);
-    // Refresh ships list
-    fetchShips();
+    // Update cache
+    shipCacheService.updateInCache(updatedShip.id, updatedShip);
     toast.success(language === 'vi' ? 'Cập nhật tàu thành công!' : 'Ship updated successfully!');
   };
 
