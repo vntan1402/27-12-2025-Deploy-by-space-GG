@@ -14,6 +14,7 @@ import {
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal, ShipSelectionModal } from '../components/Ships';
 import { shipService, surveyReportService } from '../services';
+import { shipCacheService } from '../services/shipCacheService';
 import api from '../services/api';
 import { toast } from 'sonner';
 import { shortenClassSociety } from '../utils/shipHelpers';
