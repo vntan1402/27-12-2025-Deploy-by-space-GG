@@ -506,7 +506,9 @@ const SafetyManagementSystem = () => {
   const handleUpcomingAudit = async () => {
     setIsLoadingUpcomingAudit(true);
     try {
-      const response = await api.get('/api/audit-certificates/upcoming-surveys?days=30');
+      // Include company parameter for System Admin to see correct data
+      const companyParam = user?.company ? `&company=${user.company}` : '';
+      const response = await api.get(`/api/audit-certificates/upcoming-surveys?days=30${companyParam}`);
       const data = response.data;
       
       // Always show modal, even if no audits
