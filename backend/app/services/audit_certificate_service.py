@@ -736,20 +736,12 @@ class AuditCertificateService:
             
             logger.info(f"Found {len(ships)} ships to check for upcoming surveys")
             
-            if not ship_ids:
-                return {
-                    "upcoming_surveys": [],
-                    "total_count": 0,
-                    "company": user_company,
-                    "company_name": company_name,
-                    "check_date": current_date.isoformat()
-                }
-            
-            # Get all audit certificates for these ships
+            # Get all audit certificates for these ships (only if ships exist)
             all_audit_certificates = []
-            for ship_id in ship_ids:
-                certs = await mongo_db.find_all(AuditCertificateService.collection_name, {"ship_id": ship_id})
-                all_audit_certificates.extend(certs)
+            if ship_ids:
+                for ship_id in ship_ids:
+                    certs = await mongo_db.find_all(AuditCertificateService.collection_name, {"ship_id": ship_id})
+                    all_audit_certificates.extend(certs)
             
             logger.info(f"📋 Found {len(all_audit_certificates)} audit certificates to check")
             
