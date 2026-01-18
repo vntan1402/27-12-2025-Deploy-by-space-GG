@@ -1,0 +1,165 @@
+<analysis>**original_problem_statement:**
+The user's initial problem was a series of feature requests and bug fixes for the ship management application. This started with a request to check if multi-file upload for Company Certificates existed (the user then decided to skip implementing it). The work then focused on fixing bugs and adding features to the Company Certificate and Upcoming Audit sections.
+
+The key requests addressed in this session were:
+-   Fixing incorrect sorting by the Status column.
+-   Adding a search feature by Company Name.
+-   Adding an Audit Type column to the certificate table.
+-   Fixing a recurring backend deployment/build error.
+-   Fixing a React crash (Error #310) in an upcoming audit modal.
+-   Adding a Days Remaining column to PDF/XLSX exports.
+-   Adding filtering capabilities to the upcoming audit modals and ensuring exports respect the filters.
+-   Fixing a major bug where the upcoming audit modal showed 0 certificates.
+-   Optimizing performance by caching several frequently called APIs (, , ).
+-   Correcting the business logic for calculating Next Survey and Next Survey Type for various certificate types, especially , , and . The main recurring issue has been getting the logic for  certificates right.
+
+**User's preferred language**:
+The user's primary language is **Vietnamese**. The next agent MUST respond in Vietnamese only.
+
+**what currently exists?**
+The application is a full-stack ship management tool. In this session, significant improvements were made to the frontend:
+-   The Company Certificate table now has correct status sorting, enhanced search, and an additional Audit Type column.
+-   The Upcoming Audit modals have been enhanced with new filters (Status, Ship/Company Name) that are respected by PDF/XLSX exports. The UI layout of these filters has also been improved.
+-   A major performance optimization has been implemented through a new session-based caching layer in the frontend for key APIs (, , ), drastically reducing redundant network requests.
+-   The backend logic for calculating certificate survey dates has been significantly refactored to correctly handle , , and  certificate types, although this remains a point of contention.
+-   A recurring backend deployment failure was investigated and identified as a Google Cloud Build infrastructure issue. The  file was cleaned up as a preliminary step.
+
+**Last working item**:
+-   **Last item agent was working:** The agent was debugging why  certificates were still showing  as  instead of the correct  even after a new file upload. The agent identified and fixed hardcoded legacy business rules in  and  that were overriding the new logic.
+-   **Status:** USER VERIFICATION PENDING
+-   **Agent Testing Done:** N
+-   **Which testing method agent to use?** Manual testing by the user is required. The user needs to upload the problematic PDF file again to confirm if the latest fix works.
+-   **User Testing Done:** N
+
+**All Pending/In progress Issue list**:
+-   **Issue 1:** (P0)  certificates are misclassified with  as  instead of .
+-   **Issue 2:** (P1) Certificates with Statement in their name are being classified as  instead of .
+-   **Issue 3:** (P1) The backend fails to deploy on the user's environment with a Google Cloud Build error ( failed).
+-   **Issue 4:** (P2)  endpoint returning a 500 error (from previous handoff).
+-   **Issue 5:** (P2) Memory optimizations for large file uploads need verification on the user's Cloud Run environment (from previous handoff).
+
+**Issues Detail:**
+-   **Issue 1 & 2:**  and  Certificate Misclassification
+    -   **Attempted fixes:** The agent performed multiple refactors:
+        1.  Updated  with the correct logic for , , and  types.
+        2.  Updated  to improve AI classification and post-processing.
+        3.  **Most recently, the agent discovered and removed a hardcoded rule in  and  that was incorrectly overriding the  for  certificates to  or not applying the new logic.**
+    -   **Next debug checklist:**
+        1.  Ask the user to **re-upload the certificate PDF** () that was causing the issue. This is crucial to trigger the new code path in .
+        2.  If the issue persists, verify the  value for the certificate directly in the MongoDB  collection after the re-upload.
+        3.  Add detailed logging to the  function in  to trace the values of , , and  as they are being processed and saved.
+    -   **Why fix this issue and what will be achieved with the fix?** Core business logic is incorrect, leading to wrong survey planning and notifications. Fixing it will ensure certificate data is accurate.
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** backend
+    -   **Blocked on other issue:** None
+
+-   **Issue 3:** Backend Build/Deployment Failure
+    -   **Attempted fixes:** The agent identified it as a Google Cloud Build infrastructure error, not a code error. It cleaned  of duplicates and conflicts as a precaution.
+    -   **Next debug checklist:**
+        1.  Ask the user if they were able to successfully deploy after the agent's last message.
+        2.  If it still fails, propose creating a custom  for the backend to bypass Google's Buildpacks, which seem to be the source of the intermittent  error.
+    -   **Why fix this issue and what will be achieved with the fix?** The user cannot deploy backend changes, which blocks all progress.
+    -   **Status:** BLOCKED (on user action/feedback)
+    -   **Is recurring issue?** Y
+    -   **Should Test frontend/backend/both after fix?** N/A (Infrastructure issue)
+    -   **Blocked on other issue:** None
+
+-   **Issue 4 & 5:** Pending User Verification
+    -   **Status:** USER VERIFICATION PENDING
+    -   **Note:** These are lower priority and inherited from the previous session. Do not work on them unless the user brings them up.
+
+**In progress Task List**:
+None.
+
+**Upcoming and Future Tasks**
+-   **Upcoming Tasks:**
+    -   (P1) Create a Batch Recalculate feature to re-apply the latest survey calculation logic to all existing certificates in the database without requiring a re-upload.
+-   **Future Tasks:**
+    -   Implement a dashboard or logging for application performance monitoring.
+    -   Enhance the file upload feature with AI-powered suggestions for data extraction.
+
+**Completed work in this session**
+-   **Fix:** Corrected the sorting logic for the Status column in the Company Certificate table.
+-   **Feature:** Enhanced the search functionality to include Company Name.
+-   **Feature:** Added a new Audit Type column to the Company Certificate table.
+-   **Fix:** Resolved a React crash (Error #310) in .
+-   **Feature:** Added Days Remaining column to PDF/XLSX exports.
+-   **Feature:** Implemented status and name filters in upcoming audit modals and ensured exports are filtered.
+-   **Fix:** Corrected a critical bug in the backend that caused the Upcoming Audit modal to show 0 certificates.
+-   **Performance:** Implemented a session-based frontend caching layer for , , and , significantly reducing API calls.
+-   **Fix (Iterative):** Made multiple updates to the backend logic (, , ) to correctly calculate  and  for , , and  certificates.
+
+**Earlier issues found/mentioned but not fixed**
+None.
+
+**Known issue recurrence from previous fork**
+-   **Issue recurrence in previous fork:**  500 error.
+-   **Recurrence count:** 1
+-   **Status:** USER VERIFICATION PENDING
+
+**Code Architecture**
+
+
+**Key Technical Concepts**
+-   **Complex Business Logic:** Implementing and debugging multi-layered business rules for calculating survey dates based on certificate types, names, dates, and other attributes.
+-   **Frontend Performance Caching:** Implemented a session-based caching strategy using  to store frequently accessed, semi-static data (like lists of ships and companies). This reduces API calls and improves perceived performance.
+-   **React Hooks Rules:** Debugged and fixed a Rendered more hooks than during the previous render (Error #310) by ensuring hooks are called unconditionally at the top level of the component.
+-   **Infrastructure Debugging:** Differentiated between application code errors and external infrastructure errors (Google Cloud Build), providing targeted solutions for each.
+
+**key DB schema**
+No changes made to the DB schema.
+
+**changes in tech stack**
+None.
+
+**All files of reference**
+-   : Core logic for calculating next survey dates. **Crucial for the main bug.**
+-   : Contains the recently fixed legacy rule that was overriding Interim certificate logic. **Crucial for the main bug.**
+-   : New frontend caching service for ships.
+-   : New frontend caching service for companies.
+-   : The main page where many UI changes were made.
+-   : Cleaned to potentially resolve build issues.
+
+**Critical Info for New Agent**
+-   **Language:** You **MUST** respond in **Vietnamese**.
+-   **Highest Priority:** The user's main frustration is the incorrect  for  certificates. The agent just implemented a critical fix in  and . Your first step should be to ask the user to re-upload the file to verify this specific fix.
+-   **Backend Deployment:** The backend build is failing due to a Google Cloud Build infrastructure issue, not a code issue. If the user reports that retrying the deployment didn't work, the next step is to offer to create a custom  to bypass Google's buildpacks.
+-   **Frontend Caching:** Be aware that a new caching layer exists for ships and companies (, ). If you modify how ships or companies are created/updated/deleted, you must ensure the cache is properly invalidated.
+
+**documents and test reports created in this job**
+None.
+
+**Last 10 User Messages and any pending HUMAN messages**
+-   **10. User:** Reports that even with new data, the  for Interim certificates is still wrong. (IN PROGRESS)
+-   **9. User:** Asks for a fix for an Interim certificate being misclassified as . (RESOLVED - Logic fixed, pending verification)
+-   **8. User:** Requests changes to certificate calculation logic:  window to ,  type to , and add a new  type. (COMPLETED)
+-   **7. User:** Asks how  and  are calculated and if it depends on . (COMPLETED - Agent provided detailed explanation)
+-   **6. User:** Wants to cache  to reduce calls. (COMPLETED)
+-   **5. User:** Points out many APIs are called repeatedly and asks about preflight requests. (COMPLETED - Agent explained and implemented caching for )
+-   **4. User:** Asks when the  API is called because it's slow. (COMPLETED - Led to caching implementation)
+-   **3. User:** Asks to display two filter fields on the same row. (COMPLETED)
+-   **2. User:** Reports that the Upcoming Audit modal shows 0 certificates and . (RESOLVED)
+-   **1. User:** Asks to add filters (Ship/Company Name & Status) to the Upcoming Audit Notification modal and for exports to use the filtered data. (COMPLETED)
+
+**Project Health Check:**
+-   **Broken:** The backend deployment process is unreliable due to an external infrastructure issue, which is a major blocker for the user. Core business logic for certificate classification is buggy and has required multiple iterations to fix.
+-   **Mocked:** None
+
+**3rd Party Integrations**
+-   Google Gemini
+-   MongoDB Atlas
+-   Google Drive
+
+**Testing status**
+-   **Testing agent used after significant changes:** NO
+-   **Troubleshoot agent used after agent stuck in loop:** NO
+-   **Test files created:** None
+-   **Known regressions:** The logic for  certificates has been a persistent regression, with multiple fixes attempted. The latest fix is the most promising.
+
+**Credentials to test flow:**
+-   **Username:** 
+-   **Password:** 
+
+**What agent forgot to execute**
+The agent correctly followed all user instructions and did not forget any tasks. The user initially requested a feature (multi-file upload) and then asked to skip it, which the agent adhered to.</analysis>

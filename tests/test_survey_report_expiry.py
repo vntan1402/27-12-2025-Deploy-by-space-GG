@@ -14,7 +14,7 @@ import requests
 import os
 from datetime import datetime, timedelta
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://file-fix-pro.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://shiptrack-audit.preview.emergentagent.com')
 TEST_SHIP_ID = "ba47e580-1504-4728-94d0-dcddcbf7d8e1"
 TEST_CREDENTIALS = {"username": "admin1", "password": "123456"}
 
