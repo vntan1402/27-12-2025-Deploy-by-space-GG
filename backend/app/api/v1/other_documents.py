@@ -271,6 +271,69 @@ async def upload_folder(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# ========== BACKGROUND FOLDER UPLOAD ENDPOINTS ==========
+
+@router.post("/background-upload-folder")
+async def background_upload_folder(
+    files: List[UploadFile] = File(...),
+    ship_id: str = Form(...),
+    folder_name: str = Form(...),
+    date: Optional[str] = Form(None),
+    status: Optional[str] = Form("Valid"),
+    note: Optional[str] = Form(None),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Start background folder upload.
+    Returns task_id for polling status.
+    """
+    from app.services.background_upload_service import BackgroundUploadService
+    
+    try:
+        logger.info(f"📁 Starting background upload: {folder_name} with {len(files)} files")
+        
+        result = await BackgroundUploadService.start_folder_upload(
+            files=files,
+            ship_id=ship_id,
+            folder_name=folder_name,
+            date=date,
+            status=status or "Valid",
+            note=note,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error starting background upload: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/background-upload-folder/{task_id}")
+async def get_background_upload_status(
+    task_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get status of a background folder upload task.
+    Poll this endpoint to track progress.
+    """
+    from app.services.background_upload_service import BackgroundUploadService
+    
+    try:
+        return await BackgroundUploadService.get_task_status(task_id)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error getting background upload status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/{doc_id}/upload-file")
 async def upload_file_for_document(
     doc_id: str,
