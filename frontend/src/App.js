@@ -1,13 +1,18 @@
 import React from 'react';
 import { AuthProvider } from './contexts/AuthContext';
+import { BackgroundTaskProvider } from './contexts/BackgroundTaskContext';
 import { Toaster } from 'sonner';
 import AppRoutes from './routes/AppRoutes';
+import GlobalFloatingProgress from './components/common/GlobalFloatingProgress';
 
 function App() {
   return (
     <AuthProvider>
-      <AppRoutes />
-      <Toaster position="top-right" richColors />
+      <BackgroundTaskProvider>
+        <AppRoutes />
+        <Toaster position="top-right" richColors />
+        <GlobalFloatingProgress />
+      </BackgroundTaskProvider>
     </AuthProvider>
   );
 }
