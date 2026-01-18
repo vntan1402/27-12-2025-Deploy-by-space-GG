@@ -501,7 +501,8 @@ export const AddShipCertificateModal = ({
       console.log(`📤 Smart Upload: Uploading ${totalFiles} files (max 3 concurrent, immediate polling per file)...`);
 
       const MAX_CONCURRENT = 3; // Maximum 3 files uploading/polling at the same time
-      const DELAY_BETWEEN_UPLOADS = 5000; // 5s delay before starting next upload
+      const DELAY_INITIAL = 5000; // 5s delay between initial file starts
+      const DELAY_ON_SLOT_FREE = 1000; // 1s delay when a slot becomes free
       
       let currentIndex = 0;
       const activeProcesses = new Set();
@@ -532,16 +533,16 @@ export const AddShipCertificateModal = ({
             console.log('✅ All files completed, finalizing results');
             finalizeBatchResults(fileArray, successCount, failedCount, firstSuccessInfo);
           } else if (currentIndex < fileArray.length) {
-            // Start next file with delay
-            setTimeout(() => startNextFile(), DELAY_BETWEEN_UPLOADS);
+            // Start next file with SHORT delay (1s) when slot freed
+            setTimeout(() => startNextFile(), DELAY_ON_SLOT_FREE);
           }
         });
       };
 
-      // Start initial files one by one with delay between them
+      // Start initial files one by one with LONGER delay (5s) between them
       for (let i = 0; i < Math.min(MAX_CONCURRENT, fileArray.length); i++) {
         if (i > 0) {
-          await new Promise(resolve => setTimeout(resolve, DELAY_BETWEEN_UPLOADS));
+          await new Promise(resolve => setTimeout(resolve, DELAY_INITIAL));
         }
         await startNextFile();
       }
