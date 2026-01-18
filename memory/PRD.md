@@ -24,6 +24,29 @@ Build and enhance a Maritime Document Management System for managing ships, cert
 
 ## Changelog
 
+### 2026-01-18: Cancel Button for Background Tasks
+**Status**: Completed ✅
+
+**Feature**: Added cancel button for background upload tasks
+
+**Changes**:
+1. Backend:
+   - Added `POST /api/other-documents/background-upload-folder/{task_id}/cancel` endpoint
+   - Added `cancel_task()` method in `BackgroundUploadTaskService`
+
+2. Frontend:
+   - Added `cancelTask()` method in `BackgroundTaskContext`
+   - Added cancel button (StopCircle icon) in `GlobalFloatingProgress`
+   - Shows "🚫 Đã hủy" status when task is cancelled
+   - Upload loop checks task status and stops if cancelled
+
+**Files Modified**:
+- `/app/backend/app/services/background_upload_service.py`
+- `/app/backend/app/api/v1/other_documents.py`
+- `/app/frontend/src/contexts/BackgroundTaskContext.jsx`
+- `/app/frontend/src/components/common/GlobalFloatingProgress.jsx`
+- `/app/frontend/src/components/OtherDocuments/AddOtherDocumentModal.jsx`
+
 ### 2026-01-18: Background Folder Upload V2
 **Status**: Completed ✅
 
