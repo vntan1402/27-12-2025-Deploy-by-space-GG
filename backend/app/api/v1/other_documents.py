@@ -411,6 +411,33 @@ async def get_background_upload_status(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/background-upload-folder/{task_id}/cancel")
+async def cancel_background_upload(
+    task_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Cancel an in-progress background upload task.
+    """
+    from app.services.background_upload_service import BackgroundUploadTaskService
+    
+    try:
+        logger.info(f"🚫 Cancel request for task {task_id} by user {current_user.id}")
+        
+        result = await BackgroundUploadTaskService.cancel_task(task_id, current_user.id)
+        
+        if not result.get("success"):
+            raise HTTPException(status_code=400, detail=result.get("error", "Cancel failed"))
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error cancelling background upload: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/{doc_id}/upload-file")
 async def upload_file_for_document(
     doc_id: str,
