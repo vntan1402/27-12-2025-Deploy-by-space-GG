@@ -107,6 +107,31 @@ const GlobalFloatingProgress = () => {
     });
   };
 
+  // Handle cancel task
+  const handleCancelTask = async (e, task) => {
+    e.stopPropagation();
+    
+    if (cancellingTasks.has(task.id)) return;
+    
+    setCancellingTasks(prev => new Set(prev).add(task.id));
+    
+    try {
+      const result = await cancelTask(task.id, task.apiEndpoint);
+      
+      if (result.success) {
+        console.log(`✅ Task ${task.id} cancelled`);
+      } else {
+        console.error(`❌ Cancel failed: ${result.error}`);
+      }
+    } finally {
+      setCancellingTasks(prev => {
+        const next = new Set(prev);
+        next.delete(task.id);
+        return next;
+      });
+    }
+  };
+
   // Don't render if no active tasks
   if (activeTasks.length === 0) return null;
 
@@ -118,6 +143,8 @@ const GlobalFloatingProgress = () => {
       return { icon: CheckCircle, color: 'text-yellow-500', bgColor: 'bg-yellow-50' };
     } else if (task.status === 'failed') {
       return { icon: XCircle, color: 'text-red-500', bgColor: 'bg-red-50' };
+    } else if (task.status === 'cancelled') {
+      return { icon: StopCircle, color: 'text-orange-500', bgColor: 'bg-orange-50' };
     }
     return { icon: Loader2, color: 'text-blue-500', bgColor: 'bg-blue-50' };
   };
