@@ -288,6 +288,8 @@ const GlobalFloatingProgress = () => {
                           language === 'vi' ? '✅ Hoàn thành!' : '✅ Completed!'
                         ) : task.status === 'completed_with_errors' ? (
                           language === 'vi' ? `⚠️ Hoàn thành với ${task.errors.length} lỗi` : `⚠️ Completed with ${task.errors.length} errors`
+                        ) : task.status === 'cancelled' ? (
+                          language === 'vi' ? `🚫 Đã hủy (${task.completed}/${task.total} files)` : `🚫 Cancelled (${task.completed}/${task.total} files)`
                         ) : (
                           language === 'vi' ? '❌ Thất bại' : '❌ Failed'
                         )
@@ -297,7 +299,7 @@ const GlobalFloatingProgress = () => {
                     </p>
 
                     {/* Errors */}
-                    {task.errors.length > 0 && (
+                    {task.errors && task.errors.length > 0 && (
                       <div className="bg-red-50 border border-red-200 rounded p-2 max-h-20 overflow-y-auto">
                         <p className="font-medium text-red-700 mb-1">
                           {language === 'vi' ? 'Lỗi:' : 'Errors:'}
