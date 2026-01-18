@@ -17,6 +17,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useBackgroundTask } from '../../contexts/BackgroundTaskContext';
 import { toast } from 'sonner';
 import otherDocumentService from '../../services/otherDocumentService';
+import uploadManager from '../../services/uploadManager';
 import api from '../../services/api';
 
 const AddOtherDocumentModal = ({ 
