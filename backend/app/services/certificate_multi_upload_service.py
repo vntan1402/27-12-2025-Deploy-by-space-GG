@@ -452,6 +452,15 @@ class CertificateMultiUploadService:
                     summary_text = analysis_result.get("summary_text", "")
                     extracted_info["filename"] = filename
                     
+                    # ⭐ POST-PROCESSING: Override cert_type based on cert_name keywords
+                    cert_name_for_check = (extracted_info.get("cert_name") or "").upper()
+                    if "INTERIM" in cert_name_for_check:
+                        extracted_info["cert_type"] = "Interim"
+                        logger.info(f"✅ POST-PROCESS (bg): Detected 'INTERIM' in cert_name → cert_type = 'Interim'")
+                    elif "STATEMENT" in cert_name_for_check:
+                        extracted_info["cert_type"] = "Statement"
+                        logger.info(f"✅ POST-PROCESS (bg): Detected 'STATEMENT' in cert_name → cert_type = 'Statement'")
+                    
                     # ⚡ OPTIMIZED: Create DB record FIRST (without file_id)
                     # This allows faster response - GDrive upload happens after
                     await UploadTaskService.update_file_status_by_name(
