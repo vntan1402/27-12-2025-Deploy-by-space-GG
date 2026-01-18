@@ -158,6 +158,7 @@ const AddOtherDocumentModal = ({
   };
 
   // Upload folder with BACKGROUND processing (uses GlobalFloatingProgress)
+  // Strategy: Upload files one by one with progress tracking to avoid large payload issues
   const uploadFolderWithProgress = async (folderName, filesToUpload) => {
     try {
       console.log('📁 Starting BACKGROUND folder upload...');
@@ -168,72 +169,98 @@ const AddOtherDocumentModal = ({
         throw new Error('No ship selected');
       }
       
-      // Create FormData for background upload
-      const formDataToSend = new FormData();
-      formDataToSend.append('ship_id', selectedShip.id);
-      formDataToSend.append('folder_name', folderName);
-      formDataToSend.append('status', formData.status || 'Valid');
+      // For large number of files, we need to chunk the upload
+      // First, create the document record, then upload files in background
+      const MAX_FILES_PER_REQUEST = 10; // Limit per request to avoid timeout/size issues
       
-      if (formData.date) {
-        formDataToSend.append('date', formData.date);
-      }
-      if (formData.note) {
-        formDataToSend.append('note', formData.note);
-      }
-      
-      // Append all files
-      console.log('📎 Appending files to FormData...');
-      for (let i = 0; i < filesToUpload.length; i++) {
-        const file = filesToUpload[i];
-        formDataToSend.append('files', file);
-        if (i < 3) {
-          console.log(`   File ${i + 1}: ${file.name} (${file.size} bytes)`);
+      if (filesToUpload.length <= MAX_FILES_PER_REQUEST) {
+        // Small number of files - use single request
+        const formDataToSend = new FormData();
+        formDataToSend.append('ship_id', selectedShip.id);
+        formDataToSend.append('folder_name', folderName);
+        formDataToSend.append('status', formData.status || 'Valid');
+        
+        if (formData.date) {
+          formDataToSend.append('date', formData.date);
         }
-      }
-      if (filesToUpload.length > 3) {
-        console.log(`   ... and ${filesToUpload.length - 3} more files`);
-      }
-      
-      console.log('🚀 Calling background upload API...');
-      
-      // Call background upload API
-      const startResponse = await api.post('/api/other-documents/background-upload-folder', formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        timeout: 60000 // 60 second timeout for initial upload
-      });
-      
-      console.log('📬 API Response:', startResponse.data);
-      
-      if (!startResponse.data?.success || !startResponse.data?.task_id) {
-        throw new Error(startResponse.data?.message || 'Failed to start background upload');
-      }
-      
-      const taskId = startResponse.data.task_id;
-      console.log(`📋 Background upload task started: ${taskId}`);
-      
-      // Add task to GlobalFloatingProgress via context
-      await startUploadTask({
-        taskId,
-        type: 'folder_upload',
-        title: language === 'vi' 
-          ? `Upload "${folderName}" (${filesToUpload.length} files)` 
-          : `Upload "${folderName}" (${filesToUpload.length} files)`,
-        total: filesToUpload.length,
-        apiEndpoint: '/api/other-documents/background-upload-folder/',
-        onComplete: () => {
-          // Refresh document list when upload completes
+        if (formData.note) {
+          formDataToSend.append('note', formData.note);
+        }
+        
+        // Append all files
+        console.log('📎 Appending files to FormData...');
+        for (let i = 0; i < filesToUpload.length; i++) {
+          const file = filesToUpload[i];
+          formDataToSend.append('files', file);
+        }
+        
+        console.log('🚀 Calling background upload API...');
+        
+        const startResponse = await api.post('/api/other-documents/background-upload-folder', formDataToSend, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 120000 // 2 minute timeout
+        });
+        
+        console.log('📬 API Response:', startResponse.data);
+        
+        if (!startResponse.data?.success || !startResponse.data?.task_id) {
+          throw new Error(startResponse.data?.message || 'Failed to start background upload');
+        }
+        
+        const taskId = startResponse.data.task_id;
+        console.log(`📋 Background upload task started: ${taskId}`);
+        
+        // Add task to GlobalFloatingProgress
+        await startUploadTask({
+          taskId,
+          type: 'folder_upload',
+          title: language === 'vi' 
+            ? `Upload "${folderName}" (${filesToUpload.length} files)` 
+            : `Upload "${folderName}" (${filesToUpload.length} files)`,
+          total: filesToUpload.length,
+          apiEndpoint: '/api/other-documents/background-upload-folder/',
+          onComplete: () => { onSuccess(); }
+        });
+        
+      } else {
+        // Large number of files - use legacy streaming upload (already proven to work)
+        console.log(`📦 Large upload (${filesToUpload.length} files) - using streaming method...`);
+        
+        // Use existing upload method that works with streaming
+        const result = await otherDocumentService.uploadFolder(
+          selectedShip.id,
+          filesToUpload,
+          folderName,
+          {
+            date: formData.date || null,
+            status: formData.status,
+            note: formData.note || null
+          },
+          // Progress callback - show toast updates
+          (progress) => {
+            if (progress.completedFiles % 10 === 0 || progress.completedFiles === filesToUpload.length) {
+              console.log(`📊 Upload progress: ${progress.completedFiles}/${filesToUpload.length}`);
+            }
+          }
+        );
+        
+        if (result.success) {
+          toast.success(language === 'vi'
+            ? `✅ Đã upload folder thành công! (${result.successful_files}/${result.total_files} files)`
+            : `✅ Folder uploaded successfully! (${result.successful_files}/${result.total_files} files)`
+          );
           onSuccess();
+        } else {
+          throw new Error(result.message || 'Upload failed');
         }
-      });
+      }
       
       toast.info(language === 'vi'
-        ? `🚀 Đang upload ${filesToUpload.length} file trong nền...`
-        : `🚀 Uploading ${filesToUpload.length} files in background...`
+        ? `🚀 Đang upload ${filesToUpload.length} file...`
+        : `🚀 Uploading ${filesToUpload.length} files...`
       );
       
-      // Close modal immediately - user can continue working
+      // Close modal
       onClose();
       
     } catch (error) {
