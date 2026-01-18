@@ -1,52 +1,87 @@
 /**
  * Upload Manager Singleton
  * Manages file uploads independently from React lifecycle
- * Attached to window object to persist across page navigation and hot reload
+ * Reads file content into memory immediately to survive page navigation
  */
 
-// Get axios instance - we need to import dynamically to avoid circular deps
+// Get axios instance
 const getApi = () => {
-  // Try to get from window first (cached)
   if (window.__apiInstance) {
     return window.__apiInstance;
   }
-  // Dynamic import
   const api = require('./api').default;
   window.__apiInstance = api;
   return api;
 };
 
+// Read file as ArrayBuffer
+const readFileAsArrayBuffer = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
+};
+
 class UploadManager {
   constructor() {
-    // Store active uploads by taskId
     this.activeUploads = new Map();
-    // Store file queues by taskId  
-    this.fileQueues = new Map();
-    // Cancelled tasks
+    this.fileDataQueues = new Map(); // Store file DATA (not File objects)
     this.cancelledTasks = new Set();
-    // Active timeouts (to track scheduled uploads)
     this.scheduledUploads = new Map();
     
-    console.log('📦 [UploadManager] Initialized (window-attached)');
+    console.log('📦 [UploadManager] Initialized (with file data caching)');
   }
   
   /**
    * Start staggered file upload
+   * Reads all files into memory first, then schedules uploads
    */
-  startUpload({ taskId, files, apiEndpoint, staggerDelayMs = 2000, onProgress }) {
+  async startUpload({ taskId, files, apiEndpoint, staggerDelayMs = 2000, onProgress }) {
     const api = getApi();
     
     console.log(`📤 [UploadManager] Starting upload for task ${taskId} with ${files.length} files`);
+    console.log(`📤 [UploadManager] Reading file contents into memory...`);
     
-    // Store files in queue (convert FileList to Array if needed)
+    // Convert FileList to Array
     const fileArray = Array.from(files);
-    this.fileQueues.set(taskId, fileArray);
+    
+    // Read ALL file contents into memory IMMEDIATELY
+    // This ensures data survives page navigation
+    const fileDataArray = [];
+    for (let i = 0; i < fileArray.length; i++) {
+      const file = fileArray[i];
+      try {
+        const arrayBuffer = await readFileAsArrayBuffer(file);
+        fileDataArray.push({
+          name: file.name,
+          type: file.type || 'application/octet-stream',
+          size: file.size,
+          data: arrayBuffer // Raw binary data in memory
+        });
+      } catch (err) {
+        console.error(`❌ [UploadManager] Failed to read file ${file.name}:`, err);
+        fileDataArray.push({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          data: null,
+          error: err.message
+        });
+      }
+    }
+    
+    console.log(`📤 [UploadManager] Read ${fileDataArray.length} files into memory`);
+    
+    // Store file DATA (not File objects)
+    this.fileDataQueues.set(taskId, fileDataArray);
     this.cancelledTasks.delete(taskId);
     
     // Track upload state
     const uploadState = {
       taskId,
-      totalFiles: fileArray.length,
+      totalFiles: fileDataArray.length,
       completedFiles: 0,
       failedFiles: 0,
       inProgress: true,
@@ -58,11 +93,11 @@ class UploadManager {
     const timeoutIds = [];
     
     // Schedule each file upload with staggered delay
-    fileArray.forEach((file, index) => {
+    fileDataArray.forEach((fileData, index) => {
       const delay = index * staggerDelayMs;
       
       const timeoutId = window.setTimeout(() => {
-        this._uploadSingleFile(taskId, file, index, apiEndpoint, api, onProgress);
+        this._uploadSingleFileData(taskId, fileData, index, apiEndpoint, api, onProgress);
       }, delay);
       
       timeoutIds.push(timeoutId);
@@ -70,13 +105,13 @@ class UploadManager {
     
     this.scheduledUploads.set(taskId, timeoutIds);
     
-    console.log(`📤 [UploadManager] Scheduled ${fileArray.length} uploads with ${staggerDelayMs}ms stagger`);
+    console.log(`📤 [UploadManager] Scheduled ${fileDataArray.length} uploads with ${staggerDelayMs}ms stagger`);
   }
   
   /**
-   * Upload a single file
+   * Upload a single file from cached data
    */
-  async _uploadSingleFile(taskId, file, index, apiEndpoint, api, onProgress) {
+  async _uploadSingleFileData(taskId, fileData, index, apiEndpoint, api, onProgress) {
     // Check if cancelled
     if (this.cancelledTasks.has(taskId)) {
       console.log(`🚫 [UploadManager] Task ${taskId} cancelled. Skipping file ${index + 1}`);
@@ -89,7 +124,15 @@ class UploadManager {
       return;
     }
     
-    const filename = file.name || `file_${index}`;
+    const filename = fileData.name || `file_${index}`;
+    
+    // Skip if file read failed
+    if (!fileData.data) {
+      console.error(`❌ [UploadManager] No data for file ${filename}, skipping`);
+      uploadState.failedFiles++;
+      this._checkCompletion(taskId, uploadState, onProgress);
+      return;
+    }
     
     try {
       // Check task status from server
@@ -106,8 +149,11 @@ class UploadManager {
       
       console.log(`📤 [UploadManager] Uploading ${index + 1}/${uploadState.totalFiles}: ${filename}`);
       
+      // Create Blob from ArrayBuffer
+      const blob = new Blob([fileData.data], { type: fileData.type });
+      
       const formData = new FormData();
-      formData.append('file', file, filename);
+      formData.append('file', blob, filename);
       
       const response = await api.post(
         `${apiEndpoint}${taskId}/upload-file`,
@@ -127,7 +173,6 @@ class UploadManager {
       }
       
     } catch (error) {
-      // Check if cancelled
       const errorDetail = error.response?.data?.detail || '';
       if (error.response?.status === 400 && 
           (errorDetail.includes('cancelled') || errorDetail.includes('Task already'))) {
@@ -140,18 +185,20 @@ class UploadManager {
       console.error(`❌ [UploadManager] Error uploading ${filename}:`, error.message);
     }
     
-    // Check if all files processed
+    this._checkCompletion(taskId, uploadState, onProgress);
+  }
+  
+  _checkCompletion(taskId, uploadState, onProgress) {
     const processed = uploadState.completedFiles + uploadState.failedFiles;
     if (processed >= uploadState.totalFiles) {
       uploadState.inProgress = false;
       console.log(`✅ [UploadManager] Task ${taskId} complete. Success: ${uploadState.completedFiles}, Failed: ${uploadState.failedFiles}`);
       
-      // Cleanup
-      this.fileQueues.delete(taskId);
+      // Cleanup - free memory
+      this.fileDataQueues.delete(taskId);
       this.scheduledUploads.delete(taskId);
     }
     
-    // Notify progress if callback provided
     if (onProgress) {
       onProgress({
         taskId,
@@ -163,19 +210,18 @@ class UploadManager {
     }
   }
   
-  /**
-   * Cancel an upload
-   */
   cancelUpload(taskId) {
     console.log(`🚫 [UploadManager] Cancelling task ${taskId}`);
     this.cancelledTasks.add(taskId);
     
-    // Clear scheduled timeouts
     const timeoutIds = this.scheduledUploads.get(taskId);
     if (timeoutIds) {
       timeoutIds.forEach(id => window.clearTimeout(id));
       this.scheduledUploads.delete(taskId);
     }
+    
+    // Free memory
+    this.fileDataQueues.delete(taskId);
     
     const uploadState = this.activeUploads.get(taskId);
     if (uploadState) {
@@ -183,26 +229,18 @@ class UploadManager {
     }
   }
   
-  /**
-   * Get upload status
-   */
   getStatus(taskId) {
     return this.activeUploads.get(taskId);
   }
   
-  /**
-   * Check if task is cancelled
-   */
   isCancelled(taskId) {
     return this.cancelledTasks.has(taskId);
   }
 }
 
-// Create or reuse singleton instance attached to window
-// This ensures it persists across hot reload and page navigation
+// Singleton attached to window
 if (!window.__uploadManager) {
   window.__uploadManager = new UploadManager();
 }
 
-const uploadManager = window.__uploadManager;
-export default uploadManager;
+export default window.__uploadManager;
