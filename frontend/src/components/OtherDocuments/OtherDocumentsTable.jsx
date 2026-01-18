@@ -951,38 +951,8 @@ const OtherDocumentsTable = ({ selectedShip }) => {
             setShowAddModal(false);
             fetchDocuments();
           }}
-          // Floating progress props (lifted state)
-          showFloatingProgress={showFloatingProgress}
-          setShowFloatingProgress={setShowFloatingProgress}
-          isProgressMinimized={isProgressMinimized}
-          setIsProgressMinimized={setIsProgressMinimized}
-          uploadProgress={uploadProgress}
-          setUploadProgress={setUploadProgress}
         />
       )}
-      
-      {/* Floating Upload Progress - stays visible even when modal closes */}
-      <FloatingUploadProgress
-        isVisible={showFloatingProgress}
-        isMinimized={isProgressMinimized}
-        onMinimize={() => setIsProgressMinimized(true)}
-        onMaximize={() => setIsProgressMinimized(false)}
-        onClose={() => {
-          setShowFloatingProgress(false);
-          if (uploadProgress.status === 'completed') {
-            fetchDocuments(); // Refresh table when closing after success
-          }
-          // Reset upload progress state when closing
-          setUploadProgress({
-            totalFiles: 0,
-            completedFiles: 0,
-            currentFile: '',
-            status: 'uploading',
-            errorMessage: ''
-          });
-        }}
-        uploadStatus={uploadProgress}
-      />
 
       {/* Edit Modal */}
       {showEditModal && editingDocument && (
