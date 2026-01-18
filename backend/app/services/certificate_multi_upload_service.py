@@ -1636,9 +1636,6 @@ IMPORTANT DATE EXAMPLES:
             
             # Generate certificate abbreviation
             # For SOC certificates, ALWAYS regenerate to get SOC-XXX format
-            from app.utils.certificate_abbreviation import generate_certificate_abbreviation, validate_certificate_type
-            
-            cert_name_upper = cert_name.upper() if cert_name else ""
             ai_abbreviation = analysis_result.get('cert_abbreviation')
             
             # Special handling for STATEMENT OF COMPLIANCE - always regenerate
