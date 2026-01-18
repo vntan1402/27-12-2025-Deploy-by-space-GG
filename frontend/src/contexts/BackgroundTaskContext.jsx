@@ -122,6 +122,35 @@ export const BackgroundTaskProvider = ({ children }) => {
     }
   }, [addTask]);
 
+  // Start a new background upload task (for folder upload)
+  const startUploadTask = useCallback(async ({
+    taskId,
+    type,
+    title,
+    total,
+    apiEndpoint,
+    onComplete
+  }) => {
+    try {
+      console.log(`📁 [BackgroundTask] Adding upload task: ${taskId}`);
+
+      // Add task to context (task already started by API call)
+      addTask({
+        taskId,
+        type,
+        title,
+        total,
+        apiEndpoint,
+        onComplete
+      });
+
+      return { success: true, taskId };
+    } catch (error) {
+      console.error('❌ [BackgroundTask] Failed to add upload task:', error);
+      return { success: false, error: error.message };
+    }
+  }, [addTask]);
+
   const value = {
     activeTasks,
     addTask,
