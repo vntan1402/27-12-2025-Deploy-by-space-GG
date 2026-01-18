@@ -311,14 +311,24 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                 'reasoning': 'Certificate expired - no next survey scheduled'
             }
         
-        # Rule 3: Condition certificates = valid_date
+        # Rule 3: Condition certificates = valid_date with -3M window
         if 'CONDITION' in cert_type:
             return {
-                'next_survey': valid_dt.strftime('%d/%m/%Y'),
+                'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
                 'next_survey_type': 'Condition Certificate Expiry',
-                'reasoning': 'Condition certificate uses valid date as next survey',
+                'reasoning': 'Condition certificate uses valid date as next survey with -3M window',
                 'raw_date': valid_dt.strftime('%d/%m/%Y'),
-                'window_months': 0
+                'window_months': -3
+            }
+        
+        # Rule 3b: Statement certificates = valid_date with -3M window
+        if 'STATEMENT' in cert_type or 'STATEMENT' in cert_name:
+            return {
+                'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
+                'next_survey_type': 'Statement Expiry',
+                'reasoning': 'Statement certificate uses valid date as next survey with -3M window',
+                'raw_date': valid_dt.strftime('%d/%m/%Y'),
+                'window_months': -3
             }
         
         # ⭐ Rule 4: Check has_annual_survey flag from AI analysis (PRIORITY)
