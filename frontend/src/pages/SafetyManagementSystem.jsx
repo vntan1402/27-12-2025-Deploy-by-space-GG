@@ -443,11 +443,18 @@ const SafetyManagementSystem = () => {
     
     if (!window.confirm(confirmMsg)) return;
 
-    // Show starting message
-    toast.info(language === 'vi' 
-      ? `🚀 Bắt đầu đổi tên ${certsWithFiles.length} file (chạy nền)...` 
-      : `🚀 Starting rename for ${certsWithFiles.length} files (background)...`
-    );
+    // Show floating progress
+    setFloatingRenameProgress({
+      isVisible: true,
+      completed: 0,
+      total: certsWithFiles.length,
+      currentFile: language === 'vi' ? 'Đang khởi động...' : 'Starting...',
+      errors: [],
+      status: 'processing'
+    });
+
+    // Clear selection so user can continue working
+    setSelectedCerts(new Set());
 
     try {
       // Get certificate IDs
@@ -477,58 +484,44 @@ const SafetyManagementSystem = () => {
           const statusResponse = await api.get(`/api/company-certs/bulk-auto-rename/${taskId}`);
           const status = statusResponse.data;
 
+          // Update floating progress
+          setFloatingRenameProgress(prev => ({
+            ...prev,
+            completed: status.completed_files || 0,
+            currentFile: status.current_file || '',
+            errors: (status.results || [])
+              .filter(r => !r.success)
+              .map(r => r.error || 'Unknown error'),
+            status: status.status
+          }));
+
           // Check if completed
           if (status.status === 'completed' || status.status === 'completed_with_errors' || status.status === 'failed') {
-            const successCount = status.completed_files || 0;
-            const failCount = status.failed_files || 0;
-
-            if (successCount > 0 && failCount === 0) {
-              toast.success(language === 'vi' 
-                ? `✅ Đã đổi tên thành công ${successCount} file` 
-                : `✅ Successfully renamed ${successCount} files`
-              );
-            } else if (successCount > 0 && failCount > 0) {
-              toast.warning(language === 'vi' 
-                ? `⚠️ Đã đổi tên ${successCount} file, ${failCount} thất bại` 
-                : `⚠️ Renamed ${successCount} files, ${failCount} failed`
-              );
-            } else {
-              toast.error(language === 'vi' 
-                ? `❌ Không thể đổi tên file` 
-                : `❌ Failed to rename files`
-              );
-            }
-
-            // Log detailed results
-            console.log('Bulk rename results:', status.results);
-
             // Refresh certificates list
-            await loadCompanyCerts();
+            if ((status.completed_files || 0) > 0) {
+              await loadCompanyCerts();
+            }
             return; // Stop polling
-          }
-
-          // Show progress toast periodically
-          if (pollCount % 5 === 0) {
-            toast.info(language === 'vi' 
-              ? `⏳ Đang xử lý: ${status.completed_files}/${status.total_files}...` 
-              : `⏳ Processing: ${status.completed_files}/${status.total_files}...`,
-              { duration: 1500 }
-            );
           }
 
           // Continue polling if not completed
           if (pollCount < maxPolls) {
             setTimeout(pollStatus, pollInterval);
           } else {
-            throw new Error('Timeout: Bulk rename took too long');
+            setFloatingRenameProgress(prev => ({
+              ...prev,
+              status: 'failed',
+              errors: [...prev.errors, 'Timeout: Bulk rename took too long']
+            }));
           }
 
         } catch (pollError) {
           console.error('❌ Poll error:', pollError);
-          toast.error(language === 'vi' 
-            ? 'Lỗi khi kiểm tra trạng thái!' 
-            : 'Error checking status!'
-          );
+          setFloatingRenameProgress(prev => ({
+            ...prev,
+            status: 'failed',
+            errors: [...prev.errors, pollError.message || 'Polling error']
+          }));
         }
       };
 
@@ -537,11 +530,24 @@ const SafetyManagementSystem = () => {
 
     } catch (error) {
       console.error('❌ Bulk auto rename error:', error);
-      toast.error(language === 'vi' 
-        ? 'Lỗi khi thực hiện batch auto rename!' 
-        : 'Error during batch auto rename!'
-      );
+      setFloatingRenameProgress(prev => ({
+        ...prev,
+        status: 'failed',
+        errors: [error.message || 'Failed to start bulk rename']
+      }));
     }
+  };
+
+  // Close floating progress
+  const handleCloseFloatingProgress = () => {
+    setFloatingRenameProgress({
+      isVisible: false,
+      completed: 0,
+      total: 0,
+      currentFile: '',
+      errors: [],
+      status: 'processing'
+    });
   };
 
   const handleUpdateNextAudits = async () => {
