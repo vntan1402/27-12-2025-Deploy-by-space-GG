@@ -578,15 +578,16 @@ def post_process_extracted_data(extracted_data: Dict[str, Any], raw_text: str = 
         raw_text_upper = raw_text.upper() if raw_text else ""
         
         # Priority 1: Check for INTERIM (highest priority)
-        # Look for "Interim Certificate", "INTERIM*", "Interim" in cert_no or prominently in document
+        # If cert_name contains "INTERIM", it's an Interim certificate regardless of other keywords
         is_interim = False
-        if 'INTERIM CERTIFICATE' in raw_text_upper:
+        if 'INTERIM' in cert_name:  # INTERIM in cert_name has highest priority
+            is_interim = True
+            logger.info(f"Detected INTERIM in cert_name: {cert_name}")
+        elif 'INTERIM CERTIFICATE' in raw_text_upper:
             is_interim = True
         elif 'INTERIM' in cert_no:
             is_interim = True
         elif raw_text_upper.count('INTERIM') >= 1 and 'INTERIM' in raw_text_upper[:500]:  # INTERIM appears prominently at top
-            is_interim = True
-        elif 'INTERIM' in cert_name and 'STATEMENT' not in cert_name:  # "Interim" alone in cert_name
             is_interim = True
             
         if is_interim:
