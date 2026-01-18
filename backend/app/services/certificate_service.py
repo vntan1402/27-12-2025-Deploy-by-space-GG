@@ -169,7 +169,6 @@ class CertificateService:
             # Calculate Next Survey for Interim: valid_date with -3M window
             valid_date = cert_dict.get("valid_date")
             if valid_date:
-                from datetime import datetime
                 if isinstance(valid_date, str):
                     # Try to parse date string
                     try:
@@ -187,8 +186,8 @@ class CertificateService:
                         cert_dict["next_survey_display"] = valid_date + ' (-3M)'
                         cert_dict["next_survey_type"] = "FT Issue"
                 elif isinstance(valid_date, datetime):
-                    cert_dict["next_survey"] = valid_date.strftime('%Y-%m-%d')
-                    cert_dict["next_survey_display"] = valid_date.strftime('%d/%m/%Y') + ' (-3M)'
+                    cert_dict["next_survey"] = valid_dt.strftime('%Y-%m-%d')
+                    cert_dict["next_survey_display"] = valid_dt.strftime('%d/%m/%Y') + ' (-3M)'
                     cert_dict["next_survey_type"] = "FT Issue"
                     logger.info(f"✅ Set next_survey for Interim certificate: {cert_dict['next_survey_display']}, Type: FT Issue")
             else:
