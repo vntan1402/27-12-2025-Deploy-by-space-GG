@@ -157,13 +157,14 @@ const AddOtherDocumentModal = ({
     }
   };
 
-  // Upload folder with BACKGROUND processing
-  // Strategy: 
-  // - Small uploads (<=10 files): Use new background API with GlobalFloatingProgress
-  // - Large uploads (>10 files): Use streaming method with local FloatingUploadProgress
+  // Upload folder with BACKGROUND processing using GlobalFloatingProgress
+  // V2 Strategy (works for ALL file counts):
+  // - Create task first (metadata only)
+  // - Upload files one by one sequentially with 1s delay
+  // - Use GlobalFloatingProgress for tracking
   const uploadFolderWithProgress = async (folderName, filesToUpload) => {
     try {
-      console.log('📁 Starting folder upload...');
+      console.log('📁 Starting folder upload V2...');
       console.log(`   Folder: ${folderName}, Files: ${filesToUpload.length}`);
       console.log(`   Ship ID: ${selectedShip?.id}`);
       
@@ -171,120 +172,96 @@ const AddOtherDocumentModal = ({
         throw new Error('No ship selected');
       }
       
-      const MAX_FILES_FOR_BACKGROUND = 10;
+      // STEP 1: Create task (metadata only, no files)
+      const createTaskForm = new FormData();
+      createTaskForm.append('ship_id', selectedShip.id);
+      createTaskForm.append('folder_name', folderName);
+      createTaskForm.append('total_files', filesToUpload.length);
+      createTaskForm.append('status', formData.status || 'Valid');
+      if (formData.date) createTaskForm.append('date', formData.date);
+      if (formData.note) createTaskForm.append('note', formData.note);
       
-      if (filesToUpload.length <= MAX_FILES_FOR_BACKGROUND) {
-        // ========== SMALL UPLOAD: Use background API + GlobalFloatingProgress ==========
-        console.log(`🚀 Small upload (${filesToUpload.length} files) - using background API...`);
-        
-        const formDataToSend = new FormData();
-        formDataToSend.append('ship_id', selectedShip.id);
-        formDataToSend.append('folder_name', folderName);
-        formDataToSend.append('status', formData.status || 'Valid');
-        
-        if (formData.date) formDataToSend.append('date', formData.date);
-        if (formData.note) formDataToSend.append('note', formData.note);
+      console.log('🚀 Creating upload task...');
+      const createResponse = await api.post('/api/other-documents/background-upload-folder/create-task', createTaskForm, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 30000
+      });
+      
+      if (!createResponse.data?.success || !createResponse.data?.task_id) {
+        throw new Error(createResponse.data?.message || 'Failed to create upload task');
+      }
+      
+      const taskId = createResponse.data.task_id;
+      console.log(`📋 Upload task created: ${taskId}`);
+      
+      // STEP 2: Register task with GlobalFloatingProgress
+      await startUploadTask({
+        taskId,
+        type: 'folder_upload',
+        title: language === 'vi' 
+          ? `Upload "${folderName}" (${filesToUpload.length} files)` 
+          : `Upload "${folderName}" (${filesToUpload.length} files)`,
+        total: filesToUpload.length,
+        apiEndpoint: '/api/other-documents/background-upload-folder/',
+        onComplete: () => { onSuccess(); }
+      });
+      
+      toast.info(language === 'vi'
+        ? `🚀 Đang upload ${filesToUpload.length} file trong nền...`
+        : `🚀 Uploading ${filesToUpload.length} files in background...`
+      );
+      
+      // Close modal immediately - upload continues in background
+      onClose();
+      
+      // STEP 3: Upload files sequentially with 1s delay between each
+      // This runs in background after modal closes
+      const uploadFilesSequentially = async () => {
+        console.log(`📤 Starting sequential upload of ${filesToUpload.length} files...`);
         
         for (let i = 0; i < filesToUpload.length; i++) {
-          formDataToSend.append('files', filesToUpload[i]);
-        }
-        
-        const startResponse = await api.post('/api/other-documents/background-upload-folder', formDataToSend, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 120000
-        });
-        
-        if (!startResponse.data?.success || !startResponse.data?.task_id) {
-          throw new Error(startResponse.data?.message || 'Failed to start background upload');
-        }
-        
-        const taskId = startResponse.data.task_id;
-        console.log(`📋 Background upload task started: ${taskId}`);
-        
-        await startUploadTask({
-          taskId,
-          type: 'folder_upload',
-          title: language === 'vi' 
-            ? `Upload "${folderName}" (${filesToUpload.length} files)` 
-            : `Upload "${folderName}" (${filesToUpload.length} files)`,
-          total: filesToUpload.length,
-          apiEndpoint: '/api/other-documents/background-upload-folder/',
-          onComplete: () => { onSuccess(); }
-        });
-        
-        toast.info(language === 'vi'
-          ? `🚀 Đang upload ${filesToUpload.length} file trong nền...`
-          : `🚀 Uploading ${filesToUpload.length} files in background...`
-        );
-        
-        onClose();
-        
-      } else {
-        // ========== LARGE UPLOAD: Use streaming + local FloatingUploadProgress ==========
-        console.log(`📦 Large upload (${filesToUpload.length} files) - using streaming with local progress...`);
-        
-        // Initialize local floating progress
-        setShowFloatingProgress(true);
-        setIsProgressMinimized(true); // Start minimized
-        setUploadProgress({
-          totalFiles: filesToUpload.length,
-          completedFiles: 0,
-          currentFile: filesToUpload[0].name,
-          status: 'uploading',
-          errorMessage: ''
-        });
-        
-        // Close modal immediately
-        onClose();
-        setIsProcessing(false);
-        
-        // Use existing streaming upload method
-        const result = await otherDocumentService.uploadFolder(
-          selectedShip.id,
-          filesToUpload,
-          folderName,
-          {
-            date: formData.date || null,
-            status: formData.status,
-            note: formData.note || null
-          },
-          // Progress callback
-          (progress) => {
-            setUploadProgress({
-              totalFiles: filesToUpload.length,
-              completedFiles: progress.completedFiles || 0,
-              currentFile: progress.currentFile || '',
-              status: 'uploading',
-              errorMessage: ''
-            });
+          const file = filesToUpload[i];
+          const filename = file.name || file.webkitRelativePath?.split('/').pop() || `file_${i}`;
+          
+          // Wait 1 second before each upload (except first)
+          if (i > 0) {
+            console.log(`⏰ Waiting 1s before file ${i + 1}/${filesToUpload.length}...`);
+            await new Promise(resolve => setTimeout(resolve, 1000));
           }
-        );
-        
-        if (result.success) {
-          setUploadProgress({
-            totalFiles: filesToUpload.length,
-            completedFiles: result.successful_files || filesToUpload.length,
-            currentFile: '',
-            status: 'completed',
-            errorMessage: ''
-          });
           
-          toast.success(language === 'vi'
-            ? `✅ Đã upload folder thành công! (${result.successful_files}/${result.total_files} files)`
-            : `✅ Folder uploaded successfully! (${result.successful_files}/${result.total_files} files)`
-          );
-          
-          // Auto-close after 3 seconds
-          setTimeout(() => {
-            setShowFloatingProgress(false);
-            onSuccess();
-          }, 3000);
-        } else {
-          throw new Error(result.message || 'Upload failed');
+          try {
+            console.log(`📤 Uploading ${i + 1}/${filesToUpload.length}: ${filename}`);
+            
+            const uploadForm = new FormData();
+            uploadForm.append('file', file, filename);
+            
+            const uploadResponse = await api.post(
+              `/api/other-documents/background-upload-folder/${taskId}/upload-file`,
+              uploadForm,
+              {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 300000 // 5 min timeout per file
+              }
+            );
+            
+            if (uploadResponse.data?.success) {
+              console.log(`✅ Uploaded ${i + 1}/${filesToUpload.length}: ${filename}`);
+            } else {
+              console.warn(`⚠️ Failed ${i + 1}/${filesToUpload.length}: ${filename} - ${uploadResponse.data?.error}`);
+            }
+          } catch (uploadError) {
+            console.error(`❌ Error uploading ${filename}:`, uploadError.message);
+            // Continue with next file even if one fails
+          }
         }
         
-        return; // Exit early, don't run code below
-      }
+        console.log('✅ Sequential upload completed');
+      };
+      
+      // Start background upload (don't await - let it run in background)
+      uploadFilesSequentially().catch(err => {
+        console.error('❌ Background upload error:', err);
+      });
       
     } catch (error) {
       console.error('❌ Background folder upload error:', error);
