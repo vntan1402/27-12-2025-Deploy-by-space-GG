@@ -1634,13 +1634,22 @@ IMPORTANT DATE EXAMPLES:
             else:
                 next_survey_display = None  # Will be calculated later if needed
             
-            # TODO: Implement get_user_defined_abbreviation when needed
-            # For now, use AI extraction or auto-generation
-            cert_abbreviation = analysis_result.get('cert_abbreviation')
-            if not cert_abbreviation:
+            # Generate certificate abbreviation
+            # For SOC certificates, ALWAYS regenerate to get SOC-XXX format
+            from app.utils.certificate_abbreviation import generate_certificate_abbreviation, validate_certificate_type
+            
+            cert_name_upper = cert_name.upper() if cert_name else ""
+            ai_abbreviation = analysis_result.get('cert_abbreviation')
+            
+            # Special handling for STATEMENT OF COMPLIANCE - always regenerate
+            if 'STATEMENT OF COMPLIANCE' in cert_name_upper:
+                cert_abbreviation = await generate_certificate_abbreviation(cert_name)
+                logger.info(f"⚙️ SOC certificate - Generated abbreviation: '{cert_name}' → '{cert_abbreviation}'")
+            elif not ai_abbreviation:
                 cert_abbreviation = await generate_certificate_abbreviation(cert_name)
                 logger.info(f"⚙️ Generated abbreviation: '{cert_name}' → '{cert_abbreviation}'")
             else:
+                cert_abbreviation = ai_abbreviation
                 logger.info(f"🤖 Using AI extracted abbreviation: '{cert_abbreviation}'")
             
             # Get ship info for additional fields
