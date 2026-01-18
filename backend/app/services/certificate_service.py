@@ -254,24 +254,41 @@ class CertificateService:
         
         # BUSINESS RULE: Check if changing to Interim type
         if "cert_type" in update_data and update_data["cert_type"] == "Interim":
-            # Force next_survey fields to N/A for Interim certificates
-            update_data["next_survey"] = None
-            update_data["next_survey_display"] = "N/A"
-            update_data["next_survey_type"] = "N/A"
-            logger.info("✅ Changed to Interim: Set next_survey to N/A")
+            # Calculate Next Survey for Interim: valid_date with -3M window, Type = "FT Issue"
+            valid_date = update_data.get("valid_date") or cert.get("valid_date")
+            if valid_date:
+                from datetime import datetime
+                if isinstance(valid_date, str):
+                    try:
+                        if '/' in valid_date:
+                            valid_dt = datetime.strptime(valid_date.split()[0], '%d/%m/%Y')
+                        else:
+                            valid_dt = datetime.fromisoformat(valid_date.replace('Z', '+00:00'))
+                        update_data["next_survey"] = valid_dt.strftime('%Y-%m-%d')
+                        update_data["next_survey_display"] = valid_dt.strftime('%d/%m/%Y') + ' (-3M)'
+                        update_data["next_survey_type"] = "FT Issue"
+                    except Exception as e:
+                        logger.error(f"Failed to parse valid_date for Interim: {e}")
+                        update_data["next_survey_display"] = str(valid_date) + ' (-3M)'
+                        update_data["next_survey_type"] = "FT Issue"
+                elif isinstance(valid_date, datetime):
+                    update_data["next_survey"] = valid_date.strftime('%Y-%m-%d')
+                    update_data["next_survey_display"] = valid_date.strftime('%d/%m/%Y') + ' (-3M)'
+                    update_data["next_survey_type"] = "FT Issue"
+            else:
+                update_data["next_survey"] = None
+                update_data["next_survey_display"] = "-"
+                update_data["next_survey_type"] = "FT Issue"
+            logger.info(f"✅ Changed to Interim: Set next_survey_type to FT Issue")
         
-        # BUSINESS RULE: For Interim certificates, NEVER calculate next_survey
-        # Interim certificates are temporary and don't have next survey dates
+        # BUSINESS RULE: For existing Interim certificates, ensure FT Issue type
         current_cert_type = cert.get("cert_type")
         is_interim = current_cert_type == "Interim" or update_data.get("cert_type") == "Interim"
         
-        if is_interim:
-            # Override any next_survey updates with N/A
-            if "next_survey" in update_data:
-                update_data["next_survey"] = None
-                update_data["next_survey_display"] = "N/A"
-                update_data["next_survey_type"] = "N/A"
-                logger.info("⚠️ Prevented next_survey update for Interim certificate (forced to N/A)")
+        if is_interim and "next_survey_type" not in update_data:
+            # Ensure Interim always has FT Issue type
+            update_data["next_survey_type"] = "FT Issue"
+            logger.info("✅ Ensured Interim certificate has FT Issue type")
         else:
             # Only process next_survey updates for non-Interim certificates
             # Sync next_survey_display when next_survey is manually updated
