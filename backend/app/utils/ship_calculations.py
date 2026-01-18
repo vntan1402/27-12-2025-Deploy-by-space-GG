@@ -701,6 +701,17 @@ def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
                 'window_months': 3
             }
         
+        # Rule 1a: Provisional = Valid Date - 3M, Type = "FT Issue" (same logic as Interim for Class & Flag)
+        if 'PROVISIONAL' in cert_type:
+            next_survey_date = valid_dt - relativedelta(months=3)
+            return {
+                'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
+                'next_survey_type': 'FT Issue',
+                'reasoning': 'Provisional certificate: Full Term Issue before valid date with -3M window',
+                'raw_date': next_survey_date.strftime('%d/%m/%Y'),
+                'window_months': 3
+            }
+        
         # Rule 3: Full Term certificates
         if 'FULL' in cert_type or 'FULL TERM' in cert_type or cert_type == 'FULL TERM':
             # Parse last_endorse if exists
