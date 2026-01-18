@@ -244,13 +244,13 @@ When extracting fields, ALWAYS compare both sections and choose the MOST ACCURAT
     "cert_name": "**REQUIRED** - Full certificate name (e.g., 'Cargo Ship Safety Construction Certificate', 'Load Line Certificate', 'Class Certificate')",
     "cert_abbreviation": "Certificate abbreviation (e.g., 'CSSC', 'LLC', 'IOPP', 'CC')",
     "cert_no": "**REQUIRED** - Certificate number/reference",
-    "cert_type": "Certificate type - MUST be one of: 'Full Term', 'Interim', 'Provisional', 'Short term', 'Conditional', 'Other'",
+    "cert_type": "Certificate type - MUST be one of: 'Full Term', 'Interim', 'Provisional', 'Short term', 'Conditional', 'Statement', 'Other'. If cert_name contains 'Statement', use 'Statement'.",
     "issue_date": "Issue date in FULL TEXT format (e.g., '15 November 2024' or 'November 15, 2024') - NOT numeric format",
     "valid_date": "Valid until / Expiry date in FULL TEXT format",
     "last_endorse": "**CRITICAL - SCAN ALL PAGES**: Find 'Annual surveys' or 'Endorsement' sections (often on LAST pages). Extract the MOST RECENT date from all Annual/Intermediate survey entries. Return in FULL TEXT format.",
     "has_annual_survey": "**CRITICAL** - Boolean (true/false). See detailed instructions below in 'HAS_ANNUAL_SURVEY DETECTION RULES' section.",
     "next_survey": "Next survey date in FULL TEXT format (if any)",
-    "next_survey_type": "Type of next survey - one of: 'Initial', 'Intermediate', 'Renewal', 'Annual', 'Special', 'Other'",
+    "next_survey_type": "Type of next survey - one of: 'Initial', 'Intermediate', 'Renewal', 'Annual', 'Special', 'FT Issue', 'Other'",
     "issued_by": "**CRITICAL** - Full organization name that issued the certificate. MUST use CLEAN text from Document AI OCR section (e.g., 'Panama Maritime Documentation Services, Inc.', NOT 'PPaannaammaa MMaarriittiimmee...')",
     "issued_by_abbreviation": "Organization abbreviation (e.g., 'BV', 'LR', 'ABS', 'PMA', 'PMDS')",
     "ship_name": "Name of the ship/vessel",
@@ -262,9 +262,16 @@ When extracting fields, ALWAYS compare both sections and choose the MOST ACCURAT
     "confidence_score": "Your confidence in the extraction accuracy (0.0 - 1.0)"
 }}
 
-**CERTIFICATE TYPE CATEGORIES**:
+**CERTIFICATE TYPE CLASSIFICATION RULES**:
 
-This certificate should belong to one of these categories:
+1. **Statement**: If cert_name contains the word "Statement" (e.g., "Statement of Compliance", "Statement of Fact")
+2. **Interim**: If the certificate is temporary/interim before Full Term issuance
+3. **Provisional**: If the certificate is provisional
+4. **Short term**: If the certificate is short term (typically < 5 months validity)
+5. **Conditional**: If the certificate has conditions attached
+6. **Full Term**: Standard certificates with full validity period (typically 5 years)
+
+**CERTIFICATE CATEGORY LIST**:
 
 1. **Class Certificates**
    - Class Certificate, Classification Certificate
@@ -293,13 +300,18 @@ This certificate should belong to one of these categories:
    - Tonnage Certificate, Certificate of Registry
    - Keywords: "TONNAGE", "REGISTRY"
 
-6. **Other Certificates**
+6. **Statement Documents**
+   - Statement of Compliance
+   - Statement of Fact
+   - Keywords: "STATEMENT"
+
+7. **Other Certificates**
    - Minimum Safe Manning Certificate (MSMC)
    - Certificate of Fitness
    - Civil Liability Certificate
    - Continuous Synopsis Record (CSR)
 
-7. **Dangerous Goods & Bulk Cargo Certificates**
+8. **Dangerous Goods & Bulk Cargo Certificates**
    - Document of Compliance - Special Requirements for Ships Carrying Dangerous Goods (DG)
    - Document of Compliance for the Carriage of Solid Bulk Cargoes (IMSBC)
    - Keywords: "DANGEROUS GOODS", "IMDG", "IMSBC", "BULK CARGOES"
@@ -325,7 +337,7 @@ This certificate should belong to one of these categories:
 - cert_name and cert_no are REQUIRED fields
 - Dates must be in FULL TEXT format, not DD/MM/YYYY or MM/DD/YYYY
 - IMO number must be exactly 7 digits
-- cert_type must be one of the specified options
+- cert_type must be one of the specified options (including 'Statement' for documents with "Statement" in name)
 - **issued_by**: ALWAYS prefer the clean text from Document AI OCR section over Text Layer (avoid duplicate characters like "PPaannaammaa")
 
 **SPECIAL NOTES**:
