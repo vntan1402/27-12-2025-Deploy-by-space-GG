@@ -92,6 +92,7 @@ VALID_CERTIFICATE_TYPES = [
     "Provisional",
     "Short term",
     "Conditional",
+    "Statement",
     "Other"
 ]
 
