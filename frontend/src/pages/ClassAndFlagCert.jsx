@@ -100,15 +100,14 @@ const ClassAndFlagCert = () => {
     notes: ''
   });
 
-  // Auto rename state
-  const [showAutoRenameDialog, setShowAutoRenameDialog] = useState(false);
-  const [certificatesToAutoRename, setCertificatesToAutoRename] = useState([]);
-  const [batchRenameProgress, setBatchRenameProgress] = useState({
-    isRunning: false,
+  // Auto rename state - Using floating progress
+  const [floatingRenameProgress, setFloatingRenameProgress] = useState({
+    isVisible: false,
     completed: 0,
     total: 0,
-    current: '',
-    errors: []
+    currentFile: '',
+    errors: [],
+    status: 'processing' // 'processing', 'completed', 'completed_with_errors', 'failed'
   });
 
   // Fetch ships on mount and restore selected ship from localStorage
