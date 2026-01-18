@@ -175,8 +175,8 @@ async def extract_ship_certificate_fields_from_summary(
                     
                     logger.info(f"✅ Parsed extracted data: {list(extracted_data.keys())}")
                     
-                    # Post-process extracted data
-                    processed_data = post_process_extracted_data(extracted_data)
+                    # Post-process extracted data (pass raw text for keyword detection)
+                    processed_data = post_process_extracted_data(extracted_data, summary_text)
                     
                     return processed_data
                     
