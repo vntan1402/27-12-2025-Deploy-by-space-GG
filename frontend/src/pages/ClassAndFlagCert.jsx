@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useBackgroundTask } from '../contexts/BackgroundTaskContext';
 import { MainLayout, Sidebar, SubMenuBar, CertificateTable, CertificateFilters, CertificateActionButtons, UpcomingSurveyModal, CertificateNotesModal, CompanyInfoPanel } from '../components';
 import { EditShipCertificateModal, DeleteShipCertificateModal, AddShipCertificateModal } from '../components/ShipCertificates';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal, DeleteShipBlockedModal, ShipSelectionModal } from '../components/Ships';
-import FloatingProgress from '../components/common/FloatingProgress';
 import { shipService, shipCertificateService, companyService } from '../services';
 import { shipCacheService } from '../services/shipCacheService';
 import { companyCacheService } from '../services/companyCacheService';
@@ -16,6 +16,7 @@ import { compareDates } from '../utils/dateHelpers';
 
 const ClassAndFlagCert = () => {
   const { language, user } = useAuth();
+  const { startRenameTask } = useBackgroundTask();
   const location = useLocation();
   
   // State
