@@ -149,6 +149,39 @@ class BackgroundUploadTaskService:
         )
         if result.deleted_count > 0:
             logger.info(f"🧹 Cleaned up {result.deleted_count} old background upload tasks")
+    
+    @staticmethod
+    async def cancel_task(task_id: str, user_id: str) -> Dict[str, Any]:
+        """Cancel an in-progress task"""
+        task = await BackgroundUploadTaskService.get_task(task_id)
+        
+        if not task:
+            return {"success": False, "error": "Task not found"}
+        
+        # Verify user owns the task
+        if task.get("user_id") != user_id:
+            return {"success": False, "error": "Not authorized to cancel this task"}
+        
+        # Check if task is still cancellable
+        if task.get("status") in ["completed", "completed_with_errors", "failed", "cancelled"]:
+            return {"success": False, "error": f"Task already {task.get('status')}"}
+        
+        # Mark task as cancelled
+        await BackgroundUploadTaskService.update_task(task_id, {
+            "status": "cancelled",
+            "current_file": "",
+            "completed_at": datetime.utcnow()
+        })
+        
+        logger.info(f"🚫 Task {task_id} cancelled by user {user_id}")
+        
+        return {
+            "success": True,
+            "message": "Task cancelled successfully",
+            "task_id": task_id,
+            "completed_files": task.get("completed_files", 0),
+            "total_files": task.get("total_files", 0)
+        }
 
 
 class BackgroundUploadService:
