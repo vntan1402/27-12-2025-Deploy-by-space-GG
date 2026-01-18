@@ -185,7 +185,8 @@ class CertificateService:
                         cert_dict["next_survey"] = None
                         cert_dict["next_survey_display"] = str(valid_date) + ' (-3M)'
                         cert_dict["next_survey_type"] = "FT Issue"
-                elif isinstance(valid_date, datetime):
+                elif isinstance(valid_date, (datetime, date)):
+                    # Handle both datetime and date objects
                     cert_dict["next_survey"] = valid_date.strftime('%Y-%m-%d')
                     cert_dict["next_survey_display"] = valid_date.strftime('%d/%m/%Y') + ' (-3M)'
                     cert_dict["next_survey_type"] = "FT Issue"
