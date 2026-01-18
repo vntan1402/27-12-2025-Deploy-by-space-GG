@@ -117,6 +117,10 @@ const GlobalFloatingProgress = () => {
     setCancellingTasks(prev => new Set(prev).add(task.id));
     
     try {
+      // Cancel in UploadManager (stops scheduled uploads)
+      uploadManager.cancelUpload(task.id);
+      
+      // Cancel via API
       const result = await cancelTask(task.id, task.apiEndpoint);
       
       if (result.success) {
