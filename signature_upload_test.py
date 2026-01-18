@@ -32,9 +32,9 @@ try:
                 BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
                 break
         else:
-            BACKEND_URL = "https://shiptrack-audit.preview.emergentagent.com/api"
+            BACKEND_URL = "https://code-resume-17.preview.emergentagent.com/api"
 except:
-    BACKEND_URL = "https://shiptrack-audit.preview.emergentagent.com/api"
+    BACKEND_URL = "https://code-resume-17.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_USERNAME = "system_admin"

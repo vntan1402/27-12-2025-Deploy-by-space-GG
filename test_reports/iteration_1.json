@@ -11,7 +11,7 @@
   },
   "root_cause": {
     "issue": "Frontend env-config.js had hardcoded http://localhost:8001 as REACT_APP_BACKEND_URL",
-    "fix": "Updated /app/frontend/public/env-config.js to use https://shiptrack-audit.preview.emergentagent.com",
+    "fix": "Updated /app/frontend/public/env-config.js to use https://code-resume-17.preview.emergentagent.com",
     "file_changed": "/app/frontend/public/env-config.js"
   },
   "test_report_links": [
@@ -37,5 +37,5 @@
   "seed_data_creation": "None - used existing admin1 account",
   "retest_needed": false,
   "should_main_agent_self_test": true,
-  "context_for_next_testing_agent": "Login is now working. The fix was in /app/frontend/public/env-config.js - changed REACT_APP_BACKEND_URL from http://localhost:8001 to https://shiptrack-audit.preview.emergentagent.com. All auth API tests pass."
+  "context_for_next_testing_agent": "Login is now working. The fix was in /app/frontend/public/env-config.js - changed REACT_APP_BACKEND_URL from http://localhost:8001 to https://code-resume-17.preview.emergentagent.com. All auth API tests pass."
 }

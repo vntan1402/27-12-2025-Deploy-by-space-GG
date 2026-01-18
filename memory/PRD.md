@@ -123,7 +123,7 @@ Hệ thống quản lý tàu biển (Ship Management System) - ứng dụng full
 ## Test Credentials
 
 ### Preview Environment
-- **URL**: https://shiptrack-audit.preview.emergentagent.com
+- **URL**: https://code-resume-17.preview.emergentagent.com
 - **Username**: admin1
 - **Password**: 123456
 
