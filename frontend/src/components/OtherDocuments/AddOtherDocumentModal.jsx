@@ -247,6 +247,9 @@ const AddOtherDocumentModal = ({
         ? `❌ Lỗi upload folder: ${errorMsg}`
         : `❌ Folder upload failed: ${errorMsg}`
       );
+      
+      // Reset processing state on error
+      setIsProcessing(false);
     }
   };
 
