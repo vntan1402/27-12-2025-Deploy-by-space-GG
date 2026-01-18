@@ -512,32 +512,54 @@ async def upload_file_to_folder_streaming(
                     'error': str(e)
                 }
         
-        # Create tasks for all files
-        logger.info(f"🚀 Creating {len(files)} parallel upload tasks...")
-        tasks = [upload_single_file(file_obj, idx) for idx, file_obj in enumerate(files)]
+        # STEP 1: Upload FIRST file to create folder (wait for completion)
+        # This ensures folder is created before other files start uploading
+        logger.info(f"🚀 Step 1: Upload first file to create folder...")
+        first_result = await upload_single_file(files[0], 0)
         
-        # Execute all tasks in parallel
-        logger.info(f"⚡ Executing parallel uploads (staggered start: 1s delay)...")
-        results = await asyncio.gather(*tasks)
+        folder_id = first_result.get('folder_id') if first_result.get('success') else None
         
-        # Process results
+        if not folder_id:
+            logger.error(f"❌ First file failed, cannot get folder_id: {first_result.get('error')}")
+            return {
+                'success': False,
+                'message': f'Failed to create folder: {first_result.get("error", "Unknown error")}',
+                'error': first_result.get('error', 'Unknown error')
+            }
+        
+        logger.info(f"✅ Folder created: {folder_id}")
+        
+        # STEP 2: Upload remaining files in parallel (folder already exists)
         file_ids = []
         failed_files = []
-        folder_id = None
         
-        for result in results:
-            if result['success']:
-                file_ids.append(result['file_id'])
-                # Get folder_id from first successful upload
-                if not folder_id and result.get('folder_id'):
-                    folder_id = result['folder_id']
-            else:
-                failed_files.append(result['filename'])
+        # Add first file result
+        if first_result['success']:
+            file_ids.append(first_result['file_id'])
+        else:
+            failed_files.append(first_result['filename'])
+        
+        if len(files) > 1:
+            logger.info(f"🚀 Step 2: Upload remaining {len(files) - 1} files in parallel...")
+            # Create tasks for remaining files (index starts from 1)
+            # Note: delay is now index-1 since we start from file 1
+            remaining_tasks = [upload_single_file(file_obj, idx) for idx, file_obj in enumerate(files[1:], start=1)]
+            
+            # Execute remaining tasks in parallel
+            logger.info(f"⚡ Executing parallel uploads (staggered start: 1s delay)...")
+            remaining_results = await asyncio.gather(*remaining_tasks)
+            
+            # Process remaining results
+            for result in remaining_results:
+                if result['success']:
+                    file_ids.append(result['file_id'])
+                else:
+                    failed_files.append(result['filename'])
         
         # Generate folder link
         folder_link = f"https://drive.google.com/drive/folders/{folder_id}" if folder_id else None
         
-        logger.info(f"✅ Parallel upload completed: {len(file_ids)}/{len(files)} files successful")
+        logger.info(f"✅ Folder upload completed: {len(file_ids)}/{len(files)} files successful")
         if failed_files:
             logger.warning(f"⚠️ Failed files: {', '.join(failed_files)}")
         
