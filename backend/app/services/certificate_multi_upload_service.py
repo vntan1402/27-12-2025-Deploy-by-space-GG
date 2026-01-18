@@ -1587,6 +1587,25 @@ IMPORTANT DATE EXAMPLES:
             # Validate and normalize cert_type
             cert_type = validate_certificate_type(analysis_result.get("cert_type", "Full Term"))
             
+            # ⭐ SPECIAL RULE: Interim certificates have Next Survey Type = "FT Issue"
+            if cert_type == "Interim":
+                # For Interim, use valid_date as next_survey with FT Issue type
+                if valid_date_iso:
+                    next_survey_iso = valid_date_iso
+                    from datetime import datetime
+                    try:
+                        valid_dt = datetime.fromisoformat(valid_date_iso)
+                        next_survey_display = valid_dt.strftime('%d/%m/%Y') + ' (-3M)'
+                    except:
+                        next_survey_display = str(valid_date_iso) + ' (-3M)'
+                    next_survey_type_final = "FT Issue"
+                    logger.info(f"✅ Interim certificate: Set next_survey_type to FT Issue")
+                else:
+                    next_survey_display = "-"
+                    next_survey_type_final = "FT Issue"
+            else:
+                next_survey_display = None  # Will be calculated later if needed
+            
             # TODO: Implement get_user_defined_abbreviation when needed
             # For now, use AI extraction or auto-generation
             cert_abbreviation = analysis_result.get('cert_abbreviation')
