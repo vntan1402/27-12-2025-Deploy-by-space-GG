@@ -285,6 +285,7 @@ export const BackgroundTaskProvider = ({ children }) => {
     getTask,
     startRenameTask,
     startUploadTask,
+    startStaggeredUpload,
     cancelTask,
     hasActiveTasks: activeTasks.length > 0
   };
