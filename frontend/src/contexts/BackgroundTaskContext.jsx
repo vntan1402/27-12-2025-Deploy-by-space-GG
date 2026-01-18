@@ -151,6 +151,101 @@ export const BackgroundTaskProvider = ({ children }) => {
     }
   }, [addTask]);
 
+  // Start staggered file upload - this runs at Context level so it persists across navigation
+  const startStaggeredUpload = useCallback(async ({
+    taskId,
+    files,
+    apiEndpoint,
+    staggerDelayMs = 2000,
+    onFileComplete,
+    onAllComplete
+  }) => {
+    console.log(`📤 [BackgroundTask] Starting staggered upload for task ${taskId} with ${files.length} files`);
+    
+    const STAGGER_DELAY = staggerDelayMs;
+    let cancelledFlag = false;
+    
+    const uploadSingleFile = async (file, index) => {
+      const filename = file.name || file.webkitRelativePath?.split('/').pop() || `file_${index}`;
+      
+      // Check if upload was cancelled
+      if (cancelledFlag) {
+        console.log(`🚫 [BackgroundTask] Upload cancelled. Skipping file ${index + 1}: ${filename}`);
+        return { success: false, cancelled: true };
+      }
+      
+      try {
+        // Check task status before uploading
+        try {
+          const statusCheck = await api.get(`${apiEndpoint}${taskId}`);
+          if (statusCheck.data?.status === 'cancelled') {
+            console.log(`🚫 [BackgroundTask] Task ${taskId} cancelled. Skipping file ${index + 1}: ${filename}`);
+            cancelledFlag = true;
+            return { success: false, cancelled: true };
+          }
+        } catch (statusError) {
+          console.warn('[BackgroundTask] Could not check task status:', statusError.message);
+        }
+        
+        console.log(`📤 [BackgroundTask] Uploading ${index + 1}/${files.length}: ${filename}`);
+        
+        const uploadForm = new FormData();
+        uploadForm.append('file', file, filename);
+        
+        const uploadResponse = await api.post(
+          `${apiEndpoint}${taskId}/upload-file`,
+          uploadForm,
+          {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 300000 // 5 min timeout per file
+          }
+        );
+        
+        if (uploadResponse.data?.success) {
+          console.log(`✅ [BackgroundTask] Uploaded ${index + 1}/${files.length}: ${filename}`);
+          if (onFileComplete) onFileComplete(index, true, filename);
+          return { success: true, filename };
+        } else {
+          console.warn(`⚠️ [BackgroundTask] Failed ${index + 1}/${files.length}: ${filename} - ${uploadResponse.data?.error}`);
+          if (onFileComplete) onFileComplete(index, false, filename, uploadResponse.data?.error);
+          return { success: false, filename, error: uploadResponse.data?.error };
+        }
+      } catch (uploadError) {
+        // Check if error is due to task being cancelled
+        const errorDetail = uploadError.response?.data?.detail || '';
+        if (uploadError.response?.status === 400 && 
+            (errorDetail.includes('cancelled') || errorDetail.includes('Task already'))) {
+          console.log(`🚫 [BackgroundTask] Task ${taskId} cancelled. File ${index + 1}: ${filename} rejected`);
+          cancelledFlag = true;
+          return { success: false, cancelled: true };
+        }
+        console.error(`❌ [BackgroundTask] Error uploading ${filename}:`, uploadError.message);
+        if (onFileComplete) onFileComplete(index, false, filename, uploadError.message);
+        return { success: false, filename, error: uploadError.message };
+      }
+    };
+    
+    // Track completed uploads
+    let completedCount = 0;
+    const totalFiles = files.length;
+    
+    // Start each file upload with staggered delay
+    files.forEach((file, index) => {
+      setTimeout(async () => {
+        const result = await uploadSingleFile(file, index);
+        completedCount++;
+        
+        // Check if all files processed
+        if (completedCount >= totalFiles && onAllComplete) {
+          console.log(`✅ [BackgroundTask] All ${totalFiles} files processed for task ${taskId}`);
+          onAllComplete();
+        }
+      }, index * STAGGER_DELAY);
+    });
+    
+    console.log(`📤 [BackgroundTask] Scheduled ${files.length} uploads with ${STAGGER_DELAY}ms stagger`);
+  }, []);
+
   // Cancel a running task
   const cancelTask = useCallback(async (taskId, apiEndpoint) => {
     try {
