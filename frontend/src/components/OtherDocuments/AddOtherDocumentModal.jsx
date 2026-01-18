@@ -157,70 +157,69 @@ const AddOtherDocumentModal = ({
     }
   };
 
-  // Upload folder with progress tracking
+  // Upload folder with BACKGROUND processing (uses GlobalFloatingProgress)
   const uploadFolderWithProgress = async (folderName, filesToUpload) => {
     try {
-      console.log('📁 Starting folder upload with progress tracking...');
+      console.log('📁 Starting BACKGROUND folder upload...');
       console.log(`   Folder: ${folderName}, Files: ${filesToUpload.length}`);
       
-      const result = await otherDocumentService.uploadFolder(
-        selectedShip.id,
-        filesToUpload,
-        folderName,
-        {
-          date: formData.date || null,
-          status: formData.status,
-          note: formData.note || null
-        },
-        // Progress callback
-        (progress) => {
-          console.log('📊 Upload progress:', progress);
-          setUploadProgress({
-            totalFiles: filesToUpload.length,
-            completedFiles: progress.completedFiles || 0,
-            currentFile: progress.currentFile || '',
-            status: 'uploading',
-            errorMessage: ''
-          });
-        }
-      );
-
-      console.log('✅ Folder upload result:', result);
-
-      if (result.success) {
-        // Update to completed status
-        setUploadProgress({
-          totalFiles: filesToUpload.length,
-          completedFiles: result.successful_files || filesToUpload.length,
-          currentFile: '',
-          status: 'completed',
-          errorMessage: ''
-        });
-        
-        toast.success(language === 'vi'
-          ? `✅ Đã upload folder thành công! (${result.successful_files}/${result.total_files} files)`
-          : `✅ Folder uploaded successfully! (${result.successful_files}/${result.total_files} files)`
-        );
-
-        // Auto-close floating progress after 3 seconds
-        setTimeout(() => {
-          setShowFloatingProgress(false);
-          onSuccess(); // Refresh table
-        }, 3000);
-        
-      } else {
-        throw new Error(result.message || 'Upload failed');
+      // Create FormData for background upload
+      const formDataToSend = new FormData();
+      formDataToSend.append('ship_id', selectedShip.id);
+      formDataToSend.append('folder_name', folderName);
+      formDataToSend.append('status', formData.status || 'Valid');
+      
+      if (formData.date) {
+        formDataToSend.append('date', formData.date);
+      }
+      if (formData.note) {
+        formDataToSend.append('note', formData.note);
       }
       
-    } catch (error) {
-      console.error('❌ Folder upload error:', error);
+      // Append all files
+      filesToUpload.forEach((file) => {
+        formDataToSend.append('files', file);
+      });
       
-      // Update to error status
-      setUploadProgress(prev => ({
-        ...prev,
-        status: 'error',
-        errorMessage: error.response?.data?.detail || error.message || 'Upload failed'
-      }));
+      // Call background upload API
+      const startResponse = await api.post('/api/other-documents/background-upload-folder', formDataToSend, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      if (!startResponse.data?.success || !startResponse.data?.task_id) {
+        throw new Error(startResponse.data?.message || 'Failed to start background upload');
+      }
+      
+      const taskId = startResponse.data.task_id;
+      console.log(`📋 Background upload task started: ${taskId}`);
+      
+      // Add task to GlobalFloatingProgress via context
+      await startUploadTask({
+        taskId,
+        type: 'folder_upload',
+        title: language === 'vi' 
+          ? `Upload "${folderName}" (${filesToUpload.length} files)` 
+          : `Upload "${folderName}" (${filesToUpload.length} files)`,
+        total: filesToUpload.length,
+        apiEndpoint: '/api/other-documents/background-upload-folder/',
+        onComplete: () => {
+          // Refresh document list when upload completes
+          onSuccess();
+        }
+      });
+      
+      toast.info(language === 'vi'
+        ? `🚀 Đang upload ${filesToUpload.length} file trong nền...`
+        : `🚀 Uploading ${filesToUpload.length} files in background...`
+      );
+      
+      // Close modal immediately - user can continue working
+      onClose();
+      
+    } catch (error) {
+      console.error('❌ Background folder upload error:', error);
       
       toast.error(language === 'vi'
         ? `❌ Lỗi upload folder: ${error.message}`
