@@ -37,6 +37,7 @@ const gdriveUploadLimiter = new RateLimiter(2, 2000);
 
 const IsmIspsMLc = () => {
   const { language, user } = useAuth();
+  const { startRenameTask } = useBackgroundTask();
   
   // State
   const [selectedCategory] = useState('ism');
