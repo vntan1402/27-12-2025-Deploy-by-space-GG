@@ -102,16 +102,6 @@ const ClassAndFlagCert = () => {
     notes: ''
   });
 
-  // Auto rename state - Using floating progress
-  const [floatingRenameProgress, setFloatingRenameProgress] = useState({
-    isVisible: false,
-    completed: 0,
-    total: 0,
-    currentFile: '',
-    errors: [],
-    status: 'processing' // 'processing', 'completed', 'completed_with_errors', 'failed'
-  });
-
   // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
     // Try to restore ships from localStorage first for instant UI
