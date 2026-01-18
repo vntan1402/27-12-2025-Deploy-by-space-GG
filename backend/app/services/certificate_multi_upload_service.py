@@ -772,6 +772,15 @@ class CertificateMultiUploadService:
         validation_warning = analysis_result.get("validation_warning")
         duplicate_warning = analysis_result.get("duplicate_warning")
         
+        # ⭐ POST-PROCESSING: Override cert_type based on cert_name keywords BEFORE returning to frontend
+        cert_name_for_check = (extracted_info.get("cert_name") or "").upper()
+        if "INTERIM" in cert_name_for_check:
+            extracted_info["cert_type"] = "Interim"
+            logger.info(f"✅ POST-PROCESS (upload): Detected 'INTERIM' in cert_name → cert_type = 'Interim'")
+        elif "STATEMENT" in cert_name_for_check:
+            extracted_info["cert_type"] = "Statement"
+            logger.info(f"✅ POST-PROCESS (upload): Detected 'STATEMENT' in cert_name → cert_type = 'Statement'")
+        
         # Add filename to extracted_info
         extracted_info["filename"] = file.filename
         
