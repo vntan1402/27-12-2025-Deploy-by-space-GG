@@ -2,7 +2,7 @@ import uuid
 import logging
 import os
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from fastapi import HTTPException, UploadFile, BackgroundTasks
 
 from app.models.certificate import (
