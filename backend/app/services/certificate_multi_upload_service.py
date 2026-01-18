@@ -1589,7 +1589,6 @@ IMPORTANT DATE EXAMPLES:
                 # For Interim, use valid_date as next_survey with FT Issue type
                 if valid_date_iso:
                     next_survey_iso = valid_date_iso
-                    from datetime import datetime
                     try:
                         valid_dt = datetime.fromisoformat(valid_date_iso)
                         next_survey_display = valid_dt.strftime('%d/%m/%Y') + ' (-3M)'
