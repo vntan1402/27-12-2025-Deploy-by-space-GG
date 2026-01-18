@@ -571,6 +571,12 @@ def post_process_extracted_data(extracted_data: Dict[str, Any]) -> Dict[str, Any
             if extracted_data.get(field):
                 extracted_data[field] = str(extracted_data[field]).strip()
         
+        # Auto-classify as Statement if cert_name contains "Statement"
+        cert_name = extracted_data.get('cert_name', '').upper()
+        if 'STATEMENT' in cert_name:
+            extracted_data['cert_type'] = 'Statement'
+            logger.info(f"Auto-classified as Statement based on cert_name: {extracted_data.get('cert_name')}")
+        
         # Validate cert_type
         if extracted_data.get('cert_type') and extracted_data['cert_type'] not in VALID_CERTIFICATE_TYPES:
             logger.warning(f"Invalid cert_type: {extracted_data['cert_type']}, defaulting to 'Full Term'")
