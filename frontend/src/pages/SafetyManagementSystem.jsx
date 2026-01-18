@@ -16,6 +16,7 @@ import api from '../services/api';
 
 const SafetyManagementSystem = () => {
   const { language, user } = useAuth();
+  const { startRenameTask } = useBackgroundTask();
   
   // State
   const [selectedSubMenu, setSelectedSubMenu] = useState('company_cert');
