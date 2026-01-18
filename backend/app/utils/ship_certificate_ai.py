@@ -244,7 +244,7 @@ When extracting fields, ALWAYS compare both sections and choose the MOST ACCURAT
     "cert_name": "**REQUIRED** - Full certificate name (e.g., 'Cargo Ship Safety Construction Certificate', 'Load Line Certificate', 'Class Certificate')",
     "cert_abbreviation": "Certificate abbreviation (e.g., 'CSSC', 'LLC', 'IOPP', 'CC')",
     "cert_no": "**REQUIRED** - Certificate number/reference",
-    "cert_type": "Certificate type - MUST be one of: 'Full Term', 'Interim', 'Provisional', 'Short term', 'Conditional', 'Statement', 'Other'. If cert_name contains 'Statement', use 'Statement'.",
+    "cert_type": "Certificate type - MUST be one of: 'Full Term', 'Interim', 'Provisional', 'Short term', 'Conditional', 'Statement', 'Other'. ⚠️ CRITICAL RULES: (1) If cert_name contains 'INTERIM' → ALWAYS use 'Interim' (highest priority). Example: 'INTERIM STATEMENT OF COMPLIANCE' → 'Interim'. (2) If cert_name contains 'STATEMENT' but NOT 'INTERIM' → use 'Statement'. (3) Default to 'Full Term' for standard certificates.",
     "issue_date": "Issue date in FULL TEXT format (e.g., '15 November 2024' or 'November 15, 2024') - NOT numeric format",
     "valid_date": "Valid until / Expiry date in FULL TEXT format",
     "last_endorse": "**CRITICAL - SCAN ALL PAGES**: Find 'Annual surveys' or 'Endorsement' sections (often on LAST pages). Extract the MOST RECENT date from all Annual/Intermediate survey entries. Return in FULL TEXT format.",
