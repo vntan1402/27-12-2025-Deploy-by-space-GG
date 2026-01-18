@@ -32,17 +32,6 @@ const OtherDocumentsTable = ({ selectedShip }) => {
   const [loading, setLoading] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState(new Set());
   
-  // Floating progress state (lifted from modal to persist when modal closes)
-  const [showFloatingProgress, setShowFloatingProgress] = useState(false);
-  const [isProgressMinimized, setIsProgressMinimized] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({
-    totalFiles: 0,
-    completedFiles: 0,
-    currentFile: '',
-    status: 'uploading',
-    errorMessage: ''
-  });
-  
   // Sorting
   const [sortConfig, setSortConfig] = useState({
     column: null,
