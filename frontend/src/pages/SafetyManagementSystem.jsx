@@ -405,6 +405,7 @@ const SafetyManagementSystem = () => {
     }
   };
 
+  // Bulk Auto Rename Files - GLOBAL CONTEXT VERSION (persists across page navigation)
   const handleBulkAutoRenameFiles = async () => {
     const selectedCertsList = companyCerts.filter(cert => selectedCerts.has(cert.id));
 
@@ -434,111 +435,34 @@ const SafetyManagementSystem = () => {
     
     if (!window.confirm(confirmMsg)) return;
 
-    // Show floating progress
-    setFloatingRenameProgress({
-      isVisible: true,
-      completed: 0,
-      total: certsWithFiles.length,
-      currentFile: language === 'vi' ? 'Đang khởi động...' : 'Starting...',
-      errors: [],
-      status: 'processing'
-    });
+    // Get certificate IDs
+    const certificateIds = certsWithFiles.map(cert => cert.id);
 
-    // Clear selection so user can continue working
-    setSelectedCerts(new Set());
-
-    try {
-      // Get certificate IDs
-      const certificateIds = certsWithFiles.map(cert => cert.id);
-
-      // Start background bulk rename
-      console.log(`🚀 Starting background bulk rename for ${certificateIds.length} company certificates`);
-      const startResponse = await api.post('/api/company-certs/bulk-auto-rename', {
-        certificate_ids: certificateIds
-      });
-
-      if (!startResponse.data?.success || !startResponse.data?.task_id) {
-        throw new Error(startResponse.data?.message || 'Failed to start bulk rename');
+    // Start task using global context
+    const result = await startRenameTask({
+      certificateIds,
+      type: 'company_certificate',
+      title: language === 'vi' 
+        ? `Đổi tên ${certificateIds.length} file (SMS)` 
+        : `Rename ${certificateIds.length} files (SMS)`,
+      apiEndpoint: '/api/company-certs/bulk-auto-rename',
+      onComplete: async () => {
+        // Refresh certificate list when task completes
+        await loadCompanyCerts();
       }
-
-      const taskId = startResponse.data.task_id;
-      console.log(`📋 Bulk rename task started: ${taskId}`);
-
-      // Poll for status
-      const pollInterval = 1000; // 1 second
-      const maxPolls = 300; // 5 minutes max
-      let pollCount = 0;
-
-      const pollStatus = async () => {
-        try {
-          pollCount++;
-          const statusResponse = await api.get(`/api/company-certs/bulk-auto-rename/${taskId}`);
-          const status = statusResponse.data;
-
-          // Update floating progress
-          setFloatingRenameProgress(prev => ({
-            ...prev,
-            completed: status.completed_files || 0,
-            currentFile: status.current_file || '',
-            errors: (status.results || [])
-              .filter(r => !r.success)
-              .map(r => r.error || 'Unknown error'),
-            status: status.status
-          }));
-
-          // Check if completed
-          if (status.status === 'completed' || status.status === 'completed_with_errors' || status.status === 'failed') {
-            // Refresh certificates list
-            if ((status.completed_files || 0) > 0) {
-              await loadCompanyCerts();
-            }
-            return; // Stop polling
-          }
-
-          // Continue polling if not completed
-          if (pollCount < maxPolls) {
-            setTimeout(pollStatus, pollInterval);
-          } else {
-            setFloatingRenameProgress(prev => ({
-              ...prev,
-              status: 'failed',
-              errors: [...prev.errors, 'Timeout: Bulk rename took too long']
-            }));
-          }
-
-        } catch (pollError) {
-          console.error('❌ Poll error:', pollError);
-          setFloatingRenameProgress(prev => ({
-            ...prev,
-            status: 'failed',
-            errors: [...prev.errors, pollError.message || 'Polling error']
-          }));
-        }
-      };
-
-      // Start polling
-      setTimeout(pollStatus, pollInterval);
-
-    } catch (error) {
-      console.error('❌ Bulk auto rename error:', error);
-      setFloatingRenameProgress(prev => ({
-        ...prev,
-        status: 'failed',
-        errors: [error.message || 'Failed to start bulk rename']
-      }));
-    }
-  };
-
-  // Close floating progress
-  const handleCloseFloatingProgress = () => {
-    setFloatingRenameProgress({
-      isVisible: false,
-      completed: 0,
-      total: 0,
-      currentFile: '',
-      errors: [],
-      status: 'processing'
     });
+
+    if (result.success) {
+      // Clear selection immediately so user can continue working
+      setSelectedCerts(new Set());
+      toast.info(
+        language === 'vi' 
+          ? `🚀 Đang đổi tên ${certificateIds.length} file trong nền...` 
+          : `🚀 Renaming ${certificateIds.length} files in background...`
+      );
+    } else {
+      toast.error(result.error || 'Failed to start bulk rename');
+    }
   };
 
   const handleUpdateNextAudits = async () => {
