@@ -1017,43 +1017,41 @@ class CertificateMultiUploadService:
         gdrive_config_doc: Dict[str, Any]
     ):
         """
-        Background task to upload PDF and Summary to GDrive in parallel
+        Background task to upload PDF and Summary to GDrive SEQUENTIALLY
         Updates certificate record with file URLs when complete
+        Note: Sequential upload prevents duplicate folder creation (race condition)
         """
-        import asyncio
         
         try:
             logger.info(f"🔄 Background upload starting for cert {cert_id}: {filename}")
             
-            upload_tasks = []
+            pdf_result = None
+            summary_result = None
             
-            # Task 1: Upload main PDF
-            upload_tasks.append(
-                CertificateMultiUploadService._upload_to_gdrive_with_parent(
+            # Step 1: Upload main PDF first (this will create the folder if needed)
+            try:
+                pdf_result = await CertificateMultiUploadService._upload_to_gdrive_with_parent(
                     gdrive_config_doc, file_content, filename, ship_name,
                     "Class & Flag Cert", "Certificates"
                 )
-            )
+            except Exception as e:
+                logger.error(f"❌ Background: PDF upload failed: {e}")
+                pdf_result = {"success": False, "error": str(e)}
             
-            # Task 2: Upload Summary (if available)
+            # Step 2: Upload Summary AFTER PDF (folder already exists now)
             if summary_text and summary_text.strip():
                 base_name = filename.rsplit('.', 1)[0] if '.' in filename else filename
                 summary_filename = f"{base_name}_Summary.txt"
                 summary_bytes = summary_text.encode('utf-8')
                 
-                upload_tasks.append(
-                    CertificateMultiUploadService._upload_to_gdrive_with_parent(
+                try:
+                    summary_result = await CertificateMultiUploadService._upload_to_gdrive_with_parent(
                         gdrive_config_doc, summary_bytes, summary_filename, ship_name,
                         "Class & Flag Cert", "Certificates", content_type="text/plain"
                     )
-                )
-            
-            # Execute uploads in parallel
-            upload_results = await asyncio.gather(*upload_tasks, return_exceptions=True)
-            
-            # Process results
-            pdf_result = upload_results[0] if len(upload_results) > 0 else None
-            summary_result = upload_results[1] if len(upload_results) > 1 else None
+                except Exception as e:
+                    logger.error(f"❌ Background: Summary upload failed: {e}")
+                    summary_result = {"success": False, "error": str(e)}
             
             # Update certificate record with file URLs
             db = mongo_db.database
