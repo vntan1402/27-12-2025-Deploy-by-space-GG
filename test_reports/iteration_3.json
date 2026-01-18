@@ -1,0 +1,86 @@
+{
+  "summary": "Identified root cause of upload stopping when navigating pages. The uploadManager.js singleton is being re-initialized during page navigation, causing all active uploads, scheduled timeouts, and file data queues to be reset.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "critical": [
+      {
+        "component": "uploadManager.js",
+        "issue": "Singleton is re-initialized when navigating between pages, losing all upload state",
+        "selector": "window.__uploadManager",
+        "priority": "HIGH",
+        "evidence": "Console shows '📦 [UploadManager] Initialized (with file data caching)' multiple times during navigation. Test marker added to instance is lost after navigation."
+      }
+    ],
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Folder upload with page navigation",
+        "issue": "Upload stops when user navigates to another page because uploadManager singleton is re-created",
+        "affected_selectors": ["window.__uploadManager", "window.__apiInstance"]
+      }
+    ],
+    "design_issues": []
+  },
+  "root_cause_analysis": {
+    "problem": "Upload stops when navigating to another page",
+    "root_cause": "The uploadManager.js module is being re-evaluated during React page navigation (likely due to code splitting/lazy loading). Despite the `if (!window.__uploadManager)` check, a new UploadManager instance is created, which resets all Maps (activeUploads, fileDataQueues, scheduledUploads) and clears scheduled setTimeout callbacks.",
+    "evidence": [
+      "Console shows initialization message multiple times during navigation",
+      "Test marker added to window.__uploadManager._testMarker is lost after navigating to ISM-ISPS-MLC page",
+      "activeUploads, fileDataQueues, scheduledUploads are all reset to size 0"
+    ],
+    "affected_files": [
+      "/app/frontend/src/services/uploadManager.js"
+    ]
+  },
+  "suggested_fix": {
+    "approach": "Strengthen the singleton pattern to preserve state across module re-evaluations",
+    "options": [
+      {
+        "option": "1. Preserve existing state when re-initializing",
+        "code_change": "In uploadManager.js constructor, check if window.__uploadManager already has data and copy it to the new instance"
+      },
+      {
+        "option": "2. Move initialization to App.js",
+        "code_change": "Import and initialize uploadManager in App.js before any lazy-loaded components, ensuring it's only created once"
+      },
+      {
+        "option": "3. Use a factory pattern",
+        "code_change": "Instead of exporting the instance directly, export a getUploadManager() function that always returns window.__uploadManager"
+      }
+    ],
+    "recommended": "Option 1 - Preserve existing state when re-initializing. This is the safest fix that doesn't require changes to other files."
+  },
+  "test_report_links": [
+    "/app/tests/test_upload_api.py"
+  ],
+  "action_items": [
+    "Fix uploadManager.js singleton to preserve state across module re-evaluations",
+    "Add state preservation in UploadManager constructor to copy existing data from window.__uploadManager",
+    "Consider moving uploadManager initialization to App.js to ensure single initialization"
+  ],
+  "critical_code_review_comments": [
+    "uploadManager.js singleton pattern is not robust - module re-evaluation creates new instance",
+    "The `if (!window.__uploadManager)` check is not sufficient when webpack re-evaluates modules",
+    "setTimeout callbacks scheduled in the old instance are lost when new instance is created",
+    "File data stored in ArrayBuffer is lost when Maps are reset"
+  ],
+  "updated_files": [
+    "/app/tests/test_upload_api.py"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "N/A - Bug identified, not fixed"
+  },
+  "test_credentials": {
+    "username": "admin1",
+    "password": "123456"
+  },
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Root cause identified: uploadManager.js singleton is re-initialized during page navigation. The fix requires modifying the singleton pattern to preserve state. Backend APIs for upload task creation, status, and cancellation are working correctly."
+}
