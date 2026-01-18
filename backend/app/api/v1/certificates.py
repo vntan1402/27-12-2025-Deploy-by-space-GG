@@ -566,6 +566,67 @@ async def get_upload_task_status(
         raise HTTPException(status_code=500, detail=f"Failed to get task status: {str(e)}")
 
 
+# ========== BULK AUTO RENAME ENDPOINTS ==========
+
+@router.post("/bulk-auto-rename")
+async def bulk_auto_rename_certificates(
+    request: dict,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    Start background bulk auto-rename for multiple certificates.
+    
+    Request body:
+    {
+        "certificate_ids": ["id1", "id2", ...]
+    }
+    
+    Returns task_id for polling status.
+    """
+    from app.services.bulk_rename_service import BulkRenameService
+    
+    try:
+        certificate_ids = request.get("certificate_ids", [])
+        
+        if not certificate_ids:
+            raise HTTPException(status_code=400, detail="No certificate IDs provided")
+        
+        result = await BulkRenameService.start_bulk_rename(
+            certificate_ids=certificate_ids,
+            current_user=current_user,
+            task_type="ship_certificate"
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error starting bulk auto-rename: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to start bulk auto-rename: {str(e)}")
+
+
+@router.get("/bulk-auto-rename/{task_id}")
+async def get_bulk_rename_status(
+    task_id: str,
+    current_user: UserResponse = Depends(get_current_user)
+):
+    """
+    Get status of a bulk auto-rename task.
+    Poll this endpoint to track progress.
+    """
+    from app.services.bulk_rename_service import BulkRenameService
+    
+    try:
+        return await BulkRenameService.get_task_status(task_id)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error getting bulk rename status: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get bulk rename status: {str(e)}")
+
+
 @router.post("/{certificate_id}/auto-rename-file")
 async def auto_rename_certificate_file(
     certificate_id: str,
