@@ -342,9 +342,18 @@ class CertificateService:
                 logger.warning(f"⚠️ Could not normalize issued_by: {e}")
         
         # Regenerate certificate abbreviation if cert_name is being updated
-        if update_data.get("cert_name") and not update_data.get("cert_abbreviation"):
-            update_data["cert_abbreviation"] = await generate_certificate_abbreviation(update_data.get("cert_name"))
-            logger.info(f"✅ Regenerated cert abbreviation: '{update_data['cert_name']}' → '{update_data['cert_abbreviation']}'")
+        # For SOC certificates, ALWAYS regenerate
+        new_cert_name = update_data.get("cert_name") or cert.get("cert_name", "")
+        new_cert_name_upper = new_cert_name.upper() if new_cert_name else ""
+        
+        if update_data.get("cert_name"):
+            if 'STATEMENT OF COMPLIANCE' in new_cert_name_upper:
+                # SOC certificates - always regenerate for proper format
+                update_data["cert_abbreviation"] = await generate_certificate_abbreviation(new_cert_name)
+                logger.info(f"✅ SOC cert - Regenerated abbreviation: '{new_cert_name}' → '{update_data['cert_abbreviation']}'")
+            elif not update_data.get("cert_abbreviation"):
+                update_data["cert_abbreviation"] = await generate_certificate_abbreviation(new_cert_name)
+                logger.info(f"✅ Regenerated cert abbreviation: '{new_cert_name}' → '{update_data['cert_abbreviation']}'")
         
         # Regenerate organization abbreviation ONLY if issued_by is being updated AND user didn't provide abbreviation
         if update_data.get("issued_by") and not update_data.get("issued_by_abbreviation"):
