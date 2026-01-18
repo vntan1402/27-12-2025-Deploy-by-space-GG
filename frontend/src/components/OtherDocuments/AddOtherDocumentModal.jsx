@@ -238,10 +238,14 @@ const AddOtherDocumentModal = ({
       
     } catch (error) {
       console.error('❌ Background folder upload error:', error);
+      console.error('   Error details:', error.response?.data || error.message);
+      console.error('   Status:', error.response?.status);
+      
+      const errorMsg = error.response?.data?.detail || error.message || 'Unknown error';
       
       toast.error(language === 'vi'
-        ? `❌ Lỗi upload folder: ${error.message}`
-        : `❌ Folder upload failed: ${error.message}`
+        ? `❌ Lỗi upload folder: ${errorMsg}`
+        : `❌ Folder upload failed: ${errorMsg}`
       );
     }
   };
