@@ -1633,6 +1633,7 @@ IMPORTANT DATE EXAMPLES:
                 "valid_date": valid_date_iso,
                 "last_endorse": last_endorse_iso,
                 "next_survey": next_survey_iso,
+                "next_survey_display": next_survey_display if cert_type == "Interim" else None,  # ⭐ For Interim
                 "next_survey_type": next_survey_type_final,
                 "has_annual_survey": analysis_result.get("has_annual_survey", None),  # ⭐ NEW: Flag from AI analysis
                 "issued_by": analysis_result.get("issued_by"),
