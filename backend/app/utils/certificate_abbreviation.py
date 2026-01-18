@@ -166,13 +166,13 @@ def get_standard_abbreviation(cert_name: str) -> Optional[str]:
 async def generate_certificate_abbreviation(cert_name: str, doc_type: Optional[str] = None) -> str:
     """
     Generate certificate abbreviation from certificate name
-    Priority: User-defined mappings → Standard mappings → Special DOC handling → Auto-generation algorithm
+    Priority: User-defined mappings → Standard mappings → SOC handling → Special DOC handling → Auto-generation algorithm
     
     Args:
         cert_name: Full certificate name
         
     Returns:
-        Abbreviated certificate name (e.g., "CSSC", "IOPP", "FT DOC", "ST DOC", "IMSBC")
+        Abbreviated certificate name (e.g., "CSSC", "IOPP", "FT DOC", "ST DOC", "IMSBC", "SOC-IBWM")
         
     Examples:
         "Cargo Ship Safety Construction Certificate" → "CSSC"
@@ -182,6 +182,7 @@ async def generate_certificate_abbreviation(cert_name: str, doc_type: Optional[s
         "Short Term Document of Compliance" → "ST DOC"
         "Interim Document of Compliance" → "Int DOC"
         "Carriage of Solid Bulk Cargoes Certificate" → "IMSBC"
+        "INTERIM STATEMENT OF COMPLIANCE (SOC) INTERNATIONAL BALLAST WATER MANAGEMENT" → "SOC-IBWM"
     """
     if not cert_name:
         return ""
@@ -197,12 +198,52 @@ async def generate_certificate_abbreviation(cert_name: str, doc_type: Optional[s
     if standard_abbr:
         return standard_abbr
     
-    # Priority 3: Special handling for Document of Compliance (DOC)
+    # Priority 3: Special handling for STATEMENT OF COMPLIANCE (SOC) certificates
+    # Format: SOC-{abbreviation of remaining words}
+    # Example: "INTERIM STATEMENT OF COMPLIANCE (SOC) INTERNATIONAL BALLAST WATER MANAGEMENT" → "SOC-IBWM"
+    cert_name_upper = cert_name.upper().strip()
+    if 'STATEMENT OF COMPLIANCE' in cert_name_upper:
+        # Remove "STATEMENT OF COMPLIANCE" and "(SOC)" from name
+        remaining = cert_name_upper
+        remaining = remaining.replace('STATEMENT OF COMPLIANCE', '')
+        remaining = remaining.replace('(SOC)', '')
+        remaining = remaining.replace('SOC', '')
+        
+        # Remove INTERIM/FULL TERM/SHORT TERM prefix (they don't contribute to abbreviation)
+        prefixes_to_remove = ['INTERIM', 'FULL TERM', 'SHORT TERM', 'PROVISIONAL']
+        for prefix in prefixes_to_remove:
+            remaining = remaining.replace(prefix, '')
+        
+        # Clean up extra spaces and punctuation
+        remaining = ' '.join(remaining.split())
+        remaining = re.sub(r'[^\w\s]', '', remaining)  # Remove punctuation
+        remaining = remaining.strip()
+        
+        if remaining:
+            # Extract first letter of each significant word
+            common_words = {'the', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were', 'of'}
+            words = remaining.split()
+            significant_words = [w for w in words if w.lower() not in common_words and len(w) > 0]
+            
+            if significant_words:
+                # Generate abbreviation from remaining words (excluding "CERTIFICATE" if present)
+                abbr_words = [w for w in significant_words if w.upper() != 'CERTIFICATE']
+                if abbr_words:
+                    remaining_abbr = ''.join([w[0] for w in abbr_words])
+                    result = f"SOC-{remaining_abbr}"
+                    logger.info(f"✅ SOC abbreviation: '{cert_name}' → '{result}'")
+                    return result
+        
+        # If no remaining words, just return SOC
+        logger.info(f"✅ SOC abbreviation (no suffix): '{cert_name}' → 'SOC'")
+        return "SOC"
+    
+    # Priority 4: Special handling for Document of Compliance (DOC)
     doc_abbr = generate_doc_abbreviation(doc_type, cert_name)
     if doc_abbr:
         return doc_abbr
     
-    # Priority 3: Auto-generation algorithm
+    # Priority 5: Auto-generation algorithm
     # Remove common words and focus on key terms
     # Note: Kept 'of' to generate abbreviations like DOC (Document Of Compliance)
     common_words = {'the', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were'}
