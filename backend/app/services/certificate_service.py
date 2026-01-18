@@ -293,7 +293,6 @@ class CertificateService:
             # next_survey_display is the formatted display value shown in tables (with ±3M annotation)
             # When user manually updates next_survey, we must sync next_survey_display
             if "next_survey" in update_data and update_data["next_survey"]:
-                from datetime import datetime
                 # Format: dd/mm/yyyy (±3M) - preserve existing annotation if any, or add default
                 next_survey_date = update_data["next_survey"]
                 if isinstance(next_survey_date, datetime):
