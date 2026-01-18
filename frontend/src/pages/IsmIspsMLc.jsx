@@ -141,6 +141,16 @@ const IsmIspsMLc = () => {
     show: false, report: null, notes: ''
   });
 
+  // Floating Progress for Auto Rename
+  const [floatingRenameProgress, setFloatingRenameProgress] = useState({
+    isVisible: false,
+    completed: 0,
+    total: 0,
+    currentFile: '',
+    errors: [],
+    status: 'processing'
+  });
+
 
   // Fetch ships on mount and restore selected ship from localStorage
   useEffect(() => {
