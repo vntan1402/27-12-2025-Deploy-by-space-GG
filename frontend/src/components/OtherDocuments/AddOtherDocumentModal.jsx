@@ -27,7 +27,7 @@ const AddOtherDocumentModal = ({
   onSuccess
 }) => {
   const { language } = useAuth();
-  const { startUploadTask, startStaggeredUpload } = useBackgroundTask();
+  const { startUploadTask } = useBackgroundTask();
 
   // Helper function to get current date in YYYY-MM-DD format
   const getCurrentDate = () => {
