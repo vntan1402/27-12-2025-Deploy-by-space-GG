@@ -795,7 +795,6 @@ class CertificateService:
         from app.db.mongodb import mongo_db
         from app.repositories.ship_repository import ShipRepository
         from app.utils.certificate_abbreviation import generate_certificate_abbreviation
-        from datetime import datetime
         import re
         import aiohttp
         
