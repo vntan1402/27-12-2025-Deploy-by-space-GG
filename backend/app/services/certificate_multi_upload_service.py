@@ -606,7 +606,6 @@ class CertificateMultiUploadService:
                     
                     # Get real user from database (convert document to UserResponse)
                     from app.models.user import UserResponse, UserRole
-                    from datetime import datetime, timezone
                     
                     # Build UserResponse from database document
                     real_user = UserResponse(
