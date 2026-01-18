@@ -575,6 +575,7 @@ export const AddShipCertificateModal = ({
         cert_name: firstSuccessInfo.cert_name || firstSuccessInfo.certificate_name || '',
         cert_abbreviation: firstSuccessInfo.cert_abbreviation || '',
         cert_no: firstSuccessInfo.cert_no || firstSuccessInfo.certificate_number || '',
+        cert_type: firstSuccessInfo.cert_type || 'Full Term',
         issue_date: formatCertDate(firstSuccessInfo.issue_date),
         valid_date: formatCertDate(firstSuccessInfo.valid_date || firstSuccessInfo.expiry_date),
         issued_by: firstSuccessInfo.issued_by || '',
