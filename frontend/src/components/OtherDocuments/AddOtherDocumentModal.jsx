@@ -258,26 +258,14 @@ const AddOtherDocumentModal = ({
         
         onSuccess();
       } else if (isFolder) {
-        // Folder upload - NEW FLOW with minimizable floating progress
+        // Folder upload - BACKGROUND with GlobalFloatingProgress
         const folderName = formData.document_name || files[0].webkitRelativePath.split('/')[0];
         
-        // Initialize floating progress
-        setShowFloatingProgress(true);
-        setIsProgressMinimized(true); // Start minimized
-        setUploadProgress({
-          totalFiles: files.length,
-          completedFiles: 0,
-          currentFile: files[0].name,
-          status: 'uploading',
-          errorMessage: ''
-        });
-        
-        // Close main modal immediately
-        onClose();
+        // Start background upload (will show in GlobalFloatingProgress)
         setIsProcessing(false);
-        
-        // Start upload with progress tracking
         uploadFolderWithProgress(folderName, files);
+        // Modal will be closed inside uploadFolderWithProgress
+        
       } else {
         // Multiple files - NEW FLOW: create records first, upload in background
         const createdDocs = [];
