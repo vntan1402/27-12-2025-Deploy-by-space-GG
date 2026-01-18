@@ -273,6 +273,83 @@ async def upload_folder(
 
 # ========== BACKGROUND FOLDER UPLOAD ENDPOINTS ==========
 
+@router.post("/background-upload-folder/create-task")
+async def create_background_upload_task(
+    ship_id: str = Form(...),
+    folder_name: str = Form(...),
+    total_files: int = Form(...),
+    date: Optional[str] = Form(None),
+    status: Optional[str] = Form("Valid"),
+    note: Optional[str] = Form(None),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    V2: Create upload task (metadata only).
+    Frontend uploads files one by one to /background-upload-folder/{task_id}/upload-file
+    """
+    from app.services.background_upload_service import BackgroundUploadService
+    
+    try:
+        logger.info(f"📁 Creating background upload task: {folder_name} for {total_files} files")
+        
+        result = await BackgroundUploadService.create_upload_task(
+            ship_id=ship_id,
+            folder_name=folder_name,
+            total_files=total_files,
+            date=date,
+            status=status or "Valid",
+            note=note,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error creating background upload task: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/background-upload-folder/{task_id}/upload-file")
+async def upload_file_to_task(
+    task_id: str,
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    V2: Upload a single file to an existing task.
+    Call this for each file sequentially with 1s delay between calls.
+    """
+    from app.services.background_upload_service import BackgroundUploadService
+    
+    try:
+        logger.info(f"📤 Uploading file to task {task_id}: {file.filename}")
+        
+        # Read file content
+        file_content = await file.read()
+        filename = file.filename.split('/')[-1] if '/' in file.filename else file.filename
+        
+        result = await BackgroundUploadService.upload_single_file_to_task(
+            task_id=task_id,
+            file_content=file_content,
+            filename=filename,
+            current_user=current_user
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error uploading file to task: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/background-upload-folder")
 async def background_upload_folder(
     files: List[UploadFile] = File(...),
