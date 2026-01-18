@@ -208,16 +208,13 @@ const AddOtherDocumentModal = ({
       // Close modal immediately - upload continues in background
       onClose();
       
-      // STEP 3: Start staggered upload via Context (persists across page navigation)
-      // Each file starts uploading 2 seconds after the previous one
-      startStaggeredUpload({
+      // STEP 3: Start upload via singleton UploadManager (persists across page navigation)
+      // UploadManager is a singleton outside React - it won't be affected by component unmount
+      uploadManager.startUpload({
         taskId,
         files: filesToUpload,
         apiEndpoint: '/api/other-documents/background-upload-folder/',
-        staggerDelayMs: 2000,
-        onAllComplete: () => {
-          console.log(`✅ All files uploaded for task ${taskId}`);
-        }
+        staggerDelayMs: 2000
       });
       
     } catch (error) {
