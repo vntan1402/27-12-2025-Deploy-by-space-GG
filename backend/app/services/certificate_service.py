@@ -270,7 +270,7 @@ class CertificateService:
                         logger.error(f"Failed to parse valid_date for Interim: {e}")
                         update_data["next_survey_display"] = str(valid_date) + ' (-3M)'
                         update_data["next_survey_type"] = "FT Issue"
-                elif isinstance(valid_date, datetime):
+                elif isinstance(valid_date, (datetime, date)):
                     update_data["next_survey"] = valid_date.strftime('%Y-%m-%d')
                     update_data["next_survey_display"] = valid_date.strftime('%d/%m/%Y') + ' (-3M)'
                     update_data["next_survey_type"] = "FT Issue"
