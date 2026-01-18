@@ -9,6 +9,7 @@ import {
   CompanyCertNotesModal
 } from '../components/CompanyCert';
 import { AuditUpcomingSurveyModal } from '../components/AuditCertificate';
+import FloatingProgress from '../components/common/FloatingProgress';
 import { companyCertService } from '../services';
 import { toast } from 'sonner';
 import api from '../services/api';
