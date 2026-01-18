@@ -333,6 +333,16 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
                 'window_months': -3
             }
         
+        # Rule 3a2: Provisional certificates = valid_date with -3M window, Type = "FT Issue" (same as Interim)
+        if 'PROVISIONAL' in cert_type:
+            return {
+                'next_survey': valid_dt.strftime('%d/%m/%Y') + ' (-3M)',
+                'next_survey_type': 'FT Issue',
+                'reasoning': 'Provisional certificate: Full Term Issue before valid date with -3M window',
+                'raw_date': valid_dt.strftime('%d/%m/%Y'),
+                'window_months': -3
+            }
+        
         # Rule 3b: Statement certificates = valid_date with -3M window
         if 'STATEMENT' in cert_type or 'STATEMENT' in cert_name:
             return {
