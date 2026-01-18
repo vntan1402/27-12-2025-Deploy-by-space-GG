@@ -14,15 +14,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useBackgroundTask } from '../../contexts/BackgroundTaskContext';
 import { toast } from 'sonner';
 import otherDocumentService from '../../services/otherDocumentService';
+import api from '../../services/api';
 
 const AddOtherDocumentModal = ({ 
   show, 
   onClose, 
   selectedShip, 
   onSuccess,
-  // Floating progress props (lifted to parent)
+  // Legacy floating progress props (kept for backward compatibility)
   showFloatingProgress,
   setShowFloatingProgress,
   isProgressMinimized,
@@ -31,6 +33,7 @@ const AddOtherDocumentModal = ({
   setUploadProgress
 }) => {
   const { language } = useAuth();
+  const { startUploadTask } = useBackgroundTask();
 
   // Helper function to get current date in YYYY-MM-DD format
   const getCurrentDate = () => {
