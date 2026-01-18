@@ -1309,6 +1309,7 @@ export const AddShipCertificateModal = ({
                   <option value="Provisional">Provisional</option>
                   <option value="Short term">Short term</option>
                   <option value="Conditional">Conditional</option>
+                  <option value="Statement">Statement</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
