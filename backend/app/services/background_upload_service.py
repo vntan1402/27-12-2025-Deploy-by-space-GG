@@ -236,8 +236,15 @@ class BackgroundUploadService:
             
             ship_name = ship.get("name", "Unknown")
             
-            # Get GDrive config
-            gdrive_config = await OtherDocumentService._get_gdrive_config(current_user)
+            # Get GDrive config using repository
+            from app.repositories.gdrive_config_repository import GDriveConfigRepository
+            from uuid import UUID
+            
+            company_uuid = UUID(current_user.company) if current_user.company else None
+            if not company_uuid:
+                raise Exception("User has no company assigned")
+            
+            gdrive_config = await GDriveConfigRepository.get_by_company(company_uuid)
             if not gdrive_config:
                 raise Exception("Google Drive not configured")
             
@@ -590,8 +597,15 @@ class BackgroundUploadService:
             
             ship_name = ship.get("name", "Unknown")
             
-            # Get GDrive config
-            gdrive_config = await OtherDocumentService._get_gdrive_config(current_user)
+            # Get GDrive config using repository
+            from app.repositories.gdrive_config_repository import GDriveConfigRepository
+            from uuid import UUID
+            
+            company_uuid = UUID(current_user.company) if current_user.company else None
+            if not company_uuid:
+                raise Exception("User has no company assigned")
+            
+            gdrive_config = await GDriveConfigRepository.get_by_company(company_uuid)
             if not gdrive_config:
                 raise Exception("Google Drive not configured")
             
