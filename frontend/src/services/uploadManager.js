@@ -1,7 +1,7 @@
 /**
  * Upload Manager Singleton
  * Manages file uploads independently from React lifecycle
- * Reads file content into memory immediately to survive page navigation
+ * Preserves state across module re-evaluations during page navigation
  */
 
 // Get axios instance
@@ -26,12 +26,37 @@ const readFileAsArrayBuffer = (file) => {
 
 class UploadManager {
   constructor() {
-    this.activeUploads = new Map();
-    this.fileDataQueues = new Map(); // Store file DATA (not File objects)
-    this.cancelledTasks = new Set();
-    this.scheduledUploads = new Map();
+    // Check if there's existing state in window to preserve
+    const existing = window.__uploadManagerState;
     
-    console.log('📦 [UploadManager] Initialized (with file data caching)');
+    if (existing) {
+      // Restore state from previous instance
+      console.log('📦 [UploadManager] Restoring existing state from window');
+      this.activeUploads = existing.activeUploads || new Map();
+      this.fileDataQueues = existing.fileDataQueues || new Map();
+      this.cancelledTasks = existing.cancelledTasks || new Set();
+      this.scheduledUploads = existing.scheduledUploads || new Map();
+    } else {
+      // Fresh initialization
+      console.log('📦 [UploadManager] Fresh initialization');
+      this.activeUploads = new Map();
+      this.fileDataQueues = new Map();
+      this.cancelledTasks = new Set();
+      this.scheduledUploads = new Map();
+    }
+    
+    // Always save reference to state in window for persistence
+    this._saveState();
+  }
+  
+  // Save current state to window for persistence across module re-evaluations
+  _saveState() {
+    window.__uploadManagerState = {
+      activeUploads: this.activeUploads,
+      fileDataQueues: this.fileDataQueues,
+      cancelledTasks: this.cancelledTasks,
+      scheduledUploads: this.scheduledUploads
+    };
   }
   
   /**
@@ -48,7 +73,6 @@ class UploadManager {
     const fileArray = Array.from(files);
     
     // Read ALL file contents into memory IMMEDIATELY
-    // This ensures data survives page navigation
     const fileDataArray = [];
     for (let i = 0; i < fileArray.length; i++) {
       const file = fileArray[i];
@@ -58,7 +82,7 @@ class UploadManager {
           name: file.name,
           type: file.type || 'application/octet-stream',
           size: file.size,
-          data: arrayBuffer // Raw binary data in memory
+          data: arrayBuffer
         });
       } catch (err) {
         console.error(`❌ [UploadManager] Failed to read file ${file.name}:`, err);
@@ -74,13 +98,14 @@ class UploadManager {
     
     console.log(`📤 [UploadManager] Read ${fileDataArray.length} files into memory`);
     
-    // Store file DATA (not File objects)
+    // Store file DATA
     this.fileDataQueues.set(taskId, fileDataArray);
     this.cancelledTasks.delete(taskId);
     
     // Track upload state
     const uploadState = {
       taskId,
+      apiEndpoint,
       totalFiles: fileDataArray.length,
       completedFiles: 0,
       failedFiles: 0,
@@ -89,21 +114,30 @@ class UploadManager {
     };
     this.activeUploads.set(taskId, uploadState);
     
-    // Store scheduled timeouts
+    // Save state after updating
+    this._saveState();
+    
+    // Schedule uploads using a self-contained approach
+    // Store timeout IDs for cancellation
     const timeoutIds = [];
     
-    // Schedule each file upload with staggered delay
     fileDataArray.forEach((fileData, index) => {
       const delay = index * staggerDelayMs;
       
+      // Use a closure to capture all necessary data
       const timeoutId = window.setTimeout(() => {
-        this._uploadSingleFileData(taskId, fileData, index, apiEndpoint, api, onProgress);
+        // Get the current manager instance from window
+        const manager = window.__uploadManager;
+        if (manager) {
+          manager._uploadSingleFileData(taskId, fileData, index, apiEndpoint, api, onProgress);
+        }
       }, delay);
       
       timeoutIds.push(timeoutId);
     });
     
     this.scheduledUploads.set(taskId, timeoutIds);
+    this._saveState();
     
     console.log(`📤 [UploadManager] Scheduled ${fileDataArray.length} uploads with ${staggerDelayMs}ms stagger`);
   }
@@ -112,6 +146,9 @@ class UploadManager {
    * Upload a single file from cached data
    */
   async _uploadSingleFileData(taskId, fileData, index, apiEndpoint, api, onProgress) {
+    // Re-get api in case it was reset
+    const currentApi = api || getApi();
+    
     // Check if cancelled
     if (this.cancelledTasks.has(taskId)) {
       console.log(`🚫 [UploadManager] Task ${taskId} cancelled. Skipping file ${index + 1}`);
@@ -137,10 +174,11 @@ class UploadManager {
     try {
       // Check task status from server
       try {
-        const statusCheck = await api.get(`${apiEndpoint}${taskId}`);
+        const statusCheck = await currentApi.get(`${apiEndpoint}${taskId}`);
         if (statusCheck.data?.status === 'cancelled') {
           console.log(`🚫 [UploadManager] Task ${taskId} cancelled on server. Skipping.`);
           this.cancelledTasks.add(taskId);
+          this._saveState();
           return;
         }
       } catch (e) {
@@ -155,7 +193,7 @@ class UploadManager {
       const formData = new FormData();
       formData.append('file', blob, filename);
       
-      const response = await api.post(
+      const response = await currentApi.post(
         `${apiEndpoint}${taskId}/upload-file`,
         formData,
         {
@@ -178,6 +216,7 @@ class UploadManager {
           (errorDetail.includes('cancelled') || errorDetail.includes('Task already'))) {
         console.log(`🚫 [UploadManager] Task ${taskId} cancelled. Stopping.`);
         this.cancelledTasks.add(taskId);
+        this._saveState();
         return;
       }
       
@@ -198,6 +237,9 @@ class UploadManager {
       this.fileDataQueues.delete(taskId);
       this.scheduledUploads.delete(taskId);
     }
+    
+    // Save state after each upload
+    this._saveState();
     
     if (onProgress) {
       onProgress({
@@ -227,6 +269,8 @@ class UploadManager {
     if (uploadState) {
       uploadState.inProgress = false;
     }
+    
+    this._saveState();
   }
   
   getStatus(taskId) {
@@ -238,9 +282,13 @@ class UploadManager {
   }
 }
 
-// Singleton attached to window
-if (!window.__uploadManager) {
-  window.__uploadManager = new UploadManager();
-}
+// Factory function to get or create the singleton
+const getUploadManager = () => {
+  if (!window.__uploadManager) {
+    window.__uploadManager = new UploadManager();
+  }
+  return window.__uploadManager;
+};
 
-export default window.__uploadManager;
+// Always get the singleton through the factory
+export default getUploadManager();
