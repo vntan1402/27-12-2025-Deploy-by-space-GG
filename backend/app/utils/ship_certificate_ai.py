@@ -572,11 +572,38 @@ def post_process_extracted_data(extracted_data: Dict[str, Any], raw_text: str = 
             if extracted_data.get(field):
                 extracted_data[field] = str(extracted_data[field]).strip()
         
-        # Auto-classify as Statement if cert_name contains "Statement"
+        # ===== AUTO-CLASSIFY CERT_TYPE BASED ON KEYWORDS =====
         cert_name = extracted_data.get('cert_name', '').upper()
-        if 'STATEMENT' in cert_name:
+        cert_no = extracted_data.get('cert_no', '').upper()
+        raw_text_upper = raw_text.upper() if raw_text else ""
+        
+        # Priority 1: Check for INTERIM (highest priority)
+        # Look for "Interim Certificate", "INTERIM*", "Interim" in cert_no or prominently in document
+        is_interim = False
+        if 'INTERIM CERTIFICATE' in raw_text_upper:
+            is_interim = True
+        elif 'INTERIM' in cert_no:
+            is_interim = True
+        elif raw_text_upper.count('INTERIM') >= 1 and 'INTERIM' in raw_text_upper[:500]:  # INTERIM appears prominently at top
+            is_interim = True
+        elif 'INTERIM' in cert_name and 'STATEMENT' not in cert_name:  # "Interim" alone in cert_name
+            is_interim = True
+            
+        if is_interim:
+            extracted_data['cert_type'] = 'Interim'
+            logger.info(f"Auto-classified as Interim based on document keywords")
+        # Priority 2: Check for STATEMENT (only if not Interim)
+        elif 'STATEMENT' in cert_name:
             extracted_data['cert_type'] = 'Statement'
             logger.info(f"Auto-classified as Statement based on cert_name: {extracted_data.get('cert_name')}")
+        # Priority 3: Check for CONDITION
+        elif 'CONDITION' in cert_name or 'CONDITIONAL' in cert_name:
+            extracted_data['cert_type'] = 'Conditional'
+            logger.info(f"Auto-classified as Conditional based on cert_name: {extracted_data.get('cert_name')}")
+        # Priority 4: Check for SHORT TERM
+        elif 'SHORT TERM' in cert_name or 'SHORT-TERM' in cert_name:
+            extracted_data['cert_type'] = 'Short term'
+            logger.info(f"Auto-classified as Short term based on cert_name: {extracted_data.get('cert_name')}")
         
         # Validate cert_type
         if extracted_data.get('cert_type') and extracted_data['cert_type'] not in VALID_CERTIFICATE_TYPES:
