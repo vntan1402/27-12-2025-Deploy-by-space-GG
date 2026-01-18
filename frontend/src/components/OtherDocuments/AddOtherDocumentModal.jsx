@@ -162,6 +162,11 @@ const AddOtherDocumentModal = ({
     try {
       console.log('📁 Starting BACKGROUND folder upload...');
       console.log(`   Folder: ${folderName}, Files: ${filesToUpload.length}`);
+      console.log(`   Ship ID: ${selectedShip?.id}`);
+      
+      if (!selectedShip?.id) {
+        throw new Error('No ship selected');
+      }
       
       // Create FormData for background upload
       const formDataToSend = new FormData();
@@ -177,16 +182,29 @@ const AddOtherDocumentModal = ({
       }
       
       // Append all files
-      filesToUpload.forEach((file) => {
+      console.log('📎 Appending files to FormData...');
+      for (let i = 0; i < filesToUpload.length; i++) {
+        const file = filesToUpload[i];
         formDataToSend.append('files', file);
-      });
+        if (i < 3) {
+          console.log(`   File ${i + 1}: ${file.name} (${file.size} bytes)`);
+        }
+      }
+      if (filesToUpload.length > 3) {
+        console.log(`   ... and ${filesToUpload.length - 3} more files`);
+      }
+      
+      console.log('🚀 Calling background upload API...');
       
       // Call background upload API
       const startResponse = await api.post('/api/other-documents/background-upload-folder', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        timeout: 60000 // 60 second timeout for initial upload
       });
+      
+      console.log('📬 API Response:', startResponse.data);
       
       if (!startResponse.data?.success || !startResponse.data?.task_id) {
         throw new Error(startResponse.data?.message || 'Failed to start background upload');
