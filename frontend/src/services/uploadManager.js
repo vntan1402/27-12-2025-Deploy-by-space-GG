@@ -4,7 +4,17 @@
  * Attached to window object to persist across page navigation and hot reload
  */
 
-import api from './api';
+// Get axios instance - we need to import dynamically to avoid circular deps
+const getApi = () => {
+  // Try to get from window first (cached)
+  if (window.__apiInstance) {
+    return window.__apiInstance;
+  }
+  // Dynamic import
+  const api = require('./api').default;
+  window.__apiInstance = api;
+  return api;
+};
 
 class UploadManager {
   constructor() {
@@ -17,19 +27,15 @@ class UploadManager {
     // Active timeouts (to track scheduled uploads)
     this.scheduledUploads = new Map();
     
-    console.log('📦 [UploadManager] Initialized');
+    console.log('📦 [UploadManager] Initialized (window-attached)');
   }
   
   /**
    * Start staggered file upload
-   * @param {Object} config Upload configuration
-   * @param {string} config.taskId Task ID
-   * @param {File[]} config.files Array of File objects
-   * @param {string} config.apiEndpoint API endpoint base
-   * @param {number} config.staggerDelayMs Delay between file uploads (default 2000ms)
-   * @param {Function} config.onProgress Callback for progress updates
    */
   startUpload({ taskId, files, apiEndpoint, staggerDelayMs = 2000, onProgress }) {
+    const api = getApi();
+    
     console.log(`📤 [UploadManager] Starting upload for task ${taskId} with ${files.length} files`);
     
     // Store files in queue (convert FileList to Array if needed)
@@ -55,8 +61,8 @@ class UploadManager {
     fileArray.forEach((file, index) => {
       const delay = index * staggerDelayMs;
       
-      const timeoutId = setTimeout(() => {
-        this._uploadSingleFile(taskId, file, index, apiEndpoint, onProgress);
+      const timeoutId = window.setTimeout(() => {
+        this._uploadSingleFile(taskId, file, index, apiEndpoint, api, onProgress);
       }, delay);
       
       timeoutIds.push(timeoutId);
@@ -70,7 +76,7 @@ class UploadManager {
   /**
    * Upload a single file
    */
-  async _uploadSingleFile(taskId, file, index, apiEndpoint, onProgress) {
+  async _uploadSingleFile(taskId, file, index, apiEndpoint, api, onProgress) {
     // Check if cancelled
     if (this.cancelledTasks.has(taskId)) {
       console.log(`🚫 [UploadManager] Task ${taskId} cancelled. Skipping file ${index + 1}`);
@@ -167,7 +173,7 @@ class UploadManager {
     // Clear scheduled timeouts
     const timeoutIds = this.scheduledUploads.get(taskId);
     if (timeoutIds) {
-      timeoutIds.forEach(id => clearTimeout(id));
+      timeoutIds.forEach(id => window.clearTimeout(id));
       this.scheduledUploads.delete(taskId);
     }
     
