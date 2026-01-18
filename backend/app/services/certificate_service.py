@@ -154,10 +154,18 @@ class CertificateService:
             except Exception as e:
                 logger.warning(f"⚠️ Could not normalize issued_by: {e}")
         
-        # Generate certificate abbreviation if not provided
-        if not cert_dict.get("cert_abbreviation") and cert_dict.get("cert_name"):
-            cert_dict["cert_abbreviation"] = await generate_certificate_abbreviation(cert_dict.get("cert_name"))
-            logger.info(f"✅ Generated cert abbreviation: '{cert_dict['cert_name']}' → '{cert_dict['cert_abbreviation']}'")
+        # Generate certificate abbreviation
+        # For SOC certificates, ALWAYS regenerate to get SOC-XXX format
+        cert_name = cert_dict.get("cert_name", "")
+        cert_name_upper = cert_name.upper() if cert_name else ""
+        
+        if 'STATEMENT OF COMPLIANCE' in cert_name_upper:
+            # SOC certificates - always regenerate for proper format
+            cert_dict["cert_abbreviation"] = await generate_certificate_abbreviation(cert_name)
+            logger.info(f"✅ SOC cert - Generated abbreviation: '{cert_name}' → '{cert_dict['cert_abbreviation']}'")
+        elif not cert_dict.get("cert_abbreviation") and cert_name:
+            cert_dict["cert_abbreviation"] = await generate_certificate_abbreviation(cert_name)
+            logger.info(f"✅ Generated cert abbreviation: '{cert_name}' → '{cert_dict['cert_abbreviation']}'")
         
         # Generate organization abbreviation for issued_by
         if cert_dict.get("issued_by"):
