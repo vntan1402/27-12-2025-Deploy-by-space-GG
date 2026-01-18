@@ -461,6 +461,14 @@ class CertificateMultiUploadService:
                         extracted_info["cert_type"] = "Statement"
                         logger.info(f"✅ POST-PROCESS (bg): Detected 'STATEMENT' in cert_name → cert_type = 'Statement'")
                     
+                    # ⭐ POST-PROCESSING: Generate proper abbreviation for SOC certificates
+                    if "STATEMENT OF COMPLIANCE" in cert_name_for_check:
+                        from app.utils.certificate_abbreviation import generate_abbreviation_sync
+                        cert_name_value = extracted_info.get("cert_name", "")
+                        new_abbr = generate_abbreviation_sync(cert_name_value)
+                        extracted_info["cert_abbreviation"] = new_abbr
+                        logger.info(f"✅ POST-PROCESS (bg): SOC cert abbreviation: '{cert_name_value}' → '{new_abbr}'")
+                    
                     # ⚡ OPTIMIZED: Create DB record FIRST (without file_id)
                     # This allows faster response - GDrive upload happens after
                     await UploadTaskService.update_file_status_by_name(
