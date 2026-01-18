@@ -1155,6 +1155,19 @@ const SafetyManagementSystem = () => {
         checkDate={upcomingAuditModal.checkDate}
         language={language}
       />
+
+      {/* Floating Progress for Auto Rename */}
+      <FloatingProgress
+        isVisible={floatingRenameProgress.isVisible}
+        title={language === 'vi' ? 'Đổi tên tự động' : 'Auto Rename Files'}
+        completed={floatingRenameProgress.completed}
+        total={floatingRenameProgress.total}
+        currentFile={floatingRenameProgress.currentFile}
+        errors={floatingRenameProgress.errors}
+        status={floatingRenameProgress.status}
+        onClose={handleCloseFloatingProgress}
+        language={language}
+      />
     </MainLayout>
   );
 };
