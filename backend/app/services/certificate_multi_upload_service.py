@@ -1581,8 +1581,22 @@ IMPORTANT DATE EXAMPLES:
             from app.utils.certificate_abbreviation import generate_certificate_abbreviation, validate_certificate_type
             cert_name = analysis_result.get("cert_name", "Unknown Certificate")
             
-            # Validate and normalize cert_type
-            cert_type = validate_certificate_type(analysis_result.get("cert_type", "Full Term"))
+            # ⭐ POST-PROCESSING: Override cert_type based on cert_name keywords
+            # Priority: INTERIM > STATEMENT > AI extraction > Default
+            cert_name_upper = cert_name.upper() if cert_name else ""
+            ai_cert_type = analysis_result.get("cert_type", "Full Term")
+            
+            if "INTERIM" in cert_name_upper:
+                # INTERIM has highest priority
+                cert_type = "Interim"
+                logger.info(f"✅ POST-PROCESS: Detected 'INTERIM' in cert_name → cert_type = 'Interim'")
+            elif "STATEMENT" in cert_name_upper:
+                # STATEMENT only if not INTERIM
+                cert_type = "Statement"
+                logger.info(f"✅ POST-PROCESS: Detected 'STATEMENT' in cert_name → cert_type = 'Statement'")
+            else:
+                # Validate and normalize cert_type from AI
+                cert_type = validate_certificate_type(ai_cert_type)
             
             # ⭐ SPECIAL RULE: Interim certificates have Next Survey Type = "FT Issue"
             if cert_type == "Interim":
