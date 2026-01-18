@@ -790,6 +790,14 @@ class CertificateMultiUploadService:
             extracted_info["cert_type"] = "Statement"
             logger.info(f"✅ POST-PROCESS (upload): Detected 'STATEMENT' in cert_name → cert_type = 'Statement'")
         
+        # ⭐ POST-PROCESSING: Generate proper abbreviation for SOC certificates
+        if "STATEMENT OF COMPLIANCE" in cert_name_for_check:
+            from app.utils.certificate_abbreviation import generate_abbreviation_sync
+            cert_name_value = extracted_info.get("cert_name", "")
+            new_abbr = generate_abbreviation_sync(cert_name_value)
+            extracted_info["cert_abbreviation"] = new_abbr
+            logger.info(f"✅ POST-PROCESS (upload): SOC cert abbreviation: '{cert_name_value}' → '{new_abbr}'")
+        
         # Add filename to extracted_info
         extracted_info["filename"] = file.filename
         
