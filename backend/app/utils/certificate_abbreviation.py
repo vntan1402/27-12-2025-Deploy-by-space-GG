@@ -74,6 +74,8 @@ def validate_certificate_type(cert_type: str) -> str:
         return "Short term"
     elif "conditional" in normalized:
         return "Conditional"
+    elif "statement" in normalized:
+        return "Statement"
     else:
         return "Other"
 
