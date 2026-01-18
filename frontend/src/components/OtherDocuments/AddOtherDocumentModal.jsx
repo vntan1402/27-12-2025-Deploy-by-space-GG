@@ -207,72 +207,17 @@ const AddOtherDocumentModal = ({
       // Close modal immediately - upload continues in background
       onClose();
       
-      // STEP 3: Upload files with STAGGERED PARALLEL approach
-      // Each file starts uploading 2 seconds after the previous one (not waiting for completion)
-      const STAGGER_DELAY_MS = 2000; // 2 seconds between each file start
-      
-      const uploadSingleFile = async (file, index) => {
-        const filename = file.name || file.webkitRelativePath?.split('/').pop() || `file_${index}`;
-        
-        try {
-          // Check if task was cancelled before uploading
-          try {
-            const statusCheck = await api.get(`/api/other-documents/background-upload-folder/${taskId}`);
-            if (statusCheck.data?.status === 'cancelled') {
-              console.log(`🚫 Task ${taskId} cancelled. Skipping file ${index + 1}: ${filename}`);
-              return { success: false, cancelled: true };
-            }
-          } catch (statusError) {
-            console.warn('Could not check task status:', statusError.message);
-          }
-          
-          console.log(`📤 Uploading ${index + 1}/${filesToUpload.length}: ${filename}`);
-          
-          const uploadForm = new FormData();
-          uploadForm.append('file', file, filename);
-          
-          const uploadResponse = await api.post(
-            `/api/other-documents/background-upload-folder/${taskId}/upload-file`,
-            uploadForm,
-            {
-              headers: { 'Content-Type': 'multipart/form-data' },
-              timeout: 300000 // 5 min timeout per file
-            }
-          );
-          
-          if (uploadResponse.data?.success) {
-            console.log(`✅ Uploaded ${index + 1}/${filesToUpload.length}: ${filename}`);
-            return { success: true, filename };
-          } else {
-            console.warn(`⚠️ Failed ${index + 1}/${filesToUpload.length}: ${filename} - ${uploadResponse.data?.error}`);
-            return { success: false, filename, error: uploadResponse.data?.error };
-          }
-        } catch (uploadError) {
-          // Check if error is due to task being cancelled
-          const errorDetail = uploadError.response?.data?.detail || '';
-          if (uploadError.response?.status === 400 && 
-              (errorDetail.includes('cancelled') || errorDetail.includes('Task already'))) {
-            console.log(`🚫 Task ${taskId} cancelled. File ${index + 1}: ${filename} rejected`);
-            return { success: false, cancelled: true };
-          }
-          console.error(`❌ Error uploading ${filename}:`, uploadError.message);
-          return { success: false, filename, error: uploadError.message };
+      // STEP 3: Start staggered upload via Context (persists across page navigation)
+      // Each file starts uploading 2 seconds after the previous one
+      startStaggeredUpload({
+        taskId,
+        files: filesToUpload,
+        apiEndpoint: '/api/other-documents/background-upload-folder/',
+        staggerDelayMs: 2000,
+        onAllComplete: () => {
+          console.log(`✅ All files uploaded for task ${taskId}`);
         }
-      };
-      
-      const uploadFilesStaggered = () => {
-        console.log(`📤 Starting staggered parallel upload of ${filesToUpload.length} files (${STAGGER_DELAY_MS}ms between each)...`);
-        
-        // Start each file upload with staggered delay
-        filesToUpload.forEach((file, index) => {
-          setTimeout(() => {
-            uploadSingleFile(file, index);
-          }, index * STAGGER_DELAY_MS);
-        });
-      };
-      
-      // Start staggered upload (runs in background)
-      uploadFilesStaggered();
+      });
       
     } catch (error) {
       console.error('❌ Background folder upload error:', error);
