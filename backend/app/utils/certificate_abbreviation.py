@@ -39,7 +39,7 @@ async def get_user_defined_abbreviation(cert_name: str) -> Optional[str]:
 
 def validate_certificate_type(cert_type: str) -> str:
     """
-    Validate and normalize certificate type to one of the 6 allowed types
+    Validate and normalize certificate type to one of the 7 allowed types
     Migrated from backend-v1
     """
     if not cert_type:
@@ -52,6 +52,7 @@ def validate_certificate_type(cert_type: str) -> str:
         "provisional": "Provisional",
         "short term": "Short term",
         "conditional": "Conditional",
+        "statement": "Statement",
         "other": "Other"
     }
     
