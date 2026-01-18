@@ -22,7 +22,6 @@ import { calculateContextMenuPosition } from '../../utils/positionHelpers';
 import AddOtherDocumentModal from './AddOtherDocumentModal';
 import EditOtherDocumentModal from './EditOtherDocumentModal';
 import OtherDocumentNotesModal from './OtherDocumentNotesModal';
-import FloatingUploadProgress from '../Common/FloatingUploadProgress';
 
 const OtherDocumentsTable = ({ selectedShip }) => {
   const { language } = useAuth();
