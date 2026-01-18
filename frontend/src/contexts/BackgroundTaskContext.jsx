@@ -158,6 +158,7 @@ export const BackgroundTaskProvider = ({ children }) => {
     removeTask,
     getTask,
     startRenameTask,
+    startUploadTask,
     hasActiveTasks: activeTasks.length > 0
   };
 
