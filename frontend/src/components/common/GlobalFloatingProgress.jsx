@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, Minimize2, Maximize2, CheckCircle, XCircle, Loader2, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Minimize2, Maximize2, CheckCircle, XCircle, Loader2, FileText, ChevronDown, ChevronUp, StopCircle } from 'lucide-react';
 import { useBackgroundTask } from '../../contexts/BackgroundTaskContext';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
@@ -10,10 +10,11 @@ import api from '../../services/api';
  * Polls backend for task status and updates automatically
  */
 const GlobalFloatingProgress = () => {
-  const { activeTasks, updateTask, removeTask } = useBackgroundTask();
+  const { activeTasks, updateTask, removeTask, cancelTask } = useBackgroundTask();
   const { language } = useAuth();
   const [isMinimized, setIsMinimized] = useState(false);
   const [expandedTasks, setExpandedTasks] = useState(new Set());
+  const [cancellingTasks, setCancellingTasks] = useState(new Set());
 
   // Poll for task status
   useEffect(() => {
@@ -26,8 +27,8 @@ const GlobalFloatingProgress = () => {
       for (const task of activeTasks) {
         if (!isMounted) break;
         
-        // Skip completed tasks
-        if (task.status === 'completed' || task.status === 'completed_with_errors' || task.status === 'failed') {
+        // Skip completed or cancelled tasks
+        if (task.status === 'completed' || task.status === 'completed_with_errors' || task.status === 'failed' || task.status === 'cancelled') {
           continue;
         }
 
