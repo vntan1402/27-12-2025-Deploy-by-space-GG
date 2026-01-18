@@ -899,37 +899,37 @@ class CertificateMultiUploadService:
             logger.info(f"📤 Uploading to GDrive synchronously (no background_tasks)")
             step_start = time.time()
             
-            # Upload PDF and Summary in parallel using asyncio.gather
-            upload_tasks = []
+            # Upload PDF first, then Summary SEQUENTIALLY to avoid race condition
+            # when creating folders (prevents duplicate folder creation in GDrive)
+            pdf_result = None
+            summary_result = None
             
-            # Task 1: Upload main PDF
-            upload_tasks.append(
-                CertificateMultiUploadService._upload_to_gdrive_with_parent(
+            # Step 1: Upload main PDF first (this will create the folder if needed)
+            try:
+                pdf_result = await CertificateMultiUploadService._upload_to_gdrive_with_parent(
                     gdrive_config_doc, file_content, file.filename, ship_name,
                     "Class & Flag Cert", "Certificates"
                 )
-            )
+            except Exception as e:
+                logger.error(f"❌ PDF upload failed: {e}")
+                pdf_result = {"success": False, "error": str(e)}
             
-            # Task 2: Upload Summary (if available)
+            # Step 2: Upload Summary AFTER PDF (folder already exists now)
             if summary_text and summary_text.strip():
                 base_name = file.filename.rsplit('.', 1)[0] if '.' in file.filename else file.filename
                 summary_filename = f"{base_name}_Summary.txt"
                 summary_bytes = summary_text.encode('utf-8')
                 
-                upload_tasks.append(
-                    CertificateMultiUploadService._upload_to_gdrive_with_parent(
+                try:
+                    summary_result = await CertificateMultiUploadService._upload_to_gdrive_with_parent(
                         gdrive_config_doc, summary_bytes, summary_filename, ship_name,
                         "Class & Flag Cert", "Certificates", content_type="text/plain"
                     )
-                )
+                except Exception as e:
+                    logger.error(f"❌ Summary upload failed: {e}")
+                    summary_result = {"success": False, "error": str(e)}
             
-            # Execute uploads in parallel
-            upload_results = await asyncio.gather(*upload_tasks, return_exceptions=True)
-            timing['4_gdrive_upload_parallel'] = round(time.time() - step_start, 2)
-            
-            # Process results
-            pdf_result = upload_results[0] if len(upload_results) > 0 else None
-            summary_result = upload_results[1] if len(upload_results) > 1 else None
+            timing['4_gdrive_upload_sequential'] = round(time.time() - step_start, 2)
             
             # Update certificate record with file URLs
             update_data = {}
