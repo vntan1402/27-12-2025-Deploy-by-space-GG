@@ -212,6 +212,7 @@ const GlobalFloatingProgress = () => {
             const statusInfo = getStatusInfo(task);
             const StatusIcon = statusInfo.icon;
             const isDone = task.status !== 'processing';
+            const isCancelling = cancellingTasks.has(task.id);
             const isExpanded = expandedTasks.has(task.id);
             const progressPercent = task.total > 0 ? Math.round((task.completed / task.total) * 100) : 0;
 
@@ -225,7 +226,7 @@ const GlobalFloatingProgress = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <StatusIcon className={`w-4 h-4 ${statusInfo.color} ${!isDone ? 'animate-spin' : ''}`} />
-                      <span className="text-sm font-medium text-gray-800 truncate max-w-[180px]">
+                      <span className="text-sm font-medium text-gray-800 truncate max-w-[140px]">
                         {task.title}
                       </span>
                     </div>
@@ -233,6 +234,21 @@ const GlobalFloatingProgress = () => {
                       <span className="text-xs text-gray-600">
                         {task.completed}/{task.total}
                       </span>
+                      {/* Cancel Button - only show for processing tasks */}
+                      {task.status === 'processing' && (
+                        <button
+                          onClick={(e) => handleCancelTask(e, task)}
+                          disabled={isCancelling}
+                          className="p-1 hover:bg-red-100 rounded transition-colors group"
+                          title={language === 'vi' ? 'Hủy' : 'Cancel'}
+                        >
+                          {isCancelling ? (
+                            <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                          ) : (
+                            <StopCircle className="w-4 h-4 text-gray-400 group-hover:text-red-500" />
+                          )}
+                        </button>
+                      )}
                       {isExpanded ? (
                         <ChevronUp className="w-4 h-4 text-gray-400" />
                       ) : (
@@ -246,6 +262,7 @@ const GlobalFloatingProgress = () => {
                     <div
                       className={`h-full transition-all duration-300 ${
                         task.status === 'failed' ? 'bg-red-500' :
+                        task.status === 'cancelled' ? 'bg-orange-500' :
                         task.status === 'completed_with_errors' ? 'bg-yellow-500' :
                         task.status === 'completed' ? 'bg-green-500' : 'bg-blue-500'
                       }`}
