@@ -151,6 +151,37 @@ export const BackgroundTaskProvider = ({ children }) => {
     }
   }, [addTask]);
 
+  // Cancel a running task
+  const cancelTask = useCallback(async (taskId, apiEndpoint) => {
+    try {
+      console.log(`🚫 [BackgroundTask] Cancelling task: ${taskId}`);
+      
+      // Call cancel API
+      const cancelUrl = apiEndpoint.endsWith('/') 
+        ? `${apiEndpoint}${taskId}/cancel`
+        : `${apiEndpoint}/${taskId}/cancel`;
+      
+      const response = await api.post(cancelUrl);
+      
+      if (response.data?.success) {
+        // Update local task status
+        updateTask(taskId, {
+          status: 'cancelled',
+          currentFile: ''
+        });
+        
+        console.log(`✅ [BackgroundTask] Task ${taskId} cancelled successfully`);
+        return { success: true };
+      } else {
+        console.error(`❌ [BackgroundTask] Cancel failed:`, response.data?.error);
+        return { success: false, error: response.data?.error || 'Cancel failed' };
+      }
+    } catch (error) {
+      console.error('❌ [BackgroundTask] Failed to cancel task:', error);
+      return { success: false, error: error.message };
+    }
+  }, [updateTask]);
+
   const value = {
     activeTasks,
     addTask,
@@ -159,6 +190,7 @@ export const BackgroundTaskProvider = ({ children }) => {
     getTask,
     startRenameTask,
     startUploadTask,
+    cancelTask,
     hasActiveTasks: activeTasks.length > 0
   };
 
