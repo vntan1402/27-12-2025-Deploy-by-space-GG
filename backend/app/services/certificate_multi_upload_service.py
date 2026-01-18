@@ -1491,7 +1491,6 @@ IMPORTANT DATE EXAMPLES:
             return None
         
         import re
-        from datetime import datetime
         
         try:
             date_str_clean = str(date_str).strip()
