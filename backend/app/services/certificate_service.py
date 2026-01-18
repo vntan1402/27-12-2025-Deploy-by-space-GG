@@ -256,7 +256,6 @@ class CertificateService:
             # Calculate Next Survey for Interim: valid_date with -3M window, Type = "FT Issue"
             valid_date = update_data.get("valid_date") or cert.get("valid_date")
             if valid_date:
-                from datetime import datetime
                 if isinstance(valid_date, str):
                     try:
                         if '/' in valid_date:
