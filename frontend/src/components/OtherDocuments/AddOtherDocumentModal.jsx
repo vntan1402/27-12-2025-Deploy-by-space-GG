@@ -23,14 +23,7 @@ const AddOtherDocumentModal = ({
   show, 
   onClose, 
   selectedShip, 
-  onSuccess,
-  // Legacy floating progress props (kept for backward compatibility)
-  showFloatingProgress,
-  setShowFloatingProgress,
-  isProgressMinimized,
-  setIsProgressMinimized,
-  uploadProgress,
-  setUploadProgress
+  onSuccess
 }) => {
   const { language } = useAuth();
   const { startUploadTask } = useBackgroundTask();
