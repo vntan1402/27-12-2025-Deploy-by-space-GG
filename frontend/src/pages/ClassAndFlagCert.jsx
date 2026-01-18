@@ -5,6 +5,7 @@ import { MainLayout, Sidebar, SubMenuBar, CertificateTable, CertificateFilters, 
 import { EditShipCertificateModal, DeleteShipCertificateModal, AddShipCertificateModal } from '../components/ShipCertificates';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { EditShipModal, DeleteShipConfirmationModal, AddShipModal, DeleteShipBlockedModal, ShipSelectionModal } from '../components/Ships';
+import FloatingProgress from '../components/common/FloatingProgress';
 import { shipService, shipCertificateService, companyService } from '../services';
 import { shipCacheService } from '../services/shipCacheService';
 import { companyCacheService } from '../services/companyCacheService';
