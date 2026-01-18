@@ -44,19 +44,25 @@ class TestUploadAPI:
         ship_id = ships[0].get("id")
         print(f"📋 Using ship: {ships[0].get('name')} ({ship_id})")
         
-        # Create upload task
+        # Create upload task - use multipart form data
         form_data = {
-            "ship_id": ship_id,
-            "folder_name": "Test Upload Folder",
-            "total_files": 3,
-            "status": "Valid",
-            "date": "2025-01-18",
-            "note": "Test upload task"
+            "ship_id": (None, ship_id),
+            "folder_name": (None, "Test Upload Folder"),
+            "total_files": (None, "3"),
+            "status": (None, "Valid"),
+            "date": (None, "2025-01-18"),
+            "note": (None, "Test upload task")
         }
         
-        response = self.session.post(
+        # Remove Content-Type header to let requests set it for multipart
+        headers = dict(self.session.headers)
+        if "Content-Type" in headers:
+            del headers["Content-Type"]
+        
+        response = requests.post(
             f"{BASE_URL}/api/other-documents/background-upload-folder/create-task",
-            data=form_data
+            files=form_data,
+            headers=headers
         )
         
         print(f"📤 Create task response: {response.status_code}")
