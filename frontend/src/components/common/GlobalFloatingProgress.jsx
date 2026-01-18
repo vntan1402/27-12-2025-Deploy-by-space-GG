@@ -3,6 +3,7 @@ import { X, Minimize2, Maximize2, CheckCircle, XCircle, Loader2, FileText, Chevr
 import { useBackgroundTask } from '../../contexts/BackgroundTaskContext';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
+import uploadManager from '../../services/uploadManager';
 
 /**
  * Global Floating Progress Component
