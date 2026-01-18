@@ -1163,9 +1163,9 @@ const ClassAndFlagCert = () => {
     }
   };
 
-  // Handle show auto rename dialog
-  const handleShowAutoRenameDialog = () => {
-    // Determine which certificates to rename BEFORE clearing contextMenu
+  // Handle auto rename - FLOATING VERSION (no dialog, uses floating progress)
+  const handleAutoRenameFiles = async () => {
+    // Determine which certificates to rename
     let certsToRename = [];
     
     if (selectedCertificates.size > 0) {
@@ -1176,55 +1176,48 @@ const ClassAndFlagCert = () => {
       certsToRename = [contextMenu.certificate.id];
     }
     
+    // Close context menu
+    setContextMenu(null);
+    
     if (certsToRename.length === 0) {
       toast.error(language === 'vi' ? 'Vui lòng chọn ít nhất một chứng chỉ để đổi tên!' : 'Please select at least one certificate to rename!');
       return;
     }
-    
-    // Save certificates to rename in state
-    setCertificatesToAutoRename(certsToRename);
-    
-    // Open dialog
-    setShowAutoRenameDialog(true);
-    setContextMenu(null);
-  };
 
-  // Execute batch auto rename - BACKGROUND VERSION
-  const handleExecuteBatchAutoRename = async () => {
+    // Filter certificates that have Google Drive file IDs
+    const allCertificates = getFilteredCertificates();
+    const validCertificates = certsToRename.map(certId => {
+      const cert = allCertificates.find(c => c.id === certId);
+      return cert;
+    }).filter(cert => cert && cert.google_drive_file_id);
+
+    if (validCertificates.length === 0) {
+      toast.error(
+        language === 'vi' 
+          ? 'Không có chứng chỉ nào có file trên Google Drive!' 
+          : 'No certificates have Google Drive files!'
+      );
+      return;
+    }
+
+    // Confirm
+    const confirmMsg = language === 'vi' 
+      ? `Đổi tên tự động ${validCertificates.length} file?` 
+      : `Auto rename ${validCertificates.length} files?`;
+    
+    if (!window.confirm(confirmMsg)) return;
+
+    // Show floating progress
+    setFloatingRenameProgress({
+      isVisible: true,
+      completed: 0,
+      total: validCertificates.length,
+      currentFile: language === 'vi' ? 'Đang khởi động...' : 'Starting...',
+      errors: [],
+      status: 'processing'
+    });
+
     try {
-      // Use certificates from state (already determined when dialog opened)
-      const certificatesToRename = certificatesToAutoRename;
-
-      if (certificatesToRename.length === 0) {
-        toast.error(language === 'vi' ? 'Vui lòng chọn ít nhất một chứng chỉ để đổi tên!' : 'Please select at least one certificate to rename!');
-        return;
-      }
-
-      // Filter certificates that have Google Drive file IDs
-      const allCertificates = getFilteredCertificates();
-      const validCertificates = certificatesToRename.map(certId => {
-        const cert = allCertificates.find(c => c.id === certId);
-        return cert;
-      }).filter(cert => cert && cert.google_drive_file_id);
-
-      if (validCertificates.length === 0) {
-        toast.error(
-          language === 'vi' 
-            ? 'Không có chứng chỉ nào có file trên Google Drive!' 
-            : 'No certificates have Google Drive files!'
-        );
-        return;
-      }
-
-      // Initialize progress
-      setBatchRenameProgress({
-        isRunning: true,
-        completed: 0,
-        total: validCertificates.length,
-        current: language === 'vi' ? 'Đang khởi động...' : 'Starting...',
-        errors: []
-      });
-
       // Get certificate IDs
       const certificateIds = validCertificates.map(cert => cert.id);
 
@@ -1241,6 +1234,9 @@ const ClassAndFlagCert = () => {
       const taskId = startResponse.data.task_id;
       console.log(`📋 Bulk rename task started: ${taskId}`);
 
+      // Clear selection immediately so user can continue working
+      setSelectedCertificates(new Set());
+
       // Poll for status
       const pollInterval = 1000; // 1 second
       const maxPolls = 300; // 5 minutes max
@@ -1252,50 +1248,23 @@ const ClassAndFlagCert = () => {
           const statusResponse = await api.get(`/api/certificates/bulk-auto-rename/${taskId}`);
           const status = statusResponse.data;
 
-          // Update progress
-          setBatchRenameProgress(prev => ({
+          // Update floating progress
+          setFloatingRenameProgress(prev => ({
             ...prev,
             completed: status.completed_files || 0,
-            current: status.current_file || '',
+            currentFile: status.current_file || '',
             errors: (status.results || [])
               .filter(r => !r.success)
-              .map(r => r.error || 'Unknown error')
+              .map(r => r.error || 'Unknown error'),
+            status: status.status
           }));
 
           // Check if completed
           if (status.status === 'completed' || status.status === 'completed_with_errors' || status.status === 'failed') {
-            const successCount = status.completed_files || 0;
-            const errorCount = status.failed_files || 0;
-
-            if (successCount > 0) {
-              toast.success(
-                language === 'vi' 
-                  ? `Đã đổi tên ${successCount}/${validCertificates.length} files thành công!` 
-                  : `Successfully renamed ${successCount}/${validCertificates.length} files!`
-              );
-            }
-            
-            if (errorCount > 0) {
-              toast.error(
-                language === 'vi' 
-                  ? `${errorCount} files không thể đổi tên.` 
-                  : `${errorCount} files could not be renamed.`
-              );
-            }
-
             // Refresh certificate list
-            if (successCount > 0 && selectedShip?.id) {
+            if ((status.completed_files || 0) > 0 && selectedShip?.id) {
               await fetchCertificates(selectedShip.id);
             }
-
-            // Close dialog after completion
-            setTimeout(() => {
-              setShowAutoRenameDialog(false);
-              setBatchRenameProgress({ isRunning: false, completed: 0, total: 0, current: '', errors: [] });
-              setSelectedCertificates(new Set());
-              setCertificatesToAutoRename([]);
-            }, 2000);
-
             return; // Stop polling
           }
 
@@ -1303,17 +1272,20 @@ const ClassAndFlagCert = () => {
           if (pollCount < maxPolls) {
             setTimeout(pollStatus, pollInterval);
           } else {
-            throw new Error('Timeout: Bulk rename took too long');
+            setFloatingRenameProgress(prev => ({
+              ...prev,
+              status: 'failed',
+              errors: [...prev.errors, 'Timeout: Bulk rename took too long']
+            }));
           }
 
         } catch (pollError) {
           console.error('❌ Poll error:', pollError);
-          toast.error(
-            language === 'vi' 
-              ? 'Lỗi khi kiểm tra trạng thái!' 
-              : 'Error checking status!'
-          );
-          setBatchRenameProgress(prev => ({ ...prev, isRunning: false }));
+          setFloatingRenameProgress(prev => ({
+            ...prev,
+            status: 'failed',
+            errors: [...prev.errors, pollError.message || 'Polling error']
+          }));
         }
       };
 
@@ -1322,16 +1294,24 @@ const ClassAndFlagCert = () => {
 
     } catch (error) {
       console.error('❌ Batch auto rename error:', error);
-      toast.error(
-        language === 'vi' 
-          ? 'Lỗi khi thực hiện batch auto rename!' 
-          : 'Error during batch auto rename!'
-      );
-      
-      // Reset progress on error
-      setBatchRenameProgress({ isRunning: false, completed: 0, total: 0, current: '', errors: [] });
-      setCertificatesToAutoRename([]);
+      setFloatingRenameProgress(prev => ({
+        ...prev,
+        status: 'failed',
+        errors: [error.message || 'Failed to start bulk rename']
+      }));
     }
+  };
+
+  // Close floating progress
+  const handleCloseFloatingProgress = () => {
+    setFloatingRenameProgress({
+      isVisible: false,
+      completed: 0,
+      total: 0,
+      currentFile: '',
+      errors: [],
+      status: 'processing'
+    });
   };
 
   const handleAddRecord = () => {
