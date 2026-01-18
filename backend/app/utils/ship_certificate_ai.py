@@ -536,7 +536,7 @@ Document has no endorsement section at all, or only general terms.
         return ""
 
 
-def post_process_extracted_data(extracted_data: Dict[str, Any]) -> Dict[str, Any]:
+def post_process_extracted_data(extracted_data: Dict[str, Any], raw_text: str = "") -> Dict[str, Any]:
     """
     Post-process extracted data to normalize formats
     
@@ -544,6 +544,7 @@ def post_process_extracted_data(extracted_data: Dict[str, Any]) -> Dict[str, Any
     
     Args:
         extracted_data: Raw extraction from AI
+        raw_text: Original document text for additional context
     
     Returns:
         dict: Processed and normalized data
