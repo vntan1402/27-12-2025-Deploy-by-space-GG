@@ -396,7 +396,6 @@ class CertificateMultiUploadService:
             
             # Convert user document to UserResponse (same logic as UserService)
             from app.models.user import UserRole
-            from datetime import datetime, timezone
             
             # Clean up user doc
             user_doc.pop("password_hash", None)
