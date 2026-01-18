@@ -183,11 +183,11 @@ class CertificateService:
                     except Exception as e:
                         logger.error(f"Failed to parse valid_date for Interim: {e}")
                         cert_dict["next_survey"] = None
-                        cert_dict["next_survey_display"] = valid_date + ' (-3M)'
+                        cert_dict["next_survey_display"] = str(valid_date) + ' (-3M)'
                         cert_dict["next_survey_type"] = "FT Issue"
                 elif isinstance(valid_date, datetime):
-                    cert_dict["next_survey"] = valid_dt.strftime('%Y-%m-%d')
-                    cert_dict["next_survey_display"] = valid_dt.strftime('%d/%m/%Y') + ' (-3M)'
+                    cert_dict["next_survey"] = valid_date.strftime('%Y-%m-%d')
+                    cert_dict["next_survey_display"] = valid_date.strftime('%d/%m/%Y') + ' (-3M)'
                     cert_dict["next_survey_type"] = "FT Issue"
                     logger.info(f"✅ Set next_survey for Interim certificate: {cert_dict['next_survey_display']}, Type: FT Issue")
             else:
