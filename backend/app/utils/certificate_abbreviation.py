@@ -298,7 +298,7 @@ def generate_abbreviation_sync(cert_name: str) -> str:
         cert_name: Full certificate name
         
     Returns:
-        Abbreviated certificate name (e.g., "FT DOC", "ST DOC", "Int DOC", "IMSBC")
+        Abbreviated certificate name (e.g., "FT DOC", "ST DOC", "Int DOC", "IMSBC", "SOC-IBWM")
     """
     if not cert_name:
         return ""
@@ -308,8 +308,39 @@ def generate_abbreviation_sync(cert_name: str) -> str:
     if standard_abbr:
         return standard_abbr
     
-    # Priority 2: Special handling for Document of Compliance (DOC)
     cert_name_upper = cert_name.upper().strip()
+    
+    # Priority 2: Special handling for STATEMENT OF COMPLIANCE (SOC) certificates
+    # Format: SOC-{abbreviation of remaining words}
+    if 'STATEMENT OF COMPLIANCE' in cert_name_upper:
+        remaining = cert_name_upper
+        remaining = remaining.replace('STATEMENT OF COMPLIANCE', '')
+        remaining = remaining.replace('(SOC)', '')
+        remaining = remaining.replace('SOC', '')
+        
+        # Remove prefixes
+        prefixes_to_remove = ['INTERIM', 'FULL TERM', 'SHORT TERM', 'PROVISIONAL']
+        for prefix in prefixes_to_remove:
+            remaining = remaining.replace(prefix, '')
+        
+        remaining = ' '.join(remaining.split())
+        remaining = re.sub(r'[^\w\s]', '', remaining)
+        remaining = remaining.strip()
+        
+        if remaining:
+            common_words = {'the', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were', 'of'}
+            words = remaining.split()
+            significant_words = [w for w in words if w.lower() not in common_words and len(w) > 0]
+            
+            if significant_words:
+                abbr_words = [w for w in significant_words if w.upper() != 'CERTIFICATE']
+                if abbr_words:
+                    remaining_abbr = ''.join([w[0] for w in abbr_words])
+                    return f"SOC-{remaining_abbr}"
+        
+        return "SOC"
+    
+    # Priority 3: Special handling for Document of Compliance (DOC)
     if 'DOCUMENT OF COMPLIANCE' in cert_name_upper or cert_name_upper == 'DOC':
         # Check for specific DOC types
         if 'FULL' in cert_name_upper or 'FULL TERM' in cert_name_upper:
@@ -322,8 +353,8 @@ def generate_abbreviation_sync(cert_name: str) -> str:
             # Default DOC if no specific type found
             return "DOC"
     
+    # Priority 4: Auto-generation algorithm
     # Remove common words and focus on key terms
-    # Note: Kept 'of' to generate abbreviations like DOC (Document Of Compliance)
     common_words = {'the', 'and', 'a', 'an', 'for', 'in', 'on', 'at', 'to', 'is', 'are', 'was', 'were'}
     
     cert_name_cleaned = cert_name.upper()
