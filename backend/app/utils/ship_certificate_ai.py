@@ -337,7 +337,7 @@ When extracting fields, ALWAYS compare both sections and choose the MOST ACCURAT
 - cert_name and cert_no are REQUIRED fields
 - Dates must be in FULL TEXT format, not DD/MM/YYYY or MM/DD/YYYY
 - IMO number must be exactly 7 digits
-- cert_type must be one of the specified options (including 'Statement' for documents with "Statement" in name)
+- cert_type: If cert_name contains 'INTERIM' → use 'Interim'. If contains 'STATEMENT' (no INTERIM) → use 'Statement'. Otherwise use appropriate type.
 - **issued_by**: ALWAYS prefer the clean text from Document AI OCR section over Text Layer (avoid duplicate characters like "PPaannaammaa")
 
 **SPECIAL NOTES**:
