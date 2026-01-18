@@ -22,6 +22,7 @@ import {
 import { BatchProcessingModal, BatchResultsModal } from '../components/ClassSurveyReport';
 import { ApprovalDocumentTable } from '../components/ApprovalDocument';
 import { OtherAuditDocumentTable } from '../components/OtherAuditDocument';
+import FloatingProgress from '../components/common/FloatingProgress';
 import { shipService, companyService, auditCertificateService, auditReportService } from '../services';
 import { shipCacheService } from '../services/shipCacheService';
 import { companyCacheService } from '../services/companyCacheService';
