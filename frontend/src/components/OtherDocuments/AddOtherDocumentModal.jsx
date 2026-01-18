@@ -206,23 +206,18 @@ const AddOtherDocumentModal = ({
       );
       
       // STEP 3: Start upload via singleton UploadManager
-      // Read files into memory BEFORE closing modal (file refs may be lost after)
-      // This is async but we don't await - it runs in background
-      uploadManager.startUpload({
+      // IMPORTANT: Wait for files to be read into memory before closing modal
+      // This ensures file data persists even after navigation
+      console.log('📤 Reading files into memory...');
+      await uploadManager.startUpload({
         taskId,
         files: filesToUpload,
         apiEndpoint: '/api/other-documents/background-upload-folder/',
         staggerDelayMs: 2000
-      }).then(() => {
-        console.log(`📤 Files queued for upload, safe to navigate`);
-      }).catch(err => {
-        console.error('❌ Error starting upload:', err);
       });
+      console.log('📤 Files queued for upload, safe to navigate');
       
-      // Wait a bit to ensure files are read into memory before closing
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Close modal - upload continues in background
+      // Now close modal - uploads will continue in background
       onClose();
       
     } catch (error) {
