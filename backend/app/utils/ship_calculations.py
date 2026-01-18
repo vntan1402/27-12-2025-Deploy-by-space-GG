@@ -628,7 +628,7 @@ def calculate_audit_certificate_next_survey(certificate_data: dict) -> dict:
     Migrated from backend-v1
     
     Logic:
-    1. Interim: Next Survey = Valid Date - 3M, Type = "Initial"
+    1. Interim: Next Survey = Valid Date - 3M, Type = "FT Issue"
     2. Short Term: Next Survey = N/A, Type = N/A
     3. Full Term:
        - If has Last Endorse: Next Survey = Valid Date - 3M, Type = "Renewal"
