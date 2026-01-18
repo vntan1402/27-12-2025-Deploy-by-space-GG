@@ -258,11 +258,16 @@ const AddOtherDocumentModal = ({
               console.warn(`⚠️ Failed ${i + 1}/${filesToUpload.length}: ${filename} - ${uploadResponse.data?.error}`);
             }
           } catch (uploadError) {
-            // Check if error is due to task being cancelled
+            // Check if error is due to task being cancelled (400 error with "cancelled" in detail)
+            const errorDetail = uploadError.response?.data?.detail || '';
             if (uploadError.response?.status === 400 && 
-                uploadError.response?.data?.detail?.includes('cancelled')) {
+                (errorDetail.includes('cancelled') || errorDetail.includes('Task already'))) {
               console.log(`🚫 Task ${taskId} was cancelled. Stopping upload.`);
-              return;
+              toast.warning(language === 'vi'
+                ? `🚫 Upload đã bị hủy`
+                : `🚫 Upload cancelled`
+              );
+              return; // Exit the loop
             }
             console.error(`❌ Error uploading ${filename}:`, uploadError.message);
             // Continue with next file even if one fails
