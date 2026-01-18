@@ -1,6 +1,12 @@
 """
 Background Upload Service
 Handles background processing for folder uploads with progress tracking
+
+NEW STRATEGY (v2):
+- Frontend creates task first (with metadata only)
+- Frontend uploads files one by one to a dedicated endpoint
+- Backend tracks progress per file
+- Works for any number of files without hitting request size limits
 """
 import uuid
 import logging
@@ -58,6 +64,52 @@ class BackgroundUploadTaskService:
         
         await mongo_db.database[BackgroundUploadTaskService.COLLECTION].insert_one(task_doc)
         logger.info(f"📝 Created background upload task {task_id} with {len(file_names)} files")
+        
+        return task_id
+    
+    @staticmethod
+    async def create_task_v2(
+        ship_id: str,
+        folder_name: str,
+        total_files: int,
+        date: Optional[str],
+        status: str,
+        note: Optional[str],
+        user_id: str,
+        company_id: str,
+        task_type: str = "folder_upload_v2"
+    ) -> str:
+        """Create a new background upload task (v2 - no file content)"""
+        task_id = str(uuid.uuid4())
+        
+        task_doc = {
+            "id": task_id,
+            "user_id": user_id,
+            "company_id": company_id,
+            "ship_id": ship_id,
+            "folder_name": folder_name,
+            "task_type": task_type,
+            "status": "pending",  # pending, processing, completed, failed
+            "total_files": total_files,
+            "completed_files": 0,
+            "failed_files": 0,
+            "current_file": "",
+            "results": [],  # List of {filename, success, file_id, error}
+            "folder_id": None,
+            "folder_link": None,
+            "document_id": None,
+            # Extra metadata for creating document when complete
+            "date": date,
+            "doc_status": status,
+            "note": note,
+            "file_ids": [],  # Track all uploaded file IDs
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+            "completed_at": None
+        }
+        
+        await mongo_db.database[BackgroundUploadTaskService.COLLECTION].insert_one(task_doc)
+        logger.info(f"📝 Created background upload task v2: {task_id} for {total_files} files")
         
         return task_id
     
