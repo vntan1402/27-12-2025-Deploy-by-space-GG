@@ -1509,10 +1509,9 @@ export const AddShipCertificateModal = ({
         isOpen={showBatchResults}
         onClose={() => {
           setShowBatchResults(false);
-          setBatchResults([]);
-          setMultiCertUploads([]);
-          // Auto close parent Add Ship Certificate Modal
-          onClose();
+          // Keep batch results and uploads for review
+          // User can review the extracted data before saving
+          // Don't close parent modal - user may want to add more or review
         }}
         results={batchResults}
         onRetryFile={handleRetryFailedFile}
