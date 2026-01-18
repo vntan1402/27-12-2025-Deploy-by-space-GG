@@ -205,17 +205,25 @@ const AddOtherDocumentModal = ({
         : `🚀 Uploading ${filesToUpload.length} files in background...`
       );
       
-      // Close modal immediately - upload continues in background
-      onClose();
-      
-      // STEP 3: Start upload via singleton UploadManager (persists across page navigation)
-      // UploadManager is a singleton outside React - it won't be affected by component unmount
+      // STEP 3: Start upload via singleton UploadManager
+      // Read files into memory BEFORE closing modal (file refs may be lost after)
+      // This is async but we don't await - it runs in background
       uploadManager.startUpload({
         taskId,
         files: filesToUpload,
         apiEndpoint: '/api/other-documents/background-upload-folder/',
         staggerDelayMs: 2000
+      }).then(() => {
+        console.log(`📤 Files queued for upload, safe to navigate`);
+      }).catch(err => {
+        console.error('❌ Error starting upload:', err);
       });
+      
+      // Wait a bit to ensure files are read into memory before closing
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Close modal - upload continues in background
+      onClose();
       
     } catch (error) {
       console.error('❌ Background folder upload error:', error);
