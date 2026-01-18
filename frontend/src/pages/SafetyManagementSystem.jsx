@@ -432,48 +432,105 @@ const SafetyManagementSystem = () => {
     
     if (!window.confirm(confirmMsg)) return;
 
+    // Show starting message
     toast.info(language === 'vi' 
-      ? `Đang đổi tên ${certsWithFiles.length} file...` 
-      : `Renaming ${certsWithFiles.length} files...`
+      ? `🚀 Bắt đầu đổi tên ${certsWithFiles.length} file (chạy nền)...` 
+      : `🚀 Starting rename for ${certsWithFiles.length} files (background)...`
     );
 
-    let successCount = 0;
-    let failCount = 0;
+    try {
+      // Get certificate IDs
+      const certificateIds = certsWithFiles.map(cert => cert.id);
 
-    for (const cert of certsWithFiles) {
-      try {
-        const response = await api.post(`/api/company-certs/${cert.id}/auto-rename-file`);
-        
-        if (response.data.success) {
-          successCount++;
-        } else {
-          failCount++;
-        }
-      } catch (error) {
-        failCount++;
+      // Start background bulk rename
+      console.log(`🚀 Starting background bulk rename for ${certificateIds.length} company certificates`);
+      const startResponse = await api.post('/api/company-certs/bulk-auto-rename', {
+        certificate_ids: certificateIds
+      });
+
+      if (!startResponse.data?.success || !startResponse.data?.task_id) {
+        throw new Error(startResponse.data?.message || 'Failed to start bulk rename');
       }
-    }
 
-    // Show results
-    if (successCount > 0 && failCount === 0) {
-      toast.success(language === 'vi' 
-        ? `✅ Đã đổi tên thành công ${successCount} file` 
-        : `✅ Successfully renamed ${successCount} files`
-      );
-    } else if (successCount > 0 && failCount > 0) {
-      toast.warning(language === 'vi' 
-        ? `⚠️ Đã đổi tên ${successCount} file, ${failCount} thất bại` 
-        : `⚠️ Renamed ${successCount} files, ${failCount} failed`
-      );
-    } else {
+      const taskId = startResponse.data.task_id;
+      console.log(`📋 Bulk rename task started: ${taskId}`);
+
+      // Poll for status
+      const pollInterval = 1000; // 1 second
+      const maxPolls = 300; // 5 minutes max
+      let pollCount = 0;
+
+      const pollStatus = async () => {
+        try {
+          pollCount++;
+          const statusResponse = await api.get(`/api/company-certs/bulk-auto-rename/${taskId}`);
+          const status = statusResponse.data;
+
+          // Check if completed
+          if (status.status === 'completed' || status.status === 'completed_with_errors' || status.status === 'failed') {
+            const successCount = status.completed_files || 0;
+            const failCount = status.failed_files || 0;
+
+            if (successCount > 0 && failCount === 0) {
+              toast.success(language === 'vi' 
+                ? `✅ Đã đổi tên thành công ${successCount} file` 
+                : `✅ Successfully renamed ${successCount} files`
+              );
+            } else if (successCount > 0 && failCount > 0) {
+              toast.warning(language === 'vi' 
+                ? `⚠️ Đã đổi tên ${successCount} file, ${failCount} thất bại` 
+                : `⚠️ Renamed ${successCount} files, ${failCount} failed`
+              );
+            } else {
+              toast.error(language === 'vi' 
+                ? `❌ Không thể đổi tên file` 
+                : `❌ Failed to rename files`
+              );
+            }
+
+            // Log detailed results
+            console.log('Bulk rename results:', status.results);
+
+            // Refresh certificates list
+            await loadCompanyCerts();
+            return; // Stop polling
+          }
+
+          // Show progress toast periodically
+          if (pollCount % 5 === 0) {
+            toast.info(language === 'vi' 
+              ? `⏳ Đang xử lý: ${status.completed_files}/${status.total_files}...` 
+              : `⏳ Processing: ${status.completed_files}/${status.total_files}...`,
+              { duration: 1500 }
+            );
+          }
+
+          // Continue polling if not completed
+          if (pollCount < maxPolls) {
+            setTimeout(pollStatus, pollInterval);
+          } else {
+            throw new Error('Timeout: Bulk rename took too long');
+          }
+
+        } catch (pollError) {
+          console.error('❌ Poll error:', pollError);
+          toast.error(language === 'vi' 
+            ? 'Lỗi khi kiểm tra trạng thái!' 
+            : 'Error checking status!'
+          );
+        }
+      };
+
+      // Start polling
+      setTimeout(pollStatus, pollInterval);
+
+    } catch (error) {
+      console.error('❌ Bulk auto rename error:', error);
       toast.error(language === 'vi' 
-        ? `❌ Không thể đổi tên file` 
-        : `❌ Failed to rename files`
+        ? 'Lỗi khi thực hiện batch auto rename!' 
+        : 'Error during batch auto rename!'
       );
     }
-
-    // Refresh certificates list
-    await loadCompanyCerts();
   };
 
   const handleUpdateNextAudits = async () => {
