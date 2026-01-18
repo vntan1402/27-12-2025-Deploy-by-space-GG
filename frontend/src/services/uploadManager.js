@@ -1,7 +1,7 @@
 /**
  * Upload Manager Singleton
  * Manages file uploads independently from React lifecycle
- * Persists across page navigation
+ * Attached to window object to persist across page navigation and hot reload
  */
 
 import api from './api';
@@ -14,6 +14,8 @@ class UploadManager {
     this.fileQueues = new Map();
     // Cancelled tasks
     this.cancelledTasks = new Set();
+    // Active timeouts (to track scheduled uploads)
+    this.scheduledUploads = new Map();
     
     console.log('📦 [UploadManager] Initialized');
   }
@@ -46,14 +48,21 @@ class UploadManager {
     };
     this.activeUploads.set(taskId, uploadState);
     
+    // Store scheduled timeouts
+    const timeoutIds = [];
+    
     // Schedule each file upload with staggered delay
     fileArray.forEach((file, index) => {
       const delay = index * staggerDelayMs;
       
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         this._uploadSingleFile(taskId, file, index, apiEndpoint, onProgress);
       }, delay);
+      
+      timeoutIds.push(timeoutId);
     });
+    
+    this.scheduledUploads.set(taskId, timeoutIds);
     
     console.log(`📤 [UploadManager] Scheduled ${fileArray.length} uploads with ${staggerDelayMs}ms stagger`);
   }
@@ -133,6 +142,7 @@ class UploadManager {
       
       // Cleanup
       this.fileQueues.delete(taskId);
+      this.scheduledUploads.delete(taskId);
     }
     
     // Notify progress if callback provided
@@ -153,6 +163,13 @@ class UploadManager {
   cancelUpload(taskId) {
     console.log(`🚫 [UploadManager] Cancelling task ${taskId}`);
     this.cancelledTasks.add(taskId);
+    
+    // Clear scheduled timeouts
+    const timeoutIds = this.scheduledUploads.get(taskId);
+    if (timeoutIds) {
+      timeoutIds.forEach(id => clearTimeout(id));
+      this.scheduledUploads.delete(taskId);
+    }
     
     const uploadState = this.activeUploads.get(taskId);
     if (uploadState) {
@@ -175,6 +192,11 @@ class UploadManager {
   }
 }
 
-// Export singleton instance
-const uploadManager = new UploadManager();
+// Create or reuse singleton instance attached to window
+// This ensures it persists across hot reload and page navigation
+if (!window.__uploadManager) {
+  window.__uploadManager = new UploadManager();
+}
+
+const uploadManager = window.__uploadManager;
 export default uploadManager;
