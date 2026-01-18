@@ -283,10 +283,10 @@ const AddOtherDocumentModal = ({
         // Folder upload - BACKGROUND with GlobalFloatingProgress
         const folderName = formData.document_name || files[0].webkitRelativePath.split('/')[0];
         
-        // Start background upload (will show in GlobalFloatingProgress)
-        setIsProcessing(false);
-        uploadFolderWithProgress(folderName, files);
-        // Modal will be closed inside uploadFolderWithProgress
+        // Keep isProcessing true to prevent duplicate clicks
+        // uploadFolderWithProgress will handle closing modal
+        await uploadFolderWithProgress(folderName, files);
+        // setIsProcessing will be set to false after modal closes or on error
         
       } else {
         // Multiple files - NEW FLOW: create records first, upload in background
