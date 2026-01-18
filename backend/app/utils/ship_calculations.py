@@ -271,8 +271,10 @@ def calculate_next_survey_info(certificate_data: dict, ship_data: dict) -> dict:
     2. In 5-year Special Survey Cycle, Anniversary Date each year = Annual Survey
     3. Annual Surveys: 1st, 2nd, 3rd, 4th Annual Survey
     4. Next Survey = nearest future Annual Survey date (dd/MM/yyyy format) with ±3 months window
-    5. Condition certificates: Next Survey = valid_date
-    6. Next Survey Type = nearest future Annual Survey type with Intermediate Survey considerations
+    5. Condition certificates: Next Survey = valid_date (-3M)
+    6. Interim certificates: Next Survey = valid_date (-3M), Type = "FT Issue"
+    7. Statement certificates: Next Survey = valid_date (-3M), Type = "Statement Expiry"
+    8. Next Survey Type = nearest future Annual Survey type with Intermediate Survey considerations
     
     Args:
         certificate_data: Certificate information
