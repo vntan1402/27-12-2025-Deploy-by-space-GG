@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useBackgroundTask } from '../contexts/BackgroundTaskContext';
 import { MainLayout, Sidebar, SubMenuBar, CompanyInfoPanel } from '../components';
 import { ShipDetailPanel } from '../components/ShipDetailPanel';
 import { AddShipModal, ShipSelectionModal } from '../components/Ships';
@@ -22,7 +23,6 @@ import {
 import { BatchProcessingModal, BatchResultsModal } from '../components/ClassSurveyReport';
 import { ApprovalDocumentTable } from '../components/ApprovalDocument';
 import { OtherAuditDocumentTable } from '../components/OtherAuditDocument';
-import FloatingProgress from '../components/common/FloatingProgress';
 import { shipService, companyService, auditCertificateService, auditReportService } from '../services';
 import { shipCacheService } from '../services/shipCacheService';
 import { companyCacheService } from '../services/companyCacheService';
