@@ -61,6 +61,16 @@ const SafetyManagementSystem = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Floating Progress for Auto Rename
+  const [floatingRenameProgress, setFloatingRenameProgress] = useState({
+    isVisible: false,
+    completed: 0,
+    total: 0,
+    currentFile: '',
+    errors: [],
+    status: 'processing'
+  });
+
   // Load company data & certificates
   useEffect(() => {
     loadCompanyData();
