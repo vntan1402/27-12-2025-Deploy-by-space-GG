@@ -222,6 +222,21 @@ const AddOtherDocumentModal = ({
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
           
+          // Check if task was cancelled before uploading next file
+          try {
+            const statusCheck = await api.get(`/api/other-documents/background-upload-folder/${taskId}`);
+            if (statusCheck.data?.status === 'cancelled') {
+              console.log(`🚫 Task ${taskId} was cancelled. Stopping upload.`);
+              toast.warning(language === 'vi'
+                ? `🚫 Upload đã bị hủy (${i}/${filesToUpload.length} files)`
+                : `🚫 Upload cancelled (${i}/${filesToUpload.length} files)`
+              );
+              return; // Exit the loop
+            }
+          } catch (statusError) {
+            console.warn('Could not check task status:', statusError.message);
+          }
+          
           try {
             console.log(`📤 Uploading ${i + 1}/${filesToUpload.length}: ${filename}`);
             
@@ -243,6 +258,12 @@ const AddOtherDocumentModal = ({
               console.warn(`⚠️ Failed ${i + 1}/${filesToUpload.length}: ${filename} - ${uploadResponse.data?.error}`);
             }
           } catch (uploadError) {
+            // Check if error is due to task being cancelled
+            if (uploadError.response?.status === 400 && 
+                uploadError.response?.data?.detail?.includes('cancelled')) {
+              console.log(`🚫 Task ${taskId} was cancelled. Stopping upload.`);
+              return;
+            }
             console.error(`❌ Error uploading ${filename}:`, uploadError.message);
             // Continue with next file even if one fails
           }
