@@ -164,12 +164,38 @@ class CertificateService:
             cert_dict["issued_by_abbreviation"] = generate_organization_abbreviation(cert_dict.get("issued_by"))
             logger.info(f"✅ Generated issued_by abbreviation: '{cert_dict['issued_by']}' → '{cert_dict['issued_by_abbreviation']}'")
         
-        # BUSINESS RULE: Interim certificates don't have next survey
+        # BUSINESS RULE: Interim certificates have Next Survey Type = "FT Issue"
         if cert_dict.get("cert_type") == "Interim":
-            cert_dict["next_survey"] = None
-            cert_dict["next_survey_display"] = "N/A"
-            cert_dict["next_survey_type"] = "N/A"
-            logger.info("✅ Set next_survey to N/A for Interim certificate")
+            # Calculate Next Survey for Interim: valid_date with -3M window
+            valid_date = cert_dict.get("valid_date")
+            if valid_date:
+                from datetime import datetime
+                if isinstance(valid_date, str):
+                    # Try to parse date string
+                    try:
+                        if '/' in valid_date:
+                            valid_dt = datetime.strptime(valid_date.split()[0], '%d/%m/%Y')
+                        else:
+                            valid_dt = datetime.fromisoformat(valid_date.replace('Z', '+00:00'))
+                        cert_dict["next_survey"] = valid_dt.strftime('%Y-%m-%d')
+                        cert_dict["next_survey_display"] = valid_dt.strftime('%d/%m/%Y') + ' (-3M)'
+                        cert_dict["next_survey_type"] = "FT Issue"
+                        logger.info(f"✅ Set next_survey for Interim certificate: {cert_dict['next_survey_display']}, Type: FT Issue")
+                    except Exception as e:
+                        logger.error(f"Failed to parse valid_date for Interim: {e}")
+                        cert_dict["next_survey"] = None
+                        cert_dict["next_survey_display"] = valid_date + ' (-3M)'
+                        cert_dict["next_survey_type"] = "FT Issue"
+                elif isinstance(valid_date, datetime):
+                    cert_dict["next_survey"] = valid_date.strftime('%Y-%m-%d')
+                    cert_dict["next_survey_display"] = valid_date.strftime('%d/%m/%Y') + ' (-3M)'
+                    cert_dict["next_survey_type"] = "FT Issue"
+                    logger.info(f"✅ Set next_survey for Interim certificate: {cert_dict['next_survey_display']}, Type: FT Issue")
+            else:
+                cert_dict["next_survey"] = None
+                cert_dict["next_survey_display"] = "-"
+                cert_dict["next_survey_type"] = "FT Issue"
+                logger.info("⚠️ Interim certificate without valid_date")
         
         await CertificateRepository.create(cert_dict)
         
