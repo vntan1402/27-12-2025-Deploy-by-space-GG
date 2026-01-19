@@ -1,7 +1,7 @@
 /**
  * Upload Manager Singleton
  * Manages file uploads independently from React lifecycle
- * Preserves state across module re-evaluations during page navigation
+ * Preserves state and RESUMES uploads across module re-evaluations
  */
 
 // Get axios instance
@@ -29,13 +29,17 @@ class UploadManager {
     // Check if there's existing state in window to preserve
     const existing = window.__uploadManagerState;
     
-    if (existing) {
+    if (existing && existing.activeUploads && existing.activeUploads.size > 0) {
       // Restore state from previous instance
       console.log('📦 [UploadManager] Restoring existing state from window');
-      this.activeUploads = existing.activeUploads || new Map();
+      this.activeUploads = existing.activeUploads;
       this.fileDataQueues = existing.fileDataQueues || new Map();
       this.cancelledTasks = existing.cancelledTasks || new Set();
-      this.scheduledUploads = existing.scheduledUploads || new Map();
+      this.scheduledUploads = new Map(); // Don't restore - will re-schedule
+      this.uploadedIndices = existing.uploadedIndices || new Map(); // Track which files were uploaded
+      
+      // CRITICAL: Resume any in-progress uploads
+      this._resumeUploads();
     } else {
       // Fresh initialization
       console.log('📦 [UploadManager] Fresh initialization');
@@ -43,36 +47,80 @@ class UploadManager {
       this.fileDataQueues = new Map();
       this.cancelledTasks = new Set();
       this.scheduledUploads = new Map();
+      this.uploadedIndices = new Map();
     }
     
-    // Always save reference to state in window for persistence
     this._saveState();
   }
   
-  // Save current state to window for persistence across module re-evaluations
+  // Resume uploads that were interrupted by page navigation
+  _resumeUploads() {
+    const api = getApi();
+    
+    this.activeUploads.forEach((uploadState, taskId) => {
+      if (uploadState.inProgress && !this.cancelledTasks.has(taskId)) {
+        const fileDataArray = this.fileDataQueues.get(taskId);
+        if (!fileDataArray) {
+          console.log(`⚠️ [UploadManager] No file data for task ${taskId}, cannot resume`);
+          return;
+        }
+        
+        const uploadedSet = this.uploadedIndices.get(taskId) || new Set();
+        const remainingFiles = fileDataArray
+          .map((fd, idx) => ({ fileData: fd, index: idx }))
+          .filter(item => !uploadedSet.has(item.index));
+        
+        if (remainingFiles.length === 0) {
+          console.log(`✅ [UploadManager] Task ${taskId} already completed`);
+          return;
+        }
+        
+        console.log(`🔄 [UploadManager] RESUMING task ${taskId}: ${remainingFiles.length} files remaining`);
+        
+        // Re-schedule remaining uploads with stagger
+        const staggerDelayMs = 2000;
+        remainingFiles.forEach((item, idx) => {
+          const delay = idx * staggerDelayMs;
+          
+          window.setTimeout(() => {
+            const manager = window.__uploadManager;
+            if (manager && !manager.cancelledTasks.has(taskId)) {
+              manager._uploadSingleFileData(
+                taskId, 
+                item.fileData, 
+                item.index, 
+                uploadState.apiEndpoint, 
+                api, 
+                null
+              );
+            }
+          }, delay);
+        });
+        
+        console.log(`📤 [UploadManager] Re-scheduled ${remainingFiles.length} uploads`);
+      }
+    });
+  }
+  
   _saveState() {
     window.__uploadManagerState = {
       activeUploads: this.activeUploads,
       fileDataQueues: this.fileDataQueues,
       cancelledTasks: this.cancelledTasks,
-      scheduledUploads: this.scheduledUploads
+      uploadedIndices: this.uploadedIndices
+      // Don't save scheduledUploads - timeout IDs are not transferable
     };
   }
   
-  /**
-   * Start staggered file upload
-   * Reads all files into memory first, then schedules uploads
-   */
   async startUpload({ taskId, files, apiEndpoint, staggerDelayMs = 2000, onProgress }) {
     const api = getApi();
     
     console.log(`📤 [UploadManager] Starting upload for task ${taskId} with ${files.length} files`);
     console.log(`📤 [UploadManager] Reading file contents into memory...`);
     
-    // Convert FileList to Array
     const fileArray = Array.from(files);
     
-    // Read ALL file contents into memory IMMEDIATELY
+    // Read ALL file contents into memory
     const fileDataArray = [];
     for (let i = 0; i < fileArray.length; i++) {
       const file = fileArray[i];
@@ -101,6 +149,7 @@ class UploadManager {
     // Store file DATA
     this.fileDataQueues.set(taskId, fileDataArray);
     this.cancelledTasks.delete(taskId);
+    this.uploadedIndices.set(taskId, new Set()); // Track uploaded file indices
     
     // Track upload state
     const uploadState = {
@@ -114,42 +163,33 @@ class UploadManager {
     };
     this.activeUploads.set(taskId, uploadState);
     
-    // Save state after updating
     this._saveState();
     
-    // Schedule uploads using a self-contained approach
-    // Store timeout IDs for cancellation
-    const timeoutIds = [];
-    
+    // Schedule uploads
     fileDataArray.forEach((fileData, index) => {
       const delay = index * staggerDelayMs;
       
-      // Use a closure to capture all necessary data
-      const timeoutId = window.setTimeout(() => {
-        // Get the current manager instance from window
+      window.setTimeout(() => {
         const manager = window.__uploadManager;
         if (manager) {
           manager._uploadSingleFileData(taskId, fileData, index, apiEndpoint, api, onProgress);
         }
       }, delay);
-      
-      timeoutIds.push(timeoutId);
     });
-    
-    this.scheduledUploads.set(taskId, timeoutIds);
-    this._saveState();
     
     console.log(`📤 [UploadManager] Scheduled ${fileDataArray.length} uploads with ${staggerDelayMs}ms stagger`);
   }
   
-  /**
-   * Upload a single file from cached data
-   */
   async _uploadSingleFileData(taskId, fileData, index, apiEndpoint, api, onProgress) {
-    // Re-get api in case it was reset
     const currentApi = api || getApi();
     
-    // Check if cancelled
+    // Check if already uploaded (for resume scenarios)
+    const uploadedSet = this.uploadedIndices.get(taskId);
+    if (uploadedSet && uploadedSet.has(index)) {
+      console.log(`⏭️ [UploadManager] File ${index + 1} already uploaded, skipping`);
+      return;
+    }
+    
     if (this.cancelledTasks.has(taskId)) {
       console.log(`🚫 [UploadManager] Task ${taskId} cancelled. Skipping file ${index + 1}`);
       return;
@@ -163,7 +203,6 @@ class UploadManager {
     
     const filename = fileData.name || `file_${index}`;
     
-    // Skip if file read failed
     if (!fileData.data) {
       console.error(`❌ [UploadManager] No data for file ${filename}, skipping`);
       uploadState.failedFiles++;
@@ -187,9 +226,7 @@ class UploadManager {
       
       console.log(`📤 [UploadManager] Uploading ${index + 1}/${uploadState.totalFiles}: ${filename}`);
       
-      // Create Blob from ArrayBuffer
       const blob = new Blob([fileData.data], { type: fileData.type });
-      
       const formData = new FormData();
       formData.append('file', blob, filename);
       
@@ -201,6 +238,12 @@ class UploadManager {
           timeout: 300000
         }
       );
+      
+      // Mark as uploaded
+      if (!this.uploadedIndices.has(taskId)) {
+        this.uploadedIndices.set(taskId, new Set());
+      }
+      this.uploadedIndices.get(taskId).add(index);
       
       if (response.data?.success) {
         uploadState.completedFiles++;
@@ -233,12 +276,11 @@ class UploadManager {
       uploadState.inProgress = false;
       console.log(`✅ [UploadManager] Task ${taskId} complete. Success: ${uploadState.completedFiles}, Failed: ${uploadState.failedFiles}`);
       
-      // Cleanup - free memory
+      // Cleanup
       this.fileDataQueues.delete(taskId);
-      this.scheduledUploads.delete(taskId);
+      this.uploadedIndices.delete(taskId);
     }
     
-    // Save state after each upload
     this._saveState();
     
     if (onProgress) {
@@ -256,14 +298,8 @@ class UploadManager {
     console.log(`🚫 [UploadManager] Cancelling task ${taskId}`);
     this.cancelledTasks.add(taskId);
     
-    const timeoutIds = this.scheduledUploads.get(taskId);
-    if (timeoutIds) {
-      timeoutIds.forEach(id => window.clearTimeout(id));
-      this.scheduledUploads.delete(taskId);
-    }
-    
-    // Free memory
     this.fileDataQueues.delete(taskId);
+    this.uploadedIndices.delete(taskId);
     
     const uploadState = this.activeUploads.get(taskId);
     if (uploadState) {
@@ -282,13 +318,6 @@ class UploadManager {
   }
 }
 
-// Factory function to get or create the singleton
-const getUploadManager = () => {
-  if (!window.__uploadManager) {
-    window.__uploadManager = new UploadManager();
-  }
-  return window.__uploadManager;
-};
-
-// Always get the singleton through the factory
-export default getUploadManager();
+// Always create new instance but it will restore state from window
+window.__uploadManager = new UploadManager();
+export default window.__uploadManager;
