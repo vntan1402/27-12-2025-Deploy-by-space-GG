@@ -350,6 +350,144 @@ async def upload_file_to_task(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/background-upload-folder/{task_id}/add-file")
+async def add_file_to_task(
+    task_id: str,
+    file: UploadFile = File(...),
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    V3: Add a file to task's pending queue. Backend will process later.
+    Frontend sends all files first, then calls /start-processing.
+    """
+    from app.services.background_upload_service import BackgroundUploadTaskService
+    import base64
+    
+    try:
+        # Get task and verify
+        task = await BackgroundUploadTaskService.get_task(task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+        
+        if task.get("user_id") != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized")
+        
+        if task.get("status") not in ["pending", "receiving"]:
+            raise HTTPException(status_code=400, detail=f"Task already {task.get('status')}")
+        
+        # Update status to receiving if first file
+        if task.get("status") == "pending":
+            await BackgroundUploadTaskService.update_task(task_id, {"status": "receiving"})
+        
+        # Read file content and store as base64 (for MongoDB storage)
+        file_content = await file.read()
+        filename = file.filename.split('/')[-1] if '/' in file.filename else file.filename
+        
+        # Determine content type
+        if filename.lower().endswith('.pdf'):
+            content_type = 'application/pdf'
+        elif filename.lower().endswith(('.jpg', '.jpeg')):
+            content_type = 'image/jpeg'
+        elif filename.lower().endswith('.png'):
+            content_type = 'image/png'
+        else:
+            content_type = file.content_type or 'application/octet-stream'
+        
+        # Store file data
+        file_data = {
+            "filename": filename,
+            "content_base64": base64.b64encode(file_content).decode('utf-8'),
+            "content_type": content_type,
+            "size": len(file_content)
+        }
+        
+        await BackgroundUploadTaskService.add_pending_file(task_id, file_data)
+        
+        # Get updated count
+        task = await BackgroundUploadTaskService.get_task(task_id)
+        received = task.get("received_files", 0)
+        total = task.get("total_files", 0)
+        
+        logger.info(f"📥 Added file to task {task_id}: {filename} ({received}/{total})")
+        
+        return {
+            "success": True,
+            "filename": filename,
+            "received_files": received,
+            "total_files": total
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error adding file to task: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/background-upload-folder/{task_id}/start-processing")
+async def start_task_processing(
+    task_id: str,
+    current_user: UserResponse = Depends(check_editor_permission)
+):
+    """
+    V3: Start background processing after all files are received.
+    Backend will upload files to GDrive using asyncio.create_task().
+    """
+    from app.services.background_upload_service import BackgroundUploadTaskService, BackgroundUploadService
+    
+    try:
+        # Get task and verify
+        task = await BackgroundUploadTaskService.get_task(task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+        
+        if task.get("user_id") != current_user.id:
+            raise HTTPException(status_code=403, detail="Not authorized")
+        
+        if task.get("status") not in ["pending", "receiving"]:
+            raise HTTPException(status_code=400, detail=f"Task already {task.get('status')}")
+        
+        received = task.get("received_files", 0)
+        total = task.get("total_files", 0)
+        
+        if received == 0:
+            raise HTTPException(status_code=400, detail="No files received yet")
+        
+        logger.info(f"🚀 Starting background processing for task {task_id} ({received} files)")
+        
+        # Update status
+        await BackgroundUploadTaskService.update_task(task_id, {
+            "status": "processing",
+            "total_files": received  # Update to actual received count
+        })
+        
+        # Start background processing (like Auto Rename)
+        import asyncio
+        asyncio.create_task(
+            BackgroundUploadService.process_pending_files_background(
+                task_id=task_id,
+                current_user=current_user
+            )
+        )
+        
+        return {
+            "success": True,
+            "task_id": task_id,
+            "message": f"Background processing started for {received} files",
+            "total_files": received
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"❌ Error starting task processing: {e}")
+        import traceback
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/background-upload-folder")
 async def background_upload_folder(
     files: List[UploadFile] = File(...),
