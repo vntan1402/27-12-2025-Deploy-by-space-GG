@@ -89,8 +89,9 @@ class BackgroundUploadTaskService:
             "ship_id": ship_id,
             "folder_name": folder_name,
             "task_type": task_type,
-            "status": "pending",  # pending, processing, completed, failed
+            "status": "pending",  # pending, receiving, processing, completed, failed
             "total_files": total_files,
+            "received_files": 0,  # Track how many files received
             "completed_files": 0,
             "failed_files": 0,
             "current_file": "",
@@ -103,6 +104,8 @@ class BackgroundUploadTaskService:
             "doc_status": status,
             "note": note,
             "file_ids": [],  # Track all uploaded file IDs
+            # V3: Store file data for backend processing
+            "pending_files": [],  # Files waiting to be uploaded to GDrive
             "created_at": datetime.utcnow(),
             "updated_at": datetime.utcnow(),
             "completed_at": None
@@ -112,6 +115,35 @@ class BackgroundUploadTaskService:
         logger.info(f"📝 Created background upload task v2: {task_id} for {total_files} files")
         
         return task_id
+    
+    @staticmethod
+    async def add_pending_file(task_id: str, file_data: Dict[str, Any]):
+        """Add a file to the pending queue for later processing"""
+        await mongo_db.database[BackgroundUploadTaskService.COLLECTION].update_one(
+            {"id": task_id},
+            {
+                "$push": {"pending_files": file_data},
+                "$inc": {"received_files": 1},
+                "$set": {"updated_at": datetime.utcnow()}
+            }
+        )
+    
+    @staticmethod
+    async def get_pending_files(task_id: str) -> List[Dict]:
+        """Get all pending files for a task"""
+        task = await mongo_db.database[BackgroundUploadTaskService.COLLECTION].find_one(
+            {"id": task_id},
+            {"pending_files": 1}
+        )
+        return task.get("pending_files", []) if task else []
+    
+    @staticmethod
+    async def clear_pending_files(task_id: str):
+        """Clear pending files after processing"""
+        await mongo_db.database[BackgroundUploadTaskService.COLLECTION].update_one(
+            {"id": task_id},
+            {"$set": {"pending_files": [], "updated_at": datetime.utcnow()}}
+        )
     
     @staticmethod
     async def get_task(task_id: str) -> Optional[Dict[str, Any]]:
