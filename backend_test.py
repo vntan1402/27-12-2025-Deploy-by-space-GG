@@ -49,9 +49,9 @@ try:
                 BACKEND_URL = line.split('=', 1)[1].strip() + '/api'
                 break
         else:
-            BACKEND_URL = "https://seamanagepro.preview.emergentagent.com/api"
+            BACKEND_URL = "https://seamanage-1.preview.emergentagent.com/api"
 except:
-    BACKEND_URL = "https://seamanagepro.preview.emergentagent.com/api"
+    BACKEND_URL = "https://seamanage-1.preview.emergentagent.com/api"
 
 # Test credentials - using working system_admin credentials
 TEST_CREDENTIALS = {

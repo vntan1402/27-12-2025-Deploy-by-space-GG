@@ -7,7 +7,7 @@ import requests
 import os
 import time
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://seamanagepro.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://seamanage-1.preview.emergentagent.com')
 
 class TestUploadAPI:
     """Test upload API endpoints"""

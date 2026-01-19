@@ -1,165 +1,532 @@
-<analysis>**original_problem_statement:**
-The user's initial problem was a series of feature requests and bug fixes for the ship management application. This started with a request to check if multi-file upload for Company Certificates existed (the user then decided to skip implementing it). The work then focused on fixing bugs and adding features to the Company Certificate and Upcoming Audit sections.
+<analysis>**original_problem_statement**: The user is developing a Maritime Document Management System. The primary, long-standing issue is to fix the Add Other Document feature to allow for uploading large folders (e.g., 124 files) reliably.
 
-The key requests addressed in this session were:
--   Fixing incorrect sorting by the Status column.
--   Adding a search feature by Company Name.
--   Adding an Audit Type column to the certificate table.
--   Fixing a recurring backend deployment/build error.
--   Fixing a React crash (Error #310) in an upcoming audit modal.
--   Adding a Days Remaining column to PDF/XLSX exports.
--   Adding filtering capabilities to the upcoming audit modals and ensuring exports respect the filters.
--   Fixing a major bug where the upcoming audit modal showed 0 certificates.
--   Optimizing performance by caching several frequently called APIs (, , ).
--   Correcting the business logic for calculating Next Survey and Next Survey Type for various certificate types, especially , , and . The main recurring issue has been getting the logic for  certificates right.
+PRODUCT REQUIREMENTS:
+1.  The folder upload process must handle a large number of files without failing.
+2.  The upload must run as a background task.
+3.  Progress must be displayed on the global, persistent floating component ().
+4.  The upload process **must not be interrupted** if the user navigates to other pages.
+5.  The UI must not be blocked while files are being transferred; the user should be able to close the modal immediately after starting the upload.
+6.  A Cancel button must be available on the progress bar to stop the ongoing upload task.
 
-**User's preferred language**:
-The user's primary language is **Vietnamese**. The next agent MUST respond in Vietnamese only.
+**User's preferred language**: Vietnamese. The next agent MUST respond in Vietnamese.
 
 **what currently exists?**
-The application is a full-stack ship management tool. In this session, significant improvements were made to the frontend:
--   The Company Certificate table now has correct status sorting, enhanced search, and an additional Audit Type column.
--   The Upcoming Audit modals have been enhanced with new filters (Status, Ship/Company Name) that are respected by PDF/XLSX exports. The UI layout of these filters has also been improved.
--   A major performance optimization has been implemented through a new session-based caching layer in the frontend for key APIs (, , ), drastically reducing redundant network requests.
--   The backend logic for calculating certificate survey dates has been significantly refactored to correctly handle , , and  certificate types, although this remains a point of contention.
--   A recurring backend deployment failure was investigated and identified as a Google Cloud Build infrastructure issue. The  file was cleaned up as a preliminary step.
+A full-stack application (React, FastAPI, MongoDB) for ship management. It features a global background task system (, ) and integration with Google Drive. The current implementation for large folder uploads (V3 Non-Blocking) uses a frontend  to send files in parallel to a backend API endpoint. The backend is designed to collect these files and then process them in a separate background task, similar to how the Auto Rename feature works. However, this implementation is currently broken.
 
 **Last working item**:
--   **Last item agent was working:** The agent was debugging why  certificates were still showing  as  instead of the correct  even after a new file upload. The agent identified and fixed hardcoded legacy business rules in  and  that were overriding the new logic.
--   **Status:** USER VERIFICATION PENDING
--   **Agent Testing Done:** N
--   **Which testing method agent to use?** Manual testing by the user is required. The user needs to upload the problematic PDF file again to confirm if the latest fix works.
--   **User Testing Done:** N
+-   **Last item agent was working**: The agent implemented a V3 Non-blocking architecture to solve the persistent folder upload issue. This involves the frontend rapidly sending all files to a temporary holding endpoint on the backend (), and then triggering a second endpoint () to have the backend handle the actual upload to Google Drive as a background task. This was designed to prevent UI blocking and survive page navigation.
+-   **Status**: BLOCKED
+-   **Agent Testing Done**: N
+-   **Which testing method agent to use?**: Backend testing. The immediate priority is to diagnose the  error.
+-   **User Testing Done**: Y (The user ran the latest code and provided the console logs showing the failure).
 
 **All Pending/In progress Issue list**:
--   **Issue 1:** (P0)  certificates are misclassified with  as  instead of .
--   **Issue 2:** (P1) Certificates with Statement in their name are being classified as  instead of .
--   **Issue 3:** (P1) The backend fails to deploy on the user's environment with a Google Cloud Build error ( failed).
--   **Issue 4:** (P2)  endpoint returning a 500 error (from previous handoff).
--   **Issue 5:** (P2) Memory optimizations for large file uploads need verification on the user's Cloud Run environment (from previous handoff).
+-   **Issue 1**: **(P0)** The Add Other Document feature consistently fails when uploading files with the V3 architecture.
 
-**Issues Detail:**
--   **Issue 1 & 2:**  and  Certificate Misclassification
-    -   **Attempted fixes:** The agent performed multiple refactors:
-        1.  Updated  with the correct logic for , , and  types.
-        2.  Updated  to improve AI classification and post-processing.
-        3.  **Most recently, the agent discovered and removed a hardcoded rule in  and  that was incorrectly overriding the  for  certificates to  or not applying the new logic.**
-    -   **Next debug checklist:**
-        1.  Ask the user to **re-upload the certificate PDF** () that was causing the issue. This is crucial to trigger the new code path in .
-        2.  If the issue persists, verify the  value for the certificate directly in the MongoDB  collection after the re-upload.
-        3.  Add detailed logging to the  function in  to trace the values of , , and  as they are being processed and saved.
-    -   **Why fix this issue and what will be achieved with the fix?** Core business logic is incorrect, leading to wrong survey planning and notifications. Fixing it will ensure certificate data is accurate.
-    -   **Status:** USER VERIFICATION PENDING
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** backend
-    -   **Blocked on other issue:** None
-
--   **Issue 3:** Backend Build/Deployment Failure
-    -   **Attempted fixes:** The agent identified it as a Google Cloud Build infrastructure error, not a code error. It cleaned  of duplicates and conflicts as a precaution.
-    -   **Next debug checklist:**
-        1.  Ask the user if they were able to successfully deploy after the agent's last message.
-        2.  If it still fails, propose creating a custom  for the backend to bypass Google's Buildpacks, which seem to be the source of the intermittent  error.
-    -   **Why fix this issue and what will be achieved with the fix?** The user cannot deploy backend changes, which blocks all progress.
-    -   **Status:** BLOCKED (on user action/feedback)
-    -   **Is recurring issue?** Y
-    -   **Should Test frontend/backend/both after fix?** N/A (Infrastructure issue)
-    -   **Blocked on other issue:** None
-
--   **Issue 4 & 5:** Pending User Verification
-    -   **Status:** USER VERIFICATION PENDING
-    -   **Note:** These are lower priority and inherited from the previous session. Do not work on them unless the user brings them up.
+    -   **Attempted fixes**: The session involved numerous failed attempts to solve this, including: sequential frontend uploads, staggered uploads with , moving logic into React Context, using a singleton , persisting state to , and finally, the current backend-centric V3 approach. All frontend-based solutions failed to survive page navigation. The current backend-centric approach fails with a server error.
+    -   **Next debug checklist**:
+        1.  **Investigate the  error.** The console log shows all parallel requests to  are failing.
+        2.  Check the backend supervisor logs (INFO:     Waiting for application startup.
+INFO:app.main:🚀 Starting Ship Management System API V2...
+INFO:app.main:🌐 Is Cloud Run: False
+INFO:app.main:   K_SERVICE: not set
+INFO:app.main:   K_REVISION: not set
+WARNING:app.main:⚠️ MONGO_URL status: mongodb://localhost:...
+INFO:app.db.mongodb:🔗 MONGO_URL from environment: mongodb://localhost:27017/ship...
+INFO:app.db.mongodb:🌐 Running on Cloud Run: False
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME env var value: 'ship_management'
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME type: <class 'str'>
+INFO:app.db.mongodb:🔍 DEBUG - DATABASE_NAME: 'None', MONGODB_DATABASE: 'None'
+INFO:app.db.mongodb:🔍 DEBUG - DB name from URL: 'ship_management'
+INFO:app.db.mongodb:📌 Using DB name from DB_NAME env: ship_management
+INFO:app.db.mongodb:Database indexes created successfully
+INFO:app.db.mongodb:✅ Successfully connected to MongoDB: ship_management
+INFO:app.main:✅ Database connected
+INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
+INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/api/v1/other_documents.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.main:✅ Scheduler shut down
+INFO:app.db.mongodb:Disconnected from MongoDB
+INFO:app.main:✅ Database disconnected
+INFO:apscheduler.scheduler:Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [424]
+INFO:     Started server process [493]
+INFO:     Waiting for application startup.
+INFO:app.main:🚀 Starting Ship Management System API V2...
+INFO:app.main:🌐 Is Cloud Run: False
+INFO:app.main:   K_SERVICE: not set
+INFO:app.main:   K_REVISION: not set
+WARNING:app.main:⚠️ MONGO_URL status: mongodb://localhost:...
+INFO:app.db.mongodb:🔗 MONGO_URL from environment: mongodb://localhost:27017/ship...
+INFO:app.db.mongodb:🌐 Running on Cloud Run: False
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME env var value: 'ship_management'
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME type: <class 'str'>
+INFO:app.db.mongodb:🔍 DEBUG - DATABASE_NAME: 'None', MONGODB_DATABASE: 'None'
+INFO:app.db.mongodb:🔍 DEBUG - DB name from URL: 'ship_management'
+INFO:app.db.mongodb:📌 Using DB name from DB_NAME env: ship_management
+INFO:app.db.mongodb:Database indexes created successfully
+INFO:app.db.mongodb:✅ Successfully connected to MongoDB: ship_management
+INFO:app.main:✅ Database connected
+INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
+INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/services/background_upload_service.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.main:✅ Scheduler shut down
+INFO:app.db.mongodb:Disconnected from MongoDB
+INFO:app.main:✅ Database disconnected
+INFO:apscheduler.scheduler:Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [493]
+INFO:     Started server process [587]
+INFO:     Waiting for application startup.
+INFO:app.main:🚀 Starting Ship Management System API V2...
+INFO:app.main:🌐 Is Cloud Run: False
+INFO:app.main:   K_SERVICE: not set
+INFO:app.main:   K_REVISION: not set
+WARNING:app.main:⚠️ MONGO_URL status: mongodb://localhost:...
+INFO:app.db.mongodb:🔗 MONGO_URL from environment: mongodb://localhost:27017/ship...
+INFO:app.db.mongodb:🌐 Running on Cloud Run: False
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME env var value: 'ship_management'
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME type: <class 'str'>
+INFO:app.db.mongodb:🔍 DEBUG - DATABASE_NAME: 'None', MONGODB_DATABASE: 'None'
+INFO:app.db.mongodb:🔍 DEBUG - DB name from URL: 'ship_management'
+INFO:app.db.mongodb:📌 Using DB name from DB_NAME env: ship_management
+INFO:app.db.mongodb:Database indexes created successfully
+INFO:app.db.mongodb:✅ Successfully connected to MongoDB: ship_management
+INFO:app.main:✅ Database connected
+INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
+INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/api/v1/other_documents.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.main:✅ Scheduler shut down
+INFO:app.db.mongodb:Disconnected from MongoDB
+INFO:app.main:✅ Database disconnected
+INFO:apscheduler.scheduler:Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [587]
+INFO:     Started server process [807]
+INFO:     Waiting for application startup.
+INFO:app.main:🚀 Starting Ship Management System API V2...
+INFO:app.main:🌐 Is Cloud Run: False
+INFO:app.main:   K_SERVICE: not set
+INFO:app.main:   K_REVISION: not set
+WARNING:app.main:⚠️ MONGO_URL status: mongodb://localhost:...
+INFO:app.db.mongodb:🔗 MONGO_URL from environment: mongodb://localhost:27017/ship...
+INFO:app.db.mongodb:🌐 Running on Cloud Run: False
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME env var value: 'ship_management'
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME type: <class 'str'>
+INFO:app.db.mongodb:🔍 DEBUG - DATABASE_NAME: 'None', MONGODB_DATABASE: 'None'
+INFO:app.db.mongodb:🔍 DEBUG - DB name from URL: 'ship_management'
+INFO:app.db.mongodb:📌 Using DB name from DB_NAME env: ship_management
+INFO:app.db.mongodb:Database indexes created successfully
+INFO:app.db.mongodb:✅ Successfully connected to MongoDB: ship_management
+INFO:app.main:✅ Database connected
+INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
+INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:app.main:✅ Scheduler shut down
+INFO:app.db.mongodb:Disconnected from MongoDB
+INFO:app.main:✅ Database disconnected
+INFO:apscheduler.scheduler:Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [807]
+INFO:     Stopping reloader process [48]
+INFO:     Will watch for changes in these directories: ['/app/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [822] using WatchFiles
+INFO:     Started server process [824]
+INFO:     Waiting for application startup.
+INFO:app.main:🚀 Starting Ship Management System API V2...
+INFO:app.main:🌐 Is Cloud Run: False
+INFO:app.main:   K_SERVICE: not set
+INFO:app.main:   K_REVISION: not set
+WARNING:app.main:⚠️ MONGO_URL status: mongodb://localhost:...
+INFO:app.db.mongodb:🔗 MONGO_URL from environment: mongodb://localhost:27017/ship...
+INFO:app.db.mongodb:🌐 Running on Cloud Run: False
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME env var value: 'ship_management'
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME type: <class 'str'>
+INFO:app.db.mongodb:🔍 DEBUG - DATABASE_NAME: 'None', MONGODB_DATABASE: 'None'
+INFO:app.db.mongodb:🔍 DEBUG - DB name from URL: 'ship_management'
+INFO:app.db.mongodb:📌 Using DB name from DB_NAME env: ship_management
+INFO:app.db.mongodb:Database indexes created successfully
+INFO:app.db.mongodb:✅ Successfully connected to MongoDB: ship_management
+INFO:app.main:✅ Database connected
+INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
+INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
+INFO:     Application startup complete.
+INFO:app.api.v1.other_documents:📁 Creating background upload task: Pic for 124 files
+INFO:app.services.background_upload_service:📝 Created background upload task v2: 43c56e3d-e988-4103-8669-3e8cc23f6a57 for 124 files
+INFO:app.api.v1.other_documents:🚫 Cancel request for task 43c56e3d-e988-4103-8669-3e8cc23f6a57 by user f3f154bc-e636-4fe3-8aa9-85ca113ef8b1
+INFO:app.services.background_upload_service:🚫 Task 43c56e3d-e988-4103-8669-3e8cc23f6a57 cancelled by user f3f154bc-e636-4fe3-8aa9-85ca113ef8b1
+INFO:app.api.v1.system_announcements:✅ Retrieved 0 active announcements
+INFO:app.api.v1.system_announcements:✅ Retrieved 0 active announcements
+INFO:app.services.company_service:✅ Company AMCSC: 1 ships, 1 crew
+INFO:app.services.company_service:✅ Company AMCSC: 1 ships, 1 crew
+INFO:app.services.gdrive_service:Requesting file view URL from Apps Script for file: 1tX6W8iozIaSzytDkWG0Lcf2FBwATTcDm
+INFO:app.services.gdrive_service:Requesting file view URL from Apps Script for file: 1Tg5OZGiXjMn5KoQpQ8VVZYrOa_ShxULD
+INFO:app.services.gdrive_service:Requesting file view URL from Apps Script for file: 1P2HtBnQ6Xbue6_-0Yln52jGTS8ljs0vZ
+INFO:app.services.gdrive_service:Requesting file view URL from Apps Script for file: 13DOvzRxsoHC51YgwCyEl8bqf8nrDYaWm
+INFO:app.services.gdrive_service:Requesting file view URL from Apps Script for file: 1vc40syQf2hzrngZI59CrfS6eWOdG5aWQ
+INFO:app.api.v1.other_documents:📁 Creating background upload task: Pic for 124 files
+INFO:app.services.background_upload_service:📝 Created background upload task v2: 63c7675a-ee6a-463b-a7c6-d797632a916c for 124 files
+INFO:     Will watch for changes in these directories: ['/app/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+INFO:     Started reloader process [48] using WatchFiles
+INFO:     Started server process [91]
+INFO:     Waiting for application startup.
+INFO:app.main:🚀 Starting Ship Management System API V2...
+INFO:app.main:🌐 Is Cloud Run: False
+INFO:app.main:   K_SERVICE: not set
+INFO:app.main:   K_REVISION: not set
+WARNING:app.main:⚠️ MONGO_URL status: mongodb://localhost:...
+INFO:app.db.mongodb:🔗 MONGO_URL from environment: mongodb://localhost:27017/ship...
+INFO:app.db.mongodb:🌐 Running on Cloud Run: False
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME env var value: 'ship_management'
+INFO:app.db.mongodb:🔍 DEBUG - DB_NAME type: <class 'str'>
+INFO:app.db.mongodb:🔍 DEBUG - DATABASE_NAME: 'None', MONGODB_DATABASE: 'None'
+INFO:app.db.mongodb:🔍 DEBUG - DB name from URL: 'ship_management'
+INFO:app.db.mongodb:📌 Using DB name from DB_NAME env: ship_management
+INFO:app.db.mongodb:Database indexes created successfully
+INFO:app.db.mongodb:✅ Successfully connected to MongoDB: ship_management
+INFO:app.main:✅ Database connected
+INFO:app.utils.init_admin:✅ Admin user already exists: system_admin
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "Daily Cleanup Report" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:app.main:✅ Scheduler started - Cleanup job scheduled for 2:00 AM daily
+INFO:app.main:✅ Ship Management System API v2.0.0 is ready!
+INFO:     Application startup complete. and INFO:     10.64.134.68:54874 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:46824 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:47138 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:46824 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:44146 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:47138 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:43784 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:48944 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:46824 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:46824 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:47138 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:46824 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:42856 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:48944 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:42856 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:55876 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:55876 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:47138 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:46824 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:42856 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:42856 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:55876 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:55876 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:42856 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:47138 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:52062 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:52062 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:46824 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:47138 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:46824 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:47138 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:47138 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:46824 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:50030 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:47138 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:50030 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:36818 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:47138 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:43906 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:43488 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:47138 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:60696 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:60696 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:60696 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:33608 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:33598 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:39978 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:40352 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:40352 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:33598 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:39978 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:39978 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:39978 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:39978 - "POST /api/other-documents/background-upload-folder/43c56e3d-e988-4103-8669-3e8cc23f6a57/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:51514 - "GET /api/system-announcements/active HTTP/1.1" 200 OK
+INFO:     10.64.138.28:51514 - "GET /api/system-announcements/active HTTP/1.1" 200 OK
+INFO:     10.64.134.68:46172 - "GET /api/verify-token HTTP/1.1" 200 OK
+INFO:     10.64.138.74:34514 - "GET /api/companies HTTP/1.1" 200 OK
+INFO:     10.64.134.90:40300 - "GET /api/companies HTTP/1.1" 200 OK
+INFO:     10.64.134.90:40300 - "GET /api/companies HTTP/1.1" 200 OK
+INFO:     10.64.134.90:40300 - "GET /api/ai-config HTTP/1.1" 200 OK
+INFO:     10.64.138.6:41598 - "GET /api/ships HTTP/1.1" 200 OK
+INFO:     10.64.134.68:46172 - "GET /api/company HTTP/1.1" 200 OK
+INFO:     10.64.138.28:51514 - "GET /api/ai-config HTTP/1.1" 200 OK
+INFO:     10.64.138.28:51514 - "GET /api/company HTTP/1.1" 200 OK
+INFO:     10.64.138.6:41598 - "GET /api/ships HTTP/1.1" 200 OK
+INFO:     10.64.138.74:34514 - "GET /api/ships/317321ec-add6-4928-9dd1-1d2b88e66905/certificates HTTP/1.1" 200 OK
+INFO:     10.64.134.90:40300 - "GET /api/gdrive/file/1tX6W8iozIaSzytDkWG0Lcf2FBwATTcDm/view HTTP/1.1" 200 OK
+INFO:     10.64.134.90:39412 - "GET /api/ships HTTP/1.1" 200 OK
+INFO:     10.64.134.68:40992 - "GET /api/ships HTTP/1.1" 200 OK
+INFO:     10.64.134.90:39412 - "GET /api/other-documents?ship_id=seamanage-1 HTTP/1.1" 200 OK
+INFO:     10.64.138.6:42260 - "GET /api/other-documents?ship_id=seamanage-1 HTTP/1.1" 200 OK
+INFO:     10.64.138.28:53578 - "POST /api/other-documents/background-upload-folder/create-task HTTP/1.1" 200 OK
+INFO:     10.64.138.74:60792 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:60792 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:55734 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:53578 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:60778 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:60778 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:42870 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:60784 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:53578 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:53578 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:53588 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:42870 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33528 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:55734 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:33154 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:60792 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:42870 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:33140 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:33528 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33512 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:42870 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:60778 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:53578 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:60792 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:46182 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:33154 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:33154 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:37214 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:46182 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:55734 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:42870 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:60792 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:53578 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33528 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:37222 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:53578 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:45360 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:60792 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:53578 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:42870 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:60792 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:46182 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:55390 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:33512 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:42870 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:37214 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.5:38558 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:37222 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:40672 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:42520 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:42520 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:37222 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:42870 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:53578 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:55390 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:42510 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:42870 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:60792 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.5:38558 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:53578 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:42520 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:55450 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:45362 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:53578 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:53578 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:42520 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:42510 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:42870 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:55390 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:37222 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:42510 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:48532 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:48532 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:55390 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33512 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.90:37222 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:55462 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:55462 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:55462 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:48532 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:45362 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:47842 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:53578 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:45362 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:33512 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:46078 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:46078 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:37222 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:48544 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:37222 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:42520 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:47842 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.6:45362 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.74:42520 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.28:53578 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:48532 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.74:42510 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.134.68:47842 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:47842 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.68:47842 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.138.6:55462 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:44954 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK
+INFO:     10.64.134.90:37222 - "POST /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c/add-file HTTP/1.1" 400 Bad Request
+INFO:     10.64.138.28:48544 - "GET /api/other-documents/background-upload-folder/63c7675a-ee6a-463b-a7c6-d797632a916c HTTP/1.1" 200 OK) to find the detailed FastAPI/Pydantic validation error.
+        3.  The issue is almost certainly within the  endpoint in  or the service it calls. The request payload or endpoint signature is likely incorrect.
+    -   **Why fix this issue?**: This is the main feature the user wants to complete and is the primary blocker for the entire project. It's a critical usability feature.
+    -   **Status**: IN PROGRESS
+    -   **Is recurring issue?**: Y
+    -   **Should Test frontend/backend/both after fix?**: Both. First, fix the backend error and test the endpoint with . Then, perform a full frontend E2E test to verify that the upload works, persists across navigation, and updates the progress bar correctly.
+    -   **Blocked on other issue**: None. This is the main blocker.
 
 **In progress Task List**:
-None.
+-   **Task 1**: Stabilize the large folder upload feature.
+    -   **Where to resume**: . Start by inspecting the backend logs to find the root cause of the .
+    -   **What will be achieved**: A functional, non-blocking, persistent background upload feature for large folders, meeting all user requirements.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: Both
+    -   **Blocked on something**: The  error.
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks:**
-    -   (P1) Create a Batch Recalculate feature to re-apply the latest survey calculation logic to all existing certificates in the database without requiring a re-upload.
--   **Future Tasks:**
-    -   Implement a dashboard or logging for application performance monitoring.
-    -   Enhance the file upload feature with AI-powered suggestions for data extraction.
+-   **Upcoming Tasks**:
+    -   (P1) Implement a retry mechanism for individual file uploads that fail within a background task.
+-   **Future Tasks**:
+    -   (P2) Implement a Pause/Resume functionality for upload tasks.
 
 **Completed work in this session**
--   **Fix:** Corrected the sorting logic for the Status column in the Company Certificate table.
--   **Feature:** Enhanced the search functionality to include Company Name.
--   **Feature:** Added a new Audit Type column to the Company Certificate table.
--   **Fix:** Resolved a React crash (Error #310) in .
--   **Feature:** Added Days Remaining column to PDF/XLSX exports.
--   **Feature:** Implemented status and name filters in upcoming audit modals and ensured exports are filtered.
--   **Fix:** Corrected a critical bug in the backend that caused the Upcoming Audit modal to show 0 certificates.
--   **Performance:** Implemented a session-based frontend caching layer for , , and , significantly reducing API calls.
--   **Fix (Iterative):** Made multiple updates to the backend logic (, , ) to correctly calculate  and  for , , and  certificates.
+-   **Bug Fix - Backend Upload Logic**: Fixed two critical backend bugs that were preventing file uploads: an  related to GDrive config and a  for UUID serialization.
+-   **Feature - Cancel Upload Task**: Successfully implemented the ability to cancel an in-progress upload task. This included a new backend API endpoint, service logic, and frontend UI/Context updates.
+-   **Architecture - Refactor to V3 Non-Blocking Upload**: Architected and implemented a new system where the frontend's role is to quickly transfer all files to the backend, which then takes over the processing. This architecture, while currently bugged, is the most robust approach attempted and aligns with the user's request to mimic the Auto Rename functionality.
 
 **Earlier issues found/mentioned but not fixed**
-None.
+-   None.
 
 **Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork:**  500 error.
--   **Recurrence count:** 1
--   **Status:** USER VERIFICATION PENDING
+-   The core issue of creating a persistent upload that survives page navigation has been a recurring problem across multiple forks. The various frontend-only solutions have all failed, leading to the current backend-centric approach.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Complex Business Logic:** Implementing and debugging multi-layered business rules for calculating survey dates based on certificate types, names, dates, and other attributes.
--   **Frontend Performance Caching:** Implemented a session-based caching strategy using  to store frequently accessed, semi-static data (like lists of ships and companies). This reduces API calls and improves perceived performance.
--   **React Hooks Rules:** Debugged and fixed a Rendered more hooks than during the previous render (Error #310) by ensuring hooks are called unconditionally at the top level of the component.
--   **Infrastructure Debugging:** Differentiated between application code errors and external infrastructure errors (Google Cloud Build), providing targeted solutions for each.
+-   **Background Task Persistence**: The primary challenge is creating a client-initiated task that continues after the client UI (React components) is unmounted/remounted during page navigation.
+-   **Backend-Led Processing**: The current (and most promising) architecture is inspired by the working Auto Rename feature. It minimizes the frontend's responsibility to just sending the raw data. The backend then orchestrates the complex, long-running logic asynchronously using .
+-   **Parallel Client-Side Requests**: The  uses  to send multiple files to the backend concurrently to speed up the initial data transfer.
 
 **key DB schema**
-No changes made to the DB schema.
+-   **upload_tasks**: The schema for this collection was updated to include a  list and a  list to accommodate the V3 architecture where the backend processes files from a queue.
 
 **changes in tech stack**
-None.
+-   None.
 
 **All files of reference**
--   : Core logic for calculating next survey dates. **Crucial for the main bug.**
--   : Contains the recently fixed legacy rule that was overriding Interim certificate logic. **Crucial for the main bug.**
--   : New frontend caching service for ships.
--   : New frontend caching service for companies.
--   : The main page where many UI changes were made.
--   : Cleaned to potentially resolve build issues.
+-   **Created**:
+    -   : A client-side singleton responsible for managing the parallel, non-blocking transfer of files to the backend in the V3 architecture.
+-   **Significantly Updated**:
+    -   : Added new V3 endpoints:  (the failing endpoint) and .
+    -   : Heavily modified to support the V3 flow, including methods to add pending files and process them from a queue.
+    -   : Refactored to use the  and trigger the V3 upload flow.
+    -   : Modified to support task cancellation.
+    -   : Updated to include a Cancel button and its associated logic.
+
+**Areas that need refactoring**:
+-   The backend API () and service () contain code from multiple abandoned upload strategies. Once V3 is stable, these legacy endpoints and methods should be removed to reduce complexity.
+
+**key api endpoints**
+-   : Creates a new upload task entry in the DB.
+-   : **(CURRENTLY FAILING)** Receives a single file from the frontend and stores it temporarily.
+-   : Triggers the backend to start processing its queue of received files.
+-   : Cancels an ongoing task.
+-   : Polled by the frontend to update the  UI.
 
 **Critical Info for New Agent**
--   **Language:** You **MUST** respond in **Vietnamese**.
--   **Highest Priority:** The user's main frustration is the incorrect  for  certificates. The agent just implemented a critical fix in  and . Your first step should be to ask the user to re-upload the file to verify this specific fix.
--   **Backend Deployment:** The backend build is failing due to a Google Cloud Build infrastructure issue, not a code issue. If the user reports that retrying the deployment didn't work, the next step is to offer to create a custom  to bypass Google's buildpacks.
--   **Frontend Caching:** Be aware that a new caching layer exists for ships and companies (, ). If you modify how ships or companies are created/updated/deleted, you must ensure the cache is properly invalidated.
+-   **Do not try another frontend-only solution.** The path forward is to fix the current V3 backend-centric architecture. The problem of tasks being killed on navigation is a fundamental limitation of client-side JavaScript that the current architecture correctly avoids.
+-   **The immediate blocker is the .** You must start by examining the backend logs. The frontend code is likely correct in its intent; the error is on the server side.
+-   The user is following the progress closely and has provided valuable direction (e.g., look at how Auto Rename works). Continue with the backend-processing model as it aligns with their insight and is the most robust technical path.
 
 **documents and test reports created in this job**
-None.
+-   : A test report from a testing agent run, which pointed out a module re-evaluation issue with the singleton pattern. The fix was implemented but did not solve the core navigation persistence problem.
 
 **Last 10 User Messages and any pending HUMAN messages**
--   **10. User:** Reports that even with new data, the  for Interim certificates is still wrong. (IN PROGRESS)
--   **9. User:** Asks for a fix for an Interim certificate being misclassified as . (RESOLVED - Logic fixed, pending verification)
--   **8. User:** Requests changes to certificate calculation logic:  window to ,  type to , and add a new  type. (COMPLETED)
--   **7. User:** Asks how  and  are calculated and if it depends on . (COMPLETED - Agent provided detailed explanation)
--   **6. User:** Wants to cache  to reduce calls. (COMPLETED)
--   **5. User:** Points out many APIs are called repeatedly and asks about preflight requests. (COMPLETED - Agent explained and implemented caching for )
--   **4. User:** Asks when the  API is called because it's slow. (COMPLETED - Led to caching implementation)
--   **3. User:** Asks to display two filter fields on the same row. (COMPLETED)
--   **2. User:** Reports that the Upcoming Audit modal shows 0 certificates and . (RESOLVED)
--   **1. User:** Asks to add filters (Ship/Company Name & Status) to the Upcoming Audit Notification modal and for exports to use the filtered data. (COMPLETED)
+1.  **phương án này có block io không** (Is this approach I/O blocking?) - User asked if the V3 plan would block the UI. (Status: Addressed by making the frontend transfer non-blocking).
+2.  **vẫn bị dừng khi chuyển page khác** (still stops when switching pages) - User report after the V6 auto-resume fix attempt. (Status: Unresolved).
+3.  **tham khảo cách Auto rename file...** (refer to how Auto rename file works...) - User suggested mimicking the backend-only processing of another feature. This was a key insight. (Status: Actioned, led to V3 architecture).
+4.  **vẫn bị dừng** (still stops) - User report after the V4 file caching fix. (Status: Unresolved).
+5.  **vẫn bị dừng** (still stops) - User report after the V3 window-attached fix. (Status: Unresolved).
+6.  **vẫn bị dừng khi Chuyển sang page khác** (still stops when switching to another page) - User report after V3 implementation. (Status: Unresolved).
+7.  **vẫn bị dừng, hãy dùng testing agent để test bà fix lỗi triệt để** (still stops, please use testing agent to test and fix it thoroughly). (Status: Actioned, testing agent was called).
+8.  **khi chuyển page khác thì việc upload bị dừng** (when switching to another page the upload stops). (Status: Unresolved).
+9.  **Tôi muốn sau khi upload file số 2, delay 2s upload tiếp file số 3...** (I want after uploading file 2, delay 2s then upload file 3...). (Status: Addressed, but the implementation was later replaced).
+10. **bổ sung nút hủy để User có thể hủy tác vụ nền** (add a cancel button so the User can cancel the background task). (Status: COMPLETED).
 
 **Project Health Check:**
--   **Broken:** The backend deployment process is unreliable due to an external infrastructure issue, which is a major blocker for the user. Core business logic for certificate classification is buggy and has required multiple iterations to fix.
--   **Mocked:** None
+-   **Broken**: The Add Other Document feature for large folders is completely broken due to the  server errors.
 
 **3rd Party Integrations**
--   Google Gemini
--   MongoDB Atlas
--   Google Drive
+-   **Google AI (Gemini & Document AI)** — for certificate analysis. Requires User API Key.
+-   **Google Drive** — for file storage, accessed via a custom Google Apps Script proxy. Requires User API Key/OAuth setup.
 
 **Testing status**
--   **Testing agent used after significant changes:** NO
--   **Troubleshoot agent used after agent stuck in loop:** NO
--   **Test files created:** None
--   **Known regressions:** The logic for  certificates has been a persistent regression, with multiple fixes attempted. The latest fix is the most promising.
+-   **Testing agent used after significant changes**: YES, but it did not lead to a final resolution.
+-   **Troubleshoot agent used after agent stuck in loop**: NO
+-   **Test files created**: The testing agent created a temporary test file which was not saved.
+-   **Known regressions**: The Add Other Document feature for large folders is non-functional.
 
 **Credentials to test flow:**
--   **Username:** 
--   **Password:** 
+-   **Demo User**:  / 
+-   **System Admin**:  / 
 
 **What agent forgot to execute**
-The agent correctly followed all user instructions and did not forget any tasks. The user initially requested a feature (multi-file upload) and then asked to skip it, which the agent adhered to.</analysis>
+-   The previous agent correctly identified that the V3 Non-blocking approach was failing due to server errors (). However, instead of immediately investigating the backend logs to find the root cause of the error, the agent concluded the session. The critical next step, which was missed, is to debug the backend.</analysis>
