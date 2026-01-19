@@ -219,6 +219,242 @@ class BackgroundUploadTaskService:
 class BackgroundUploadService:
     """Service for background folder upload with progress tracking"""
     
+    # ===== V3 API: Backend-side background processing (like Auto Rename) =====
+    
+    @staticmethod
+    async def process_pending_files_background(
+        task_id: str,
+        current_user: UserResponse
+    ):
+        """
+        Background task to process pending files.
+        Called via asyncio.create_task() - runs on server side.
+        Similar to Auto Rename background processing.
+        """
+        from app.repositories.gdrive_config_repository import GDriveConfigRepository
+        
+        logger.info(f"🚀 [V3] Starting background processing for task {task_id}")
+        
+        try:
+            # Get task
+            task = await BackgroundUploadTaskService.get_task(task_id)
+            if not task:
+                logger.error(f"Task {task_id} not found")
+                return
+            
+            ship_id = task.get("ship_id")
+            folder_name = task.get("folder_name")
+            
+            # Get ship info
+            ship = await mongo_db.database.ships.find_one({"id": ship_id})
+            if not ship:
+                logger.error(f"Ship not found: {ship_id}")
+                await BackgroundUploadTaskService.update_task(task_id, {
+                    "status": "failed",
+                    "current_file": "Ship not found"
+                })
+                return
+            
+            ship_name = ship.get("name", "Unknown")
+            
+            # Get GDrive config
+            company_id = current_user.company
+            gdrive_config = await GDriveConfigRepository.get_by_company(str(company_id))
+            if not gdrive_config:
+                logger.error(f"GDrive not configured for company {company_id}")
+                await BackgroundUploadTaskService.update_task(task_id, {
+                    "status": "failed",
+                    "current_file": "Google Drive not configured"
+                })
+                return
+            
+            script_url = gdrive_config.get("web_app_url") or gdrive_config.get("apps_script_url")
+            parent_folder_id = gdrive_config.get("folder_id")
+            
+            if not script_url or not parent_folder_id:
+                logger.error("GDrive configuration incomplete")
+                await BackgroundUploadTaskService.update_task(task_id, {
+                    "status": "failed",
+                    "current_file": "Google Drive configuration incomplete"
+                })
+                return
+            
+            # Get pending files
+            pending_files = await BackgroundUploadTaskService.get_pending_files(task_id)
+            total_files = len(pending_files)
+            
+            logger.info(f"📤 [V3] Processing {total_files} files for task {task_id}")
+            
+            completed = 0
+            failed = 0
+            file_ids = []
+            folder_id = None
+            
+            # Process files sequentially with 2s delay (like Auto Rename)
+            for i, file_data in enumerate(pending_files):
+                # Check if cancelled
+                task = await BackgroundUploadTaskService.get_task(task_id)
+                if task.get("status") == "cancelled":
+                    logger.info(f"🚫 Task {task_id} cancelled. Stopping.")
+                    break
+                
+                filename = file_data.get("filename", f"file_{i}")
+                
+                # Update current file
+                await BackgroundUploadTaskService.update_task(task_id, {
+                    "current_file": f"Uploading {i + 1}/{total_files}: {filename}"
+                })
+                
+                try:
+                    # Prepare payload
+                    payload = {
+                        "action": "upload_file_with_folder_creation",
+                        "parent_folder_id": parent_folder_id,
+                        "ship_name": ship_name,
+                        "parent_category": "Class & Flag Cert/Other Documents",
+                        "category": folder_name,
+                        "filename": filename,
+                        "file_content": file_data.get("content_base64"),
+                        "content_type": file_data.get("content_type", "application/octet-stream")
+                    }
+                    
+                    # Upload to GDrive via Apps Script
+                    async with aiohttp.ClientSession() as session:
+                        async with session.post(
+                            script_url,
+                            json=payload,
+                            timeout=aiohttp.ClientTimeout(total=300)
+                        ) as response:
+                            result = await response.json()
+                    
+                    if result.get('success'):
+                        file_id = result.get('file_id')
+                        folder_id = result.get('folder_id') or folder_id
+                        
+                        completed += 1
+                        file_ids.append(file_id)
+                        
+                        logger.info(f"✅ [{task_id}] Uploaded {i + 1}/{total_files}: {filename}")
+                        
+                        # Add success result
+                        await BackgroundUploadTaskService.add_result(task_id, {
+                            'success': True,
+                            'filename': filename,
+                            'file_id': file_id
+                        })
+                    else:
+                        failed += 1
+                        error_msg = result.get('message', 'Unknown error')
+                        logger.warning(f"⚠️ [{task_id}] Failed {i + 1}/{total_files}: {filename} - {error_msg}")
+                        
+                        await BackgroundUploadTaskService.add_result(task_id, {
+                            'success': False,
+                            'filename': filename,
+                            'error': error_msg
+                        })
+                        
+                except Exception as e:
+                    failed += 1
+                    logger.error(f"❌ [{task_id}] Error uploading {filename}: {e}")
+                    
+                    await BackgroundUploadTaskService.add_result(task_id, {
+                        'success': False,
+                        'filename': filename,
+                        'error': str(e)
+                    })
+                
+                # Update progress
+                await BackgroundUploadTaskService.update_task(task_id, {
+                    "completed_files": completed,
+                    "failed_files": failed,
+                    "file_ids": file_ids
+                })
+                
+                # Delay between files (like Auto Rename uses 500ms, we use 2s)
+                if i < total_files - 1:
+                    await asyncio.sleep(2)
+            
+            # Finalize task
+            final_status = "completed" if failed == 0 else ("failed" if completed == 0 else "completed_with_errors")
+            
+            updates = {
+                "status": final_status,
+                "completed_files": completed,
+                "failed_files": failed,
+                "file_ids": file_ids,
+                "current_file": "",
+                "completed_at": datetime.utcnow()
+            }
+            
+            if folder_id:
+                updates["folder_id"] = folder_id
+                updates["folder_link"] = f"https://drive.google.com/drive/folders/{folder_id}"
+            
+            # Create OtherDocument record if any files uploaded
+            if completed > 0 and folder_id:
+                document_id = await BackgroundUploadService._create_document_for_task_v3(task_id, task, updates, current_user)
+                if document_id:
+                    updates["document_id"] = document_id
+            
+            await BackgroundUploadTaskService.update_task(task_id, updates)
+            
+            # Clear pending files to free memory
+            await BackgroundUploadTaskService.clear_pending_files(task_id)
+            
+            logger.info(f"✅ [V3] Task {task_id} completed. Success: {completed}, Failed: {failed}")
+            
+        except Exception as e:
+            logger.error(f"❌ [V3] Background processing error for task {task_id}: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            await BackgroundUploadTaskService.update_task(task_id, {
+                "status": "failed",
+                "current_file": f"Error: {str(e)}",
+                "completed_at": datetime.utcnow()
+            })
+    
+    @staticmethod
+    async def _create_document_for_task_v3(task_id: str, task: Dict, updates: Dict, current_user: UserResponse) -> Optional[str]:
+        """Create OtherDocument record when V3 task completes"""
+        from app.models.other_doc import OtherDocumentCreate
+        from app.services.other_doc_service import OtherDocumentService
+        
+        folder_id = updates.get("folder_id")
+        file_ids = updates.get("file_ids", [])
+        
+        if not folder_id or not file_ids:
+            return None
+        
+        try:
+            doc_data = OtherDocumentCreate(
+                ship_id=task.get("ship_id"),
+                folder_name=task.get("folder_name"),
+                date=task.get("date"),
+                status=task.get("doc_status", "Valid"),
+                note=task.get("note")
+            )
+            
+            doc_result = await OtherDocumentService.create_other_document(doc_data, current_user)
+            document_id = doc_result.id
+            
+            await mongo_db.database.other_documents.update_one(
+                {"id": document_id},
+                {"$set": {
+                    "google_drive_folder_id": folder_id,
+                    "google_drive_folder_link": f"https://drive.google.com/drive/folders/{folder_id}",
+                    "file_ids": file_ids,
+                    "file_count": len(file_ids)
+                }}
+            )
+            
+            logger.info(f"✅ [{task_id}] Created OtherDocument: {document_id}")
+            return document_id
+            
+        except Exception as e:
+            logger.error(f"❌ [{task_id}] Failed to create OtherDocument: {e}")
+            return None
+    
     # ===== V2 API: Client-side sequential upload =====
     
     @staticmethod
