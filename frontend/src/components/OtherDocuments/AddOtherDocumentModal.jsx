@@ -151,14 +151,14 @@ const AddOtherDocumentModal = ({
     }
   };
 
-  // Upload folder with BACKGROUND processing using GlobalFloatingProgress
-  // V2 Strategy (works for ALL file counts):
+  // V3 Strategy (Backend processing - like Auto Rename):
   // - Create task first (metadata only)
-  // - Upload files one by one sequentially with 1s delay
-  // - Use GlobalFloatingProgress for tracking
+  // - Send files to backend (backend stores them)
+  // - Call start-processing (backend processes in background via asyncio.create_task)
+  // - Frontend just polls status - no client-side scheduling!
   const uploadFolderWithProgress = async (folderName, filesToUpload) => {
     try {
-      console.log('📁 Starting folder upload V2...');
+      console.log('📁 Starting folder upload V3 (Backend Processing)...');
       console.log(`   Folder: ${folderName}, Files: ${filesToUpload.length}`);
       console.log(`   Ship ID: ${selectedShip?.id}`);
       
@@ -201,23 +201,26 @@ const AddOtherDocumentModal = ({
       });
       
       toast.info(language === 'vi'
-        ? `🚀 Đang upload ${filesToUpload.length} file trong nền...`
-        : `🚀 Uploading ${filesToUpload.length} files in background...`
+        ? `🚀 Đang gửi ${filesToUpload.length} file lên server...`
+        : `🚀 Sending ${filesToUpload.length} files to server...`
       );
       
-      // STEP 3: Start upload via singleton UploadManager
-      // IMPORTANT: Wait for files to be read into memory before closing modal
-      // This ensures file data persists even after navigation
-      console.log('📤 Reading files into memory...');
+      // STEP 3: Send files to backend (V3 - backend stores and processes)
+      // After this, backend will process in background - safe to navigate!
+      console.log('📤 Sending files to backend...');
       await uploadManager.startUpload({
         taskId,
         files: filesToUpload,
         apiEndpoint: '/api/other-documents/background-upload-folder/',
-        staggerDelayMs: 2000
+        staggerDelayMs: 100  // Small delay between sends
       });
-      console.log('📤 Files queued for upload, safe to navigate');
       
-      // Now close modal - uploads will continue in background
+      toast.success(language === 'vi'
+        ? `✅ Đã gửi xong! Backend đang xử lý ${filesToUpload.length} file...`
+        : `✅ All files sent! Backend processing ${filesToUpload.length} files...`
+      );
+      
+      // Now close modal - backend continues processing
       onClose();
       
     } catch (error) {
