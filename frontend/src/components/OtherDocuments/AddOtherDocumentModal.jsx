@@ -153,12 +153,12 @@ const AddOtherDocumentModal = ({
 
   // V3 Strategy (Backend processing - like Auto Rename):
   // - Create task first (metadata only)
-  // - Send files to backend (backend stores them)
-  // - Call start-processing (backend processes in background via asyncio.create_task)
-  // - Frontend just polls status - no client-side scheduling!
+  // - Send files to backend IN PARALLEL (non-blocking)
+  // - Backend processes in background via asyncio.create_task
+  // - Frontend just polls status - UI is NOT blocked!
   const uploadFolderWithProgress = async (folderName, filesToUpload) => {
     try {
-      console.log('📁 Starting folder upload V3 (Backend Processing)...');
+      console.log('📁 Starting folder upload V3 (Non-blocking)...');
       console.log(`   Folder: ${folderName}, Files: ${filesToUpload.length}`);
       console.log(`   Ship ID: ${selectedShip?.id}`);
       
@@ -201,26 +201,20 @@ const AddOtherDocumentModal = ({
       });
       
       toast.info(language === 'vi'
-        ? `🚀 Đang gửi ${filesToUpload.length} file lên server...`
-        : `🚀 Sending ${filesToUpload.length} files to server...`
+        ? `🚀 Đang upload ${filesToUpload.length} file trong nền...`
+        : `🚀 Uploading ${filesToUpload.length} files in background...`
       );
       
-      // STEP 3: Send files to backend (V3 - backend stores and processes)
-      // After this, backend will process in background - safe to navigate!
-      console.log('📤 Sending files to backend...');
-      await uploadManager.startUpload({
+      // STEP 3: Start upload in background (NON-BLOCKING)
+      // This returns immediately - upload continues in background
+      uploadManager.startUpload({
         taskId,
         files: filesToUpload,
         apiEndpoint: '/api/other-documents/background-upload-folder/',
-        staggerDelayMs: 100  // Small delay between sends
+        concurrentLimit: 5  // Upload 5 files at a time
       });
       
-      toast.success(language === 'vi'
-        ? `✅ Đã gửi xong! Backend đang xử lý ${filesToUpload.length} file...`
-        : `✅ All files sent! Backend processing ${filesToUpload.length} files...`
-      );
-      
-      // Now close modal - backend continues processing
+      // Close modal IMMEDIATELY - upload continues in background
       onClose();
       
     } catch (error) {
