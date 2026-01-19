@@ -247,7 +247,7 @@ async def upload_folder(
     """
     try:
         logger.info(f"📁 Uploading folder: {folder_name} with {len(files)} files for ship: {ship_id}")
-        logger.info(f"   🚀 Using parallel streaming upload (1s staggered delay)")
+        logger.info("   🚀 Using parallel streaming upload (1s staggered delay)")
         
         # Call service with streaming mode
         result = await OtherDocumentService.upload_folder_streaming(
